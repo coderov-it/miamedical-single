@@ -1,4 +1,5 @@
 import type { Database } from '@mia/db';
+import { P, can } from '@mia/permissions';
 import type { CreateProductInput, ProductQuery } from '@mia/validators';
 
 import type { SessionUser } from '../../shared/http/context.ts';
@@ -11,9 +12,8 @@ import type { ProductSummaryRow, ProductWithRelations } from './types.ts';
  * records so it stays transport-agnostic — routes.ts applies the mapper.
  */
 
-/** Staff and admins may see drafts and archived products; the public may not. */
-const canSeeHidden = (user: SessionUser | null): boolean =>
-  user?.role === 'admin' || user?.role === 'staff';
+/** Back-office users with product read access see drafts; the public does not. */
+const canSeeHidden = (user: SessionUser | null): boolean => can(user, P.PRODUCT_READ);
 
 export async function list(
   db: Database,

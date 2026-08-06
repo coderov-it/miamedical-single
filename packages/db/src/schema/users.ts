@@ -1,5 +1,14 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 import { addressKind, userRole } from './enums.ts';
 
@@ -8,13 +17,20 @@ export const users = pgTable(
   {
     id: uuid().primaryKey().defaultRandom(),
     email: text().notNull(),
-    /** Argon2id / scrypt hash. Null for OAuth-only accounts. */
+    /** scrypt hash, encoded by `shared/auth/password.ts`. Null = cannot log in. */
     passwordHash: text(),
     fullName: text(),
     phone: text(),
     role: userRole().notNull().default('customer'),
+    /**
+     * Permission codes from `@mia/permissions`. Deliberately an unindexed
+     * `int[]`: it is only ever read as part of loading the session user, never
+     * filtered on. Ignored entirely for `super_admin`.
+     */
+    permissions: integer().array().notNull().default([]),
     emailVerifiedAt: timestamp({ withTimezone: true }),
     isActive: boolean().notNull().default(true),
+    lastLoginAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

@@ -27,6 +27,7 @@ apps/
                 see apps/server/AGENTS.md for module conventions
 packages/
   db/           Drizzle schema, client, migrations, seed
+  permissions/  Permission code catalog + checks, shared by server and admin
   validators/   Valibot schemas shared by every app
   tsconfig/     Shared TypeScript bases
 ```
@@ -42,8 +43,17 @@ pnpm install
 cp .env.example .env          # then edit AUTH_SECRET
 docker compose up -d          # PostgreSQL 18 on :5432
 pnpm -w run db:migrate
-pnpm -w run db:seed           # optional demo catalog
+pnpm -w run db:seed           # demo catalog + a local super admin
 pnpm dev                      # all three apps via Turborepo
+```
+
+The seed creates `admin@miamedical.local` / `localdev-password` for the admin
+panel (development only — it refuses to run when `NODE_ENV=production`). Real
+accounts are created with:
+
+```bash
+ADMIN_PASSWORD='…' pnpm --filter @mia/server admin:create -- \
+  --email ops@miamedical.com --name 'Ops' --role super_admin
 ```
 
 | App     | URL                                     |
@@ -65,6 +75,25 @@ pnpm dev                      # all three apps via Turborepo
 | `pnpm -w run db:push`     | Push schema without a migration (dev only)                    |
 | `pnpm -w run db:studio`   | Drizzle Studio                                                |
 | `pnpm -w run db:seed`     | Seed demo data                                                |
+
+## Access control
+
+The storefront takes orders **without accounts** — there is no customer login.
+Every `users` row is a back-office account for the admin panel.
+
+Permissions are **numbers**, defined once in
+[packages/permissions/src/catalog.ts](packages/permissions/src/catalog.ts) and
+stored as an `int[]` on the user. `order:update` is a label for humans; `1101` is
+what is stored and compared:
+
+```ts
+import { P } from '@mia/permissions';
+
+.post('/', requirePermission(P.PRODUCT_CREATE), …)   // integer check, no decoding
+```
+
+`super_admin` bypasses every check. A code is permanent once shipped — never
+renumber or reuse one, since existing rows already hold the old number.
 
 ## Conventions worth knowing
 
@@ -153,10 +182,10 @@ the raw value only ever lives in the client's cookie.
 
 The scaffold ships working products routes end to end. Still to build:
 
-- `apps/server/src/modules/auth/` — register/login/logout (schemas already in `@mia/validators`)
+- `apps/server/src/modules/access/` — admin user CRUD and a permission editor UI
+  (the catalog, storage and guards are already in place)
 - `apps/server/src/modules/cart/` and `orders/`
 - `apps/server/src/modules/payments/`, `users/`, `settings/`, `webhooks/`
 - `infra/` adapters: `cache/`, `mail/`, `storage/`, `swagger/`
-- Password hashing (argon2id), rate limiting on auth routes
 - Payment provider integration
 - Product image uploads

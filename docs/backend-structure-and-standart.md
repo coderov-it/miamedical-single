@@ -40,7 +40,8 @@ apps/server/
 ├── turbo.json
 ├── AGENTS.md                     App-scoped agent rules (short form of this doc)
 ├── script/                       One-off CLI scripts
-│   └── seed.ts
+│   ├── seed.ts
+│   └── create-admin.ts          Bootstrap a back-office account
 └── src/
     ├── index.ts                  Process entry — serve() + signal handling only
     ├── app.ts                    Hono composition, global middleware, mounting
@@ -57,6 +58,7 @@ apps/server/
     │   └── swagger/               (pending)
     │
     ├── modules/                  One folder per business capability
+    │   ├── auth/                 Login, logout, /me, password change
     │   ├── health/routes.ts
     │   └── products/             ← reference implementation
     │       ├── types.ts
@@ -69,22 +71,25 @@ apps/server/
     │
     └── shared/                   Reusable cross-module capabilities
         ├── auth/
-        │   ├── session.ts        withSession, hashToken, SESSION_COOKIE
-        │   └── guards.ts         requireAuth, requireRole
+        │   ├── session.ts        withSession, cookie helpers, hashToken
+        │   ├── password.ts       Argon2id hash / verify / needsRehash
+        │   └── guards.ts         requireAuth, requireRole, requirePermission
         └── http/
             ├── context.ts        AppEnv, SessionUser
             ├── errors.ts         httpError + named constructors
             ├── error-handler.ts  onError, onNotFound
+            ├── rate-limit.ts     In-process fixed-window limiter
             └── validate.ts       validate() wrapper around vValidator
 ```
 
 Sibling packages the server consumes:
 
-| Package           | Contains                                   |
-| ----------------- | ------------------------------------------ |
-| `@mia/db`         | Drizzle schema, client factory, migrations |
-| `@mia/validators` | Valibot schemas shared with the frontends  |
-| `@mia/tsconfig`   | Shared TS bases                            |
+| Package            | Contains                                   |
+| ------------------ | ------------------------------------------ |
+| `@mia/db`          | Drizzle schema, client factory, migrations |
+| `@mia/permissions` | Permission code catalog and `can()` checks |
+| `@mia/validators`  | Valibot schemas shared with the frontends  |
+| `@mia/tsconfig`    | Shared TS bases                            |
 
 ---
 
@@ -335,15 +340,59 @@ which re-exports the shared ones so routes have a single import source.
 
 ### 6.3 Auth
 
+The storefront is **anonymous** — orders are placed without an account. Every
+`users` row is a back-office account, and `modules/auth` exists only to sign
+those people in.
+
 - `shared/auth/session.ts` — `withSession` resolves the user onto the context
-  and **never rejects**.
-- `shared/auth/guards.ts` — `requireAuth`, `requireRole(...roles)` reject.
+  and **never rejects**. Also owns the cookie: `setSessionCookie`,
+  `clearSessionCookie`, `createSessionToken`.
+- `shared/auth/password.ts` — Argon2id via `@node-rs/argon2` (prebuilt binary,
+  nothing to compile). Hashes are PHC strings, so the cost parameters travel
+  with the value and `needsRehash` upgrades old ones at next login.
+- `shared/auth/guards.ts` — `requireAuth`, `requireRole(...roles)`,
+  `requirePermission(...codes)`, `requireAnyPermission(...codes)`, and
+  `currentUser(c)` for handlers behind `requireAuth`.
 
 Session tokens are stored **hashed**: `sessions.id` holds a SHA-256 of the
-token; the raw value exists only in the client cookie.
+token; the raw value exists only in the client cookie (`httpOnly`, `SameSite`
+from `AUTH_COOKIE_SAMESITE`, `Secure` in production).
+
+Login is rate limited per IP (`shared/http/rate-limit.ts`, in-process). Failures
+count; successes are refunded, so an office behind one NAT address cannot lock
+itself out. Move the counter to `infra/cache/` before running more than one
+instance.
 
 Authorisation decisions belong in `service.ts`, not in route guards, whenever
 the answer depends on the resource rather than the role alone.
+
+### 6.3.1 Permissions
+
+`@mia/permissions` is the single catalog, shared by the server and the admin UI.
+
+**A permission is a number.** `users.permissions` is an unindexed `int[]`, and
+every check is an integer comparison — the `order:update` string exists so a
+human can read and assign it, and is never decoded at runtime or in SQL.
+
+```ts
+import { P } from '@mia/permissions';
+
+.post('/', requirePermission(P.PRODUCT_CREATE), …)   // compiles to 1202
+```
+
+`super_admin` bypasses every check and ignores its `permissions` column; there
+must always be at least one, or nobody can grant permissions again.
+
+Codes are laid out in blocks of 100 per capability area (`1100` orders, `1200`
+products, …), with `+0` read, `+1` update, `+2` create, `+3` delete and `+10…`
+for area-specific actions. **A code is permanent**: never renumber it, never
+reuse a retired one — existing rows already hold the old number. Retiring one
+means deleting the entry; `normalizePermissions` drops codes that no longer
+exist, so no migration is needed.
+
+The first `super_admin` is created with
+`pnpm --filter @mia/server admin:create`. There is deliberately no self-service
+registration.
 
 ### 6.4 Money
 
@@ -487,6 +536,17 @@ there is no `.js` output for a `.js` specifier to refer to;
 | `pnpm -w run db:migrate`          | Apply migrations                          |
 | `pnpm -w run db:seed`             | `apps/server/script/seed.ts`              |
 
+Creating the first back-office account:
+
+```bash
+ADMIN_PASSWORD='…' pnpm --filter @mia/server admin:create -- \
+  --email ops@miamedical.com --name 'Ops' --role super_admin
+```
+
+Omit `ADMIN_PASSWORD` to be prompted without echo. The password is never passed
+as an argument — arguments land in shell history and in `ps` output. Non-super
+roles take `--permissions 1100,1101` (codes, comma separated).
+
 ---
 
 ## 11. Deployment
@@ -538,8 +598,8 @@ Testability is a consequence of the layering, not of mocks:
    the call site.
 6. Confirm the build emits `dist/<name>.js`.
 
-Modules still to build: `access`, `auth`, `cart`, `media`, `notifications`,
-`orders`, `payments`, `settings`, `users`, `webhooks`.
+Modules still to build: `access`, `cart`, `media`, `notifications`, `orders`,
+`payments`, `settings`, `users`, `webhooks`.
 Infra adapters still to build: `cache`, `mail`, `media`, `storage`, `swagger`.
 
 ---
@@ -553,5 +613,11 @@ Infra adapters still to build: `cache`, `mail`, `media`, `storage`, `swagger`.
 - **Price sorting.** `repo.ORDER_BY.price_asc/price_desc` currently fall back to
   `createdAt`; correct ordering needs a variant join or a denormalised
   `min_price_cents` column.
-- **Password hashing** (argon2id) and **rate limiting** on auth routes are not
-  yet implemented.
+- **Admin user management.** The `access` module — listing back-office users and
+  editing their permission arrays from the UI — is not built yet. Until it is,
+  accounts are provisioned with `script/create-admin.ts`. The permission catalog,
+  storage and guards are already in place, so this is CRUD over
+  `users.permissions` plus a picker built from `permissionsByGroup()`.
+- **Rate-limit storage.** The login limiter is per-process (§6.3). Multiple
+  instances divide the effective limit; move it to `infra/cache/` when scaling
+  horizontally.

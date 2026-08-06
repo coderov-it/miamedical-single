@@ -1,7 +1,8 @@
-import { createDatabase } from '@mia/db';
+import { createDatabase, eq } from '@mia/db';
 import { categories, productCategories, productVariants, products, users } from '@mia/db/schema';
 
 import { env } from '../src/config/env.ts';
+import { hashPassword } from '../src/shared/auth/password.ts';
 
 const db = createDatabase({ url: env.DATABASE_URL, logger: false });
 
@@ -97,17 +98,33 @@ for (const spec of PRODUCTS) {
   console.log(`  ✓ ${spec.name}`);
 }
 
-// A staff account for the admin panel. Replace the hash with a real one
-// (argon2id) before using this anywhere but local development.
-await db
-  .insert(users)
-  .values({
-    email: 'admin@miamedical.local',
-    fullName: 'Admin',
-    role: 'admin',
-    passwordHash: null,
-  })
-  .onConflictDoNothing();
+// A super admin for local development. Production accounts are created with
+// `pnpm --filter @mia/server admin:create`, which never takes a default password.
+if (env.NODE_ENV === 'production') {
+  console.log('  · skipping the development super admin (NODE_ENV=production)');
+} else {
+  const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@miamedical.local';
+  const passwordHash = await hashPassword(process.env.SEED_ADMIN_PASSWORD ?? 'localdev-password');
+
+  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+
+  if (existing) {
+    await db
+      .update(users)
+      .set({ passwordHash, role: 'super_admin', isActive: true })
+      .where(eq(users.id, existing.id));
+  } else {
+    await db.insert(users).values({
+      email,
+      fullName: 'Super Admin',
+      role: 'super_admin',
+      passwordHash,
+      emailVerifiedAt: new Date(),
+    });
+  }
+
+  console.log(`  ✓ super admin ${email}`);
+}
 
 console.log('Done.');
 process.exit(0);

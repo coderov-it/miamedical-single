@@ -12,13 +12,16 @@
     "start": "node --env-file-if-exists=../../.env dist/index.js",
     "check": "tsc --noEmit",
     "clean": "rm -rf .turbo dist node_modules",
-    "seed": "tsx --env-file-if-exists=../../.env script/seed.ts"
+    "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
+    "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts"
   },
   "dependencies": {
     "@hono/node-server": "catalog:",
     "@hono/valibot-validator": "catalog:",
     "@mia/db": "workspace:*",
+    "@mia/permissions": "workspace:*",
     "@mia/validators": "workspace:*",
+    "@node-rs/argon2": "catalog:",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "postgres": "catalog:",
