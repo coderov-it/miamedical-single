@@ -11,6 +11,7 @@
     "clean": "rm -rf .turbo dist node_modules"
   },
   "dependencies": {
+    "@mia/permissions": "workspace:*",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",
     "hono": "catalog:",

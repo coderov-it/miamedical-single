@@ -7,6 +7,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { authRoutes } from './modules/auth/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
 import { productRoutes } from './modules/products/routes.ts';
 import { withSession } from './shared/auth/session.ts';
@@ -38,7 +39,10 @@ app.use('/api/*', withSession);
  * Module mounting. Chained `.route()` calls preserve the literal route types,
  * which is what makes the `hc<AppType>` RPC client on the frontends fully typed.
  */
-const routes = app.route('/health', healthRoutes).route('/api/products', productRoutes);
+const routes = app
+  .route('/health', healthRoutes)
+  .route('/api/auth', authRoutes)
+  .route('/api/products', productRoutes);
 
 app.onError(onError);
 app.notFound(onNotFound);

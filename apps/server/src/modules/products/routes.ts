@@ -1,6 +1,7 @@
+import { P } from '@mia/permissions';
 import { Hono } from 'hono';
 
-import { requireRole } from '../../shared/auth/guards.ts';
+import { requirePermission } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
 import { validate } from '../../shared/http/validate.ts';
 import { toPageMeta, toProductDetail, toProductSummary } from './mapper.ts';
@@ -26,8 +27,13 @@ export const productRoutes = new Hono<AppEnv>()
     return c.json({ data: toProductDetail(product) });
   })
 
-  .post('/', requireRole('admin', 'staff'), validate('json', CreateProductSchema), async (c) => {
-    const product = await service.create(c.get('db'), c.req.valid('json'));
+  .post(
+    '/',
+    requirePermission(P.PRODUCT_CREATE),
+    validate('json', CreateProductSchema),
+    async (c) => {
+      const product = await service.create(c.get('db'), c.req.valid('json'));
 
-    return c.json({ data: toProductDetail(product) }, 201);
-  });
+      return c.json({ data: toProductDetail(product) }, 201);
+    },
+  );

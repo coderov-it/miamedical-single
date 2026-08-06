@@ -18,8 +18,10 @@ src/
     db/             Connection bridge to @mia/db (schema lives in the package)
   modules/          One folder per business capability
   shared/           Reusable cross-module capabilities
-    auth/           session.ts (resolve user), guards.ts (require*)
-    http/           context.ts, errors.ts, error-handler.ts, validate.ts
+    auth/           session.ts (resolve user + cookie), password.ts (Argon2id),
+                    guards.ts (require*)
+    http/           context.ts, errors.ts, error-handler.ts, validate.ts,
+                    rate-limit.ts
 script/             One-off CLI scripts (seed, admin bootstrap)
 ```
 
@@ -75,6 +77,12 @@ Split by capability, not by layer — a sub-folder owns a slice end to end.
 - **Hidden resources 404, not 403.** Existence is not public information.
 - **Cross-app contracts go in `@mia/validators`**, so the website and admin can
   reuse them. Module-only schemas stay in the module's `validators.ts`.
+- **Permissions are integers.** Guard routes with
+  `requirePermission(P.ORDER_UPDATE)` from `@mia/permissions` — never compare
+  the `order:update` string, and never decode a code in SQL. `super_admin`
+  bypasses every check. Codes are permanent: never renumber or reuse one.
+- **The storefront has no accounts.** Every `users` row is a back-office user;
+  `modules/auth` signs them in and nothing else. There is no registration route.
 - **Imports use `.ts` extensions.** Rolldown and Vite resolve them; `tsc` never
   emits.
 - Adding a runtime dependency to a `@mia/*` package? Declare it in this
@@ -83,9 +91,9 @@ Split by capability, not by layer — a sub-folder owns a slice end to end.
 
 ## Modules not yet built
 
-`access`, `auth`, `cart`, `media`, `notifications`, `orders`, `payments`,
-`settings`, `users`, `webhooks`. Follow the anatomy above when adding one, and
-mount it in `app.ts` with a chained `.route()` so RPC types stay inferred.
+`access`, `cart`, `media`, `notifications`, `orders`, `payments`, `settings`,
+`users`, `webhooks`. Follow the anatomy above when adding one, and mount it in
+`app.ts` with a chained `.route()` so RPC types stay inferred.
 
 Infra adapters still to add: `cache/`, `mail/`, `media/`, `storage/`,
 `swagger/`.
