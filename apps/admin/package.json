@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "svelte-kit sync",
     "dev": "vite --port 5173",
     "build": "vite build",
     "preview": "vite preview --port 5173",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
-    "clean": "rm -rf .turbo dist node_modules"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "clean": "rm -rf .turbo .svelte-kit dist node_modules"
   },
   "dependencies": {
     "@mia/permissions": "workspace:*",
@@ -20,6 +21,8 @@
   },
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",
+    "@sveltejs/adapter-static": "catalog:",
+    "@sveltejs/kit": "catalog:",
     "@sveltejs/vite-plugin-svelte": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@types/node": "catalog:",

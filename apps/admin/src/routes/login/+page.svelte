@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+
   import { session } from '~/lib/session.svelte';
 
   let email = $state('');
@@ -6,11 +9,28 @@
   let error = $state<string | null>(null);
   let submitting = $state(false);
 
+  /** Where the layout bounced them from. Relative paths only — never an open redirect. */
+  function destination() {
+    const next = page.url.searchParams.get('next');
+    return next && next.startsWith('/') ? next : '/';
+  }
+
+  // Nobody signed in should be looking at a sign-in form.
+  $effect(() => {
+    if (!session.loading && session.isAuthenticated) {
+      void goto(destination(), { replaceState: true });
+    }
+  });
+
   async function submit(event: SubmitEvent) {
     event.preventDefault();
     submitting = true;
     error = await session.login(email, password);
     submitting = false;
+
+    if (error) return;
+
+    await goto(destination());
   }
 </script>
 

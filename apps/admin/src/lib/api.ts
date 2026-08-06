@@ -1,7 +1,13 @@
 import type { AppType } from '@mia/server/types';
+import { env } from '$env/dynamic/public';
 import { hc } from 'hono/client';
 
-const baseUrl = import.meta.env.VITE_API_URL ?? '';
+// Deliberately NOT PUBLIC_API_URL — that is where the API lives, and the dev
+// proxy in vite.config.ts already points at it. The browser wants a *relative*
+// base so /api stays same-origin and the lax session cookie is actually sent.
+// Only set this when the admin is served from a different origin than the API,
+// which also needs AUTH_COOKIE_SAMESITE="none" and an entry in CORS_ORIGINS.
+const baseUrl = env.PUBLIC_ADMIN_API_URL ?? '';
 
 /** Same typed RPC client the website uses. Empty base URL → Vite proxies /api. */
 export const api = hc<AppType>(baseUrl, {

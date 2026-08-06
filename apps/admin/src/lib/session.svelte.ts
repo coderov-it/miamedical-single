@@ -16,6 +16,7 @@ type Me = InferResponseType<typeof api.api.auth.me.$get, 200>['data'];
 class Session {
   #user = $state<Me | null>(null);
   #loading = $state(true);
+  #pending: Promise<void> | null = null;
 
   get user() {
     return this.#user;
@@ -29,7 +30,20 @@ class Session {
     return this.#user !== null;
   }
 
-  /** Resolve the current session. Call once, at startup. */
+  /**
+   * Resolve the session at most once, and make every caller wait for the same
+   * request. The root layout calls this on boot; `loading` is what the auth
+   * conditionals render against until it settles.
+   *
+   * The promise — not a boolean — is what gets memoised: a flag set before the
+   * `await` would let a second caller through against a still-empty user.
+   */
+  ensureLoaded(): Promise<void> {
+    this.#pending ??= this.load();
+    return this.#pending;
+  }
+
+  /** Resolve the current session. Prefer `ensureLoaded()` outside of tests. */
   async load(): Promise<void> {
     this.#loading = true;
     try {
@@ -54,12 +68,16 @@ class Session {
     }
 
     this.#user = ((await response.json()) as { data: Me }).data;
+    // Already resolved — no guard should refetch `/me` right after a login.
+    this.#pending = Promise.resolve();
     return null;
   }
 
   async logout(): Promise<void> {
     await api.api.auth.logout.$post().catch(() => undefined);
     this.#user = null;
+    // Let the next guard refetch rather than trusting this cleared state.
+    this.#pending = null;
   }
 
   /** Integer permission check — pass a code from `@mia/permissions`. */

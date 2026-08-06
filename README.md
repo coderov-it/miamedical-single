@@ -5,24 +5,24 @@ Turborepo + pnpm workspaces.
 
 ## Stack
 
-| Layer      | Choice                                             |
-| ---------- | -------------------------------------------------- |
-| Website    | Astro 7 (static + on-demand SSR), Svelte islands   |
-| Admin      | Svelte 5 (runes) SPA on Vite 8                     |
-| Server     | Hono 4 on `@hono/node-server`                      |
-| Bundler    | Rolldown 1 (chunk per module + per package)        |
-| Styling    | Tailwind CSS 4 (CSS-first config)                  |
-| ORM        | Drizzle ORM + `postgres.js`                        |
-| Validation | Valibot 1 (shared between server and both clients) |
-| Monorepo   | Turborepo 2 + pnpm 11 workspaces & catalog         |
-| Language   | TypeScript 6                                       |
+| Layer      | Choice                                               |
+| ---------- | ---------------------------------------------------- |
+| Website    | Astro 7 (static + on-demand SSR), Svelte islands     |
+| Admin      | SvelteKit 2 SPA (`adapter-static`, no SSR) on Vite 8 |
+| Server     | Hono 4 on `@hono/node-server`                        |
+| Bundler    | Rolldown 1 (chunk per module + per package)          |
+| Styling    | Tailwind CSS 4 (CSS-first config)                    |
+| ORM        | Drizzle ORM + `postgres.js`                          |
+| Validation | Valibot 1 (shared between server and both clients)   |
+| Monorepo   | Turborepo 2 + pnpm 11 workspaces & catalog           |
+| Language   | TypeScript 6                                         |
 
 ## Layout
 
 ```text
 apps/
   website/      Astro — public catalog, SSR for dynamic pages
-  admin/        Svelte SPA — internal dashboard
+  admin/        SvelteKit SPA — internal dashboard, static build, no SSR
   server/       Hono — modular API, the only thing touching the DB
                 see apps/server/AGENTS.md for module conventions
 packages/
@@ -38,10 +38,19 @@ in exactly one place.
 
 ## Getting started
 
+Everything runs as a plain host process — no containers anywhere in this repo.
+You need a PostgreSQL 18 reachable at the `DATABASE_URL` in your `.env`; a
+shared instance on `localhost:5432` is the expected setup:
+
+```bash
+createdb -h localhost -U postgres miamedical   # once, against your running Postgres
+```
+
+Then:
+
 ```bash
 pnpm install
 cp .env.example .env          # then edit AUTH_SECRET
-docker compose up -d          # PostgreSQL 18 on :5432
 pnpm -w run db:migrate
 pnpm -w run db:seed           # demo catalog + a local super admin
 pnpm dev                      # all three apps via Turborepo
@@ -165,6 +174,35 @@ node dist/index.js                                       # from ./out
 `inject-workspace-packages=true`; that setting is deliberately off here, since it
 replaces workspace symlinks with copies and breaks watch-mode edits to
 `packages/*`. Nothing is lost — the workspace code is already inside the bundle.
+
+### Deploying the admin
+
+The admin is a SvelteKit app but **not** a SvelteKit server. `adapter-static`
+plus `ssr = false` in [`src/routes/+layout.ts`](apps/admin/src/routes/+layout.ts)
+emits `apps/admin/dist/` as plain files — an `index.html` and `_app/`, with no
+Node entry point. There is nothing to run.
+
+Because routing uses the History API rather than hashes, the host must serve
+`index.html` for paths that don't exist on disk, or a refresh on `/orders` 404s:
+
+```nginx
+location / {
+  root /srv/mia/admin/dist;
+  try_files $uri $uri/ /index.html;
+}
+
+# Keep /api on the same origin, so the lax session cookie is actually sent.
+location /api/ {
+  proxy_pass http://127.0.0.1:8787;
+}
+```
+
+That second block is the part worth not skipping. The session lives in an
+httpOnly `SameSite=lax` cookie, so if the admin is served from a different
+origin than the API the browser drops it on every request. Same-origin is the
+default and needs no extra config; a split-origin deployment additionally needs
+`PUBLIC_ADMIN_API_URL`, `AUTH_COOKIE_SAMESITE="none"` (HTTPS only) and the admin
+origin listed in `CORS_ORIGINS`.
 
 **Money is integer cents.** Never floats. `formatMoney()` handles display.
 

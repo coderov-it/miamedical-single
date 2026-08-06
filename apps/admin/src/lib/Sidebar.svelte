@@ -1,7 +1,8 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
 
-  import { router } from './router.svelte';
   import { session } from './session.svelte';
 
   // `permission` is what the matching API routes require, so a link is only
@@ -15,7 +16,15 @@
   const visible = $derived(links.filter((link) => session.can(link.permission)));
 
   function isActive(href: string) {
-    return href === '/' ? router.path === '/' : router.path.startsWith(href);
+    const path = page.url.pathname;
+    return href === '/' ? path === '/' : path.startsWith(href);
+  }
+
+  async function signOut() {
+    await session.logout();
+    // Clearing the user flips the layout's conditional on its own; this just
+    // puts the address bar somewhere sensible.
+    await goto('/login');
   }
 </script>
 
@@ -27,7 +36,7 @@
   <nav class="mt-4 flex flex-col gap-1">
     {#each visible as link (link.href)}
       <a
-        href={`#${link.href}`}
+        href={link.href}
         class="rounded-lg px-3 py-2 text-sm transition"
         class:bg-brand-600={isActive(link.href)}
         class:text-white={isActive(link.href)}
@@ -48,7 +57,7 @@
 
     <button
       type="button"
-      onclick={() => session.logout()}
+      onclick={signOut}
       class="mt-3 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
     >
       Sign out
