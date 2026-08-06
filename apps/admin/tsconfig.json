@@ -1,11 +1,10 @@
 {
-  "extends": "@mia/tsconfig/svelte.json",
-  "include": ["src/**/*.ts", "src/**/*.svelte", "vite.config.ts"],
-  "exclude": ["node_modules", "dist"],
+  // SvelteKit code-generates .svelte-kit/tsconfig.json (route `$types`, the `~`
+  // alias from svelte.config.js, and the include/exclude globs). It comes last
+  // so those win; the shared base still supplies the strictness settings.
+  // Run `svelte-kit sync` before tsc if .svelte-kit/ is missing.
+  "extends": ["@mia/tsconfig/svelte.json", "./.svelte-kit/tsconfig.json"],
   "compilerOptions": {
-    "types": ["svelte", "vite/client", "node"],
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "types": ["svelte", "vite/client", "node"]
   }
 }

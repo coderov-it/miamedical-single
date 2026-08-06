@@ -1,16 +1,9 @@
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [svelte(), tailwindcss()],
-
-  resolve: {
-    alias: {
-      '~': fileURLToPath(new URL('./src', import.meta.url)),
-    },
-  },
+  plugins: [sveltekit(), tailwindcss()],
 
   server: {
     port: 5173,
@@ -23,7 +16,6 @@ export default defineConfig({
   },
 
   build: {
-    target: 'es2023',
     sourcemap: true,
   },
 });

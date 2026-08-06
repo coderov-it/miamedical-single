@@ -6,8 +6,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["DATABASE_URL", "PUBLIC_API_URL", "PUBLIC_SITE_URL"],
-      "outputs": ["dist/**", ".astro/**", "!.astro/cache/**"]
+      "env": ["DATABASE_URL", "PUBLIC_API_URL", "PUBLIC_ADMIN_API_URL", "PUBLIC_SITE_URL"],
+      "outputs": ["dist/**", ".astro/**", "!.astro/cache/**", ".svelte-kit/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
