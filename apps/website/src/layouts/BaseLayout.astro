@@ -1,0 +1,52 @@
+---
+import '~/styles/global.css';
+
+interface Props {
+  title: string;
+  // `| undefined` is required under exactOptionalPropertyTypes so callers can
+  // pass a value that may be nullish without an extra guard at every call site.
+  description?: string | undefined;
+  noindex?: boolean | undefined;
+}
+
+const { title, description = 'Medical supplies and equipment.', noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical.href} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical.href} />
+  </head>
+  <body class="flex min-h-dvh flex-col">
+    <header class="border-b border-neutral-200 dark:border-neutral-800">
+      <nav class="container-page flex h-16 items-center justify-between">
+        <a href="/" class="text-lg font-semibold tracking-tight">Mia Medical</a>
+        <div class="flex items-center gap-6 text-sm">
+          <a href="/products" class="hover:text-brand-600">Products</a>
+          <a href="/cart" class="hover:text-brand-600">Cart</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-page flex-1 py-10">
+      <slot />
+    </main>
+
+    <footer
+      class="border-t border-neutral-200 py-8 text-sm text-neutral-500 dark:border-neutral-800"
+    >
+      <div class="container-page">© {new Date().getFullYear()} Mia Medical</div>
+    </footer>
+  </body>
+</html>

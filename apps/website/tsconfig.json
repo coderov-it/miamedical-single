@@ -1,0 +1,10 @@
+{
+  "extends": ["astro/tsconfigs/strict", "@mia/tsconfig/base.json"],
+  "include": [".astro/types.d.ts", "**/*.ts", "**/*.astro", "**/*.svelte"],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  }
+}

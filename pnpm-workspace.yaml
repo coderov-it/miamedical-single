@@ -1,0 +1,59 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Single source of truth for versions across every workspace package.
+# Reference from any package.json with "catalog:".
+catalog:
+  # --- build / tooling ---
+  turbo: ^2.10.8
+  typescript: ^6.0.3
+  vite: ^8.2.0
+  '@types/node': ^26.1.2
+  tsx: ^4.23.9
+  prettier: ^3.9.6
+  prettier-plugin-astro: ^0.14.1
+  prettier-plugin-svelte: ^4.1.1
+  prettier-plugin-tailwindcss: ^0.8.1
+  vitest: ^4.1.10
+
+  # --- astro storefront ---
+  astro: ^7.2.0
+  '@astrojs/node': ^11.1.0
+  '@astrojs/svelte': ^9.0.1
+  '@astrojs/check': ^0.9.10
+  '@astrojs/sitemap': ^3.6.0
+
+  # --- svelte admin ---
+  svelte: ^5.56.8
+  '@sveltejs/vite-plugin-svelte': ^7.2.0
+  svelte-check: ^4.7.4
+
+  # --- styling ---
+  tailwindcss: ^4.3.3
+  '@tailwindcss/vite': ^4.3.3
+
+  # --- server ---
+  rolldown: ^1.2.3
+  hono: ^4.13.0
+  '@hono/node-server': ^2.1.0
+  '@hono/valibot-validator': ^0.6.1
+
+  # --- data ---
+  'drizzle-orm': ^0.45.2
+  'drizzle-kit': ^0.31.10
+  'drizzle-valibot': ^0.4.2
+  postgres: ^3.4.9
+
+  # --- validation ---
+  valibot: ^1.4.2
+
+minimumReleaseAgeExclude:
+  - '@astrojs/node@11.1.0'
+  - astro@7.2.0
+  - tsx@4.23.9
+
+# Postinstall scripts are blocked by default; approve them explicitly here.
+allowBuilds:
+  esbuild: true
+  sharp: true

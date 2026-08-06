@@ -1,0 +1,21 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+// Prerendered at build time (the project default) — this page ships zero JS
+// and is served straight from disk / CDN.
+---
+
+<BaseLayout title="Mia Medical — Trusted medical supplies">
+  <section class="py-16 text-center">
+    <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Medical supplies you can rely on</h1>
+    <p class="mx-auto mt-4 max-w-2xl text-lg text-neutral-600 dark:text-neutral-400">
+      Certified equipment and consumables, shipped fast.
+    </p>
+    <a
+      href="/products"
+      class="bg-brand-600 hover:bg-brand-700 mt-8 inline-block rounded-lg px-6 py-3 font-medium text-white transition"
+    >
+      Browse the catalog
+    </a>
+  </section>
+</BaseLayout>

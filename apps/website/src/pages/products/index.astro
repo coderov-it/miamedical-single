@@ -1,0 +1,58 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { api, formatMoney } from '~/lib/api';
+
+// Rendered on demand: the listing reflects live stock, price and search state.
+export const prerender = false;
+
+const q = Astro.url.searchParams.get('q') ?? '';
+const page = Astro.url.searchParams.get('page') ?? '1';
+
+const response = await api.api.products.$get({ query: q ? { q, page } : { page } });
+if (!response.ok) {
+  throw new Error(`Failed to load products (${response.status})`);
+}
+const { data: products, meta } = await response.json();
+---
+
+<BaseLayout title="Products — Mia Medical" description="Browse our full catalog.">
+  <div class="mb-8 flex items-center justify-between gap-4">
+    <h1 class="text-2xl font-semibold">Products</h1>
+    <form method="get" class="flex gap-2">
+      <input
+        type="search"
+        name="q"
+        value={q}
+        placeholder="Search…"
+        class="focus:border-brand-500 rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+      />
+      <button class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm text-white">
+        Search
+      </button>
+    </form>
+  </div>
+
+  {
+    products.length === 0 ? (
+      <p class="text-neutral-500">No products matched your search.</p>
+    ) : (
+      <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {products.map((product) => (
+          <li class="rounded-card border border-neutral-200 p-4 transition hover:shadow-md dark:border-neutral-800">
+            <a href={`/products/${product.slug}`} class="block">
+              <h2 class="font-medium">{product.name}</h2>
+              {product.brand && <p class="text-sm text-neutral-500">{product.brand}</p>}
+              <p class="mt-2 font-semibold">
+                {product.priceFrom
+                  ? formatMoney(product.priceFrom.cents, product.priceFrom.currency)
+                  : '—'}
+              </p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <p class="mt-8 text-sm text-neutral-500">Showing page {meta.page} of {meta.pageCount}</p>
+</BaseLayout>
