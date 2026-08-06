@@ -1,0 +1,32 @@
+{
+  "name": "@mia/website",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4321",
+    "build": "astro build",
+    "preview": "node --env-file-if-exists=../../.env ./dist/server/entry.mjs",
+    "check": "astro check",
+    "astro": "astro",
+    "clean": "rm -rf .turbo .astro dist node_modules"
+  },
+  "dependencies": {
+    "@astrojs/node": "catalog:",
+    "@astrojs/sitemap": "catalog:",
+    "@astrojs/svelte": "catalog:",
+    "@mia/server": "workspace:*",
+    "@mia/validators": "workspace:*",
+    "@tailwindcss/vite": "catalog:",
+    "astro": "catalog:",
+    "hono": "catalog:",
+    "svelte": "catalog:",
+    "tailwindcss": "catalog:"
+  },
+  "devDependencies": {
+    "@astrojs/check": "catalog:",
+    "@mia/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "miamedical",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "preview": "turbo run preview",
+    "check": "turbo run check",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md,astro,svelte,css,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md,astro,svelte,css,yaml,yml}\"",
+    "db:generate": "pnpm --filter @mia/db run generate",
+    "db:migrate": "pnpm --filter @mia/db run migrate",
+    "db:push": "pnpm --filter @mia/db run push",
+    "db:studio": "pnpm --filter @mia/db run studio",
+    "db:seed": "pnpm --filter @mia/server run seed"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-astro": "catalog:",
+    "prettier-plugin-svelte": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  }
+}

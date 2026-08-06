@@ -1,0 +1,8 @@
+node_modules
+dist
+.turbo
+.astro
+.svelte-kit
+pnpm-lock.yaml
+coverage
+packages/db/drizzle

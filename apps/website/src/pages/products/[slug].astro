@@ -1,0 +1,49 @@
+---
+import AddToCart from '~/components/AddToCart.svelte';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { api, formatMoney } from '~/lib/api';
+
+// On-demand so stock and pricing are never stale. Switch to `true` plus
+// `getStaticPaths()` if you'd rather prerender the whole catalog at build time.
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+const response = await api.api.products[':slug'].$get({ param: { slug: slug! } });
+
+if (!response.ok) {
+  return Astro.rewrite('/404');
+}
+
+const { data: product } = await response.json();
+const variant = product.variants[0];
+---
+
+<BaseLayout title={`${product.name} — Mia Medical`} description={product.description ?? undefined}>
+  <article class="grid gap-10 lg:grid-cols-2">
+    <div class="rounded-card aspect-square bg-neutral-100 dark:bg-neutral-900"></div>
+
+    <div>
+      {product.brand && <p class="text-sm text-neutral-500">{product.brand}</p>}
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight">{product.name}</h1>
+      {
+        variant && (
+          <p class="mt-4 text-2xl font-semibold">
+            {formatMoney(variant.price.cents, variant.price.currency)}
+          </p>
+        )
+      }
+
+      {
+        product.description && (
+          <p class="mt-6 leading-relaxed text-neutral-600 dark:text-neutral-400">
+            {product.description}
+          </p>
+        )
+      }
+
+      {/* Island: only this component ships JS, and only once it's visible. */}
+      {variant && <AddToCart client:visible variantId={variant.id} inStock={variant.inStock} />}
+    </div>
+  </article>
+</BaseLayout>

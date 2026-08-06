@@ -1,0 +1,30 @@
+{
+  "name": "@mia/admin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --port 5173",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "clean": "rm -rf .turbo dist node_modules"
+  },
+  "dependencies": {
+    "@mia/server": "workspace:*",
+    "@mia/validators": "workspace:*",
+    "hono": "catalog:",
+    "svelte": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@mia/tsconfig": "workspace:*",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

@@ -1,0 +1,557 @@
+# Backend Structure & Standard
+
+Reference record of how `apps/server` is organised and why. Written to be reused
+on future projects — anything project-specific (the `@mia/` scope, table names)
+is called out as such.
+
+**Stack:** Hono 4 · Drizzle ORM + PostgreSQL · Valibot · Rolldown · TypeScript 6
+(`noEmit`) · pnpm workspaces + Turborepo.
+
+**Status:** `products` and `health` are implemented end to end and verified
+against a live database. Remaining modules are listed in §13.
+
+---
+
+## 1. Principles
+
+1. **One process owns the database.** Only the server imports `@mia/db`.
+   Frontends talk to it over the typed RPC client. There is exactly one place
+   where a query can be written.
+2. **Layers depend inward, never outward.** `routes → service → repo`. A repo
+   never knows about HTTP; a service never imports `hono`.
+3. **The wire is a contract, not a projection of the schema.** Database rows
+   never reach a client. DTOs are hand-written and mapped explicitly.
+4. **Modules are vertical.** A module owns its data access, policy, contracts
+   and endpoints. Splitting happens by capability, never by layer.
+5. **Flat until it hurts.** A module stays as single files until they stop
+   fitting; only then does it split into sub-folders.
+6. **Fail loudly at the boundary.** Env is validated at import. Input is
+   validated at the edge. Both crash or 4xx immediately rather than degrading.
+
+---
+
+## 2. Directory structure
+
+```text
+apps/server/
+├── package.json
+├── tsconfig.json
+├── rolldown.config.ts
+├── turbo.json
+├── AGENTS.md                     App-scoped agent rules (short form of this doc)
+├── script/                       One-off CLI scripts
+│   └── seed.ts
+└── src/
+    ├── index.ts                  Process entry — serve() + signal handling only
+    ├── app.ts                    Hono composition, global middleware, mounting
+    │
+    ├── config/
+    │   └── env.ts                Parsed, validated environment
+    │
+    ├── infra/                    Infrastructure adapters — never feature policy
+    │   ├── cache/                 (pending)
+    │   ├── db/client.ts          Connection bridge to @mia/db
+    │   ├── mail/                  (pending)
+    │   ├── media/                 (pending)
+    │   ├── storage/               (pending)
+    │   └── swagger/               (pending)
+    │
+    ├── modules/                  One folder per business capability
+    │   ├── health/routes.ts
+    │   └── products/             ← reference implementation
+    │       ├── types.ts
+    │       ├── dto.ts
+    │       ├── mapper.ts
+    │       ├── validators.ts
+    │       ├── repo.ts
+    │       ├── service.ts
+    │       └── routes.ts
+    │
+    └── shared/                   Reusable cross-module capabilities
+        ├── auth/
+        │   ├── session.ts        withSession, hashToken, SESSION_COOKIE
+        │   └── guards.ts         requireAuth, requireRole
+        └── http/
+            ├── context.ts        AppEnv, SessionUser
+            ├── errors.ts         httpError + named constructors
+            ├── error-handler.ts  onError, onNotFound
+            └── validate.ts       validate() wrapper around vValidator
+```
+
+Sibling packages the server consumes:
+
+| Package           | Contains                                   |
+| ----------------- | ------------------------------------------ |
+| `@mia/db`         | Drizzle schema, client factory, migrations |
+| `@mia/validators` | Valibot schemas shared with the frontends  |
+| `@mia/tsconfig`   | Shared TS bases                            |
+
+---
+
+## 3. Layers and dependency direction
+
+```text
+        HTTP
+         │
+      routes.ts ──────────► mapper.ts ──► dto.ts
+         │                      ▲
+         ▼                      │
+      service.ts ──────────► types.ts
+         │                      ▲
+         ▼                      │
+       repo.ts ─────────────────┘
+         │
+      @mia/db  (schema + query builder)
+```
+
+Enforced rules:
+
+- `repo.ts` **must not** import `service.ts` or anything from `shared/http`.
+- `service.ts` **must not** import `hono`. It receives `Database` and plain
+  arguments, which is what makes it unit-testable without a server.
+- `routes.ts` **must not** contain business rules. Validate, delegate, map.
+- `@mia/db` **must not** be imported outside `infra/` and `modules/*/repo.ts`.
+  (`shared/auth/session.ts` is the one deliberate exception — session lookup is
+  cross-cutting and has no owning module.)
+
+---
+
+## 4. Module anatomy
+
+| File            | Responsibility                                         |
+| --------------- | ------------------------------------------------------ |
+| `types.ts`      | Internal records and domain types. Not wire types.     |
+| `dto.ts`        | Network request/response contracts. What clients see.  |
+| `mapper.ts`     | Record → DTO. Pure functions, no IO.                   |
+| `validators.ts` | Runtime schemas; re-exports shared ones.               |
+| `repo.ts`       | DB queries. Returns plain records. No auth, no DTOs.   |
+| `service.ts`    | Business orchestration and policy. Transport-agnostic. |
+| `routes.ts`     | HTTP edge: validate → service → mapper.                |
+| `guards.ts`     | _optional_ — module-owned auth preHandlers.            |
+| `gateways.ts`   | _optional_ — ports/adapters for external providers.    |
+| `contracts.ts`  | _optional_ — module-specific contract helpers.         |
+| `*.test.ts`     | Colocated with the unit under test.                    |
+
+### 4.1 `types.ts` — derive records from the schema
+
+Never hand-maintain a shape that the database already defines:
+
+```ts
+export type ProductRow = typeof products.$inferSelect;
+export type VariantRow = typeof productVariants.$inferSelect;
+
+export interface ProductWithRelations extends ProductRow {
+  variants: VariantRow[];
+  images: ImageRow[];
+  categories: { category: CategoryRow }[];
+}
+```
+
+Filter objects passed into the repo also live here, and carry policy decisions
+already resolved — the repo never inspects auth state:
+
+```ts
+export interface ProductListFilters {
+  page: number;
+  perPage: number;
+  sort: ProductSort;
+  /** Set by the service from the caller's role. */
+  includeNonActive: boolean;
+}
+```
+
+### 4.2 `dto.ts` — the wire contract
+
+Hand-written. Composite values get their own type rather than parallel fields:
+
+```ts
+export interface MoneyDto {
+  cents: number;
+  currency: string;
+}
+
+export interface ProductSummaryDto {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string | null;
+  status: 'draft' | 'active' | 'archived';
+  priceFrom: MoneyDto | null;
+  variantCount: number;
+  image: ImageDto | null;
+}
+```
+
+Note what is **absent**: `createdAt`, `updatedAt`, `metadata`, `productId`.
+Those are internal. Returning rows directly leaks all of them — this is the
+single most common defect this layer prevents.
+
+### 4.3 `mapper.ts` — pure transforms
+
+No IO, no `async`, no imports from `service`/`repo`. Derived values are computed
+here, not stored on the DTO by the caller:
+
+```ts
+export function toProductSummary(row: ProductSummaryRow): ProductSummaryDto {
+  const cheapest = row.variants.reduce<VariantRow | null>(
+    (lowest, v) => (lowest === null || v.priceCents < lowest.priceCents ? v : lowest),
+    null,
+  );
+  return {
+    /* … */
+    priceFrom: cheapest ? money(cheapest.priceCents, cheapest.currency) : null,
+    variantCount: row.variants.length,
+    image: row.images[0] ? toImage(row.images[0]) : null,
+  };
+}
+```
+
+### 4.4 `repo.ts` — data access only
+
+Takes `Database` as its first argument. Returns records. Builds `where` clauses
+from the filter object, never from a request or a user:
+
+```ts
+export async function findMany(
+  db: Database,
+  filters: ProductListFilters,
+): Promise<{ rows: ProductSummaryRow[]; total: number }>;
+```
+
+Multi-statement writes go in a transaction inside the repo:
+
+```ts
+export async function create(db: Database, data: CreateProductData) {
+  return db.transaction(async (tx) => {
+    /* insert product, then variants */
+  });
+}
+```
+
+### 4.5 `service.ts` — policy
+
+Owns visibility rules, invariants and cross-repo orchestration. Throws domain
+errors from `shared/http/errors.ts`:
+
+```ts
+const canSeeHidden = (user: SessionUser | null) => user?.role === 'admin' || user?.role === 'staff';
+
+export async function getBySlug(db: Database, slug: string, user: SessionUser | null) {
+  const product = await repo.findBySlug(db, slug);
+  if (!product || (product.status !== 'active' && !canSeeHidden(user))) {
+    // Deliberately 404, not 403 — a hidden product's existence is not public.
+    throw notFound('Product');
+  }
+  return product;
+}
+```
+
+### 4.6 `routes.ts` — thin edge
+
+```ts
+export const productRoutes = new Hono<AppEnv>().get(
+  '/',
+  validate('query', ProductQuerySchema),
+  async (c) => {
+    const query = c.req.valid('query');
+    const { rows, total } = await service.list(c.get('db'), query, c.get('user'));
+    return c.json({
+      data: rows.map(toProductSummary),
+      meta: toPageMeta(query.page, query.perPage, total),
+    });
+  },
+);
+```
+
+Routers are **chained** (`.get().get().post()`) and mounted chained in `app.ts`.
+Breaking the chain into statements loses the literal route types and silently
+degrades the frontends' RPC client to `any`.
+
+---
+
+## 5. Splitting a large module
+
+When services and routes stop fitting in one file, split into **capability
+sub-folders** and keep shared contracts at the module root:
+
+```text
+modules/products/
+├── catalog/          repo.ts service.ts routes.ts service.test.ts
+├── categories/       repo.ts service.ts routes.ts
+├── moderation/       relevance.ts service.ts routes.ts service.test.ts
+├── questions/        answers.ts answers.test.ts validators.ts
+├── specs/            fields.ts fields.test.ts validators.ts
+├── variants/         identity.ts
+├── testing/          fixtures.ts
+├── dto.ts            ← shared contracts stay at the root
+├── mapper.ts
+├── types.ts
+├── validators.ts
+├── guards.ts
+└── schema-primitives.ts
+```
+
+Split by capability (a vertical slice owning its own repo→service→routes), not
+by layer. A `repos/` or `services/` folder is an anti-pattern here.
+
+---
+
+## 6. Cross-cutting contracts
+
+### 6.1 Errors
+
+One envelope everywhere:
+
+```jsonc
+{ "error": { "code": "validation_failed", "message": "Invalid query.", "fields": { … } } }
+```
+
+Constructors in `shared/http/errors.ts`: `notFound`, `unauthorized`,
+`forbidden`, `conflict`, plus `httpError(status, message, code?, extra?)`.
+Handlers `throw` them; `error-handler.ts` renders. Unhandled errors log with the
+request id and return a generic message in production.
+
+### 6.2 Validation
+
+`shared/http/validate.ts` wraps `@hono/valibot-validator` with a failure hook so
+issues are flattened into the same envelope:
+
+```jsonc
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Invalid query.",
+    "fields": { "perPage": "Invalid value: Expected <=100 but received 9999" },
+  },
+}
+```
+
+Always use `validate(target, schema)` — never `vValidator` directly, which dumps
+raw Valibot issue objects (including `requirement` and input echoes) to clients.
+
+**Where schemas live:** contracts the frontends also need go in
+`@mia/validators`. Module-only schemas stay in the module's `validators.ts`,
+which re-exports the shared ones so routes have a single import source.
+
+### 6.3 Auth
+
+- `shared/auth/session.ts` — `withSession` resolves the user onto the context
+  and **never rejects**.
+- `shared/auth/guards.ts` — `requireAuth`, `requireRole(...roles)` reject.
+
+Session tokens are stored **hashed**: `sessions.id` holds a SHA-256 of the
+token; the raw value exists only in the client cookie.
+
+Authorisation decisions belong in `service.ts`, not in route guards, whenever
+the answer depends on the resource rather than the role alone.
+
+### 6.4 Money
+
+Integer minor units, always. `MoneyDto { cents, currency }` on the wire,
+`*_cents` integer columns in the database. No floats, no decimal strings.
+
+### 6.5 Pagination
+
+`{ data: T[], meta: { page, perPage, total, pageCount } }`. `pageCount` is
+computed server-side by `toPageMeta` so clients never re-derive it.
+
+### 6.6 Context
+
+`AppEnv` types every router, so `c.get()` is checked:
+
+```ts
+export interface AppEnv {
+  Variables: { db: Database; requestId: string; user: SessionUser | null };
+}
+```
+
+---
+
+## 7. Configuration
+
+`config/env.ts` parses `process.env` with Valibot at import time and throws a
+formatted list of every problem at once. Nothing else reads `process.env`.
+
+Consequence: a misconfigured deploy fails at boot, not on the first request that
+happens to need the variable.
+
+---
+
+## 8. Infrastructure adapters
+
+`infra/` holds adapters to the outside world and **never** feature policy. Each
+is an interface plus a provider implementation, so modules depend on the port.
+
+`infra/db/client.ts` is the only one implemented — it owns the connection for
+this process; schema and query builders stay in `@mia/db`.
+
+---
+
+## 9. Build and bundling
+
+### 9.1 What gets bundled
+
+Rolldown bundles **our TypeScript only**: this app's `src/` and the `@mia/*`
+workspace packages. Everything else stays a real bare import that Node resolves
+from `node_modules` at runtime.
+
+```ts
+external(id) {
+  if (id.startsWith('node:')) return true;
+  if (id.startsWith('.') || isAbsolute(id)) return false;
+  return !id.startsWith('@mia/');
+}
+```
+
+Deriving this from the **import specifier** rather than a dependency list is
+deliberate: transitive dependencies of the workspace packages are then handled
+automatically. Reading `dependencies` instead misses them.
+
+Rationale: workspace packages are TypeScript, so Node cannot load them —
+bundling is what removes their need for a build step or emitted `.d.ts`, and
+lets `tsc` stay a pure type-checker (`noEmit`) across the repo. Third-party
+packages are already valid JavaScript; rebundling only bloats output and mangles
+stack traces.
+
+> **Gotcha — declare inlined packages' runtime deps.** Because workspace source
+> is inlined, its dependencies become direct imports of _this_ bundle and must
+> appear in `apps/server/package.json`. That is why `drizzle-orm` and `postgres`
+> are declared there although no file under `src/` names them. pnpm's strict
+> layout will not resolve them from `packages/db`. Symptom:
+> `ERR_MODULE_NOT_FOUND: Cannot find package 'drizzle-orm'` at boot.
+
+### 9.2 Chunk strategy
+
+One chunk per business module, one per workspace package, everything else in the
+entry:
+
+```text
+dist/index.js             app, config, infra, shared
+dist/products.js          per src/modules/*
+dist/health.js
+dist/@mia/db.js           per workspace package
+dist/@mia/validators.js
+```
+
+```ts
+const moduleChunk = (id: string) =>
+  /[\\/]src[\\/]modules[\\/]([^\\/]+)[\\/]/.exec(id)?.[1] ?? null;
+
+const workspaceChunk = (id: string) => {
+  const pkg = /[\\/]packages[\\/]([^\\/]+)[\\/]src[\\/]/.exec(id)?.[1];
+  return pkg ? `@mia/${pkg}` : null;
+};
+
+codeSplitting: {
+  minSize: 0,
+  groups: [
+    { name: workspaceChunk, priority: 10 },
+    { name: moduleChunk, priority: 0 },
+  ],
+}
+```
+
+> **Gotcha — the workspace group needs the higher priority.** Group
+> `includeDependenciesRecursively` defaults to `true`, so without the priority
+> each module chunk claims `@mia/db` as a transitive dependency and inlines a
+> private copy of the whole schema into _every_ module. Symptom: no `@mia/*`
+> chunks are emitted and module chunks are implausibly large. Higher-priority
+> groups form first and their modules are removed from lower-priority groups.
+> (The alternative — `includeDependenciesRecursively: false` — additionally
+> requires `preserveEntrySignatures: false` and `strictExecutionOrder: true` to
+> avoid invalid chunks. Priority is the cheaper fix.)
+
+> **Gotcha — `advancedChunks` is deprecated** in Rolldown ≥1.2. Use
+> `output.codeSplitting`; the old key still works but warns.
+
+Use regex `[\\/]` rather than `/` for path separators so the rules hold on
+Windows.
+
+### 9.3 Module resolution
+
+Imports carry explicit `.ts` extensions (`./errors.ts`). `tsc` never emits, so
+there is no `.js` output for a `.js` specifier to refer to;
+`allowImportingTsExtensions` is on in the shared base, and Rolldown, Vite and
+`tsx` all resolve `.ts` directly.
+
+---
+
+## 10. Commands
+
+| Command                           | Effect                                    |
+| --------------------------------- | ----------------------------------------- |
+| `pnpm --filter @mia/server dev`   | `tsx watch src/index.ts`                  |
+| `pnpm --filter @mia/server build` | Rolldown → `dist/`                        |
+| `pnpm --filter @mia/server start` | `node dist/index.js` (needs node_modules) |
+| `pnpm --filter @mia/server check` | `tsc --noEmit`                            |
+| `pnpm -w run db:migrate`          | Apply migrations                          |
+| `pnpm -w run db:seed`             | `apps/server/script/seed.ts`              |
+
+---
+
+## 11. Deployment
+
+```bash
+pnpm --filter @mia/server build
+pnpm --filter @mia/server deploy --prod --legacy ./out
+node dist/index.js            # from ./out
+```
+
+`--legacy` is required because pnpm ≥10 otherwise expects
+`inject-workspace-packages=true`. That setting is deliberately **off**: it
+replaces workspace symlinks with copies and breaks watch-mode edits to
+`packages/*`. Nothing is lost, since workspace code is already inside the bundle.
+
+> **Gotcha —** `pnpm deploy --prod` leaves the workspace's dependency state
+> marked production. A later `pnpm run build` in the same checkout then tries to
+> purge `node_modules` and fails with `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`.
+> A plain `pnpm install` resets it. Relevant for CI that builds and deploys from
+> one working copy.
+
+---
+
+## 12. Testing
+
+Colocate as `*.test.ts` beside the unit. Vitest is in the catalog.
+
+Testability is a consequence of the layering, not of mocks:
+
+- `service.ts` takes `Database` as an argument and never imports `hono` — test
+  it directly against a transaction that rolls back.
+- `mapper.ts` is pure — table-driven tests, no fixtures needed.
+- `repo.ts` needs a real database; keep those tests separate from unit runs.
+- Shared fixtures for a large module go in `modules/<name>/testing/fixtures.ts`.
+
+---
+
+## 13. Adding a new module — checklist
+
+1. `mkdir src/modules/<name>` and add `types.ts`, `dto.ts`, `mapper.ts`,
+   `validators.ts`, `repo.ts`, `service.ts`, `routes.ts`. Omit what you don't
+   need; do not create empty files.
+2. Put any schema the frontends also need in `@mia/validators`; re-export it
+   from the module's `validators.ts`.
+3. Mount in `app.ts` with a **chained** `.route('/api/<name>', <name>Routes)`.
+4. If it adds a runtime dependency to a `@mia/*` package, declare that
+   dependency in `apps/server/package.json` too (§9.1).
+5. `pnpm check` — the frontends' RPC client will surface any contract break at
+   the call site.
+6. Confirm the build emits `dist/<name>.js`.
+
+Modules still to build: `access`, `auth`, `cart`, `media`, `notifications`,
+`orders`, `payments`, `settings`, `users`, `webhooks`.
+Infra adapters still to build: `cache`, `mail`, `media`, `storage`, `swagger`.
+
+---
+
+## 14. Open decisions
+
+- **Dependency injection.** Currently the database is placed on the Hono context
+  in `app.ts` and read via `c.get('db')`; services take it as their first
+  argument. A project-wide DI standard is pending — do not introduce a container
+  or framework before it lands, and revisit §4.4/§4.5 signatures when it does.
+- **Price sorting.** `repo.ORDER_BY.price_asc/price_desc` currently fall back to
+  `createdAt`; correct ordering needs a variant join or a denormalised
+  `min_price_cents` column.
+- **Password hashing** (argon2id) and **rate limiting** on auth routes are not
+  yet implemented.
