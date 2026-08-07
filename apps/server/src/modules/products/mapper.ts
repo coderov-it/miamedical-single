@@ -20,6 +20,7 @@ import type {
   TranslationStatusDto,
 } from './dto.ts';
 import { pick, pickAlt, pickOptional, pickTranslation, resolveField } from './i18n.ts';
+import { asMoney } from './money.ts';
 import { resolveSkuPrice } from './pricing.ts';
 import type {
   AddonRow,
@@ -47,7 +48,10 @@ export function toPageMeta(page: number, perPage: number, total: number): PageMe
 
 // --- media -----------------------------------------------------------------
 
-function toPublicMediaItem(item: MediaItem | null, locale: LanguageCode): PublicMediaItemDto | null {
+function toPublicMediaItem(
+  item: MediaItem | null,
+  locale: LanguageCode,
+): PublicMediaItemDto | null {
   if (!item) return null;
   return { path: item.path, mimeType: item.mimeType, alt: pickAlt(item.alt, locale) };
 }
@@ -200,7 +204,7 @@ function toPublicAddon(row: AddonRow, locale: LanguageCode): PublicAddonDto {
       mode: row.pricingMode,
       rentalUnit: row.rentalUnit,
       currency: row.currency,
-      price: row.price,
+      price: asMoney(row.price),
     },
     minQuantity: row.minQuantity,
     maxQuantity: row.maxQuantity,
@@ -212,7 +216,10 @@ function toPublicAddon(row: AddonRow, locale: LanguageCode): PublicAddonDto {
 
 // --- public detail ---------------------------------------------------------
 
-export function toPublicDetail(row: ProductAggregate, locale: LanguageCode): PublicProductDetailDto {
+export function toPublicDetail(
+  row: ProductAggregate,
+  locale: LanguageCode,
+): PublicProductDetailDto {
   const translations = row.translations;
   const requested = translations.find((t) => t.languageCode === locale);
   const italian = translations.find((t) => t.languageCode === 'it');
@@ -254,7 +261,7 @@ export function toPublicDetail(row: ProductAggregate, locale: LanguageCode): Pub
       priceModifierPerUnit:
         group.priceModifierPerUnit === null
           ? null
-          : money(group.priceModifierPerUnit, row.currency),
+          : money(asMoney(group.priceModifierPerUnit), row.currency),
       options: group.options
         .sort((a, b) => a.position - b.position)
         .map((option) => ({
@@ -263,7 +270,7 @@ export function toPublicDetail(row: ProductAggregate, locale: LanguageCode): Pub
           label: pick(option.label, locale),
           skuCode: option.skuCode,
           isDefault: option.isDefault,
-          priceModifier: money(option.priceModifier, row.currency),
+          priceModifier: money(asMoney(option.priceModifier), row.currency),
         })),
     }));
 
@@ -430,7 +437,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
       suffix: sku.suffix,
       comboKey: sku.comboKey,
       optionIds: sku.options.map((link) => link.optionId),
-      priceOverride: sku.priceOverride,
+      priceOverride: sku.priceOverride === null ? null : asMoney(sku.priceOverride),
       resolvedPrice: resolveSkuPrice(row.basePrice, sku, row.variantGroups),
       stock: sku.stock,
       isActive: sku.isActive,
@@ -498,7 +505,8 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
         minValue: num(group.minValue),
         maxValue: num(group.maxValue),
         stepValue: num(group.stepValue),
-        priceModifierPerUnit: group.priceModifierPerUnit,
+        priceModifierPerUnit:
+          group.priceModifierPerUnit === null ? null : asMoney(group.priceModifierPerUnit),
         icon: group.icon,
         position: group.position,
         label: group.label,
@@ -509,7 +517,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
             id: option.id,
             value: option.value,
             skuCode: option.skuCode,
-            priceModifier: option.priceModifier,
+            priceModifier: asMoney(option.priceModifier),
             isDefault: option.isDefault,
             position: option.position,
             label: option.label,
@@ -526,7 +534,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
         pricingMode: addon.pricingMode,
         productPricingMode: addon.productPricingMode,
         rentalUnit: addon.rentalUnit,
-        price: addon.price,
+        price: asMoney(addon.price),
         currency: addon.currency,
         minQuantity: addon.minQuantity,
         maxQuantity: addon.maxQuantity,
@@ -591,6 +599,7 @@ export function toAdminSummary(row: ProductSummaryRowData): AdminProductSummaryD
     slug: italian?.slug ?? '',
     categoryName: categoryItalian?.name ?? row.category.code,
     translationStatus: toTranslationStatus(row.translations),
+    thumbnail: row.media.thumbnail?.path ?? null,
     updatedAt: iso(row.updatedAt),
   };
 }

@@ -1,47 +1,60 @@
+<!--
+  Minimal create: Italian title and slug, category, pricing mode, price.
+  Everything else belongs in the full editor this redirects into — a
+  twelve-section form before the product exists is how drafts never get made.
+
+  The pricing mode is the exception, and it is why this page exists at all:
+  it is permanent, and this is the only place it can ever be chosen.
+-->
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
   import type { InferResponseType } from 'hono/client';
+  import { toast } from 'svelte-sonner';
+
   import { goto } from '$app/navigation';
 
+  import { Button } from '$lib/components/ui/button/index.js';
+  import * as Card from '$lib/components/ui/card/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
+  import * as Select from '$lib/components/ui/select/index.js';
+  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
-  import Field from '~/lib/components/Field.svelte';
-  import MoneyInput from '~/lib/components/MoneyInput.svelte';
-  import PermissionGate from '~/lib/components/PermissionGate.svelte';
+  import MoneyInput from '~/lib/components/money-input.svelte';
+  import PageHeader from '~/lib/components/page-header.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
+  import { routes } from '~/lib/routes';
+  import { session } from '~/lib/session.svelte';
 
   type Category = InferResponseType<typeof api.api.admin.categories.$get, 200>['data'][number];
 
-  /**
-   * Minimal create — Italian title + slug, category, pricing mode, price.
-   * Everything else lives in the full editor the save redirects into.
-   * The mode is permanent, and this is the one place it is chosen.
-   */
   let title = $state('');
   let slug = $state('');
   let slugTouched = $state(false);
   let baseSku = $state('');
   let categoryId = $state('');
-  let pricingMode = $state<'fixed' | 'rental'>('fixed');
-  let rentalUnit = $state<'hour' | 'day'>('day');
+  let pricingMode = $state('fixed');
+  let rentalUnit = $state('day');
   let basePrice = $state('0.00');
 
-  let categories = $state<Category[]>([]);
   let saving = $state(false);
   let error = $state<string | null>(null);
   let fields = $state<Record<string, string>>({});
 
-  $effect(() => {
-    void api.api.admin.categories
-      .$get()
-      .then((response) => unwrap<Category[]>(response))
-      .then((data) => (categories = data))
-      .catch((err) => (error = errorMessage(err)));
-  });
+  const categories = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrap<Category[]>(await api.api.admin.categories.$get(undefined, { init: { signal } })),
+    { enabled: () => session.can(P.CATEGORY_READ) },
+  );
 
-  // Slug follows the title until the operator edits it by hand.
-  $effect(() => {
-    if (!slugTouched) slug = slugify(title);
-  });
+  const categoryOptions = $derived(categories.data ?? []);
+  const categoryLabel = $derived(
+    categoryOptions.find((entry) => entry.id === categoryId)?.translations.it?.name ?? 'Choose…',
+  );
 
   function slugify(text: string): string {
     return text
@@ -53,150 +66,176 @@
       .slice(0, 120);
   }
 
+  // The slug tracks the title until the operator edits it by hand, after which
+  // it is theirs — a slug that keeps rewriting itself is unusable.
+  $effect(() => {
+    if (!slugTouched) slug = slugify(title);
+  });
+
   async function save() {
     saving = true;
     error = null;
     fields = {};
+
     try {
       const created = await unwrap<{ id: string }>(
         await api.api.admin.products.$post({
           json: {
             baseSku,
             categoryId,
-            pricingMode,
+            pricingMode: pricingMode as 'fixed',
             basePrice,
-            ...(pricingMode === 'rental' ? { rentalUnit } : {}),
+            ...(pricingMode === 'rental' ? { rentalUnit: rentalUnit as 'day' } : {}),
             translations: { it: { title, slug } },
           },
         }),
       );
-      await goto(`/products/${created.id}`);
+      toast.success(`Created "${title}".`);
+      await goto(routes.productDetail(created.id));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
-    } finally {
       saving = false;
     }
   }
 </script>
 
-<PermissionGate permission={P.PRODUCT_CREATE}>
-  <div class="mx-auto max-w-xl">
-    <h1 class="text-2xl font-semibold tracking-tight">New product</h1>
+<section class="admin-page mx-auto max-w-2xl">
+  <PageHeader
+    eyebrow="Catalog"
+    title="New product"
+    description="Just enough to create a draft. The full editor opens next."
+  />
 
-    <form
-      class="mt-6 flex flex-col gap-4"
-      onsubmit={(event) => {
-        event.preventDefault();
-        void save();
-      }}
-    >
-      <Field label="Title (Italian)" error={fields['translations.it.title']}>
-        <input
-          type="text"
-          bind:value={title}
-          required
-          class="focus:border-brand-500 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        />
-      </Field>
+  <form
+    onsubmit={(event) => {
+      event.preventDefault();
+      void save();
+    }}
+  >
+    <Card.Root class="gap-0 py-0">
+      <div class="space-y-4 p-5">
+        <div>
+          <Label class="mb-1.5" for="new-title">Title (Italian)</Label>
+          <Input
+            id="new-title"
+            bind:value={title}
+            required
+            aria-invalid={fields['translations.it.title'] ? 'true' : undefined}
+          />
+          {#if fields['translations.it.title']}
+            <p class="mt-1 text-xs text-destructive" role="alert">
+              {fields['translations.it.title']}
+            </p>
+          {/if}
+        </div>
 
-      <Field label="Slug (Italian)" error={fields['translations.it.slug']}>
-        <input
-          type="text"
-          bind:value={slug}
-          oninput={() => (slugTouched = true)}
-          required
-          class="focus:border-brand-500 w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        />
-      </Field>
+        <div>
+          <Label class="mb-1.5" for="new-slug">Slug (Italian)</Label>
+          <Input
+            id="new-slug"
+            bind:value={slug}
+            oninput={() => (slugTouched = true)}
+            required
+            class="font-mono"
+            aria-invalid={fields['translations.it.slug'] ? 'true' : undefined}
+          />
+          {#if fields['translations.it.slug']}
+            <p class="mt-1 text-xs text-destructive" role="alert">
+              {fields['translations.it.slug']}
+            </p>
+          {/if}
+        </div>
 
-      <Field
-        label="Base SKU"
-        error={fields['baseSku']}
-        hint="Root of every generated SKU, e.g. MIA-LTE. Globally unique."
-      >
-        <input
-          type="text"
-          bind:value={baseSku}
-          required
-          class="focus:border-brand-500 w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm uppercase dark:border-neutral-700 dark:bg-neutral-900"
-        />
-      </Field>
+        <div>
+          <Label class="mb-1.5" for="new-sku">Base SKU</Label>
+          <Input id="new-sku" bind:value={baseSku} required class="font-mono uppercase" />
+          <p class="mt-1 text-xs text-muted-foreground">
+            Root of every generated SKU, e.g. <code class="font-mono">MIA-LTE</code>. Globally
+            unique.
+          </p>
+          {#if fields.baseSku}
+            <p class="mt-1 text-xs text-destructive" role="alert">{fields.baseSku}</p>
+          {/if}
+        </div>
 
-      <Field label="Category" error={fields['categoryId']}>
-        <select
-          bind:value={categoryId}
-          required
-          class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        >
-          <option value="" disabled>Choose…</option>
-          {#each categories as category (category.id)}
-            <option value={category.id}>{category.translations.it?.name ?? category.code}</option>
-          {/each}
-        </select>
-      </Field>
+        <div>
+          <Label class="mb-1.5">Category</Label>
+          <Select.Root type="single" bind:value={categoryId}>
+            <Select.Trigger class="w-full">{categoryLabel}</Select.Trigger>
+            <Select.Content>
+              {#each categoryOptions as category (category.id)}
+                <Select.Item value={category.id}>
+                  {category.translations.it?.name ?? category.code}
+                </Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
+          {#if fields.categoryId}
+            <p class="mt-1 text-xs text-destructive" role="alert">{fields.categoryId}</p>
+          {/if}
+        </div>
+      </div>
 
-      <div
-        class="rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-900/20"
-      >
-        <Field
-          label="Pricing mode"
-          error={fields['pricingMode']}
-          hint="Permanent. A product is sold OR rented — this can never be changed after creation."
-        >
-          <div class="flex gap-4">
-            <label class="flex items-center gap-2 text-sm">
-              <input type="radio" bind:group={pricingMode} value="fixed" /> Fixed price
-            </label>
-            <label class="flex items-center gap-2 text-sm">
-              <input type="radio" bind:group={pricingMode} value="rental" /> Rental
-            </label>
+      <!-- Visually set apart because it is the one irreversible choice here. -->
+      <div class="space-y-4 border-y border-amber-500/30 bg-amber-500/5 p-5">
+        <div class="flex items-start gap-2">
+          <TriangleAlertIcon class="mt-0.5 size-4 shrink-0 text-amber-600" />
+          <div>
+            <Label class="text-sm font-medium">Pricing mode</Label>
+            <p class="mt-0.5 text-xs text-muted-foreground">
+              Permanent. A product is sold <em>or</em> rented, and this can never be changed after creation.
+            </p>
           </div>
-        </Field>
+        </div>
 
-        {#if pricingMode === 'rental'}
-          <div class="mt-3">
-            <Field label="Billed per" error={fields['rentalUnit']}>
-              <select
-                bind:value={rentalUnit}
-                class="rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-              >
-                <option value="day">Day</option>
-                <option value="hour">Hour</option>
-              </select>
-            </Field>
+        <RadioGroup.Root bind:value={pricingMode} class="flex gap-6">
+          <div class="flex items-center gap-2">
+            <RadioGroup.Item value="fixed" id="mode-fixed" />
+            <Label for="mode-fixed" class="font-normal">Fixed price</Label>
           </div>
-        {/if}
+          <div class="flex items-center gap-2">
+            <RadioGroup.Item value="rental" id="mode-rental" />
+            <Label for="mode-rental" class="font-normal">Rental</Label>
+          </div>
+        </RadioGroup.Root>
 
-        <div class="mt-3">
+        <div class="flex flex-wrap items-end gap-4">
+          {#if pricingMode === 'rental'}
+            <div>
+              <Label class="mb-1.5">Billed per</Label>
+              <Select.Root type="single" bind:value={rentalUnit}>
+                <Select.Trigger class="w-32">
+                  {rentalUnit === 'hour' ? 'Hour' : 'Day'}
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="day">Day</Select.Item>
+                  <Select.Item value="hour">Hour</Select.Item>
+                </Select.Content>
+              </Select.Root>
+            </div>
+          {/if}
+
           <MoneyInput
             label={pricingMode === 'rental' ? `Price per ${rentalUnit}` : 'Price'}
             bind:value={basePrice}
-            error={fields['basePrice']}
+            error={fields.basePrice}
             suffix="EUR"
           />
         </div>
       </div>
 
       {#if error}
-        <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
+        <p class="bg-destructive/5 px-5 py-3 text-sm text-destructive" role="alert">{error}</p>
       {/if}
 
-      <div class="flex justify-end gap-2">
-        <a
-          href="/products"
-          class="rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-        >
-          Cancel
-        </a>
-        <button
-          type="submit"
-          disabled={saving}
-          class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-        >
+      <div class="flex items-center justify-between gap-3 bg-muted/40 px-5 py-3">
+        <Button href={routes.products} variant="ghost">Cancel</Button>
+        <Button type="submit" disabled={saving}>
+          {#if saving}<Spinner />{/if}
           {saving ? 'Creating…' : 'Create product'}
-        </button>
+        </Button>
       </div>
-    </form>
-  </div>
-</PermissionGate>
+    </Card.Root>
+  </form>
+</section>

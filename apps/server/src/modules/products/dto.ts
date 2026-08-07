@@ -404,5 +404,7 @@ export interface AdminProductSummaryDto {
   slug: string;
   categoryName: string;
   translationStatus: TranslationStatusDto;
+  /** Row thumbnail for the admin list. Path only — the client prefixes the CDN base. */
+  thumbnail: string | null;
   updatedAt: string;
 }

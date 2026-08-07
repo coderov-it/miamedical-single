@@ -1,52 +1,106 @@
 ---
-import '~/styles/global.css';
+/**
+ * The single document shell for every page.
+ *
+ * Owns `<html lang>`, the head and the global chrome. The storefront is
+ * Italian-first, so `it-IT` is the default — a missing `lang` fails WCAG 3.1.1
+ * at Level A, and a screen reader would read Italian copy with English
+ * pronunciation rules.
+ */
+import MobileNav from '~/components/global/MobileNav.astro';
+import SiteFooter from '~/components/global/SiteFooter.astro';
+import SiteHeader from '~/components/global/SiteHeader.astro';
+import { serializeJsonLd } from '~/lib/json-ld';
+import '~/styles/tokens.css';
+import '~/styles/base.css';
 
 interface Props {
   title: string;
-  // `| undefined` is required under exactOptionalPropertyTypes so callers can
-  // pass a value that may be nullish without an extra guard at every call site.
-  description?: string | undefined;
+  description: string;
+  /** Absolute canonical URL. Defaults to the current path on `Astro.site`. */
+  canonical?: string | undefined;
+  /** Absolute URL of the social preview image. */
+  ogImage?: string | undefined;
+  /** Set only on pages that must not be indexed (cart, search results). */
   noindex?: boolean | undefined;
+  /** JSON-LD blocks built from API facts. Never hand-authored marketing copy. */
+  jsonLd?: Record<string, unknown>[] | undefined;
+  /** Hides the footer and bottom navigation for focused flows. */
+  bare?: boolean | undefined;
 }
 
-const { title, description = 'Medical supplies and equipment.', noindex = false } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const {
+  title,
+  description,
+  canonical,
+  ogImage,
+  noindex = false,
+  jsonLd = [],
+  bare = false,
+} = Astro.props;
+
+const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="it-IT">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="canonical" href={canonical.href} />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
     <title>{title}</title>
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonicalHref} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mia Medical Italia" />
+    <meta property="og:locale" content="it_IT" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonical.href} />
+    <meta property="og:url" content={canonicalHref} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <link
+      rel="preload"
+      href="/fonts/atkinson-hyperlegible-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/lexend-variable-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    {
+      jsonLd.map((block) => (
+        <script type="application/ld+json" is:inline set:html={serializeJsonLd(block)} />
+      ))
+    }
+
+    <slot name="head" />
   </head>
-  <body class="flex min-h-dvh flex-col">
-    <header class="border-b border-neutral-200 dark:border-neutral-800">
-      <nav class="container-page flex h-16 items-center justify-between">
-        <a href="/" class="text-lg font-semibold tracking-tight">Mia Medical</a>
-        <div class="flex items-center gap-6 text-sm">
-          <a href="/products" class="hover:text-brand-600">Products</a>
-          <a href="/cart" class="hover:text-brand-600">Cart</a>
-        </div>
-      </nav>
-    </header>
 
-    <main class="container-page flex-1 py-10">
-      <slot />
-    </main>
+  <body>
+    <a class="skip-link" href="#contenuto">Salta al contenuto</a>
 
-    <footer
-      class="border-t border-neutral-200 py-8 text-sm text-neutral-500 dark:border-neutral-800"
-    >
-      <div class="container-page">© {new Date().getFullYear()} Mia Medical</div>
-    </footer>
+    <div class="site-shell">
+      <SiteHeader />
+
+      <main id="contenuto">
+        <slot />
+      </main>
+
+      {!bare && <SiteFooter />}
+
+      <slot name="after-body" />
+      {!bare && <MobileNav />}
+    </div>
   </body>
 </html>

@@ -1,17 +1,35 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import FileTextIcon from '@lucide/svelte/icons/file-text';
+  import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import type { InferResponseType } from 'hono/client';
+  import { toast } from 'svelte-sonner';
 
+  import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+  import { Badge } from '$lib/components/ui/badge/index.js';
+  import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import * as Empty from '$lib/components/ui/empty/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import * as Sheet from '$lib/components/ui/sheet/index.js';
+  import { Spinner } from '$lib/components/ui/spinner/index.js';
+  import * as Table from '$lib/components/ui/table/index.js';
   import { api } from '~/lib/api';
-  import PermissionGate from '~/lib/components/PermissionGate.svelte';
-  import TranslatedInput from '~/lib/components/TranslatedInput.svelte';
-  import TranslatedTextarea from '~/lib/components/TranslatedTextarea.svelte';
+  import type { Localized } from '~/lib/categories/spec-edit';
+  import ListCard from '~/lib/components/list-card.svelte';
+  import PageHeader from '~/lib/components/page-header.svelte';
+  import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { editorLang } from '~/lib/editor-lang.svelte';
+  import { formatDate, orDash } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
 
   type Terms = InferResponseType<typeof api.api.admin.terms.$get, 200>['data'][number];
-  type Localized = { it: string; en?: string | undefined };
 
   interface TermsEdit {
     id?: string | undefined;
@@ -21,29 +39,30 @@
     slug: Localized;
   }
 
-  let documents = $state<Terms[]>([]);
+  const documents = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrap<Terms[]>(await api.api.admin.terms.$get(undefined, { init: { signal } })),
+    { enabled: () => session.can(P.TERMS_READ) },
+  );
+
+  const rows = $derived(documents.data ?? []);
+
   let editing = $state<TermsEdit | null>(null);
-  let loading = $state(true);
   let saving = $state(false);
   let error = $state<string | null>(null);
   let fields = $state<Record<string, string>>({});
+  let deleting = $state<Terms | null>(null);
+  let deleteBusy = $state(false);
 
-  async function load() {
-    loading = true;
-    try {
-      documents = await unwrap<Terms[]>(await api.api.admin.terms.$get());
-    } catch (err) {
-      error = errorMessage(err);
-    } finally {
-      loading = false;
-    }
-  }
-
-  $effect(() => {
-    void load();
-  });
+  const titleOf = (doc: Terms) =>
+    (editorLang.current === 'en' ? doc.translations.en?.title : undefined) ??
+    doc.translations.it?.title ??
+    doc.code;
 
   function startEdit(doc?: Terms) {
+    error = null;
+    fields = {};
     editing = doc
       ? {
           id: doc.id,
@@ -55,200 +74,296 @@
       : { code: '', title: { it: '' }, body: { it: '' }, slug: { it: '' } };
   }
 
+  /**
+   * A terms document is a legal text. English is only sent when title, body
+   * and slug are all present — a document that is half translated must fall
+   * back to Italian entirely rather than serve a mix of the two.
+   */
   function translationsPayload(edit: TermsEdit) {
     const forLang = (lang: 'it' | 'en') => {
       const pick = (value: Localized) => (lang === 'it' ? value.it : (value.en ?? ''));
-      const t = { title: pick(edit.title).trim(), body: pick(edit.body).trim(), slug: pick(edit.slug).trim() };
-      if (lang === 'en' && (!t.title || !t.body || !t.slug)) return undefined;
-      return t;
+      const row = {
+        title: pick(edit.title).trim(),
+        body: pick(edit.body).trim(),
+        slug: pick(edit.slug).trim(),
+      };
+      if (lang === 'en' && (!row.title || !row.body || !row.slug)) return undefined;
+      return row;
     };
+
     const en = forLang('en');
     return { it: forLang('it')!, ...(en ? { en } : {}) };
   }
 
   async function save() {
     if (!editing) return;
+
     saving = true;
     error = null;
     fields = {};
+
+    const payload = { code: editing.code, translations: translationsPayload(editing) };
+
     try {
-      const json = { code: editing.code, translations: translationsPayload(editing) };
       if (editing.id) {
         await unwrap(
-          await api.api.admin.terms[':id'].$patch({ param: { id: editing.id }, json }),
+          await api.api.admin.terms[':id'].$patch({ param: { id: editing.id }, json: payload }),
         );
       } else {
-        await unwrap(await api.api.admin.terms.$post({ json }));
+        await unwrap(await api.api.admin.terms.$post({ json: payload }));
       }
+      toast.success(`Saved "${editing.title.it || editing.code}".`);
       editing = null;
-      await load();
+      documents.refresh();
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
+      toast.error(error);
     } finally {
       saving = false;
     }
   }
 
-  async function setStatus(doc: Terms, status: 'draft' | 'published' | 'archived') {
-    error = null;
-    try {
-      await unwrap(
-        await api.api.admin.terms[':id'].status.$post({
-          param: { id: doc.id },
-          json: { status },
-        }),
-      );
-      await load();
-    } catch (err) {
-      error = errorMessage(err);
-    }
-  }
+  async function confirmDelete() {
+    const target = deleting;
+    if (!target) return;
 
-  async function remove(doc: Terms) {
-    if (!confirm(`Delete "${doc.translations.it?.title ?? doc.code}"?`)) return;
-    error = null;
+    deleteBusy = true;
     try {
-      await unwrap(await api.api.admin.terms[':id'].$delete({ param: { id: doc.id } }));
-      await load();
+      await unwrap(await api.api.admin.terms[':id'].$delete({ param: { id: target.id } }));
+      toast.success(`Deleted "${titleOf(target)}".`);
+      deleting = null;
+      documents.refresh();
     } catch (err) {
-      error = errorMessage(err);
+      toast.error(errorMessage(err));
+    } finally {
+      deleteBusy = false;
     }
   }
 </script>
 
-<PermissionGate permission={P.TERMS_READ}>
-  <div class="flex items-center justify-between gap-4">
-    <h1 class="text-2xl font-semibold tracking-tight">Terms &amp; conditions</h1>
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-1 rounded-lg border border-neutral-300 p-1 dark:border-neutral-700">
-        {#each ['it', 'en'] as const as lang (lang)}
-          <button
-            type="button"
-            class="rounded-md px-2 py-1 text-xs font-semibold uppercase transition"
-            class:bg-brand-600={editorLang.current === lang}
-            class:text-white={editorLang.current === lang}
-            onclick={() => editorLang.set(lang)}
-          >
-            {lang}
-          </button>
-        {/each}
-      </div>
+<section class="admin-page">
+  <PageHeader
+    eyebrow="Catalog"
+    title="Terms documents"
+    description="Rental conditions, warranty and returns. Products link to these rather than restating them."
+  >
+    {#snippet actions()}
       {#if session.can(P.TERMS_CREATE)}
-        <button
-          type="button"
-          onclick={() => startEdit()}
-          class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition"
-        >
+        <Button onclick={() => startEdit()}>
+          <PlusIcon />
           New document
-        </button>
+        </Button>
       {/if}
-    </div>
-  </div>
+    {/snippet}
+  </PageHeader>
 
-  {#if error && !editing}
-    <p class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-  {/if}
-
-  {#if editing}
-    <form
-      class="mt-6 flex max-w-3xl flex-col gap-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
-      onsubmit={(event) => {
-        event.preventDefault();
-        void save();
-      }}
-    >
-      <label class="block text-sm">
-        <span class="mb-1 block font-medium">Code</span>
-        <input
-          type="text"
-          bind:value={editing.code}
-          required
-          class="w-60 rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm dark:border-neutral-700 dark:bg-neutral-900"
-        />
-        {#if fields['code']}<span class="text-xs text-red-600">{fields['code']}</span>{/if}
-      </label>
-
-      <TranslatedInput label="Title" bind:value={editing.title} error={fields['translations.it.title']} />
-      <TranslatedInput label="Slug" bind:value={editing.slug} error={fields['translations.it.slug']} />
-      <TranslatedTextarea label="Body" bind:value={editing.body} rows={14} required />
-
-      {#if error}
-        <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-      {/if}
-
-      <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          onclick={() => (editing = null)}
-          class="rounded-lg border border-neutral-300 px-4 py-2 text-sm dark:border-neutral-700"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-        >
-          {saving ? 'Saving…' : 'Save document'}
-        </button>
-      </div>
-    </form>
-  {/if}
-
-  {#if loading}
-    <p class="mt-6 text-sm text-neutral-500">Loading…</p>
-  {:else}
-    <div class="mt-6 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-      <table class="w-full text-sm">
-        <thead class="bg-neutral-50 text-left dark:bg-neutral-800/50">
-          <tr>
-            <th class="px-4 py-3 font-medium">Title</th>
-            <th class="px-4 py-3 font-medium">Code</th>
-            <th class="px-4 py-3 font-medium">Status</th>
-            <th class="px-4 py-3 font-medium">Version</th>
-            <th class="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each documents as doc (doc.id)}
-            <tr class="border-t border-neutral-100 dark:border-neutral-800">
-              <td class="px-4 py-3 font-medium">{doc.translations.it?.title ?? doc.code}</td>
-              <td class="px-4 py-3 font-mono text-xs text-neutral-500">{doc.code}</td>
-              <td
-                class="px-4 py-3"
-                class:text-green-600={doc.status === 'published'}
-                class:text-amber-600={doc.status === 'draft'}
-                class:text-neutral-400={doc.status === 'archived'}
-              >
-                {doc.status}
-              </td>
-              <td class="px-4 py-3 text-neutral-500">v{doc.version}</td>
-              <td class="px-4 py-3 text-right text-xs">
-                {#if session.can(P.TERMS_UPDATE)}
-                  <button type="button" class="text-brand-600 hover:underline" onclick={() => startEdit(doc)}>Edit</button>
+  <ListCard
+    noun="document"
+    meta={documents.data
+      ? { page: 1, perPage: rows.length || 1, total: rows.length, pageCount: 1 }
+      : undefined}
+    loading={documents.loading}
+    error={documents.error}
+    isEmpty={rows.length === 0}
+    onPage={() => {}}
+    onRetry={() => documents.refresh()}
+    skeletonColumns={4}
+  >
+    {#snippet table()}
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            <Table.Head class="w-[45%]">Document</Table.Head>
+            <Table.Head>Code</Table.Head>
+            <Table.Head>English</Table.Head>
+            <Table.Head>Updated</Table.Head>
+            <Table.Head class="w-10"></Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {#each rows as doc (doc.id)}
+            <Table.Row>
+              <Table.Cell>
+                <button
+                  type="button"
+                  class="block text-left font-medium hover:underline"
+                  onclick={() => startEdit(doc)}
+                >
+                  {titleOf(doc)}
+                </button>
+                <p class="text-xs text-muted-foreground">
+                  {orDash(doc.translations.it?.slug)}
+                </p>
+              </Table.Cell>
+              <Table.Cell><code class="font-mono text-xs">{doc.code}</code></Table.Cell>
+              <Table.Cell>
+                {#if doc.translations.en?.body}
+                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600">
+                    complete
+                  </Badge>
+                {:else}
+                  <Badge variant="outline" class="border-amber-500/40 text-amber-600">
+                    missing
+                  </Badge>
                 {/if}
-                {#if session.can(P.TERMS_PUBLISH)}
-                  {#if doc.status !== 'published'}
-                    <button type="button" class="ml-2 text-green-600 hover:underline" onclick={() => void setStatus(doc, 'published')}>
-                      Publish
-                    </button>
-                  {:else}
-                    <button type="button" class="ml-2 text-neutral-500 hover:underline" onclick={() => void setStatus(doc, 'archived')}>
-                      Archive
-                    </button>
-                  {/if}
-                {/if}
-                {#if session.can(P.TERMS_DELETE)}
-                  <button type="button" class="ml-2 text-red-600 hover:underline" onclick={() => void remove(doc)}>Delete</button>
-                {/if}
-              </td>
-            </tr>
-          {:else}
-            <tr><td class="px-4 py-8 text-center text-neutral-500" colspan="5">No documents yet.</td></tr>
+              </Table.Cell>
+              <Table.Cell class="text-muted-foreground">{formatDate(doc.updatedAt)}</Table.Cell>
+              <Table.Cell>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger
+                    class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+                    aria-label="Row actions"
+                  >
+                    <MoreHorizontalIcon />
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Content align="end">
+                    <DropdownMenu.Item onSelect={() => startEdit(doc)}>
+                      <PencilIcon />
+                      Edit
+                    </DropdownMenu.Item>
+                    {#if session.can(P.TERMS_DELETE)}
+                      <DropdownMenu.Separator />
+                      <DropdownMenu.Item variant="destructive" onSelect={() => (deleting = doc)}>
+                        <Trash2Icon />
+                        Delete
+                      </DropdownMenu.Item>
+                    {/if}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
+              </Table.Cell>
+            </Table.Row>
           {/each}
-        </tbody>
-      </table>
-    </div>
-  {/if}
-</PermissionGate>
+        </Table.Body>
+      </Table.Root>
+    {/snippet}
+
+    {#snippet empty()}
+      <Empty.Root class="border-0">
+        <Empty.Header>
+          <Empty.Media variant="icon"><FileTextIcon /></Empty.Media>
+          <Empty.Title>No terms documents yet</Empty.Title>
+          <Empty.Description>
+            Rental products need conditions to link to before they can be published.
+          </Empty.Description>
+        </Empty.Header>
+        {#if session.can(P.TERMS_CREATE)}
+          <Empty.Content>
+            <Button onclick={() => startEdit()}>
+              <PlusIcon />
+              New document
+            </Button>
+          </Empty.Content>
+        {/if}
+      </Empty.Root>
+    {/snippet}
+  </ListCard>
+</section>
+
+<Sheet.Root
+  open={editing !== null}
+  onOpenChange={(open) => {
+    if (!open && !saving) editing = null;
+  }}
+>
+  <Sheet.Content
+    side="right"
+    class="gap-0 p-0 data-[side=right]:sm:max-w-3xl"
+    showCloseButton={false}
+  >
+    <Sheet.Header class="border-b bg-muted/50">
+      <Sheet.Title>{editing?.id ? 'Edit document' : 'New document'}</Sheet.Title>
+      <Sheet.Description>
+        Published as-is on the storefront. English is only used when the whole document is
+        translated.
+      </Sheet.Description>
+    </Sheet.Header>
+
+    {#if editing}
+      <div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
+        {#if error}
+          <p class="rounded-md bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        {/if}
+
+        <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
+          <TranslatedInput
+            label="Title"
+            bind:value={editing.title}
+            error={fields['translations.it.title']}
+            placeholder="Condizioni di noleggio"
+          />
+          <div>
+            <Label class="mb-1.5" for="terms-code">Code</Label>
+            <Input
+              id="terms-code"
+              bind:value={editing.code}
+              placeholder="rental-terms"
+              class="font-mono"
+              aria-invalid={fields.code ? 'true' : undefined}
+            />
+            {#if fields.code}
+              <p class="mt-1 text-xs text-destructive" role="alert">{fields.code}</p>
+            {/if}
+          </div>
+        </div>
+
+        <TranslatedInput
+          label="Slug"
+          bind:value={editing.slug}
+          error={fields['translations.it.slug']}
+          placeholder="condizioni-di-noleggio"
+          hint="The URL segment on the storefront."
+        />
+
+        <TranslatedInput
+          label="Body"
+          bind:value={editing.body}
+          error={fields['translations.it.body']}
+          multiline
+          rows={18}
+          placeholder="The full text of the document."
+        />
+      </div>
+    {/if}
+
+    <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
+      <Button variant="ghost" disabled={saving} onclick={() => (editing = null)}>Cancel</Button>
+      <Button disabled={saving} onclick={save}>
+        {#if saving}<Spinner />{/if}
+        {saving ? 'Saving…' : editing?.id ? 'Save changes' : 'Create document'}
+      </Button>
+    </Sheet.Footer>
+  </Sheet.Content>
+</Sheet.Root>
+
+<AlertDialog.Root
+  open={deleting !== null}
+  onOpenChange={(open) => {
+    if (!open) deleting = null;
+  }}
+>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>Delete this document?</AlertDialog.Title>
+      <AlertDialog.Description>
+        "{deleting ? titleOf(deleting) : ''}" is removed. Products linking to it lose the link, and
+        rental products may no longer be publishable.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Action
+        disabled={deleteBusy}
+        class={buttonVariants({ variant: 'destructive' })}
+        onclick={(event) => {
+          event.preventDefault();
+          void confirmDelete();
+        }}
+      >
+        {deleteBusy ? 'Deleting…' : 'Delete document'}
+      </AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

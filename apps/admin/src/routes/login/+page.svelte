@@ -1,7 +1,15 @@
 <script lang="ts">
+  import HeartPulseIcon from '@lucide/svelte/icons/heart-pulse';
+
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
+  import * as Alert from '$lib/components/ui/alert/index.js';
+  import { Button } from '$lib/components/ui/button/index.js';
+  import * as Field from '$lib/components/ui/field/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Spinner } from '$lib/components/ui/spinner/index.js';
+  import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
 
   let email = $state('');
@@ -12,7 +20,7 @@
   /** Where the layout bounced them from. Relative paths only — never an open redirect. */
   function destination() {
     const next = page.url.searchParams.get('next');
-    return next && next.startsWith('/') ? next : '/';
+    return next && next.startsWith('/') ? next : routes.dashboard;
   }
 
   // Nobody signed in should be looking at a sign-in form.
@@ -34,44 +42,56 @@
   }
 </script>
 
-<div class="flex min-h-full items-center justify-center p-6">
-  <form
-    onsubmit={submit}
-    class="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-8 dark:border-neutral-800 dark:bg-neutral-900"
-  >
-    <h1 class="text-lg font-semibold tracking-tight">Mia Medical Admin</h1>
-    <p class="mt-1 text-sm text-neutral-500">Sign in to continue.</p>
+<div class="flex min-h-svh items-center justify-center bg-muted/30 p-6">
+  <div class="w-full max-w-sm">
+    <div class="mb-6 flex flex-col items-center gap-3 text-center">
+      <div
+        class="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+      >
+        <HeartPulseIcon class="size-5" />
+      </div>
+      <div>
+        <h1 class="text-lg font-semibold tracking-tight">Mia Medical</h1>
+        <p class="mt-0.5 text-sm text-muted-foreground">Sign in to the back office.</p>
+      </div>
+    </div>
 
-    {#if error}
-      <p class="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-    {/if}
+    <form onsubmit={submit} class="rounded-xl border bg-card p-6 shadow-sm">
+      <Field.Group>
+        {#if error}
+          <Alert.Root variant="destructive">
+            <Alert.Description>{error}</Alert.Description>
+          </Alert.Root>
+        {/if}
 
-    <label class="mt-6 block text-sm font-medium" for="email">Email</label>
-    <input
-      id="email"
-      type="email"
-      bind:value={email}
-      required
-      autocomplete="username"
-      class="focus:border-brand-500 mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-950"
-    />
+        <Field.Field>
+          <Field.Label for="email">Email</Field.Label>
+          <Input
+            id="email"
+            type="email"
+            bind:value={email}
+            required
+            autocomplete="username"
+            placeholder="ops@miamedical.com"
+          />
+        </Field.Field>
 
-    <label class="mt-4 block text-sm font-medium" for="password">Password</label>
-    <input
-      id="password"
-      type="password"
-      bind:value={password}
-      required
-      autocomplete="current-password"
-      class="focus:border-brand-500 mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-950"
-    />
+        <Field.Field>
+          <Field.Label for="password">Password</Field.Label>
+          <Input
+            id="password"
+            type="password"
+            bind:value={password}
+            required
+            autocomplete="current-password"
+          />
+        </Field.Field>
 
-    <button
-      type="submit"
-      disabled={submitting}
-      class="bg-brand-600 mt-6 w-full rounded-lg px-3 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-    >
-      {submitting ? 'Signing in…' : 'Sign in'}
-    </button>
-  </form>
+        <Button type="submit" disabled={submitting} class="w-full">
+          {#if submitting}<Spinner />{/if}
+          {submitting ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </Field.Group>
+    </form>
+  </div>
 </div>

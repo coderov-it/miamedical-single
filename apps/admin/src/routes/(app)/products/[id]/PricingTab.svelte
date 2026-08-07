@@ -1,35 +1,69 @@
 <script lang="ts">
+  import { P } from '@mia/permissions';
+  import { untrack } from 'svelte';
+  import { toast } from 'svelte-sonner';
+
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import * as Select from '$lib/components/ui/select/index.js';
   import { api } from '~/lib/api';
-  import Field from '~/lib/components/Field.svelte';
-  import MoneyInput from '~/lib/components/MoneyInput.svelte';
+  import MoneyInput from '~/lib/components/money-input.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { session } from '~/lib/session.svelte';
   import type { AdminProduct, TabProps } from './shared';
+  import { sameAsSaved } from './shared';
+  import TabPanel from './tab-panel.svelte';
 
-  let { product, onSaved }: TabProps = $props();
+  let { product, onSaved, dirty }: TabProps = $props();
 
-  let basePrice = $state(product.basePrice);
-  let rentalUnit = $state(product.rentalUnit ?? 'day');
+  const SECTION = 'pricing';
+
+  const snapshot = (source: AdminProduct) => ({
+    basePrice: source.basePrice,
+    rentalUnit: source.rentalUnit ?? 'day',
+  });
+
+  let form = $state(untrack(() => snapshot(product)));
+  let saved = $state(untrack(() => snapshot(product)));
+
+  let seededFor = $state(untrack(() => product.id));
+  $effect(() => {
+    if (product.id === seededFor) return;
+    seededFor = product.id;
+    form = snapshot(product);
+    saved = snapshot(product);
+  });
+
+  const isRental = $derived(product.pricingMode === 'rental');
+  const isDirty = $derived(!sameAsSaved(form, saved));
+  $effect(() => dirty.set(SECTION, isDirty));
+
+  const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+
   let saving = $state(false);
   let error = $state<string | null>(null);
   let fields = $state<Record<string, string>>({});
-  let savedFlash = $state(false);
-
-  const isRental = $derived(product.pricingMode === 'rental');
 
   async function save() {
     saving = true;
     error = null;
     fields = {};
+
     try {
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
-          json: { basePrice, ...(isRental ? { rentalUnit } : {}) },
+          json: {
+            basePrice: form.basePrice,
+            ...(isRental ? { rentalUnit: form.rentalUnit as 'day' } : {}),
+          },
         }),
       );
+      saved = snapshot(updated);
+      form = snapshot(updated);
+      dirty.clear(SECTION);
       onSaved(updated);
-      savedFlash = true;
-      setTimeout(() => (savedFlash = false), 2000);
+      toast.success('Pricing saved.');
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -39,64 +73,64 @@
   }
 </script>
 
-<form
-  class="flex max-w-md flex-col gap-4"
-  onsubmit={(event) => {
-    event.preventDefault();
-    void save();
-  }}
+<TabPanel
+  title="Pricing"
+  description="The base figure everything else is computed from."
+  dirty={isDirty}
+  {saving}
+  {error}
+  onSave={save}
+  saveLabel="Save pricing"
+  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
-  <!-- pricingModeLocked: shown but never editable — the update schema omits
-       the field and the repo never lists the column. -->
-  <Field
-    label="Pricing mode"
-    hint="Chosen at creation and permanent: modifiers, SKUs and addons are all priced against it."
-  >
-    <input
-      type="text"
-      value={product.pricingMode === 'rental' ? `Rental, billed per ${product.rentalUnit}` : 'Fixed price'}
-      disabled
-      class="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/50"
+  <div class="max-w-md space-y-4">
+    <!--
+      Shown but never editable: the update schema omits the field and the repo
+      never lists the column. Hiding it entirely would be worse — the mode is
+      the single most consequential thing about a product's pricing, and it
+      belongs on the pricing tab even when it cannot be changed.
+    -->
+    <div>
+      <Label class="mb-1.5" for="pricing-mode">Pricing mode</Label>
+      <Input
+        id="pricing-mode"
+        value={isRental ? `Rental, billed per ${product.rentalUnit}` : 'Fixed price'}
+        disabled
+      />
+      <p class="mt-1 text-xs text-muted-foreground">
+        Chosen at creation and permanent: modifiers, SKUs and addons are all priced against it.
+      </p>
+    </div>
+
+    {#if isRental}
+      <div>
+        <Label class="mb-1.5">Billed per</Label>
+        <Select.Root type="single" bind:value={form.rentalUnit}>
+          <Select.Trigger class="w-40">
+            {form.rentalUnit === 'hour' ? 'Hour' : 'Day'}
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Item value="day">Day</Select.Item>
+            <Select.Item value="hour">Hour</Select.Item>
+          </Select.Content>
+        </Select.Root>
+        {#if fields.rentalUnit}
+          <p class="mt-1 text-xs text-destructive" role="alert">{fields.rentalUnit}</p>
+        {/if}
+      </div>
+    {/if}
+
+    <MoneyInput
+      label={isRental ? `Base price per ${form.rentalUnit}` : 'Base price'}
+      bind:value={form.basePrice}
+      error={fields.basePrice}
+      suffix={product.currency}
     />
-  </Field>
 
-  {#if isRental}
-    <Field label="Billed per" error={fields['rentalUnit']}>
-      <select
-        bind:value={rentalUnit}
-        class="rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-      >
-        <option value="day">Day</option>
-        <option value="hour">Hour</option>
-      </select>
-    </Field>
-  {/if}
-
-  <MoneyInput
-    label={isRental ? `Base price per ${rentalUnit}` : 'Base price'}
-    bind:value={basePrice}
-    error={fields['basePrice']}
-    suffix={product.currency}
-  />
-
-  <p class="text-xs text-neutral-500">
-    Variant modifiers inherit this mode — on a rental product an option's “+ €4,00” means
-    per {isRental ? rentalUnit : 'unit'}. A SKU's price override replaces the whole computed
-    price.
-  </p>
-
-  {#if error}
-    <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-  {/if}
-
-  <div class="flex items-center justify-end gap-3">
-    {#if savedFlash}<span class="text-sm text-green-600">Saved ✓</span>{/if}
-    <button
-      type="submit"
-      disabled={saving}
-      class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-    >
-      {saving ? 'Saving…' : 'Save pricing'}
-    </button>
+    <p class="text-xs text-muted-foreground">
+      Variant modifiers inherit this mode — on a rental product an option's “+ €4,00” means per {isRental
+        ? form.rentalUnit
+        : 'unit'}. A SKU's price override replaces the whole computed price.
+    </p>
   </div>
-</form>
+</TabPanel>

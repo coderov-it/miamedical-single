@@ -5,6 +5,15 @@
   // Run `svelte-kit sync` before tsc if .svelte-kit/ is missing.
   "extends": ["@mia/tsconfig/svelte.json", "./.svelte-kit/tsconfig.json"],
   "compilerOptions": {
-    "types": ["svelte", "vite/client", "node"]
+    "types": ["svelte", "vite/client", "node"],
+
+    // Off for this app only — the server and the shared packages keep it.
+    // src/lib/components/ui/** is vendored shadcn-svelte source sitting on
+    // bits-ui, and neither is written against exactOptionalPropertyTypes: they
+    // pass `foo?: T` where the flag demands `foo?: T | undefined`. Every
+    // `shadcn-svelte add` would re-introduce the same errors in generated code
+    // we do not hand-maintain, and svelte-check's --ignore only works with
+    // --no-tsconfig, which would stop checking our own code entirely.
+    "exactOptionalPropertyTypes": false
   }
 }

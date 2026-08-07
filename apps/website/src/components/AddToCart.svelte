@@ -41,7 +41,7 @@
   <button
     onclick={addToCart}
     {disabled}
-    class="bg-brand-600 hover:bg-brand-700 rounded-lg px-6 py-2.5 font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+    class="rounded-lg bg-brand-600 px-6 py-2.5 font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
   >
     {#if status === 'pending'}
       Adding…
