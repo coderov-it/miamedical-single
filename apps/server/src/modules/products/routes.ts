@@ -65,7 +65,9 @@ export const productPublicRoutes = new Hono<AppEnv>()
     },
   );
 
-/** Admin surface — raw bilingual shapes, drafts included, permission-guarded. */
+/** Admin surface — raw bilingual shapes, drafts included, permission-guarded.
+    List summaries are the one exception: display strings resolve per
+    `?locale`, which the admin client appends from its interface language. */
 export const productAdminRoutes = new Hono<AppEnv>()
   .get(
     '/',
@@ -78,7 +80,7 @@ export const productAdminRoutes = new Hono<AppEnv>()
         {
           page: query.page,
           perPage: query.perPage,
-          locale: 'it',
+          locale: query.locale,
           q: query.q,
           category: query.category,
           status: query.status,
@@ -90,7 +92,7 @@ export const productAdminRoutes = new Hono<AppEnv>()
       );
 
       return c.json({
-        data: result.rows.map(toAdminSummary),
+        data: result.rows.map((row) => toAdminSummary(row, query.locale)),
         meta: toPageMeta(query.page, query.perPage, result.total),
       });
     },

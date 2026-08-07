@@ -33,14 +33,17 @@
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
+  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import UnsavedChangesGuard from '~/lib/components/unsaved-changes-guard.svelte';
+  import { provideContentLang } from '~/lib/content-lang.svelte';
   import { DirtyState } from '~/lib/dirty.svelte';
   import { formatMoney, relativeTime } from '~/lib/format';
   import { errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
   import AddonsTab from './AddonsTab.svelte';
   import BasicsTab from './BasicsTab.svelte';
   import FaqsTab from './FaqsTab.svelte';
@@ -64,6 +67,10 @@
   );
 
   const dirty = new DirtyState();
+
+  // One editing language for the whole editor — every bilingual field on
+  // every tab follows the IT/EN tabs on the strip below.
+  const contentLang = provideContentLang();
 
   const activeTab = $derived(parseTab(page.url.searchParams.get('tab')));
 
@@ -104,8 +111,12 @@
     }
   }
 
+  // Header title is *read* content — it follows the interface language.
   const title = $derived(
-    product.data?.translations.it?.title || product.data?.baseSku || 'Product',
+    (uiLang.current === 'en' ? product.data?.translations.en?.title : undefined) ||
+      product.data?.translations.it?.title ||
+      product.data?.baseSku ||
+      'Product',
   );
 
   /** Only offered once the product is actually reachable on the storefront. */
@@ -185,30 +196,43 @@
       A plain button strip rather than the Tabs primitive: the panels below are
       all mounted at once, which is the opposite of what a tablist implies to
       a screen reader. `aria-current` describes what is actually true here.
+
+      The IT/EN tabs at the right end are the editor-wide content language —
+      pinned outside the scroll region so they never disappear behind ten
+      section tabs on a narrow screen.
     -->
-    <div class="overflow-x-auto border-b">
-      <div class="flex min-w-max gap-1">
-        {#each PRODUCT_TABS as tab (tab.key)}
-          {@const active = activeTab === tab.key}
-          <button
-            type="button"
-            onclick={() => openTab(tab.key)}
-            aria-current={active ? 'page' : undefined}
-            class={cn(
-              'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
-              active
-                ? 'border-primary font-medium text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {tab.label}
-            {#if dirty.has(tab.key)}
-              <span class="size-1.5 rounded-full bg-primary" title="Unsaved changes in {tab.label}"
-              ></span>
-            {/if}
-          </button>
-        {/each}
+    <div class="flex items-stretch border-b">
+      <div class="min-w-0 flex-1 overflow-x-auto">
+        <div class="flex min-w-max gap-1">
+          {#each PRODUCT_TABS as tab (tab.key)}
+            {@const active = activeTab === tab.key}
+            <button
+              type="button"
+              onclick={() => openTab(tab.key)}
+              aria-current={active ? 'page' : undefined}
+              class={cn(
+                'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
+                active
+                  ? 'border-primary font-medium text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {tab.label}
+              {#if dirty.has(tab.key)}
+                <span
+                  class="size-1.5 rounded-full bg-primary"
+                  title="Unsaved changes in {tab.label}"
+                ></span>
+              {/if}
+            </button>
+          {/each}
+        </div>
       </div>
+      <ContentLangTabs
+        lang={contentLang}
+        enMissing={current.translationStatus.en !== 'complete'}
+        class="shrink-0 border-l pl-1"
+      />
     </div>
 
     <!-- Every panel mounted; only the active one is shown. -->

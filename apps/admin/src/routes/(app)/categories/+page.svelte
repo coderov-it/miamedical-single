@@ -22,11 +22,11 @@
   import CategorySheet from '~/lib/categories/category-sheet.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
-  import { editorLang } from '~/lib/editor-lang.svelte';
   import { orDash, pluralize } from '~/lib/format';
   import { errorMessage, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.categories.$get, 200>;
   type Category = ListResponse['data'][number];
@@ -79,8 +79,9 @@
   let deleting = $state<Category | null>(null);
   let deleteBusy = $state(false);
 
+  // List display follows the interface language, not any editing state.
   const nameOf = (category: Category) =>
-    (editorLang.current === 'en' ? category.translations.en?.name : undefined) ??
+    (uiLang.current === 'en' ? category.translations.en?.name : undefined) ??
     category.translations.it?.name ??
     category.code;
 

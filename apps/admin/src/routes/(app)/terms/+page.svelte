@@ -20,14 +20,16 @@
   import * as Table from '$lib/components/ui/table/index.js';
   import { api } from '~/lib/api';
   import type { Localized } from '~/lib/categories/spec-edit';
+  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
-  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { provideContentLang } from '~/lib/content-lang.svelte';
   import { formatDate, orDash } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   type Terms = InferResponseType<typeof api.api.admin.terms.$get, 200>['data'][number];
 
@@ -48,6 +50,9 @@
 
   const rows = $derived(documents.data ?? []);
 
+  // Editing language for the document sheet — the IT/EN tabs under its header.
+  const contentLang = provideContentLang();
+
   let editing = $state<TermsEdit | null>(null);
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -55,14 +60,21 @@
   let deleting = $state<Terms | null>(null);
   let deleteBusy = $state(false);
 
+  // List display follows the interface language, not any editing state.
   const titleOf = (doc: Terms) =>
-    (editorLang.current === 'en' ? doc.translations.en?.title : undefined) ??
+    (uiLang.current === 'en' ? doc.translations.en?.title : undefined) ??
     doc.translations.it?.title ??
     doc.code;
+
+  /** Mirrors translationsPayload: EN counts once title, body and slug exist. */
+  const enMissing = $derived(
+    !editing?.title.en?.trim() || !editing?.body.en?.trim() || !editing?.slug.en?.trim(),
+  );
 
   function startEdit(doc?: Terms) {
     error = null;
     fields = {};
+    contentLang.reset();
     editing = doc
       ? {
           id: doc.id,
@@ -278,6 +290,10 @@
         translated.
       </Sheet.Description>
     </Sheet.Header>
+
+    <div class="flex border-b px-6">
+      <ContentLangTabs lang={contentLang} {enMissing} />
+    </div>
 
     {#if editing}
       <div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">

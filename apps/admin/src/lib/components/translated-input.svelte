@@ -4,18 +4,19 @@
   categories, so this covers every translated field regardless of the storage
   style behind it.
 
-  The active language follows the global topbar switch, and the per-field tabs
-  override it locally. Italian is mandatory; the "EN missing" chip is a
-  standing reminder of translation debt rather than an error, because a
-  half-translated product is a normal working state, not a broken one.
+  Which language it edits is the form's ContentLang (context) — the tab
+  switcher at the top of each editor. The field itself only reports status:
+  the "EN missing" chip is a standing reminder of translation debt rather
+  than an error, because a half-translated product is a normal working state.
+  While editing English, the Italian text stays visible under the input as
+  the source to translate from.
 -->
 <script lang="ts">
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
-  import { cn } from '$lib/utils.js';
-  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { useContentLang } from '~/lib/content-lang.svelte';
 
   interface Props {
     label: string;
@@ -42,8 +43,8 @@
     id,
   }: Props = $props();
 
-  let override = $state<'it' | 'en' | null>(null);
-  const lang = $derived(override ?? editorLang.current);
+  const contentLang = useContentLang();
+  const lang = $derived(contentLang.current);
   const enMissing = $derived(!value.en?.trim());
 
   // `$props.id()` is stable per component instance and hydration-safe, which a
@@ -69,34 +70,11 @@
       {#if required && lang === 'it'}<span class="text-destructive">*</span>{/if}
     </Label>
 
-    <div class="flex items-center gap-1.5">
-      {#if enMissing}
-        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
-          EN missing
-        </Badge>
-      {/if}
-      <div
-        class="flex items-center rounded-md border p-0.5"
-        role="group"
-        aria-label="Field language"
-      >
-        {#each ['it', 'en'] as const as tab (tab)}
-          <button
-            type="button"
-            onclick={() => (override = tab)}
-            aria-pressed={lang === tab}
-            class={cn(
-              'rounded-sm px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase transition-colors',
-              lang === tab
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {tab}
-          </button>
-        {/each}
-      </div>
-    </div>
+    {#if enMissing}
+      <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
+        EN missing
+      </Badge>
+    {/if}
   </div>
 
   {#if multiline}
@@ -125,5 +103,11 @@
     <p id="{fieldId}-error" class="mt-1 text-xs text-destructive" role="alert">{error}</p>
   {:else if hint}
     <p id="{fieldId}-hint" class="mt-1 text-xs text-muted-foreground">{hint}</p>
+  {/if}
+
+  {#if lang === 'en' && value.it.trim()}
+    <p class="mt-1 truncate text-xs text-muted-foreground" title={value.it}>
+      <span class="font-medium uppercase">it</span> · {value.it}
+    </p>
   {/if}
 </div>

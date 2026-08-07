@@ -24,8 +24,10 @@
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { api } from '~/lib/api';
+  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
+  import { provideContentLang } from '~/lib/content-lang.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import OptionListEditor from './option-list-editor.svelte';
   import SpecFieldList from './spec-field-list.svelte';
@@ -47,6 +49,10 @@
   }
 
   let { open, onClose, onSaved }: Props = $props();
+
+  // Sheet-wide editing language: the IT/EN tabs under the header drive every
+  // bilingual field here, spec rows and their options included.
+  const contentLang = provideContentLang();
 
   let code = $state('');
   let isActive = $state(true);
@@ -74,6 +80,8 @@
 
     error = null;
     fields = {};
+    // A different subject means a fresh editing session — back to Italian.
+    contentLang.reset();
 
     if (open === undefined) return;
 
@@ -115,6 +123,9 @@
       })),
     }));
   });
+
+  /** Mirrors translationsPayload's completeness rule: EN needs name + slug. */
+  const enMissing = $derived(!name.en?.trim() || !slug.en?.trim());
 
   /** English is only sent when it is actually complete — a half row is worse
       than none, because the storefront would fall back per-field instead of
@@ -219,6 +230,10 @@
         category.
       </Sheet.Description>
     </Sheet.Header>
+
+    <div class="flex border-b px-6">
+      <ContentLangTabs lang={contentLang} {enMissing} />
+    </div>
 
     <div class="min-h-0 flex-1 divide-y overflow-y-auto">
       {#if error}

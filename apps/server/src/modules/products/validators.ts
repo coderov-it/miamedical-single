@@ -3,6 +3,7 @@ import {
   CreateProductSchema,
   FaqInputSchema,
   LocaleOnlyQuerySchema,
+  LocaleQuerySchema,
   ProductQuerySchema,
   ProductSlugParamSchema,
   ProductTermsInputSchema,
@@ -38,6 +39,9 @@ export const AdminProductQuerySchema = v.object({
   q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
   status: v.optional(v.picklist(['draft', 'active', 'archived'])),
   category: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(64))),
+  // The admin client appends this on every read: which language list titles
+  // and search resolve in. Reading only — editing payloads stay bilingual.
+  locale: LocaleQuerySchema,
 });
 
 export {

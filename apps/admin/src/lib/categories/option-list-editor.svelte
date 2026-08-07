@@ -12,7 +12,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { useContentLang } from '~/lib/content-lang.svelte';
   import type { SpecOptionEdit } from './spec-edit';
 
   interface Props {
@@ -21,6 +21,9 @@
   }
 
   let { options = $bindable(), disabled = false }: Props = $props();
+
+  // Option labels follow the sheet's IT/EN tabs like every other field here.
+  const contentLang = useContentLang();
 
   /** Only ever a suggestion: an existing option's value is a stored key. */
   function slugify(text: string): string {
@@ -37,15 +40,15 @@
   }
 
   function onLabelInput(option: SpecOptionEdit, text: string) {
-    const previous = editorLang.current === 'en' ? (option.label.en ?? '') : option.label.it;
+    const previous = contentLang.current === 'en' ? (option.label.en ?? '') : option.label.it;
 
-    if (editorLang.current === 'en') option.label.en = text || undefined;
+    if (contentLang.current === 'en') option.label.en = text || undefined;
     else option.label.it = text;
 
     // Autofill the machine value only while it is still tracking the label and
     // the row is new. Once a value is saved it is a key other rows point at.
     if (!option.id && (option.value === '' || option.value === slugify(previous))) {
-      option.value = slugify(editorLang.current === 'en' ? (option.label.it ?? text) : text);
+      option.value = slugify(contentLang.current === 'en' ? (option.label.it ?? text) : text);
     }
   }
 </script>
@@ -67,9 +70,9 @@
       {#each options as option (option.uid)}
         <div class="flex items-center gap-1.5">
           <Input
-            value={editorLang.current === 'en' ? (option.label.en ?? '') : option.label.it}
+            value={contentLang.current === 'en' ? (option.label.en ?? '') : option.label.it}
             oninput={(event) => onLabelInput(option, event.currentTarget.value)}
-            placeholder={editorLang.current === 'en' ? 'Label (EN)' : 'Etichetta (IT)'}
+            placeholder={contentLang.current === 'en' ? 'Label (EN)' : 'Etichetta (IT)'}
             aria-label="Option label"
             class="h-8 flex-1"
           />
