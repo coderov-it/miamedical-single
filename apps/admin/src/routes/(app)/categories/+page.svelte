@@ -1,166 +1,292 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
-  import type { InferResponseType } from 'hono/client';
 
-  import { api } from '~/lib/api';
-  import PermissionGate from '~/lib/components/PermissionGate.svelte';
-  import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+  import ImageIcon from '@lucide/svelte/icons/image';
+  import LayersIcon from '@lucide/svelte/icons/layers';
+  import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import type { InferResponseType } from 'hono/client';
+  import { toast } from 'svelte-sonner';
+
+  import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+  import { Badge } from '$lib/components/ui/badge/index.js';
+  import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import * as Empty from '$lib/components/ui/empty/index.js';
+  import * as Table from '$lib/components/ui/table/index.js';
+  import { api, mediaUrl } from '~/lib/api';
+  import CategorySheet from '~/lib/categories/category-sheet.svelte';
+  import ListCard from '~/lib/components/list-card.svelte';
+  import PageHeader from '~/lib/components/page-header.svelte';
+  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { orDash, pluralize } from '~/lib/format';
+  import { errorMessage, unwrapFull } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
 
-  type Category = InferResponseType<typeof api.api.admin.categories.$get, 200>['data'][number];
+  type ListResponse = InferResponseType<typeof api.api.admin.categories.$get, 200>;
+  type Category = ListResponse['data'][number];
 
-  let categories = $state<Category[]>([]);
-  let loading = $state(true);
-  let error = $state<string | null>(null);
+  const categories = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrapFull<ListResponse>(
+        await api.api.admin.categories.$get(undefined, { init: { signal } }),
+      ),
+    { enabled: () => session.can(P.CATEGORY_READ) },
+  );
 
-  // Inline create form.
-  let showCreate = $state(false);
-  let code = $state('');
-  let nameIt = $state('');
-  let slugIt = $state('');
-  let creating = $state(false);
-  let createError = $state<string | null>(null);
-  let createFields = $state<Record<string, string>>({});
+  const rows = $derived(categories.data?.data ?? []);
 
-  async function load() {
-    loading = true;
-    error = null;
-    try {
-      categories = await unwrap<Category[]>(await api.api.admin.categories.$get());
-    } catch (err) {
-      error = errorMessage(err);
-    } finally {
-      loading = false;
-    }
+  /**
+   * The open editor lives in the URL — `?edit=new` or `?edit=<id>` — so an
+   * editor can be linked to a colleague, and so the old `/categories/:id`
+   * route can redirect here instead of dying.
+   *
+   * Resolves to CategorySheet's three-valued prop: undefined closed, null
+   * create, a category to edit. While the list is still loading an id stays
+   * `undefined`, so the sheet opens once its subject actually exists.
+   */
+  const editParam = $derived(page.url.searchParams.get('edit'));
+  const editing = $derived<Category | null | undefined>(
+    editParam === null
+      ? undefined
+      : editParam === 'new'
+        ? null
+        : rows.find((row) => row.id === editParam),
+  );
+
+  function openEditor(value: string) {
+    const params = new URLSearchParams(page.url.search);
+    params.set('edit', value);
+    void goto(`${page.url.pathname}?${params}`, { noScroll: true, keepFocus: true });
   }
 
-  $effect(() => {
-    void load();
-  });
+  function closeEditor() {
+    const params = new URLSearchParams(page.url.search);
+    params.delete('edit');
+    const search = params.toString();
+    void goto(`${page.url.pathname}${search ? `?${search}` : ''}`, {
+      noScroll: true,
+      keepFocus: true,
+    });
+  }
 
-  const slugify = (text: string) =>
-    text
-      .toLowerCase()
-      .normalize('NFD')
-      .replaceAll(/[̀-ͯ]/g, '')
-      .replaceAll(/[^a-z0-9]+/g, '-')
-      .replaceAll(/^-+|-+$/g, '');
+  let deleting = $state<Category | null>(null);
+  let deleteBusy = $state(false);
 
-  async function create() {
-    creating = true;
-    createError = null;
-    createFields = {};
+  const nameOf = (category: Category) =>
+    (editorLang.current === 'en' ? category.translations.en?.name : undefined) ??
+    category.translations.it?.name ??
+    category.code;
+
+  async function confirmDelete() {
+    const target = deleting;
+    if (!target) return;
+
+    deleteBusy = true;
     try {
-      await unwrap(
-        await api.api.admin.categories.$post({
-          json: {
-            code: code || slugify(nameIt),
-            translations: { it: { name: nameIt, slug: slugIt || slugify(nameIt) } },
-          },
-        }),
-      );
-      showCreate = false;
-      code = '';
-      nameIt = '';
-      slugIt = '';
-      await load();
+      await unwrapFull(await api.api.admin.categories[':id'].$delete({ param: { id: target.id } }));
+      toast.success(`Deleted "${nameOf(target)}".`);
+      deleting = null;
+      categories.refresh();
     } catch (err) {
-      createError = errorMessage(err);
-      createFields = errorFields(err);
+      // The server refuses to delete a category that still has products, and
+      // says so — pass that through instead of a generic failure.
+      toast.error(errorMessage(err));
     } finally {
-      creating = false;
+      deleteBusy = false;
     }
   }
 </script>
 
-<PermissionGate permission={P.CATEGORY_READ}>
-  <div class="flex items-center justify-between gap-4">
-    <h1 class="text-2xl font-semibold tracking-tight">Categories</h1>
-    {#if session.can(P.CATEGORY_CREATE)}
-      <button
-        type="button"
-        onclick={() => (showCreate = !showCreate)}
-        class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition"
-      >
-        New category
-      </button>
-    {/if}
-  </div>
-
-  {#if showCreate}
-    <form
-      class="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
-      onsubmit={(event) => {
-        event.preventDefault();
-        void create();
-      }}
-    >
-      <label class="block text-sm">
-        <span class="mb-1 block font-medium">Name (Italian)</span>
-        <input type="text" bind:value={nameIt} required class="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900" />
-      </label>
-      <label class="block text-sm">
-        <span class="mb-1 block font-medium">Code</span>
-        <input type="text" bind:value={code} placeholder={slugify(nameIt) || 'auto'} class="rounded-lg border border-neutral-300 px-3 py-2 font-mono dark:border-neutral-700 dark:bg-neutral-900" />
-      </label>
-      <label class="block text-sm">
-        <span class="mb-1 block font-medium">Slug (IT)</span>
-        <input type="text" bind:value={slugIt} placeholder={slugify(nameIt) || 'auto'} class="rounded-lg border border-neutral-300 px-3 py-2 font-mono dark:border-neutral-700 dark:bg-neutral-900" />
-      </label>
-      <button type="submit" disabled={creating} class="bg-brand-600 rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
-        {creating ? 'Creating…' : 'Create'}
-      </button>
-      {#if createError}
-        <p class="w-full text-sm text-red-600" role="alert">
-          {createError}
-          {#each Object.entries(createFields) as [path, message] (path)}
-            <span class="block text-xs">{path}: {message}</span>
-          {/each}
-        </p>
+<section class="admin-page">
+  <PageHeader
+    eyebrow="Catalog"
+    title="Categories"
+    description="Each category defines the spec fields its products are filtered and compared by."
+  >
+    {#snippet actions()}
+      {#if session.can(P.CATEGORY_CREATE)}
+        <Button onclick={() => openEditor('new')}>
+          <PlusIcon />
+          New category
+        </Button>
       {/if}
-    </form>
-  {/if}
+    {/snippet}
+  </PageHeader>
 
-  {#if error}
-    <p class="mt-6 rounded-lg bg-red-50 p-4 text-sm text-red-700" role="alert">{error}</p>
-  {:else if loading}
-    <p class="mt-6 text-sm text-neutral-500">Loading…</p>
-  {:else}
-    <div class="mt-6 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-      <table class="w-full text-sm">
-        <thead class="bg-neutral-50 text-left dark:bg-neutral-800/50">
-          <tr>
-            <th class="px-4 py-3 font-medium">Name</th>
-            <th class="px-4 py-3 font-medium">Code</th>
-            <th class="px-4 py-3 font-medium">Specs</th>
-            <th class="px-4 py-3 font-medium">EN</th>
-            <th class="px-4 py-3 font-medium">Active</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each categories as category (category.id)}
-            <tr class="border-t border-neutral-100 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/40">
-              <td class="px-4 py-3 font-medium">
-                <a href={`/categories/${category.id}`} class="hover:underline">
-                  {category.translations.it?.name ?? category.code}
-                </a>
-              </td>
-              <td class="px-4 py-3 font-mono text-xs text-neutral-500">{category.code}</td>
-              <td class="px-4 py-3 text-neutral-500">{category.specs.length}</td>
-              <td class="px-4 py-3">
-                {#if category.translations.en}
-                  <span class="text-green-600">✓</span>
-                {:else}
-                  <span class="text-neutral-400">—</span>
+  <ListCard
+    noun="category"
+    nounPlural="categories"
+    meta={categories.data
+      ? { page: 1, perPage: rows.length || 1, total: rows.length, pageCount: 1 }
+      : undefined}
+    loading={categories.loading}
+    error={categories.error}
+    isEmpty={rows.length === 0}
+    onPage={() => {}}
+    onRetry={() => categories.refresh()}
+    skeletonColumns={4}
+  >
+    {#snippet table()}
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            <Table.Head class="w-[40%]">Category</Table.Head>
+            <Table.Head>Code</Table.Head>
+            <Table.Head>Spec fields</Table.Head>
+            <Table.Head>English</Table.Head>
+            <Table.Head>Status</Table.Head>
+            <Table.Head class="w-10"></Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {#each rows as category (category.id)}
+            {@const filterable = category.specs.filter((spec) => spec.isFilterable).length}
+            <Table.Row>
+              <Table.Cell>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted"
+                  >
+                    {#if category.icon}
+                      <img src={mediaUrl(category.icon)} alt="" class="size-full object-cover" />
+                    {:else}
+                      <ImageIcon class="size-4 text-muted-foreground" />
+                    {/if}
+                  </div>
+                  <div class="min-w-0">
+                    <button
+                      type="button"
+                      class="block truncate text-left font-medium hover:underline"
+                      onclick={() => openEditor(category.id)}
+                    >
+                      {nameOf(category)}
+                    </button>
+                    <p class="truncate text-xs text-muted-foreground">
+                      {orDash(category.translations.it?.slug)}
+                    </p>
+                  </div>
+                </div>
+              </Table.Cell>
+
+              <Table.Cell><code class="font-mono text-xs">{category.code}</code></Table.Cell>
+
+              <Table.Cell class="text-muted-foreground">
+                {pluralize(category.specs.length, 'field')}
+                {#if filterable > 0}
+                  <span class="text-xs">· {filterable} filterable</span>
                 {/if}
-              </td>
-              <td class="px-4 py-3">{category.isActive ? '✓' : '—'}</td>
-            </tr>
-          {:else}
-            <tr><td class="px-4 py-8 text-center text-neutral-500" colspan="5">No categories yet.</td></tr>
+              </Table.Cell>
+
+              <Table.Cell>
+                {#if category.translations.en?.name}
+                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600">
+                    complete
+                  </Badge>
+                {:else}
+                  <Badge variant="outline" class="border-amber-500/40 text-amber-600">
+                    missing
+                  </Badge>
+                {/if}
+              </Table.Cell>
+
+              <Table.Cell>
+                <Badge variant={category.isActive ? 'default' : 'outline'}>
+                  {category.isActive ? 'active' : 'hidden'}
+                </Badge>
+              </Table.Cell>
+
+              <Table.Cell>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger
+                    class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+                    aria-label="Row actions"
+                  >
+                    <MoreHorizontalIcon />
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Content align="end">
+                    <DropdownMenu.Item onSelect={() => openEditor(category.id)}>
+                      <PencilIcon />
+                      Edit
+                    </DropdownMenu.Item>
+                    {#if session.can(P.CATEGORY_DELETE)}
+                      <DropdownMenu.Separator />
+                      <DropdownMenu.Item
+                        variant="destructive"
+                        onSelect={() => (deleting = category)}
+                      >
+                        <Trash2Icon />
+                        Delete
+                      </DropdownMenu.Item>
+                    {/if}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
+              </Table.Cell>
+            </Table.Row>
           {/each}
-        </tbody>
-      </table>
-    </div>
-  {/if}
-</PermissionGate>
+        </Table.Body>
+      </Table.Root>
+    {/snippet}
+
+    {#snippet empty()}
+      <Empty.Root class="border-0">
+        <Empty.Header>
+          <Empty.Media variant="icon"><LayersIcon /></Empty.Media>
+          <Empty.Title>No categories yet</Empty.Title>
+          <Empty.Description>
+            A product needs a category, and a category's specs are what make the storefront
+            filterable. Start here.
+          </Empty.Description>
+        </Empty.Header>
+        {#if session.can(P.CATEGORY_CREATE)}
+          <Empty.Content>
+            <Button onclick={() => openEditor('new')}>
+              <PlusIcon />
+              New category
+            </Button>
+          </Empty.Content>
+        {/if}
+      </Empty.Root>
+    {/snippet}
+  </ListCard>
+</section>
+
+<CategorySheet open={editing} onClose={closeEditor} onSaved={() => categories.refresh()} />
+
+<AlertDialog.Root
+  open={deleting !== null}
+  onOpenChange={(open) => {
+    if (!open) deleting = null;
+  }}
+>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>Delete this category?</AlertDialog.Title>
+      <AlertDialog.Description>
+        "{deleting ? nameOf(deleting) : ''}" and its {pluralize(
+          deleting?.specs.length ?? 0,
+          'spec field',
+        )} are removed. Categories that still have products cannot be deleted.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Action
+        disabled={deleteBusy}
+        class={buttonVariants({ variant: 'destructive' })}
+        onclick={(event) => {
+          event.preventDefault();
+          void confirmDelete();
+        }}
+      >
+        {deleteBusy ? 'Deleting…' : 'Delete category'}
+      </AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

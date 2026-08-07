@@ -1,31 +1,62 @@
 <script lang="ts">
+  import { P } from '@mia/permissions';
+  import { untrack } from 'svelte';
+  import { toast } from 'svelte-sonner';
+
+  import { Badge } from '$lib/components/ui/badge/index.js';
+  import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+  import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
   import { errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
+  import { routes } from '~/lib/routes';
+  import { session } from '~/lib/session.svelte';
   import type { AdminProduct, AdminTerms, TabProps } from './shared';
+  import { sameAsSaved } from './shared';
+  import TabPanel from './tab-panel.svelte';
 
-  let { product, onSaved }: TabProps = $props();
+  let { product, onSaved, dirty }: TabProps = $props();
 
-  let documents = $state<AdminTerms[]>([]);
-  let selected = $state<string[]>([...product.termsIds]);
-  let saving = $state(false);
-  let error = $state<string | null>(null);
-  let savedFlash = $state(false);
+  const SECTION = 'terms';
 
+  let selected = $state<string[]>(untrack(() => [...product.termsIds]));
+  let saved = $state<string[]>(untrack(() => [...product.termsIds]));
+
+  let seededFor = $state(untrack(() => product.id));
   $effect(() => {
-    void api.api.admin.terms
-      .$get()
-      .then((response) => unwrap<AdminTerms[]>(response))
-      .then((data) => (documents = data))
-      .catch((err) => (error = errorMessage(err)));
+    if (product.id === seededFor) return;
+    seededFor = product.id;
+    selected = [...product.termsIds];
+    saved = [...product.termsIds];
   });
 
+  const isDirty = $derived(!sameAsSaved(selected, saved));
+  $effect(() => dirty.set(SECTION, isDirty));
+
+  const documents = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrap<AdminTerms[]>(await api.api.admin.terms.$get(undefined, { init: { signal } })),
+    { enabled: () => session.can(P.TERMS_READ) },
+  );
+
+  const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+
+  let saving = $state(false);
+  let error = $state<string | null>(null);
+
   function toggle(id: string) {
-    selected = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id];
+    // Append rather than splice-in-place: selection order *is* display order,
+    // so a newly ticked document belongs at the end.
+    selected = selected.includes(id) ? selected.filter((entry) => entry !== id) : [...selected, id];
   }
 
   async function save() {
     saving = true;
     error = null;
+
     try {
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].terms.$put({
@@ -33,10 +64,11 @@
           json: selected.map((termsId, position) => ({ termsId, position })),
         }),
       );
-      onSaved(updated);
       selected = [...updated.termsIds];
-      savedFlash = true;
-      setTimeout(() => (savedFlash = false), 2000);
+      saved = [...updated.termsIds];
+      dirty.clear(SECTION);
+      onSaved(updated);
+      toast.success('Terms links saved.');
     } catch (err) {
       error = errorMessage(err);
     } finally {
@@ -45,53 +77,51 @@
   }
 </script>
 
-<div class="flex max-w-2xl flex-col gap-4">
-  <p class="text-xs text-neutral-500">
-    Linked documents are shown on the product page and accepted at checkout. Order follows the
-    list below.
-  </p>
-
-  <div class="flex flex-col gap-2">
-    {#each documents as doc (doc.id)}
-      <label
-        class="flex items-center gap-3 rounded-xl border p-3 text-sm transition"
-        class:border-brand-600={selected.includes(doc.id)}
-        class:border-neutral-200={!selected.includes(doc.id)}
-        class:dark:border-neutral-800={!selected.includes(doc.id)}
-      >
-        <input
-          type="checkbox"
-          checked={selected.includes(doc.id)}
-          onchange={() => toggle(doc.id)}
-        />
-        <span class="flex-1">
-          <span class="font-medium">{doc.translations.it?.title ?? doc.code}</span>
-          <span class="ml-2 text-xs text-neutral-500">v{doc.version} · {doc.status}</span>
-        </span>
-        {#if doc.status !== 'published'}
-          <span class="text-xs text-amber-600">not published</span>
-        {/if}
-      </label>
-    {:else}
-      <p class="text-sm text-neutral-500">
-        No terms documents yet — create one under <a href="/terms" class="underline">Terms</a>.
+<TabPanel
+  title="Terms documents"
+  description="Linked documents appear on the product page and are accepted at checkout, in the order ticked."
+  dirty={isDirty}
+  {saving}
+  error={error ?? documents.error}
+  onSave={save}
+  saveLabel="Save links"
+  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+>
+  <div class="max-w-2xl space-y-2">
+    {#if !documents.data}
+      {#each { length: 3 } as _, row (row)}
+        <Skeleton class="h-14 w-full" />
+      {/each}
+    {:else if documents.data.length === 0}
+      <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        No terms documents exist yet — create one under
+        <a href={routes.terms} class="underline underline-offset-4">Terms</a>.
       </p>
-    {/each}
+    {:else}
+      {#each documents.data as doc (doc.id)}
+        {@const checked = selected.includes(doc.id)}
+        <Label
+          class={cn(
+            'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors',
+            checked ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+          )}
+        >
+          <Checkbox {checked} onCheckedChange={() => toggle(doc.id)} disabled={!canUpdate} />
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-sm font-medium">
+              {doc.translations.it?.title ?? doc.code}
+            </span>
+            <span class="text-xs text-muted-foreground">v{doc.version} · {doc.status}</span>
+          </span>
+          {#if doc.status !== 'published'}
+            <!-- Linkable, but flagged: a draft document is not something a
+                 customer can be asked to accept at checkout. -->
+            <Badge variant="outline" class="border-amber-500/40 text-amber-600">
+              not published
+            </Badge>
+          {/if}
+        </Label>
+      {/each}
+    {/if}
   </div>
-
-  {#if error}
-    <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-  {/if}
-
-  <div class="flex items-center justify-end gap-3">
-    {#if savedFlash}<span class="text-sm text-green-600">Saved ✓</span>{/if}
-    <button
-      type="button"
-      onclick={() => void save()}
-      disabled={saving}
-      class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-    >
-      {saving ? 'Saving…' : 'Save links'}
-    </button>
-  </div>
-</div>
+</TabPanel>

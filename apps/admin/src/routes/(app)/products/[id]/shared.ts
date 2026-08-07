@@ -1,5 +1,7 @@
 import type { InferResponseType } from 'hono/client';
 
+import type { DirtyState } from '~/lib/dirty.svelte';
+
 import { api } from '~/lib/api';
 
 /** DTO shapes inferred from the RPC client — never redeclared by hand. */
@@ -38,4 +40,19 @@ export function localizedOrNull(value: Localized): Localized | null {
 export interface TabProps {
   product: AdminProduct;
   onSaved: (product: AdminProduct) => void;
+  /**
+   * Shared across all ten tabs. Each reports its own section so the strip can
+   * show a dot and the page-exit guard can name what would be lost.
+   */
+  dirty: DirtyState;
+}
+
+/**
+ * Cheap structural comparison for dirty tracking. The editor state is plain
+ * JSON — strings, numbers, booleans, arrays of those — so key order is stable
+ * because both sides are built by the same code, and this is far cheaper than
+ * a deep walk on every keystroke.
+ */
+export function sameAsSaved(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
 }

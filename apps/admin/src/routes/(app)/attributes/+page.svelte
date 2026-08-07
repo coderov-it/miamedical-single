@@ -1,17 +1,48 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import ImageIcon from '@lucide/svelte/icons/image';
+  import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import type { InferResponseType } from 'hono/client';
+  import { toast } from 'svelte-sonner';
 
-  import { api } from '~/lib/api';
-  import IconPicker from '~/lib/components/IconPicker.svelte';
-  import PermissionGate from '~/lib/components/PermissionGate.svelte';
-  import TranslatedInput from '~/lib/components/TranslatedInput.svelte';
+  import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+  import { Badge } from '$lib/components/ui/badge/index.js';
+  import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import * as Empty from '$lib/components/ui/empty/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import * as Select from '$lib/components/ui/select/index.js';
+  import * as Table from '$lib/components/ui/table/index.js';
+  import * as Sheet from '$lib/components/ui/sheet/index.js';
+  import { Spinner } from '$lib/components/ui/spinner/index.js';
+  import { Switch } from '$lib/components/ui/switch/index.js';
+  import { api, mediaUrl } from '~/lib/api';
+  import { isSelectType, VALUE_TYPES, type Localized } from '~/lib/categories/spec-edit';
+  import IconPicker from '~/lib/components/icon-picker.svelte';
+  import ListCard from '~/lib/components/list-card.svelte';
+  import PageHeader from '~/lib/components/page-header.svelte';
+  import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { editorLang } from '~/lib/editor-lang.svelte';
+  import { orDash, pluralize } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
 
   type Preset = InferResponseType<typeof api.api.admin.attributes.$get, 200>['data'][number];
-  type Localized = { it: string; en?: string | undefined };
+
+  interface OptionEdit {
+    uid: string;
+    id?: string | undefined;
+    value: string;
+    label: Localized;
+    /** Goes into the generated SKU code, so it is short and uppercase. */
+    skuCode: string;
+  }
 
   interface PresetEdit {
     id?: string | undefined;
@@ -21,41 +52,31 @@
     unit: string;
     isActive: boolean;
     icon: string | null;
-    options: { id?: string | undefined; value: string; label: Localized; skuCode: string }[];
+    options: OptionEdit[];
   }
 
-  const VALUE_TYPES = [
-    ['single_select', 'Single select'],
-    ['multi_select', 'Multiple select'],
-    ['boolean', 'Yes / No'],
-    ['number', 'Number'],
-    ['number_range', 'Number range'],
-    ['string', 'Free text'],
-  ] as const;
+  const presets = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrap<Preset[]>(await api.api.admin.attributes.$get(undefined, { init: { signal } })),
+    { enabled: () => session.can(P.ATTRIBUTE_READ) },
+  );
 
-  let presets = $state<Preset[]>([]);
+  const rows = $derived(presets.data ?? []);
+
   let editing = $state<PresetEdit | null>(null);
-  let loading = $state(true);
   let saving = $state(false);
   let error = $state<string | null>(null);
   let fields = $state<Record<string, string>>({});
+  let deleting = $state<Preset | null>(null);
+  let deleteBusy = $state(false);
 
-  async function load() {
-    loading = true;
-    try {
-      presets = await unwrap<Preset[]>(await api.api.admin.attributes.$get());
-    } catch (err) {
-      error = errorMessage(err);
-    } finally {
-      loading = false;
-    }
-  }
-
-  $effect(() => {
-    void load();
-  });
+  const labelOf = (preset: Preset) =>
+    (editorLang.current === 'en' ? preset.label.en : undefined) ?? preset.label.it ?? preset.key;
 
   function startEdit(preset?: Preset) {
+    error = null;
+    fields = {};
     editing = preset
       ? {
           id: preset.id,
@@ -66,6 +87,7 @@
           isActive: preset.isActive,
           icon: preset.icon,
           options: preset.options.map((option) => ({
+            uid: option.id,
             id: option.id,
             value: option.value,
             label: { it: option.label.it, en: option.label.en },
@@ -83,34 +105,34 @@
         };
   }
 
-  const isSelect = (type: string) => type === 'single_select' || type === 'multi_select';
-
   async function save() {
     if (!editing) return;
+
     saving = true;
     error = null;
     fields = {};
+
+    const localized = (value: Localized) =>
+      value.en?.trim() ? { it: value.it, en: value.en } : { it: value.it };
+
     const payload = {
       key: editing.key,
-      label: editing.label.en?.trim()
-        ? { it: editing.label.it, en: editing.label.en }
-        : { it: editing.label.it },
+      label: localized(editing.label),
       valueType: editing.valueType as 'string',
       unit: editing.unit.trim() || null,
       isActive: editing.isActive,
       icon: editing.icon,
-      options: isSelect(editing.valueType)
+      options: isSelectType(editing.valueType)
         ? editing.options.map((option, position) => ({
             ...(option.id ? { id: option.id } : {}),
             value: option.value,
-            label: option.label.en?.trim()
-              ? { it: option.label.it, en: option.label.en }
-              : { it: option.label.it },
+            label: localized(option.label),
             skuCode: option.skuCode.trim() || null,
             position,
           }))
         : [],
     };
+
     try {
       if (editing.id) {
         await unwrap(
@@ -122,209 +144,356 @@
       } else {
         await unwrap(await api.api.admin.attributes.$post({ json: payload }));
       }
+      toast.success(`Saved "${editing.label.it || editing.key}".`);
       editing = null;
-      await load();
+      presets.refresh();
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
+      toast.error(error);
     } finally {
       saving = false;
     }
   }
 
-  async function remove(preset: Preset) {
-    if (!confirm(`Delete preset "${preset.label.it}"? Products keep their copied groups.`)) return;
+  async function confirmDelete() {
+    const target = deleting;
+    if (!target) return;
+
+    deleteBusy = true;
     try {
-      await unwrap(await api.api.admin.attributes[':id'].$delete({ param: { id: preset.id } }));
-      await load();
+      await unwrap(await api.api.admin.attributes[':id'].$delete({ param: { id: target.id } }));
+      toast.success(`Deleted "${labelOf(target)}".`);
+      deleting = null;
+      presets.refresh();
     } catch (err) {
-      error = errorMessage(err);
+      toast.error(errorMessage(err));
+    } finally {
+      deleteBusy = false;
     }
+  }
+
+  function addOption() {
+    editing?.options.push({ uid: crypto.randomUUID(), value: '', label: { it: '' }, skuCode: '' });
   }
 </script>
 
-<PermissionGate permission={P.ATTRIBUTE_READ}>
-  <div class="flex items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold tracking-tight">Attribute presets</h1>
-      <p class="mt-1 text-sm text-neutral-500">
-        The toggleable “common variants” — copied into a product, then owned by it.
-      </p>
-    </div>
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-1 rounded-lg border border-neutral-300 p-1 dark:border-neutral-700">
-        {#each ['it', 'en'] as const as lang (lang)}
-          <button
-            type="button"
-            class="rounded-md px-2 py-1 text-xs font-semibold uppercase transition"
-            class:bg-brand-600={editorLang.current === lang}
-            class:text-white={editorLang.current === lang}
-            onclick={() => editorLang.set(lang)}
-          >
-            {lang}
-          </button>
-        {/each}
-      </div>
+<section class="admin-page">
+  <PageHeader
+    eyebrow="Catalog"
+    title="Attributes"
+    description="The reusable variant library. Adding a preset to a product copies it — later edits here do not reach products already using it."
+  >
+    {#snippet actions()}
       {#if session.can(P.ATTRIBUTE_CREATE)}
-        <button
-          type="button"
-          onclick={() => startEdit()}
-          class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition"
-        >
+        <Button onclick={() => startEdit()}>
+          <PlusIcon />
           New preset
-        </button>
+        </Button>
       {/if}
-    </div>
-  </div>
+    {/snippet}
+  </PageHeader>
 
-  {#if error && !editing}
-    <p class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-  {/if}
+  <ListCard
+    noun="preset"
+    meta={presets.data
+      ? { page: 1, perPage: rows.length || 1, total: rows.length, pageCount: 1 }
+      : undefined}
+    loading={presets.loading}
+    error={presets.error}
+    isEmpty={rows.length === 0}
+    onPage={() => {}}
+    onRetry={() => presets.refresh()}
+    skeletonColumns={5}
+  >
+    {#snippet table()}
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            <Table.Head class="w-[35%]">Preset</Table.Head>
+            <Table.Head>Key</Table.Head>
+            <Table.Head>Type</Table.Head>
+            <Table.Head>Options</Table.Head>
+            <Table.Head>Status</Table.Head>
+            <Table.Head class="w-10"></Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {#each rows as preset (preset.id)}
+            <Table.Row>
+              <Table.Cell>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted"
+                  >
+                    {#if preset.icon}
+                      <img src={mediaUrl(preset.icon)} alt="" class="size-full object-cover" />
+                    {:else}
+                      <ImageIcon class="size-4 text-muted-foreground" />
+                    {/if}
+                  </div>
+                  <button
+                    type="button"
+                    class="truncate text-left font-medium hover:underline"
+                    onclick={() => startEdit(preset)}
+                  >
+                    {labelOf(preset)}
+                  </button>
+                </div>
+              </Table.Cell>
+              <Table.Cell><code class="font-mono text-xs">{preset.key}</code></Table.Cell>
+              <Table.Cell class="text-muted-foreground">
+                {VALUE_TYPES.find((type) => type.value === preset.valueType)?.label ??
+                  preset.valueType}
+                {#if preset.unit}<span class="text-xs">· {preset.unit}</span>{/if}
+              </Table.Cell>
+              <Table.Cell class="text-muted-foreground">
+                {isSelectType(preset.valueType) ? pluralize(preset.options.length, 'option') : '—'}
+              </Table.Cell>
+              <Table.Cell>
+                <Badge variant={preset.isActive ? 'default' : 'outline'}>
+                  {preset.isActive ? 'active' : 'hidden'}
+                </Badge>
+              </Table.Cell>
+              <Table.Cell>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger
+                    class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+                    aria-label="Row actions"
+                  >
+                    <MoreHorizontalIcon />
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Content align="end">
+                    <DropdownMenu.Item onSelect={() => startEdit(preset)}>
+                      <PencilIcon />
+                      Edit
+                    </DropdownMenu.Item>
+                    {#if session.can(P.ATTRIBUTE_DELETE)}
+                      <DropdownMenu.Separator />
+                      <DropdownMenu.Item variant="destructive" onSelect={() => (deleting = preset)}>
+                        <Trash2Icon />
+                        Delete
+                      </DropdownMenu.Item>
+                    {/if}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
+              </Table.Cell>
+            </Table.Row>
+          {/each}
+        </Table.Body>
+      </Table.Root>
+    {/snippet}
 
-  {#if editing}
-    <form
-      class="mt-6 flex max-w-2xl flex-col gap-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
-      onsubmit={(event) => {
-        event.preventDefault();
-        void save();
-      }}
-    >
-      <div class="grid grid-cols-2 gap-3">
-        <label class="block text-sm">
-          <span class="mb-1 block font-medium">Key</span>
-          <input type="text" bind:value={editing.key} required class="w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm dark:border-neutral-700 dark:bg-neutral-900" />
-        </label>
-        <label class="block text-sm">
-          <span class="mb-1 block font-medium">Type</span>
-          <select bind:value={editing.valueType} class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900">
-            {#each VALUE_TYPES as [value, label] (value)}
-              <option {value}>{label}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
+    {#snippet empty()}
+      <Empty.Root class="border-0">
+        <Empty.Header>
+          <Empty.Media variant="icon"><SlidersHorizontalIcon /></Empty.Media>
+          <Empty.Title>No attribute presets yet</Empty.Title>
+          <Empty.Description>
+            Presets save re-typing the same variant options — colour, size, material — on every
+            product.
+          </Empty.Description>
+        </Empty.Header>
+        {#if session.can(P.ATTRIBUTE_CREATE)}
+          <Empty.Content>
+            <Button onclick={() => startEdit()}>
+              <PlusIcon />
+              New preset
+            </Button>
+          </Empty.Content>
+        {/if}
+      </Empty.Root>
+    {/snippet}
+  </ListCard>
+</section>
 
-      <TranslatedInput label="Label" bind:value={editing.label} error={fields['label.it']} />
+<Sheet.Root
+  open={editing !== null}
+  onOpenChange={(open) => {
+    if (!open && !saving) editing = null;
+  }}
+>
+  <Sheet.Content
+    side="right"
+    class="gap-0 p-0 data-[side=right]:sm:max-w-2xl"
+    showCloseButton={false}
+  >
+    <Sheet.Header class="border-b bg-muted/50">
+      <Sheet.Title>{editing?.id ? 'Edit preset' : 'New preset'}</Sheet.Title>
+      <Sheet.Description>
+        A preset is a template. Products copy it on use, so editing one never rewrites a product
+        that already has it.
+      </Sheet.Description>
+    </Sheet.Header>
 
-      <div class="flex items-center gap-4 text-sm">
-        <label class="flex items-center gap-1.5">
-          Unit
-          <input type="text" bind:value={editing.unit} placeholder="cm" class="w-16 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900" />
-        </label>
-        <label class="flex items-center gap-1.5">
-          <input type="checkbox" bind:checked={editing.isActive} /> Active (offered in the editor)
-        </label>
-      </div>
+    {#if editing}
+      <div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
+        {#if error}
+          <p class="rounded-md bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        {/if}
 
-      <IconPicker label="Icon (copied into seeded groups)" bind:value={editing.icon} />
-
-      {#if isSelect(editing.valueType)}
-        <div class="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/40">
-          <div class="mb-2 flex items-center justify-between text-xs">
-            <span class="font-semibold">Default options</span>
-            <button
-              type="button"
-              class="text-brand-600 hover:underline"
-              onclick={() => {
-                if (editing) {
-                  editing.options = [
-                    ...editing.options,
-                    { value: '', label: { it: '' }, skuCode: '' },
-                  ];
-                }
-              }}
-            >
-              + Add option
-            </button>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <TranslatedInput
+            label="Label"
+            bind:value={editing.label}
+            error={fields['label.it']}
+            placeholder="Colore"
+          />
+          <div>
+            <Label class="mb-1.5" for="preset-key">Key</Label>
+            <Input
+              id="preset-key"
+              bind:value={editing.key}
+              placeholder="colore"
+              class="font-mono"
+              aria-invalid={fields.key ? 'true' : undefined}
+            />
+            {#if fields.key}
+              <p class="mt-1 text-xs text-destructive" role="alert">{fields.key}</p>
+            {/if}
           </div>
-          {#each editing.options as option, index (index)}
-            <div class="mb-2 flex items-end gap-2">
-              <label class="block text-xs">
-                <span class="mb-0.5 block">Value</span>
-                <input type="text" bind:value={option.value} class="w-24 rounded border border-neutral-300 px-1.5 py-1 font-mono dark:border-neutral-700 dark:bg-neutral-900" />
-              </label>
-              <div class="flex-1"><TranslatedInput label="Label" bind:value={option.label} /></div>
-              <label class="block text-xs">
-                <span class="mb-0.5 block">SKU code</span>
-                <input type="text" bind:value={option.skuCode} class="w-16 rounded border border-neutral-300 px-1.5 py-1 font-mono uppercase dark:border-neutral-700 dark:bg-neutral-900" />
-              </label>
-              <button
-                type="button"
-                class="pb-1.5 text-xs text-red-500"
-                onclick={() => {
-                  if (editing) editing.options = editing.options.filter((_, i) => i !== index);
-                }}
-                aria-label="Remove option">✕</button
-              >
-            </div>
-          {/each}
         </div>
-      {/if}
 
-      {#if error}
-        <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-      {/if}
+        <div class="grid items-start gap-4 sm:grid-cols-[1fr_1fr_auto]">
+          <div>
+            <Label class="mb-1.5">Value type</Label>
+            <Select.Root type="single" bind:value={editing.valueType}>
+              <Select.Trigger class="w-full">
+                {VALUE_TYPES.find((type) => type.value === editing?.valueType)?.label ??
+                  'Choose a type'}
+              </Select.Trigger>
+              <Select.Content>
+                {#each VALUE_TYPES as type (type.value)}
+                  <Select.Item value={type.value}>{type.label}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
+          </div>
 
-      <div class="flex justify-end gap-2">
-        <button
-          type="button"
-          onclick={() => (editing = null)}
-          class="rounded-lg border border-neutral-300 px-4 py-2 text-sm dark:border-neutral-700"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-        >
-          {saving ? 'Saving…' : 'Save preset'}
-        </button>
-      </div>
-    </form>
-  {/if}
-
-  {#if loading}
-    <p class="mt-6 text-sm text-neutral-500">Loading…</p>
-  {:else}
-    <div class="mt-6 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-      <table class="w-full text-sm">
-        <thead class="bg-neutral-50 text-left dark:bg-neutral-800/50">
-          <tr>
-            <th class="px-4 py-3 font-medium">Label</th>
-            <th class="px-4 py-3 font-medium">Key</th>
-            <th class="px-4 py-3 font-medium">Type</th>
-            <th class="px-4 py-3 font-medium">Options</th>
-            <th class="px-4 py-3 font-medium">Active</th>
-            <th class="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each presets as preset (preset.id)}
-            <tr class="border-t border-neutral-100 dark:border-neutral-800">
-              <td class="px-4 py-3 font-medium">{preset.label.it}</td>
-              <td class="px-4 py-3 font-mono text-xs text-neutral-500">{preset.key}</td>
-              <td class="px-4 py-3 text-neutral-500">{preset.valueType}</td>
-              <td class="px-4 py-3 text-neutral-500">{preset.options.length || '—'}</td>
-              <td class="px-4 py-3">{preset.isActive ? '✓' : '—'}</td>
-              <td class="px-4 py-3 text-right">
-                {#if session.can(P.ATTRIBUTE_UPDATE)}
-                  <button type="button" class="text-brand-600 text-xs hover:underline" onclick={() => startEdit(preset)}>
-                    Edit
-                  </button>
-                {/if}
-                {#if session.can(P.ATTRIBUTE_DELETE)}
-                  <button type="button" class="ml-2 text-xs text-red-600 hover:underline" onclick={() => void remove(preset)}>
-                    Delete
-                  </button>
-                {/if}
-              </td>
-            </tr>
+          {#if editing.valueType === 'number' || editing.valueType === 'number_range'}
+            <div>
+              <Label class="mb-1.5" for="preset-unit">Unit</Label>
+              <Input id="preset-unit" bind:value={editing.unit} placeholder="cm" />
+            </div>
           {:else}
-            <tr><td class="px-4 py-8 text-center text-neutral-500" colspan="6">No presets yet.</td></tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
-  {/if}
-</PermissionGate>
+            <div></div>
+          {/if}
+
+          <IconPicker label="Icon" bind:value={editing.icon} compact />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Switch
+            id="preset-active"
+            checked={editing.isActive}
+            onCheckedChange={(checked) => editing && (editing.isActive = checked)}
+          />
+          <Label for="preset-active">Available when building a product</Label>
+        </div>
+
+        {#if isSelectType(editing.valueType)}
+          <div>
+            <div class="mb-1.5 flex items-center justify-between">
+              <Label>Options</Label>
+              <span class="text-xs text-muted-foreground">
+                {pluralize(editing.options.length, 'option')}
+              </span>
+            </div>
+
+            {#if editing.options.length > 0}
+              <div
+                class="space-y-1.5 rounded-lg border p-1.5 {editing.options.length > 5
+                  ? 'max-h-72 overflow-y-auto'
+                  : ''}"
+              >
+                {#each editing.options as option (option.uid)}
+                  <div class="flex items-center gap-1.5">
+                    <Input
+                      bind:value={option.label.it}
+                      placeholder="Etichetta"
+                      aria-label="Option label"
+                      class="h-8 flex-1"
+                    />
+                    <Input
+                      bind:value={option.value}
+                      placeholder="value"
+                      aria-label="Option value"
+                      class="h-8 w-32 font-mono text-xs"
+                    />
+                    <Input
+                      bind:value={option.skuCode}
+                      placeholder="SKU"
+                      aria-label="SKU code fragment"
+                      class="h-8 w-20 font-mono text-xs uppercase"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      class="text-muted-foreground"
+                      aria-label="Remove option"
+                      onclick={() =>
+                        editing &&
+                        (editing.options = editing.options.filter(
+                          (entry) => entry.uid !== option.uid,
+                        ))}
+                    >
+                      <Trash2Icon />
+                    </Button>
+                  </div>
+                {/each}
+              </div>
+            {/if}
+
+            <Button type="button" variant="ghost" size="sm" class="mt-1.5" onclick={addOption}>
+              <PlusIcon />
+              Add option
+            </Button>
+            <p class="mt-1.5 text-xs text-muted-foreground">
+              The SKU column is the fragment that lands in a generated SKU code — keep it short.
+            </p>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
+      <Button variant="ghost" disabled={saving} onclick={() => (editing = null)}>Cancel</Button>
+      <Button disabled={saving} onclick={save}>
+        {#if saving}<Spinner />{/if}
+        {saving ? 'Saving…' : editing?.id ? 'Save changes' : 'Create preset'}
+      </Button>
+    </Sheet.Footer>
+  </Sheet.Content>
+</Sheet.Root>
+
+<AlertDialog.Root
+  open={deleting !== null}
+  onOpenChange={(open) => {
+    if (!open) deleting = null;
+  }}
+>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>Delete this preset?</AlertDialog.Title>
+      <AlertDialog.Description>
+        "{deleting ? labelOf(deleting) : ''}" is removed from the library. Products that already
+        copied it keep their own groups — nothing on the storefront changes.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Action
+        disabled={deleteBusy}
+        class={buttonVariants({ variant: 'destructive' })}
+        onclick={(event) => {
+          event.preventDefault();
+          void confirmDelete();
+        }}
+      >
+        {deleteBusy ? 'Deleting…' : 'Delete preset'}
+      </AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

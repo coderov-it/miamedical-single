@@ -45,7 +45,9 @@ const image = product.media.thumbnail ?? product.media.gallery[0] ?? null;
       <p class="mt-4 text-2xl font-semibold">{formatPricing(product.pricing)}</p>
       {
         product.pricing.mode === 'rental' && (
-          <p class="mt-1 text-sm text-neutral-500">Noleggio — prezzo per {product.pricing.rentalUnit === 'day' ? 'giorno' : 'ora'}</p>
+          <p class="mt-1 text-sm text-neutral-500">
+            Noleggio — prezzo per {product.pricing.rentalUnit === 'day' ? 'giorno' : 'ora'}
+          </p>
         )
       }
 

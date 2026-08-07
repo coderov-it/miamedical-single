@@ -12,6 +12,7 @@ import { authRoutes } from './modules/auth/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
+import { cartAdminRoutes, orderAdminRoutes } from './modules/orders/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
 import { withSession } from './shared/auth/session.ts';
@@ -53,7 +54,9 @@ const routes = app
   .route('/api/admin/products', productAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)
   .route('/api/admin/terms', termsAdminRoutes)
-  .route('/api/admin/attributes', attributeAdminRoutes);
+  .route('/api/admin/attributes', attributeAdminRoutes)
+  .route('/api/admin/orders', orderAdminRoutes)
+  .route('/api/admin/carts', cartAdminRoutes);
 
 app.onError(onError);
 app.notFound(onNotFound);

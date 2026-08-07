@@ -8,6 +8,30 @@
 
 const MONEY_RE = /^(-?)(\d+)\.(\d{2})$/;
 
+/**
+ * Restore the two-decimal form of a money value that came back through a
+ * JSON-aggregated relation.
+ *
+ * Drizzle's relational queries fetch nested rows with
+ * `json_agg(json_build_array(...))`, and Postgres renders a `numeric` inside
+ * JSON as a JSON *number*. By the time drizzle's `numeric` mapper stringifies
+ * it, `0.00` has become `"0"` and `289.00` has become `"289"` — the scale the
+ * column exists to preserve is gone. Top-level columns are unaffected; they
+ * arrive over the wire protocol as text and keep their scale.
+ *
+ * `numeric(12,2)` tops out at 9,999,999,999.99 — under 2^53 hundredths — so the
+ * round trip through a double loses no value, only the formatting. Anything
+ * that is already well-formed passes straight through, and anything genuinely
+ * unparseable is handed on untouched so `toHundredths` still rejects it loudly
+ * rather than quietly inventing a zero.
+ */
+export function asMoney(value: string | number): string {
+  if (typeof value === 'number') return Number.isFinite(value) ? value.toFixed(2) : String(value);
+  if (MONEY_RE.test(value)) return value;
+  const parsed = Number(value);
+  return value.trim() !== '' && Number.isFinite(parsed) ? parsed.toFixed(2) : value;
+}
+
 /** "35.00" → 3500n. Throws on anything that is not a two-decimal string. */
 export function toHundredths(amount: string): bigint {
   const match = MONEY_RE.exec(amount);

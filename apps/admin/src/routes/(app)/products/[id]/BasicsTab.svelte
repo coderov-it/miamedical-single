@@ -1,87 +1,136 @@
 <script lang="ts">
-  import { api } from '~/lib/api';
-  import Field from '~/lib/components/Field.svelte';
-  import TranslatedInput from '~/lib/components/TranslatedInput.svelte';
-  import TranslatedTextarea from '~/lib/components/TranslatedTextarea.svelte';
-  import { errorFields, errorMessage, unwrap } from '~/lib/request';
-  import type { AdminCategory, AdminProduct, Localized, TabProps } from './shared';
+  import { P } from '@mia/permissions';
+  import { untrack } from 'svelte';
+  import { toast } from 'svelte-sonner';
 
-  let { product, onSaved }: TabProps = $props();
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import * as Select from '$lib/components/ui/select/index.js';
+  import { Switch } from '$lib/components/ui/switch/index.js';
+  import { api } from '~/lib/api';
+  import TranslatedInput from '~/lib/components/translated-input.svelte';
+  import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
+  import { session } from '~/lib/session.svelte';
+  import type { AdminCategory, AdminProduct, Localized, TabProps } from './shared';
+  import { sameAsSaved } from './shared';
+  import TabPanel from './tab-panel.svelte';
+
+  let { product, onSaved, dirty }: TabProps = $props();
+
+  const SECTION = 'basics';
+
+  const STATUSES = [
+    { value: 'draft', label: 'Draft' },
+    { value: 'active', label: 'Active' },
+    { value: 'archived', label: 'Archived' },
+  ] as const;
 
   /**
    * The DTO carries `translations: { it: {…}, en: {…} }` per language; the
-   * Translated* components bind per FIELD. This tab pivots between the two
-   * shapes: DTO → six `{ it, en }` objects on load, back again on save.
+   * Translated* components bind per FIELD. This pivots between the two shapes:
+   * DTO → six `{ it, en }` objects on load, and back again on save.
    */
-  const field = (key: keyof NonNullable<AdminProduct['translations']['it']>): Localized => ({
-    it: (product.translations.it?.[key] as string | null) ?? '',
-    en: (product.translations.en?.[key] as string | null) ?? undefined,
+  function snapshot(source: AdminProduct) {
+    const field = (key: keyof NonNullable<AdminProduct['translations']['it']>): Localized => ({
+      it: (source.translations.it?.[key] as string | null) ?? '',
+      en: (source.translations.en?.[key] as string | null) ?? undefined,
+    });
+
+    return {
+      title: field('title'),
+      shortDescription: field('shortDescription'),
+      description: field('description'),
+      slug: field('slug'),
+      metaTitle: field('metaTitle'),
+      metaDescription: field('metaDescription'),
+      baseSku: source.baseSku,
+      brand: source.brand ?? '',
+      status: source.status as string,
+      categoryId: source.categoryId,
+      isFeatured: source.isFeatured,
+    };
+  }
+
+  let form = $state(untrack(() => snapshot(product)));
+  let saved = $state(untrack(() => snapshot(product)));
+
+  // Re-seed when the product identity changes, not on every refreshed object:
+  // a save hands back an equal-but-new DTO, and reseeding on that would be a
+  // no-op at best and would stamp on in-flight edits at worst.
+  let seededFor = $state(untrack(() => product.id));
+  $effect(() => {
+    if (product.id === seededFor) return;
+    seededFor = product.id;
+    form = snapshot(product);
+    saved = snapshot(product);
   });
 
-  let title = $state(field('title'));
-  let shortDescription = $state(field('shortDescription'));
-  let description = $state(field('description'));
-  let slug = $state(field('slug'));
-  let metaTitle = $state(field('metaTitle'));
-  let metaDescription = $state(field('metaDescription'));
+  const isDirty = $derived(!sameAsSaved(form, saved));
+  $effect(() => dirty.set(SECTION, isDirty));
 
-  let baseSku = $state(product.baseSku);
-  let brand = $state(product.brand ?? '');
-  let status = $state(product.status);
-  let categoryId = $state(product.categoryId);
-  let isFeatured = $state(product.isFeatured);
+  const categories = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrap<AdminCategory[]>(await api.api.admin.categories.$get(undefined, { init: { signal } })),
+    { enabled: () => session.can(P.CATEGORY_READ) },
+  );
 
-  let categories = $state<AdminCategory[]>([]);
+  const categoryOptions = $derived(categories.data ?? []);
+  const categoryLabel = $derived(
+    categoryOptions.find((entry) => entry.id === form.categoryId)?.translations.it?.name ??
+      'Choose a category',
+  );
+
+  const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+
   let saving = $state(false);
   let error = $state<string | null>(null);
   let fields = $state<Record<string, string>>({});
-  let savedFlash = $state(false);
-
-  $effect(() => {
-    void api.api.admin.categories
-      .$get()
-      .then((response) => unwrap<AdminCategory[]>(response))
-      .then((data) => (categories = data))
-      .catch(() => undefined);
-  });
 
   function translationFor(lang: 'it' | 'en') {
-    const pickText = (value: Localized) => (lang === 'it' ? value.it : (value.en ?? ''));
-    const t = {
-      title: pickText(title).trim(),
-      slug: pickText(slug).trim(),
-      shortDescription: pickText(shortDescription).trim() || null,
-      description: pickText(description).trim() || null,
-      metaTitle: pickText(metaTitle).trim() || null,
-      metaDescription: pickText(metaDescription).trim() || null,
+    const pick = (value: Localized) => (lang === 'it' ? value.it : (value.en ?? ''));
+    const row = {
+      title: pick(form.title).trim(),
+      slug: pick(form.slug).trim(),
+      shortDescription: pick(form.shortDescription).trim() || null,
+      description: pick(form.description).trim() || null,
+      metaTitle: pick(form.metaTitle).trim() || null,
+      metaDescription: pick(form.metaDescription).trim() || null,
     };
     // An English side without title+slug is "not translated yet", not an error.
-    if (lang === 'en' && (!t.title || !t.slug)) return undefined;
-    return t;
+    if (lang === 'en' && (!row.title || !row.slug)) return undefined;
+    return row;
   }
 
   async function save() {
     saving = true;
     error = null;
     fields = {};
+
     try {
       const en = translationFor('en');
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
           json: {
-            baseSku,
-            brand: brand.trim() || null,
-            status,
-            categoryId,
-            isFeatured,
+            baseSku: form.baseSku,
+            brand: form.brand.trim() || null,
+            status: form.status as 'draft',
+            categoryId: form.categoryId,
+            isFeatured: form.isFeatured,
             translations: { it: translationFor('it')!, ...(en ? { en } : {}) },
           },
         }),
       );
+
+      // Rebase both sides off the server's answer, so the dirty dot clears and
+      // any normalisation the server applied is what the form now shows.
+      saved = snapshot(updated);
+      form = snapshot(updated);
+      dirty.clear(SECTION);
       onSaved(updated);
-      savedFlash = true;
-      setTimeout(() => (savedFlash = false), 2000);
+      toast.success('Basics saved.');
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -91,78 +140,106 @@
   }
 </script>
 
-<form
-  class="flex flex-col gap-4"
-  onsubmit={(event) => {
-    event.preventDefault();
-    void save();
-  }}
+<TabPanel
+  title="Basics"
+  description="Names, descriptions and where this product sits in the catalog."
+  dirty={isDirty}
+  {saving}
+  {error}
+  onSave={save}
+  saveLabel="Save basics"
+  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
-  <TranslatedInput label="Title" bind:value={title} error={fields['translations.it.title']} />
-  <TranslatedInput
-    label="Slug"
-    bind:value={slug}
-    error={fields['translations.it.slug'] ?? fields['translations.en.slug']}
-  />
-  <TranslatedInput label="Short description" bind:value={shortDescription} required={false} />
-  <TranslatedTextarea label="Description" bind:value={description} rows={8} />
-  <TranslatedInput label="Meta title" bind:value={metaTitle} required={false} />
-  <TranslatedInput label="Meta description" bind:value={metaDescription} required={false} />
+  <div class="space-y-4">
+    <TranslatedInput
+      label="Title"
+      bind:value={form.title}
+      error={fields['translations.it.title']}
+    />
+    <TranslatedInput
+      label="Slug"
+      bind:value={form.slug}
+      error={fields['translations.it.slug'] ?? fields['translations.en.slug']}
+      hint="The URL segment on the storefront."
+    />
+    <TranslatedInput
+      label="Short description"
+      bind:value={form.shortDescription}
+      required={false}
+      hint="One line, shown on cards and in search results."
+    />
+    <TranslatedInput label="Description" bind:value={form.description} multiline rows={8} />
 
-  <div class="grid grid-cols-2 gap-4">
-    <Field label="Base SKU" error={fields['baseSku']}>
-      <input
-        type="text"
-        bind:value={baseSku}
-        class="w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm uppercase dark:border-neutral-700 dark:bg-neutral-900"
+    <div class="grid gap-4 sm:grid-cols-2">
+      <TranslatedInput label="Meta title" bind:value={form.metaTitle} required={false} />
+      <TranslatedInput
+        label="Meta description"
+        bind:value={form.metaDescription}
+        required={false}
       />
-    </Field>
-    <Field label="Brand">
-      <input
-        type="text"
-        bind:value={brand}
-        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <Label class="mb-1.5" for="basics-sku">Base SKU</Label>
+        <Input
+          id="basics-sku"
+          bind:value={form.baseSku}
+          class="font-mono uppercase"
+          aria-invalid={fields.baseSku ? 'true' : undefined}
+        />
+        {#if fields.baseSku}
+          <p class="mt-1 text-xs text-destructive" role="alert">{fields.baseSku}</p>
+        {/if}
+      </div>
+
+      <div>
+        <Label class="mb-1.5" for="basics-brand">Brand</Label>
+        <Input id="basics-brand" bind:value={form.brand} />
+      </div>
+
+      <div>
+        <Label class="mb-1.5">Category</Label>
+        <Select.Root type="single" bind:value={form.categoryId}>
+          <Select.Trigger class="w-full">{categoryLabel}</Select.Trigger>
+          <Select.Content>
+            {#each categoryOptions as category (category.id)}
+              <Select.Item value={category.id}>
+                {category.translations.it?.name ?? category.code}
+              </Select.Item>
+            {/each}
+          </Select.Content>
+        </Select.Root>
+        <p class="mt-1 text-xs text-muted-foreground">
+          Changing it drops spec values belonging to the old category.
+        </p>
+        {#if fields.categoryId}
+          <p class="mt-1 text-xs text-destructive" role="alert">{fields.categoryId}</p>
+        {/if}
+      </div>
+
+      <div>
+        <Label class="mb-1.5">Status</Label>
+        <Select.Root type="single" bind:value={form.status}>
+          <Select.Trigger class="w-full">
+            {STATUSES.find((entry) => entry.value === form.status)?.label ?? form.status}
+          </Select.Trigger>
+          <Select.Content>
+            {#each STATUSES as option (option.value)}
+              <Select.Item value={option.value}>{option.label}</Select.Item>
+            {/each}
+          </Select.Content>
+        </Select.Root>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <Switch
+        id="basics-featured"
+        checked={form.isFeatured}
+        onCheckedChange={(checked) => (form.isFeatured = checked)}
       />
-    </Field>
-    <Field label="Category" hint="Changing it drops spec values from the old category." error={fields['categoryId']}>
-      <select
-        bind:value={categoryId}
-        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-      >
-        {#each categories as category (category.id)}
-          <option value={category.id}>{category.translations.it?.name ?? category.code}</option>
-        {/each}
-      </select>
-    </Field>
-    <Field label="Status">
-      <select
-        bind:value={status}
-        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-      >
-        <option value="draft">Draft</option>
-        <option value="active">Active</option>
-        <option value="archived">Archived</option>
-      </select>
-    </Field>
+      <Label for="basics-featured">Featured on the home page</Label>
+    </div>
   </div>
-
-  <label class="flex items-center gap-2 text-sm">
-    <input type="checkbox" bind:checked={isFeatured} />
-    Featured on the home page
-  </label>
-
-  {#if error}
-    <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</p>
-  {/if}
-
-  <div class="flex items-center justify-end gap-3">
-    {#if savedFlash}<span class="text-sm text-green-600">Saved ✓</span>{/if}
-    <button
-      type="submit"
-      disabled={saving}
-      class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
-    >
-      {saving ? 'Saving…' : 'Save basics'}
-    </button>
-  </div>
-</form>
+</TabPanel>

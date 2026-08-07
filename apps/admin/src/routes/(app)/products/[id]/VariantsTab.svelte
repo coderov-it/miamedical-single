@@ -1,16 +1,48 @@
-<script lang="ts">
-  import { api } from '~/lib/api';
-  import IconPicker from '~/lib/components/IconPicker.svelte';
-  import MoneyInput from '~/lib/components/MoneyInput.svelte';
-  import SortableList from '~/lib/components/SortableList.svelte';
-  import TranslatedInput from '~/lib/components/TranslatedInput.svelte';
-  import { errorFields, errorMessage, unwrap } from '~/lib/request';
-  import type { AdminPreset, AdminProduct, Localized, TabProps } from './shared';
-  import { localizedOf, localizedOrNull } from './shared';
+<!--
+  Variant groups: the options a customer picks, and what each one does to the
+  price and the SKU.
 
-  let { product, onSaved }: TabProps = $props();
+  Groups are collapsible because there are usually several and each is a dense
+  form. Only `single_select` and `boolean` may drive the SKU matrix — a
+  multi-select would make the combination count unbounded — so that toggle is
+  hidden rather than disabled for the other types, and `affectsSku` is forced
+  false on the way out in case the type changed after it was ticked.
+-->
+<script lang="ts">
+  import { P } from '@mia/permissions';
+  import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import XIcon from '@lucide/svelte/icons/x';
+  import { untrack } from 'svelte';
+  import { toast } from 'svelte-sonner';
+
+  import { Badge } from '$lib/components/ui/badge/index.js';
+  import { Button } from '$lib/components/ui/button/index.js';
+  import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import * as Select from '$lib/components/ui/select/index.js';
+  import { Switch } from '$lib/components/ui/switch/index.js';
+  import { cn } from '$lib/utils.js';
+  import { api } from '~/lib/api';
+  import { VALUE_TYPES } from '~/lib/categories/spec-edit';
+  import IconPicker from '~/lib/components/icon-picker.svelte';
+  import MoneyInput from '~/lib/components/money-input.svelte';
+  import SortableList from '~/lib/components/sortable-list.svelte';
+  import TranslatedInput from '~/lib/components/translated-input.svelte';
+  import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
+  import { session } from '~/lib/session.svelte';
+  import type { AdminPreset, AdminProduct, Localized, TabProps } from './shared';
+  import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
+  import TabPanel from './tab-panel.svelte';
+
+  let { product, onSaved, dirty }: TabProps = $props();
+
+  const SECTION = 'variants';
 
   interface OptionEdit {
+    uid: string;
     id?: string | undefined;
     value: string;
     label: Localized;
@@ -20,6 +52,7 @@
   }
 
   interface GroupEdit {
+    uid: string;
     id?: string | undefined;
     key: string;
     label: Localized;
@@ -38,57 +71,70 @@
     options: OptionEdit[];
   }
 
-  const VALUE_TYPES = [
-    ['single_select', 'Single select'],
-    ['multi_select', 'Multiple select'],
-    ['boolean', 'Yes / No'],
-    ['number', 'Number'],
-    ['number_range', 'Number range'],
-    ['string', 'Free text'],
-  ] as const;
+  const isSelect = (type: string) => type === 'single_select' || type === 'multi_select';
+  const hasOptions = (type: string) => isSelect(type) || type === 'boolean';
+  const isNumeric = (type: string) => type === 'number' || type === 'number_range';
+  const canAffectSku = (type: string) => type === 'single_select' || type === 'boolean';
 
-  function toEdit(group: AdminProduct['variants'][number]): GroupEdit {
-    return {
-      id: group.id,
-      key: group.key,
-      label: localizedOf(group.label),
-      helpText: localizedOf(group.helpText),
-      valueType: group.valueType,
-      unit: group.unit ?? '',
-      isRequired: group.isRequired,
-      affectsSku: group.affectsSku,
-      sourcePresetKey: group.sourcePresetKey,
-      minValue: group.minValue?.toString() ?? '',
-      maxValue: group.maxValue?.toString() ?? '',
-      stepValue: group.stepValue?.toString() ?? '',
-      hasPerUnitModifier: group.priceModifierPerUnit !== null,
-      priceModifierPerUnit: group.priceModifierPerUnit ?? '0.00',
-      icon: group.icon,
-      options: group.options.map((option) => ({
-        id: option.id,
-        value: option.value,
-        label: localizedOf(option.label),
-        skuCode: option.skuCode ?? '',
-        priceModifier: option.priceModifier,
-        isDefault: option.isDefault,
-      })),
-    };
-  }
-
-  let groups = $state<GroupEdit[]>(product.variants.map(toEdit));
-  let presets = $state<AdminPreset[]>([]);
-  let saving = $state(false);
-  let error = $state<string | null>(null);
-  let fields = $state<Record<string, string>>({});
-  let savedFlash = $state(false);
-
-  $effect(() => {
-    void api.api.admin.attributes
-      .$get()
-      .then((response) => unwrap<AdminPreset[]>(response))
-      .then((data) => (presets = data.filter((preset) => preset.isActive)))
-      .catch(() => undefined);
+  const toEdit = (group: AdminProduct['variants'][number]): GroupEdit => ({
+    uid: group.id,
+    id: group.id,
+    key: group.key,
+    label: localizedOf(group.label),
+    helpText: localizedOf(group.helpText),
+    valueType: group.valueType,
+    unit: group.unit ?? '',
+    isRequired: group.isRequired,
+    affectsSku: group.affectsSku,
+    sourcePresetKey: group.sourcePresetKey,
+    minValue: group.minValue?.toString() ?? '',
+    maxValue: group.maxValue?.toString() ?? '',
+    stepValue: group.stepValue?.toString() ?? '',
+    hasPerUnitModifier: group.priceModifierPerUnit !== null,
+    priceModifierPerUnit: group.priceModifierPerUnit ?? '0.00',
+    icon: group.icon,
+    options: group.options.map((option) => ({
+      uid: option.id,
+      id: option.id,
+      value: option.value,
+      label: localizedOf(option.label),
+      skuCode: option.skuCode ?? '',
+      priceModifier: option.priceModifier,
+      isDefault: option.isDefault,
+    })),
   });
+
+  const comparable = (rows: GroupEdit[]) =>
+    rows.map(({ uid: _uid, options, ...rest }) => ({
+      ...rest,
+      options: options.map(({ uid: _optionUid, ...option }) => option),
+    }));
+
+  let groups = $state(untrack(() => product.variants.map(toEdit)));
+  let saved = $state(untrack(() => comparable(groups)));
+  let open = $state<Record<string, boolean>>({});
+
+  let seededFor = $state(untrack(() => product.id));
+  $effect(() => {
+    if (product.id === seededFor) return;
+    seededFor = product.id;
+    groups = product.variants.map(toEdit);
+    saved = comparable(groups);
+  });
+
+  const isDirty = $derived(!sameAsSaved(comparable(groups), saved));
+  $effect(() => dirty.set(SECTION, isDirty));
+
+  const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+
+  const presets = new Resource(
+    () => null,
+    async (_key, signal) =>
+      unwrap<AdminPreset[]>(await api.api.admin.attributes.$get(undefined, { init: { signal } })),
+    { enabled: () => session.can(P.ATTRIBUTE_READ) },
+  );
+
+  const activePresets = $derived((presets.data ?? []).filter((preset) => preset.isActive));
 
   const modifierSuffix = $derived(
     product.pricingMode === 'rental' ? `€ / ${product.rentalUnit}` : '€',
@@ -101,117 +147,115 @@
       groups = groups.filter((group) => group.sourcePresetKey !== preset.key);
       return;
     }
-    // Copy the preset into the product — it is owned outright from here on.
-    groups = [
-      ...groups,
-      {
-        key: preset.key,
-        label: localizedOf(preset.label),
-        helpText: { it: '' },
-        valueType: preset.valueType,
-        unit: preset.unit ?? '',
-        isRequired: false,
-        affectsSku: false,
-        sourcePresetKey: preset.key,
-        minValue: '',
-        maxValue: '',
-        stepValue: '',
-        hasPerUnitModifier: false,
-        priceModifierPerUnit: '0.00',
-        icon: preset.icon,
-        options: preset.options.map((option) => ({
-          value: option.value,
-          label: localizedOf(option.label),
-          skuCode: option.skuCode ?? '',
-          priceModifier: '0.00',
-          isDefault: false,
-        })),
-      },
-    ];
+
+    // A preset is a template: this copies it in, and the product owns the copy
+    // outright from here on. Later edits to the preset never reach back.
+    const group: GroupEdit = {
+      uid: crypto.randomUUID(),
+      key: preset.key,
+      label: localizedOf(preset.label),
+      helpText: { it: '' },
+      valueType: preset.valueType,
+      unit: preset.unit ?? '',
+      isRequired: false,
+      affectsSku: false,
+      sourcePresetKey: preset.key,
+      minValue: '',
+      maxValue: '',
+      stepValue: '',
+      hasPerUnitModifier: false,
+      priceModifierPerUnit: '0.00',
+      icon: preset.icon,
+      options: preset.options.map((option) => ({
+        uid: crypto.randomUUID(),
+        value: option.value,
+        label: localizedOf(option.label),
+        skuCode: option.skuCode ?? '',
+        priceModifier: '0.00',
+        isDefault: false,
+      })),
+    };
+    groups.push(group);
+    open[group.uid] = true;
   }
 
   function addGroup() {
-    groups = [
-      ...groups,
-      {
-        key: '',
-        label: { it: '' },
-        helpText: { it: '' },
-        valueType: 'single_select',
-        unit: '',
-        isRequired: false,
-        affectsSku: false,
-        sourcePresetKey: null,
-        minValue: '',
-        maxValue: '',
-        stepValue: '',
-        hasPerUnitModifier: false,
-        priceModifierPerUnit: '0.00',
-        icon: null,
-        options: [],
-      },
-    ];
+    const group: GroupEdit = {
+      uid: crypto.randomUUID(),
+      key: '',
+      label: { it: '' },
+      helpText: { it: '' },
+      valueType: 'single_select',
+      unit: '',
+      isRequired: false,
+      affectsSku: false,
+      sourcePresetKey: null,
+      minValue: '',
+      maxValue: '',
+      stepValue: '',
+      hasPerUnitModifier: false,
+      priceModifierPerUnit: '0.00',
+      icon: null,
+      options: [],
+    };
+    groups.push(group);
+    open[group.uid] = true;
   }
 
-  function addOption(group: GroupEdit) {
-    group.options = [
-      ...group.options,
-      { value: '', label: { it: '' }, skuCode: '', priceModifier: '0.00', isDefault: false },
-    ];
-  }
-
-  const isSelect = (type: string) => type === 'single_select' || type === 'multi_select';
-  const hasOptions = (type: string) => isSelect(type) || type === 'boolean';
-  const isNumeric = (type: string) => type === 'number' || type === 'number_range';
-  const canAffectSku = (type: string) => type === 'single_select' || type === 'boolean';
+  let saving = $state(false);
+  let error = $state<string | null>(null);
+  let fields = $state<Record<string, string>>({});
 
   async function save() {
     saving = true;
     error = null;
     fields = {};
-    try {
-      const payload = groups.map((group, position) => ({
-        ...(group.id ? { id: group.id } : {}),
-        key: group.key,
-        label: localizedOrNull(group.label) ?? { it: '' },
-        helpText: localizedOrNull(group.helpText),
-        valueType: group.valueType as 'string',
-        unit: group.unit.trim() || null,
-        isRequired: group.isRequired,
-        affectsSku: canAffectSku(group.valueType) ? group.affectsSku : false,
-        sourcePresetKey: group.sourcePresetKey,
-        minValue: group.minValue === '' ? null : Number(group.minValue),
-        maxValue: group.maxValue === '' ? null : Number(group.maxValue),
-        stepValue: group.stepValue === '' ? null : Number(group.stepValue),
-        priceModifierPerUnit:
-          isNumeric(group.valueType) && group.hasPerUnitModifier
-            ? group.priceModifierPerUnit
-            : null,
-        icon: group.icon,
-        position,
-        options: hasOptions(group.valueType)
-          ? group.options.map((option, optionPosition) => ({
-              ...(option.id ? { id: option.id } : {}),
-              value: option.value,
-              label: localizedOrNull(option.label) ?? { it: '' },
-              skuCode: option.skuCode.trim() || null,
-              priceModifier: option.priceModifier,
-              isDefault: option.isDefault,
-              position: optionPosition,
-            }))
-          : [],
-      }));
 
+    try {
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].variants.$put({
           param: { id: product.id },
-          json: payload,
+          json: groups.map((group, position) => ({
+            ...(group.id ? { id: group.id } : {}),
+            key: group.key,
+            label: localizedOrNull(group.label) ?? { it: '' },
+            helpText: localizedOrNull(group.helpText),
+            valueType: group.valueType as 'string',
+            unit: group.unit.trim() || null,
+            isRequired: group.isRequired,
+            // Forced false when the type cannot drive a SKU, in case the type
+            // was changed after the toggle was ticked.
+            affectsSku: canAffectSku(group.valueType) ? group.affectsSku : false,
+            sourcePresetKey: group.sourcePresetKey,
+            minValue: group.minValue === '' ? null : Number(group.minValue),
+            maxValue: group.maxValue === '' ? null : Number(group.maxValue),
+            stepValue: group.stepValue === '' ? null : Number(group.stepValue),
+            priceModifierPerUnit:
+              isNumeric(group.valueType) && group.hasPerUnitModifier
+                ? group.priceModifierPerUnit
+                : null,
+            icon: group.icon,
+            position,
+            options: hasOptions(group.valueType)
+              ? group.options.map((option, optionPosition) => ({
+                  ...(option.id ? { id: option.id } : {}),
+                  value: option.value,
+                  label: localizedOrNull(option.label) ?? { it: '' },
+                  skuCode: option.skuCode.trim() || null,
+                  priceModifier: option.priceModifier,
+                  isDefault: option.isDefault,
+                  position: optionPosition,
+                }))
+              : [],
+          })),
         }),
       );
-      onSaved(updated);
+
       groups = updated.variants.map(toEdit);
-      savedFlash = true;
-      setTimeout(() => (savedFlash = false), 2000);
+      saved = comparable(groups);
+      dirty.clear(SECTION);
+      onSaved(updated);
+      toast.success('Variants saved.');
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -221,185 +265,302 @@
   }
 </script>
 
-<div class="flex flex-col gap-6">
-  <div>
-    <h2 class="text-sm font-semibold">Common variants</h2>
-    <p class="mt-1 text-xs text-neutral-500">
-      Toggling a preset copies it into this product — it is then owned and edited here.
-    </p>
-    <div class="mt-2 flex flex-wrap gap-2">
-      {#each presets as preset (preset.id)}
-        <button
-          type="button"
-          class="rounded-full border px-3 py-1 text-xs transition"
-          class:border-brand-600={presetActive(preset.key)}
-          class:bg-brand-600={presetActive(preset.key)}
-          class:text-white={presetActive(preset.key)}
-          class:border-neutral-300={!presetActive(preset.key)}
-          class:dark:border-neutral-700={!presetActive(preset.key)}
-          onclick={() => togglePreset(preset)}
-        >
-          {preset.label.it}
-        </button>
-      {/each}
-    </div>
-  </div>
-
-  <SortableList bind:items={groups} onRemove={(index) => (groups = groups.filter((_, i) => i !== index))}>
-    {#snippet row(group)}
-      <div class="flex flex-col gap-3">
-        <div class="grid grid-cols-2 gap-3">
-          <label class="block">
-            <span class="mb-1 block text-xs font-medium">Key</span>
-            <input
-              type="text"
-              bind:value={group.key}
-              placeholder="colore"
-              class="w-full rounded-lg border border-neutral-300 px-2 py-1.5 font-mono text-xs dark:border-neutral-700 dark:bg-neutral-900"
-            />
-          </label>
-          <label class="block">
-            <span class="mb-1 block text-xs font-medium">Type</span>
-            <select
-              bind:value={group.valueType}
-              class="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-900"
+<TabPanel
+  title="Variants"
+  description="The choices a customer makes, and what each one does to the price and the SKU."
+  dirty={isDirty}
+  {saving}
+  {error}
+  onSave={save}
+  saveLabel="Save variants"
+  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+>
+  <div class="space-y-5">
+    {#if activePresets.length > 0}
+      <div>
+        <Label class="text-sm font-medium">Common variants</Label>
+        <p class="mt-0.5 text-xs text-muted-foreground">
+          Toggling a preset copies it into this product — it is owned and edited here from then on.
+        </p>
+        <div class="mt-2 flex flex-wrap gap-1.5">
+          {#each activePresets as preset (preset.id)}
+            {@const active = presetActive(preset.key)}
+            <button
+              type="button"
+              onclick={() => togglePreset(preset)}
+              aria-pressed={active}
+              disabled={!canUpdate}
+              class={cn(
+                'rounded-full border px-3 py-1 text-xs transition-colors disabled:opacity-50',
+                active ? 'border-transparent bg-primary text-primary-foreground' : 'hover:bg-muted',
+              )}
             >
-              {#each VALUE_TYPES as [value, label] (value)}
-                <option {value}>{label}</option>
-              {/each}
-            </select>
-          </label>
+              {preset.label.it}
+            </button>
+          {/each}
         </div>
-
-        <TranslatedInput label="Label" bind:value={group.label} />
-
-        <div class="flex flex-wrap items-center gap-4 text-xs">
-          <label class="flex items-center gap-1.5">
-            <input type="checkbox" bind:checked={group.isRequired} /> Required
-          </label>
-          {#if canAffectSku(group.valueType)}
-            <label class="flex items-center gap-1.5" title="Is this a physically different item counted separately in the warehouse?">
-              <input type="checkbox" bind:checked={group.affectsSku} /> Affects SKU matrix
-            </label>
-          {/if}
-          <label class="flex items-center gap-1.5">
-            Unit
-            <input
-              type="text"
-              bind:value={group.unit}
-              placeholder="cm"
-              class="w-14 rounded border border-neutral-300 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-900"
-            />
-          </label>
-          {#if group.sourcePresetKey}
-            <span class="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500 dark:bg-neutral-800">
-              preset: {group.sourcePresetKey}
-            </span>
-          {/if}
-        </div>
-
-        {#if isNumeric(group.valueType)}
-          <div class="flex flex-wrap items-end gap-3 text-xs">
-            <label class="block">
-              <span class="mb-1 block font-medium">Min</span>
-              <input type="number" bind:value={group.minValue} class="w-20 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900" />
-            </label>
-            <label class="block">
-              <span class="mb-1 block font-medium">Max</span>
-              <input type="number" bind:value={group.maxValue} class="w-20 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900" />
-            </label>
-            <label class="block">
-              <span class="mb-1 block font-medium">Step</span>
-              <input type="number" bind:value={group.stepValue} class="w-20 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900" />
-            </label>
-            <label class="flex items-center gap-1.5 pb-1.5">
-              <input type="checkbox" bind:checked={group.hasPerUnitModifier} />
-              Price per unit
-            </label>
-            {#if group.hasPerUnitModifier}
-              <MoneyInput label="" bind:value={group.priceModifierPerUnit} allowNegative suffix={`${modifierSuffix} per ${group.unit || 'unit'}`} />
-            {/if}
-          </div>
-        {/if}
-
-        <IconPicker label="Icon" bind:value={group.icon} />
-
-        {#if hasOptions(group.valueType)}
-          <div class="rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800/40">
-            <div class="mb-2 flex items-center justify-between">
-              <span class="text-xs font-semibold">Options</span>
-              <button type="button" class="text-brand-600 text-xs hover:underline" onclick={() => addOption(group)}>
-                + Add option
-              </button>
-            </div>
-            <div class="flex flex-col gap-2">
-              {#each group.options as option, optionIndex (optionIndex)}
-                <div class="flex flex-wrap items-end gap-2 rounded border border-neutral-200 p-2 text-xs dark:border-neutral-700">
-                  <label class="block">
-                    <span class="mb-0.5 block">Value</span>
-                    <input type="text" bind:value={option.value} placeholder="grigio" class="w-24 rounded border border-neutral-300 px-1.5 py-1 font-mono dark:border-neutral-700 dark:bg-neutral-900" />
-                  </label>
-                  <div class="min-w-40 flex-1">
-                    <TranslatedInput label="Label" bind:value={option.label} />
-                  </div>
-                  <label class="block">
-                    <span class="mb-0.5 block">SKU code</span>
-                    <input type="text" bind:value={option.skuCode} placeholder="GRI" class="w-16 rounded border border-neutral-300 px-1.5 py-1 font-mono uppercase dark:border-neutral-700 dark:bg-neutral-900" />
-                  </label>
-                  <MoneyInput label="Modifier" bind:value={option.priceModifier} allowNegative suffix={modifierSuffix} />
-                  <label class="flex items-center gap-1 pb-1.5">
-                    <input
-                      type="checkbox"
-                      checked={option.isDefault}
-                      onchange={(event) => {
-                        const checked = event.currentTarget.checked;
-                        for (const other of group.options) other.isDefault = false;
-                        option.isDefault = checked;
-                      }}
-                    />
-                    Default
-                  </label>
-                  <button
-                    type="button"
-                    class="pb-1.5 text-red-500 hover:text-red-700"
-                    onclick={() => (group.options = group.options.filter((_, i) => i !== optionIndex))}
-                    aria-label="Remove option">✕</button
-                  >
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/if}
       </div>
-    {/snippet}
-  </SortableList>
+    {/if}
 
-  <button
-    type="button"
-    onclick={addGroup}
-    class="self-start rounded-lg border border-dashed border-neutral-300 px-4 py-2 text-sm text-neutral-500 transition hover:border-neutral-400 dark:border-neutral-700"
-  >
-    + Add variant group
-  </button>
+    {#if groups.length === 0}
+      <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        No variant groups. Without one this product has a single SKU.
+      </p>
+    {/if}
 
-  {#if error}
-    <p class="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-      {error}
-      {#each Object.entries(fields) as [path, message] (path)}
-        <span class="block text-xs">{path}: {message}</span>
-      {/each}
-    </p>
-  {/if}
-
-  <div class="flex items-center justify-end gap-3">
-    {#if savedFlash}<span class="text-sm text-green-600">Saved ✓</span>{/if}
-    <button
-      type="button"
-      onclick={() => void save()}
-      disabled={saving}
-      class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:opacity-60"
+    <SortableList
+      bind:items={groups}
+      key={(group) => group.uid}
+      describe={(group) => group.label.it || 'this group'}
+      onRemove={(index) => groups.splice(index, 1)}
     >
-      {saving ? 'Saving…' : 'Save variants'}
-    </button>
+      {#snippet row(group)}
+        <Collapsible.Root
+          bind:open={() => open[group.uid] ?? false, (value: boolean) => (open[group.uid] = value)}
+        >
+          <div class="flex items-center gap-2">
+            <Collapsible.Trigger
+              class="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 text-left"
+            >
+              <ChevronRightIcon
+                class={cn(
+                  'size-4 shrink-0 text-muted-foreground transition-transform',
+                  open[group.uid] && 'rotate-90',
+                )}
+              />
+              {#if group.label.it}
+                <span class="truncate text-sm font-medium">{group.label.it}</span>
+              {:else}
+                <span class="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <span class="size-1.5 rounded-full bg-destructive"></span>
+                  No name yet
+                </span>
+              {/if}
+              {#if group.sourcePresetKey}
+                <Badge variant="secondary">preset</Badge>
+              {/if}
+              {#if group.affectsSku && canAffectSku(group.valueType)}
+                <Badge variant="outline">SKU</Badge>
+              {/if}
+              <span class="ml-auto shrink-0 text-xs text-muted-foreground">
+                {VALUE_TYPES.find((type) => type.value === group.valueType)?.label ??
+                  group.valueType}
+                {#if hasOptions(group.valueType)}· {group.options.length}{/if}
+              </span>
+            </Collapsible.Trigger>
+          </div>
+
+          <Collapsible.Content>
+            <div class="mt-3 space-y-3 border-t pt-3">
+              <div class="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label class="mb-1.5" for="vg-key-{group.uid}">Key</Label>
+                  <Input
+                    id="vg-key-{group.uid}"
+                    bind:value={group.key}
+                    placeholder="colore"
+                    class="font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <Label class="mb-1.5">Type</Label>
+                  <Select.Root type="single" bind:value={group.valueType}>
+                    <Select.Trigger class="w-full">
+                      {VALUE_TYPES.find((type) => type.value === group.valueType)?.label ??
+                        group.valueType}
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each VALUE_TYPES as type (type.value)}
+                        <Select.Item value={type.value}>{type.label}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                </div>
+              </div>
+
+              <TranslatedInput label="Label" bind:value={group.label} />
+              <TranslatedInput label="Help text" bind:value={group.helpText} required={false} />
+
+              <div class="flex flex-wrap items-end gap-4">
+                <div class="flex items-center gap-2 pb-2">
+                  <Switch
+                    id="vg-required-{group.uid}"
+                    checked={group.isRequired}
+                    onCheckedChange={(checked) => (group.isRequired = checked)}
+                  />
+                  <Label for="vg-required-{group.uid}" class="text-sm">Required</Label>
+                </div>
+
+                {#if canAffectSku(group.valueType)}
+                  <div class="flex items-center gap-2 pb-2">
+                    <Switch
+                      id="vg-sku-{group.uid}"
+                      checked={group.affectsSku}
+                      onCheckedChange={(checked) => (group.affectsSku = checked)}
+                    />
+                    <Label for="vg-sku-{group.uid}" class="text-sm">Affects SKU</Label>
+                  </div>
+                {/if}
+
+                {#if isNumeric(group.valueType)}
+                  <div>
+                    <Label class="mb-1.5" for="vg-unit-{group.uid}">Unit</Label>
+                    <Input id="vg-unit-{group.uid}" bind:value={group.unit} class="w-20" />
+                  </div>
+                  <div>
+                    <Label class="mb-1.5" for="vg-min-{group.uid}">Min</Label>
+                    <Input
+                      id="vg-min-{group.uid}"
+                      type="number"
+                      bind:value={group.minValue}
+                      class="w-20"
+                    />
+                  </div>
+                  <div>
+                    <Label class="mb-1.5" for="vg-max-{group.uid}">Max</Label>
+                    <Input
+                      id="vg-max-{group.uid}"
+                      type="number"
+                      bind:value={group.maxValue}
+                      class="w-20"
+                    />
+                  </div>
+                  <div>
+                    <Label class="mb-1.5" for="vg-step-{group.uid}">Step</Label>
+                    <Input
+                      id="vg-step-{group.uid}"
+                      type="number"
+                      bind:value={group.stepValue}
+                      class="w-20"
+                    />
+                  </div>
+                {/if}
+              </div>
+
+              {#if isNumeric(group.valueType)}
+                <div class="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/40 p-3">
+                  <div class="flex items-center gap-2 pb-2">
+                    <Switch
+                      id="vg-perunit-{group.uid}"
+                      checked={group.hasPerUnitModifier}
+                      onCheckedChange={(checked) => (group.hasPerUnitModifier = checked)}
+                    />
+                    <Label for="vg-perunit-{group.uid}" class="text-sm">Price per unit</Label>
+                  </div>
+                  {#if group.hasPerUnitModifier}
+                    <MoneyInput
+                      label="Per unit"
+                      bind:value={group.priceModifierPerUnit}
+                      allowNegative
+                      suffix={modifierSuffix}
+                    />
+                  {/if}
+                </div>
+              {/if}
+
+              <IconPicker label="Icon" bind:value={group.icon} compact />
+
+              {#if hasOptions(group.valueType)}
+                <div class="rounded-lg border bg-muted/40 p-3">
+                  <div class="mb-2 flex items-center justify-between">
+                    <Label class="text-xs font-semibold">Options</Label>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onclick={() =>
+                        group.options.push({
+                          uid: crypto.randomUUID(),
+                          value: '',
+                          label: { it: '' },
+                          skuCode: '',
+                          priceModifier: '0.00',
+                          isDefault: false,
+                        })}
+                    >
+                      <PlusIcon />
+                      Add option
+                    </Button>
+                  </div>
+
+                  <div
+                    class="space-y-2 {group.options.length > 4 ? 'max-h-80 overflow-y-auto' : ''}"
+                  >
+                    {#each group.options as option (option.uid)}
+                      <div class="flex flex-wrap items-end gap-2 rounded-md bg-card p-2">
+                        <div class="min-w-40 flex-1">
+                          <TranslatedInput label="Label" bind:value={option.label} />
+                        </div>
+                        <div>
+                          <Label class="mb-1 text-xs" for="vo-value-{option.uid}">Value</Label>
+                          <Input
+                            id="vo-value-{option.uid}"
+                            bind:value={option.value}
+                            class="h-8 w-28 font-mono text-xs"
+                          />
+                        </div>
+                        <div>
+                          <Label class="mb-1 text-xs" for="vo-sku-{option.uid}">SKU</Label>
+                          <Input
+                            id="vo-sku-{option.uid}"
+                            bind:value={option.skuCode}
+                            class="h-8 w-20 font-mono text-xs uppercase"
+                          />
+                        </div>
+                        <MoneyInput
+                          label="Modifier"
+                          bind:value={option.priceModifier}
+                          allowNegative
+                          suffix={modifierSuffix}
+                        />
+                        <div class="flex items-center gap-2 pb-2">
+                          <Switch
+                            id="vo-default-{option.uid}"
+                            checked={option.isDefault}
+                            onCheckedChange={(checked) => {
+                              // Exactly one default per single-select group —
+                              // two would make the preselected option arbitrary.
+                              if (checked && group.valueType === 'single_select') {
+                                for (const entry of group.options) entry.isDefault = false;
+                              }
+                              option.isDefault = checked;
+                            }}
+                          />
+                          <Label for="vo-default-{option.uid}" class="text-xs">Default</Label>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          class="mb-0.5 text-muted-foreground hover:text-destructive"
+                          aria-label="Remove option"
+                          onclick={() =>
+                            (group.options = group.options.filter(
+                              (entry) => entry.uid !== option.uid,
+                            ))}
+                        >
+                          <XIcon />
+                        </Button>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+            </div>
+          </Collapsible.Content>
+        </Collapsible.Root>
+      {/snippet}
+    </SortableList>
+
+    <Button variant="outline" size="sm" onclick={addGroup} disabled={!canUpdate}>
+      <PlusIcon />
+      Add variant group
+    </Button>
+
+    {#if Object.keys(fields).length > 0}
+      <ul class="space-y-0.5 text-xs text-destructive">
+        {#each Object.entries(fields) as [path, message] (path)}
+          <li><code class="font-mono">{path}</code>: {message}</li>
+        {/each}
+      </ul>
+    {/if}
   </div>
-</div>
+</TabPanel>

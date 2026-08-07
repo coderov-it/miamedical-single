@@ -7,6 +7,7 @@ export default defineConfig({
 
   server: {
     port: 5173,
+
     proxy: {
       '/api': {
         target: process.env.PUBLIC_API_URL ?? 'http://localhost:8787',

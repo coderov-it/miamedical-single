@@ -46,9 +46,7 @@ export async function uploadFile(
       if (event.lengthComputable && onProgress) onProgress(event.loaded / event.total);
     };
     xhr.onload = () => {
-      const body = xhr.response as
-        | { data?: UploadResult; error?: { message?: string } }
-        | null;
+      const body = xhr.response as { data?: UploadResult; error?: { message?: string } } | null;
       if (xhr.status >= 200 && xhr.status < 300 && body?.data) {
         resolve(body.data);
       } else {

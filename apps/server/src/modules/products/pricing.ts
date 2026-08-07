@@ -1,4 +1,4 @@
-import { addMoney } from './money.ts';
+import { addMoney, asMoney } from './money.ts';
 import type { SkuWithOptions, VariantGroupWithOptions } from './types.ts';
 
 /**
@@ -18,15 +18,17 @@ export function resolveSkuPrice(
   sku: Pick<SkuWithOptions, 'priceOverride' | 'options'>,
   groups: VariantGroupWithOptions[],
 ): string {
-  if (sku.priceOverride !== null) return sku.priceOverride;
+  // `asMoney` here and below: options and SKUs arrive through a JSON-aggregated
+  // relation, so their numerics have already been flattened to JS numbers.
+  if (sku.priceOverride !== null) return asMoney(sku.priceOverride);
 
   const modifierByOptionId = new Map<string, string>();
   for (const group of groups) {
     for (const option of group.options) {
-      modifierByOptionId.set(option.id, option.priceModifier);
+      modifierByOptionId.set(option.id, asMoney(option.priceModifier));
     }
   }
 
   const modifiers = sku.options.map((link) => modifierByOptionId.get(link.optionId) ?? '0.00');
-  return addMoney(basePrice, ...modifiers);
+  return addMoney(asMoney(basePrice), ...modifiers);
 }

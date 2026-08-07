@@ -114,6 +114,36 @@ export const orderItems = pgTable(
   (t) => [index('order_items_order_idx').on(t.orderId)],
 );
 
+/**
+ * Append-only audit of every status move, so the order detail can show *why*
+ * an order is where it is rather than only where it is. Nothing updates or
+ * deletes a row here.
+ *
+ * `field` is `status` or `paymentStatus` — one table rather than two keeps the
+ * timeline a single ordered read. Values are text, not the enums: an event
+ * written today must stay readable after an enum member is renamed or dropped.
+ *
+ * `actorUserId` is nullable and `set null` on delete: the event outlives the
+ * account that caused it, and losing the actor must never lose the event.
+ */
+export const orderStatusEvents = pgTable(
+  'order_status_events',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    orderId: uuid()
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    field: text().notNull(),
+    fromValue: text(),
+    toValue: text().notNull(),
+    note: text(),
+    actorUserId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  // Named explicitly, and kept well under the 63-byte identifier limit.
+  (t) => [index('order_status_events_order_idx').on(t.orderId, t.createdAt)],
+);
+
 export const cartsRelations = relations(carts, ({ one, many }) => ({
   user: one(users, { fields: [carts.userId], references: [users.id] }),
   items: many(cartItems),
@@ -127,6 +157,12 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   items: many(orderItems),
+  events: many(orderStatusEvents),
+}));
+
+export const orderStatusEventsRelations = relations(orderStatusEvents, ({ one }) => ({
+  order: one(orders, { fields: [orderStatusEvents.orderId], references: [orders.id] }),
+  actor: one(users, { fields: [orderStatusEvents.actorUserId], references: [users.id] }),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

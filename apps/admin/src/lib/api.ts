@@ -14,13 +14,7 @@ export const api = hc<AppType>(baseUrl, {
   init: { credentials: 'include' },
 });
 
-/**
- * `amount` is the wire's decimal string ("35.00") — never parse it into a
- * number for arithmetic; this only hands it to Intl for display.
- */
-export function formatMoney(amount: string, currency = 'EUR', locale = 'it-IT') {
-  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(Number(amount));
-}
+// `formatMoney` lives in ./format.ts with the rest of the display helpers.
 
 /** Prefix a stored media path with the public CDN base. */
 export function mediaUrl(path: string): string {

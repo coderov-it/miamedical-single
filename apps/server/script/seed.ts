@@ -3,10 +3,15 @@ import type { LanguageCode } from '@mia/db/schema';
 import {
   attributePresetOptions,
   attributePresets,
+  cartItems,
+  carts,
   categories,
   categorySpecOptions,
   categorySpecs,
   categoryTranslations,
+  orderItems,
+  orders,
+  orderStatusEvents,
   productAddons,
   productFaqs,
   productQuestionOptions,
@@ -27,7 +32,11 @@ import {
 } from '@mia/db/schema';
 
 import { env } from '../src/config/env.ts';
-import { composeSku, generateCombinations, randomSuffix } from '../src/modules/products/variants/sku.ts';
+import {
+  composeSku,
+  generateCombinations,
+  randomSuffix,
+} from '../src/modules/products/variants/sku.ts';
 import { hashPassword } from '../src/shared/auth/password.ts';
 
 /**
@@ -195,9 +204,14 @@ interface SpecSeed {
 async function seedCategory(
   code: string,
   position: number,
-  translations: Partial<Record<LanguageCode, { name: string; description: string | null; slug: string }>>,
+  translations: Partial<
+    Record<LanguageCode, { name: string; description: string | null; slug: string }>
+  >,
   specs: SpecSeed[],
-): Promise<{ id: string; specIds: Map<string, { id: string; optionIds: Map<string, string> }> } | null> {
+): Promise<{
+  id: string;
+  specIds: Map<string, { id: string; optionIds: Map<string, string> }>;
+} | null> {
   const [inserted] = await db
     .insert(categories)
     .values({ code, position })
@@ -242,7 +256,12 @@ async function seedCategory(
     for (const [optIndex, option] of (spec.options ?? []).entries()) {
       const [optionRow] = await db
         .insert(categorySpecOptions)
-        .values({ specId: specRow.id, value: option.value, label: option.label, position: optIndex })
+        .values({
+          specId: specRow.id,
+          value: option.value,
+          label: option.label,
+          position: optIndex,
+        })
         .returning({ id: categorySpecOptions.id });
       if (optionRow) optionIds.set(option.value, optionRow.id);
     }
@@ -262,11 +281,30 @@ const letti = await seedCategory(
       description: 'Letti elettrici e manuali per assistenza domiciliare.',
       slug: 'letti-da-degenza',
     },
-    en: { name: 'Hospital beds', description: 'Electric and manual beds for home care.', slug: 'hospital-beds' },
+    en: {
+      name: 'Hospital beds',
+      description: 'Electric and manual beds for home care.',
+      slug: 'hospital-beds',
+    },
   },
   [
-    { key: 'larghezza-rete', label: { it: 'Larghezza rete', en: 'Base width' }, valueType: 'number', unit: 'cm', isRequired: true, isFilterable: true, isComparable: true },
-    { key: 'portata-massima', label: { it: 'Portata massima', en: 'Maximum load' }, valueType: 'number', unit: 'kg', isFilterable: true, isComparable: true },
+    {
+      key: 'larghezza-rete',
+      label: { it: 'Larghezza rete', en: 'Base width' },
+      valueType: 'number',
+      unit: 'cm',
+      isRequired: true,
+      isFilterable: true,
+      isComparable: true,
+    },
+    {
+      key: 'portata-massima',
+      label: { it: 'Portata massima', en: 'Maximum load' },
+      valueType: 'number',
+      unit: 'kg',
+      isFilterable: true,
+      isComparable: true,
+    },
     {
       key: 'materiale-struttura',
       label: { it: 'Materiale struttura' }, // en missing on purpose
@@ -278,7 +316,12 @@ const letti = await seedCategory(
         { value: 'alluminio', label: { it: 'Alluminio' } },
       ],
     },
-    { key: 'certificazione-ce', label: { it: 'Certificazione CE', en: 'CE certification' }, valueType: 'boolean', isFilterable: true },
+    {
+      key: 'certificazione-ce',
+      label: { it: 'Certificazione CE', en: 'CE certification' },
+      valueType: 'boolean',
+      isFilterable: true,
+    },
   ],
 );
 
@@ -286,13 +329,41 @@ const carrozzine = await seedCategory(
   'carrozzine',
   1,
   {
-    it: { name: 'Carrozzine', description: 'Carrozzine pieghevoli e superleggere.', slug: 'carrozzine' },
-    en: { name: 'Wheelchairs', description: 'Folding and ultralight wheelchairs.', slug: 'wheelchairs' },
+    it: {
+      name: 'Carrozzine',
+      description: 'Carrozzine pieghevoli e superleggere.',
+      slug: 'carrozzine',
+    },
+    en: {
+      name: 'Wheelchairs',
+      description: 'Folding and ultralight wheelchairs.',
+      slug: 'wheelchairs',
+    },
   },
   [
-    { key: 'peso', label: { it: 'Peso', en: 'Weight' }, valueType: 'number', unit: 'kg', isFilterable: true, isComparable: true },
-    { key: 'larghezza-seduta', label: { it: 'Larghezza seduta', en: 'Seat width' }, valueType: 'number_range', unit: 'cm', isFilterable: true, isComparable: true },
-    { key: 'pieghevole', label: { it: 'Pieghevole', en: 'Foldable' }, valueType: 'boolean', isFilterable: true, isComparable: true },
+    {
+      key: 'peso',
+      label: { it: 'Peso', en: 'Weight' },
+      valueType: 'number',
+      unit: 'kg',
+      isFilterable: true,
+      isComparable: true,
+    },
+    {
+      key: 'larghezza-seduta',
+      label: { it: 'Larghezza seduta', en: 'Seat width' },
+      valueType: 'number_range',
+      unit: 'cm',
+      isFilterable: true,
+      isComparable: true,
+    },
+    {
+      key: 'pieghevole',
+      label: { it: 'Pieghevole', en: 'Foldable' },
+      valueType: 'boolean',
+      isFilterable: true,
+      isComparable: true,
+    },
   ],
 );
 
@@ -429,7 +500,11 @@ if (letti) {
         slug: 'letto-degenza-elettrico',
         metaTitle: 'Letto da degenza elettrico | MiaMedical',
         metaDescription: 'Noleggio letto da degenza elettrico a 3 snodi.',
-        searchVector: tr('it', 'Letto da degenza elettrico a 3 snodi', 'Letto elettrico regolabile per assistenza domiciliare. Struttura in acciaio verniciato a polveri.') as unknown as string,
+        searchVector: tr(
+          'it',
+          'Letto da degenza elettrico a 3 snodi',
+          'Letto elettrico regolabile per assistenza domiciliare. Struttura in acciaio verniciato a polveri.',
+        ) as unknown as string,
       },
       {
         // English row is deliberately partial: no description, no meta.
@@ -441,7 +516,11 @@ if (letti) {
         slug: 'hospital-electric-bed',
         metaTitle: null,
         metaDescription: null,
-        searchVector: tr('en', '3-section electric hospital bed', 'Adjustable electric bed for home care.') as unknown as string,
+        searchVector: tr(
+          'en',
+          '3-section electric hospital bed',
+          'Adjustable electric bed for home care.',
+        ) as unknown as string,
       },
     ]);
 
@@ -454,7 +533,12 @@ if (letti) {
         affectsSku: true,
         sourcePresetKey: 'colore',
         options: [
-          { value: 'bianco', label: { it: 'Bianco', en: 'White' }, skuCode: 'BIA', isDefault: true },
+          {
+            value: 'bianco',
+            label: { it: 'Bianco', en: 'White' },
+            skuCode: 'BIA',
+            isDefault: true,
+          },
           { value: 'grigio', label: { it: 'Grigio' }, skuCode: 'GRI', priceModifier: '4.00' },
         ],
       },
@@ -465,7 +549,12 @@ if (letti) {
         isRequired: true,
         affectsSku: true,
         options: [
-          { value: 'no', label: { it: 'Senza sponde', en: 'Without rails' }, skuCode: 'NS', isDefault: true },
+          {
+            value: 'no',
+            label: { it: 'Senza sponde', en: 'Without rails' },
+            skuCode: 'NS',
+            isDefault: true,
+          },
           { value: 'si', label: { it: 'Con sponde' }, skuCode: 'CS', priceModifier: '6.00' },
         ],
       },
@@ -528,7 +617,10 @@ if (letti) {
       {
         productId: product.id,
         name: { it: 'Consegna e installazione', en: 'Delivery and setup' },
-        description: { it: 'Consegna a domicilio con montaggio.', en: 'Home delivery with assembly.' },
+        description: {
+          it: 'Consegna a domicilio con montaggio.',
+          en: 'Home delivery with assembly.',
+        },
         sku: 'MIA-ADD-DEL',
         pricingMode: 'fixed',
         productPricingMode: 'rental',
@@ -547,7 +639,10 @@ if (letti) {
       .values({
         productId: product.id,
         key: 'piano-installazione',
-        prompt: { it: 'A che piano deve essere installato il letto?', en: 'Which floor should the bed be installed on?' },
+        prompt: {
+          it: 'A che piano deve essere installato il letto?',
+          en: 'Which floor should the bed be installed on?',
+        },
         helpText: { it: 'Serve a pianificare il trasporto.' },
         questionValueType: 'number',
         isRequired: true,
@@ -577,16 +672,32 @@ if (letti) {
       .returning({ id: productQuestions.id });
     if (slotQ) {
       await db.insert(productQuestionOptions).values([
-        { questionId: slotQ.id, value: 'mattino', label: { it: 'Mattino (8-13)', en: 'Morning (8-13)' }, position: 0 },
-        { questionId: slotQ.id, value: 'pomeriggio', label: { it: 'Pomeriggio (14-19)' }, position: 1 },
+        {
+          questionId: slotQ.id,
+          value: 'mattino',
+          label: { it: 'Mattino (8-13)', en: 'Morning (8-13)' },
+          position: 0,
+        },
+        {
+          questionId: slotQ.id,
+          value: 'pomeriggio',
+          label: { it: 'Pomeriggio (14-19)' },
+          position: 1,
+        },
       ]);
     }
 
     await db.insert(productFaqs).values([
       {
         productId: product.id,
-        question: { it: "Il montaggio e' incluso nel noleggio?", en: 'Is assembly included in the rental?' },
-        answer: { it: "Il montaggio e' disponibile come extra a prezzo fisso.", en: 'Assembly is available as a fixed-price extra.' },
+        question: {
+          it: "Il montaggio e' incluso nel noleggio?",
+          en: 'Is assembly included in the rental?',
+        },
+        answer: {
+          it: "Il montaggio e' disponibile come extra a prezzo fisso.",
+          en: 'Assembly is available as a fixed-price extra.',
+        },
         position: 0,
       },
       {
@@ -633,11 +744,16 @@ if (carrozzine) {
         languageCode: 'it',
         title: 'Carrozzina pieghevole superleggera',
         shortDescription: 'Telaio in alluminio da 11 kg, pieghevole in un gesto.',
-        description: 'Carrozzina in alluminio con crociera pieghevole, ruote ad estrazione rapida e pedane regolabili.',
+        description:
+          'Carrozzina in alluminio con crociera pieghevole, ruote ad estrazione rapida e pedane regolabili.',
         slug: 'carrozzina-pieghevole-superleggera',
         metaTitle: 'Carrozzina pieghevole superleggera | MiaMedical',
         metaDescription: 'Vendita carrozzina superleggera in alluminio.',
-        searchVector: tr('it', 'Carrozzina pieghevole superleggera', 'Carrozzina in alluminio con crociera pieghevole, ruote ad estrazione rapida.') as unknown as string,
+        searchVector: tr(
+          'it',
+          'Carrozzina pieghevole superleggera',
+          'Carrozzina in alluminio con crociera pieghevole, ruote ad estrazione rapida.',
+        ) as unknown as string,
       },
       // No English row at all — translation-table fallback exercised.
     ]);
@@ -683,7 +799,12 @@ if (carrozzine) {
     const spec = (key: string) => carrozzine.specIds.get(key)!;
     await db.insert(productSpecValues).values([
       { productId: product.id, specId: spec('peso').id, numberValue: '11' },
-      { productId: product.id, specId: spec('larghezza-seduta').id, numberMin: '40', numberMax: '48' },
+      {
+        productId: product.id,
+        specId: spec('larghezza-seduta').id,
+        numberMin: '40',
+        numberMax: '48',
+      },
       { productId: product.id, specId: spec('pieghevole').id, booleanValue: true },
     ]);
 
@@ -733,8 +854,14 @@ if (carrozzine) {
 
     await db.insert(productFaqs).values({
       productId: product.id,
-      question: { it: 'La carrozzina è omologata per il trasporto in auto?', en: 'Is the wheelchair approved for car transport?' },
-      answer: { it: 'Sì, con il kit di ancoraggio opzionale.', en: 'Yes, with the optional tie-down kit.' },
+      question: {
+        it: 'La carrozzina è omologata per il trasporto in auto?',
+        en: 'Is the wheelchair approved for car transport?',
+      },
+      answer: {
+        it: 'Sì, con il kit di ancoraggio opzionale.',
+        en: 'Yes, with the optional tie-down kit.',
+      },
       position: 0,
     });
 
@@ -746,6 +873,161 @@ if (carrozzine) {
 
 if (!env.R2_BUCKET) {
   console.log('  · R2 not configured — media and icons left empty (never dangling paths)');
+}
+
+// --- orders and carts ---------------------------------------------------------
+//
+// One order per status, so the queue's filter bar and the detail page's action
+// set can both be exercised without hand-crafting rows. Lines snapshot the SKU
+// exactly as checkout would: the order stays readable after the product moves.
+
+{
+  const [existingOrder] = await db.select({ id: orders.id }).from(orders).limit(1);
+
+  if (existingOrder) {
+    console.log('  · orders already exist, skipping');
+  } else {
+    const skuRows = await db
+      .select({
+        id: productSkus.id,
+        sku: productSkus.sku,
+        productId: productSkus.productId,
+        basePrice: products.basePrice,
+      })
+      .from(productSkus)
+      .innerJoin(products, eq(productSkus.productId, products.id))
+      .limit(6);
+
+    if (skuRows.length === 0) {
+      console.log('  · no SKUs to build orders from, skipping');
+    } else {
+      const titles = new Map(
+        (
+          await db
+            .select({ productId: productTranslations.productId, title: productTranslations.title })
+            .from(productTranslations)
+            .where(eq(productTranslations.languageCode, 'it'))
+        ).map((row) => [row.productId, row.title]),
+      );
+
+      const address = (name: string) => ({
+        fullName: name,
+        line1: 'Via Roma 12',
+        line2: null,
+        city: 'Milano',
+        region: 'MI',
+        postalCode: '20121',
+        country: 'IT',
+        phone: '+39 02 1234567',
+      });
+
+      /** `pending` first so the queue's "waiting" count is non-zero on a fresh seed. */
+      const PLAN = [
+        { status: 'pending', paymentStatus: 'unpaid', days: 0 },
+        { status: 'pending', paymentStatus: 'authorized', days: 1 },
+        { status: 'paid', paymentStatus: 'paid', days: 3 },
+        { status: 'fulfilled', paymentStatus: 'paid', days: 9 },
+        { status: 'cancelled', paymentStatus: 'failed', days: 14 },
+        { status: 'refunded', paymentStatus: 'refunded', days: 21 },
+      ] as const;
+
+      const cents = (value: string) => Math.round(Number(value) * 100);
+      const money = (value: number) => (value / 100).toFixed(2);
+
+      for (const [index, plan] of PLAN.entries()) {
+        const line = skuRows[index % skuRows.length]!;
+        const quantity = (index % 3) + 1;
+        const unitCents = cents(line.basePrice);
+        const subtotalCents = unitCents * quantity;
+        const shippingCents = plan.status === 'cancelled' ? 0 : 990;
+        const totalCents = subtotalCents + shippingCents;
+
+        const placedAt = new Date(Date.now() - plan.days * 24 * 60 * 60 * 1000);
+        const number = `MIA-2026-${String(index + 1).padStart(6, '0')}`;
+
+        const [order] = await db
+          .insert(orders)
+          .values({
+            number,
+            email: `cliente${index + 1}@example.com`,
+            status: plan.status,
+            paymentStatus: plan.paymentStatus,
+            subtotal: money(subtotalCents),
+            shippingTotal: money(shippingCents),
+            total: money(totalCents),
+            shippingAddress: address(`Cliente ${index + 1}`),
+            billingAddress: address(`Cliente ${index + 1}`),
+            notes: index === 0 ? 'Consegna al piano, citofono Rossi.' : null,
+            placedAt,
+          })
+          .returning({ id: orders.id });
+        if (!order) continue;
+
+        await db.insert(orderItems).values({
+          orderId: order.id,
+          skuId: line.id,
+          productTitle: titles.get(line.productId) ?? line.sku,
+          skuLabel: line.sku,
+          sku: line.sku,
+          quantity,
+          unitPrice: money(unitCents),
+          total: money(subtotalCents),
+        });
+
+        // Backfill the timeline so a seeded order reads like one that actually
+        // moved, rather than one that appeared in its final state.
+        const trail: { from: string; to: string }[] =
+          plan.status === 'pending'
+            ? []
+            : plan.status === 'cancelled'
+              ? [{ from: 'pending', to: 'cancelled' }]
+              : plan.status === 'refunded'
+                ? [
+                    { from: 'pending', to: 'paid' },
+                    { from: 'paid', to: 'refunded' },
+                  ]
+                : plan.status === 'fulfilled'
+                  ? [
+                      { from: 'pending', to: 'paid' },
+                      { from: 'paid', to: 'fulfilled' },
+                    ]
+                  : [{ from: 'pending', to: 'paid' }];
+
+        for (const [step, move] of trail.entries()) {
+          await db.insert(orderStatusEvents).values({
+            orderId: order.id,
+            field: 'status',
+            fromValue: move.from,
+            toValue: move.to,
+            note: null,
+            createdAt: new Date(placedAt.getTime() + (step + 1) * 60 * 60 * 1000),
+          });
+        }
+      }
+
+      // One live cart and one long expired, so the Carts view has both states.
+      for (const [index, offsetDays] of [1, -3].entries()) {
+        const [cart] = await db
+          .insert(carts)
+          .values({
+            token: `seed-cart-${index + 1}`,
+            expiresAt: new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000),
+          })
+          .returning({ id: carts.id });
+        if (!cart) continue;
+
+        const line = skuRows[index % skuRows.length]!;
+        await db.insert(cartItems).values({
+          cartId: cart.id,
+          skuId: line.id,
+          quantity: index + 1,
+          unitPrice: line.basePrice,
+        });
+      }
+
+      console.log(`  ✓ ${PLAN.length} orders and 2 carts`);
+    }
+  }
 }
 
 // --- development super admin ------------------------------------------------

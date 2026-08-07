@@ -611,10 +611,17 @@ Testability is a consequence of the layering, not of mocks:
    the call site.
 6. Confirm the build emits `dist/<name>.js`.
 
-Modules still to build: `access`, `cart`, `notifications`, `orders`,
-`payments`, `settings`, `users`, `webhooks`. (`products`, `categories`,
-`media`, `terms`, `attributes` are built; `modules/media` is only upload (server-side WebP conversion via sharp) +
+Modules still to build: `access`, `notifications`, `payments`, `settings`,
+`users`, `webhooks`. (`products`, `categories`, `media`, `terms`, `attributes`,
+`orders` are built; `modules/media` is only upload (server-side WebP conversion via sharp) +
 staging deletion — objects commit through `modules/products/media/service.ts`.)
+
+`orders` also serves the **read-only cart** surface (`/api/admin/carts`) rather
+than a separate `cart` module: a cart is a pre-order, it reuses `ORDER_READ`,
+and splitting it would mean two modules over the same four tables. A `cart`
+module becomes worth having only when the storefront needs to _write_ carts.
+Its state machine is documented in
+[docs/code/orders-status-machine.md](code/orders-status-machine.md).
 Infra adapters still to build: `cache`, `mail`, `swagger`. (`storage/` — the
 Cloudflare R2 port — is built.)
 
