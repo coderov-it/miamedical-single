@@ -171,19 +171,20 @@ Hand-written. Composite values get their own type rather than parallel fields:
 
 ```ts
 export interface MoneyDto {
-  cents: number;
+  /** Two-decimal string, e.g. "35.00" — never a JS number. */
+  amount: string;
   currency: string;
 }
 
-export interface ProductSummaryDto {
+export interface PublicProductSummaryDto {
   id: string;
   slug: string;
-  name: string;
+  title: string;
   brand: string | null;
   status: 'draft' | 'active' | 'archived';
-  priceFrom: MoneyDto | null;
-  variantCount: number;
-  image: ImageDto | null;
+  pricing: PricingDto;
+  thumbnail: PublicMediaItemDto | null;
+  inStock: boolean;
 }
 ```
 
@@ -197,16 +198,13 @@ No IO, no `async`, no imports from `service`/`repo`. Derived values are computed
 here, not stored on the DTO by the caller:
 
 ```ts
-export function toProductSummary(row: ProductSummaryRow): ProductSummaryDto {
-  const cheapest = row.variants.reduce<VariantRow | null>(
-    (lowest, v) => (lowest === null || v.priceCents < lowest.priceCents ? v : lowest),
-    null,
-  );
+export function toPublicSummary(row: ProductSummaryRowData, locale: LanguageCode) {
+  const translation = pickTranslation(row.translations, locale); // en → it fallback
   return {
     /* … */
-    priceFrom: cheapest ? money(cheapest.priceCents, cheapest.currency) : null,
-    variantCount: row.variants.length,
-    image: row.images[0] ? toImage(row.images[0]) : null,
+    title: translation?.title ?? '',
+    pricing: { mode: row.pricingMode, rentalUnit: row.rentalUnit, currency: row.currency, price: row.basePrice },
+    thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
   };
 }
 ```
@@ -396,8 +394,23 @@ registration.
 
 ### 6.4 Money
 
-Integer minor units, always. `MoneyDto { cents, currency }` on the wire,
-`*_cents` integer columns in the database. No floats, no decimal strings.
+`numeric(12, 2)` in the database — exact decimal, not a float — carried as
+`MoneyDto { amount, currency }` where `amount` is a two-decimal **string**
+("35.00"). Drizzle returns `numeric` as a string by design, and a string is
+what survives JSON (a number 10.00 serialises back as 10). Never parse an
+amount into a JS number for arithmetic: `modules/products/money.ts` does the
+maths in bigint hundredths with half-up rounding; anything needed inside a
+query (sorting, BETWEEN) is done in SQL, where `numeric` is already exact.
+
+### 6.4b i18n
+
+Italian (`it`) is mandatory, English (`en`) optional, fallback `en → it`.
+Translated text goes in a `*_translations` table **only if PostgreSQL indexes
+it** — full-text search or a per-locale unique slug (products, categories,
+terms documents). Everything else is a `localized()` `{ it, en }` jsonb column
+with a `CHECK (col ? 'it')`. `search_vector` is a plain tsvector column
+written by the repo via `searchVectorFor()` — it cannot be GENERATED because
+the dictionary varies per row.
 
 ### 6.5 Pagination
 
@@ -598,9 +611,12 @@ Testability is a consequence of the layering, not of mocks:
    the call site.
 6. Confirm the build emits `dist/<name>.js`.
 
-Modules still to build: `access`, `cart`, `media`, `notifications`, `orders`,
-`payments`, `settings`, `users`, `webhooks`.
-Infra adapters still to build: `cache`, `mail`, `media`, `storage`, `swagger`.
+Modules still to build: `access`, `cart`, `notifications`, `orders`,
+`payments`, `settings`, `users`, `webhooks`. (`products`, `categories`,
+`media`, `terms`, `attributes` are built; `modules/media` is only upload (server-side WebP conversion via sharp) +
+staging deletion — objects commit through `modules/products/media/service.ts`.)
+Infra adapters still to build: `cache`, `mail`, `swagger`. (`storage/` — the
+Cloudflare R2 port — is built.)
 
 ---
 
@@ -610,9 +626,9 @@ Infra adapters still to build: `cache`, `mail`, `media`, `storage`, `swagger`.
   in `app.ts` and read via `c.get('db')`; services take it as their first
   argument. A project-wide DI standard is pending — do not introduce a container
   or framework before it lands, and revisit §4.4/§4.5 signatures when it does.
-- **Price sorting.** `repo.ORDER_BY.price_asc/price_desc` currently fall back to
-  `createdAt`; correct ordering needs a variant join or a denormalised
-  `min_price_cents` column.
+- **Price sorting.** `price_asc` / `price_desc` order by `products.base_price`
+  — option modifiers are ignored, which is right for "from" prices but worth
+  revisiting if SKU-level sorting is ever wanted.
 - **Admin user management.** The `access` module — listing back-office users and
   editing their permission arrays from the UI — is not built yet. Until it is,
   accounts are provisioned with `script/create-admin.ts`. The permission catalog,

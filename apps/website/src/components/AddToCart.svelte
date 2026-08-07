@@ -2,11 +2,11 @@
   import { api } from '~/lib/api';
 
   interface Props {
-    variantId: string;
+    skuId: string;
     inStock: boolean;
   }
 
-  let { variantId, inStock }: Props = $props();
+  let { skuId, inStock }: Props = $props();
 
   let quantity = $state(1);
   let status = $state<'idle' | 'pending' | 'added' | 'error'>('idle');
@@ -19,7 +19,7 @@
       // TODO: point at the cart route once it exists on the API.
       await new Promise((resolve) => setTimeout(resolve, 300));
       void api;
-      void variantId;
+      void skuId;
       status = 'added';
     } catch {
       status = 'error';

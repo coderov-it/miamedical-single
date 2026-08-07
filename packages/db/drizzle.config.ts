@@ -22,4 +22,7 @@ export default defineConfig({
   casing: 'snake_case',
   verbose: true,
   strict: true,
+  // Managed Postgres (Xata, some others) preinstalls pg_stat_statements in
+  // `public`; without this, `push` tries to drop the extension's views.
+  tablesFilter: ['!pg_stat_statements', '!pg_stat_statements_info'],
 });

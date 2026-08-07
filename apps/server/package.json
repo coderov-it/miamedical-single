@@ -16,6 +16,7 @@
     "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
     "@hono/node-server": "catalog:",
     "@hono/valibot-validator": "catalog:",
     "@mia/db": "workspace:*",
@@ -25,6 +26,7 @@
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "postgres": "catalog:",
+    "sharp": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {

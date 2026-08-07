@@ -14,6 +14,16 @@ export const api = hc<AppType>(baseUrl, {
   init: { credentials: 'include' },
 });
 
-export function formatMoney(cents: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
+/**
+ * `amount` is the wire's decimal string ("35.00") — never parse it into a
+ * number for arithmetic; this only hands it to Intl for display.
+ */
+export function formatMoney(amount: string, currency = 'EUR', locale = 'it-IT') {
+  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(Number(amount));
+}
+
+/** Prefix a stored media path with the public CDN base. */
+export function mediaUrl(path: string): string {
+  const base = env.PUBLIC_MEDIA_BASE_URL ?? '';
+  return base ? `${base.replace(/\/$/, '')}/${path}` : `/${path}`;
 }
