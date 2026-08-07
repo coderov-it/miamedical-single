@@ -30,7 +30,7 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { cn } from '$lib/utils.js';
   import { api, mediaUrl } from '~/lib/api';
-  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { useContentLang } from '~/lib/content-lang.svelte';
   import { formatBytes } from '~/lib/format';
   import { uploadFile } from '~/lib/media/upload';
 
@@ -73,7 +73,9 @@
   /** Paths this session uploaded, and may therefore purge on removal. */
   const sessionPaths = new Set<string>();
 
-  const lang = $derived(editorLang.current);
+  // Alt text is content: it follows the owning editor's IT/EN tabs.
+  const contentLang = useContentLang();
+  const lang = $derived(contentLang.current);
 
   async function addFiles(files: FileList | File[]) {
     error = null;

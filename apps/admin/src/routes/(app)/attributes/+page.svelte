@@ -23,15 +23,17 @@
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { api, mediaUrl } from '~/lib/api';
   import { isSelectType, VALUE_TYPES, type Localized } from '~/lib/categories/spec-edit';
+  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
-  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { provideContentLang } from '~/lib/content-lang.svelte';
   import { orDash, pluralize } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   type Preset = InferResponseType<typeof api.api.admin.attributes.$get, 200>['data'][number];
 
@@ -64,6 +66,9 @@
 
   const rows = $derived(presets.data ?? []);
 
+  // Editing language for the preset sheet — the IT/EN tabs under its header.
+  const contentLang = provideContentLang();
+
   let editing = $state<PresetEdit | null>(null);
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -71,12 +76,14 @@
   let deleting = $state<Preset | null>(null);
   let deleteBusy = $state(false);
 
+  // List display follows the interface language, not any editing state.
   const labelOf = (preset: Preset) =>
-    (editorLang.current === 'en' ? preset.label.en : undefined) ?? preset.label.it ?? preset.key;
+    (uiLang.current === 'en' ? preset.label.en : undefined) ?? preset.label.it ?? preset.key;
 
   function startEdit(preset?: Preset) {
     error = null;
     fields = {};
+    contentLang.reset();
     editing = preset
       ? {
           id: preset.id,
@@ -326,6 +333,10 @@
       </Sheet.Description>
     </Sheet.Header>
 
+    <div class="flex border-b px-6">
+      <ContentLangTabs lang={contentLang} enMissing={!editing?.label.en?.trim()} />
+    </div>
+
     {#if editing}
       <div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
         {#if error}
@@ -410,9 +421,15 @@
               >
                 {#each editing.options as option (option.uid)}
                   <div class="flex items-center gap-1.5">
+                    <!-- Follows the sheet's IT/EN tabs like the label above. -->
                     <Input
-                      bind:value={option.label.it}
-                      placeholder="Etichetta"
+                      value={contentLang.current === 'en' ? (option.label.en ?? '') : option.label.it}
+                      oninput={(event) => {
+                        const text = event.currentTarget.value;
+                        if (contentLang.current === 'en') option.label.en = text || undefined;
+                        else option.label.it = text;
+                      }}
+                      placeholder={contentLang.current === 'en' ? 'Label (EN)' : 'Etichetta (IT)'}
                       aria-label="Option label"
                       class="h-8 flex-1"
                     />

@@ -582,9 +582,18 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
   };
 }
 
-export function toAdminSummary(row: ProductSummaryRowData): AdminProductSummaryDto {
+/** Display strings resolve per the reader's locale, falling back to Italian
+    — same rule as the storefront. Slug stays Italian: it is the canonical
+    URL segment, not display text. */
+export function toAdminSummary(
+  row: ProductSummaryRowData,
+  locale: LanguageCode = 'it',
+): AdminProductSummaryDto {
   const italian = row.translations.find((t) => t.languageCode === 'it');
+  const localized = row.translations.find((t) => t.languageCode === locale) ?? italian;
   const categoryItalian = row.category.translations.find((t) => t.languageCode === 'it');
+  const categoryLocalized =
+    row.category.translations.find((t) => t.languageCode === locale) ?? categoryItalian;
   return {
     id: row.id,
     baseSku: row.baseSku,
@@ -595,9 +604,9 @@ export function toAdminSummary(row: ProductSummaryRowData): AdminProductSummaryD
     rentalUnit: row.rentalUnit,
     basePrice: row.basePrice,
     currency: row.currency,
-    title: italian?.title ?? '',
+    title: localized?.title || italian?.title || '',
     slug: italian?.slug ?? '',
-    categoryName: categoryItalian?.name ?? row.category.code,
+    categoryName: categoryLocalized?.name || categoryItalian?.name || row.category.code,
     translationStatus: toTranslationStatus(row.translations),
     thumbnail: row.media.thumbnail?.path ?? null,
     updatedAt: iso(row.updatedAt),

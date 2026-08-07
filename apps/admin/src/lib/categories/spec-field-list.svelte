@@ -24,7 +24,7 @@
   import { cn } from '$lib/utils.js';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
-  import { editorLang } from '~/lib/editor-lang.svelte';
+  import { useContentLang } from '~/lib/content-lang.svelte';
   import OptionListEditor from './option-list-editor.svelte';
   import { isSelectType, VALUE_TYPES, type SpecEdit } from './spec-edit';
 
@@ -34,6 +34,9 @@
   }
 
   let { specs = $bindable(), disabled = false }: Props = $props();
+
+  // The sheet's IT/EN tabs — row titles follow what is being edited.
+  const contentLang = useContentLang();
 
   /**
    * Open state is keyed by the row's stable `uid`, not its index — splicing a
@@ -73,7 +76,7 @@
   }
 
   const title = (spec: SpecEdit) =>
-    (editorLang.current === 'en' ? spec.label.en : spec.label.it) || spec.label.it;
+    (contentLang.current === 'en' ? spec.label.en : spec.label.it) || spec.label.it;
 
   const TOGGLES = [
     {

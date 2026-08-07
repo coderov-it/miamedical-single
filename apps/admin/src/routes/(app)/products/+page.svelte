@@ -27,6 +27,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.products.$get, 200>;
   type Product = ListResponse['data'][number];
@@ -41,7 +42,10 @@
   const draft = new QueryDraft(query);
 
   const products = new Resource(
-    () => query.current,
+    // The interface language is part of the key: the api client sends it as
+    // `?locale`, the server resolves titles and search with it — so switching
+    // language has to refetch, not just re-render.
+    () => ({ ...query.current, locale: uiLang.current }),
     async (current, signal) =>
       unwrapFull<ListResponse>(
         await api.api.admin.products.$get(
@@ -81,11 +85,19 @@
   const statusLabel = $derived(
     statuses.find((s) => s.value === draft.values.status)?.label ?? 'All statuses',
   );
+  // Category names in the filter follow the interface language too.
+  const categoryName = (category: Category) =>
+    (uiLang.current === 'en' ? category.translations.en?.name : undefined) ??
+    category.translations.it?.name ??
+    category.code;
+
   const categoryLabel = $derived(
     draft.values.category === ANY
       ? 'All categories'
-      : (categoryOptions.find((c) => c.code === draft.values.category)?.translations.it?.name ??
-          draft.values.category),
+      : (() => {
+          const match = categoryOptions.find((c) => c.code === draft.values.category);
+          return match ? categoryName(match) : draft.values.category;
+        })(),
   );
 
   const statusVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
@@ -174,7 +186,7 @@
             <Select.Item value={ANY}>All categories</Select.Item>
             {#each categoryOptions as option (option.id)}
               <Select.Item value={option.code}>
-                {option.translations.it?.name ?? option.code}
+                {categoryName(option)}
               </Select.Item>
             {/each}
           </Select.Content>
