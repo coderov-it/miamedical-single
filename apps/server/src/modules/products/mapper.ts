@@ -1,77 +1,598 @@
+import type { LanguageCode, Localized, MediaItem, ProductMedia } from '@mia/db/schema';
+
 import type {
-  CategoryDto,
-  ImageDto,
+  AdminProductDetailDto,
+  AdminProductSummaryDto,
+  AdminProductTranslationDto,
+  AdminSkuDto,
+  AdminSpecValueDto,
+  FacetDto,
   MoneyDto,
   PageMetaDto,
-  ProductDetailDto,
-  ProductSummaryDto,
-  VariantDto,
+  PricingDto,
+  PublicAddonDto,
+  PublicMediaItemDto,
+  PublicProductDetailDto,
+  PublicProductMediaDto,
+  PublicProductSummaryDto,
+  PublicSpecDto,
+  PublicVariantGroupDto,
+  TranslationStatusDto,
 } from './dto.ts';
+import { pick, pickAlt, pickOptional, pickTranslation, resolveField } from './i18n.ts';
+import { resolveSkuPrice } from './pricing.ts';
 import type {
-  CategoryRow,
-  ImageRow,
-  ProductSummaryRow,
-  ProductWithRelations,
-  VariantRow,
+  AddonRow,
+  ProductAggregate,
+  ProductSummaryRowData,
+  ProductTranslationRow,
+  SpecOptionRow,
+  SpecRow,
+  SpecValueOptionRow,
+  SpecValueRow,
 } from './types.ts';
 
-const money = (cents: number, currency: string): MoneyDto => ({ cents, currency });
+/** Record → DTO. Pure functions, no IO. */
 
-const toImage = (row: ImageRow): ImageDto => ({ url: row.url, alt: row.alt });
+const money = (amount: string, currency: string): MoneyDto => ({ amount, currency });
 
-const toCategory = (row: CategoryRow): CategoryDto => ({
-  id: row.id,
-  slug: row.slug,
-  name: row.name,
-});
+/** "90.0000" → 90, "16.5000" → 16.5 — spec quantities, never money. */
+const num = (value: string | null): number | null => (value === null ? null : Number(value));
 
-export function toVariant(row: VariantRow): VariantDto {
-  return {
-    id: row.id,
-    sku: row.sku,
-    name: row.name,
-    price: money(row.priceCents, row.currency),
-    compareAtPrice:
-      row.compareAtPriceCents === null ? null : money(row.compareAtPriceCents, row.currency),
-    stock: row.stock,
-    inStock: row.stock > 0,
-    options: row.options,
-  };
-}
-
-export function toProductSummary(row: ProductSummaryRow): ProductSummaryDto {
-  const cheapest = row.variants.reduce<VariantRow | null>(
-    (lowest, variant) =>
-      lowest === null || variant.priceCents < lowest.priceCents ? variant : lowest,
-    null,
-  );
-
-  return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    brand: row.brand,
-    status: row.status,
-    priceFrom: cheapest ? money(cheapest.priceCents, cheapest.currency) : null,
-    variantCount: row.variants.length,
-    image: row.images[0] ? toImage(row.images[0]) : null,
-  };
-}
-
-export function toProductDetail(row: ProductWithRelations): ProductDetailDto {
-  return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    description: row.description,
-    brand: row.brand,
-    status: row.status,
-    variants: row.variants.map(toVariant),
-    images: row.images.map(toImage),
-    categories: row.categories.map((link) => toCategory(link.category)),
-  };
-}
+const iso = (date: Date): string => date.toISOString();
 
 export function toPageMeta(page: number, perPage: number, total: number): PageMetaDto {
   return { page, perPage, total, pageCount: Math.max(1, Math.ceil(total / perPage)) };
 }
+
+// --- media -----------------------------------------------------------------
+
+function toPublicMediaItem(item: MediaItem | null, locale: LanguageCode): PublicMediaItemDto | null {
+  if (!item) return null;
+  return { path: item.path, mimeType: item.mimeType, alt: pickAlt(item.alt, locale) };
+}
+
+function toPublicMedia(media: ProductMedia, locale: LanguageCode): PublicProductMediaDto {
+  const item = (m: MediaItem | null) => toPublicMediaItem(m, locale);
+  return {
+    thumbnail: item(media.thumbnail),
+    cleanPng: item(media.cleanPng),
+    gallery: media.gallery.map((m) => item(m)!),
+    videos: media.videos.map((m) => item(m)!),
+    documents: media.documents.map((m) => item(m)!),
+  };
+}
+
+// --- translation status ----------------------------------------------------
+
+const TRANSLATION_FIELDS = [
+  'title',
+  'shortDescription',
+  'description',
+  'slug',
+  'metaTitle',
+  'metaDescription',
+] as const;
+
+export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationStatusDto {
+  const missing: Partial<Record<LanguageCode, string[]>> = {};
+  const statusFor = (lang: LanguageCode): 'complete' | 'partial' | 'missing' => {
+    const row = rows.find((r) => r.languageCode === lang);
+    if (!row) return 'missing';
+    const gaps = TRANSLATION_FIELDS.filter((field) => {
+      const value = row[field];
+      return value === null || value === '';
+    });
+    if (gaps.length === 0) return 'complete';
+    missing[lang] = gaps;
+    return 'partial';
+  };
+  return { it: statusFor('it'), en: statusFor('en'), missing };
+}
+
+// --- specs -----------------------------------------------------------------
+
+const YES: Record<LanguageCode, string> = { it: 'Sì', en: 'Yes' };
+const NO: Record<LanguageCode, string> = { it: 'No', en: 'No' };
+
+function specValueAndDisplay(
+  spec: SpecRow & { options: SpecOptionRow[] },
+  value: SpecValueRow,
+  optionIds: string[],
+  locale: LanguageCode,
+): { value: PublicSpecDto['value']; displayValue: string } {
+  const unit = spec.unit ? ` ${spec.unit}` : '';
+  switch (spec.valueType) {
+    case 'number': {
+      const n = num(value.numberValue);
+      return { value: n, displayValue: n === null ? '—' : `${n}${unit}` };
+    }
+    case 'number_range': {
+      const min = num(value.numberMin);
+      const max = num(value.numberMax);
+      return { value: { min, max }, displayValue: `${min ?? '—'}–${max ?? '—'}${unit}` };
+    }
+    case 'boolean': {
+      const b = value.booleanValue;
+      return { value: b, displayValue: b === null ? '—' : b ? YES[locale] : NO[locale] };
+    }
+    case 'single_select': {
+      const option = spec.options.find((o) => optionIds.includes(o.id));
+      return {
+        value: option?.value ?? null,
+        displayValue: option ? pick(option.label, locale) : '—',
+      };
+    }
+    case 'multi_select': {
+      const selected = spec.options.filter((o) => optionIds.includes(o.id));
+      return {
+        value: selected.map((o) => o.value),
+        displayValue: selected.map((o) => pick(o.label, locale)).join(', ') || '—',
+      };
+    }
+    default: {
+      const text = value.textValue ? pick(value.textValue, locale) : null;
+      return { value: text, displayValue: text ?? '—' };
+    }
+  }
+}
+
+function toPublicSpecs(
+  specs: ProductAggregate['specs'],
+  values: SpecValueRow[],
+  valueOptions: SpecValueOptionRow[],
+  locale: LanguageCode,
+): PublicSpecDto[] {
+  const valueBySpec = new Map(values.map((v) => [v.specId, v]));
+  const optionsBySpec = new Map<string, string[]>();
+  for (const link of valueOptions) {
+    const list = optionsBySpec.get(link.specId) ?? [];
+    list.push(link.optionId);
+    optionsBySpec.set(link.specId, list);
+  }
+
+  return specs
+    .filter((spec) => valueBySpec.has(spec.id) || optionsBySpec.has(spec.id))
+    .sort((a, b) => a.position - b.position)
+    .map((spec) => {
+      const value = valueBySpec.get(spec.id);
+      const optionIds = optionsBySpec.get(spec.id) ?? [];
+      const resolved = value
+        ? specValueAndDisplay(spec, value, optionIds, locale)
+        : specValueAndDisplay(
+            spec,
+            // Select specs may carry options without a value row.
+            {
+              numberValue: null,
+              numberMin: null,
+              numberMax: null,
+              booleanValue: null,
+              textValue: null,
+            } as SpecValueRow,
+            optionIds,
+            locale,
+          );
+      return {
+        id: spec.id,
+        key: spec.key,
+        label: pick(spec.label, locale),
+        valueType: spec.valueType,
+        unit: spec.unit,
+        value: resolved.value,
+        displayValue: resolved.displayValue,
+        isFilterable: spec.isFilterable,
+        isComparable: spec.isComparable,
+        icon: spec.icon,
+        position: spec.position,
+      };
+    });
+}
+
+// --- addons ----------------------------------------------------------------
+
+function toPublicAddon(row: AddonRow, locale: LanguageCode): PublicAddonDto {
+  return {
+    id: row.id,
+    name: pick(row.name, locale),
+    description: pickOptional(row.description, locale),
+    sku: row.sku,
+    pricing: {
+      mode: row.pricingMode,
+      rentalUnit: row.rentalUnit,
+      currency: row.currency,
+      price: row.price,
+    },
+    minQuantity: row.minQuantity,
+    maxQuantity: row.maxQuantity,
+    isRequired: row.isRequired,
+    icon: row.icon,
+    position: row.position,
+  };
+}
+
+// --- public detail ---------------------------------------------------------
+
+export function toPublicDetail(row: ProductAggregate, locale: LanguageCode): PublicProductDetailDto {
+  const translations = row.translations;
+  const requested = translations.find((t) => t.languageCode === locale);
+  const italian = translations.find((t) => t.languageCode === 'it');
+  const active = requested ?? italian;
+  if (!active) throw new Error(`Product ${row.id} has no translations.`);
+
+  const shortDescription = resolveField(
+    requested?.shortDescription,
+    italian?.shortDescription,
+    locale,
+  );
+  const description = resolveField(requested?.description, italian?.description, locale);
+
+  const pricing: PricingDto = {
+    mode: row.pricingMode,
+    rentalUnit: row.rentalUnit,
+    currency: row.currency,
+    price: row.basePrice,
+  };
+
+  const categoryTranslation = pickTranslation(row.category.translations, locale);
+
+  const variants: PublicVariantGroupDto[] = row.variantGroups
+    .sort((a, b) => a.position - b.position)
+    .map((group) => ({
+      id: group.id,
+      key: group.key,
+      label: pick(group.label, locale),
+      helpText: pickOptional(group.helpText, locale),
+      valueType: group.valueType,
+      unit: group.unit,
+      isRequired: group.isRequired,
+      affectsSku: group.affectsSku,
+      position: group.position,
+      icon: group.icon,
+      min: num(group.minValue),
+      max: num(group.maxValue),
+      step: num(group.stepValue),
+      priceModifierPerUnit:
+        group.priceModifierPerUnit === null
+          ? null
+          : money(group.priceModifierPerUnit, row.currency),
+      options: group.options
+        .sort((a, b) => a.position - b.position)
+        .map((option) => ({
+          id: option.id,
+          value: option.value,
+          label: pick(option.label, locale),
+          skuCode: option.skuCode,
+          isDefault: option.isDefault,
+          priceModifier: money(option.priceModifier, row.currency),
+        })),
+    }));
+
+  const optionMeta = new Map<string, { groupKey: string; value: string }>();
+  for (const group of row.variantGroups) {
+    for (const option of group.options) {
+      optionMeta.set(option.id, { groupKey: group.key, value: option.value });
+    }
+  }
+
+  const detail: PublicProductDetailDto = {
+    id: row.id,
+    slug: active.slug,
+    locale,
+    availableLocales: translations.map((t) => t.languageCode),
+    status: row.status,
+    brand: row.brand,
+    baseSku: row.baseSku,
+    isFeatured: row.isFeatured,
+    title: resolveField(requested?.title, italian?.title, locale).value ?? '',
+    shortDescription: shortDescription.value,
+    description: description.value,
+    seo: {
+      title: resolveField(requested?.metaTitle, italian?.metaTitle, locale).value,
+      description: resolveField(requested?.metaDescription, italian?.metaDescription, locale).value,
+    },
+    category: {
+      id: row.category.id,
+      code: row.category.code,
+      slug: categoryTranslation?.slug ?? row.category.code,
+      name: categoryTranslation?.name ?? row.category.code,
+      icon: row.category.icon,
+    },
+    pricing,
+    media: toPublicMedia(row.media, locale),
+    variants,
+    skus: row.skus
+      .filter((sku) => sku.isActive)
+      .sort((a, b) => a.position - b.position)
+      .map((sku) => ({
+        id: sku.id,
+        sku: sku.sku,
+        options: Object.fromEntries(
+          sku.options.flatMap((link) => {
+            const meta = optionMeta.get(link.optionId);
+            return meta ? [[meta.groupKey, meta.value]] : [];
+          }),
+        ),
+        stock: sku.stock,
+        inStock: sku.stock > 0,
+        isActive: sku.isActive,
+        price: money(resolveSkuPrice(row.basePrice, sku, row.variantGroups), row.currency),
+      })),
+    specifications: toPublicSpecs(row.specs, row.specValues, row.specValueOptions, locale),
+    addons: row.addons.sort((a, b) => a.position - b.position).map((a) => toPublicAddon(a, locale)),
+    questions: row.questions
+      .sort((a, b) => a.position - b.position)
+      .map((question) => ({
+        id: question.id,
+        key: question.key,
+        prompt: pick(question.prompt, locale),
+        helpText: pickOptional(question.helpText, locale),
+        valueType: question.questionValueType,
+        isRequired: question.isRequired,
+        min: num(question.minValue),
+        max: num(question.maxValue),
+        maxLength: question.maxLength,
+        position: question.position,
+        options: question.options
+          .sort((a, b) => a.position - b.position)
+          .map((option) => ({
+            id: option.id,
+            value: option.value,
+            label: pick(option.label, locale),
+          })),
+      })),
+    faqs: row.faqs
+      .filter((faq) => faq.isActive)
+      .sort((a, b) => a.position - b.position)
+      .map((faq) => ({
+        id: faq.id,
+        question: pick(faq.question, locale),
+        answer: pick(faq.answer, locale),
+        position: faq.position,
+      })),
+    terms: row.terms
+      .sort((a, b) => a.position - b.position)
+      .map((link) => {
+        const translation = pickTranslation(link.terms.translations, locale);
+        return {
+          id: link.terms.id,
+          code: link.terms.code,
+          slug: translation?.slug ?? link.terms.code,
+          title: translation?.title ?? link.terms.code,
+          version: link.terms.version,
+          publishedAt: link.terms.publishedAt ? iso(link.terms.publishedAt) : null,
+        };
+      }),
+    createdAt: iso(row.createdAt),
+    updatedAt: iso(row.updatedAt),
+  };
+
+  // Fallback markers — present only when the field actually fell back.
+  if (shortDescription.fellBack) detail.shortDescriptionLocale = 'it';
+  if (description.fellBack) detail.descriptionLocale = 'it';
+  return detail;
+}
+
+// --- public summary --------------------------------------------------------
+
+export function toPublicSummary(
+  row: ProductSummaryRowData,
+  locale: LanguageCode,
+): PublicProductSummaryDto {
+  const translation = pickTranslation(row.translations, locale);
+  const categoryTranslation = pickTranslation(row.category.translations, locale);
+  return {
+    id: row.id,
+    slug: translation?.slug ?? '',
+    title: translation?.title ?? '',
+    shortDescription: translation?.shortDescription ?? null,
+    status: row.status,
+    brand: row.brand,
+    isFeatured: row.isFeatured,
+    category: {
+      slug: categoryTranslation?.slug ?? row.category.code,
+      name: categoryTranslation?.name ?? row.category.code,
+    },
+    pricing: {
+      mode: row.pricingMode,
+      rentalUnit: row.rentalUnit,
+      currency: row.currency,
+      price: row.basePrice,
+    },
+    thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
+    inStock: row.inStock,
+  };
+}
+
+export type { FacetDto };
+
+// --- admin -----------------------------------------------------------------
+
+function toAdminTranslation(row: ProductTranslationRow): AdminProductTranslationDto {
+  return {
+    title: row.title,
+    shortDescription: row.shortDescription,
+    description: row.description,
+    slug: row.slug,
+    metaTitle: row.metaTitle,
+    metaDescription: row.metaDescription,
+  };
+}
+
+export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
+  const translations: Partial<Record<LanguageCode, AdminProductTranslationDto>> = {};
+  for (const t of row.translations) translations[t.languageCode] = toAdminTranslation(t);
+
+  const skus: AdminSkuDto[] = row.skus
+    .sort((a, b) => a.position - b.position)
+    .map((sku) => ({
+      id: sku.id,
+      sku: sku.sku,
+      suffix: sku.suffix,
+      comboKey: sku.comboKey,
+      optionIds: sku.options.map((link) => link.optionId),
+      priceOverride: sku.priceOverride,
+      resolvedPrice: resolveSkuPrice(row.basePrice, sku, row.variantGroups),
+      stock: sku.stock,
+      isActive: sku.isActive,
+      position: sku.position,
+    }));
+
+  const optionsBySpec = new Map<string, string[]>();
+  for (const link of row.specValueOptions) {
+    const list = optionsBySpec.get(link.specId) ?? [];
+    list.push(link.optionId);
+    optionsBySpec.set(link.specId, list);
+  }
+  const specTypeById = new Map(row.specs.map((s) => [s.id, s.valueType]));
+
+  const specValues: AdminSpecValueDto[] = row.specValues.map((value) => ({
+    specId: value.specId,
+    valueType: specTypeById.get(value.specId) ?? 'string',
+    numberValue: num(value.numberValue),
+    numberMin: num(value.numberMin),
+    numberMax: num(value.numberMax),
+    booleanValue: value.booleanValue,
+    optionIds: optionsBySpec.get(value.specId) ?? [],
+    textValue: value.textValue,
+  }));
+  // Select specs whose links exist without a value row still surface.
+  for (const [specId, optionIds] of optionsBySpec) {
+    if (!row.specValues.some((v) => v.specId === specId)) {
+      specValues.push({
+        specId,
+        valueType: specTypeById.get(specId) ?? 'single_select',
+        numberValue: null,
+        numberMin: null,
+        numberMax: null,
+        booleanValue: null,
+        optionIds,
+        textValue: null,
+      });
+    }
+  }
+
+  return {
+    id: row.id,
+    baseSku: row.baseSku,
+    status: row.status,
+    categoryId: row.categoryId,
+    brand: row.brand,
+    isFeatured: row.isFeatured,
+    pricingMode: row.pricingMode,
+    pricingModeLocked: true,
+    rentalUnit: row.rentalUnit,
+    basePrice: row.basePrice,
+    currency: row.currency,
+    translations,
+    translationStatus: toTranslationStatus(row.translations),
+    variants: row.variantGroups
+      .sort((a, b) => a.position - b.position)
+      .map((group) => ({
+        id: group.id,
+        key: group.key,
+        valueType: group.valueType,
+        unit: group.unit,
+        isRequired: group.isRequired,
+        affectsSku: group.affectsSku,
+        sourcePresetKey: group.sourcePresetKey,
+        minValue: num(group.minValue),
+        maxValue: num(group.maxValue),
+        stepValue: num(group.stepValue),
+        priceModifierPerUnit: group.priceModifierPerUnit,
+        icon: group.icon,
+        position: group.position,
+        label: group.label,
+        helpText: group.helpText,
+        options: group.options
+          .sort((a, b) => a.position - b.position)
+          .map((option) => ({
+            id: option.id,
+            value: option.value,
+            skuCode: option.skuCode,
+            priceModifier: option.priceModifier,
+            isDefault: option.isDefault,
+            position: option.position,
+            label: option.label,
+          })),
+      })),
+    skus,
+    specValues,
+    media: row.media,
+    addons: row.addons
+      .sort((a, b) => a.position - b.position)
+      .map((addon) => ({
+        id: addon.id,
+        sku: addon.sku,
+        pricingMode: addon.pricingMode,
+        productPricingMode: addon.productPricingMode,
+        rentalUnit: addon.rentalUnit,
+        price: addon.price,
+        currency: addon.currency,
+        minQuantity: addon.minQuantity,
+        maxQuantity: addon.maxQuantity,
+        isRequired: addon.isRequired,
+        icon: addon.icon,
+        position: addon.position,
+        name: addon.name,
+        description: addon.description,
+      })),
+    allowedAddonModes: row.pricingMode === 'rental' ? ['rental', 'fixed'] : ['fixed'],
+    questions: row.questions
+      .sort((a, b) => a.position - b.position)
+      .map((question) => ({
+        id: question.id,
+        key: question.key,
+        questionValueType: question.questionValueType,
+        isRequired: question.isRequired,
+        minValue: num(question.minValue),
+        maxValue: num(question.maxValue),
+        maxLength: question.maxLength,
+        position: question.position,
+        prompt: question.prompt,
+        helpText: question.helpText,
+        options: question.options
+          .sort((a, b) => a.position - b.position)
+          .map((option) => ({
+            id: option.id,
+            value: option.value,
+            position: option.position,
+            label: option.label,
+          })),
+      })),
+    faqs: row.faqs
+      .sort((a, b) => a.position - b.position)
+      .map((faq) => ({
+        id: faq.id,
+        position: faq.position,
+        isActive: faq.isActive,
+        question: faq.question,
+        answer: faq.answer,
+      })),
+    termsIds: row.terms.sort((a, b) => a.position - b.position).map((link) => link.termsId),
+    createdAt: iso(row.createdAt),
+    updatedAt: iso(row.updatedAt),
+  };
+}
+
+export function toAdminSummary(row: ProductSummaryRowData): AdminProductSummaryDto {
+  const italian = row.translations.find((t) => t.languageCode === 'it');
+  const categoryItalian = row.category.translations.find((t) => t.languageCode === 'it');
+  return {
+    id: row.id,
+    baseSku: row.baseSku,
+    status: row.status,
+    brand: row.brand,
+    isFeatured: row.isFeatured,
+    pricingMode: row.pricingMode,
+    rentalUnit: row.rentalUnit,
+    basePrice: row.basePrice,
+    currency: row.currency,
+    title: italian?.title ?? '',
+    slug: italian?.slug ?? '',
+    categoryName: categoryItalian?.name ?? row.category.code,
+    translationStatus: toTranslationStatus(row.translations),
+    updatedAt: iso(row.updatedAt),
+  };
+}
+
+export type LocalizedValue = Localized;

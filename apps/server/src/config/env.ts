@@ -47,6 +47,39 @@ const EnvSchema = v.object({
     v.optional(v.picklist(['true', 'false']), 'false'),
     v.transform((value) => value === 'true'),
   ),
+
+  /**
+   * Cloudflare R2 (S3 API). Optional as a group so the server boots without
+   * credentials in local dev — the storage adapter fails lazily, on first use,
+   * naming what is missing. Upload size/mime limits are NOT env: they live in
+   * `MEDIA_PROFILES` (`@mia/validators`), shared with the admin uploader.
+   */
+  R2_ACCOUNT_ID: v.optional(v.string()),
+  R2_ACCESS_KEY_ID: v.optional(v.string()),
+  R2_SECRET_ACCESS_KEY: v.optional(v.string()),
+  R2_BUCKET: v.optional(v.string()),
+  /**
+   * WebP encoding quality for server-side image conversion. 92 is visually
+   * lossless for product photography; drop it only if storage cost bites.
+   */
+  MEDIA_WEBP_QUALITY: v.pipe(
+    v.optional(v.string(), '92'),
+    v.transform(Number),
+    v.number(),
+    v.integer(),
+    v.minValue(1),
+    v.maxValue(100),
+  ),
+  /** Staging uploads older than this are swept as orphans. */
+  MEDIA_STAGING_TTL_HOURS: v.pipe(
+    v.optional(v.string(), '24'),
+    v.transform(Number),
+    v.number(),
+    v.integer(),
+    v.minValue(1),
+    v.maxValue(720),
+  ),
+  DEFAULT_CURRENCY: v.pipe(v.optional(v.string(), 'EUR'), v.length(3), v.toUpperCase()),
 });
 
 const parsed = v.safeParse(EnvSchema, process.env);

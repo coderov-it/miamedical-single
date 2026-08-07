@@ -1,7 +1,7 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
 
-  import Forbidden from '~/lib/Forbidden.svelte';
+  import Forbidden from '~/lib/components/Forbidden.svelte';
   import { session } from '~/lib/session.svelte';
 
   // Placeholder — mirrors products/+page.svelte once /api/orders lands.

@@ -7,9 +7,13 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { attributeAdminRoutes } from './modules/attributes/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
+import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
-import { productRoutes } from './modules/products/routes.ts';
+import { mediaRoutes } from './modules/media/routes.ts';
+import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
+import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
 import { withSession } from './shared/auth/session.ts';
 import type { AppEnv } from './shared/http/context.ts';
 import { onError, onNotFound } from './shared/http/error-handler.ts';
@@ -42,7 +46,14 @@ app.use('/api/*', withSession);
 const routes = app
   .route('/health', healthRoutes)
   .route('/api/auth', authRoutes)
-  .route('/api/products', productRoutes);
+  .route('/api/products', productPublicRoutes)
+  .route('/api/categories', categoryPublicRoutes)
+  .route('/api/terms', termsPublicRoutes)
+  .route('/api/media', mediaRoutes)
+  .route('/api/admin/products', productAdminRoutes)
+  .route('/api/admin/categories', categoryAdminRoutes)
+  .route('/api/admin/terms', termsAdminRoutes)
+  .route('/api/admin/attributes', attributeAdminRoutes);
 
 app.onError(onError);
 app.notFound(onNotFound);

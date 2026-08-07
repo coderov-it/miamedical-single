@@ -3,13 +3,16 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  import { session } from './session.svelte';
+  import { session } from '../session.svelte';
 
   // `permission` is what the matching API routes require, so a link is only
   // shown when following it would actually work.
   const links = [
     { href: '/', label: 'Dashboard', permission: P.DASHBOARD_READ },
     { href: '/products', label: 'Products', permission: P.PRODUCT_READ },
+    { href: '/categories', label: 'Categories', permission: P.CATEGORY_READ },
+    { href: '/attributes', label: 'Attributes', permission: P.ATTRIBUTE_READ },
+    { href: '/terms', label: 'Terms', permission: P.TERMS_READ },
     { href: '/orders', label: 'Orders', permission: P.ORDER_READ },
   ];
 

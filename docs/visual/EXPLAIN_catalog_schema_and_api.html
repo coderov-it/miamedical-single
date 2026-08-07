@@ -1,0 +1,1578 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Catalog domain — schema &amp; API shapes</title>
+
+<style>
+  :root {
+    --bg: #fbfbfd;
+    --panel: #ffffff;
+    --ink: #14161a;
+    --muted: #646b78;
+    --line: #e3e6ec;
+    --brand: #2f6fd0;
+    --brand-soft: #eaf1fc;
+    --amber: #a86a16;
+    --amber-soft: #fdf3e2;
+    --violet: #6d4bb8;
+    --violet-soft: #f1ecfd;
+    --grey-soft: #f1f3f6;
+    --green: #2c7a52;
+    --red: #b3402f;
+    --code-bg: #f6f7f9;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1013;
+      --panel: #16191e;
+      --ink: #e6e8ec;
+      --muted: #99a1b0;
+      --line: #262b33;
+      --brand: #7aaaf0;
+      --brand-soft: #16243a;
+      --amber: #e0a85a;
+      --amber-soft: #2e2415;
+      --violet: #b39cf0;
+      --violet-soft: #241d38;
+      --grey-soft: #1d2127;
+      --green: #6fca9b;
+      --red: #ea8878;
+      --code-bg: #12151a;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+
+  h1 { font-size: 1.85rem; line-height: 1.2; margin: 0 0 .4rem; letter-spacing: -.02em; }
+  h2 {
+    font-size: 1.25rem; margin: 3.5rem 0 .35rem; letter-spacing: -.01em;
+    padding-top: 1.5rem; border-top: 1px solid var(--line);
+  }
+  h3 { font-size: 1rem; margin: 2rem 0 .6rem; letter-spacing: -.005em; }
+  p { margin: .5rem 0; color: var(--muted); max-width: 78ch; }
+  p strong, li strong, td strong { color: var(--ink); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    font-size: .87em; background: var(--code-bg);
+    padding: .1em .34em; border-radius: 4px;
+  }
+  a { color: var(--brand); }
+
+  .sub { font-size: 1rem; color: var(--muted); margin-bottom: 1.5rem; max-width: 78ch; }
+  .meta { font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+
+  .note {
+    border-left: 3px solid var(--brand); background: var(--brand-soft);
+    padding: .75rem 1rem; border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 1.25rem 0; font-size: .92rem;
+  }
+  .note p { color: inherit; margin: .25rem 0; }
+  .note.warn { border-color: var(--amber); background: var(--amber-soft); }
+
+  /* ---------- legend ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin: 1rem 0 2rem; font-size: .85rem; }
+  .legend span { display: inline-flex; align-items: center; gap: .45rem; color: var(--muted); }
+  .sw { width: 13px; height: 13px; border-radius: 3px; border: 1px solid var(--line); }
+  .sw.base { background: var(--brand-soft); border-color: var(--brand); }
+  .sw.tr { background: var(--amber-soft); border-color: var(--amber); }
+  .sw.join { background: var(--grey-soft); }
+  .sw.ext { background: var(--violet-soft); border-color: var(--violet); }
+
+  /* ---------- diagram ---------- */
+  .diagram {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: .5rem; overflow-x: auto;
+  }
+  .diagram svg { display: block; min-width: 900px; width: 100%; height: auto; }
+
+  /* ---------- table cards ---------- */
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); margin-top: 1rem; }
+  .tbl {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden; font-size: .84rem;
+  }
+  .tbl > header {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    padding: .55rem .75rem; border-bottom: 1px solid var(--line); background: var(--grey-soft);
+  }
+  .tbl.base > header { background: var(--brand-soft); }
+  .tbl.tr > header { background: var(--amber-soft); }
+  .tbl.ext > header { background: var(--violet-soft); }
+  .tbl h4 {
+    margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .87rem; font-weight: 600; letter-spacing: -.01em; word-break: break-all;
+  }
+  .tbl ul { list-style: none; margin: 0; padding: .3rem 0; }
+  .tbl li {
+    display: flex; align-items: baseline; gap: .4rem;
+    padding: .17rem .75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem;
+  }
+  .tbl li .ty { color: var(--muted); font-size: .72rem; margin-left: auto; white-space: nowrap; }
+  .tbl > footer {
+    padding: .45rem .75rem; border-top: 1px solid var(--line);
+    font-size: .74rem; color: var(--muted); line-height: 1.5;
+  }
+  .tbl > footer em { color: var(--red); font-style: normal; }
+
+  .b {
+    font: 600 .62rem/1.5 ui-sans-serif, system-ui, sans-serif;
+    padding: 0 .3em; border-radius: 3px; letter-spacing: .03em;
+    border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+  }
+  .b.pk { border-color: var(--brand); color: var(--brand); }
+  .b.fk { border-color: var(--violet); color: var(--violet); }
+  .b.uq { border-color: var(--green); color: var(--green); }
+  .b.gin { border-color: var(--amber); color: var(--amber); }
+  .pill {
+    font: 600 .63rem/1.6 ui-sans-serif, system-ui, sans-serif; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted); white-space: nowrap;
+  }
+
+  /* ---------- code ---------- */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1rem 1.15rem; overflow-x: auto; font-size: .8rem; line-height: 1.65;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    margin: .75rem 0 0;
+  }
+  pre .k { color: var(--brand); }
+  pre .s { color: var(--green); }
+  pre .n { color: var(--amber); }
+  pre .lit { color: var(--violet); }
+  pre .c { color: var(--muted); font-style: italic; }
+  .endpoint {
+    display: inline-block; font-family: ui-monospace, Menlo, monospace; font-size: .82rem;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: .3rem .6rem; margin-top: 1.25rem; word-break: break-all;
+  }
+  .endpoint b { color: var(--green); }
+
+  table.plain { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: .75rem; }
+  table.plain th, table.plain td {
+    text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top;
+  }
+  table.plain th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+  table.plain td { color: var(--muted); }
+  table.plain td code { font-size: .8em; }
+  .scroll { overflow-x: auto; }
+
+  .tag {
+    display: inline-block; font: 600 .68rem/1.5 ui-sans-serif, system-ui, sans-serif;
+    padding: 0 .35em; border-radius: 3px; border: 1px solid; vertical-align: baseline;
+  }
+  .tag.am { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
+  .tag.gr { background: var(--grey-soft); border-color: var(--line); color: var(--muted); }
+</style>
+
+<div class="wrap">
+
+  <p class="meta">MiaMedical · planning artifact</p>
+  <h1>Catalog domain — final schema &amp; API shapes</h1>
+  <p class="sub">
+    The data model and wire format proposed in the implementation plan, before any code is written.
+    Italian-first bilingual catalog, fixed-or-rental pricing, per-product variants, category-owned
+    specifications, R2 media. Review this alongside the plan — nothing here is built yet.
+  </p>
+
+  <div class="legend">
+    <span><i class="sw base"></i> Entity table</span>
+    <span><i class="sw tr"></i> Translation table — indexed text, one row per language</span>
+    <span><i class="sw join"></i> Join / matrix table</span>
+    <span><i class="sw ext"></i> Content</span>
+  </div>
+
+  <div class="note">
+    <p>
+      <strong>The i18n rule, in one line:</strong> if PostgreSQL has to <em>search or index</em> the
+      text, it gets a translation table. Everything else gets an inline
+      <code>{ "it": …, "en": … }</code> jsonb column.
+    </p>
+    <p>
+      That leaves exactly three translation tables — products and categories (full-text search and a
+      per-locale slug) and terms documents (per-locale slug). The other eleven translatable entities
+      carry their labels inline, because <strong>nobody ever searches a variant option's label</strong>,
+      and a table for it would cost a second write and a second query on every read.
+      In the diagram below, <span class="tag am">IT·EN</span> marks a translation table and
+      <span class="tag gr">json</span> marks an inline column.
+    </p>
+  </div>
+
+  <div class="note warn">
+    <p>
+      <strong>Money is <code>numeric(12, 2)</code> — exact decimal, two places — and travels as a
+      <em>string</em>.</strong> Not integer cents. Three things follow from that, and all three are
+      load-bearing:
+    </p>
+    <p>
+      <strong>1.</strong> Drizzle maps <code>numeric</code> to a JavaScript <code>string</code> by
+      default. <code>mode: 'number'</code> exists and we deliberately do not use it — going through
+      a JS number is what loses precision.
+      <strong>2.</strong> That string is also what keeps the two decimals alive through JSON: a
+      JSON number <code>10.00</code> serializes back as <code>10</code>, whereas
+      <code>"10.00"</code> survives intact.
+      <strong>3.</strong> Arithmetic never touches floats. <code>35.00 + 4.00 + 16.5 × 0.25</code>
+      in IEEE-754 gives <code>43.129999999999995</code>. A small
+      <code>money.ts</code> does the sums in <code>bigint</code> hundredths with half-up rounding
+      and formats back, so the answer is <code>"43.13"</code>.
+    </p>
+    <p>
+      PostgreSQL <code>numeric</code> is <em>not</em> a float, so the schema's old warning —
+      "never store money as a float" — still holds. It is narrowed, not broken.
+    </p>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>1 · How the pieces fit</h2>
+  <p>
+    Three entities are a <strong>pair</strong> — a base table plus a <code>*_translations</code>
+    table keyed <code>(entity_id, language_code)</code>. The rest keep their text on the row itself.
+    The chip on each box says which.
+  </p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1160 720" role="img" aria-label="Entity relationship overview of the catalog domain">
+      <defs>
+        <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+        </marker>
+        <style>
+          .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+          .box.b { fill: var(--brand-soft); stroke: var(--brand); }
+          .box.j { fill: var(--grey-soft); }
+          .box.x { fill: var(--violet-soft); stroke: var(--violet); }
+          .nm { font: 600 12.5px ui-monospace, Menlo, monospace; fill: var(--ink); }
+          .hint { font: 10.5px ui-sans-serif, system-ui, sans-serif; fill: var(--muted); }
+          .rel { stroke: var(--muted); stroke-width: 1.4; fill: none; color: var(--muted); opacity: .75; }
+          .rel.dash { stroke-dasharray: 4 3; }
+          .rlab { font: 9.5px ui-sans-serif, system-ui, sans-serif; fill: var(--muted); }
+          .chip { fill: var(--amber-soft); stroke: var(--amber); stroke-width: 1; }
+          .chipt { font: 600 8.5px ui-sans-serif, system-ui, sans-serif; fill: var(--amber); }
+          .chip.j { fill: var(--grey-soft); stroke: var(--line); }
+          .chipt.j { fill: var(--muted); }
+          .band { font: 600 10px ui-sans-serif, system-ui, sans-serif; fill: var(--muted); letter-spacing: .08em; }
+        </style>
+      </defs>
+
+      <text class="band" x="16" y="30">TAXONOMY</text>
+      <text class="band" x="16" y="222">PRODUCT</text>
+      <text class="band" x="16" y="330">CONFIGURATION → SKU</text>
+      <text class="band" x="16" y="470">SELLING CONTENT</text>
+      <text class="band" x="16" y="606">SHARED LIBRARIES</text>
+
+      <!-- taxonomy -->
+      <g>
+        <rect class="box b" x="120" y="44" width="186" height="52" rx="8" />
+        <text class="nm" x="134" y="66">categories</text>
+        <text class="hint" x="134" y="82">flat · code · position</text>
+        <rect class="chip" x="258" y="52" width="38" height="14" rx="4" />
+        <text class="chipt" x="264" y="62.5">IT·EN</text>
+      </g>
+      <g>
+        <rect class="box" x="378" y="44" width="196" height="52" rx="8" />
+        <text class="nm" x="392" y="66">category_specs</text>
+        <text class="hint" x="392" y="82">filterable · comparable · required</text>
+        <rect class="chip j" x="526" y="52" width="38" height="14" rx="4" />
+        <text class="chipt j" x="533" y="62.5">json</text>
+      </g>
+      <g>
+        <rect class="box" x="646" y="44" width="212" height="52" rx="8" />
+        <text class="nm" x="660" y="66">category_spec_options</text>
+        <text class="hint" x="660" y="82">choices for select-type specs</text>
+        <rect class="chip j" x="810" y="52" width="38" height="14" rx="4" />
+        <text class="chipt j" x="817" y="62.5">json</text>
+      </g>
+      <path class="rel" d="M306 70 H378" marker-end="url(#arw)" />
+      <path class="rel" d="M574 70 H646" marker-end="url(#arw)" />
+
+      <!-- product -->
+      <g>
+        <rect class="box b" x="120" y="236" width="240" height="72" rx="8" stroke-width="2.5" />
+        <text class="nm" x="136" y="262" style="font-size:14px">products</text>
+        <text class="hint" x="136" y="279">base_sku · status · brand · media jsonb</text>
+        <text class="hint" x="136" y="294">pricing_mode · base_price · rental_unit</text>
+        <rect class="chip" x="306" y="246" width="38" height="14" rx="4" />
+        <text class="chipt" x="312" y="256.5">IT·EN</text>
+      </g>
+      <path class="rel" d="M180 96 V236" marker-end="url(#arw)" />
+      <text class="rlab" x="188" y="170">category_id</text>
+      <text class="rlab" x="188" y="183">NOT NULL · restrict</text>
+      <text class="rlab" x="188" y="196">exactly one</text>
+
+      <g>
+        <rect class="box j" x="430" y="236" width="200" height="72" rx="8" />
+        <text class="nm" x="444" y="262">product_spec_values</text>
+        <text class="hint" x="444" y="279">number · boolean columns</text>
+        <text class="hint" x="444" y="294">+ text via translation</text>
+        <rect class="chip j" x="582" y="246" width="38" height="14" rx="4" />
+        <text class="chipt j" x="589" y="256.5">json</text>
+      </g>
+      <path class="rel" d="M360 272 H430" marker-end="url(#arw)" />
+      <path class="rel" d="M476 236 V96" marker-end="url(#arw)" />
+      <text class="rlab" x="484" y="170">spec_id</text>
+
+      <g>
+        <rect class="box j" x="686" y="236" width="212" height="72" rx="8" />
+        <text class="nm" x="700" y="262">product_spec_value_options</text>
+        <text class="hint" x="700" y="279">select-filter join</text>
+        <text class="hint" x="700" y="294">indexed for facet queries</text>
+      </g>
+      <path class="rel" d="M630 272 H686" marker-end="url(#arw)" />
+      <path class="rel" d="M792 236 C 792 170, 780 130, 760 96" marker-end="url(#arw)" />
+
+      <!-- configuration -->
+      <g>
+        <rect class="box" x="120" y="344" width="212" height="62" rx="8" />
+        <text class="nm" x="134" y="368">product_variant_groups</text>
+        <text class="hint" x="134" y="385">value_type · unit · affects_sku</text>
+        <rect class="chip j" x="284" y="352" width="38" height="14" rx="4" />
+        <text class="chipt j" x="291" y="362.5">json</text>
+      </g>
+      <g>
+        <rect class="box" x="404" y="344" width="212" height="62" rx="8" />
+        <text class="nm" x="418" y="368">product_variant_options</text>
+        <text class="hint" x="418" y="385">sku_code · price_modifier</text>
+        <rect class="chip j" x="568" y="352" width="38" height="14" rx="4" />
+        <text class="chipt j" x="575" y="362.5">json</text>
+      </g>
+      <g>
+        <rect class="box j" x="688" y="344" width="180" height="62" rx="8" />
+        <text class="nm" x="702" y="368">product_skus</text>
+        <text class="hint" x="702" y="385">sku · suffix · combo_key · stock</text>
+      </g>
+      <g>
+        <rect class="box j" x="920" y="344" width="196" height="62" rx="8" />
+        <text class="nm" x="934" y="368">product_sku_options</text>
+        <text class="hint" x="934" y="385">which options make the SKU</text>
+      </g>
+      <path class="rel" d="M240 308 V344" marker-end="url(#arw)" />
+      <path class="rel" d="M332 375 H404" marker-end="url(#arw)" />
+      <path class="rel" d="M868 375 H920" marker-end="url(#arw)" />
+      <path class="rel" d="M510 344 C 510 322, 700 322, 760 344" marker-end="url(#arw)" />
+      <text class="rlab" x="600" y="330">cartesian product where affects_sku</text>
+      <path class="rel dash" d="M1018 406 C 1018 430, 560 430, 510 406" marker-end="url(#arw)" />
+
+      <!-- selling content -->
+      <g>
+        <rect class="box" x="120" y="484" width="176" height="56" rx="8" />
+        <text class="nm" x="134" y="506">product_addons</text>
+        <text class="hint" x="134" y="522">mode bounded by product · image jsonb</text>
+        <rect class="chip j" x="248" y="492" width="38" height="14" rx="4" />
+        <text class="chipt j" x="255" y="502.5">json</text>
+      </g>
+      <g>
+        <rect class="box" x="352" y="484" width="160" height="56" rx="8" />
+        <text class="nm" x="366" y="506">product_faqs</text>
+        <text class="hint" x="366" y="522">position · is_active</text>
+        <rect class="chip j" x="464" y="492" width="38" height="14" rx="4" />
+        <text class="chipt j" x="471" y="502.5">json</text>
+      </g>
+      <g>
+        <rect class="box" x="568" y="484" width="184" height="56" rx="8" />
+        <text class="nm" x="582" y="506">product_questions</text>
+        <text class="hint" x="582" y="522">intake for accurate orders</text>
+        <rect class="chip j" x="704" y="492" width="38" height="14" rx="4" />
+        <text class="chipt j" x="711" y="502.5">json</text>
+      </g>
+      <g>
+        <rect class="box j" x="808" y="484" width="160" height="56" rx="8" />
+        <text class="nm" x="822" y="506">product_terms</text>
+        <text class="hint" x="822" y="522">join · position</text>
+      </g>
+      <path class="rel" d="M200 308 C 200 400, 195 440, 195 484" marker-end="url(#arw)" />
+      <path class="rel" d="M280 308 C 300 420, 410 440, 432 484" marker-end="url(#arw)" />
+      <path class="rel" d="M330 300 C 460 420, 620 440, 660 484" marker-end="url(#arw)" />
+      <path class="rel" d="M356 286 C 700 280, 880 380, 888 484" marker-end="url(#arw)" />
+
+      <!-- libraries -->
+      <g>
+        <rect class="box x" x="120" y="620" width="180" height="56" rx="8" />
+        <text class="nm" x="134" y="642">terms_documents</text>
+        <text class="hint" x="134" y="658">version · status</text>
+        <rect class="chip" x="252" y="628" width="38" height="14" rx="4" />
+        <text class="chipt" x="258" y="638.5">IT·EN</text>
+      </g>
+      <g>
+        <rect class="box" x="400" y="620" width="180" height="56" rx="8" />
+        <text class="nm" x="414" y="642">attribute_presets</text>
+        <text class="hint" x="414" y="658">the toggleable library</text>
+        <rect class="chip j" x="532" y="628" width="38" height="14" rx="4" />
+        <text class="chipt j" x="539" y="638.5">json</text>
+      </g>
+      <g>
+        <rect class="box" x="660" y="620" width="210" height="56" rx="8" />
+        <text class="nm" x="674" y="642">attribute_preset_options</text>
+        <text class="hint" x="674" y="658">default choices</text>
+        <rect class="chip j" x="822" y="628" width="38" height="14" rx="4" />
+        <text class="chipt j" x="829" y="638.5">json</text>
+      </g>
+      <path class="rel" d="M860 540 C 860 582, 320 586, 215 620" marker-end="url(#arw)" />
+      <path class="rel" d="M580 648 H660" marker-end="url(#arw)" />
+      <path class="rel dash" d="M400 634 C 320 612, 212 470, 226 406" marker-end="url(#arw)" />
+      <text class="rlab" x="250" y="556">copied into a product, then independent</text>
+    </svg>
+  </div>
+
+  <div class="note">
+    <p>
+      <strong>Read the dashed arrow as a "copy", not a foreign key.</strong> Toggling an attribute
+      preset onto a product <em>duplicates</em> it into <code>product_variant_groups</code>. After
+      that the product owns its variants outright — editing the preset later never touches an
+      existing product. Only <code>source_preset_key</code> records where it came from.
+    </p>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>2 · Tables in full</h2>
+  <p>
+    21 tables: 18 entity tables (3 of them joins) and 3 translation tables. Columns typed
+    <code>localized</code> are inline <code>{ it, en }</code> jsonb, each carrying a
+    <code>CHECK (col ? 'it')</code> so Italian is mandatory <em>in the database</em> — something a
+    translation table cannot express without a trigger. Columns named <code>icon</code> are a
+    nullable <code>text</code> holding one R2 object key — always a square WebP, sized by the
+    profile table in <em>Icons</em> below. Every column follows the existing house
+    conventions —
+    <code>uuid</code> primary keys with <code>defaultRandom()</code>, camelCase in TypeScript
+    mapped to snake_case by Drizzle's <code>casing</code> option, and
+    <code>timestamp({ withTimezone: true })</code> throughout. Timestamps are omitted below for
+    brevity; every base table carries <code>created_at</code>, and mutable ones also
+    <code>updated_at</code>.
+  </p>
+
+  <h3>Taxonomy</h3>
+  <div class="grid">
+    <article class="tbl base">
+      <header><h4>categories</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>code</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>icon</code><span class="ty">text?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+        <li><code>is_active</code><span class="ty">bool</span></li>
+      </ul>
+      <footer>
+        Flat — <code>parent_id</code> is deliberately gone. One category per product.<br />
+        <code>icon</code> is the R2 key of a 256 × 256 WebP.
+      </footer>
+    </article>
+
+    <article class="tbl tr">
+      <header><h4>category_translations</h4><span class="pill">translation</span></header>
+      <ul>
+        <li><code>category_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>language_code</code><span class="ty">enum</span><span class="b pk">PK</span></li>
+        <li><code>name</code><span class="ty">text</span></li>
+        <li><code>description</code><span class="ty">text</span></li>
+        <li><code>slug</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>meta_title</code><span class="ty">text</span></li>
+        <li><code>meta_description</code><span class="ty">text</span></li>
+        <li><code>search_vector</code><span class="ty">tsvector</span><span class="b gin">GIN</span></li>
+      </ul>
+      <footer>→ categories.id <em>cascade</em> · UQ is <code>(language_code, slug)</code></footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>category_specs</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>category_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>key</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>help_text</code><span class="ty">localized?</span></li>
+        <li><code>value_type</code><span class="ty">enum</span></li>
+        <li><code>unit</code><span class="ty">text?</span></li>
+        <li><code>is_required</code><span class="ty">bool</span></li>
+        <li><code>is_filterable</code><span class="ty">bool</span></li>
+        <li><code>is_comparable</code><span class="ty">bool</span></li>
+        <li><code>icon</code><span class="ty">text?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        → categories.id <em>cascade</em> · UQ is <code>(category_id, key)</code><br />
+        <code>icon</code> is the R2 key of a 256 × 256 WebP.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>category_spec_options</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>spec_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>value</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>Only for <code>single_select</code> / <code>multi_select</code> specs.</footer>
+    </article>
+  </div>
+
+  <h3>Product core</h3>
+  <div class="grid">
+    <article class="tbl base">
+      <header><h4>products</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>base_sku</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>status</code><span class="ty">enum</span></li>
+        <li><code>category_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>brand</code><span class="ty">text?</span></li>
+        <li><code>pricing_mode</code><span class="ty">enum</span></li>
+        <li><code>base_price</code><span class="ty">numeric(12,2)</span></li>
+        <li><code>currency</code><span class="ty">text</span></li>
+        <li><code>rental_unit</code><span class="ty">enum?</span></li>
+        <li><code>is_featured</code><span class="ty">bool</span></li>
+        <li><code>media</code><span class="ty">jsonb</span></li>
+      </ul>
+      <footer>
+        → categories.id <em>restrict</em> · NOT NULL<br />
+        CHECK <code>(pricing_mode='rental') = (rental_unit IS NOT NULL)</code><br />
+        <code>pricing_mode</code> is write-once — never named in an UPDATE.<br />
+        <code>UNIQUE (id, pricing_mode)</code> — the target of the addon composite FK.<br />
+        One price column: the mode decides whether it means a one-off or a per-unit rate.
+      </footer>
+    </article>
+
+    <article class="tbl tr">
+      <header><h4>product_translations</h4><span class="pill">translation</span></header>
+      <ul>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>language_code</code><span class="ty">enum</span><span class="b pk">PK</span></li>
+        <li><code>title</code><span class="ty">text</span></li>
+        <li><code>short_description</code><span class="ty">text</span></li>
+        <li><code>description</code><span class="ty">text</span></li>
+        <li><code>slug</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>meta_title</code><span class="ty">text</span></li>
+        <li><code>meta_description</code><span class="ty">text</span></li>
+        <li><code>search_vector</code><span class="ty">tsvector</span><span class="b gin">GIN</span></li>
+      </ul>
+      <footer>
+        → products.id <em>cascade</em> · UQ is <code>(language_code, slug)</code><br />
+        <code>search_vector</code> is written by the repo with the row's own dictionary — not
+        <code>GENERATED</code>. Plus a GIN trigram index on <code>title</code>.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_spec_values</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>spec_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>number_value</code><span class="ty">numeric?</span></li>
+        <li><code>number_min</code><span class="ty">numeric?</span></li>
+        <li><code>number_max</code><span class="ty">numeric?</span></li>
+        <li><code>boolean_value</code><span class="ty">bool?</span></li>
+        <li><code>text_value</code><span class="ty">localized?</span></li>
+      </ul>
+      <footer>
+        UQ <code>(product_id, spec_id)</code>. Typed columns exist so numeric and boolean facet
+        filters hit a real index. <code>text_value</code> is populated only for
+        <code>string</code>-type specs.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_spec_value_options</h4><span class="pill">join</span></header>
+      <ul>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>spec_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>option_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+      </ul>
+      <footer>
+        Facet filtering for select specs becomes <code>option_id IN (…)</code> — index-backed, no
+        scan.
+      </footer>
+    </article>
+  </div>
+
+  <h3>Variants &amp; SKUs</h3>
+  <div class="grid">
+    <article class="tbl">
+      <header><h4>product_variant_groups</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>key</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>help_text</code><span class="ty">localized?</span></li>
+        <li><code>value_type</code><span class="ty">enum</span></li>
+        <li><code>unit</code><span class="ty">text?</span></li>
+        <li><code>is_required</code><span class="ty">bool</span></li>
+        <li><code>affects_sku</code><span class="ty">bool</span></li>
+        <li><code>source_preset_key</code><span class="ty">text?</span></li>
+        <li><code>min_value</code><span class="ty">numeric?</span></li>
+        <li><code>max_value</code><span class="ty">numeric?</span></li>
+        <li><code>step_value</code><span class="ty">numeric?</span></li>
+        <li><code>price_modifier_per_unit</code><span class="ty">numeric(12,2)?</span></li>
+        <li><code>icon</code><span class="ty">text?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        <code>affects_sku</code> is only legal for <code>single_select</code> and
+        <code>boolean</code>. <code>price_modifier_per_unit</code> is how numeric variants price:
+        modifier = entered value × rate.<br />
+        <code>icon</code> is the R2 key of a 256 × 256 WebP. The options below carry
+        none — see <em>Icons</em> further down.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_variant_options</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>group_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>value</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>sku_code</code><span class="ty">text?</span></li>
+        <li><code>price_modifier</code><span class="ty">numeric(12,2)</span></li>
+        <li><code>is_default</code><span class="ty">bool</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        The modifier carries no unit of its own — it means a one-off amount on a
+        <code>fixed</code> product, and an amount <em>per rental unit</em> on a
+        <code>rental</code> one.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_skus</h4><span class="pill">matrix</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>sku</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>suffix</code><span class="ty">text</span></li>
+        <li><code>combo_key</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>price_override</code><span class="ty">numeric(12,2)?</span></li>
+        <li><code>stock</code><span class="ty">int</span></li>
+        <li><code>is_active</code><span class="ty">bool</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        UQ <code>(product_id, combo_key)</code>. Regeneration never deletes — vanished
+        combinations are deactivated so old SKUs still resolve.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_sku_options</h4><span class="pill">join</span></header>
+      <ul>
+        <li><code>sku_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>option_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>group_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+      </ul>
+      <footer>Index on <code>option_id</code> for the reverse lookup: selection → SKU.</footer>
+    </article>
+  </div>
+
+  <h3>Addons, FAQs, intake questions</h3>
+  <div class="grid">
+    <article class="tbl">
+      <header><h4>product_addons</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>name</code><span class="ty">localized</span></li>
+        <li><code>description</code><span class="ty">localized?</span></li>
+        <li><code>sku</code><span class="ty">text?</span></li>
+        <li><code>pricing_mode</code><span class="ty">enum</span></li>
+        <li><code>product_pricing_mode</code><span class="ty">enum</span><span class="b fk">FK</span></li>
+        <li><code>price</code><span class="ty">numeric(12,2)</span></li>
+        <li><code>currency</code><span class="ty">text</span></li>
+        <li><code>rental_unit</code><span class="ty">enum?</span></li>
+        <li><code>min_quantity</code><span class="ty">int</span></li>
+        <li><code>max_quantity</code><span class="ty">int?</span></li>
+        <li><code>is_required</code><span class="ty">bool</span></li>
+        <li><code>icon</code><span class="ty">text?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        CHECK <code>(product_pricing_mode = 'rental' OR pricing_mode = 'fixed')</code> — see below.<br />
+        Composite FK <code>(product_id, product_pricing_mode)</code> → products.<br />
+        <code>icon</code> is the R2 key of a square WebP up to 1024 × 1024 — the only entity
+        allowed the larger size.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_faqs</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>question</code><span class="ty">localized</span></li>
+        <li><code>answer</code><span class="ty">localized</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+        <li><code>is_active</code><span class="ty">bool</span></li>
+      </ul>
+      <footer>
+        The one entity worth revisiting: if FAQ text ever needs to be searchable it graduates to a
+        translation table — additive, since the entity table already exists.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_questions</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>key</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>prompt</code><span class="ty">localized</span></li>
+        <li><code>help_text</code><span class="ty">localized?</span></li>
+        <li><code>question_value_type</code><span class="ty">enum</span></li>
+        <li><code>is_required</code><span class="ty">bool</span></li>
+        <li><code>min_value</code><span class="ty">numeric?</span></li>
+        <li><code>max_value</code><span class="ty">numeric?</span></li>
+        <li><code>max_length</code><span class="ty">int?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        Answers are captured at order time — that table lands with the orders module, which is not
+        in this scope.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_question_options</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>question_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>value</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>Only for select-type questions.</footer>
+    </article>
+  </div>
+
+  <div class="note warn">
+    <p>
+      <strong>An addon's pricing mode is bounded by its product's.</strong> Renting something out
+      means you get it back; selling it means you do not. So a rental addon on a
+      <em>sold</em> product is meaningless — nothing is returned and there is no period to bill
+      against.
+    </p>
+  </div>
+
+  <div class="scroll">
+    <table class="plain">
+      <thead><tr><th>Product mode</th><th>Allowed addon modes</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>rental</code></td>
+          <td><strong><code>rental</code> and <code>fixed</code></strong></td>
+          <td>mattress at €9,00/day (comes back) + delivery at €60,00 (does not)</td>
+        </tr>
+        <tr>
+          <td><code>fixed</code></td>
+          <td><strong><code>fixed</code> only</strong></td>
+          <td>cushion sold alongside the wheelchair</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:1rem">
+    A plain CHECK cannot see the parent row, so <code>product_addons</code> carries a denormalised
+    <code>product_pricing_mode</code>. That is normally a sync hazard — here it cannot drift, because
+    <strong><code>products.pricing_mode</code> is write-once and never updated</strong>. To make the
+    copy provably correct rather than merely trusted, <code>products</code> gains
+    <code>UNIQUE (id, pricing_mode)</code> and the addon's foreign key becomes composite:
+  </p>
+
+<pre>ALTER TABLE product_addons
+  ADD CONSTRAINT product_addons_product_fk
+  FOREIGN KEY (product_id, product_pricing_mode)
+  REFERENCES products (id, pricing_mode) ON DELETE CASCADE;
+
+ALTER TABLE product_addons
+  ADD CONSTRAINT product_addons_mode_check
+  CHECK (product_pricing_mode = 'rental' OR pricing_mode = 'fixed');</pre>
+
+  <p style="margin-top:.75rem">
+    PostgreSQL then guarantees the denormalised value matches its parent. No trigger, no application
+    invariant anyone has to remember.
+  </p>
+
+  <h3>Media — no tables at all, and three fields per item</h3>
+  <p>
+    Product media is never searched, never filtered, and never shared between products, so a
+    normalized media library was buying referential integrity we do not need at the cost of four
+    tables and a join on every read. It collapses into one <code>jsonb</code> column on
+    <code>products</code>, typed at the Drizzle boundary exactly the way <code>products.metadata</code>
+    already is in the current schema.
+  </p>
+
+<pre class="ts"><span class="c">// packages/db/src/schema/media-types.ts</span>
+<span class="lit">type</span> MediaAlt = Partial&lt;Record&lt;LanguageCode, <span class="lit">string</span>&gt;&gt;;
+
+<span class="lit">interface</span> MediaItem {
+  path: <span class="lit">string</span>;      <span class="c">// R2 object key — never a URL</span>
+  mimeType: <span class="lit">string</span>;
+  alt?: MediaAlt;     <span class="c">// also the visible label for a PDF</span>
+}
+
+<span class="lit">interface</span> ProductMedia {
+  thumbnail: MediaItem | <span class="lit">null</span>;
+  cleanPng:  MediaItem | <span class="lit">null</span>;
+  gallery:   MediaItem[];
+  videos:    MediaItem[];
+  documents: MediaItem[];          <span class="c">// the PDFs</span>
+}
+
+<span class="c">// in products:</span>
+media: jsonb().$type&lt;ProductMedia&gt;().notNull().default(EMPTY_PRODUCT_MEDIA),
+
+<span class="c">// on categories, category_specs, product_variant_groups,</span>
+<span class="c">// attribute_presets, product_addons — the R2 key, nothing else:</span>
+icon:  text(),                       <span class="c">// nullable</span></pre>
+
+  <p style="margin-top:.75rem">
+    <code>title</code>, <code>width</code>, <code>height</code>, <code>sizeBytes</code> and
+    <code>durationSeconds</code> are all gone. Two consequences worth stating up front rather than
+    discovering later: a PDF's label is now its <code>alt</code>
+    (<code>{ it: "Scheda tecnica", en: "Datasheet" }</code> becomes the link text), and without
+    intrinsic dimensions the storefront reserves space in CSS rather than in HTML. For icons that
+    costs nothing — every icon is a known square, so its dimensions are compile-time constants. For
+    gallery images it means an <code>aspect-ratio</code> box. Fixing sizes at upload is what makes
+    that safe.
+  </p>
+
+  <h3>Icons — five entities, two sizes, one <code>text</code> column</h3>
+  <p>
+    An icon is <strong>not</strong> a <code>MediaItem</code>. Both of that type's other fields would
+    be dead weight here: <code>mimeType</code> is always <code>image/webp</code> by construction, and
+    an icon sits next to the label it decorates, so its accessible name <em>is</em> that label — an
+    <code>alt</code> would be a duplicate to keep in sync across two languages. A plain
+    <code>text</code> column also makes <code>WHERE icon IS NULL</code> an ordinary index-friendly
+    predicate rather than a jsonb probe, which is exactly the query behind the admin's "categories
+    still missing an icon" view.
+  </p>
+  <div class="scroll">
+    <table class="plain">
+      <thead><tr><th>Table</th><th>Profile</th><th>Stored as</th></tr></thead>
+      <tbody>
+        <tr><td><code>categories</code></td><td><code>icon_256</code></td><td>square, exactly 256 × 256 WebP</td></tr>
+        <tr><td><code>category_specs</code></td><td><code>icon_256</code></td><td>square, exactly 256 × 256 WebP</td></tr>
+        <tr><td><code>product_variant_groups</code></td><td><code>icon_256</code></td><td>square, exactly 256 × 256 WebP</td></tr>
+        <tr><td><code>attribute_presets</code></td><td><code>icon_256</code></td><td>square, exactly 256 × 256 WebP</td></tr>
+        <tr><td><code>product_addons</code></td><td><code>icon_1024</code></td><td>square, <strong>up to</strong> 1024 × 1024 WebP</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:.75rem">
+    <code>attribute_presets</code> is on the list for a reason that is easy to miss: a preset is
+    <em>copied</em> into a product as a variant group. If the group carries an icon and the preset
+    does not, every group seeded from the library starts iconless and someone re-uploads the same
+    ruler icon per product. <code>product_variant_options</code> deliberately does
+    <strong>not</strong> get one — colour swatches are the same one-line column, but an icon per
+    option means an upload per option and a much heavier variant editor.
+  </p>
+
+  <h3>Every image is WebP; video is only bounded</h3>
+  <p>
+    Whatever is dropped in — JPEG, PNG, HEIC, AVIF — is converted to <code>image/webp</code> in the
+    browser before upload, and the presigned URL is signed <em>for</em> <code>image/webp</code>, so
+    nothing else can be stored. <code>cleanPng</code> keeps its key name for continuity but its
+    content is WebP too: WebP carries an alpha channel, so the transparent cutout survives intact.
+    Video is not converted, only limited. Enforcement is three layers deep, because each one alone
+    has a hole:
+  </p>
+  <div class="scroll">
+    <table class="plain">
+      <thead><tr><th>Layer</th><th>Where</th><th>Catches</th></tr></thead>
+      <tbody>
+        <tr><td>Convert &amp; crop</td><td>browser, <code>OffscreenCanvas.convertToBlob</code></td><td>the normal case — a 6 MB HEIC becomes a ~40 KB 256² WebP</td></tr>
+        <tr><td>Signed <code>ContentType</code></td><td>R2 rejects the PUT itself</td><td>a client that skips conversion and PUTs a JPEG</td></tr>
+        <tr><td><code>probeImage()</code></td><td>server, on save — ranged <code>GET</code> of 64 bytes, parses the RIFF/WebP header</td><td>a genuine but oversized or non-square WebP</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:.75rem">
+    That third layer is what turns "no matter what size they upload it is 256 px" into a guarantee
+    rather than a convention. It is roughly 30 lines, needs no new dependency, and never transfers
+    the file body — <code>VP8</code>, <code>VP8L</code> and <code>VP8X</code> all carry width and
+    height in the first 64 bytes.
+  </p>
+
+  <div class="scroll">
+    <table class="plain">
+      <thead><tr><th>Profile</th><th>Mime</th><th>Max bytes</th><th>Geometry</th></tr></thead>
+      <tbody>
+        <tr><td><code>product_image</code></td><td><code>image/webp</code></td><td>5 MB</td><td>any ratio, longest edge ≤ 2048</td></tr>
+        <tr><td><code>icon_256</code></td><td><code>image/webp</code></td><td>256 KB</td><td>square, exactly 256</td></tr>
+        <tr><td><code>icon_1024</code></td><td><code>image/webp</code></td><td>1 MB</td><td>square, ≤ 1024</td></tr>
+        <tr><td><code>video</code></td><td><code>video/mp4</code> · <code>video/webm</code></td><td><strong>50 MB</strong></td><td>unconverted</td></tr>
+        <tr><td><code>document</code></td><td><code>application/pdf</code></td><td>20 MB</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:.75rem">
+    The table lives in <code>packages/validators/src/media.ts</code> and is imported by the presign
+    route, the admin uploader and the save path, so the three can never disagree. It is code rather
+    than env config on purpose: these limits are contract, not deployment tuning.
+  </p>
+
+  <div class="note">
+    <p>
+      <strong>This is not a contradiction of the translation-table decision.</strong> Every other
+      translated field was just moved <em>out</em> of JSONB — and here <code>alt</code> goes back
+      <em>into</em> it. That is deliberate. The case for translation tables rested on per-language
+      <code>tsvector</code> indexes, granular updates and join efficiency. Alt text is never
+      searched, never filtered, never queried on its own, and is only ever written as part of a
+      whole-product save. None of the three reasons apply.
+    </p>
+  </div>
+
+  <div class="note warn">
+    <p>
+      <strong>The real cost is orphaned objects, and it needs handling.</strong> With no
+      <code>media_assets</code> row there is no inventory of the bucket, so nothing notices when an
+      image is dropped from the array. Two mitigations, both in
+      <code>modules/products/media/service.ts</code>:
+    </p>
+    <p>
+      <strong>On save</strong> — diff the incoming <code>media</code> against the stored one and
+      call <code>storage.delete(path)</code> for every path that disappeared. This is the main line
+      of defence and needs no table.
+      <strong>On abandon</strong> — an upload that is presigned but never saved leaves a stray
+      object, so presigned keys are minted under <code>products/_staging/&lt;uuid&gt;/</code> and
+      moved to <code>products/&lt;id&gt;/</code> on save. A scheduled sweep can then delete anything
+      left under <code>_staging/</code>. That sweep is out of scope here — the prefix convention
+      exists from day one so it is not a painful retrofit.
+    </p>
+  </div>
+
+  <h3>Terms &amp; presets</h3>
+  <div class="grid">
+    <article class="tbl ext">
+      <header><h4>terms_documents</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>code</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>status</code><span class="ty">enum</span></li>
+        <li><code>version</code><span class="ty">int</span></li>
+        <li><code>published_at</code><span class="ty">timestamptz?</span></li>
+      </ul>
+      <footer>Draft → published → archived.</footer>
+    </article>
+
+    <article class="tbl tr">
+      <header><h4>terms_document_translations</h4><span class="pill">translation</span></header>
+      <ul>
+        <li><code>terms_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>language_code</code><span class="ty">enum</span><span class="b pk">PK</span></li>
+        <li><code>title</code><span class="ty">text</span></li>
+        <li><code>body</code><span class="ty">text</span></li>
+        <li><code>slug</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+      </ul>
+      <footer>UQ is <code>(language_code, slug)</code></footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>product_terms</h4><span class="pill">join</span></header>
+      <ul>
+        <li><code>product_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>terms_id</code><span class="ty">uuid</span><span class="b pk">PK</span><span class="b fk">FK</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        → terms_documents.id <em>restrict</em> — a document in use cannot be deleted out from
+        under a product.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>attribute_presets</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>key</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>value_type</code><span class="ty">enum</span></li>
+        <li><code>unit</code><span class="ty">text?</span></li>
+        <li><code>is_active</code><span class="ty">bool</span></li>
+        <li><code>icon</code><span class="ty">text?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>
+        Seeded with height, weight, material, colour, size, brand. The toggleable "common
+        variants".<br />
+        <code>icon</code> is 256 × 256 WebP and is copied into the variant group alongside the
+        label — without it, every seeded group would start iconless.
+      </footer>
+    </article>
+
+    <article class="tbl">
+      <header><h4>attribute_preset_options</h4><span class="pill">base</span></header>
+      <ul>
+        <li><code>id</code><span class="ty">uuid</span><span class="b pk">PK</span></li>
+        <li><code>preset_id</code><span class="ty">uuid</span><span class="b fk">FK</span></li>
+        <li><code>value</code><span class="ty">text</span><span class="b uq">UQ</span></li>
+        <li><code>label</code><span class="ty">localized</span></li>
+        <li><code>sku_code</code><span class="ty">text?</span></li>
+        <li><code>position</code><span class="ty">int</span></li>
+      </ul>
+      <footer>Default choices copied alongside the preset.</footer>
+    </article>
+  </div>
+
+  <h3>Enums</h3>
+  <div class="scroll">
+    <table class="plain">
+      <thead><tr><th>Name</th><th>Values</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td><code>language_code</code></td><td><code>it</code> · <code>en</code></td><td>every translation table</td></tr>
+        <tr><td><code>product_status</code></td><td><code>draft</code> · <code>active</code> · <code>archived</code></td><td>products <span class="pill">exists today</span></td></tr>
+        <tr><td><code>pricing_mode</code></td><td><code>fixed</code> · <code>rental</code></td><td>products · product_addons</td></tr>
+        <tr><td><code>rental_unit</code></td><td><code>hour</code> · <code>day</code></td><td>products · product_addons</td></tr>
+        <tr><td><code>value_type</code></td><td><code>string</code> · <code>number</code> · <code>single_select</code> · <code>multi_select</code> · <code>boolean</code> · <code>number_range</code></td><td>variant groups · category specs</td></tr>
+        <tr><td><code>question_value_type</code></td><td><code>string</code> · <code>text</code> · <code>number</code> · <code>single_select</code> · <code>multi_select</code> · <code>boolean</code> · <code>date</code></td><td>product_questions</td></tr>
+        <tr><td><code>terms_status</code></td><td><code>draft</code> · <code>published</code> · <code>archived</code></td><td>terms_documents</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:.75rem">
+    PostgreSQL enum ordering is part of the type — values are appended, never inserted or
+    reordered. Adding German later is <code>ALTER TYPE language_code ADD VALUE 'de'</code> plus a
+    dictionary branch in the search helper. There are no media enums: media roles are keys on a
+    typed JSON object, enforced by valibot rather than by PostgreSQL.
+  </p>
+
+  <!-- ================================================================ -->
+  <h2>3 · Public API response</h2>
+  <p>
+    The storefront surface. Every translated field is <strong>already collapsed to a plain
+    string</strong> for the requested locale, with <code>en → it</code> fallback applied server
+    side, so the website never deals with translation maps. Money is always
+    <code>{ amount, currency }</code> with <code>amount</code> a two-decimal string, and the unit
+    that gives a rental number its meaning sits once on <code>pricing.rentalUnit</code>, never
+    repeated on individual amounts.
+  </p>
+
+  <div class="endpoint"><b>GET</b> /api/products/letto-degenza-elettrico?locale=it</div>
+
+<pre class="json">{
+  "data": {
+    "id": "0f9c3b7e-4f21-4c8a-9d55-2a1e7b0c9f34",
+    "slug": "letto-degenza-elettrico",
+    "locale": "it",
+    "availableLocales": ["it", "en"],
+    "status": "active",
+    "brand": "MiaMedical",
+    "baseSku": "MIA-LTE",
+    "isFeatured": true,
+
+    "title": "Letto da degenza elettrico a 3 snodi",
+    "shortDescription": "Letto elettrico regolabile per assistenza domiciliare.",
+    "description": "Struttura in acciaio verniciato a polveri, rete a doghe...",
+    "seo": {
+      "title": "Letto da degenza elettrico | MiaMedical",
+      "description": "Noleggio letto da degenza elettrico a 3 snodi."
+    },
+
+    "category": {
+      "id": "b21f8a04-77d3-4a19-8f60-5c2d9e134a77",
+      "code": "letti-degenza",
+      "slug": "letti-da-degenza",
+      "name": "Letti da degenza",
+      "icon": "categories/b21f8a04/icon.webp"
+    },
+
+    "pricing": {
+      "mode": "rental",
+      "rentalUnit": "day",
+      "currency": "EUR",
+      "price": "35.00"
+    },
+
+    "media": {
+      "thumbnail": {
+        "path": "products/0f9c3b7e/thumb.webp", "mimeType": "image/webp",
+        "alt": "Letto da degenza elettrico visto di tre quarti"
+      },
+      "cleanPng": {
+        "path": "products/0f9c3b7e/clean.webp", "mimeType": "image/webp",
+        "alt": "Letto su fondo trasparente"
+      },
+      "gallery": [
+        { "path": "products/0f9c3b7e/g-01.webp", "mimeType": "image/webp",
+          "alt": "Pulsantiera di comando" }
+      ],
+      "videos": [
+        { "path": "products/0f9c3b7e/montaggio.mp4", "mimeType": "video/mp4",
+          "alt": "Video di montaggio" }
+      ],
+      "documents": [
+        { "path": "products/0f9c3b7e/scheda-tecnica.pdf", "mimeType": "application/pdf",
+          "alt": "Scheda tecnica" }
+      ]
+    },
+
+    "variants": [
+      {
+        "id": "c17f...", "key": "colore", "label": "Colore",
+        "valueType": "single_select", "unit": null,
+        "isRequired": true, "affectsSku": true, "position": 0,
+        "options": [
+          { "id": "d28a...", "value": "bianco", "label": "Bianco", "skuCode": "BIA",
+            "isDefault": true,  "priceModifier": { "amount": "0.00", "currency": "EUR" } },
+          { "id": "e39b...", "value": "grigio", "label": "Grigio", "skuCode": "GRI",
+            "isDefault": false, "priceModifier": { "amount": "4.00", "currency": "EUR" } }
+        ]
+      },
+      {
+        "id": "f4ac...", "key": "sponde", "label": "Sponde laterali",
+        "valueType": "boolean", "unit": null,
+        "isRequired": true, "affectsSku": true, "position": 1,
+        "options": [
+          { "id": "05bd...", "value": "no", "label": "Senza sponde", "skuCode": "NS",
+            "isDefault": true,  "priceModifier": { "amount": "0.00", "currency": "EUR" } },
+          { "id": "16ce...", "value": "si", "label": "Con sponde",   "skuCode": "CS",
+            "isDefault": false, "priceModifier": { "amount": "6.00", "currency": "EUR" } }
+        ]
+      },
+      {
+        "id": "27df...", "key": "altezza-materasso", "label": "Altezza materasso",
+        "valueType": "number_range", "unit": "cm",
+        "isRequired": false, "affectsSku": false, "position": 2,
+        "min": 10, "max": 22, "step": 2,
+        "priceModifierPerUnit": { "amount": "0.25", "currency": "EUR" },
+        "options": []
+      },
+      {
+        "id": "38e0...", "key": "note-consegna", "label": "Note per la consegna",
+        "valueType": "string", "unit": null,
+        "isRequired": false, "affectsSku": false, "position": 3,
+        "priceModifierPerUnit": null,
+        "options": []
+      }
+    ],
+
+    "skus": [
+      { "id": "49f1...", "sku": "MIA-LTE-BIA-NS-K7QM",
+        "options": { "colore": "bianco", "sponde": "no" },
+        "stock": 6, "inStock": true, "isActive": true,
+        "price": { "amount": "35.00", "currency": "EUR" } },
+      { "id": "5a02...", "sku": "MIA-LTE-GRI-CS-P3XT",
+        "options": { "colore": "grigio", "sponde": "si" },
+        "stock": 0, "inStock": false, "isActive": true,
+        "price": { "amount": "45.00", "currency": "EUR" } }
+    ],
+
+    "specifications": [
+      { "id": "6b13...", "key": "larghezza-rete", "label": "Larghezza rete",
+        "valueType": "number", "unit": "cm", "value": 90, "displayValue": "90 cm",
+        "isFilterable": true, "isComparable": true, "position": 0 },
+      { "id": "7c24...", "key": "portata-massima", "label": "Portata massima",
+        "valueType": "number", "unit": "kg", "value": 170, "displayValue": "170 kg",
+        "isFilterable": true, "isComparable": true, "position": 1 },
+      { "id": "8d35...", "key": "materiale-struttura", "label": "Materiale struttura",
+        "valueType": "single_select", "unit": null,
+        "value": "acciaio", "displayValue": "Acciaio verniciato",
+        "isFilterable": true, "isComparable": true, "position": 2 },
+      { "id": "9e46...", "key": "certificazione-ce", "label": "Certificazione CE",
+        "valueType": "boolean", "unit": null,
+        "value": true, "displayValue": "Si",
+        "isFilterable": true, "isComparable": false, "position": 3 }
+    ],
+
+    "addons": [
+      { "id": "af57...", "name": "Materasso antidecubito",
+        "description": "Materasso a bolle d'aria con compressore.",
+        "sku": "MIA-ADD-MAT",
+        "pricing": { "mode": "rental", "rentalUnit": "day",
+                     "currency": "EUR", "price": "9.00" },
+        "minQuantity": 0, "maxQuantity": 1, "isRequired": false, "position": 0,
+        "icon": "addons/af57.../icon.webp" },
+      { "id": "c179...", "name": "Consegna e installazione",
+        "description": "Consegna a domicilio con montaggio.",
+        "sku": "MIA-ADD-DEL",
+        "pricing": { "mode": "fixed", "rentalUnit": null,
+                     "currency": "EUR", "price": "60.00" },
+        "minQuantity": 1, "maxQuantity": 1, "isRequired": true, "position": 1,
+        "icon": null }
+    ],
+
+    "questions": [
+      { "id": "d28a...", "key": "piano-installazione",
+        "prompt": "A che piano deve essere installato il letto?",
+        "helpText": "Serve a pianificare il trasporto.",
+        "valueType": "number", "isRequired": true,
+        "min": 0, "max": 30, "maxLength": null, "position": 0, "options": [] },
+      { "id": "e39b...", "key": "ascensore",
+        "prompt": "E' presente un ascensore?", "helpText": null,
+        "valueType": "boolean", "isRequired": true,
+        "min": null, "max": null, "maxLength": null, "position": 1, "options": [] },
+      { "id": "f4ac...", "key": "fascia-oraria",
+        "prompt": "Fascia oraria preferita per la consegna",
+        "helpText": null, "valueType": "single_select", "isRequired": false,
+        "min": null, "max": null, "maxLength": null, "position": 2,
+        "options": [
+          { "id": "05bd...", "value": "mattino",    "label": "Mattino (8-13)" },
+          { "id": "16ce...", "value": "pomeriggio", "label": "Pomeriggio (14-19)" }
+        ] }
+    ],
+
+    "faqs": [
+      { "id": "27df...", "position": 0,
+        "question": "Il montaggio e' incluso nel noleggio?",
+        "answer": "Il montaggio e' disponibile come extra a prezzo fisso." }
+    ],
+
+    "terms": [
+      { "id": "38e0...", "code": "noleggio-standard", "slug": "condizioni-di-noleggio",
+        "title": "Condizioni generali di noleggio", "version": 3,
+        "publishedAt": "2026-03-11T09:00:00.000Z" }
+    ],
+
+    "createdAt": "2026-04-02T10:12:44.201Z",
+    "updatedAt": "2026-07-28T16:03:09.884Z"
+  }
+}</pre>
+
+  <div class="note warn">
+    <p>
+      <strong>Two things the client must do itself.</strong> Media carries a <code>path</code> and
+      no URL — build the source as <code>PUBLIC_MEDIA_BASE_URL + '/' + path</code>. And money
+      arrives as a decimal string, so render it with <code>formatMoney()</code> in each app's
+      <code>lib/api.ts</code> — whose signature changes from cents to that string. Neither is an
+      oversight; both keep the CDN domain and the display locale out of the database.
+    </p>
+  </div>
+
+  <h3>Fallback in practice — the same product at <code>?locale=en</code></h3>
+  <p>
+    English is optional, so gaps are filled from Italian rather than returned as
+    <code>null</code>. Fields that fell back carry a sibling <code>*Locale</code> marker; fields
+    that resolved normally have no marker. That lets a client show a "not yet translated" hint
+    without diffing anything.
+  </p>
+
+<pre class="json">{
+  "data": {
+    "slug": "hospital-electric-bed",
+    "locale": "en",
+    "availableLocales": ["it", "en"],
+
+    "title": "3-section electric hospital bed",
+    "shortDescription": "Adjustable electric bed for home care.",
+
+    "description": "Struttura in acciaio verniciato a polveri, rete a doghe...",
+    "descriptionLocale": "it",
+
+    "category": { "slug": "hospital-beds", "name": "Hospital beds" },
+    "pricing": { "mode": "rental", "rentalUnit": "day",
+                 "currency": "EUR", "price": "35.00" }
+  }
+}</pre>
+
+  <h3>List endpoint</h3>
+  <p>
+    A trimmed card projection — no variants, SKUs, addons, questions or FAQs — inside the existing
+    <code>{ data, meta }</code> envelope, with facet counts for the filter sidebar.
+  </p>
+
+  <div class="endpoint"><b>GET</b> /api/products?locale=it&amp;category=letti-degenza&amp;spec[materiale-struttura]=acciaio&amp;q=elettrico&amp;page=1&amp;perPage=24</div>
+
+<pre class="json">{
+  "data": [
+    {
+      "id": "0f9c3b7e-4f21-4c8a-9d55-2a1e7b0c9f34",
+      "slug": "letto-degenza-elettrico",
+      "title": "Letto da degenza elettrico a 3 snodi",
+      "shortDescription": "Letto elettrico regolabile per assistenza domiciliare.",
+      "status": "active",
+      "brand": "MiaMedical",
+      "isFeatured": true,
+      "category": { "slug": "letti-da-degenza", "name": "Letti da degenza" },
+      "pricing": {
+        "mode": "rental", "rentalUnit": "day",
+        "currency": "EUR", "price": "35.00"
+      },
+      "thumbnail": { "path": "products/0f9c3b7e/thumb.webp", "mimeType": "image/webp",
+                     "alt": "Letto da degenza elettrico visto di tre quarti" },
+      "inStock": true
+    }
+  ],
+  "meta": { "page": 1, "perPage": 24, "total": 37, "pageCount": 2 },
+  "facets": {
+    "specs": [
+      { "key": "materiale-struttura", "label": "Materiale struttura",
+        "valueType": "single_select",
+        "options": [
+          { "value": "acciaio",   "label": "Acciaio verniciato", "count": 22, "selected": true },
+          { "value": "alluminio", "label": "Alluminio",          "count": 15, "selected": false }
+        ] },
+      { "key": "portata-massima", "label": "Portata massima",
+        "valueType": "number", "unit": "kg", "min": 120, "max": 250 }
+    ]
+  }
+}</pre>
+
+  <!-- ================================================================ -->
+  <h2>4 · Admin API response</h2>
+  <p>
+    Same skeleton, different contract: nothing is collapsed. Products and categories carry a
+    <code>translations</code> map (their text lives in a table); everything else carries its
+    <code>{ it, en }</code> object inline. Either way the editor binds to the same shape, so
+    <strong>one <code>TranslatedInput</code> component covers every field in the app</strong> and
+    never has to know which storage style sits behind it. <code>translationStatus</code> drives the
+    completeness badge. Drafts are included; the whole surface sits behind
+    <code>requirePermission(P.PRODUCT_READ)</code>.
+  </p>
+
+  <div class="endpoint"><b>GET</b> /api/admin/products/0f9c3b7e-4f21-4c8a-9d55-2a1e7b0c9f34</div>
+
+<pre class="json">{
+  "data": {
+    "id": "0f9c3b7e-4f21-4c8a-9d55-2a1e7b0c9f34",
+    "baseSku": "MIA-LTE",
+    "status": "draft",
+    "categoryId": "b21f8a04-77d3-4a19-8f60-5c2d9e134a77",
+    "brand": "MiaMedical",
+    "isFeatured": true,
+
+    "pricingMode": "rental",
+    "pricingModeLocked": true,
+    "rentalUnit": "day",
+    "basePrice": "35.00",
+    "currency": "EUR",
+
+    "translations": {
+      "it": {
+        "title": "Letto da degenza elettrico a 3 snodi",
+        "shortDescription": "Letto elettrico regolabile per assistenza domiciliare.",
+        "description": "Struttura in acciaio verniciato a polveri...",
+        "slug": "letto-degenza-elettrico",
+        "metaTitle": "Letto da degenza elettrico | MiaMedical",
+        "metaDescription": "Noleggio letto da degenza elettrico a 3 snodi."
+      },
+      "en": {
+        "title": "3-section electric hospital bed",
+        "shortDescription": "Adjustable electric bed for home care.",
+        "description": null,
+        "slug": "hospital-electric-bed",
+        "metaTitle": null,
+        "metaDescription": null
+      }
+    },
+    "translationStatus": {
+      "it": "complete",
+      "en": "partial",
+      "missing": { "en": ["description", "metaTitle", "metaDescription"] }
+    },
+
+    "variants": [
+      {
+        "id": "c17f...", "key": "colore",
+        "valueType": "single_select", "unit": null,
+        "isRequired": true, "affectsSku": true,
+        "sourcePresetKey": "colore",
+        "minValue": null, "maxValue": null, "stepValue": null,
+        "priceModifierPerUnit": null, "position": 0,
+        "label": { "it": "Colore", "en": "Colour" },
+        "helpText": null,
+        "options": [
+          { "id": "d28a...", "value": "bianco", "skuCode": "BIA",
+            "priceModifier": "0.00", "isDefault": true, "position": 0,
+            "label": { "it": "Bianco", "en": "White" } },
+          { "id": "e39b...", "value": "grigio", "skuCode": "GRI",
+            "priceModifier": "4.00", "isDefault": false, "position": 1,
+            "label": { "it": "Grigio", "en": "Grey" } }
+        ]
+      }
+    ],
+
+    "skus": [
+      { "id": "49f1...", "sku": "MIA-LTE-BIA-NS-K7QM", "suffix": "K7QM",
+        "comboKey": "d28a...:05bd...",
+        "optionIds": ["d28a...", "05bd..."],
+        "priceOverride": null, "resolvedPrice": "35.00",
+        "stock": 6, "isActive": true, "position": 0 }
+    ],
+
+    "specValues": [
+      { "specId": "6b13...", "valueType": "number",
+        "numberValue": 90, "numberMin": null, "numberMax": null,
+        "booleanValue": null, "optionIds": [], "textValue": null },
+      { "specId": "8d35...", "valueType": "single_select",
+        "numberValue": null, "numberMin": null, "numberMax": null,
+        "booleanValue": null, "optionIds": ["cc91..."], "textValue": null }
+    ],
+
+    "media": {
+      "thumbnail": {
+        "path": "products/0f9c3b7e/thumb.webp", "mimeType": "image/webp",
+        "alt": { "it": "Letto da degenza elettrico visto di tre quarti" }
+      },
+      "cleanPng": null,
+      "gallery": [
+        { "path": "products/0f9c3b7e/g-01.webp", "mimeType": "image/webp",
+          "alt": { "it": "Pulsantiera di comando", "en": "Control handset" } }
+      ],
+      "videos": [],
+      "documents": [
+        { "path": "products/0f9c3b7e/scheda-tecnica.pdf", "mimeType": "application/pdf",
+          "alt": { "it": "Scheda tecnica", "en": "Datasheet" } }
+      ]
+    },
+
+    "addons": [
+      { "id": "af57...", "sku": "MIA-ADD-MAT",
+        "pricingMode": "rental", "productPricingMode": "rental", "rentalUnit": "day",
+        "price": "9.00", "currency": "EUR",
+        "minQuantity": 0, "maxQuantity": 1, "isRequired": false, "position": 0,
+        "icon": "addons/af57.../icon.webp",
+        "name": { "it": "Materasso antidecubito", "en": "Anti-decubitus mattress" },
+        "description": { "it": "Materasso a bolle d'aria con compressore.", "en": null } },
+
+      { "id": "c179...", "sku": "MIA-ADD-DEL",
+        "pricingMode": "fixed", "productPricingMode": "rental", "rentalUnit": null,
+        "price": "60.00", "currency": "EUR",
+        "minQuantity": 1, "maxQuantity": 1, "isRequired": true, "position": 1,
+        "icon": null,
+        "name": { "it": "Consegna e installazione", "en": "Delivery and setup" },
+        "description": { "it": "Consegna a domicilio con montaggio.", "en": null } }
+    ],
+    "allowedAddonModes": ["rental", "fixed"],
+
+    "questions": [
+      { "id": "d28a...", "key": "piano-installazione",
+        "questionValueType": "number", "isRequired": true,
+        "minValue": 0, "maxValue": 30, "maxLength": null, "position": 0,
+        "prompt": { "it": "A che piano deve essere installato il letto?",
+                    "en": "Which floor should the bed be installed on?" },
+        "helpText": { "it": "Serve a pianificare il trasporto.", "en": null },
+        "options": [] }
+    ],
+
+    "faqs": [
+      { "id": "27df...", "position": 0, "isActive": true,
+        "question": { "it": "Il montaggio e' incluso nel noleggio?", "en": null },
+        "answer": { "it": "Il montaggio e' disponibile come extra a prezzo fisso.",
+                    "en": null } }
+    ],
+
+    "termsIds": ["38e0..."],
+
+    "createdAt": "2026-04-02T10:12:44.201Z",
+    "updatedAt": "2026-07-28T16:03:09.884Z"
+  }
+}</pre>
+
+  <div class="note">
+    <p>
+      <strong><code>pricingModeLocked</code> is why the field can be shown but not edited.</strong>
+      It is always <code>true</code> on an existing product — the create endpoint accepts
+      <code>pricingMode</code>, the update schema omits it entirely, and the repo's UPDATE never
+      names the column. The flag exists so the editor can render a disabled control with an
+      explanation, rather than the admin discovering the rule through a rejected save.
+    </p>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>5 · How a price is resolved</h2>
+
+  <p>
+    <strong>Both modes store the price in the same column</strong> — <code>products.base_price</code>.
+    There is no separate fixed-price column and no separate rental-price column;
+    <code>pricing_mode</code> is what tells you how to read the number, and
+    <code>rental_unit</code> is <code>NULL</code> exactly when the mode is <code>fixed</code>.
+  </p>
+
+<pre>  Carrozzina                        Letto
+    pricing_mode = 'fixed'            pricing_mode = 'rental'
+    base_price   = 450.00             base_price   = 35.00
+    rental_unit  = NULL               rental_unit  = 'day'
+
+    → €450,00 once                    → €35,00 per day</pre>
+
+  <p style="margin-top:.75rem">
+    Two columns would mean one is always NULL, plus a constraint to ensure the right one is filled
+    for the mode. Since a product is one thing or the other and cannot change, a single column
+    carries no ambiguity. The same shape applies to <code>product_addons.price</code>.
+  </p>
+
+  <p>
+    From there, one function in <code>modules/products/pricing.ts</code> produces every money value
+    on both surfaces. Worked through with the rental product above, configured as
+    <em>grigio · con sponde · materasso 16,5 cm</em>:
+  </p>
+
+  <div class="scroll">
+    <table class="plain">
+      <thead>
+        <tr><th>Step</th><th>Source</th><th>Amount</th><th>Running total</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Base price</td><td><code>products.base_price</code></td><td>35.00</td><td><strong>35.00 / day</strong></td></tr>
+        <tr><td>Colore → Grigio</td><td><code>product_variant_options.price_modifier</code></td><td>+ 4.00</td><td><strong>39.00 / day</strong></td></tr>
+        <tr><td>Sponde → sì</td><td><code>product_variant_options.price_modifier</code></td><td>+ 6.00</td><td><strong>45.00 / day</strong></td></tr>
+        <tr><td>Altezza materasso 16.5 cm</td><td>16.5 × <code>price_modifier_per_unit</code> (0.25)</td><td>+ 4.125 → <strong>4.13</strong></td><td><strong>49.13 / day</strong></td></tr>
+        <tr><td>Note consegna (free text)</td><td>no price effect</td><td>—</td><td><strong>49.13 / day</strong></td></tr>
+        <tr><td>SKU override</td><td><code>product_skus.price_override</code></td><td colspan="2"><em>if set, replaces everything above</em></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:1rem">
+    Because <code>pricing_mode</code> is <code>rental</code> with <code>rental_unit = 'day'</code>,
+    every one of those modifiers is <em>per day</em> — that is precisely the rule that lets the
+    modifier column stay a bare number with no unit of its own. On a <code>fixed</code> product
+    the identical arithmetic yields a one-off amount. Addons never enter this calculation: each
+    prices against its own mode and unit — which for a fixed product is always <code>fixed</code>,
+    and for a rental product may be either — and the order total sums the two.
+  </p>
+  <p>
+    <strong>Row four is the whole reason money is not a JS number.</strong>
+    <code>16.5 × 0.25</code> is <code>4.125</code>, which must round half-up to
+    <code>4.13</code>. Computed in IEEE-754 the running total comes out
+    <code>49.129999999999995</code>; computed in <code>bigint</code> hundredths it is exactly
+    <code>"49.13"</code>. Whenever the price is needed inside a query — sorting, or a
+    <code>price BETWEEN</code> filter — the same arithmetic is expressed in SQL instead, where
+    <code>numeric</code> is already exact.
+  </p>
+
+  <h3>SKU composition</h3>
+  <p>
+    Only groups with <code>affects_sku = true</code> take part — here <em>colore</em> and
+    <em>sponde</em>. The numeric and free-text groups do not, which is what keeps the matrix
+    finite.
+  </p>
+<pre>  MIA-LTE      -    GRI  CS    -   P3XT
+  ───────           ───────        ────
+  products          sku_code of    stable random tail,
+  .base_sku         each chosen    minted once and never
+                    option         recomputed</pre>
+  <p style="margin-top:.75rem">
+    The tail adds no uniqueness — <code>UNIQUE (product_id, combo_key)</code> and a unique
+    <code>base_sku</code> already guarantee that. It exists so the SKU survives an option being
+    renamed: the composed middle would change, but the stored <code>sku</code> and
+    <code>suffix</code> keep the row's identity fixed for every label, quote and past order that
+    already references it.
+  </p>
+
+  <p class="meta" style="margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--line)">
+    Planning artifact · not yet implemented · generated alongside the catalog rebuild plan
+  </p>
+</div>
+
+<script>
+  for (const el of document.querySelectorAll('pre.json')) {
+    el.innerHTML = el.textContent
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/("(?:\\.|[^"\\])*")(\s*:)?/g, (m, str, colon) =>
+        colon
+          ? '<span class="k">' + str + '</span>' + colon
+          : '<span class="s">' + str + '</span>')
+      .replace(/\b(true|false|null)\b/g, '<span class="lit">$1</span>')
+      .replace(/(:\s)(-?\d+(?:\.\d+)?)/g, '$1<span class="n">$2</span>');
+  }
+</script>

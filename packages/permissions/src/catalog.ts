@@ -25,6 +25,8 @@
  * | 1500  | Customers                   |
  * | 1600  | Settings                    |
  * | 1700  | Access control (admin users)|
+ * | 1800  | Content (terms documents)   |
+ * | 1900  | Attributes (preset library) |
  */
 
 export interface PermissionDefinition {
@@ -47,6 +49,8 @@ export const PERMISSION_GROUPS = [
   'Customers',
   'Settings',
   'Access',
+  'Content',
+  'Attributes',
 ] as const;
 
 export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
@@ -173,6 +177,59 @@ export const PERMISSION_DEFINITIONS = {
     key: 'admin:permission_assign',
     label: 'Assign permissions to admin users',
     group: 'Access',
+  },
+
+  // --- 1800 · content (terms documents) ------------------------------------
+  TERMS_READ: { code: 1800, key: 'terms:read', label: 'View terms documents', group: 'Content' },
+  TERMS_UPDATE: {
+    code: 1801,
+    key: 'terms:update',
+    label: 'Update terms documents',
+    group: 'Content',
+  },
+  TERMS_CREATE: {
+    code: 1802,
+    key: 'terms:create',
+    label: 'Create terms documents',
+    group: 'Content',
+  },
+  TERMS_DELETE: {
+    code: 1803,
+    key: 'terms:delete',
+    label: 'Delete terms documents',
+    group: 'Content',
+  },
+  TERMS_PUBLISH: {
+    code: 1810,
+    key: 'terms:publish',
+    label: 'Publish and archive terms documents',
+    group: 'Content',
+  },
+
+  // --- 1900 · attributes (variant preset library) ---------------------------
+  ATTRIBUTE_READ: {
+    code: 1900,
+    key: 'attribute:read',
+    label: 'View attribute presets',
+    group: 'Attributes',
+  },
+  ATTRIBUTE_UPDATE: {
+    code: 1901,
+    key: 'attribute:update',
+    label: 'Update attribute presets',
+    group: 'Attributes',
+  },
+  ATTRIBUTE_CREATE: {
+    code: 1902,
+    key: 'attribute:create',
+    label: 'Create attribute presets',
+    group: 'Attributes',
+  },
+  ATTRIBUTE_DELETE: {
+    code: 1903,
+    key: 'attribute:delete',
+    label: 'Delete attribute presets',
+    group: 'Attributes',
   },
 } as const satisfies Record<string, PermissionDefinition>;
 

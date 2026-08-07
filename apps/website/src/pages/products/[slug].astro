@@ -1,7 +1,7 @@
 ---
 import AddToCart from '~/components/AddToCart.svelte';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { api, formatMoney } from '~/lib/api';
+import { api, formatPricing, mediaUrl } from '~/lib/api';
 
 // On-demand so stock and pricing are never stale. Switch to `true` plus
 // `getStaticPaths()` if you'd rather prerender the whole catalog at build time.
@@ -9,28 +9,43 @@ export const prerender = false;
 
 const { slug } = Astro.params;
 
-const response = await api.api.products[':slug'].$get({ param: { slug: slug! } });
+const response = await api.api.products[':slug'].$get({ param: { slug: slug! }, query: {} });
 
 if (!response.ok) {
   return Astro.rewrite('/404');
 }
 
 const { data: product } = await response.json();
-const variant = product.variants[0];
+// The default sellable unit: first active in-stock SKU, else the first SKU.
+const sku = product.skus.find((s) => s.inStock) ?? product.skus[0];
+const image = product.media.thumbnail ?? product.media.gallery[0] ?? null;
 ---
 
-<BaseLayout title={`${product.name} — Mia Medical`} description={product.description ?? undefined}>
+<BaseLayout
+  title={product.seo.title ?? `${product.title} — Mia Medical`}
+  description={product.seo.description ?? product.shortDescription ?? undefined}
+>
   <article class="grid gap-10 lg:grid-cols-2">
-    <div class="rounded-card aspect-square bg-neutral-100 dark:bg-neutral-900"></div>
+    {
+      image ? (
+        <img
+          src={mediaUrl(image.path)}
+          alt={image.alt ?? product.title}
+          class="rounded-card aspect-square w-full bg-neutral-100 object-cover dark:bg-neutral-900"
+        />
+      ) : (
+        <div class="rounded-card aspect-square bg-neutral-100 dark:bg-neutral-900" />
+      )
+    }
 
     <div>
       {product.brand && <p class="text-sm text-neutral-500">{product.brand}</p>}
-      <h1 class="mt-1 text-3xl font-semibold tracking-tight">{product.name}</h1>
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight">{product.title}</h1>
+
+      <p class="mt-4 text-2xl font-semibold">{formatPricing(product.pricing)}</p>
       {
-        variant && (
-          <p class="mt-4 text-2xl font-semibold">
-            {formatMoney(variant.price.cents, variant.price.currency)}
-          </p>
+        product.pricing.mode === 'rental' && (
+          <p class="mt-1 text-sm text-neutral-500">Noleggio — prezzo per {product.pricing.rentalUnit === 'day' ? 'giorno' : 'ora'}</p>
         )
       }
 
@@ -43,7 +58,23 @@ const variant = product.variants[0];
       }
 
       {/* Island: only this component ships JS, and only once it's visible. */}
-      {variant && <AddToCart client:visible variantId={variant.id} inStock={variant.inStock} />}
+      {sku && <AddToCart client:visible skuId={sku.id} inStock={sku.inStock} />}
+
+      {
+        product.faqs.length > 0 && (
+          <section class="mt-10">
+            <h2 class="text-lg font-semibold">FAQ</h2>
+            <dl class="mt-3 space-y-4">
+              {product.faqs.map((faq) => (
+                <div>
+                  <dt class="font-medium">{faq.question}</dt>
+                  <dd class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{faq.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )
+      }
     </div>
   </article>
 </BaseLayout>

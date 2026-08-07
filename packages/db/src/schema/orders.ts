@@ -3,6 +3,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -10,9 +11,16 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-import { productVariants } from './catalog.ts';
+import { productSkus } from './catalog.ts';
 import { orderStatus, paymentStatus } from './enums.ts';
 import { users } from './users.ts';
+
+/**
+ * Nothing reads these tables yet — the orders module is a later pass. They are
+ * kept in step with the catalog so the day it lands there is no conversion:
+ * money is `numeric(12, 2)` (never integer cents, never a JS float) and lines
+ * point at `product_skus`, the sellable unit of the new catalog.
+ */
 
 export const carts = pgTable(
   'carts',
@@ -21,7 +29,7 @@ export const carts = pgTable(
     /** Null for guest carts, which are keyed by `token` instead. */
     userId: uuid().references(() => users.id, { onDelete: 'cascade' }),
     token: text().notNull(),
-    currency: text().notNull().default('USD'),
+    currency: text().notNull().default('EUR'),
     expiresAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
@@ -39,16 +47,16 @@ export const cartItems = pgTable(
     cartId: uuid()
       .notNull()
       .references(() => carts.id, { onDelete: 'cascade' }),
-    variantId: uuid()
+    skuId: uuid()
       .notNull()
-      .references(() => productVariants.id, { onDelete: 'restrict' }),
+      .references(() => productSkus.id, { onDelete: 'restrict' }),
     quantity: integer().notNull().default(1),
     /** Price captured when the item was added, so cart totals stay stable. */
-    unitPriceCents: integer().notNull(),
+    unitPrice: numeric({ precision: 12, scale: 2 }).notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    uniqueIndex('cart_items_cart_variant_key').on(t.cartId, t.variantId),
+    uniqueIndex('cart_items_cart_sku_key').on(t.cartId, t.skuId),
     index('cart_items_cart_idx').on(t.cartId),
   ],
 );
@@ -63,12 +71,12 @@ export const orders = pgTable(
     email: text().notNull(),
     status: orderStatus().notNull().default('pending'),
     paymentStatus: paymentStatus().notNull().default('unpaid'),
-    currency: text().notNull().default('USD'),
-    subtotalCents: integer().notNull(),
-    shippingCents: integer().notNull().default(0),
-    taxCents: integer().notNull().default(0),
-    discountCents: integer().notNull().default(0),
-    totalCents: integer().notNull(),
+    currency: text().notNull().default('EUR'),
+    subtotal: numeric({ precision: 12, scale: 2 }).notNull(),
+    shippingTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
+    taxTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
+    discountTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
+    total: numeric({ precision: 12, scale: 2 }).notNull(),
     /** Address snapshots — orders must not change when a user edits an address. */
     shippingAddress: jsonb().$type<Record<string, unknown>>(),
     billingAddress: jsonb().$type<Record<string, unknown>>(),
@@ -94,14 +102,14 @@ export const orderItems = pgTable(
     orderId: uuid()
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
-    variantId: uuid().references(() => productVariants.id, { onDelete: 'set null' }),
+    skuId: uuid().references(() => productSkus.id, { onDelete: 'set null' }),
     /** Snapshots — the line stays readable even if the product is deleted. */
-    productName: text().notNull(),
-    variantName: text().notNull(),
+    productTitle: text().notNull(),
+    skuLabel: text().notNull(),
     sku: text().notNull(),
     quantity: integer().notNull(),
-    unitPriceCents: integer().notNull(),
-    totalCents: integer().notNull(),
+    unitPrice: numeric({ precision: 12, scale: 2 }).notNull(),
+    total: numeric({ precision: 12, scale: 2 }).notNull(),
   },
   (t) => [index('order_items_order_idx').on(t.orderId)],
 );
@@ -113,10 +121,7 @@ export const cartsRelations = relations(carts, ({ one, many }) => ({
 
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
   cart: one(carts, { fields: [cartItems.cartId], references: [carts.id] }),
-  variant: one(productVariants, {
-    fields: [cartItems.variantId],
-    references: [productVariants.id],
-  }),
+  sku: one(productSkus, { fields: [cartItems.skuId], references: [productSkus.id] }),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -126,8 +131,5 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
-  variant: one(productVariants, {
-    fields: [orderItems.variantId],
-    references: [productVariants.id],
-  }),
+  sku: one(productSkus, { fields: [orderItems.skuId], references: [productSkus.id] }),
 }));

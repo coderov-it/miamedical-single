@@ -204,7 +204,9 @@ default and needs no extra config; a split-origin deployment additionally needs
 `PUBLIC_ADMIN_API_URL`, `AUTH_COOKIE_SAMESITE="none"` (HTTPS only) and the admin
 origin listed in `CORS_ORIGINS`.
 
-**Money is integer cents.** Never floats. `formatMoney()` handles display.
+**Money is `numeric(12,2)`,** carried as a two-decimal string (`"35.00"`) — never a JS
+number, never a float. Server arithmetic goes through `modules/products/money.ts`
+(bigint hundredths); `formatMoney()` handles display.
 
 **Order and cart lines snapshot their data.** Product name, SKU and unit price are
 copied onto the line at write time so historical orders don't mutate when a product

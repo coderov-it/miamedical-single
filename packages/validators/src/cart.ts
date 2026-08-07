@@ -10,7 +10,7 @@ const QuantitySchema = v.pipe(
 );
 
 export const AddToCartSchema = v.object({
-  variantId: UuidSchema,
+  skuId: UuidSchema,
   quantity: v.optional(QuantitySchema, 1),
 });
 

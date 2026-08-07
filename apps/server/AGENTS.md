@@ -73,7 +73,18 @@ Split by capability, not by layer — a sub-folder owns a slice end to end.
   database is an implementation detail of the repo layer.
 - **Never return a DB row from a route.** Always go through `mapper.ts`, or
   internal columns leak onto the wire.
-- **Money is integer cents**, carried as `MoneyDto { cents, currency }`.
+- **Money is `numeric(12,2)`**, carried as `MoneyDto { amount, currency }`
+  where `amount` is a two-decimal string ("35.00"). Never parse it into a JS
+  number for arithmetic — use `modules/products/money.ts` (bigint hundredths,
+  half-up), or do it in SQL where `numeric` is already exact.
+- **i18n:** translated text goes in a `*_translations` table **only if
+  PostgreSQL indexes it** — full-text search or a per-locale unique slug.
+  Everything else is a `localized()` `{ it, en }` jsonb column with a
+  `CHECK (col ? 'it')`. Fallback is always `en → it`.
+- **Media:** `MediaItem` is `{ path, mimeType, alt }` — the R2 key, never a
+  URL. Icons are a bare `text` path column. Limits live in `MEDIA_PROFILES`
+  (`@mia/validators`), not env. Every stored image is WebP; geometry is
+  verified server-side on save (`storage.probeImage`), not trusted.
 - **Hidden resources 404, not 403.** Existence is not public information.
 - **Cross-app contracts go in `@mia/validators`**, so the website and admin can
   reuse them. Module-only schemas stay in the module's `validators.ts`.
@@ -91,12 +102,16 @@ Split by capability, not by layer — a sub-folder owns a slice end to end.
 
 ## Modules not yet built
 
-`access`, `cart`, `media`, `notifications`, `orders`, `payments`, `settings`,
-`users`, `webhooks`. Follow the anatomy above when adding one, and mount it in
-`app.ts` with a chained `.route()` so RPC types stay inferred.
+`access`, `cart`, `notifications`, `orders`, `payments`, `settings`, `users`,
+`webhooks`. Follow the anatomy above when adding one, and mount it in `app.ts`
+with a chained `.route()` so RPC types stay inferred.
 
-Infra adapters still to add: `cache/`, `mail/`, `media/`, `storage/`,
-`swagger/`.
+Built: `products` (capability sub-folders: catalog, variants, specs, addons,
+faqs, questions, terms-links, media), `categories`, `media` (upload + staging
+deletion only — no DB), `terms`, `attributes`.
+
+Infra adapters still to add: `cache/`, `mail/`, `swagger/`. Built:
+`storage/` (Cloudflare R2 behind the `ObjectStorage` port).
 
 ## Dependency injection
 

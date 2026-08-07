@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  import Sidebar from '~/lib/Sidebar.svelte';
+  import Sidebar from '~/lib/components/Sidebar.svelte';
   import { session } from '~/lib/session.svelte';
 
   let { children } = $props();

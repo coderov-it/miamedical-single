@@ -1,49 +1,160 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
+  foreignKey,
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
-  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
-import { productStatus } from './enums.ts';
+import { termsDocuments } from './content.ts';
+import {
+  pricingMode,
+  productStatus,
+  questionValueType,
+  rentalUnit,
+  valueType,
+} from './enums.ts';
+import { languageCode, localized, localizedCheck, optionalLocalizedCheck } from './i18n.ts';
+import { EMPTY_PRODUCT_MEDIA, type ProductMedia } from './media-types.ts';
+import { tsvector } from './search.ts';
+
+/**
+ * The catalog domain. 21 tables: 18 entity tables (3 of them joins) and 3
+ * translation tables (`product_translations`, `category_translations`,
+ * `terms_document_translations` — the last in content.ts).
+ *
+ * i18n rule: a `*_translations` table only where PostgreSQL indexes the text
+ * (full-text search, per-locale unique slugs). Every other translated label is
+ * an inline `{ it, en }` jsonb column via `localized()`, with a CHECK making
+ * Italian mandatory at the database level.
+ *
+ * Money is `numeric(12, 2)` — exact decimal, surfaced as a string by Drizzle.
+ * Never parse an amount into a JS number; arithmetic goes through the server's
+ * `money.ts` in bigint hundredths.
+ */
+
+// --- taxonomy ---------------------------------------------------------------
 
 export const categories = pgTable(
   'categories',
   {
     id: uuid().primaryKey().defaultRandom(),
-    slug: text().notNull(),
+    /** Stable machine handle, e.g. `letti-degenza`. Not the public slug. */
+    code: text().notNull(),
+    /** R2 key of a 256×256 WebP. Null = no icon. */
+    icon: text(),
+    position: integer().notNull().default(0),
+    isActive: boolean().notNull().default(true),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex('categories_code_key').on(t.code)],
+);
+
+export const categoryTranslations = pgTable(
+  'category_translations',
+  {
+    categoryId: uuid()
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    languageCode: languageCode().notNull(),
     name: text().notNull(),
     description: text(),
-    // `AnyPgColumn` breaks the circular type reference on a self-join.
-    parentId: uuid().references((): AnyPgColumn => categories.id, { onDelete: 'set null' }),
+    slug: text().notNull(),
+    metaTitle: text(),
+    metaDescription: text(),
+    /** Written by the repo via `searchVectorFor()` — see search.ts for why. */
+    searchVector: tsvector(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.categoryId, t.languageCode] }),
+    uniqueIndex('category_translations_lang_slug_key').on(t.languageCode, t.slug),
+    index('category_translations_search_idx').using('gin', t.searchVector),
+  ],
+);
+
+export const categorySpecs = pgTable(
+  'category_specs',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    categoryId: uuid()
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    /** Untranslated machine key — this is what spec filters run on. */
+    key: text().notNull(),
+    label: localized().notNull(),
+    helpText: localized(),
+    valueType: valueType().notNull(),
+    unit: text(),
+    isRequired: boolean().notNull().default(false),
+    isFilterable: boolean().notNull().default(false),
+    isComparable: boolean().notNull().default(false),
+    /** R2 key of a 256×256 WebP. */
+    icon: text(),
     position: integer().notNull().default(0),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    uniqueIndex('categories_slug_key').on(t.slug),
-    index('categories_parent_idx').on(t.parentId),
+    uniqueIndex('category_specs_category_key_key').on(t.categoryId, t.key),
+    localizedCheck('category_specs_label_it_check', t.label),
+    optionalLocalizedCheck('category_specs_help_text_it_check', t.helpText),
   ],
 );
+
+export const categorySpecOptions = pgTable(
+  'category_spec_options',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    specId: uuid()
+      .notNull()
+      .references(() => categorySpecs.id, { onDelete: 'cascade' }),
+    /** Untranslated machine value, e.g. `acciaio` — what facet filters match. */
+    value: text().notNull(),
+    label: localized().notNull(),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('category_spec_options_spec_value_key').on(t.specId, t.value),
+    localizedCheck('category_spec_options_label_it_check', t.label),
+  ],
+);
+
+// --- products ---------------------------------------------------------------
 
 export const products = pgTable(
   'products',
   {
     id: uuid().primaryKey().defaultRandom(),
-    slug: text().notNull(),
-    name: text().notNull(),
-    description: text(),
+    /** Root of every generated SKU string. Globally unique. */
+    baseSku: text().notNull(),
     status: productStatus().notNull().default('draft'),
+    categoryId: uuid()
+      .notNull()
+      .references(() => categories.id, { onDelete: 'restrict' }),
     brand: text(),
-    /** Free-form attributes: specifications, certifications, dosage, etc. */
-    metadata: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+    /** Write-once: set at creation, never listed in an UPDATE. */
+    pricingMode: pricingMode().notNull(),
+    /** One column for both modes — `pricingMode` decides what it means. */
+    basePrice: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: text().notNull().default('EUR'),
+    /** NULL exactly when `pricingMode` is `fixed` (CHECK below). */
+    rentalUnit: rentalUnit(),
+    isFeatured: boolean().notNull().default(false),
+    media: jsonb().$type<ProductMedia>().notNull().default(EMPTY_PRODUCT_MEDIA),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -51,92 +162,541 @@ export const products = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [
-    uniqueIndex('products_slug_key').on(t.slug),
+    uniqueIndex('products_base_sku_key').on(t.baseSku),
     index('products_status_idx').on(t.status),
+    index('products_category_idx').on(t.categoryId),
     index('products_created_at_idx').on(t.createdAt),
+    /**
+     * FK target for `product_addons`' composite key — makes the denormalised
+     * `product_pricing_mode` provably in sync with no trigger.
+     */
+    unique('products_id_pricing_mode_key').on(t.id, t.pricingMode),
+    check(
+      'products_rental_unit_check',
+      sql`(${t.pricingMode} = 'rental') = (${t.rentalUnit} IS NOT NULL)`,
+    ),
   ],
 );
 
-export const productVariants = pgTable(
-  'product_variants',
+export const productTranslations = pgTable(
+  'product_translations',
+  {
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    languageCode: languageCode().notNull(),
+    title: text().notNull(),
+    shortDescription: text(),
+    description: text(),
+    slug: text().notNull(),
+    metaTitle: text(),
+    metaDescription: text(),
+    /** Written by the repo via `searchVectorFor()` — see search.ts for why. */
+    searchVector: tsvector(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.productId, t.languageCode] }),
+    uniqueIndex('product_translations_lang_slug_key').on(t.languageCode, t.slug),
+    index('product_translations_search_idx').using('gin', t.searchVector),
+    // A GIN trigram index on `title` for admin type-to-find is hand-added in
+    // the migration — drizzle-kit cannot express `gin_trgm_ops`.
+  ],
+);
+
+export const productSpecValues = pgTable(
+  'product_spec_values',
   {
     id: uuid().primaryKey().defaultRandom(),
     productId: uuid()
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
-    sku: text().notNull(),
-    name: text().notNull(),
-    /** Minor units (cents). Never store money as a float. */
-    priceCents: integer().notNull(),
-    compareAtPriceCents: integer(),
-    currency: text().notNull().default('USD'),
-    stock: integer().notNull().default(0),
-    weightGrams: integer(),
-    options: jsonb().$type<Record<string, string>>().notNull().default({}),
-    isDefault: boolean().notNull().default(false),
+    specId: uuid()
+      .notNull()
+      .references(() => categorySpecs.id, { onDelete: 'cascade' }),
+    /** Typed columns so numeric/boolean facet filters hit a real index. */
+    numberValue: numeric({ precision: 14, scale: 4 }),
+    numberMin: numeric({ precision: 14, scale: 4 }),
+    numberMax: numeric({ precision: 14, scale: 4 }),
+    booleanValue: boolean(),
+    /** Only for `string`-type specs. */
+    textValue: localized(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    uniqueIndex('product_variants_sku_key').on(t.sku),
-    index('product_variants_product_idx').on(t.productId),
+    uniqueIndex('product_spec_values_product_spec_key').on(t.productId, t.specId),
+    index('product_spec_values_spec_number_idx').on(t.specId, t.numberValue),
+    index('product_spec_values_spec_boolean_idx').on(t.specId, t.booleanValue),
+    optionalLocalizedCheck('product_spec_values_text_value_it_check', t.textValue),
   ],
 );
 
-export const productImages = pgTable(
-  'product_images',
+/** Select-spec facets become `option_id IN (…)` — index-backed, no scan. */
+export const productSpecValueOptions = pgTable(
+  'product_spec_value_options',
+  {
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    specId: uuid()
+      .notNull()
+      .references(() => categorySpecs.id, { onDelete: 'cascade' }),
+    optionId: uuid()
+      .notNull()
+      .references(() => categorySpecOptions.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.productId, t.specId, t.optionId] }),
+    index('product_spec_value_options_option_idx').on(t.optionId),
+  ],
+);
+
+// --- variants & SKUs --------------------------------------------------------
+
+export const productVariantGroups = pgTable(
+  'product_variant_groups',
   {
     id: uuid().primaryKey().defaultRandom(),
     productId: uuid()
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
-    url: text().notNull(),
-    alt: text(),
+    key: text().notNull(),
+    label: localized().notNull(),
+    helpText: localized(),
+    valueType: valueType().notNull(),
+    unit: text(),
+    isRequired: boolean().notNull().default(false),
+    /** Joins the SKU matrix. Only legal for single_select / boolean (CHECK). */
+    affectsSku: boolean().notNull().default(false),
+    /** Set when this group was seeded from an attribute preset. */
+    sourcePresetKey: text(),
+    minValue: numeric({ precision: 14, scale: 4 }),
+    maxValue: numeric({ precision: 14, scale: 4 }),
+    stepValue: numeric({ precision: 14, scale: 4 }),
+    /**
+     * How numeric variants price: modifier = entered value × this rate. The
+     * rate inherits the product's mode — one-off for fixed, per rental unit
+     * for rental.
+     */
+    priceModifierPerUnit: numeric({ precision: 12, scale: 2 }),
+    /** R2 key of a 256×256 WebP. Copied from the preset when seeded. */
+    icon: text(),
     position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('product_images_product_idx').on(t.productId)],
+  (t) => [
+    uniqueIndex('product_variant_groups_product_key_key').on(t.productId, t.key),
+    localizedCheck('product_variant_groups_label_it_check', t.label),
+    optionalLocalizedCheck('product_variant_groups_help_text_it_check', t.helpText),
+    check(
+      'product_variant_groups_affects_sku_check',
+      sql`${t.affectsSku} = false OR ${t.valueType} IN ('single_select', 'boolean')`,
+    ),
+  ],
 );
 
-export const productCategories = pgTable(
-  'product_categories',
+export const productVariantOptions = pgTable(
+  'product_variant_options',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    groupId: uuid()
+      .notNull()
+      .references(() => productVariantGroups.id, { onDelete: 'cascade' }),
+    value: text().notNull(),
+    label: localized().notNull(),
+    /** Segment used in composed SKU strings, e.g. `GRY`. */
+    skuCode: text(),
+    /**
+     * No unit of its own — a one-off amount on a fixed product, an amount per
+     * rental unit on a rental one.
+     */
+    priceModifier: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
+    isDefault: boolean().notNull().default(false),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('product_variant_options_group_value_key').on(t.groupId, t.value),
+    localizedCheck('product_variant_options_label_it_check', t.label),
+  ],
+);
+
+export const productSkus = pgTable(
+  'product_skus',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    /** `[base_sku]-[option codes]-[suffix]`, frozen at generation. */
+    sku: text().notNull(),
+    /** 4-char base32 tail (no I/O/0/1). Adds stability, not uniqueness. */
+    suffix: text().notNull(),
+    /** Canonical sorted option-id key — what makes a combination unique. */
+    comboKey: text().notNull(),
+    /** Replaces the whole computed price when set. */
+    priceOverride: numeric({ precision: 12, scale: 2 }),
+    stock: integer().notNull().default(0),
+    /** Regeneration never deletes — vanished combinations are deactivated. */
+    isActive: boolean().notNull().default(true),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex('product_skus_sku_key').on(t.sku),
+    uniqueIndex('product_skus_product_combo_key').on(t.productId, t.comboKey),
+    index('product_skus_product_idx').on(t.productId),
+  ],
+);
+
+export const productSkuOptions = pgTable(
+  'product_sku_options',
+  {
+    skuId: uuid()
+      .notNull()
+      .references(() => productSkus.id, { onDelete: 'cascade' }),
+    optionId: uuid()
+      .notNull()
+      .references(() => productVariantOptions.id, { onDelete: 'cascade' }),
+    /** Denormalised for "which option of group X does this SKU carry". */
+    groupId: uuid()
+      .notNull()
+      .references(() => productVariantGroups.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.skuId, t.optionId] }),
+    index('product_sku_options_option_idx').on(t.optionId),
+  ],
+);
+
+// --- addons, FAQs, intake questions ----------------------------------------
+
+export const productAddons = pgTable(
+  'product_addons',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    productId: uuid().notNull(),
+    name: localized().notNull(),
+    description: localized(),
+    sku: text(),
+    /** The addon's own mode — bounded by the product's (CHECK below). */
+    pricingMode: pricingMode().notNull(),
+    /**
+     * Denormalised copy of `products.pricing_mode`, kept provably in sync by
+     * the composite FK below. Safe because the parent column is write-once.
+     */
+    productPricingMode: pricingMode().notNull(),
+    price: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: text().notNull().default('EUR'),
+    rentalUnit: rentalUnit(),
+    minQuantity: integer().notNull().default(0),
+    maxQuantity: integer(),
+    isRequired: boolean().notNull().default(false),
+    /** R2 key of a square WebP, up to 1024×1024. */
+    icon: text(),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    foreignKey({
+      name: 'product_addons_product_mode_fk',
+      columns: [t.productId, t.productPricingMode],
+      foreignColumns: [products.id, products.pricingMode],
+    }).onDelete('cascade'),
+    index('product_addons_product_idx').on(t.productId),
+    localizedCheck('product_addons_name_it_check', t.name),
+    optionalLocalizedCheck('product_addons_description_it_check', t.description),
+    /**
+     * A rental addon on a sold product is meaningless — nothing comes back and
+     * there is no period to bill against. Rental products may carry both modes.
+     */
+    check(
+      'product_addons_mode_check',
+      sql`${t.productPricingMode} = 'rental' OR ${t.pricingMode} = 'fixed'`,
+    ),
+    check(
+      'product_addons_rental_unit_check',
+      sql`(${t.pricingMode} = 'rental') = (${t.rentalUnit} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const productFaqs = pgTable(
+  'product_faqs',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    question: localized().notNull(),
+    answer: localized().notNull(),
+    position: integer().notNull().default(0),
+    isActive: boolean().notNull().default(true),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('product_faqs_product_idx').on(t.productId),
+    localizedCheck('product_faqs_question_it_check', t.question),
+    localizedCheck('product_faqs_answer_it_check', t.answer),
+  ],
+);
+
+export const productQuestions = pgTable(
+  'product_questions',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    key: text().notNull(),
+    prompt: localized().notNull(),
+    helpText: localized(),
+    questionValueType: questionValueType().notNull(),
+    isRequired: boolean().notNull().default(false),
+    minValue: numeric({ precision: 14, scale: 4 }),
+    maxValue: numeric({ precision: 14, scale: 4 }),
+    maxLength: integer(),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('product_questions_product_key_key').on(t.productId, t.key),
+    localizedCheck('product_questions_prompt_it_check', t.prompt),
+    optionalLocalizedCheck('product_questions_help_text_it_check', t.helpText),
+  ],
+);
+
+export const productQuestionOptions = pgTable(
+  'product_question_options',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    questionId: uuid()
+      .notNull()
+      .references(() => productQuestions.id, { onDelete: 'cascade' }),
+    value: text().notNull(),
+    label: localized().notNull(),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('product_question_options_question_value_key').on(t.questionId, t.value),
+    localizedCheck('product_question_options_label_it_check', t.label),
+  ],
+);
+
+// --- terms links ------------------------------------------------------------
+
+export const productTerms = pgTable(
+  'product_terms',
   {
     productId: uuid()
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
-    categoryId: uuid()
+    /** `restrict` — a document in use cannot be deleted out from under a product. */
+    termsId: uuid()
       .notNull()
-      .references(() => categories.id, { onDelete: 'cascade' }),
+      .references(() => termsDocuments.id, { onDelete: 'restrict' }),
+    position: integer().notNull().default(0),
   },
-  (t) => [primaryKey({ columns: [t.productId, t.categoryId] })],
+  (t) => [
+    primaryKey({ columns: [t.productId, t.termsId] }),
+    index('product_terms_terms_idx').on(t.termsId),
+  ],
 );
 
-export const categoriesRelations = relations(categories, ({ one, many }) => ({
-  parent: one(categories, {
-    fields: [categories.parentId],
-    references: [categories.id],
-    relationName: 'category_tree',
-  }),
-  children: many(categories, { relationName: 'category_tree' }),
-  products: many(productCategories),
+// --- attribute presets (the toggleable "common variants") -------------------
+
+export const attributePresets = pgTable(
+  'attribute_presets',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    key: text().notNull(),
+    label: localized().notNull(),
+    valueType: valueType().notNull(),
+    unit: text(),
+    isActive: boolean().notNull().default(true),
+    /** R2 key of a 256×256 WebP — copied into groups seeded from this preset. */
+    icon: text(),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex('attribute_presets_key_key').on(t.key),
+    localizedCheck('attribute_presets_label_it_check', t.label),
+  ],
+);
+
+export const attributePresetOptions = pgTable(
+  'attribute_preset_options',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    presetId: uuid()
+      .notNull()
+      .references(() => attributePresets.id, { onDelete: 'cascade' }),
+    value: text().notNull(),
+    label: localized().notNull(),
+    skuCode: text(),
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('attribute_preset_options_preset_value_key').on(t.presetId, t.value),
+    localizedCheck('attribute_preset_options_label_it_check', t.label),
+  ],
+);
+
+// --- relations --------------------------------------------------------------
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  translations: many(categoryTranslations),
+  specs: many(categorySpecs),
+  products: many(products),
 }));
 
-export const productsRelations = relations(products, ({ many }) => ({
-  variants: many(productVariants),
-  images: many(productImages),
-  categories: many(productCategories),
-}));
-
-export const productVariantsRelations = relations(productVariants, ({ one }) => ({
-  product: one(products, { fields: [productVariants.productId], references: [products.id] }),
-}));
-
-export const productImagesRelations = relations(productImages, ({ one }) => ({
-  product: one(products, { fields: [productImages.productId], references: [products.id] }),
-}));
-
-export const productCategoriesRelations = relations(productCategories, ({ one }) => ({
-  product: one(products, { fields: [productCategories.productId], references: [products.id] }),
+export const categoryTranslationsRelations = relations(categoryTranslations, ({ one }) => ({
   category: one(categories, {
-    fields: [productCategories.categoryId],
+    fields: [categoryTranslations.categoryId],
     references: [categories.id],
+  }),
+}));
+
+export const categorySpecsRelations = relations(categorySpecs, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [categorySpecs.categoryId],
+    references: [categories.id],
+  }),
+  options: many(categorySpecOptions),
+}));
+
+export const categorySpecOptionsRelations = relations(categorySpecOptions, ({ one }) => ({
+  spec: one(categorySpecs, {
+    fields: [categorySpecOptions.specId],
+    references: [categorySpecs.id],
+  }),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+  translations: many(productTranslations),
+  specValues: many(productSpecValues),
+  specValueOptions: many(productSpecValueOptions),
+  variantGroups: many(productVariantGroups),
+  skus: many(productSkus),
+  addons: many(productAddons),
+  faqs: many(productFaqs),
+  questions: many(productQuestions),
+  terms: many(productTerms),
+}));
+
+export const productTermsRelations = relations(productTerms, ({ one }) => ({
+  product: one(products, { fields: [productTerms.productId], references: [products.id] }),
+  terms: one(termsDocuments, {
+    fields: [productTerms.termsId],
+    references: [termsDocuments.id],
+  }),
+}));
+
+export const productTranslationsRelations = relations(productTranslations, ({ one }) => ({
+  product: one(products, {
+    fields: [productTranslations.productId],
+    references: [products.id],
+  }),
+}));
+
+export const productSpecValuesRelations = relations(productSpecValues, ({ one }) => ({
+  product: one(products, { fields: [productSpecValues.productId], references: [products.id] }),
+  spec: one(categorySpecs, {
+    fields: [productSpecValues.specId],
+    references: [categorySpecs.id],
+  }),
+}));
+
+export const productSpecValueOptionsRelations = relations(productSpecValueOptions, ({ one }) => ({
+  product: one(products, {
+    fields: [productSpecValueOptions.productId],
+    references: [products.id],
+  }),
+  spec: one(categorySpecs, {
+    fields: [productSpecValueOptions.specId],
+    references: [categorySpecs.id],
+  }),
+  option: one(categorySpecOptions, {
+    fields: [productSpecValueOptions.optionId],
+    references: [categorySpecOptions.id],
+  }),
+}));
+
+export const productVariantGroupsRelations = relations(productVariantGroups, ({ one, many }) => ({
+  product: one(products, {
+    fields: [productVariantGroups.productId],
+    references: [products.id],
+  }),
+  options: many(productVariantOptions),
+}));
+
+export const productVariantOptionsRelations = relations(productVariantOptions, ({ one, many }) => ({
+  group: one(productVariantGroups, {
+    fields: [productVariantOptions.groupId],
+    references: [productVariantGroups.id],
+  }),
+  skuOptions: many(productSkuOptions),
+}));
+
+export const productSkusRelations = relations(productSkus, ({ one, many }) => ({
+  product: one(products, { fields: [productSkus.productId], references: [products.id] }),
+  options: many(productSkuOptions),
+}));
+
+export const productSkuOptionsRelations = relations(productSkuOptions, ({ one }) => ({
+  sku: one(productSkus, { fields: [productSkuOptions.skuId], references: [productSkus.id] }),
+  option: one(productVariantOptions, {
+    fields: [productSkuOptions.optionId],
+    references: [productVariantOptions.id],
+  }),
+  group: one(productVariantGroups, {
+    fields: [productSkuOptions.groupId],
+    references: [productVariantGroups.id],
+  }),
+}));
+
+export const productAddonsRelations = relations(productAddons, ({ one }) => ({
+  product: one(products, { fields: [productAddons.productId], references: [products.id] }),
+}));
+
+export const productFaqsRelations = relations(productFaqs, ({ one }) => ({
+  product: one(products, { fields: [productFaqs.productId], references: [products.id] }),
+}));
+
+export const productQuestionsRelations = relations(productQuestions, ({ one, many }) => ({
+  product: one(products, { fields: [productQuestions.productId], references: [products.id] }),
+  options: many(productQuestionOptions),
+}));
+
+export const productQuestionOptionsRelations = relations(productQuestionOptions, ({ one }) => ({
+  question: one(productQuestions, {
+    fields: [productQuestionOptions.questionId],
+    references: [productQuestions.id],
+  }),
+}));
+
+export const attributePresetsRelations = relations(attributePresets, ({ many }) => ({
+  options: many(attributePresetOptions),
+}));
+
+export const attributePresetOptionsRelations = relations(attributePresetOptions, ({ one }) => ({
+  preset: one(attributePresets, {
+    fields: [attributePresetOptions.presetId],
+    references: [attributePresets.id],
   }),
 }));
