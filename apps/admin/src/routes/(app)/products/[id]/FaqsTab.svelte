@@ -118,6 +118,7 @@
 
     <SortableList
       bind:items={faqs}
+      label="FAQ"
       key={(faq) => faq.uid}
       describe={(faq) => faq.question.it || 'this FAQ'}
       onRemove={(index) => faqs.splice(index, 1)}

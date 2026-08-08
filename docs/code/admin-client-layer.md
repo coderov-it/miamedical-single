@@ -183,3 +183,68 @@ the table's place.
 `pager.svelte` reads the `{ page, perPage, total, pageCount }` envelope every
 list endpoint returns and states the range ("1–20 of 337") rather than the page
 number alone, because that answers the question people actually have.
+
+### `sortable-list.svelte` — reordering that says what it does
+
+Used by the Pricing, Variants, SKUs, Addons, FAQs and Questions tabs. Each row
+is an L2 well containing an L3 content card (see
+`docs/code/admin-theme-elevation.md`), opened by a header strip.
+
+The first version put two ghost chevrons in a left gutter and an `X` on the
+right — three bare 24px icons per row, and operators could not tell what they
+were for. Three things were wrong, and none of them was the icon glyphs:
+
+- **Nothing said the list was ordered.** Chevrons only read as "reorder" if you
+  already know position is meaningful. The fix is the ordinal: each row is
+  titled `{label} {n}` — "Question 2", "Package 3". The number is the thing that
+  makes the arrows self-explanatory, so the arrows sit immediately beside it, in
+  the header, not in a gutter at the far edge of the row.
+- **Two ghost buttons read as two unrelated marks.** They are now an attached
+  `ButtonGroup` of `outline` buttons at `icon-sm`. A pair of opposed arrows
+  sharing a border is a single control; two floating glyphs are not. Outline
+  also gives them a surface, which `ghost` denied them until hover.
+- **Destroy was the least legible control on the row.** `X` became a labelled
+  "Remove" with a trash icon and a destructive hover, pushed to the far end so
+  it is not adjacent to the two buttons people click repeatedly.
+
+The reorder pair is omitted entirely at `items.length < 2` — a lone row cannot
+move, and two permanently disabled buttons are just noise to decode.
+
+### `reorder.svelte.ts` — showing the move, not just doing it
+
+Three lists reorder by hand — `sortable-list.svelte`, `spec-field-list.svelte`
+and `media-dropzone.svelte`. All three used to swap instantly: two rows
+exchanged content between frames, and nothing told you which row you had just
+moved or where it had gone. On a tall row the two states can look almost
+identical, so the operator clicks again to check, and now it is genuinely lost.
+
+`Reorder` supplies the two halves of the answer, so the three lists cannot drift
+apart:
+
+- **`flip`** — `animate:flip` params. The rows are already keyed by a stable id
+  (they have to be, see above), which is exactly what `animate:` needs, so the
+  slide costs one directive per list. `duration` scales with distance travelled:
+  a swap moves each row by its neighbour's height, and these lists run from a
+  60px media tile to a 250px questions row, so one flat duration either crawls
+  on the short lists or reads as a jump-cut on the tall ones. It returns `0`
+  under `prefers-reduced-motion`.
+- **`ring(key)`** — a 2px primary ring on the row that moved, faded out by
+  `transition-shadow duration-500` after ~1.1s. This exists because a tall row
+  can travel further than the viewport shows, so the slide alone is not always
+  followable. Being colour rather than motion, it is also the half that survives
+  `prefers-reduced-motion` — which is precisely when the slide is unavailable.
+
+`animate:` only works on an _element_, so `spec-field-list` wraps its
+`Collapsible.Root` in a plain `div` to have something to put it on. Note also
+that a flip animation runs on reorder **and** on removal — the survivors' indices
+change, so they slide up to close the gap — but never on append, which is why
+adding a row still lands instantly.
+
+`label` is the singular noun for a row and defaults to `"Item"`. It is separate
+from `describe`, which yields a row's _content_ ("this question", the FAQ's
+text) and is only ever spoken: it feeds the buttons' `aria-label`, so a screen
+reader hears "Move floor number up" rather than "Move up, button, button".
+
+Tooltips wrap the arrows via the `child` snippet, and the trigger's props are
+composed with `mergeProps` rather than spread — a bare spread would drop the
+trigger's own handlers on the floor, and the tooltip would never open.

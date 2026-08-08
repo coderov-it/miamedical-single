@@ -24,15 +24,20 @@
   import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import type { MediaProfileName } from '@mia/validators';
+  import { mergeProps } from 'bits-ui';
+  import { flip } from 'svelte/animate';
 
   import { Button } from '$lib/components/ui/button/index.js';
+  import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { cn } from '$lib/utils.js';
   import { api, mediaUrl } from '~/lib/api';
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { formatBytes } from '~/lib/format';
   import { uploadFile } from '~/lib/media/upload';
+  import { Reorder } from '~/lib/reorder.svelte';
 
   export interface MediaItem {
     path: string;
@@ -124,6 +129,8 @@
     }
   }
 
+  const reorder = new Reorder();
+
   function move(index: number, delta: number) {
     const target = index + delta;
     if (target < 0 || target >= items.length) return;
@@ -131,6 +138,7 @@
     const [moved] = next.splice(index, 1);
     next.splice(target, 0, moved!);
     items = next;
+    reorder.mark(moved!.path);
   }
 
   function srcFor(item: MediaItem): string | null {
@@ -213,10 +221,39 @@
   />
 
   {#if items.length > 0}
+    {#snippet moveButton(index: number, earlier: boolean)}
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Button
+              {...mergeProps(props, { onclick: () => move(index, earlier ? -1 : 1) })}
+              variant="outline"
+              size="icon-sm"
+              disabled={earlier ? index === 0 : index === items.length - 1}
+              aria-label="Move {earlier ? 'earlier' : 'later'}"
+            >
+              {#if earlier}
+                <ChevronLeftIcon />
+              {:else}
+                <ChevronRightIcon />
+              {/if}
+            </Button>
+          {/snippet}
+        </Tooltip.Trigger>
+        <Tooltip.Content>Move {earlier ? 'earlier' : 'later'}</Tooltip.Content>
+      </Tooltip.Root>
+    {/snippet}
+
     <ul class="mt-3 grid gap-2 sm:grid-cols-2">
       {#each items as item, index (item.path)}
         {@const src = srcFor(item)}
-        <li class="group flex items-start gap-3 rounded-lg border bg-card p-2">
+        <li
+          animate:flip={reorder.flip}
+          class={cn(
+            'group flex items-start gap-3 rounded-lg border bg-card p-2 transition-shadow duration-500',
+            reorder.ring(item.path),
+          )}
+        >
           <div
             class="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted"
           >
@@ -245,38 +282,32 @@
             />
           </div>
 
-          <div class="flex shrink-0 flex-col">
-            {#if !single}
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                class="text-muted-foreground"
-                disabled={index === 0}
-                onclick={() => move(index, -1)}
-                aria-label="Move earlier"
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                class="text-muted-foreground"
-                disabled={index === items.length - 1}
-                onclick={() => move(index, 1)}
-                aria-label="Move later"
-              >
-                <ChevronRightIcon />
-              </Button>
+          <!-- Stacked to fit the tile's height, but the arrows point left/right
+               because the grid wraps: "earlier" and "later" are reading order,
+               not the axis the buttons happen to sit on. -->
+          <div class="flex shrink-0 flex-col items-end gap-1.5">
+            {#if !single && items.length > 1}
+              <ButtonGroup.Root orientation="vertical">
+                {@render moveButton(index, true)}
+                {@render moveButton(index, false)}
+              </ButtonGroup.Root>
             {/if}
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              class="text-muted-foreground hover:text-destructive"
-              onclick={() => void remove(index)}
-              aria-label="Remove {item.path.split('/').at(-1)}"
-            >
-              <XIcon />
-            </Button>
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <Button
+                    {...mergeProps(props, { onclick: () => void remove(index) })}
+                    variant="ghost"
+                    size="icon-sm"
+                    class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    aria-label="Remove {item.path.split('/').at(-1)}"
+                  >
+                    <XIcon />
+                  </Button>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Content>Remove</Tooltip.Content>
+            </Tooltip.Root>
           </div>
         </li>
       {/each}

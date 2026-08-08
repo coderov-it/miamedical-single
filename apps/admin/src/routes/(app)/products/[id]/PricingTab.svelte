@@ -264,6 +264,7 @@
 
         <SortableList
           bind:items={packages}
+          label="Package"
           key={(item) => item.uid}
           describe={(item) => item.name.it || 'this package'}
           onRemove={(index) => packages.splice(index, 1)}
