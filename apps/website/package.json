@@ -17,11 +17,9 @@
     "@astrojs/svelte": "catalog:",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",
-    "@tailwindcss/vite": "catalog:",
     "astro": "catalog:",
     "hono": "catalog:",
-    "svelte": "catalog:",
-    "tailwindcss": "catalog:"
+    "svelte": "catalog:"
   },
   "devDependencies": {
     "@astrojs/check": "catalog:",

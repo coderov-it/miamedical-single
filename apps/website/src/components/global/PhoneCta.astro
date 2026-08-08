@@ -1,0 +1,99 @@
+---
+/**
+ * The free-phone call to action.
+ *
+ * Appears on every screen of the design: hero, sticky bars, empty search
+ * results, catalogue, product detail, support and footer. Treat a phone call as
+ * a successful conversion, not a failed checkout — a large share of this
+ * audience will prefer to speak to someone.
+ *
+ * Zero JavaScript. A `tel:` link is a native affordance.
+ */
+import { CONTACT } from '~/lib/site';
+
+interface Props {
+  variant?: 'primary' | 'secondary' | 'inline';
+  /** Show the "gratis" qualifier. Omit only where space genuinely forbids it. */
+  showFree?: boolean;
+  /** Extra context for assistive tech, e.g. "per aiuto sulla scelta". */
+  srHint?: string | undefined;
+  class?: string;
+}
+
+const { variant = 'primary', showFree = true, srHint, class: className = '' } = Astro.props;
+---
+
+<a
+  href={`tel:${CONTACT.phoneE164}`}
+  class:list={['phone-cta', `phone-cta--${variant}`, className]}
+  data-analytics="phone-call"
+>
+  <svg
+    class="phone-cta__icon"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    aria-hidden="true"
+  >
+    <path
+      d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+    ></path>
+  </svg>
+
+  <span class="phone-cta__number">{CONTACT.phoneDisplay}</span>
+  {showFree && <span class="phone-cta__free">— gratis</span>}
+  {srHint && <span class="sr-only">{srHint}</span>}
+</a>
+
+<style>
+  .phone-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--target-min);
+    padding: var(--sp-3) var(--sp-5);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-heading);
+    /* 17px. The design renders CTA text at 13–14px, below the 16px project
+       floor. Raised deliberately — see tokens.css. */
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .phone-cta--primary {
+    background: var(--c-primary);
+    color: var(--c-primary-ink); /* 8.56:1 */
+  }
+
+  .phone-cta--secondary {
+    background: var(--c-surface);
+    color: var(--c-primary);
+    border: 2px solid var(--c-primary);
+  }
+
+  .phone-cta--inline {
+    padding: 0;
+    color: var(--c-primary);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  .phone-cta__icon {
+    flex: none;
+  }
+
+  .phone-cta__free {
+    font-weight: 400;
+    opacity: 0.9;
+  }
+
+  .phone-cta--inline .phone-cta__free {
+    opacity: 1;
+  }
+</style>

@@ -1,0 +1,514 @@
+---
+/**
+ * Catalogue. Rendered on demand so search, category filter, sort and stock are
+ * always live, and so a deep link like `?q=carrozzina&page=2` is a real URL.
+ *
+ * Pagination is plain `<a>` links with rel=prev/next, and the category chips
+ * carry no per-category count — see the deviations and gaps recorded in
+ * docs/code/storefront-design-system.md.
+ */
+import ProductCard from '~/components/catalog/ProductCard.astro';
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { listCategories, listProducts, safely, type ProductSort } from '~/lib/catalog';
+import { catalogPath, routes } from '~/lib/routes';
+import { CONTACT, SERVICE_AREAS } from '~/lib/site';
+
+export const prerender = false;
+
+const PER_PAGE = 24;
+
+const SORTS: { value: ProductSort; label: string }[] = [
+  { value: 'newest', label: 'Più recenti' },
+  { value: 'price_asc', label: 'Prezzo: dal più basso' },
+  { value: 'price_desc', label: 'Prezzo: dal più alto' },
+  { value: 'title', label: 'Nome A–Z' },
+];
+
+const params = Astro.url.searchParams;
+const q = params.get('q')?.trim() ?? '';
+const categoria = params.get('categoria')?.trim() ?? '';
+const requestedSort = params.get('ordina') ?? '';
+const sort: ProductSort = SORTS.find((option) => option.value === requestedSort)?.value ?? 'newest';
+const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
+
+// Carried over from the home search. Not filters yet — the API matches on text,
+// category and price only — but they are what the confirmation call needs, so
+// they are echoed back rather than silently dropped.
+const zona = params.get('zona')?.trim() ?? '';
+const dal = params.get('dal')?.trim() ?? '';
+const durata = params.get('durata')?.trim() ?? '';
+const zonaLabel = SERVICE_AREAS.find((area) => area.value === zona)?.label ?? '';
+const durataLabel =
+  durata && durata !== '0'
+    ? `per ${durata === '7' ? '1 settimana' : durata === '30' ? '1 mese' : `${durata} giorni`}`
+    : '';
+const dalLabel = dal ? `dal ${dal.split('-').reverse().join('/')}` : '';
+const requestContext = [zonaLabel, dalLabel, durataLabel].filter(Boolean).join(' · ');
+
+const [result, categories] = await Promise.all([
+  safely(
+    () =>
+      listProducts({
+        page,
+        perPage: PER_PAGE,
+        sort,
+        ...(q ? { q } : {}),
+        ...(categoria ? { category: categoria } : {}),
+      }),
+    { data: [], meta: { page, perPage: PER_PAGE, total: 0, pageCount: 1 }, facets: { specs: [] } },
+    'listProducts',
+  ),
+  safely(() => listCategories(), [], 'listCategories'),
+]);
+
+const { data: productList, meta } = result;
+const isFirstPage = meta.page <= 1;
+const isFiltered = Boolean(q || categoria);
+const activeCategory = categories.find((category) => category.code === categoria);
+
+const prevUrl =
+  meta.page > 1 ? catalogPath({ q, categoria, ordina: sort, page: meta.page - 1 }) : null;
+const nextUrl =
+  meta.page < meta.pageCount
+    ? catalogPath({ q, categoria, ordina: sort, page: meta.page + 1 })
+    : null;
+
+const heading = activeCategory ? activeCategory.name : 'Catalogo noleggio';
+const title = isFirstPage
+  ? `${heading} | Roma e Firenze — Mia Medical Italia`
+  : `${heading} — pagina ${meta.page} | Mia Medical Italia`;
+---
+
+<BaseLayout
+  {title}
+  description="Noleggio carrozzine, letti ortopedici, deambulatori e ausili medicali. Prezzi al giorno, IVA inclusa. Consegna e ritiro a domicilio a Roma e Firenze."
+  canonical={new URL(routes.catalog, Astro.site ?? Astro.url.origin).href}
+  noindex={isFiltered || !isFirstPage}
+>
+  <Fragment slot="head">
+    {prevUrl && <link rel="prev" href={prevUrl} />}
+    {nextUrl && <link rel="next" href={nextUrl} />}
+  </Fragment>
+
+  <div class="cat container">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/' },
+        ...(activeCategory
+          ? [{ label: 'Catalogo noleggio', href: routes.catalog }, { label: activeCategory.name }]
+          : [{ label: 'Catalogo noleggio' }]),
+      ]}
+    />
+
+    <header class="cat__head">
+      <h1>{heading}</h1>
+      <p class="cat__lede">Prezzi al giorno, IVA inclusa. Consegna e ritiro a domicilio.</p>
+      <p class="cat__count">
+        {`${meta.total} ${meta.total === 1 ? 'ausilio disponibile' : 'ausili disponibili'}`}
+        {
+          meta.pageCount > 1 && (
+            <span class="cat__page">
+              {' '}
+              · pagina {meta.page} di {meta.pageCount}
+            </span>
+          )
+        }
+      </p>
+      {
+        requestContext && (
+          <p class="cat__context">
+            <strong>La tua richiesta:</strong> {requestContext}. Confermiamo disponibilità e
+            consegna al telefono.
+          </p>
+        )
+      }
+    </header>
+
+    <form class="cat__controls" method="get" role="search" aria-label="Cerca nel catalogo">
+      {categoria && <input type="hidden" name="categoria" value={categoria} />}
+      {zona && <input type="hidden" name="zona" value={zona} />}
+      {dal && <input type="hidden" name="dal" value={dal} />}
+      {durata && <input type="hidden" name="durata" value={durata} />}
+
+      <div class="cat__field">
+        <label for="catalogo-q">Cerca un ausilio</label>
+        <input
+          id="catalogo-q"
+          type="search"
+          name="q"
+          value={q}
+          placeholder="Es. carrozzina, letto…"
+        />
+      </div>
+
+      <div class="cat__field cat__field--sort">
+        <label for="catalogo-ordina">Ordina per</label>
+        <select id="catalogo-ordina" name="ordina">
+          {
+            SORTS.map((option) => (
+              <option value={option.value} selected={option.value === sort}>
+                {option.label}
+              </option>
+            ))
+          }
+        </select>
+      </div>
+
+      <button class="cat__submit" type="submit">Applica</button>
+      {
+        isFiltered && (
+          <a class="cat__reset" href={routes.catalog}>
+            Azzera i filtri
+          </a>
+        )
+      }
+    </form>
+
+    {
+      categories.length > 0 && (
+        <section class="cat__browse" aria-labelledby="browse-title">
+          <h2 id="browse-title" class="cat__h2">
+            Sfoglia per categoria
+          </h2>
+          {/*
+            A wrapped grid of links, deliberately NOT the design's horizontal
+            overflow scroller: at 200% zoom and 400% reflow the right-hand items
+            become undiscoverable, and it reintroduces horizontal scrolling.
+          */}
+          <ul class="chips">
+            <li>
+              <a
+                class:list={['chip', !categoria && 'is-active']}
+                href={catalogPath({ q, ordina: sort })}
+                aria-current={!categoria ? 'true' : undefined}
+              >
+                Tutte
+              </a>
+            </li>
+            {categories.map((category) => (
+              <li>
+                <a
+                  class:list={['chip', category.code === categoria && 'is-active']}
+                  href={catalogPath({ q, categoria: category.code, ordina: sort })}
+                  aria-current={category.code === categoria ? 'true' : undefined}
+                >
+                  {category.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section aria-labelledby="products-title">
+      <h2 id="products-title" class="cat__h2">
+        {q ? `Risultati per “${q}”` : 'Tutti i prodotti'}
+      </h2>
+
+      {
+        productList.length === 0 ? (
+          <div class="empty">
+            <p class="empty__title">Nessun prodotto trovato.</p>
+            <p>Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo.</p>
+            <PhoneCta variant="primary" />
+          </div>
+        ) : (
+          <ul class="grid">
+            {productList.map((product, index) => (
+              <li>
+                <ProductCard
+                  product={product}
+                  priority={isFirstPage && index === 0}
+                  headingLevel={3}
+                />
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </section>
+
+    {
+      meta.pageCount > 1 && (
+        <nav class="pager" aria-label="Pagine del catalogo">
+          {prevUrl ? (
+            <a class="pager__link" href={prevUrl} rel="prev">
+              ← Pagina precedente
+            </a>
+          ) : (
+            <span class="pager__link pager__link--off" aria-hidden="true">
+              ← Pagina precedente
+            </span>
+          )}
+
+          <p class="pager__status">
+            Pagina {meta.page} di {meta.pageCount}
+          </p>
+
+          {nextUrl ? (
+            <a class="pager__link" href={nextUrl} rel="next">
+              Pagina successiva →
+            </a>
+          ) : (
+            <span class="pager__link pager__link--off" aria-hidden="true">
+              Pagina successiva →
+            </span>
+          )}
+        </nav>
+      )
+    }
+
+    <section class="help" aria-labelledby="help-title">
+      <h2 id="help-title" class="cat__h2">Non trovi quello che cerchi?</h2>
+      <p>Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo.</p>
+      <p class="help__hours">{CONTACT.hours.it}</p>
+      <PhoneCta variant="primary" />
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .cat {
+    padding-bottom: var(--sp-13);
+  }
+
+  .cat__head {
+    padding-block: var(--sp-4) var(--sp-6);
+  }
+
+  .cat__lede {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-body-lg);
+    color: var(--c-ink-secondary);
+    max-width: 56ch;
+  }
+
+  .cat__count {
+    margin-top: var(--sp-3);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 600;
+    color: var(--c-ink-secondary);
+  }
+
+  .cat__context {
+    margin-top: var(--sp-4);
+    padding: var(--sp-4) var(--sp-5);
+    border: 1px solid var(--c-surface-accent);
+    border-radius: 16px;
+    background: var(--c-surface-tint);
+    font-size: var(--fs-ui);
+    line-height: var(--lh-body);
+  }
+
+  .cat__controls {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-8);
+    padding: var(--sp-5);
+    border: 1px solid var(--c-border);
+    border-radius: 18px;
+    background: var(--c-surface);
+  }
+
+  .cat__field {
+    display: grid;
+    flex: 1 1 260px;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  .cat__field--sort {
+    flex: 0 1 240px;
+  }
+
+  .cat__submit {
+    flex: none;
+    min-height: var(--target-min);
+    padding-inline: var(--sp-6);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--c-primary);
+    color: var(--c-primary-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .cat__reset {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: var(--sp-3);
+    color: var(--c-ink-secondary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 600;
+  }
+
+  .cat__h2 {
+    font-size: var(--fs-h3);
+    margin-bottom: var(--sp-4);
+  }
+
+  .cat__browse {
+    padding-bottom: var(--sp-8);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--target-gap);
+    list-style: none;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--target-min);
+    padding: var(--sp-2) var(--sp-4);
+    border: 2px solid var(--c-border-strong);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 600;
+    color: var(--c-ink);
+    background: var(--c-surface);
+    text-decoration: none;
+  }
+
+  .chip.is-active {
+    border-color: var(--c-primary);
+    background: var(--c-surface-tint);
+    color: var(--c-primary);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-6);
+    list-style: none;
+  }
+
+  .grid > li {
+    display: flex;
+  }
+
+  .empty {
+    display: grid;
+    gap: var(--sp-3);
+    justify-items: start;
+    padding: var(--sp-8);
+    border: 2px dashed var(--c-border-strong);
+    border-radius: var(--radius-lg);
+  }
+
+  .empty__title {
+    font-family: var(--font-heading);
+    font-size: var(--fs-h4);
+    font-weight: 700;
+  }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin-top: var(--sp-10);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--c-border);
+  }
+
+  .pager__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding: var(--sp-3) var(--sp-5);
+    border: 2px solid var(--c-primary);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    color: var(--c-primary);
+    text-decoration: none;
+  }
+
+  .pager__link--off {
+    border-color: var(--c-border);
+    color: var(--c-ink-secondary);
+  }
+
+  .pager__status {
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 600;
+    color: var(--c-ink-secondary);
+  }
+
+  .help {
+    display: grid;
+    gap: var(--sp-3);
+    justify-items: start;
+    margin-top: var(--sp-13);
+    padding: var(--sp-8);
+    background: var(--c-surface-tint);
+    border-radius: var(--radius-lg);
+  }
+
+  .help__hours {
+    font-size: var(--fs-ui);
+    color: var(--c-ink-secondary);
+  }
+
+  /* Desktop design: 4 across. Mobile design: one column of full-width cards.
+     Two intermediate steps keep line length and tap targets sane on tablets and
+     at high zoom. */
+  @media (max-width: 1100px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 620px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-4);
+    }
+    .cat__controls {
+      padding: var(--sp-4);
+    }
+    .cat__field,
+    .cat__field--sort {
+      flex: 1 1 100%;
+    }
+    .cat__submit {
+      width: 100%;
+    }
+    .pager {
+      justify-content: stretch;
+    }
+    .pager__link {
+      flex: 1;
+      justify-content: center;
+    }
+    .pager__status {
+      order: -1;
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>

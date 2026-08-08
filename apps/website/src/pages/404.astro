@@ -1,11 +1,71 @@
 ---
+import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { routes } from '~/lib/routes';
+import { CONTACT } from '~/lib/site';
+
+/**
+ * On demand, not prerendered. Astro forbids rewriting from an on-demand route
+ * to a prerendered one, and the product and legal routes both `rewrite('/404')`
+ * when a slug does not resolve. The page reads nothing, so rendering it per
+ * request costs nothing worth measuring.
+ */
+export const prerender = false;
 ---
 
-<BaseLayout title="Not found — Mia Medical" noindex>
-  <section class="py-24 text-center">
-    <h1 class="text-3xl font-semibold">Page not found</h1>
-    <p class="mt-3 text-neutral-500">The page you were looking for doesn't exist.</p>
-    <a href="/" class="mt-6 inline-block text-brand-600 hover:underline">Back to home</a>
-  </section>
+<BaseLayout
+  title="Pagina non trovata | Mia Medical Italia"
+  description="La pagina che cercavi non esiste più. Sfoglia il catalogo o chiamaci: ti aiutiamo noi."
+  noindex
+>
+  <div class="notfound container">
+    <h1>Questa pagina non c'è più</h1>
+    <p>
+      Forse il prodotto è stato spostato o l'indirizzo è stato digitato male. Puoi ripartire dal
+      catalogo, oppure chiamarci: ti diciamo subito dove trovare quello che cerchi.
+    </p>
+
+    <div class="notfound__actions">
+      <a class="notfound__browse" href={routes.catalog}>Vai al catalogo</a>
+      <PhoneCta variant="secondary" />
+    </div>
+
+    <p class="notfound__hours">{CONTACT.hours.it}</p>
+  </div>
 </BaseLayout>
+
+<style>
+  .notfound {
+    display: grid;
+    justify-items: start;
+    gap: var(--sp-4);
+    max-width: 62ch;
+    padding-block: var(--sp-13);
+  }
+
+  .notfound__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-top: var(--sp-2);
+  }
+
+  .notfound__browse {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: var(--sp-6);
+    border-radius: var(--radius-pill);
+    background: var(--c-primary);
+    color: var(--c-primary-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .notfound__hours {
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+  }
+</style>

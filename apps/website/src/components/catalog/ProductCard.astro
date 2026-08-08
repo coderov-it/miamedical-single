@@ -1,0 +1,296 @@
+---
+/**
+ * Product card. Zero JavaScript, used on every catalogue and rail surface.
+ *
+ * Everything here is a link and an image — there is no reason for this to be a
+ * framework component. It takes the API's product summary directly, so the
+ * mapping lives in one place instead of being reshuffled per page.
+ *
+ * The media box has fixed dimensions and the image is `object-fit: contain`
+ * inside it, which holds CLS at zero without intrinsic width/height attributes
+ * (the API does not expose image dimensions).
+ */
+import { availabilityLabel, cardPrice, mediaUrl } from '~/lib/api';
+import type { ProductSummary } from '~/lib/catalog';
+import { productPath } from '~/lib/routes';
+
+interface Props {
+  product: ProductSummary;
+  /** Marks the LCP candidate. Set on the first card of the first grid only. */
+  priority?: boolean;
+  /** Heading level, so the card fits the host page's outline. */
+  headingLevel?: 2 | 3;
+  /** Optional shorter label for constrained promotional rails. */
+  displayTitle?: string;
+}
+
+const { product, priority = false, headingLevel = 3, displayTitle } = Astro.props;
+
+const href = productPath(product.slug);
+const image = product.thumbnail;
+const availability = availabilityLabel(product.inStock);
+const price = cardPrice(product.pricing);
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const ctaLabel = product.pricing.mode === 'rental' ? 'Vedi e noleggia' : 'Vedi prodotto';
+---
+
+<article class="card">
+  <a class="card__link" href={href}>
+    <div class="card__media">
+      {
+        image ? (
+          <img
+            src={mediaUrl(image.path)}
+            alt=""
+            loading={priority ? 'eager' : 'lazy'}
+            fetchpriority={priority ? 'high' : 'auto'}
+            decoding={priority ? 'sync' : 'async'}
+          />
+        ) : (
+          <div class="card__media-empty" aria-hidden="true" />
+        )
+      }
+    </div>
+
+    <div class="card__body">
+      <Heading class="card__title">{displayTitle ?? product.title}</Heading>
+
+      <div class="card__meta">
+        {
+          price && (
+            <p class="card__rate">
+              {price.prefix && `${price.prefix} `}
+              <strong>{price.text}</strong>
+            </p>
+          )
+        }
+
+        <p class:list={['card__avail', !product.inStock && 'card__avail--out']}>
+          <span class="card__dot" aria-hidden="true"></span>
+          {availability}
+        </p>
+      </div>
+
+      {
+        /* Affordance only. The whole card is the link, so this must not be a
+          nested <a> — that would give one destination two tab stops. */
+      }
+      <span class="card__cta" aria-hidden="true">{ctaLabel}</span>
+    </div>
+
+    <span class="card__mobile-cta" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m9 6 6 6-6 6"></path>
+      </svg>
+    </span>
+  </a>
+</article>
+
+<style>
+  .card {
+    display: flex;
+    width: 100%;
+    padding: var(--sp-4);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .card__link {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card__media {
+    height: 182px;
+    padding: 10px;
+    border: 1px solid var(--c-surface-tint-alt);
+    border-radius: 14px;
+    background: var(--c-page);
+    overflow: hidden;
+  }
+
+  .card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
+  .card__media-empty {
+    width: 100%;
+    height: 100%;
+  }
+
+  .card__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .card__title {
+    min-height: 2.7em;
+    color: var(--c-ink);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    line-height: 1.35;
+    /* Product names are long; normal wrapping reads better than balance here. */
+    text-wrap: normal;
+  }
+
+  .card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+  }
+
+  .card__avail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    font-size: var(--fs-ui);
+    /* Not colour-only: the text label carries the meaning, the dot decorates. */
+    color: var(--c-success);
+    font-weight: 600;
+  }
+
+  .card__avail--out {
+    color: var(--c-ink-secondary);
+  }
+
+  .card__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+  }
+
+  .card__rate {
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .card__rate strong {
+    color: inherit;
+    font-size: inherit;
+  }
+
+  .card__cta {
+    display: flex;
+    min-height: var(--target-min);
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    border: 1px solid var(--c-border-accent);
+    border-radius: 12px;
+    background: var(--c-surface-tint);
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+  }
+
+  .card__mobile-cta {
+    display: none;
+  }
+
+  /* Hover is a bonus, never the only affordance. */
+  .card:hover {
+    border-color: #a9badf;
+  }
+
+  /* The ring belongs on the card, not only the inner link. */
+  .card:focus-within {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+    box-shadow: var(--focus-halo);
+  }
+
+  @media (max-width: 720px) {
+    .card {
+      min-height: 116px;
+      padding: 14px;
+      border-radius: 16px;
+    }
+
+    .card__link {
+      align-items: center;
+      flex-direction: row;
+      gap: 14px;
+    }
+
+    .card__media {
+      width: 86px;
+      height: 86px;
+      flex: 0 0 86px;
+      padding: 6px;
+      border-radius: 12px;
+    }
+
+    .card__body {
+      min-width: 0;
+      gap: 3px;
+      padding: 0;
+    }
+
+    .card__title {
+      min-height: 0;
+      font-size: var(--fs-ui);
+      line-height: 1.35;
+    }
+
+    .card__meta {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .card__rate,
+    .card__avail {
+      font-size: var(--fs-ui);
+    }
+
+    .card__cta {
+      display: none;
+    }
+
+    .card__mobile-cta {
+      display: flex;
+      min-width: 48px;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+      color: var(--c-ink-secondary);
+      font-family: var(--font-heading);
+      font-size: var(--fs-ui);
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .card__mobile-cta svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+</style>

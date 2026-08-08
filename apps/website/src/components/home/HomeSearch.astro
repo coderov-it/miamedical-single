@@ -1,0 +1,659 @@
+---
+/**
+ * Primary home-page rental search.
+ *
+ * A native GET form keeps every field usable without hydration and represents
+ * the chosen criteria in the destination URL. A small inline enhancement copies
+ * a selected suggestion into the search field without navigating away.
+ *
+ * `zona`, `dal` and `durata` are carried to the catalogue but are not filters
+ * yet — see docs/code/storefront-design-system.md.
+ */
+import type { ProductSummary } from '~/lib/catalog';
+import { routes } from '~/lib/routes';
+import { SERVICE_AREAS } from '~/lib/site';
+
+interface Props {
+  suggestions: ProductSummary[];
+}
+
+const { suggestions } = Astro.props;
+const suggestedProducts = suggestions.slice(0, 5);
+
+const durations = [
+  { value: '7', label: '1 settimana' },
+  { value: '15', label: '15 giorni' },
+  { value: '30', label: '1 mese' },
+  { value: '60', label: '2 mesi o più' },
+  { value: '0', label: 'Non lo so ancora' },
+] as const;
+---
+
+<section class="home-search" aria-labelledby="home-search-title">
+  <header class="home-search__intro">
+    <h2 id="home-search-title">Dove e quando ti serve l’ausilio?</h2>
+    <p id="home-search-description">Consegniamo a domicilio a Roma e Firenze.</p>
+  </header>
+
+  <form
+    method="get"
+    action={routes.catalog}
+    role="search"
+    aria-label="Cerca disponibilità per un ausilio a noleggio"
+    aria-describedby="home-search-description"
+  >
+    <div class="home-search__fields">
+      <div class="home-search__field home-search__field--product" data-search-field>
+        <label for="home-product-search">Ausilio</label>
+        <div class="home-search__control">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m20 20-4.2-4.2"></path>
+          </svg>
+          <input
+            id="home-product-search"
+            name="q"
+            type="search"
+            enterkeyhint="next"
+            autocomplete="off"
+            placeholder="Es. carrozzina, letto…"
+          />
+          <button
+            type="button"
+            class="home-search__chevron-target"
+            aria-label="Mostra gli ausili suggeriti"
+            aria-controls="home-product-suggestions"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m7 9.5 5 5 5-5"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div id="home-product-suggestions" class="home-search__suggestions">
+          <p>Ausili più richiesti</p>
+          <ul aria-label="Ausili suggeriti">
+            {
+              suggestedProducts.map((product) => (
+                <li>
+                  <button type="button" data-search-suggestion={product.title}>
+                    <span>{product.title}</span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="m13 6 6 6-6 6" />
+                    </svg>
+                  </button>
+                </li>
+              ))
+            }
+          </ul>
+          <a class="home-search__all" href={routes.catalog}>
+            Vedi tutti gli ausili
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="home-search__field home-search__field--area">
+        <label for="home-area-search">Zona</label>
+        <div class="home-search__control">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"></path>
+            <circle cx="12" cy="10" r="2.5"></circle>
+          </svg>
+          <select id="home-area-search" name="zona">
+            {SERVICE_AREAS.map((area) => <option value={area.value}>{area.label}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div class="home-search__field home-search__field--date">
+        <label for="home-start-search">Da quando</label>
+        <div class="home-search__control">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+            <path d="M16 3v4M8 3v4M3 10h18"></path>
+          </svg>
+          <input id="home-start-search" name="dal" type="date" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="home-search__field home-search__field--duration">
+        <label for="home-duration-search">Per quanto</label>
+        <div class="home-search__control">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7v5l3 2"></path>
+          </svg>
+          <select id="home-duration-search" name="durata">
+            {durations.map((duration) => <option value={duration.value}>{duration.label}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <button class="home-search__submit" type="submit">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.3"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="m20 20-4.2-4.2"></path>
+        </svg>
+        Cerca
+      </button>
+    </div>
+  </form>
+</section>
+
+<style>
+  .home-search {
+    min-width: 0;
+    padding: 27px 30px 30px;
+    border: 1px solid rgb(46 70 153 / 0.14);
+    border-radius: 22px;
+    background: rgb(255 255 255 / 0.98);
+    box-shadow:
+      0 20px 48px rgb(33 53 119 / 0.11),
+      0 4px 12px rgb(27 36 55 / 0.04);
+  }
+
+  .home-search__intro {
+    margin-bottom: 22px;
+  }
+
+  .home-search__intro h2 {
+    margin: 0;
+    color: var(--c-ink);
+    font-size: clamp(1.35rem, 1.75vw, 1.65rem);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .home-search__intro p {
+    margin: 5px 0 0;
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-body);
+    line-height: 1.45;
+  }
+
+  .home-search__fields {
+    display: grid;
+    min-width: 0;
+    grid-template-columns:
+      minmax(0, 1.45fr) minmax(0, 0.9fr) minmax(0, 0.9fr)
+      minmax(0, 0.9fr) minmax(170px, 0.72fr);
+    align-items: end;
+    gap: 14px;
+  }
+
+  .home-search__field {
+    display: grid;
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .home-search__field--product {
+    position: relative;
+    z-index: 2;
+  }
+
+  .home-search__field > label {
+    margin: 0;
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .home-search__control {
+    display: grid;
+    min-width: 0;
+    min-height: 64px;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    padding-inline: 15px;
+    border: 1px solid var(--c-border-accent);
+    border-radius: 13px;
+    background: var(--c-surface);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .home-search__control:focus-within {
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px rgb(46 70 153 / 0.1);
+  }
+
+  .home-search__control > svg {
+    width: 24px;
+    height: 24px;
+    color: var(--c-primary);
+  }
+
+  .home-search__chevron-target {
+    display: grid;
+    width: 48px;
+    height: 60px;
+    place-items: center;
+    margin-right: -10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--c-ink-secondary);
+    cursor: pointer;
+  }
+
+  .home-search__chevron-target svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 160ms ease;
+  }
+
+  .home-search__field--product:focus-within .home-search__chevron-target svg,
+  .home-search__field--product[data-open] .home-search__chevron-target svg {
+    transform: rotate(180deg);
+  }
+
+  .home-search__control input,
+  .home-search__control select {
+    width: 100%;
+    min-width: 0;
+    min-height: 60px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--c-ink);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    font-weight: 600;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-search__control input:focus,
+  .home-search__control select:focus {
+    outline: 0;
+    box-shadow: none;
+  }
+
+  .home-search__control input::placeholder {
+    color: #8a93a5;
+    opacity: 1;
+  }
+
+  .home-search__suggestions {
+    position: absolute;
+    top: calc(100% + 9px);
+    left: 0;
+    z-index: 20;
+    width: min(460px, calc(100vw - 48px));
+    padding: 9px;
+    border: 1px solid rgb(46 70 153 / 0.14);
+    border-radius: 16px;
+    background: var(--c-surface);
+    box-shadow:
+      0 22px 54px rgb(27 36 55 / 0.18),
+      0 4px 14px rgb(27 36 55 / 0.08);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+    transition:
+      opacity 140ms ease,
+      transform 140ms ease,
+      visibility 140ms ease;
+    visibility: hidden;
+  }
+
+  .home-search__field--product:focus-within .home-search__suggestions,
+  .home-search__field--product[data-open] .home-search__suggestions {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  .home-search__suggestions > p {
+    margin: 0;
+    padding: 8px 10px 7px;
+    color: var(--c-ink-secondary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .home-search__suggestions ul {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .home-search__suggestions li {
+    min-width: 0;
+  }
+
+  .home-search__suggestions li button {
+    display: grid;
+    width: 100%;
+    min-height: 48px;
+    grid-template-columns: minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 11px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--c-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .home-search__suggestions li button:hover,
+  .home-search__suggestions li button:focus-visible {
+    background: var(--c-surface-tint);
+    color: var(--c-primary);
+  }
+
+  .home-search__suggestions li button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-search__suggestions li button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .home-search__all {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 7px;
+    padding: 9px 11px 7px;
+    border-top: 1px solid var(--c-border);
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .home-search__submit {
+    display: inline-flex;
+    min-width: 170px;
+    min-height: 64px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-inline: 20px;
+    border: 0;
+    border-radius: 13px;
+    background: var(--c-primary);
+    box-shadow: 0 6px 16px rgb(46 70 153 / 0.18);
+    color: var(--c-primary-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .home-search__submit:hover {
+    background: #24397f;
+    box-shadow: 0 8px 20px rgb(46 70 153 / 0.24);
+    transform: translateY(-1px);
+  }
+
+  .home-search__submit svg {
+    width: 22px;
+    height: 22px;
+    flex: none;
+  }
+
+  @media (min-width: 901px) and (max-width: 1100px) {
+    .home-search {
+      padding: 18px 20px 21px;
+    }
+
+    .home-search__intro {
+      margin-bottom: 16px;
+    }
+
+    .home-search__fields {
+      grid-template-columns:
+        minmax(0, 1.35fr) minmax(0, 0.85fr) minmax(0, 0.9fr)
+        minmax(0, 0.9fr) minmax(145px, 0.68fr);
+      gap: 9px;
+    }
+
+    .home-search__control {
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      gap: 7px;
+      padding-inline: 10px;
+    }
+
+    .home-search__control > svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .home-search__control input,
+    .home-search__control select {
+      font-size: var(--fs-ui);
+    }
+
+    .home-search__submit {
+      min-width: 145px;
+      padding-inline: 12px;
+      font-size: var(--fs-ui);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .home-search {
+      padding: 23px;
+      border-radius: 20px;
+    }
+
+    .home-search__intro {
+      margin-bottom: 20px;
+    }
+
+    .home-search__fields {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 14px;
+    }
+
+    .home-search__field--product {
+      grid-column: 1 / -1;
+    }
+
+    .home-search__submit {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .home-search {
+      padding: 19px;
+    }
+
+    .home-search__intro h2 {
+      font-size: 1.4rem;
+    }
+
+    .home-search__intro p {
+      font-size: var(--fs-ui-strong);
+    }
+
+    .home-search__fields {
+      gap: 12px;
+    }
+
+    .home-search__control {
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      gap: 8px;
+      padding-inline: 11px;
+    }
+
+    .home-search__control > svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .home-search__control input,
+    .home-search__control select {
+      font-size: var(--fs-ui);
+    }
+
+    .home-search__submit {
+      font-size: var(--fs-ui-strong);
+    }
+
+    .home-search__suggestions {
+      width: min(430px, calc(100vw - 78px));
+      max-height: 250px;
+      overflow-y: auto;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .home-search {
+      padding-inline: 15px;
+    }
+
+    .home-search__fields {
+      grid-template-columns: 1fr;
+    }
+
+    .home-search__field--product {
+      grid-column: auto;
+    }
+  }
+</style>
+
+<script>
+  const field = document.querySelector<HTMLElement>('[data-search-field]');
+  if (field) {
+    const input = field.querySelector<HTMLInputElement>('input');
+    const chevron = field.querySelector<HTMLButtonElement>('.home-search__chevron-target');
+    const suggestions = field.querySelectorAll<HTMLButtonElement>('[data-search-suggestion]');
+
+    const open = () => field.setAttribute('data-open', '');
+    const close = () => {
+      field.removeAttribute('data-open');
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && field.contains(active)) {
+        active.blur();
+      }
+    };
+    const isOpen = () => field.hasAttribute('data-open');
+
+    input?.addEventListener('focus', open);
+
+    chevron?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (isOpen()) close();
+      else {
+        open();
+        input?.focus();
+      }
+    });
+
+    suggestions.forEach((suggestion) => {
+      suggestion.addEventListener('click', () => {
+        if (input) {
+          input.value = suggestion.dataset.searchSuggestion ?? '';
+        }
+        close();
+      });
+    });
+
+    field.addEventListener('focusout', (event) => {
+      const nextTarget = event.relatedTarget;
+      if (!(nextTarget instanceof Node) || !field.contains(nextTarget)) {
+        close();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!field.contains(event.target as Node)) close();
+    });
+
+    field.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') close();
+    });
+  }
+</script>

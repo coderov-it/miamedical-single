@@ -1,0 +1,581 @@
+---
+/**
+ * The product configurator inside the buy box.
+ *
+ * A native GET form whose field names come from `request-config.ts`. Nothing is
+ * priced in the browser and the CTA sends a request, never a payment — see
+ * docs/code/storefront-design-system.md.
+ */
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import { formatMoney, formatPricing } from '~/lib/api';
+import type { ProductDetail } from '~/lib/catalog';
+import { FIELD, MAX_QUANTITY, QUESTION_PREFIX, VARIANT_PREFIX } from '~/lib/request-config';
+import { routes } from '~/lib/routes';
+
+interface Props {
+  product: ProductDetail;
+}
+
+const { product } = Astro.props;
+
+const isRental = product.pricing.mode === 'rental';
+const inStock = product.skus.length === 0 || product.skus.some((sku) => sku.inStock);
+
+const signed = (amount: string, currency: string) =>
+  `${Number(amount) > 0 ? '+' : ''}${formatMoney(amount, currency)}`;
+
+const today = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Rome',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
+---
+
+{
+  inStock ? (
+    <form class="quote" id="quote-form" method="get" action={routes.cart}>
+      <input type="hidden" name={FIELD.product} value={product.slug} />
+
+      {/*
+        One branch per value shape. A group whose shape has no control here would
+        silently vanish from the form, so `string` and `multi_select` are handled
+        explicitly rather than falling through to a select.
+      */}
+      {product.variants.map((group) => {
+        const name = `${VARIANT_PREFIX}${group.key}`;
+        const multiple = group.valueType === 'multi_select';
+
+        if (group.options.length > 0) {
+          return (
+            <fieldset class="quote__set">
+              <legend class="quote__legend">
+                {group.label}
+                {!group.isRequired && <span class="quote__optional"> (facoltativo)</span>}
+              </legend>
+              {group.helpText && <p class="quote__help">{group.helpText}</p>}
+              <ul class="tiers">
+                {group.options.map((option, index) => (
+                  <li>
+                    <input
+                      class="tiers__input sr-only"
+                      type={multiple ? 'checkbox' : 'radio'}
+                      name={name}
+                      id={`v-${group.id}-${option.id}`}
+                      value={option.value}
+                      checked={multiple ? option.isDefault : option.isDefault || index === 0}
+                      required={group.isRequired && !multiple}
+                    />
+                    <label class="tiers__label" for={`v-${group.id}-${option.id}`}>
+                      <span class="tiers__name">{option.label}</span>
+                      {option.priceModifier.amount !== '0.00' && (
+                        <span class="tiers__price">
+                          {signed(option.priceModifier.amount, option.priceModifier.currency)}
+                        </span>
+                      )}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+          );
+        }
+
+        if (group.valueType === 'number' || group.valueType === 'number_range') {
+          return (
+            <div class="quote__row">
+              <label for={`v-${group.id}`}>
+                {group.unit ? `${group.label} (${group.unit})` : group.label}
+              </label>
+              <input
+                id={`v-${group.id}`}
+                type="number"
+                name={name}
+                min={group.min ?? undefined}
+                max={group.max ?? undefined}
+                step={group.step ?? undefined}
+                required={group.isRequired}
+                inputmode="numeric"
+              />
+              {group.helpText && <p class="field-hint">{group.helpText}</p>}
+            </div>
+          );
+        }
+
+        return (
+          <div class="quote__row">
+            <label for={`v-${group.id}`}>{group.label}</label>
+            <input
+              id={`v-${group.id}`}
+              type="text"
+              name={name}
+              maxlength="300"
+              required={group.isRequired}
+            />
+            {group.helpText && <p class="field-hint">{group.helpText}</p>}
+          </div>
+        );
+      })}
+
+      {isRental && (
+        <div class="quote__row">
+          <label for={`inizio-${product.id}`}>Da quando ti serve?</label>
+          <input id={`inizio-${product.id}`} type="date" name={FIELD.startDate} min={today} />
+        </div>
+      )}
+
+      {product.addons.length > 0 && (
+        <fieldset class="quote__set">
+          <legend class="quote__legend">Vuoi aggiungere qualcosa?</legend>
+          <ul class="addons">
+            {product.addons.map((addon) => (
+              <li class="addon">
+                {/*
+                  A required add-on is shown checked and disabled so it cannot be
+                  removed. A disabled control is not submitted, which is fine:
+                  the summary re-adds every required add-on from the product
+                  itself rather than trusting the URL.
+                */}
+                <input
+                  class="addon__input"
+                  type="checkbox"
+                  name={FIELD.addon}
+                  id={`addon-${addon.id}`}
+                  value={addon.id}
+                  checked={addon.isRequired}
+                  disabled={addon.isRequired}
+                />
+                <label class="addon__label" for={`addon-${addon.id}`}>
+                  <span class="addon__name">
+                    {addon.name}
+                    {addon.isRequired && <span class="addon__required"> — incluso</span>}
+                  </span>
+                  <span class="addon__price">{formatPricing(addon.pricing)}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      )}
+
+      {product.questions.length > 0 && (
+        <fieldset class="quote__set">
+          <legend class="quote__legend">Qualche informazione per la consegna</legend>
+          <p class="quote__help">
+            Ci serve per organizzare il trasporto. Se preferisci, ce lo dici al telefono.
+          </p>
+
+          {product.questions.map((question) => {
+            const name = `${QUESTION_PREFIX}${question.key}`;
+
+            if (question.options.length > 0) {
+              const multiple = question.valueType === 'multi_select';
+              return (
+                <fieldset class="quote__subset">
+                  <legend class="quote__sublegend">{question.prompt}</legend>
+                  {question.helpText && <p class="field-hint">{question.helpText}</p>}
+                  <ul class="tiers">
+                    {question.options.map((option) => (
+                      <li>
+                        <input
+                          class="tiers__input sr-only"
+                          type={multiple ? 'checkbox' : 'radio'}
+                          name={name}
+                          id={`q-${question.id}-${option.id}`}
+                          value={option.value}
+                        />
+                        <label class="tiers__label" for={`q-${question.id}-${option.id}`}>
+                          <span class="tiers__name">{option.label}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </fieldset>
+              );
+            }
+
+            if (question.valueType === 'boolean') {
+              return (
+                <fieldset class="quote__subset">
+                  <legend class="quote__sublegend">{question.prompt}</legend>
+                  {question.helpText && <p class="field-hint">{question.helpText}</p>}
+                  <ul class="tiers">
+                    {[
+                      { value: 'si', label: 'Sì' },
+                      { value: 'no', label: 'No' },
+                    ].map((option) => (
+                      <li>
+                        <input
+                          class="tiers__input sr-only"
+                          type="radio"
+                          name={name}
+                          id={`q-${question.id}-${option.value}`}
+                          value={option.value}
+                        />
+                        <label class="tiers__label" for={`q-${question.id}-${option.value}`}>
+                          <span class="tiers__name">{option.label}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </fieldset>
+              );
+            }
+
+            return (
+              <div class="quote__row">
+                <label for={`q-${question.id}`}>{question.prompt}</label>
+                {question.valueType === 'text' ? (
+                  <textarea
+                    id={`q-${question.id}`}
+                    name={name}
+                    rows="3"
+                    maxlength={question.maxLength ?? 300}
+                  />
+                ) : (
+                  <input
+                    id={`q-${question.id}`}
+                    name={name}
+                    type={
+                      question.valueType === 'number'
+                        ? 'number'
+                        : question.valueType === 'date'
+                          ? 'date'
+                          : 'text'
+                    }
+                    min={question.min ?? undefined}
+                    max={question.max ?? undefined}
+                    maxlength={
+                      question.valueType === 'string' ? (question.maxLength ?? 300) : undefined
+                    }
+                  />
+                )}
+                {question.helpText && <p class="field-hint">{question.helpText}</p>}
+              </div>
+            );
+          })}
+        </fieldset>
+      )}
+
+      <div class="quote__qty-row">
+        <label for={`qta-${product.id}`}>Quantità</label>
+        <div class="quote__qty-controls">
+          <button type="button" class="quote__qty-btn" data-qty-dec aria-label="Riduci quantità">
+            −
+          </button>
+          <input
+            id={`qta-${product.id}`}
+            type="number"
+            name={FIELD.quantity}
+            value="1"
+            min="1"
+            max={MAX_QUANTITY}
+            class="quote__qty-input"
+            inputmode="numeric"
+          />
+          <button type="button" class="quote__qty-btn" data-qty-inc aria-label="Aumenta quantità">
+            +
+          </button>
+        </div>
+      </div>
+
+      <div class="quote__total">
+        <span class="quote__total-label">{isRental ? 'Noleggio da' : 'Prezzo'}</span>
+        <span class="quote__total-values">{formatPricing(product.pricing)}</span>
+      </div>
+
+      <button class="quote__cta" type="submit">
+        {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
+      </button>
+    </form>
+  ) : (
+    <div class="quote quote--empty">
+      <p>
+        Questo ausilio è momentaneamente esaurito. Chiamaci: spesso abbiamo un modello equivalente
+        disponibile subito.
+      </p>
+      <PhoneCta variant="primary" />
+    </div>
+  )
+}
+
+<script>
+  document.querySelectorAll('[data-qty-dec], [data-qty-inc]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const row = button.closest('.quote__qty-row');
+      const input = row?.querySelector<HTMLInputElement>('.quote__qty-input');
+      if (!input) return;
+      const current = Number.parseInt(input.value, 10) || 1;
+      const min = Number.parseInt(input.min, 10) || 1;
+      const max = Number.parseInt(input.max, 10) || 10;
+      input.value = String(
+        button.hasAttribute('data-qty-dec')
+          ? Math.max(min, current - 1)
+          : Math.min(max, current + 1),
+      );
+    });
+  });
+</script>
+
+<style>
+  .quote {
+    display: grid;
+    gap: var(--sp-5);
+  }
+
+  .quote__set,
+  .quote__subset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .quote__set {
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .quote__legend {
+    margin-bottom: var(--sp-3);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+  }
+
+  .quote__sublegend {
+    margin-bottom: var(--sp-2);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+  }
+
+  .quote__optional {
+    color: var(--c-ink-secondary);
+    font-weight: 400;
+  }
+
+  .quote__help {
+    margin-bottom: var(--sp-3);
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+  }
+
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--target-gap);
+    list-style: none;
+  }
+
+  .tiers__label {
+    display: grid;
+    gap: var(--sp-1);
+    min-height: var(--target-min);
+    height: 100%;
+    margin: 0;
+    padding: var(--sp-3);
+    border: 2px solid var(--c-border-strong);
+    border-radius: var(--radius-md);
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .tiers__name {
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+    color: var(--c-ink);
+  }
+
+  .tiers__price {
+    font-family: var(--font-heading);
+    font-size: var(--fs-body);
+    font-weight: 700;
+    color: var(--c-primary);
+  }
+
+  .tiers__input:checked + .tiers__label {
+    border-color: var(--c-primary);
+    background: var(--c-surface-tint);
+    box-shadow: inset 0 0 0 1px var(--c-primary);
+  }
+
+  /* A non-breaking space, not a plain one: a trailing space in `content` is
+     collapsed and the tick ends up glued to the label. */
+  .tiers__input:checked + .tiers__label .tiers__name::before {
+    content: '\2713\00a0';
+    color: var(--c-primary);
+  }
+
+  .tiers__input:focus-visible + .tiers__label {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+    box-shadow: var(--focus-halo);
+  }
+
+  .addons {
+    display: grid;
+    gap: var(--target-gap);
+    list-style: none;
+  }
+
+  .addon {
+    display: grid;
+    grid-template-columns: var(--target-min) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .addon__input {
+    width: var(--target-min);
+    height: var(--target-min);
+  }
+
+  .addon__label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 400;
+  }
+
+  .addon__name {
+    font-size: var(--fs-ui);
+  }
+
+  .addon__required {
+    color: var(--c-ink-secondary);
+  }
+
+  .addon__price {
+    flex: none;
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+  }
+
+  .quote__row {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .quote__qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .quote__qty-row label {
+    margin: 0;
+  }
+
+  .quote__qty-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--c-border-strong);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .quote__qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--target-min);
+    height: var(--target-min);
+    min-width: var(--target-min);
+    min-height: var(--target-min);
+    padding: 0;
+    border: 0;
+    background: var(--c-surface);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--c-ink);
+    cursor: pointer;
+  }
+
+  .quote__qty-btn:hover {
+    background: var(--c-surface-tint);
+  }
+
+  .quote__qty-input {
+    width: 48px;
+    min-height: var(--target-min);
+    padding: var(--sp-2);
+    border: 0;
+    border-left: 1px solid var(--c-border-strong);
+    border-right: 1px solid var(--c-border-strong);
+    border-radius: 0;
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  .quote__qty-input::-webkit-inner-spin-button,
+  .quote__qty-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .quote__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--c-border);
+  }
+
+  .quote__total-label {
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+  }
+
+  .quote__total-values {
+    font-family: var(--font-heading);
+    font-size: var(--fs-h3);
+    font-weight: 800;
+    color: var(--c-ink);
+  }
+
+  .quote__cta {
+    width: 100%;
+    min-height: 58px;
+    padding: var(--sp-3) var(--sp-6);
+    border: 0;
+    border-radius: 14px;
+    background: var(--c-primary);
+    color: var(--c-primary-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .quote__cta:hover {
+    opacity: 0.9;
+  }
+
+  .quote--empty {
+    display: grid;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+    border: 2px dashed var(--c-border-strong);
+    border-radius: var(--radius-lg);
+  }
+
+  @media (max-width: 380px) {
+    .tiers {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

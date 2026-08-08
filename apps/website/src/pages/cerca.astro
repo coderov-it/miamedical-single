@@ -1,0 +1,274 @@
+---
+/**
+ * Search. A dedicated destination for the header's "Cerca", rendered on demand.
+ *
+ * Deliberately not indexed: a search results page adds no canonical content and
+ * an indexable one invites thin-content duplicates of the catalogue.
+ */
+import ProductCard from '~/components/catalog/ProductCard.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { listProducts, safely } from '~/lib/catalog';
+import { routes } from '~/lib/routes';
+import { CONTACT } from '~/lib/site';
+
+export const prerender = false;
+
+const q = Astro.url.searchParams.get('q')?.trim() ?? '';
+
+const result = q
+  ? await safely(
+      () => listProducts({ q, perPage: 24, sort: 'title' }),
+      { data: [], meta: { page: 1, perPage: 24, total: 0, pageCount: 1 }, facets: { specs: [] } },
+      'search',
+    )
+  : null;
+---
+
+<BaseLayout
+  title={q ? `Ricerca: ${q} | Mia Medical Italia` : 'Cerca un ausilio | Mia Medical Italia'}
+  description="Cerca fra gli ausili disponibili a noleggio: carrozzine, letti ortopedici, deambulatori e molto altro."
+  noindex
+>
+  <div class="search container">
+    <header class="search__head">
+      <h1>Cerca un ausilio</h1>
+      <p class="search__lede">
+        Scrivi il nome del prodotto o a cosa ti serve. Se non lo trovi, chiamaci: te lo troviamo
+        noi.
+      </p>
+    </header>
+
+    <form class="search__form" method="get" role="search" aria-label="Cerca un ausilio">
+      <label class="sr-only" for="cerca-q">Cerca un ausilio</label>
+      <div class="search__control">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="m20 20-4.2-4.2"></path>
+        </svg>
+        <input
+          id="cerca-q"
+          type="search"
+          name="q"
+          value={q}
+          placeholder="Es. carrozzina, letto, deambulatore…"
+          autofocus
+        />
+      </div>
+      <button class="search__submit" type="submit">Cerca</button>
+    </form>
+
+    {
+      result && (
+        <section aria-labelledby="search-results-title">
+          <h2 id="search-results-title" class="search__h2">
+            {result.meta.total === 0
+              ? `Nessun risultato per “${q}”`
+              : `${result.meta.total} ${result.meta.total === 1 ? 'risultato' : 'risultati'} per “${q}”`}
+          </h2>
+
+          {result.data.length > 0 ? (
+            <ul class="grid">
+              {result.data.map((product, index) => (
+                <li>
+                  <ProductCard product={product} priority={index === 0} headingLevel={3} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div class="search__empty">
+              <p>
+                Prova con una parola più semplice — per esempio <strong>carrozzina</strong> invece
+                del modello — oppure sfoglia il catalogo completo.
+              </p>
+              <a class="search__browse" href={routes.catalog}>
+                Vedi tutto il catalogo
+              </a>
+              <p class="search__hours">{CONTACT.hours.it}</p>
+              <PhoneCta variant="primary" />
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    {
+      !result && (
+        <section class="search__suggest" aria-labelledby="search-suggest-title">
+          <h2 id="search-suggest-title" class="search__h2">
+            Non sai da dove iniziare?
+          </h2>
+          <p>Sfoglia il catalogo per categoria, oppure chiamaci e ti guidiamo noi nella scelta.</p>
+          <a class="search__browse" href={routes.catalog}>
+            Vedi tutto il catalogo
+          </a>
+          <p class="search__hours">{CONTACT.hours.it}</p>
+          <PhoneCta variant="primary" />
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .search {
+    padding-bottom: var(--sp-13);
+  }
+
+  .search__head {
+    padding-block: var(--sp-8) var(--sp-5);
+  }
+
+  .search__lede {
+    margin-top: var(--sp-2);
+    max-width: 56ch;
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-body-lg);
+  }
+
+  .search__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-8);
+  }
+
+  .search__control {
+    display: grid;
+    flex: 1 1 320px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: 11px;
+    min-height: 64px;
+    padding-inline: 15px;
+    border: 1px solid var(--c-border-accent);
+    border-radius: 13px;
+    background: var(--c-surface);
+  }
+
+  .search__control:focus-within {
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px rgb(46 70 153 / 0.1);
+  }
+
+  .search__control > svg {
+    width: 24px;
+    height: 24px;
+    color: var(--c-primary);
+  }
+
+  .search__control input {
+    min-height: 60px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: var(--fs-body);
+    font-weight: 600;
+  }
+
+  .search__control input:focus {
+    outline: 0;
+    box-shadow: none;
+  }
+
+  .search__submit {
+    flex: none;
+    min-width: 150px;
+    min-height: 64px;
+    padding-inline: var(--sp-6);
+    border: 0;
+    border-radius: 13px;
+    background: var(--c-primary);
+    color: var(--c-primary-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .search__h2 {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-h3);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-6);
+    list-style: none;
+  }
+
+  .grid > li {
+    display: flex;
+  }
+
+  .search__empty,
+  .search__suggest {
+    display: grid;
+    justify-items: start;
+    gap: var(--sp-3);
+    padding: var(--sp-8);
+    background: var(--c-surface-tint);
+    border-radius: var(--radius-lg);
+  }
+
+  .search__empty p,
+  .search__suggest p {
+    max-width: 60ch;
+  }
+
+  .search__browse {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: var(--sp-5);
+    border: 2px solid var(--c-primary);
+    border-radius: var(--radius-pill);
+    background: var(--c-surface);
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .search__hours {
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+  }
+
+  @media (max-width: 1100px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 620px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-4);
+    }
+
+    .search__submit {
+      width: 100%;
+    }
+
+    .search__empty,
+    .search__suggest {
+      padding: var(--sp-5);
+    }
+  }
+</style>

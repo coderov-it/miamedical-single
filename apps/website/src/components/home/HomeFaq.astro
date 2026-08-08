@@ -1,0 +1,161 @@
+---
+/**
+ * Home-page frequently asked questions.
+ *
+ * Native details/summary disclosures provide keyboard and screen-reader
+ * behaviour without shipping a client-side island.
+ */
+import { HOME_FAQ } from '~/lib/home-content';
+---
+
+<section id="domande-frequenti" class="faq" aria-labelledby="domande-frequenti-title">
+  <div class="faq__inner">
+    <h2 id="domande-frequenti-title" class="faq__heading">Domande frequenti</h2>
+
+    <ul class="faq__list">
+      {
+        HOME_FAQ.map((item) => (
+          <li class="faq__entry">
+            <details class="faq__item">
+              <summary class="faq__question">
+                <span>{item.question}</span>
+                <svg
+                  class="faq__chevron"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p class="faq__answer">{item.answer}</p>
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .faq {
+    padding-block-start: var(--sp-13);
+  }
+
+  .faq__inner {
+    width: 100%;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--container-pad);
+  }
+
+  .faq__heading {
+    margin-bottom: var(--sp-5);
+    font-size: var(--fs-h2);
+  }
+
+  .faq__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--sp-6);
+    padding: var(--sp-2) 26px;
+    overflow: hidden;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 18px;
+    list-style: none;
+  }
+
+  .faq__item {
+    border-bottom: 1px solid var(--c-surface-tint-alt);
+  }
+
+  .faq__entry:nth-last-child(-n + 2) .faq__item {
+    border-bottom: 0;
+  }
+
+  .faq__question {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: var(--target-min);
+    padding-block: 18px;
+    color: var(--c-ink);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    line-height: var(--lh-body);
+    list-style: none;
+  }
+
+  .faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__question > span {
+    flex: 1;
+  }
+
+  .faq__chevron {
+    flex: none;
+    color: var(--c-primary);
+    transition: transform 180ms ease;
+  }
+
+  .faq__item[open] .faq__chevron {
+    transform: rotate(180deg);
+  }
+
+  .faq__answer {
+    padding-block-end: 18px;
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+  }
+
+  @media (max-width: 720px) {
+    .faq {
+      padding-block-start: 30px;
+    }
+
+    .faq__inner {
+      padding-inline: var(--sp-5);
+      padding-block-end: var(--sp-2);
+    }
+
+    .faq__heading {
+      margin-bottom: var(--sp-4);
+      font-size: 1.5rem;
+    }
+
+    .faq__list {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+      padding: 0 var(--sp-4);
+      border-radius: 16px;
+    }
+
+    .faq__entry:nth-last-child(-n + 2) .faq__item {
+      border-bottom: 1px solid var(--c-surface-tint-alt);
+    }
+
+    .faq__entry:last-child .faq__item {
+      border-bottom: 0;
+    }
+
+    .faq__question {
+      padding-block: var(--sp-4);
+    }
+
+    .faq__answer {
+      padding-block-end: var(--sp-4);
+    }
+  }
+</style>

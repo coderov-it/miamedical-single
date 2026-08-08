@@ -2,7 +2,7 @@
  * Base styles. Loaded once by BaseLayout, after tokens.css.
  *
  * Everything here is a project accessibility obligation, not a preference.
- * Read AGENTS.md section 9 before changing any of it.
+ * See docs/code/storefront-design-system.md before changing any of it.
  */
 
 *,
@@ -112,11 +112,8 @@ a:hover {
 
 /* --------------------------------------------------------------- focus --- */
 
-/* Visible focus is mandatory, and it must be visible on EVERY surface.
-   A single-colour ring in the brand blue disappears on brand-blue buttons, which
-   is exactly the defect in the prototypes. The two-tone ring — white inner
-   outline, dark outer halo — survives white, blue, dark and green backgrounds.
-   Never remove this without replacing it with something at least as visible. */
+/* Visible focus is mandatory, and on EVERY surface. Never remove this without
+   replacing it with something at least as visible — see tokens.css. */
 *:focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
