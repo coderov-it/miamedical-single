@@ -24,14 +24,12 @@
   import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import type { MediaProfileName } from '@mia/validators';
-  import { mergeProps } from 'bits-ui';
   import { flip } from 'svelte/animate';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { cn } from '$lib/utils.js';
   import { api, mediaUrl } from '~/lib/api';
   import { useContentLang } from '~/lib/content-lang.svelte';
@@ -221,27 +219,22 @@
   />
 
   {#if items.length > 0}
+    <!-- No tooltip: a tile is small enough that the bubble covers its neighbour.
+         `aria-label` is what carries the meaning. -->
     {#snippet moveButton(index: number, earlier: boolean)}
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <Button
-              {...mergeProps(props, { onclick: () => move(index, earlier ? -1 : 1) })}
-              variant="outline"
-              size="icon-sm"
-              disabled={earlier ? index === 0 : index === items.length - 1}
-              aria-label="Move {earlier ? 'earlier' : 'later'}"
-            >
-              {#if earlier}
-                <ChevronLeftIcon />
-              {:else}
-                <ChevronRightIcon />
-              {/if}
-            </Button>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content>Move {earlier ? 'earlier' : 'later'}</Tooltip.Content>
-      </Tooltip.Root>
+      <Button
+        variant="outline"
+        size="icon-sm"
+        disabled={earlier ? index === 0 : index === items.length - 1}
+        onclick={() => move(index, earlier ? -1 : 1)}
+        aria-label="Move {earlier ? 'earlier' : 'later'}"
+      >
+        {#if earlier}
+          <ChevronLeftIcon />
+        {:else}
+          <ChevronRightIcon />
+        {/if}
+      </Button>
     {/snippet}
 
     <ul class="mt-3 grid gap-2 sm:grid-cols-2">
@@ -292,22 +285,15 @@
                 {@render moveButton(index, false)}
               </ButtonGroup.Root>
             {/if}
-            <Tooltip.Root>
-              <Tooltip.Trigger>
-                {#snippet child({ props })}
-                  <Button
-                    {...mergeProps(props, { onclick: () => void remove(index) })}
-                    variant="ghost"
-                    size="icon-sm"
-                    class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                    aria-label="Remove {item.path.split('/').at(-1)}"
-                  >
-                    <XIcon />
-                  </Button>
-                {/snippet}
-              </Tooltip.Trigger>
-              <Tooltip.Content>Remove</Tooltip.Content>
-            </Tooltip.Root>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              onclick={() => void remove(index)}
+              aria-label="Remove {item.path.split('/').at(-1)}"
+            >
+              <XIcon />
+            </Button>
           </div>
         </li>
       {/each}
