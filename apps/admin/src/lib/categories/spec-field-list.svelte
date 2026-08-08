@@ -15,7 +15,6 @@
   import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
-  import { mergeProps } from 'bits-ui';
   import { flip } from 'svelte/animate';
 
   import { Button } from '$lib/components/ui/button/index.js';
@@ -25,7 +24,6 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
-  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { cn } from '$lib/utils.js';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
@@ -107,27 +105,22 @@
   ];
 </script>
 
+<!-- No tooltip: on a row this dense it lands on top of the field it belongs to.
+     `aria-label` is what actually has to carry the meaning. -->
 {#snippet moveButton(index: number, up: boolean, name: string)}
-  <Tooltip.Root>
-    <Tooltip.Trigger>
-      {#snippet child({ props })}
-        <Button
-          {...mergeProps(props, { onclick: () => move(index, up ? -1 : 1) })}
-          variant="outline"
-          size="icon-sm"
-          disabled={disabled || (up ? index === 0 : index === specs.length - 1)}
-          aria-label="Move {name || 'field'} {up ? 'up' : 'down'}"
-        >
-          {#if up}
-            <ChevronUpIcon />
-          {:else}
-            <ChevronDownIcon />
-          {/if}
-        </Button>
-      {/snippet}
-    </Tooltip.Trigger>
-    <Tooltip.Content>Move {up ? 'up' : 'down'}</Tooltip.Content>
-  </Tooltip.Root>
+  <Button
+    variant="outline"
+    size="icon-sm"
+    disabled={disabled || (up ? index === 0 : index === specs.length - 1)}
+    onclick={() => move(index, up ? -1 : 1)}
+    aria-label="Move {name || 'field'} {up ? 'up' : 'down'}"
+  >
+    {#if up}
+      <ChevronUpIcon />
+    {:else}
+      <ChevronDownIcon />
+    {/if}
+  </Button>
 {/snippet}
 
 <div class="space-y-2">
@@ -180,23 +173,16 @@
                 {@render moveButton(index, false, label)}
               </ButtonGroup.Root>
             {/if}
-            <Tooltip.Root>
-              <Tooltip.Trigger>
-                {#snippet child({ props })}
-                  <Button
-                    {...mergeProps(props, { onclick: () => remove(index) })}
-                    variant="ghost"
-                    size="icon-sm"
-                    class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                    {disabled}
-                    aria-label="Remove {label || 'field'}"
-                  >
-                    <Trash2Icon />
-                  </Button>
-                {/snippet}
-              </Tooltip.Trigger>
-              <Tooltip.Content>Remove field</Tooltip.Content>
-            </Tooltip.Root>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              {disabled}
+              onclick={() => remove(index)}
+              aria-label="Remove {label || 'field'}"
+            >
+              <Trash2Icon />
+            </Button>
           </div>
         </div>
 

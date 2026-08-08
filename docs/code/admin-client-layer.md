@@ -245,6 +245,8 @@ from `describe`, which yields a row's _content_ ("this question", the FAQ's
 text) and is only ever spoken: it feeds the buttons' `aria-label`, so a screen
 reader hears "Move floor number up" rather than "Move up, button, button".
 
-Tooltips wrap the arrows via the `child` snippet, and the trigger's props are
-composed with `mergeProps` rather than spread — a bare spread would drop the
-trigger's own handlers on the floor, and the tooltip would never open.
+The arrows carry no tooltip, and that was tried and removed rather than skipped:
+the bubble opens over the row it is describing, which on a dense list means it
+covers the field you were reading. The ordinal beside the pair already answers
+what the arrows do, so the tooltip was paying rent it could not afford.
+`aria-label` is the part that has to be there, and it stays.

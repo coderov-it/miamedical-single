@@ -15,13 +15,11 @@
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
-  import { mergeProps } from 'bits-ui';
   import type { Snippet } from 'svelte';
   import { flip } from 'svelte/animate';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
-  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { cn } from '$lib/utils.js';
   import { Reorder } from '~/lib/reorder.svelte';
 
@@ -55,29 +53,23 @@
   }
 </script>
 
-<!-- `mergeProps` chains the tooltip trigger's handlers with ours instead of
-     letting the spread clobber them. -->
+<!-- No tooltip: it covers the row it is describing, and the ordinal beside the
+     pair already says what these do. `aria-label` carries the name for screen
+     readers, which is the part that has to be there. -->
 {#snippet moveButton(index: number, up: boolean, name: string)}
-  <Tooltip.Root>
-    <Tooltip.Trigger>
-      {#snippet child({ props })}
-        <Button
-          {...mergeProps(props, { onclick: () => move(index, up ? -1 : 1) })}
-          variant="outline"
-          size="icon-sm"
-          disabled={up ? index === 0 : index === items.length - 1}
-          aria-label="Move {name} {up ? 'up' : 'down'}"
-        >
-          {#if up}
-            <ChevronUpIcon />
-          {:else}
-            <ChevronDownIcon />
-          {/if}
-        </Button>
-      {/snippet}
-    </Tooltip.Trigger>
-    <Tooltip.Content>Move {up ? 'up' : 'down'}</Tooltip.Content>
-  </Tooltip.Root>
+  <Button
+    variant="outline"
+    size="icon-sm"
+    disabled={up ? index === 0 : index === items.length - 1}
+    onclick={() => move(index, up ? -1 : 1)}
+    aria-label="Move {name} {up ? 'up' : 'down'}"
+  >
+    {#if up}
+      <ChevronUpIcon />
+    {:else}
+      <ChevronDownIcon />
+    {/if}
+  </Button>
 {/snippet}
 
 <ul class="flex flex-col gap-2">
