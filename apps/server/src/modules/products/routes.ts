@@ -153,7 +153,12 @@ export const productAdminRoutes = new Hono<AppEnv>()
     validate('json', VariantGroupsPutSchema),
     async (c) => {
       const { id } = c.req.valid('param');
-      await variantsService.replaceVariantGroups(c.get('db'), r2FileUploader, id, c.req.valid('json'));
+      await variantsService.replaceVariantGroups(
+        c.get('db'),
+        r2FileUploader,
+        id,
+        c.req.valid('json'),
+      );
       const product = await catalogService.getAggregate(c.get('db'), id);
       return c.json({ data: toAdminDetail(product) });
     },

@@ -59,6 +59,9 @@ catalog:
   'drizzle-kit': ^0.31.10
   'drizzle-valibot': ^0.4.2
   postgres: ^3.4.9
+  # Read-only, and only for the one-off WordPress migration scripts in
+  # apps/server/script/wp-migrate. Nothing in the running app touches MySQL.
+  mysql2: ^3.23.2
 
   # --- validation ---
   valibot: ^1.4.2

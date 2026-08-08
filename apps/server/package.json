@@ -13,13 +13,16 @@
     "check": "tsc --noEmit",
     "clean": "rm -rf .turbo dist node_modules",
     "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
-    "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts"
+    "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts",
+    "wp:extract": "tsx --env-file-if-exists=../../.env script/wp-migrate/extract.ts",
+    "wp:load": "tsx --env-file-if-exists=../../.env script/wp-migrate/load.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:",
     "@hono/node-server": "catalog:",
     "@hono/valibot-validator": "catalog:",
     "@mia/db": "workspace:*",
+    "@mia/i18n": "workspace:*",
     "@mia/permissions": "workspace:*",
     "@mia/validators": "workspace:*",
     "@node-rs/argon2": "catalog:",
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "mysql2": "catalog:",
     "rolldown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

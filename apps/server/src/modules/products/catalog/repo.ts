@@ -1,6 +1,6 @@
 import type { Database } from '@mia/db';
 import { and, asc, count, desc, eq, sql } from '@mia/db';
-import type { LanguageCode, Localized, ProductMedia } from '@mia/db/schema';
+import type { LanguageCode, Localized, ProductMedia, RentalPackage } from '@mia/db/schema';
 import {
   categories,
   categorySpecOptions,
@@ -52,6 +52,8 @@ export interface UpdateProductData {
   basePrice?: string;
   currency?: string;
   rentalUnit?: 'hour' | 'day';
+  /** Replaces the whole list — the service rejects a non-empty one on `fixed`. */
+  rentalPackages?: RentalPackage[];
   isFeatured?: boolean;
   media?: ProductMedia;
   translations?: Partial<Record<LanguageCode, TranslationData>>;
@@ -234,8 +236,7 @@ export async function findMany(
     rows: rows.map((row) => ({
       ...row,
       // No SKU matrix → stock is untracked → sellable.
-      inStock:
-        row.skus.length === 0 || row.skus.some((sku) => sku.isActive && sku.stock > 0),
+      inStock: row.skus.length === 0 || row.skus.some((sku) => sku.isActive && sku.stock > 0),
     })) as unknown as ProductSummaryRowData[],
     total: totals[0]?.value ?? 0,
   };
@@ -305,8 +306,12 @@ export async function facetCounts(
         specLabel: categorySpecs.label,
         valueType: sql<string>`${categorySpecs.valueType}`,
         unit: categorySpecs.unit,
-        min: sql<string | null>`min(COALESCE(${productSpecValues.numberValue}, ${productSpecValues.numberMin}))`,
-        max: sql<string | null>`max(COALESCE(${productSpecValues.numberValue}, ${productSpecValues.numberMax}))`,
+        min: sql<
+          string | null
+        >`min(COALESCE(${productSpecValues.numberValue}, ${productSpecValues.numberMin}))`,
+        max: sql<
+          string | null
+        >`max(COALESCE(${productSpecValues.numberValue}, ${productSpecValues.numberMax}))`,
       })
       .from(productSpecValues)
       .innerJoin(products, eq(products.id, productSpecValues.productId))
@@ -336,11 +341,7 @@ export async function facetCounts(
 
 // --- writes -----------------------------------------------------------------
 
-function translationInsert(
-  productId: string,
-  languageCode: LanguageCode,
-  data: TranslationData,
-) {
+function translationInsert(productId: string, languageCode: LanguageCode, data: TranslationData) {
   return {
     productId,
     languageCode,

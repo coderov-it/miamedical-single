@@ -83,6 +83,7 @@ skills-lock.json
 Thumbs.db
 *.dump.sql
 *.dump
+/docs/migration/wp
 
 # ---------------------------------------------------------------------------
 # NOT ignored, on purpose:

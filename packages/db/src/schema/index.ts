@@ -1,6 +1,7 @@
 export * from './enums.ts';
 export * from './i18n.ts';
 export * from './media-types.ts';
+export * from './rental-types.ts';
 export * from './search.ts';
 export * from './users.ts';
 export * from './content.ts';

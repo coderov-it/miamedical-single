@@ -31,7 +31,9 @@ export function pickTranslation<T extends { languageCode: LanguageCode }>(
   rows: T[],
   locale: LanguageCode,
 ): T | undefined {
-  return rows.find((row) => row.languageCode === locale) ?? rows.find((r) => r.languageCode === 'it');
+  return (
+    rows.find((row) => row.languageCode === locale) ?? rows.find((r) => r.languageCode === 'it')
+  );
 }
 
 /**

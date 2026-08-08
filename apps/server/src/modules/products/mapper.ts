@@ -1,4 +1,11 @@
-import type { LanguageCode, Localized, MediaItem, ProductMedia } from '@mia/db/schema';
+import type {
+  LanguageCode,
+  Localized,
+  MediaItem,
+  ProductMedia,
+  RentalPackage,
+} from '@mia/db/schema';
+import { durationLabel } from '@mia/i18n';
 
 import type {
   AdminProductDetailDto,
@@ -15,6 +22,7 @@ import type {
   PublicProductDetailDto,
   PublicProductMediaDto,
   PublicProductSummaryDto,
+  PublicRentalPackageDto,
   PublicSpecDto,
   PublicVariantGroupDto,
   TranslationStatusDto,
@@ -65,6 +73,27 @@ function toPublicMedia(media: ProductMedia, locale: LanguageCode): PublicProduct
     videos: media.videos.map((m) => item(m)!),
     documents: media.documents.map((m) => item(m)!),
   };
+}
+
+// --- rental packages -------------------------------------------------------
+
+/**
+ * `label` is composed here rather than in the storefront so the pluralisation
+ * rule lives in one place — `@mia/i18n` owns the forms, including Italian's
+ * elided `all'ora`. Order is the stored order: the back office arranges them.
+ */
+function toPublicRentalPackages(
+  packages: RentalPackage[],
+  locale: LanguageCode,
+): PublicRentalPackageDto[] {
+  return packages.map((item) => ({
+    code: item.code,
+    name: pick(item.name, locale),
+    label: durationLabel(item.duration, item.unit, locale),
+    price: item.price,
+    duration: item.duration,
+    unit: item.unit,
+  }));
 }
 
 // --- translation status ----------------------------------------------------
@@ -305,6 +334,7 @@ export function toPublicDetail(
       icon: row.category.icon,
     },
     pricing,
+    rentalPackages: toPublicRentalPackages(row.rentalPackages, locale),
     media: toPublicMedia(row.media, locale),
     variants,
     skus: row.skus
@@ -490,6 +520,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     rentalUnit: row.rentalUnit,
     basePrice: row.basePrice,
     currency: row.currency,
+    rentalPackages: row.rentalPackages,
     translations,
     translationStatus: toTranslationStatus(row.translations),
     variants: row.variantGroups
