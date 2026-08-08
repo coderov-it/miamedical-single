@@ -3,13 +3,19 @@ import type { AppType } from '@mia/server/types';
 import type { LanguageCode } from '@mia/validators';
 import { hc } from 'hono/client';
 
-const baseUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
+/** The one place the API origin is named. Same variable the admin reads. */
+export const API_BASE = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
+
+/** `apiUrl('/api/products')`. Base carries no trailing slash, path leads with one. */
+export function apiUrl(path: string): string {
+  return API_BASE + path;
+}
 
 /**
  * End-to-end typed client generated from the Hono router. Route paths, params
  * and response shapes are all inferred — no codegen step, no duplicated DTOs.
  */
-export const api = hc<AppType>(baseUrl, {
+export const api = hc<AppType>(API_BASE, {
   init: { credentials: 'include' },
 });
 
@@ -65,10 +71,12 @@ export function offerPrice(amount: string): string {
   return Number(amount).toFixed(2);
 }
 
+/** CDN origin for stored media. No trailing slash — stored paths are bare R2 keys. */
+export const MEDIA_BASE = import.meta.env.PUBLIC_MEDIA_BASE_URL ?? '';
+
 /** Media paths are bare object-storage keys — the client prepends the CDN base. */
 export function mediaUrl(path: string): string {
-  const base = import.meta.env.PUBLIC_MEDIA_BASE_URL ?? '';
-  return base ? `${base.replace(/\/$/, '')}/${path}` : `/${path}`;
+  return `${MEDIA_BASE}/${path}`;
 }
 
 /** Localised availability label. The API returns a boolean, not UI copy. */

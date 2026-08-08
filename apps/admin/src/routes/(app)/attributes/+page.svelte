@@ -29,7 +29,7 @@
   import PageHeader from '~/lib/components/page-header.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
-  import { orDash, pluralize } from '~/lib/format';
+  import { pluralize } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
@@ -423,7 +423,9 @@
                   <div class="flex items-center gap-1.5">
                     <!-- Follows the sheet's IT/EN tabs like the label above. -->
                     <Input
-                      value={contentLang.current === 'en' ? (option.label.en ?? '') : option.label.it}
+                      value={contentLang.current === 'en'
+                        ? (option.label.en ?? '')
+                        : option.label.it}
                       oninput={(event) => {
                         const text = event.currentTarget.value;
                         if (contentLang.current === 'en') option.label.en = text || undefined;

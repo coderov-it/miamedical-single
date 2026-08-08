@@ -19,7 +19,6 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
@@ -29,7 +28,6 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
-  import OptionListEditor from './option-list-editor.svelte';
   import SpecFieldList from './spec-field-list.svelte';
   import {
     isSelectType,

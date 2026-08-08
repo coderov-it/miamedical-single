@@ -17,6 +17,17 @@ catalog:
   prettier-plugin-tailwindcss: ^0.8.1
   vitest: ^4.1.10
 
+  # --- linting ---
+  # Prettier owns formatting; ESLint owns correctness only. `eslint-config-
+  # prettier` and `svelte.configs.prettier` switch off every rule that would
+  # otherwise fight `pnpm format`.
+  eslint: ^10.8.1
+  '@eslint/js': ^10.0.1
+  typescript-eslint: ^8.66.0
+  eslint-plugin-svelte: ^3.22.0
+  eslint-config-prettier: ^10.1.8
+  globals: ^17.9.0
+
   # --- astro storefront ---
   astro: ^7.2.0
   '@astrojs/node': ^11.1.0
@@ -78,6 +89,7 @@ minimumReleaseAgeExclude:
   - astro@7.2.0
   - tsx@4.23.9
   - '@lucide/svelte@1.29.0'
+  - eslint@10.8.1
 
 # Postinstall scripts are blocked by default; approve them explicitly here.
 allowBuilds:

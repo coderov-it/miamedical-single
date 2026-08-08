@@ -1,9 +1,18 @@
+import { fileURLToPath } from 'node:url';
+
 import node from '@astrojs/node';
 import sitemap from '@astrojs/sitemap';
 import svelte from '@astrojs/svelte';
 import { defineConfig } from 'astro/config';
 
 const site = process.env.PUBLIC_SITE_URL ?? 'http://localhost:4321';
+
+/**
+ * The one `.env` lives at the monorepo root; this app has none of its own.
+ * Without this, `import.meta.env.PUBLIC_*` is empty and `mediaUrl()` silently
+ * falls back to a same-origin path, so every stored image 404s.
+ */
+const envDir = fileURLToPath(new URL('../../', import.meta.url));
 
 export default defineConfig({
   site,
@@ -36,15 +45,9 @@ export default defineConfig({
     remotePatterns: [{ protocol: 'https' }],
   },
 
+  // No dev proxy: `api.ts` calls PUBLIC_API_URL absolutely, in the browser
+  // and during SSR alike, so dev and production resolve the API identically.
   vite: {
-    server: {
-      // Keep the API on its own origin in dev so CORS/cookies match production.
-      proxy: {
-        '/api': {
-          target: process.env.PUBLIC_API_URL ?? 'http://localhost:8787',
-          changeOrigin: true,
-        },
-      },
-    },
+    envDir,
   },
 });
