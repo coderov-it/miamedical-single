@@ -163,6 +163,7 @@
 
     <SortableList
       bind:items={addons}
+      label="Addon"
       key={(addon) => addon.uid}
       describe={(addon) => addon.name.it || 'this addon'}
       onRemove={(index) => addons.splice(index, 1)}

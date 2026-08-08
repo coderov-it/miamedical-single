@@ -310,6 +310,7 @@
 
     <SortableList
       bind:items={groups}
+      label="Option group"
       key={(group) => group.uid}
       describe={(group) => group.label.it || 'this group'}
       onRemove={(index) => groups.splice(index, 1)}

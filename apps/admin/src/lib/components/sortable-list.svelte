@@ -2,7 +2,9 @@
   Move-up / move-down reordering. Deliberately buttons rather than
   drag-and-drop: predictable, keyboard-operable, works on touch, and enough
   for lists of this size. The parent re-derives `position` from the index on
-  save.
+  save. Why the row header carries an ordinal, why the arrows are an attached
+  pair, and why the swap is animated: docs/code/admin-client-layer.md
+  § Shared list chrome.
 
   Rows are keyed by a caller-supplied stable key, **not** by index. Keying an
   editable list by index means Svelte reuses the DOM node when rows move, so
@@ -12,10 +14,16 @@
 <script lang="ts" generics="T">
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
-  import XIcon from '@lucide/svelte/icons/x';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import { mergeProps } from 'bits-ui';
   import type { Snippet } from 'svelte';
+  import { flip } from 'svelte/animate';
 
   import { Button } from '$lib/components/ui/button/index.js';
+  import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+  import { cn } from '$lib/utils.js';
+  import { Reorder } from '~/lib/reorder.svelte';
 
   interface Props {
     items: T[];
@@ -25,9 +33,16 @@
     onRemove?: (index: number) => void;
     /** Names the row in the reorder buttons' labels, for screen readers. */
     describe?: (item: T, index: number) => string;
+    /** Singular noun for the row header — "Question 1", "Package 2". */
+    label?: string;
   }
 
-  let { items = $bindable(), row, key, onRemove, describe }: Props = $props();
+  let { items = $bindable(), row, key, onRemove, describe, label = 'Item' }: Props = $props();
+
+  const rowName = (item: T, index: number) =>
+    describe?.(item, index) ?? `${label.toLowerCase()} ${index + 1}`;
+
+  const reorder = new Reorder();
 
   function move(index: number, delta: number) {
     const target = index + delta;
@@ -36,51 +51,75 @@
     const [moved] = next.splice(index, 1);
     next.splice(target, 0, moved!);
     items = next;
+    reorder.mark(key(moved!, target));
   }
 </script>
 
+<!-- `mergeProps` chains the tooltip trigger's handlers with ours instead of
+     letting the spread clobber them. -->
+{#snippet moveButton(index: number, up: boolean, name: string)}
+  <Tooltip.Root>
+    <Tooltip.Trigger>
+      {#snippet child({ props })}
+        <Button
+          {...mergeProps(props, { onclick: () => move(index, up ? -1 : 1) })}
+          variant="outline"
+          size="icon-sm"
+          disabled={up ? index === 0 : index === items.length - 1}
+          aria-label="Move {name} {up ? 'up' : 'down'}"
+        >
+          {#if up}
+            <ChevronUpIcon />
+          {:else}
+            <ChevronDownIcon />
+          {/if}
+        </Button>
+      {/snippet}
+    </Tooltip.Trigger>
+    <Tooltip.Content>Move {up ? 'up' : 'down'}</Tooltip.Content>
+  </Tooltip.Root>
+{/snippet}
+
 <ul class="flex flex-col gap-2">
   {#each items as item, index (key(item, index))}
-    {@const name = describe?.(item, index) ?? `item ${index + 1}`}
-    <li class="flex items-start gap-2 rounded-lg border bg-muted/30 p-2">
-      <div class="flex flex-col pt-0.5">
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          class="text-muted-foreground"
-          disabled={index === 0}
-          onclick={() => move(index, -1)}
-          aria-label="Move {name} up"
-        >
-          <ChevronUpIcon />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          class="text-muted-foreground"
-          disabled={index === items.length - 1}
-          onclick={() => move(index, 1)}
-          aria-label="Move {name} down"
-        >
-          <ChevronDownIcon />
-        </Button>
+    <li
+      animate:flip={reorder.flip}
+      class={cn(
+        'rounded-lg border bg-muted/30 p-2 transition-shadow duration-500',
+        reorder.ring(key(item, index)),
+      )}
+    >
+      <div class="flex items-center gap-2 pb-2 pl-1">
+        <span class="text-xs font-medium text-muted-foreground">
+          {label}
+          {index + 1}
+        </span>
+
+        <!-- One row cannot be reordered; two disabled arrows would only be noise. -->
+        {#if items.length > 1}
+          <ButtonGroup.Root>
+            {@render moveButton(index, true, rowName(item, index))}
+            {@render moveButton(index, false, rowName(item, index))}
+          </ButtonGroup.Root>
+        {/if}
+
+        {#if onRemove}
+          <Button
+            variant="ghost"
+            size="sm"
+            class="ml-auto text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onclick={() => onRemove(index)}
+            aria-label="Remove {rowName(item, index)}"
+          >
+            <Trash2Icon />
+            Remove
+          </Button>
+        {/if}
       </div>
 
-      <div class="min-w-0 flex-1 rounded-md bg-card p-3">
+      <div class="min-w-0 rounded-md bg-card p-3">
         {@render row(item, index)}
       </div>
-
-      {#if onRemove}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          class="text-muted-foreground hover:text-destructive"
-          onclick={() => onRemove(index)}
-          aria-label="Remove {name}"
-        >
-          <XIcon />
-        </Button>
-      {/if}
     </li>
   {/each}
 </ul>

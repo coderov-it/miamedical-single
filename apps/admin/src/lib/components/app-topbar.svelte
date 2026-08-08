@@ -27,9 +27,14 @@
   const sectionTitle = $derived(navTitleFor(page.url.pathname));
 </script>
 
-<header
-  class="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-card/90 px-4 backdrop-blur-md"
->
+<!--
+  `bg-sidebar`, opaque, so the topbar is literally the same colour as the
+  sidebar it sits beside — `bg-card/90` composited over the canvas behind it,
+  which landed a shade off white and showed as a seam at the corner where the
+  two meet. Opaque is what makes them identical; a translucent bar takes a tint
+  from whatever is under it.
+-->
+<header class="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-sidebar px-4">
   <Sidebar.Trigger class="-ml-1.5 text-muted-foreground" />
   <Separator orientation="vertical" class="mr-1 h-4" />
 

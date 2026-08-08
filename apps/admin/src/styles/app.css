@@ -5,39 +5,45 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Four planes in both themes: L0 canvas `bg-background` → L1 surface `bg-card`
+   → L2 well `bg-muted/30…/50` → L3 content back on `bg-card`. Light is the
+   mirror of dark, not a washed-out copy — the canvas is muted grey so L1 can be
+   pure white, at the same perceptual steps dark uses.
+   The deltas, why controls are wells, and what to re-derive before touching
+   `--muted` / `--background`: docs/code/admin-theme-elevation.md */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.972 0.003 286);
+  --foreground: oklch(0.155 0.006 286);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.155 0.006 286);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.155 0.006 286);
   --primary: oklch(0.488 0.243 264.376);
   --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.948 0.004 286);
+  --secondary-foreground: oklch(0.21 0.006 286);
+  --muted: oklch(0.938 0.004 286);
+  --muted-foreground: oklch(0.502 0.008 286);
+  --accent: oklch(0.945 0.004 286);
+  --accent-foreground: oklch(0.205 0.006 286);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.892 0.004 286);
+  --input: oklch(0.858 0.005 286);
+  --ring: oklch(0.62 0.012 286);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.155 0.006 286);
   --sidebar-primary: oklch(0.546 0.245 262.881);
   --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.945 0.004 286);
+  --sidebar-accent-foreground: oklch(0.205 0.006 286);
+  --sidebar-border: oklch(0.892 0.004 286);
+  --sidebar-ring: oklch(0.62 0.012 286);
 }
 
 .dark {

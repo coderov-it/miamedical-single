@@ -10,21 +10,27 @@
   reads like a name; the dot reads like unfinished work, which is what it is.
 -->
 <script lang="ts">
+  import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-  import GripVerticalIcon from '@lucide/svelte/icons/grip-vertical';
+  import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import { mergeProps } from 'bits-ui';
+  import { flip } from 'svelte/animate';
 
   import { Button } from '$lib/components/ui/button/index.js';
+  import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
   import * as Collapsible from '$lib/components/ui/collapsible/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { cn } from '$lib/utils.js';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { useContentLang } from '~/lib/content-lang.svelte';
+  import { Reorder } from '~/lib/reorder.svelte';
   import OptionListEditor from './option-list-editor.svelte';
   import { isSelectType, VALUE_TYPES, type SpecEdit } from './spec-edit';
 
@@ -68,11 +74,15 @@
     if (removed) delete open[removed.uid];
   }
 
+  const reorder = new Reorder();
+
   function move(index: number, delta: number) {
     const target = index + delta;
     if (target < 0 || target >= specs.length) return;
     const [row] = specs.splice(index, 1);
-    if (row) specs.splice(target, 0, row);
+    if (!row) return;
+    specs.splice(target, 0, row);
+    reorder.mark(row.uid);
   }
 
   const title = (spec: SpecEdit) =>
@@ -97,143 +107,183 @@
   ];
 </script>
 
+{#snippet moveButton(index: number, up: boolean, name: string)}
+  <Tooltip.Root>
+    <Tooltip.Trigger>
+      {#snippet child({ props })}
+        <Button
+          {...mergeProps(props, { onclick: () => move(index, up ? -1 : 1) })}
+          variant="outline"
+          size="icon-sm"
+          disabled={disabled || (up ? index === 0 : index === specs.length - 1)}
+          aria-label="Move {name || 'field'} {up ? 'up' : 'down'}"
+        >
+          {#if up}
+            <ChevronUpIcon />
+          {:else}
+            <ChevronDownIcon />
+          {/if}
+        </Button>
+      {/snippet}
+    </Tooltip.Trigger>
+    <Tooltip.Content>Move {up ? 'up' : 'down'}</Tooltip.Content>
+  </Tooltip.Root>
+{/snippet}
+
 <div class="space-y-2">
   {#each specs as spec, index (spec.uid)}
     {@const label = title(spec)}
-    <Collapsible.Root
-      bind:open={() => open[spec.uid] ?? false, (value: boolean) => (open[spec.uid] = value)}
-      class="overflow-hidden rounded-lg border bg-muted/30"
+    <!-- `animate:flip` has to sit on an element and `Collapsible.Root` is a
+         component, so the row gets a wrapper to carry the slide and the ring. -->
+    <div
+      animate:flip={reorder.flip}
+      class={cn('rounded-lg transition-shadow duration-500', reorder.ring(spec.uid))}
     >
-      <div class="flex items-center gap-2 px-2 py-1.5">
-        <Collapsible.Trigger
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left hover:bg-muted"
-        >
-          <ChevronRightIcon
-            class={cn(
-              'size-4 shrink-0 text-muted-foreground transition-transform',
-              open[spec.uid] && 'rotate-90',
-            )}
-          />
-          {#if label}
-            <span class="truncate text-sm font-medium">{label}</span>
-          {:else}
-            <span class="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <span class="size-1.5 rounded-full bg-destructive"></span>
-              No name yet
+      <Collapsible.Root
+        bind:open={() => open[spec.uid] ?? false, (value: boolean) => (open[spec.uid] = value)}
+        class="overflow-hidden rounded-lg border bg-muted/30"
+      >
+        <div class="flex items-center gap-2 px-2 py-1.5">
+          <Collapsible.Trigger
+            class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left hover:bg-muted"
+          >
+            <ChevronRightIcon
+              class={cn(
+                'size-4 shrink-0 text-muted-foreground transition-transform',
+                open[spec.uid] && 'rotate-90',
+              )}
+            />
+            {#if label}
+              <span class="truncate text-sm font-medium">{label}</span>
+            {:else}
+              <span class="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <span class="size-1.5 rounded-full bg-destructive"></span>
+                No name yet
+              </span>
+            {/if}
+            {#if spec.key}
+              <code class="truncate font-mono text-xs text-muted-foreground">{spec.key}</code>
+            {/if}
+            <span class="ml-auto shrink-0 text-xs text-muted-foreground">
+              {VALUE_TYPES.find((type) => type.value === spec.valueType)?.label ?? spec.valueType}
             </span>
-          {/if}
-          {#if spec.key}
-            <code class="truncate font-mono text-xs text-muted-foreground">{spec.key}</code>
-          {/if}
-          <span class="ml-auto shrink-0 text-xs text-muted-foreground">
-            {VALUE_TYPES.find((type) => type.value === spec.valueType)?.label ?? spec.valueType}
-          </span>
-        </Collapsible.Trigger>
+          </Collapsible.Trigger>
 
-        <div class="flex shrink-0 items-center">
-          <!-- Buttons rather than drag: reordering twenty rows by keyboard has
-               to work, and it is the only reorder that works on touch too. -->
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            {disabled}
-            aria-label="Move {label || 'field'} up"
-            onclick={() => move(index, -1)}
-          >
-            <GripVerticalIcon class="rotate-90" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            class="text-destructive"
-            {disabled}
-            aria-label="Remove {label || 'field'}"
-            onclick={() => remove(index)}
-          >
-            <Trash2Icon />
-          </Button>
-        </div>
-      </div>
-
-      <Collapsible.Content>
-        <div class="space-y-4 border-t bg-card p-4">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <TranslatedInput label="Label" bind:value={spec.label} placeholder="Larghezza seduta" />
-            <div>
-              <Label class="mb-1.5" for="spec-key-{spec.uid}">Key</Label>
-              <Input
-                id="spec-key-{spec.uid}"
-                bind:value={spec.key}
-                placeholder="larghezza_seduta"
-                class="font-mono"
-              />
-              <p class="mt-1 text-xs text-muted-foreground">
-                Used in filter URLs and in the product API. Changing it orphans existing values.
-              </p>
-            </div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <!-- Buttons rather than drag: reordering twenty rows by keyboard has
+               to work, and it is the only reorder that works on touch too. A
+               rotated grip icon used to stand in for "up", with no "down" at
+               all — an attached pair says which way each one goes. -->
+            {#if specs.length > 1}
+              <ButtonGroup.Root>
+                {@render moveButton(index, true, label)}
+                {@render moveButton(index, false, label)}
+              </ButtonGroup.Root>
+            {/if}
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <Button
+                    {...mergeProps(props, { onclick: () => remove(index) })}
+                    variant="ghost"
+                    size="icon-sm"
+                    class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    {disabled}
+                    aria-label="Remove {label || 'field'}"
+                  >
+                    <Trash2Icon />
+                  </Button>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Content>Remove field</Tooltip.Content>
+            </Tooltip.Root>
           </div>
+        </div>
 
-          <div class="grid gap-4 sm:grid-cols-[1fr_auto]">
+        <Collapsible.Content>
+          <div class="space-y-4 border-t bg-card p-4">
             <div class="grid gap-4 sm:grid-cols-2">
+              <TranslatedInput
+                label="Label"
+                bind:value={spec.label}
+                placeholder="Larghezza seduta"
+              />
               <div>
-                <Label class="mb-1.5">Value type</Label>
-                <Select.Root type="single" bind:value={spec.valueType}>
-                  <Select.Trigger class="w-full">
-                    {VALUE_TYPES.find((type) => type.value === spec.valueType)?.label ??
-                      'Choose a type'}
-                  </Select.Trigger>
-                  <Select.Content>
-                    {#each VALUE_TYPES as type (type.value)}
-                      <Select.Item value={type.value}>{type.label}</Select.Item>
-                    {/each}
-                  </Select.Content>
-                </Select.Root>
+                <Label class="mb-1.5" for="spec-key-{spec.uid}">Key</Label>
+                <Input
+                  id="spec-key-{spec.uid}"
+                  bind:value={spec.key}
+                  placeholder="larghezza_seduta"
+                  class="font-mono"
+                />
+                <p class="mt-1 text-xs text-muted-foreground">
+                  Used in filter URLs and in the product API. Changing it orphans existing values.
+                </p>
               </div>
-
-              <!-- Only numbers carry a unit, so the field appears with them. -->
-              {#if spec.valueType === 'number' || spec.valueType === 'number_range'}
-                <div>
-                  <Label class="mb-1.5" for="spec-unit-{spec.uid}">Unit</Label>
-                  <Input id="spec-unit-{spec.uid}" bind:value={spec.unit} placeholder="cm" />
-                </div>
-              {/if}
             </div>
 
-            <IconPicker label="Icon" bind:value={spec.icon} compact />
-          </div>
-
-          <TranslatedInput
-            label="Help text"
-            bind:value={spec.helpText}
-            required={false}
-            multiline
-            rows={2}
-            placeholder="Shown under the filter on the storefront."
-          />
-
-          {#if isSelectType(spec.valueType)}
-            <OptionListEditor bind:options={spec.options} {disabled} />
-          {/if}
-
-          <div class="grid gap-3 rounded-lg border bg-muted/40 p-3 sm:grid-cols-3">
-            {#each TOGGLES as toggle (toggle.key)}
-              <div class="flex items-start gap-2.5">
-                <Switch
-                  id="{toggle.key}-{spec.uid}"
-                  checked={spec[toggle.key]}
-                  onCheckedChange={(checked) => (spec[toggle.key] = checked)}
-                  {disabled}
-                />
-                <div class="min-w-0">
-                  <Label for="{toggle.key}-{spec.uid}" class="text-sm">{toggle.label}</Label>
-                  <p class="mt-0.5 text-xs leading-snug text-muted-foreground">{toggle.hint}</p>
+            <div class="grid gap-4 sm:grid-cols-[1fr_auto]">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label class="mb-1.5">Value type</Label>
+                  <Select.Root type="single" bind:value={spec.valueType}>
+                    <Select.Trigger class="w-full">
+                      {VALUE_TYPES.find((type) => type.value === spec.valueType)?.label ??
+                        'Choose a type'}
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each VALUE_TYPES as type (type.value)}
+                        <Select.Item value={type.value}>{type.label}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
                 </div>
+
+                <!-- Only numbers carry a unit, so the field appears with them. -->
+                {#if spec.valueType === 'number' || spec.valueType === 'number_range'}
+                  <div>
+                    <Label class="mb-1.5" for="spec-unit-{spec.uid}">Unit</Label>
+                    <Input id="spec-unit-{spec.uid}" bind:value={spec.unit} placeholder="cm" />
+                  </div>
+                {/if}
               </div>
-            {/each}
+
+              <IconPicker label="Icon" bind:value={spec.icon} compact />
+            </div>
+
+            <TranslatedInput
+              label="Help text"
+              bind:value={spec.helpText}
+              required={false}
+              multiline
+              rows={2}
+              placeholder="Shown under the filter on the storefront."
+            />
+
+            {#if isSelectType(spec.valueType)}
+              <OptionListEditor bind:options={spec.options} {disabled} />
+            {/if}
+
+            <div class="grid gap-3 rounded-lg border bg-muted/40 p-3 sm:grid-cols-3">
+              {#each TOGGLES as toggle (toggle.key)}
+                <div class="flex items-start gap-2.5">
+                  <Switch
+                    id="{toggle.key}-{spec.uid}"
+                    checked={spec[toggle.key]}
+                    onCheckedChange={(checked) => (spec[toggle.key] = checked)}
+                    {disabled}
+                  />
+                  <div class="min-w-0">
+                    <Label for="{toggle.key}-{spec.uid}" class="text-sm">{toggle.label}</Label>
+                    <p class="mt-0.5 text-xs leading-snug text-muted-foreground">{toggle.hint}</p>
+                  </div>
+                </div>
+              {/each}
+            </div>
           </div>
-        </div>
-      </Collapsible.Content>
-    </Collapsible.Root>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </div>
   {:else}
     <div class="rounded-lg border border-dashed p-6 text-center">
       <p class="text-sm text-muted-foreground">
