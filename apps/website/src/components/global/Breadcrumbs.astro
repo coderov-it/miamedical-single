@@ -1,0 +1,99 @@
+---
+/**
+ * Breadcrumb trail. Zero JavaScript.
+ *
+ * Emits BreadcrumbList JSON-LD from the same array it renders, so the markup and
+ * the structured data can never disagree.
+ */
+import { serializeJsonLd } from '~/lib/json-ld';
+
+interface Crumb {
+  label: string;
+  /** Root-relative. Omit on the current page. */
+  href?: string;
+}
+
+interface Props {
+  items: Crumb[];
+  /** Absolute site origin, needed for JSON-LD item URLs. */
+  origin?: string;
+}
+
+const { items, origin = Astro.site?.origin ?? Astro.url.origin } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((crumb, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: crumb.label,
+    ...(crumb.href ? { item: `${origin}${crumb.href}` } : {}),
+  })),
+};
+---
+
+<nav class="bc" aria-label="Percorso di navigazione">
+  <ol class="bc__list">
+    {
+      items.map((crumb, index) => (
+        <li class="bc__item">
+          {crumb.href ? (
+            <a href={crumb.href}>{crumb.label}</a>
+          ) : (
+            <span aria-current="page">{crumb.label}</span>
+          )}
+          {index < items.length - 1 && (
+            <span class="bc__sep" aria-hidden="true">
+              ›
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<script type="application/ld+json" is:inline set:html={serializeJsonLd(jsonLd)} />
+
+<style>
+  .bc {
+    padding-block: var(--sp-3);
+  }
+
+  .bc__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    list-style: none;
+    font-size: var(--fs-ui);
+  }
+
+  .bc__item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+
+  /* Breadcrumb links are navigation, not prose, so they take the full target
+     size rather than the WCAG 2.5.8 inline exception. */
+  .bc__item a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--c-ink-secondary);
+    font-weight: 600;
+  }
+
+  .bc__item [aria-current='page'] {
+    color: var(--c-ink);
+    font-weight: 700;
+  }
+
+  /* Decorative only: it carries no information and is hidden from assistive
+     technology, so the lighter tone is acceptable here. */
+  .bc__sep {
+    color: var(--c-ink-decorative);
+  }
+</style>

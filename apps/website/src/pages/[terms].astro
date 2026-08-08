@@ -1,0 +1,46 @@
+---
+/**
+ * Every published legal document, at the top level under its own slug. One route
+ * rather than a file per document, so a newly published document is reachable
+ * immediately and a product can link to its own terms without a code change.
+ *
+ * Astro gives static routes priority over dynamic ones, so this never shadows
+ * `/cerca/`, `/assistenza/` or `/carrello/`.
+ */
+import PolicyDocument from '~/components/legal/PolicyDocument.astro';
+import { getTermsBySlug } from '~/lib/catalog';
+
+export const prerender = false;
+
+/** Slugs the footer links to unconditionally, with their fallback headings. */
+const REQUIRED_DOCUMENTS: Record<string, { title: string; description: string }> = {
+  'privacy-policy': {
+    title: 'Privacy policy',
+    description: 'Informativa sul trattamento dei dati personali di Mia Medical Italia.',
+  },
+  'termini-e-condizioni': {
+    title: 'Termini e condizioni',
+    description:
+      'Termini e condizioni applicabili alle richieste e ai noleggi di ausili Mia Medical Italia.',
+  },
+  'cookie-policy': {
+    title: 'Cookie policy',
+    description: 'Informativa sui cookie utilizzati dal sito di Mia Medical Italia.',
+  },
+};
+
+const slug = Astro.params.terms ?? '';
+const document = slug ? await getTermsBySlug(slug) : null;
+const required = REQUIRED_DOCUMENTS[slug];
+
+if (!document && !required) {
+  return Astro.rewrite('/404');
+}
+
+const fallbackTitle = required?.title ?? document?.title ?? 'Documento';
+const description =
+  required?.description ??
+  `${document?.title ?? 'Documento'} — condizioni applicabili ai noleggi Mia Medical Italia.`;
+---
+
+<PolicyDocument {document} {fallbackTitle} {description} />

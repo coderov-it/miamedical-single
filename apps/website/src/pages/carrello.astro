@@ -1,0 +1,263 @@
+---
+/**
+ * Rental request summary — the storefront's "carrello".
+ *
+ * No payment happens online, so this reads the configuration out of the URL,
+ * resolves it to real option labels, and hands over to the phone with everything
+ * written out. Not a persisted cart: see docs/code/storefront-design-system.md.
+ */
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { formatMoney, formatPricing, mediaUrl } from '~/lib/api';
+import { getProductBySlug } from '~/lib/catalog';
+import { FIELD, formatDateLabel, resolveRequest } from '~/lib/request-config';
+import { productPath, routes } from '~/lib/routes';
+import { CONTACT, whatsappUrl } from '~/lib/site';
+import '~/styles/commerce.css';
+
+export const prerender = false;
+
+// Never cache a page built from someone's request details.
+Astro.response.headers.set('cache-control', 'no-store, max-age=0');
+
+const params = Astro.url.searchParams;
+const slug = params.get(FIELD.product)?.trim() ?? '';
+const product = slug ? await getProductBySlug(slug) : null;
+
+const request = product
+  ? resolveRequest(product, params, formatMoney)
+  : { selections: [], answers: [], addons: [], quantity: 1, startDate: '' };
+
+const startDateLabel = formatDateLabel(request.startDate);
+
+/** The message body sent to WhatsApp — resolved labels only, never raw input. */
+const requestLines = product
+  ? [
+      `Richiesta: ${product.title}`,
+      ...request.selections.map((entry) => `${entry.label}: ${entry.value}`),
+      ...(startDateLabel ? [`Da quando: ${startDateLabel}`] : []),
+      ...(request.quantity > 1 ? [`Quantità: ${request.quantity}`] : []),
+      ...request.addons.map((addon) => `Extra: ${addon.name}`),
+      ...request.answers.map((entry) => `${entry.label} ${entry.value}`),
+    ]
+  : [];
+---
+
+<BaseLayout
+  title="La tua richiesta | Mia Medical Italia"
+  description="Controlla la tua richiesta di noleggio e confermala al telefono."
+  noindex
+>
+  <div class="commerce-page">
+    <header class="commerce-page__intro">
+      <h1>La tua richiesta</h1>
+      <p>
+        Controlla i dettagli e chiamaci per confermare: verifichiamo la disponibilità, concordiamo
+        la consegna e solo dopo ricevi il link di pagamento.
+      </p>
+    </header>
+
+    {
+      product ? (
+        <div class="commerce-grid">
+          <section aria-labelledby="request-items-title">
+            <h2 id="request-items-title" class="sr-only">
+              Prodotto richiesto
+            </h2>
+            <ul class="cart-list">
+              <li class="cart-item">
+                {product.media.thumbnail ? (
+                  <img
+                    class="cart-item__image"
+                    src={mediaUrl(product.media.thumbnail.path)}
+                    alt={product.media.thumbnail.alt ?? product.title}
+                    loading="eager"
+                  />
+                ) : (
+                  <div class="cart-item__image" aria-hidden="true" />
+                )}
+
+                <div class="cart-item__body">
+                  <p class="cart-item__title">{product.title}</p>
+
+                  <ul class="cart-item__meta">
+                    <li>{formatPricing(product.pricing)}</li>
+                    {request.selections.map((entry) => (
+                      <li>
+                        {`${entry.label}: `}
+                        <strong>{entry.value}</strong>
+                        {entry.note && ` (${entry.note})`}
+                      </li>
+                    ))}
+                    {startDateLabel && (
+                      <li>
+                        {'Da quando: '}
+                        <strong>{startDateLabel}</strong>
+                      </li>
+                    )}
+                    <li>
+                      {'Quantità: '}
+                      <strong>{request.quantity}</strong>
+                    </li>
+                    {request.addons.map((addon) => (
+                      <li>
+                        {'Extra: '}
+                        <strong>{addon.name}</strong>
+                        {` — ${formatPricing(addon.pricing)}`}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div class="cart-item__actions">
+                    <a class="secondary-action" href={productPath(product.slug)}>
+                      Modifica la scelta
+                    </a>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            {request.answers.length > 0 && (
+              <section class="request-answers" aria-labelledby="request-answers-title">
+                <h2 id="request-answers-title">Informazioni per la consegna</h2>
+                <dl>
+                  {request.answers.map((entry) => (
+                    <div class="request-answers__row">
+                      <dt>{entry.label}</dt>
+                      <dd>{entry.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+          </section>
+
+          <aside class="summary-card" aria-labelledby="request-summary-title">
+            <h2 id="request-summary-title">Come si conclude</h2>
+
+            <div class="summary-card__row">
+              <span>Prezzo indicativo</span>
+              <span>{formatPricing(product.pricing)}</span>
+            </div>
+            <div class="summary-card__row">
+              <span>Consegna e ritiro</span>
+              <span>da confermare</span>
+            </div>
+            <div class="summary-card__row summary-card__row--total">
+              <span>Oggi paghi</span>
+              <span>€ 0,00</span>
+            </div>
+
+            <p class="pay-later">
+              <strong>Nessun pagamento online.</strong> Ti chiamiamo per confermare tutto, poi
+              ricevi un link di pagamento sicuro via SMS o email.
+            </p>
+
+            <PhoneCta variant="primary" class="request-phone" />
+
+            <a
+              class="secondary-action request-whatsapp"
+              href={whatsappUrl(requestLines.join('\n'))}
+              target="_blank"
+              rel="noopener"
+            >
+              Invia la richiesta su WhatsApp
+            </a>
+
+            <p class="request-hours">{CONTACT.hours.it}</p>
+          </aside>
+        </div>
+      ) : (
+        <div class="empty-state">
+          <h2>Non hai ancora scelto nessun ausilio</h2>
+          <p>
+            Sfoglia il catalogo, scegli il prodotto e le opzioni: poi confermiamo tutto insieme al
+            telefono. Se preferisci, possiamo fare la richiesta per te adesso.
+          </p>
+          <a class="secondary-action" href={routes.catalog}>
+            Vai al catalogo
+          </a>
+          <p class="request-hours">{CONTACT.hours.it}</p>
+          <PhoneCta variant="primary" />
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .summary-card :global(.request-phone),
+  .request-whatsapp {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .summary-card :global(.request-phone) {
+    margin-bottom: var(--sp-3);
+    min-height: 54px;
+  }
+
+  .request-hours {
+    margin-top: var(--sp-3);
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+  }
+
+  .request-answers {
+    margin-top: var(--sp-5);
+    padding: var(--sp-5);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    background: var(--c-surface);
+  }
+
+  .request-answers h2 {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-h4);
+  }
+
+  .request-answers__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sp-3);
+    padding-block: var(--sp-3);
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .request-answers__row:last-child {
+    border-bottom: 0;
+  }
+
+  .request-answers dt {
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui);
+    font-weight: 700;
+  }
+
+  .request-answers dd {
+    font-size: var(--fs-ui);
+    color: var(--c-ink-secondary);
+  }
+
+  .empty-state {
+    display: grid;
+    justify-items: center;
+    gap: var(--sp-3);
+  }
+
+  .empty-state h2 {
+    font-size: var(--fs-h3);
+  }
+
+  .empty-state p {
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  @media (max-width: 560px) {
+    .request-answers__row {
+      grid-template-columns: 1fr;
+      gap: var(--sp-1);
+    }
+  }
+</style>

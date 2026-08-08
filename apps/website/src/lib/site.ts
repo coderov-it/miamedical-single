@@ -1,10 +1,9 @@
 /**
  * Organisation facts: contact channels, locations, legal identity.
  *
- * TEMPORARY. These are governed facts and belong to a `/api/site` read model so
- * the storefront, JSON-LD and the back office cannot drift apart. Hardcoding
- * them here repeats the mistake the legacy WordPress theme made, where the same
- * NAP data lived in functions.php and in the page templates.
+ * TEMPORARY — these belong to an `/api/site` read model so the storefront,
+ * JSON-LD and the back office cannot drift apart. See the "Known gaps" section
+ * of docs/code/storefront-design-system.md.
  */
 export const CONTACT = {
   /** Numero verde, free from Italian landlines and mobiles. */

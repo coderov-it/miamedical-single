@@ -310,9 +310,6 @@ importers:
       '@mia/validators':
         specifier: workspace:*
         version: link:../../packages/validators
-      '@tailwindcss/vite':
-        specifier: 'catalog:'
-        version: 4.3.3(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.9)(yaml@2.9.0))
       astro:
         specifier: 'catalog:'
         version: 7.2.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.2)(jiti@2.7.0)(tsx@4.23.9)(yaml@2.9.0)
@@ -322,9 +319,6 @@ importers:
       svelte:
         specifier: 'catalog:'
         version: 5.56.8
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.3.3
     devDependencies:
       '@astrojs/check':
         specifier: 'catalog:'

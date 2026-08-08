@@ -1,7 +1,6 @@
 import node from '@astrojs/node';
 import sitemap from '@astrojs/sitemap';
 import svelte from '@astrojs/svelte';
-import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 const site = process.env.PUBLIC_SITE_URL ?? 'http://localhost:4321';
@@ -11,13 +10,19 @@ export default defineConfig({
 
   /**
    * `static` is the default: every page is prerendered at build time unless it
-   * opts out with `export const prerender = false`. That gives static-fast
-   * marketing/PDP pages and on-demand SSR for cart, search and account — the
-   * "SuperFast SSR" split, without an extra output mode.
+   * opts out with `export const prerender = false`. Marketing pages (home,
+   * assistenza) are static; anything that reads live catalogue state, search
+   * params or a request configuration (catalogue, product, cerca, carrello,
+   * legal documents) renders on demand.
    */
   output: 'static',
   adapter: node({ mode: 'standalone' }),
 
+  /**
+   * Svelte stays available for islands. The storefront currently ships none:
+   * the whole design is server-rendered HTML plus two small inline scripts
+   * (the search suggestions panel and the quantity stepper).
+   */
   integrations: [svelte(), sitemap()],
 
   prefetch: {
@@ -26,13 +31,12 @@ export default defineConfig({
   },
 
   image: {
-    // Allow remote product images from your CDN / object storage.
+    // Product media is served from object storage / CDN.
     domains: [],
     remotePatterns: [{ protocol: 'https' }],
   },
 
   vite: {
-    plugins: [tailwindcss()],
     server: {
       // Keep the API on its own origin in dev so CORS/cookies match production.
       proxy: {

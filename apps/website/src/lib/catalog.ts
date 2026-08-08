@@ -1,12 +1,10 @@
 /**
- * Catalogue read models.
+ * Catalogue read models — thin typed wrappers over the RPC client. Every shape
+ * is inferred from the Hono router, so a DTO change on the server surfaces here
+ * as a type error rather than a runtime surprise on a rendered page.
  *
- * Thin typed wrappers over the RPC client. Every shape is inferred from the
- * Hono router, so a DTO change on the server surfaces here as a type error
- * rather than as a runtime surprise on a rendered page.
- *
- * The storefront is Italian-first: `locale: 'it'` is the default everywhere and
- * the server applies the `en → it` fallback per field.
+ * Italian-first: `locale: 'it'` everywhere, with the server's `en → it` fallback
+ * applied per field. See docs/code/storefront-design-system.md.
  */
 import type { InferResponseType } from 'hono/client';
 

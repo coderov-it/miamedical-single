@@ -1,12 +1,9 @@
 /**
- * Editorial copy for the home page, transcribed from the approved storefront
- * design.
+ * Editorial copy for the home page, transcribed from the approved design.
  *
- * TEMPORARY. FAQ entries and reviews are editorial content and belong in the
- * back office as page sections and a governed reviews source. The legacy
- * WordPress theme made exactly this mistake — FAQ JSON-LD hardcoded in
- * functions.php — and the copy drifted from the page. Replace this module with
- * API read models and delete it.
+ * TEMPORARY — this belongs in the back office as page sections plus a governed
+ * reviews source. See the "Known gaps" section of
+ * docs/code/storefront-design-system.md.
  */
 import type { Category, ProductSummary } from './catalog.ts';
 
@@ -19,13 +16,12 @@ import type { Category, ProductSummary } from './catalog.ts';
  * with other rentals so the rail is never half empty on a fresh catalogue.
  */
 export function selectHomeFeatured(products: ProductSummary[], limit = 4): ProductSummary[] {
-  const rentals = products.filter((product) => product.pricing.mode === 'rental');
-  const pool = rentals.length > 0 ? rentals : products;
+  const rank = (product: ProductSummary) =>
+    (product.pricing.mode === 'rental' ? 0 : 2) + (product.isFeatured ? 0 : 1);
 
-  const featured = pool.filter((product) => product.isFeatured);
-  const rest = pool.filter((product) => !product.isFeatured);
-
-  return [...featured, ...rest].slice(0, limit);
+  // Rentals first, editorially featured ones ahead of the rest, then sale items
+  // to top up — a rail of one card on a young catalogue reads as broken.
+  return [...products].sort((a, b) => rank(a) - rank(b)).slice(0, limit);
 }
 
 export interface HomeCategoryCard {

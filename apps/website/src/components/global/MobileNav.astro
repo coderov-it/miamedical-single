@@ -1,0 +1,155 @@
+---
+/**
+ * Persistent bottom navigation from the approved mobile design.
+ *
+ * Deliberately static: every item is a real route link and the active route is
+ * derived on the server, so there is no menu state and no client JavaScript.
+ */
+import { routes } from '~/lib/routes';
+
+const items = [
+  { href: routes.home, label: 'Home', exact: true, icon: 'home' },
+  { href: routes.catalog, label: 'Catalogo', exact: false, icon: 'catalog' },
+  { href: routes.cart, label: 'Carrello', exact: false, icon: 'cart' },
+  { href: routes.support, label: 'Assistenza', exact: false, icon: 'help' },
+] as const;
+
+const path = Astro.url.pathname;
+const isActive = (item: (typeof items)[number]) =>
+  item.exact ? path === item.href : path.startsWith(item.href);
+---
+
+<nav id="navigazione-mobile" class="mobile-nav" aria-label="Navigazione principale">
+  {
+    items.map((item) => (
+      <a
+        class:list={['mobile-nav__link', isActive(item) && 'is-active']}
+        href={item.href}
+        aria-current={isActive(item) ? 'page' : undefined}
+      >
+        <span class="mobile-nav__icon" aria-hidden="true">
+          {item.icon === 'home' && (
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m3 11 9-8 9 8" />
+              <path d="M5 10v10h14V10M9 20v-6h6v6" />
+            </svg>
+          )}
+          {item.icon === 'catalog' && (
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          )}
+          {item.icon === 'cart' && (
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="9" cy="20" r="1.4" />
+              <circle cx="18" cy="20" r="1.4" />
+              <path d="M2 3h2.6l2.6 12.2h11.4l2.4-8.6H6" />
+            </svg>
+          )}
+          {item.icon === 'help' && (
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+              <rect x="2" y="13" width="4" height="7" rx="2" />
+              <rect x="18" y="13" width="4" height="7" rx="2" />
+              <path d="M18 20c0 1-1 2-3 2h-2" />
+            </svg>
+          )}
+        </span>
+        <span>{item.label}</span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .mobile-nav {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .mobile-nav {
+      position: sticky;
+      bottom: 0;
+      z-index: var(--z-action-bar);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--target-gap);
+      width: 100%;
+      padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+      background: var(--c-surface);
+      border-top: 1px solid var(--c-border);
+      box-shadow: 0 -4px 16px rgb(27 36 55 / 0.07);
+    }
+
+    .mobile-nav__link {
+      display: flex;
+      min-width: 0;
+      min-height: 58px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 2px;
+      padding: 4px 2px;
+      border-radius: 10px;
+      color: var(--c-ink-secondary);
+      font-family: var(--font-heading);
+      font-size: var(--fs-ui);
+      font-weight: 700;
+      line-height: 1.2;
+      text-decoration: none;
+    }
+
+    .mobile-nav__link.is-active {
+      color: var(--c-primary);
+    }
+
+    .mobile-nav__link.is-active .mobile-nav__icon {
+      width: 52px;
+      height: 30px;
+      border-radius: var(--radius-pill);
+      background: var(--c-surface-tint);
+    }
+
+    .mobile-nav__icon {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+    }
+
+    .mobile-nav__icon svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+</style>

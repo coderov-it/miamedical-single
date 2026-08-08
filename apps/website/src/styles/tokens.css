@@ -1,15 +1,12 @@
 /*
- * Design tokens — M.I.A. Medical Italia storefront
+ * Design tokens — M.I.A. Medical Italia storefront.
  *
- * Derived from the approved desktop and mobile prototypes in /designs.
- * Where a value in those prototypes conflicts with the accessibility rules in
- * AGENTS.md section 9, this file carries the CORRECTED value and records the
- * original alongside it. Do not "restore" a design value over a correction
- * without resolving it with the designer first.
+ * Where the approved prototypes conflict with an accessibility rule, this file
+ * carries the CORRECTED value and marks it. Do not restore a design value over
+ * a correction without resolving it with the designer first.
  *
- * Audience: predominantly elderly customers, often on old devices, sometimes
- * using magnification or a screen reader. Type, contrast and target size are
- * functional requirements here, not styling preferences.
+ * See docs/code/storefront-design-system.md for the audience constraints and
+ * the table of corrections.
  */
 
 @font-face {
@@ -56,18 +53,9 @@
   --c-ink: #1b2437; /* 15.51:1 — headings and body */
   --c-ink-secondary: #49536b; /* 7.68:1 — secondary copy, meets AAA */
 
-  /* CORRECTED. The prototypes use #8A93A8 for "(facoltativo)" markers and for
-     placeholder text: 3.08:1 on white and 2.72:1 on #EDF1FA, failing WCAG 1.4.3
-     on both.
-
-     The reviewed section architecture removes the muted *text* tier entirely
-     and reuses --c-ink-secondary (7.68:1) rather than introducing a fourth grey.
-     A #5F677A midpoint would also have passed (5.66:1 / 5.01:1), but a design
-     system with three text weights beats one with four, and 7.68:1 clears AAA.
-     Hence this is deliberately the same value as --c-ink-secondary.
-
-     Decorative, non-informational use — breadcrumb chevrons only — keeps the
-     lighter tone via --c-ink-decorative, which must always be aria-hidden. */
+  /* CORRECTED, and deliberately identical to --c-ink-secondary: the prototypes'
+     #8A93A8 muted tier failed WCAG 1.4.3, and three text weights beat four.
+     Decorative use keeps the light tone below, aria-hidden only. */
   --c-ink-muted: #49536b;
   --c-ink-decorative: #8a93a8; /* non-text, aria-hidden ONLY */
 
@@ -88,19 +76,15 @@
 
   /* ------------------------------------------------------------ typography */
 
-  /* Lexend for headings and UI: designed to improve reading proficiency.
-     Atkinson Hyperlegible for body: designed by the Braille Institute to
-     maximise character distinction for low-vision readers. Both choices are
-     deliberate for this audience — do not substitute a generic sans. */
+  /* Lexend improves reading proficiency; Atkinson Hyperlegible maximises
+     character distinction for low-vision readers. Both are deliberate for this
+     audience — do not substitute a generic sans. */
   --font-heading: 'Lexend', system-ui, -apple-system, sans-serif;
   --font-body: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
 
-  /* CORRECTED type scale.
-     Project floor is 16px and body is 18px (AGENTS.md section 9). The
-     prototypes use 15px widely, 13-14px on filter labels and on primary CTAs
-     including "Invia la richiesta di noleggio", and 12px on mobile. Every one
-     of those is raised here. There is no token below 16px by design — if you
-     need one, the answer is no. */
+  /* CORRECTED type scale. The prototypes go down to 12px; the project floor is
+     16px and body is 18px. There is no token below 16px by design — if you need
+     one, the answer is no. */
   --fs-body: 1.125rem; /* 18px — default body */
   --fs-body-lg: 1.25rem; /* 20px — lead paragraphs */
   --fs-ui: 1rem; /* 16px — labels, chips, meta. FLOOR. */
@@ -145,22 +129,16 @@
 
   /* ------------------------------------------------------- interaction */
 
-  /* Project minimum interactive size: 48x48 CSS px with 8px separation.
-     WCAG 2.5.8 AA only requires 24x24; 48 is a deliberate project rule because
-     reduced motor precision and tremor are common in this audience. Every
-     button, stepper, chip, icon control and accordion header honours this. */
+  /* 48x48 with 8px separation. WCAG 2.5.8 asks 24x24; 48 is a project rule
+     because tremor and reduced motor precision are common in this audience.
+     Every button, stepper, chip, icon control and accordion header honours it. */
   --target-min: 48px;
   --target-gap: 8px;
 
-  /* CORRECTED, and the single highest-leverage accessibility fix in the design.
-     The prototypes use `outline:3px solid #2E4699` as their only focus styling,
-     which is 1.0:1 against the primary blue buttons — literally invisible on
-     `Noleggia ora`, `Continua`, `Avanti`, `Invia la richiesta`, the Assistenza
-     phone card and the mobile sticky bar. Also 1.81:1 on dark ink and 2.77:1 on
-     the WhatsApp green. SC 2.4.13 and SC 1.4.11 failures.
-
-     A two-tone ring is visible on every surface: a white inner outline plus a
-     dark outer shadow. Use --focus-ring together with --focus-halo. */
+  /* CORRECTED, and the highest-leverage accessibility fix in the design: the
+     prototypes' single blue ring is 1.0:1 on blue buttons — invisible on every
+     primary CTA. This two-tone ring survives white, blue, dark and green.
+     Always use --focus-ring together with --focus-halo. */
   --focus-ring: 3px solid #ffffff;
   --focus-halo: 0 0 0 6px #1b2437;
   --focus-offset: 2px;
@@ -175,6 +153,11 @@
   /* Mobile sticky bottom bar height, from the prototypes. Content offsets add
      env(safe-area-inset-bottom) on top of this. */
   --mobile-bar-h: 88px;
+
+  /* Height of the persistent bottom navigation: 58px targets plus its 6px/8px
+     padding. The product page's sticky action bar sits directly above it, so
+     the two must agree — MobileNav and any fixed bottom bar both use this. */
+  --mobile-nav-h: 72px;
 }
 
 @media (max-width: 640px) {

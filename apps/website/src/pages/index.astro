@@ -1,21 +1,59 @@
 ---
+/**
+ * Storefront home page. Prerendered — it ships no framework JavaScript.
+ *
+ * The page coordinates data and SEO; every visual section is a focused,
+ * zero-JavaScript component, which keeps the section ordering explicit and
+ * readable instead of one monolithic template.
+ *
+ * Reads go through `safely()`: a marketing page must still build when the API
+ * or the database is unavailable. Sections that need data hide themselves when
+ * the list comes back empty.
+ */
+import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
+import HomeContactBand from '~/components/home/HomeContactBand.astro';
+import HomeDelivery from '~/components/home/HomeDelivery.astro';
+import HomeFaq from '~/components/home/HomeFaq.astro';
+import HomeHero from '~/components/home/HomeHero.astro';
+import HomeHowItWorks from '~/components/home/HomeHowItWorks.astro';
+import HomeProductRail from '~/components/home/HomeProductRail.astro';
+import HomeReviews from '~/components/home/HomeReviews.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { listAllProducts, listCategories, safely } from '~/lib/catalog';
+import { buildHomeCategories, HOME_FAQ, selectHomeFeatured } from '~/lib/home-content';
 
-// Prerendered at build time (the project default) — this page ships zero JS
-// and is served straight from disk / CDN.
+const [products, categories] = await Promise.all([
+  safely(() => listAllProducts(), { items: [], total: 0 }, 'listAllProducts'),
+  safely(() => listCategories(), [], 'listCategories'),
+]);
+
+const featured = selectHomeFeatured(products.items);
+const categoryCards = buildHomeCategories(categories, products.items);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: HOME_FAQ.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  },
+];
 ---
 
-<BaseLayout title="Mia Medical — Trusted medical supplies">
-  <section class="py-16 text-center">
-    <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Medical supplies you can rely on</h1>
-    <p class="mx-auto mt-4 max-w-2xl text-lg text-neutral-600 dark:text-neutral-400">
-      Certified equipment and consumables, shipped fast.
-    </p>
-    <a
-      href="/products"
-      class="mt-8 inline-block rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700"
-    >
-      Browse the catalog
-    </a>
-  </section>
+<BaseLayout
+  title="Noleggio carrozzine e ausili medicali a domicilio | Roma e Firenze — Mia Medical Italia"
+  description="Noleggio carrozzine, letti ortopedici e ausili medicali con consegna a domicilio a Roma e Firenze in 24–48 ore. Prodotti sanificati e certificati, assistenza telefonica gratuita."
+  jsonLd={jsonLd}
+>
+  <HomeHero products={featured} suggestions={products.items} />
+  <HomeHowItWorks />
+  <HomeProductRail products={featured} />
+  <HomeCategoryGrid categories={categoryCards} />
+  <HomeDelivery />
+  <HomeReviews />
+  <HomeFaq />
+  <HomeContactBand />
 </BaseLayout>

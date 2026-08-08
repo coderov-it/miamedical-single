@@ -1,0 +1,333 @@
+---
+/**
+ * Assistance. Prerendered — the fastest page we can serve to someone who needs
+ * help right now.
+ *
+ * A phone call is a successful conversion for this audience, so the page leads
+ * with the channels and repeats the home FAQ rather than sending people back to
+ * hunt for it.
+ */
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { HOME_FAQ } from '~/lib/home-content';
+import { routes } from '~/lib/routes';
+import { CONTACT, LOCATIONS, whatsappUrl } from '~/lib/site';
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: HOME_FAQ.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Assistenza e contatti | Mia Medical Italia"
+  description="Parla con noi: numero verde gratuito, WhatsApp ed email. Ti aiutiamo a scegliere l'ausilio giusto e possiamo fare l'ordine per te al telefono."
+  {jsonLd}
+>
+  <div class="support container">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Assistenza' }]} />
+
+    <header class="support__head">
+      <h1>Parla con noi</h1>
+      <p class="support__lede">
+        Ti aiutiamo a scegliere e possiamo fare l'ordine per te, al telefono. {CONTACT.hours.it}.
+      </p>
+    </header>
+
+    <ul class="support__channels">
+      <li class="channel channel--primary">
+        <h2>Numero verde</h2>
+        <p>Gratuito da fisso e da cellulare. È il modo più rapido.</p>
+        <PhoneCta variant="primary" srHint="per assistenza sulla scelta di un ausilio" />
+      </li>
+
+      <li class="channel">
+        <h2>WhatsApp</h2>
+        <p>Scrivici: puoi mandarci anche una foto dello spazio o della prescrizione.</p>
+        <a class="channel__action" href={whatsappUrl()} target="_blank" rel="noopener">
+          {CONTACT.whatsappDisplay}
+        </a>
+      </li>
+
+      <li class="channel">
+        <h2>Email</h2>
+        <p>Per preventivi, fatturazione e documenti.</p>
+        <a class="channel__action" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+      </li>
+    </ul>
+
+    <section class="support__locations" aria-labelledby="support-locations-title">
+      <h2 id="support-locations-title" class="support__h2">Le nostre sedi</h2>
+      <ul>
+        {
+          LOCATIONS.map((location) => (
+            <li>
+              <strong>{location.city}</strong>
+              <span>{location.street}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="support__note">
+        Consegniamo a domicilio a Roma e Firenze e nelle rispettive province. Sei in un'altra zona?
+        Chiamaci: spesso riusciamo a organizzare la consegna.
+      </p>
+    </section>
+
+    <section class="support__faq" aria-labelledby="support-faq-title">
+      <h2 id="support-faq-title" class="support__h2">Domande frequenti</h2>
+      <ul class="faq-list">
+        {
+          HOME_FAQ.map((item) => (
+            <li>
+              <details class="faq-item">
+                <summary class="faq-item__question">
+                  <span>{item.question}</span>
+                  <svg
+                    class="faq-item__chevron"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <p class="faq-item__answer">{item.answer}</p>
+              </details>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="support__cta" aria-labelledby="support-cta-title">
+      <h2 id="support-cta-title" class="support__h2">Sai già cosa ti serve?</h2>
+      <p>Sfoglia il catalogo e invia la richiesta: nessun pagamento online.</p>
+      <a class="support__browse" href={routes.catalog}>Vai al catalogo</a>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .support {
+    padding-bottom: var(--sp-13);
+  }
+
+  .support__head {
+    padding-block: var(--sp-4) var(--sp-8);
+  }
+
+  .support__lede {
+    margin-top: var(--sp-2);
+    max-width: 60ch;
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-body-lg);
+  }
+
+  .support__channels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-4);
+    list-style: none;
+  }
+
+  .channel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding: 22px;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 18px;
+  }
+
+  .channel--primary {
+    border-color: var(--c-surface-accent);
+    background: var(--c-surface-tint);
+  }
+
+  .channel h2 {
+    font-size: var(--fs-h4);
+  }
+
+  .channel p {
+    flex: 1;
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+    line-height: var(--lh-body);
+  }
+
+  .channel__action {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: var(--sp-5);
+    border: 2px solid var(--c-primary);
+    border-radius: var(--radius-pill);
+    background: var(--c-surface);
+    color: var(--c-primary);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .support__h2 {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-h3);
+  }
+
+  .support__locations,
+  .support__faq,
+  .support__cta {
+    margin-top: var(--sp-13);
+  }
+
+  .support__locations ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-4);
+    list-style: none;
+  }
+
+  .support__locations li {
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-5);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 18px;
+  }
+
+  .support__locations strong {
+    font-family: var(--font-heading);
+    font-size: var(--fs-h4);
+  }
+
+  .support__note {
+    margin-top: var(--sp-4);
+    padding: var(--sp-4) var(--sp-5);
+    border: 1px solid var(--c-surface-accent);
+    border-radius: 16px;
+    background: var(--c-surface-tint);
+    font-size: var(--fs-ui);
+    line-height: var(--lh-body);
+  }
+
+  .faq-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--sp-6);
+    padding: var(--sp-2) 26px;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 18px;
+    list-style: none;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--c-surface-tint-alt);
+  }
+
+  .faq-list > li:nth-last-child(-n + 2) .faq-item {
+    border-bottom: 0;
+  }
+
+  .faq-item__question {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: var(--target-min);
+    padding-block: 18px;
+    color: var(--c-ink);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    line-height: var(--lh-body);
+    list-style: none;
+  }
+
+  .faq-item__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item__question > span {
+    flex: 1;
+  }
+
+  .faq-item__chevron {
+    flex: none;
+    color: var(--c-primary);
+    transition: transform 180ms ease;
+  }
+
+  .faq-item[open] .faq-item__chevron {
+    transform: rotate(180deg);
+  }
+
+  .faq-item__answer {
+    padding-block-end: 18px;
+    color: var(--c-ink-secondary);
+    line-height: var(--lh-body);
+  }
+
+  .support__cta {
+    display: grid;
+    justify-items: start;
+    gap: var(--sp-3);
+    padding: var(--sp-8);
+    background: var(--c-surface-tint);
+    border-radius: var(--radius-lg);
+  }
+
+  .support__browse {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: var(--sp-6);
+    border-radius: var(--radius-pill);
+    background: var(--c-primary);
+    color: var(--c-primary-ink);
+    font-family: var(--font-heading);
+    font-size: var(--fs-ui-strong);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .support__channels,
+    .support__locations ul {
+      grid-template-columns: 1fr;
+    }
+
+    .faq-list {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+      padding-inline: var(--sp-4);
+    }
+
+    .faq-list > li:nth-last-child(-n + 2) .faq-item {
+      border-bottom: 1px solid var(--c-surface-tint-alt);
+    }
+
+    .faq-list > li:last-child .faq-item {
+      border-bottom: 0;
+    }
+  }
+</style>

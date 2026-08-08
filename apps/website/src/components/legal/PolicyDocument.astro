@@ -1,0 +1,108 @@
+---
+/**
+ * Presentation for a legal document. Resolution and 404 handling belong to the
+ * route; this component only renders what it is handed.
+ *
+ * The body renders as escaped text with preserved line breaks, never as HTML: a
+ * legal page is the last place to hand markup privileges to stored content.
+ */
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import type { TermsDocument } from '~/lib/catalog';
+import { CONTACT } from '~/lib/site';
+
+interface Props {
+  /** `null` when the document exists as a route but is not published yet. */
+  document: TermsDocument | null;
+  /** Heading to show while the document is unpublished. */
+  fallbackTitle: string;
+  description: string;
+}
+
+const { document, fallbackTitle, description } = Astro.props;
+
+const title = document?.title ?? fallbackTitle;
+
+const body = document
+  ? document.body
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  : '';
+
+const effectiveDate = document?.publishedAt
+  ? new Intl.DateTimeFormat('it-IT', { dateStyle: 'long' }).format(new Date(document.publishedAt))
+  : null;
+---
+
+<BaseLayout title={`${title} | Mia Medical Italia`} {description}>
+  <div class="policy container">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: title }]} />
+
+    <article>
+      <h1>{title}</h1>
+
+      {
+        document ? (
+          <Fragment>
+            <p class="policy__version">
+              {`Versione ${document.version}`}
+              {effectiveDate && ` — in vigore dal ${effectiveDate}`}
+            </p>
+            <div class="policy__body">{body}</div>
+          </Fragment>
+        ) : (
+          <div class="policy__pending">
+            <p>
+              Questo documento è in aggiornamento e non è ancora pubblicato online. Possiamo
+              inviartelo subito per email o leggertelo al telefono.
+            </p>
+            <p class="policy__hours">{CONTACT.hours.it}</p>
+            <PhoneCta variant="primary" />
+            <p>
+              Oppure scrivici a <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>.
+            </p>
+          </div>
+        )
+      }
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .policy {
+    padding-bottom: var(--sp-13);
+  }
+
+  .policy article {
+    max-width: 78ch;
+  }
+
+  .policy__version {
+    margin-block: var(--sp-3) var(--sp-6);
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+  }
+
+  .policy__body {
+    white-space: pre-line;
+    line-height: var(--lh-body);
+  }
+
+  .policy__pending {
+    display: grid;
+    justify-items: start;
+    gap: var(--sp-4);
+    margin-top: var(--sp-6);
+    padding: var(--sp-8);
+    background: var(--c-surface-tint);
+    border-radius: var(--radius-lg);
+  }
+
+  .policy__hours {
+    color: var(--c-ink-secondary);
+    font-size: var(--fs-ui);
+  }
+</style>
