@@ -190,19 +190,19 @@ location / {
   root /srv/mia/admin/dist;
   try_files $uri $uri/ /index.html;
 }
-
-# Keep /api on the same origin, so the lax session cookie is actually sent.
-location /api/ {
-  proxy_pass http://127.0.0.1:8787;
-}
 ```
 
-That second block is the part worth not skipping. The session lives in an
-httpOnly `SameSite=lax` cookie, so if the admin is served from a different
-origin than the API the browser drops it on every request. Same-origin is the
-default and needs no extra config; a split-origin deployment additionally needs
-`PUBLIC_ADMIN_API_URL`, `AUTH_COOKIE_SAMESITE="none"` (HTTPS only) and the admin
-origin listed in `CORS_ORIGINS`.
+That is the whole deployment. The admin does **not** need `/api` proxied onto
+its own origin: `API_BASE` in [`src/lib/api.ts`](apps/admin/src/lib/api.ts) is
+`PUBLIC_API_URL`, absolute, so the built files call the API wherever it
+actually lives. Set that origin at build time and list it in `CORS_ORIGINS`.
+
+The session is an httpOnly `SameSite=lax` cookie, which survives the
+cross-origin call as long as both ends are the same _site_ — SameSite compares
+registrable domain and scheme, and ports are not part of a site. So
+`admin.example.com` → `api.example.com` works, and so does `:5173` → `:8787` in
+dev. Only a genuinely different domain (a `*.pages.dev` admin against your own
+API domain, say) needs `AUTH_COOKIE_SAMESITE="none"` and HTTPS on both ends.
 
 **Money is `numeric(12,2)`,** carried as a two-decimal string (`"35.00"`) — never a JS
 number, never a float. Server arithmetic goes through `modules/products/money.ts`

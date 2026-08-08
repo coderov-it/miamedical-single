@@ -4,12 +4,23 @@ import { hc } from 'hono/client';
 
 import { uiLang } from '~/lib/ui-lang.svelte';
 
-// Deliberately NOT PUBLIC_API_URL — that is where the API lives, and the dev
-// proxy in vite.config.ts already points at it. The browser wants a *relative*
-// base so /api stays same-origin and the lax session cookie is actually sent.
-// Only set this when the admin is served from a different origin than the API,
-// which also needs AUTH_COOKIE_SAMESITE="none" and an entry in CORS_ORIGINS.
-const baseUrl = env.PUBLIC_ADMIN_API_URL ?? '';
+/**
+ * The one place the API origin is named. Absolute on purpose: the admin builds
+ * to a static folder that must run from any host without a `/api` routing rule
+ * in front of it, so nothing here may assume same-origin.
+ *
+ * Cookies survive the cross-origin call because SameSite is computed on the
+ * *site* (registrable domain + scheme) and ports are not part of a site — dev
+ * on :5173 → :8787 is same-site, and so are two subdomains of one domain in
+ * production. Only a genuinely different domain needs AUTH_COOKIE_SAMESITE
+ * ="none"; either way the origin must be listed in CORS_ORIGINS.
+ */
+export const API_BASE = env.PUBLIC_API_URL ?? 'http://localhost:8787';
+
+/** `apiUrl('/api/media/upload')`. Base carries no trailing slash, path leads with one. */
+export function apiUrl(path: string): string {
+  return API_BASE + path;
+}
 
 /**
  * Reads follow the interface language: every admin GET carries
@@ -31,16 +42,18 @@ const localeAwareFetch: typeof fetch = (input, init) => {
   return fetch(new Request(url, request));
 };
 
-/** Same typed RPC client the website uses. Empty base URL → Vite proxies /api. */
-export const api = hc<AppType>(baseUrl, {
+/** Same typed RPC client the website uses, pointed at API_BASE. */
+export const api = hc<AppType>(API_BASE, {
   init: { credentials: 'include' },
   fetch: localeAwareFetch,
 });
 
 // `formatMoney` lives in ./format.ts with the rest of the display helpers.
 
+/** CDN origin for stored media. No trailing slash — stored paths are bare R2 keys. */
+export const MEDIA_BASE = env.PUBLIC_MEDIA_BASE_URL ?? '';
+
 /** Prefix a stored media path with the public CDN base. */
 export function mediaUrl(path: string): string {
-  const base = env.PUBLIC_MEDIA_BASE_URL ?? '';
-  return base ? `${base.replace(/\/$/, '')}/${path}` : `/${path}`;
+  return `${MEDIA_BASE}/${path}`;
 }

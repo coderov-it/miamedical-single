@@ -1,16 +1,12 @@
 import { MEDIA_PROFILES, type MediaProfileName } from '@mia/validators';
-import { env } from '$env/dynamic/public';
 
-import { api } from '../api';
+import { api, apiUrl } from '../api';
 
 export interface UploadResult {
   /** Staging path — becomes real when the owning entity is saved. */
   path: string;
   mimeType: string;
 }
-
-/** Same base the RPC client uses: empty → same-origin, the Vite proxy in dev. */
-const baseUrl = env.PUBLIC_ADMIN_API_URL ?? '';
 
 /**
  * The whole client side of the upload flow: one multipart POST through the
@@ -39,7 +35,7 @@ export async function uploadFile(
   // XMLHttpRequest instead of fetch for real upload progress.
   return await new Promise<UploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${baseUrl}/api/media/upload`);
+    xhr.open('POST', apiUrl('/api/media/upload'));
     xhr.withCredentials = true;
     xhr.responseType = 'json';
     xhr.upload.onprogress = (event) => {
