@@ -12,6 +12,7 @@
     "clean": "rm -rf .turbo .svelte-kit dist node_modules"
   },
   "dependencies": {
+    "@mia/i18n": "workspace:*",
     "@mia/permissions": "workspace:*",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",

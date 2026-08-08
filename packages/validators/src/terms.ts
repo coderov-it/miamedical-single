@@ -47,6 +47,8 @@ export const TermsQuerySchema = v.object({
 export const TermsIdParamSchema = v.object({ id: UuidSchema });
 export const TermsSlugParamSchema = v.object({ slug: SlugSchema });
 
+export type TermsStatus = v.InferOutput<typeof TermsStatusSchema>;
+
 export type CreateTermsInput = v.InferOutput<typeof CreateTermsSchema>;
 export type UpdateTermsInput = v.InferOutput<typeof UpdateTermsSchema>;
 export type TermsQuery = v.InferOutput<typeof TermsQuerySchema>;

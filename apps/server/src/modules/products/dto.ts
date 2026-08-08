@@ -1,4 +1,4 @@
-import type { LanguageCode, Localized, MediaAlt } from '@mia/db/schema';
+import type { LanguageCode, Localized, MediaAlt, RentalPackage } from '@mia/db/schema';
 
 /**
  * Network contracts, consumed through the typed RPC client. Two surfaces:
@@ -24,6 +24,20 @@ export interface PricingDto {
   rentalUnit: 'hour' | 'day' | null;
   currency: string;
   price: string;
+}
+
+/**
+ * A rental package as the storefront renders it: `name` already collapsed to
+ * the requested locale, `label` the ready-made "7 giorni" string. `price` is
+ * the whole cost of the package, not a modifier on `pricing.price`.
+ */
+export interface PublicRentalPackageDto {
+  code: string;
+  name: string;
+  label: string;
+  price: string;
+  duration: number;
+  unit: 'hour' | 'day';
 }
 
 export interface PageMetaDto {
@@ -178,6 +192,8 @@ export interface PublicProductDetailDto {
   seo: { title: string | null; description: string | null };
   category: PublicCategoryRefDto;
   pricing: PricingDto;
+  /** Empty on a fixed product. Sold beside `pricing.price`, never instead of it. */
+  rentalPackages: PublicRentalPackageDto[];
   media: PublicProductMediaDto;
   variants: PublicVariantGroupDto[];
   skus: PublicSkuDto[];
@@ -368,6 +384,8 @@ export interface AdminProductDetailDto {
   rentalUnit: 'hour' | 'day' | null;
   basePrice: string;
   currency: string;
+  /** Raw `{ it, en }` names, like every other admin field — nothing collapsed. */
+  rentalPackages: RentalPackage[];
   translations: Partial<Record<LanguageCode, AdminProductTranslationDto>>;
   translationStatus: TranslationStatusDto;
   variants: AdminVariantGroupDto[];

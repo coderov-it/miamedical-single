@@ -15,6 +15,7 @@
     "@astrojs/node": "catalog:",
     "@astrojs/sitemap": "catalog:",
     "@astrojs/svelte": "catalog:",
+    "@mia/i18n": "workspace:*",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",
     "astro": "catalog:",

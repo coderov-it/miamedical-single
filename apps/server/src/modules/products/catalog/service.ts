@@ -234,6 +234,18 @@ export async function update(
   if (input.rentalUnit !== undefined && existing.pricingMode !== 'rental') {
     throw httpError(422, 'A fixed-price product has no rental unit.', 'validation_failed');
   }
+  /**
+   * `[]` is allowed either way, so a client that always sends the field can
+   * still save a fixed product. Only a non-empty list is a contradiction —
+   * and the database CHECK says the same thing one layer down.
+   */
+  if (
+    input.rentalPackages !== undefined &&
+    input.rentalPackages.length > 0 &&
+    existing.pricingMode !== 'rental'
+  ) {
+    throw httpError(422, 'A fixed-price product cannot have rental packages.', 'validation_failed');
+  }
   if (input.baseSku && (await repo.existsByBaseSku(db, input.baseSku, id))) {
     throw conflict(`A product with base SKU "${input.baseSku}" already exists.`);
   }
@@ -247,6 +259,7 @@ export async function update(
   if (input.basePrice !== undefined) data.basePrice = input.basePrice;
   if (input.currency !== undefined) data.currency = input.currency;
   if (input.rentalUnit !== undefined) data.rentalUnit = input.rentalUnit;
+  if (input.rentalPackages !== undefined) data.rentalPackages = input.rentalPackages;
   if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
   if (input.translations !== undefined) {
     data.translations = normalizeTranslations(input.translations);

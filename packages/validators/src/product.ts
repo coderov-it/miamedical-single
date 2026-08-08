@@ -52,6 +52,36 @@ const SkuFragmentSchema = v.pipe(
 const FiniteNumberSchema = v.pipe(v.number(), v.finite());
 const PositionSchema = v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)), 0);
 
+// --- rental packages -------------------------------------------------------
+
+/**
+ * A fixed-duration bundle sold beside the per-unit rate. The price is a total
+ * the back office typed — nothing here derives it from `basePrice`, and no
+ * check demands it be cheaper: whether a package is a good deal is a business
+ * decision, not a validation rule.
+ */
+export const RentalPackageSchema = v.strictObject({
+  code: KeySchema,
+  name: localizedSchema(120),
+  price: MoneySchema,
+  /** Ten years of days is well past any real rental and still catches a typo. */
+  duration: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3650)),
+  unit: RentalUnitSchema,
+});
+
+/**
+ * Cardinality lives here rather than in a database CHECK, matching how
+ * `ProductMediaSchema` caps `gallery`. 15 is the client's stated ceiling.
+ */
+export const RentalPackagesSchema = v.pipe(
+  v.array(RentalPackageSchema),
+  v.maxLength(15, 'A product can have at most 15 rental packages.'),
+  v.check(
+    (packages) => new Set(packages.map((item) => item.code)).size === packages.length,
+    'Package codes must be unique within a product.',
+  ),
+);
+
 // --- product ---------------------------------------------------------------
 
 export const ProductTranslationFields = {
@@ -107,6 +137,8 @@ export const UpdateProductSchema = v.pipe(
       isFeatured: v.boolean(),
       translations: ProductTranslationsSchema,
       media: ProductMediaSchema,
+      /** Rejected on a fixed product by the service, as `rentalUnit` is. */
+      rentalPackages: RentalPackagesSchema,
     }),
   ),
 );
@@ -303,6 +335,20 @@ export const ProductTermsInputSchema = v.pipe(
   v.array(v.strictObject({ termsId: UuidSchema, position: PositionSchema })),
   v.maxLength(20),
 );
+
+/**
+ * The enum unions, named. These are machine tokens — never translated in the
+ * database. Their display strings live in `@mia/i18n`, which keys its label
+ * catalogs off exactly these types so a new member fails the build until it
+ * has been labelled in both languages.
+ */
+export type ProductStatus = v.InferOutput<typeof ProductStatusSchema>;
+export type PricingMode = v.InferOutput<typeof PricingModeSchema>;
+export type RentalUnit = v.InferOutput<typeof RentalUnitSchema>;
+export type ValueType = v.InferOutput<typeof ValueTypeSchema>;
+export type QuestionValueType = v.InferOutput<typeof QuestionValueTypeSchema>;
+
+export type RentalPackageInput = v.InferOutput<typeof RentalPackageSchema>;
 
 export type CreateProductInput = v.InferOutput<typeof CreateProductSchema>;
 export type UpdateProductInput = v.InferOutput<typeof UpdateProductSchema>;

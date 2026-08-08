@@ -1,0 +1,2 @@
+ALTER TABLE "products" ADD COLUMN "rental_packages" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "products" ADD CONSTRAINT "products_rental_packages_check" CHECK ("products"."pricing_mode" = 'rental' OR "products"."rental_packages" = '[]'::jsonb);

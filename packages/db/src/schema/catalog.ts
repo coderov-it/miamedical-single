@@ -17,15 +17,10 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { termsDocuments } from './content.ts';
-import {
-  pricingMode,
-  productStatus,
-  questionValueType,
-  rentalUnit,
-  valueType,
-} from './enums.ts';
+import { pricingMode, productStatus, questionValueType, rentalUnit, valueType } from './enums.ts';
 import { languageCode, localized, localizedCheck, optionalLocalizedCheck } from './i18n.ts';
 import { EMPTY_PRODUCT_MEDIA, type ProductMedia } from './media-types.ts';
+import { EMPTY_RENTAL_PACKAGES, type RentalPackage } from './rental-types.ts';
 import { tsvector } from './search.ts';
 
 /**
@@ -153,6 +148,11 @@ export const products = pgTable(
     currency: text().notNull().default('EUR'),
     /** NULL exactly when `pricingMode` is `fixed` (CHECK below). */
     rentalUnit: rentalUnit(),
+    /**
+     * Fixed-duration bundles sold beside the per-unit rate — see rental-types.ts.
+     * Always `[]` on a fixed product (CHECK below).
+     */
+    rentalPackages: jsonb().$type<RentalPackage[]>().notNull().default(EMPTY_RENTAL_PACKAGES),
     isFeatured: boolean().notNull().default(false),
     media: jsonb().$type<ProductMedia>().notNull().default(EMPTY_PRODUCT_MEDIA),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -174,6 +174,11 @@ export const products = pgTable(
     check(
       'products_rental_unit_check',
       sql`(${t.pricingMode} = 'rental') = (${t.rentalUnit} IS NOT NULL)`,
+    ),
+    /** A duration bundle on something you buy outright means nothing. */
+    check(
+      'products_rental_packages_check',
+      sql`${t.pricingMode} = 'rental' OR ${t.rentalPackages} = '[]'::jsonb`,
     ),
   ],
 );

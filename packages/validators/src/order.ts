@@ -28,11 +28,18 @@ export const OrderStatusSchema = v.picklist([
   'refunded',
 ]);
 
+export const PaymentStatusSchema = v.picklist([
+  'unpaid',
+  'authorized',
+  'paid',
+  'partially_refunded',
+  'refunded',
+  'failed',
+]);
+
 export const UpdateOrderSchema = v.object({
   status: v.optional(OrderStatusSchema),
-  paymentStatus: v.optional(
-    v.picklist(['unpaid', 'authorized', 'paid', 'partially_refunded', 'refunded', 'failed']),
-  ),
+  paymentStatus: v.optional(PaymentStatusSchema),
   notes: v.optional(v.nullable(v.string())),
 });
 
@@ -41,6 +48,9 @@ export const OrderQuerySchema = v.object({
   status: v.optional(OrderStatusSchema),
   q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
 });
+
+export type OrderStatus = v.InferOutput<typeof OrderStatusSchema>;
+export type PaymentStatus = v.InferOutput<typeof PaymentStatusSchema>;
 
 export type Address = v.InferOutput<typeof AddressSchema>;
 export type CheckoutInput = v.InferOutput<typeof CheckoutSchema>;

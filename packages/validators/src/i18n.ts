@@ -12,8 +12,7 @@ export const DEFAULT_LANGUAGE: LanguageCode = 'it';
 const requiredText = (max: number) =>
   v.pipe(v.string(), v.trim(), v.minLength(1, 'Italian text is required.'), v.maxLength(max));
 
-const optionalText = (max: number) =>
-  v.optional(v.pipe(v.string(), v.trim(), v.maxLength(max)));
+const optionalText = (max: number) => v.optional(v.pipe(v.string(), v.trim(), v.maxLength(max)));
 
 /**
  * Shape of every inline `{ it, en }` jsonb column. `strictObject` is what
@@ -29,10 +28,7 @@ export const localizedSchema = (max = 500) =>
 export const LocalizedSchema = localizedSchema();
 export type Localized = v.InferOutput<typeof LocalizedSchema>;
 
-export const LanguageCodeSchema = v.picklist(
-  LANGUAGE_CODES,
-  'Language must be "it" or "en".',
-);
+export const LanguageCodeSchema = v.picklist(LANGUAGE_CODES, 'Language must be "it" or "en".');
 
 /** `?locale=` query param — absent means Italian. */
 export const LocaleQuerySchema = v.optional(LanguageCodeSchema, DEFAULT_LANGUAGE);
