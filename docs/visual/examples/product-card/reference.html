@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Product card — built from the reference</title>
+    <!-- Card family: Inter — neutral grotesque, excellent tabular numerals,
+         full Italian diacritics. Prototype pulls it from Google Fonts; the
+         site will self-host the woff2 like the other faces. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap"
+    />
+    <!--
+      ROUND 4. Built directly from the reference screenshot, not invented.
+
+      What went wrong in round 3, measured:
+        · The cards rendered at 277px wide and ~620px tall (4 columns in a
+          1244px container). The reference card is ~377px wide and ~510px tall.
+          377px is EXACTLY 3 columns in our container. Same card, right width.
+        · Round 3 used 8 font sizes on one card. The reference uses ~5.
+          This file uses 5: 15 / 16 / 16.5 / 18.5 / 24.
+
+      Anatomy, per the reference and later trims:
+        clean image (flat tint, NOTHING overlaid) → name → two-line blurb →
+        spec tags → full-bleed hairline → price (amount + unit, nothing
+        else) left, bordered button right.
+      Out of stock = dead: muted art and name, NO price, a flat full-width
+      "Esaurito" plate instead of the button, and no hover response.
+      Removed on request: the delivery row (single vendor — everything
+      delivers anywhere in the country), the "Da" price prefix, the
+      minimum-rental line, the green availability status line, the category
+      chip, and every overlay on the image. Type: Inter only on the card,
+      tabular numerals for prices; ink softened to #2e3237 — never pure
+      black, never navy.
+
+      Card copy is Italian (site language). These notes are English (working doc).
+      Fonts only load when served over http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+
+      /* Site tokens: apps/website/src/styles/app.css.
+         --ink is softened on purpose: never 100% black and never the navy —
+         a neutral charcoal that doesn't sting on a bright screen. This value
+         must flow back into the site token when the card is applied. */
+      :root {
+        --ink: #2e3237;
+        --ink-2: #49536b;
+        --ink-3: #8a93a8;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --accent-deep: #1d2c62;
+        --ok: #0e6b41;
+        --r: 18px;
+        --r-sm: 12px;
+        --pill: 999px;
+        --display: 'Lexend', system-ui, sans-serif;
+        --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+        --lift: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 18px;
+        line-height: 1.6;
+      }
+      svg {
+        display: block;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -0.028em;
+      }
+      p {
+        margin: 0;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px var(--ink);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      .inner {
+        width: 100%;
+        max-width: 1244px;
+        margin-inline: auto;
+        padding-inline: 32px;
+      }
+
+      /* ------------------------------------------------------------ chrome */
+      .lede {
+        padding-block: 64px 0;
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .kicker::before {
+        content: '';
+        width: 26px;
+        height: 2px;
+        background: var(--accent);
+      }
+      .lede h1 {
+        margin-top: 12px;
+        font-size: clamp(2rem, 3.2vw, 2.5rem);
+        line-height: 1.14;
+      }
+      .lede p {
+        max-width: 64ch;
+        margin-top: 16px;
+        color: var(--ink-2);
+        font-size: 18px;
+      }
+
+      .section {
+        padding-block: 72px 0;
+      }
+      .section--band {
+        margin-top: 72px;
+        padding-block: 72px;
+        background: var(--tint);
+      }
+      .section h2 {
+        font-size: 26px;
+        line-height: 1.2;
+      }
+      .section > .inner > p {
+        max-width: 66ch;
+        margin-top: 8px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+
+      .rows {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        margin-top: 32px;
+      }
+      .rows--four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .rows > li {
+        display: flex;
+        min-width: 0;
+      }
+      @media (max-width: 980px) {
+        .rows,
+        .rows--four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 620px) {
+        .rows,
+        .rows--four {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      /* ============================================================= CARD */
+      /* The whole card is ONE family — Inter — a neutral grotesque with
+         proper tabular numerals and full Italian diacritics; weight carries
+         the hierarchy. Atkinson stays the page prose font; a card is UI. */
+      .card {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--hair);
+        border-radius: var(--r);
+        background: #fff;
+        color: inherit;
+        font-family: 'Inter', system-ui, sans-serif;
+        text-decoration: none;
+        transition:
+          border-color 150ms ease,
+          box-shadow 300ms var(--lift),
+          transform 300ms var(--lift);
+      }
+      /* Every hover affordance is scoped away from .card--out: a dead card
+         must not breathe. */
+      .card:not(.card--out):hover {
+        border-color: var(--hair-strong);
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px -26px rgb(19 29 64 / 0.4);
+      }
+
+      /* Image area: flat tint, edge to edge, like the reference. The chip is
+         the category; the shadow grounds the line art the way a photo's own
+         shadow grounds a product shot.
+
+         ONE RATIO EVERYWHERE. The media well is 4:3 at any card width — the
+         chosen balance: generous image presence, ~95px less card height than
+         square — never a fixed height, which silently changes the ratio per
+         column count. The same 4:3 token applies to every product image well
+         in the site: card, hero spotlight, detail gallery, cart thumbnail.
+         Upload masters stay 1:1 square (industry standard); the square photo
+         sits contained on the tint, never cropped, never stretched. Video is
+         the one 16:9 surface. */
+      .stage {
+        position: relative;
+        display: grid;
+        aspect-ratio: 4 / 3;
+        flex: none;
+        place-items: center;
+        background: linear-gradient(180deg, #f7f9fd 0%, var(--tint) 100%);
+        border-bottom: 1px solid var(--hair);
+      }
+      .stage__art {
+        position: relative;
+        width: 68%;
+        max-width: 270px;
+        max-height: 76%;
+        height: auto;
+        color: var(--ink);
+        transition: transform 300ms var(--lift);
+      }
+      /* Real product photo: contained, blended onto the tint so a white studio
+         background disappears. This is the production rendering — the drawings
+         on the other cards are placeholders where no photo is seeded yet. */
+      .stage__photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 14px 18px 20px;
+        mix-blend-mode: multiply;
+        transition: transform 300ms var(--lift);
+      }
+      .card:not(.card--out):hover .stage__photo {
+        transform: translateY(-4px);
+      }
+      .stage__floor {
+        position: absolute;
+        bottom: 13%;
+        left: 50%;
+        width: 48%;
+        height: 14px;
+        background: radial-gradient(
+          ellipse at center,
+          rgb(26 45 98 / 0.14) 0%,
+          rgb(26 45 98 / 0) 72%
+        );
+        transform: translateX(-50%);
+        transition:
+          transform 300ms var(--lift),
+          opacity 300ms ease;
+      }
+      .card:not(.card--out):hover .stage__art {
+        transform: translateY(-4px);
+      }
+      .card:not(.card--out):hover .stage__floor {
+        opacity: 0.75;
+        transform: translateX(-50%) scaleX(1.08);
+      }
+      .card--out .stage__art {
+        color: var(--ink-2);
+        opacity: 0.55;
+      }
+
+      /* The stage carries NOTHING but the product: no chip, no flag, no text.
+         Category lives in the page's filters; stock state lives in the foot. */
+
+      /* Body. One family, five sizes on the whole card:
+         14 (chip, flag, spec tags, price unit) · 15 (blurb)
+         16 (button) · 18 (name) · 24 (price amount). Weight does the rest:
+         400 reading rows, 500 data rows, 700 name and price. */
+      .body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px 20px 0;
+      }
+
+      /* Clamped, no minimum: feet stay aligned by the auto margin on the rule,
+         so a one-line name never leaves a hole under itself. */
+      .name {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        /* inherit = Inter: the page-level h3 rule would force Lexend back. */
+        font-family: inherit;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+      }
+      .blurb {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        margin-top: 6px;
+        color: var(--ink-2);
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+
+      /* Specs are tags, so they dress like tags: quiet tint pills. One line
+         only — a tag that doesn't fit is cropped, never wrapped; the full
+         spec sheet lives on the product page. */
+      .specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 14px;
+        height: 30px;
+        overflow: hidden;
+      }
+      .specs span {
+        padding: 4px 11px;
+        border: 1px solid var(--hair);
+        border-radius: var(--pill);
+        background: var(--tint);
+        color: var(--ink-2);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+
+      /* A divider is a divider: one hairline, edge to edge across the card,
+         never floating inside the padding. The auto top margin pins the foot
+         to the bottom so every foot in a row aligns. */
+      .rule {
+        margin-top: auto;
+        padding-top: 16px;
+        border-bottom: 1px solid var(--hair);
+      }
+
+      .foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 20px 18px;
+      }
+      /* Price: big bold amount, small unit, one baseline. Nothing else — no
+         "Da" prefix, no minimum line. */
+      .price {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        color: var(--ink-2);
+        font-size: 14px;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+      .price b {
+        color: var(--ink);
+        font-feature-settings: 'tnum' 1;
+        font-size: 24px;
+        font-variant-numeric: tabular-nums lining-nums;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.1;
+      }
+
+      /* Looks like a button, is not one: the whole card is a single link, and a
+         link inside a link is a second tab stop to the same page. */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        flex: none;
+        padding: 0 20px;
+        border: 1px solid var(--hair-strong);
+        border-radius: var(--r-sm);
+        background: #fff;
+        color: var(--ink);
+        font-size: 16px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition:
+          background 150ms ease,
+          border-color 150ms ease,
+          color 150ms ease;
+      }
+      .card:not(.card--out):hover .btn {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+
+      /* Out of stock: the card goes inert. No price — nothing is buyable —
+         just a full-width flat plate naming the state, and no hover anywhere. */
+      .card--out .name {
+        color: var(--ink-2);
+      }
+      .btn--dead {
+        flex: 1;
+        border-color: var(--tint-2);
+        background: var(--tint-2);
+        color: var(--ink-2);
+      }
+
+      /* At 4-up the foot hasn't the width for price + button side by side:
+         let it stack instead of squeezing. This is the honest rendering of
+         this card at 281px — the argument for 3 columns. */
+      .rows--four .foot {
+        flex-wrap: wrap;
+      }
+      .rows--four .btn {
+        flex: 1;
+      }
+
+      /* ------------------------------------------------------ media table */
+      .spec-wrap {
+        margin-top: 28px;
+        overflow-x: auto;
+      }
+      .spec {
+        width: 100%;
+        min-width: 760px;
+        overflow: hidden;
+        border: 1px solid var(--hair-strong);
+        border-radius: var(--r);
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .spec th {
+        padding: 13px 18px;
+        background: var(--tint);
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-align: left;
+      }
+      .spec td {
+        padding: 13px 18px;
+        border-top: 1px solid var(--hair);
+        color: var(--ink-2);
+        vertical-align: top;
+      }
+      .spec td:first-child {
+        color: var(--ink);
+        font-family: var(--display);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .spec td:nth-child(2) {
+        white-space: nowrap;
+      }
+
+      /* ------------------------------------------------------------ chiusa */
+      .verdict {
+        margin-top: 72px;
+        padding-block: 72px 88px;
+        background: #131d40;
+        color: #fff;
+      }
+      .verdict h2 {
+        font-size: 26px;
+      }
+      .verdict ol {
+        display: grid;
+        gap: 12px;
+        max-width: 76ch;
+        margin: 22px 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: v;
+      }
+      .verdict li {
+        display: flex;
+        gap: 14px;
+        color: #b3bcd8;
+        font-size: 17px;
+        counter-increment: v;
+      }
+      .verdict li::before {
+        content: counter(v);
+        display: grid;
+        width: 28px;
+        height: 28px;
+        flex: none;
+        place-items: center;
+        border-radius: 50%;
+        background: rgb(255 255 255 / 0.12);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .verdict b {
+        color: #fff;
+        font-family: var(--display);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="lede">
+      <div class="inner">
+        <p class="kicker">Round 4 · from your reference</p>
+        <h1>The reference card, typed in the Variante B system.</h1>
+        <p>
+          A clean image with nothing overlaid, then name, blurb, spec tags, a full-bleed hairline,
+          and just the price with a bordered button. No delivery row, no "Da" prefix, no minimum
+          line, no status line, no category chip. Out of stock reads from the foot alone: a flat
+          "Esaurito" plate, no price, and the card doesn't react to hover at all. Your reference card is ~377px wide; in our 1244px container
+          that is exactly <strong>3 columns</strong>, so that is how it is shown. The image well is
+          a fixed <strong>4:3 ratio</strong> at every width — the one ratio for product imagery
+          across the whole site (cards, hero, gallery); upload masters stay 1:1 square, contained
+          on the tint, never cropped; video is the one 16:9 surface. One type family on the card,
+          five sizes, weight does the hierarchy. In
+          production the stage holds the real product photo, contained and blended onto the tint —
+          the drawings here are placeholders, since the demo database has no usable product
+          photography yet.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="inner">
+        <h2>The card, in the catalogue grid</h2>
+        <p>
+          One family, five sizes — 14 · 15 · 16 · 18 · 24 — weights 400/500/700 carry the
+          hierarchy. Hover: the card lifts, the product rises, the button fills with accent.
+        </p>
+        <ul class="rows" data-cards="grid"></ul>
+      </div>
+    </section>
+
+    <section class="section section--band">
+      <div class="inner">
+        <h2>Why not 4 columns</h2>
+        <p>
+          The same card at our current 4-up catalogue width (281px). The image keeps the same 4:3
+          ratio — only the foot has to stack and the name eats two lines. It survives — but the
+          3-up above is the reference proportion.
+        </p>
+        <ul class="rows rows--four" data-cards="four"></ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="inner">
+        <h2>Media standard — one frame, one master</h2>
+        <p>
+          The display <strong>frame</strong> for product imagery is <strong>4:3</strong>
+          everywhere — card stage, product-detail gallery, hero spotlight, cart thumbnail. The
+          upload <strong>master</strong> is <strong>1:1 square</strong> (the industry standard for
+          product photography), rendered <em>contained</em> on the tint — never cropped, never
+          stretched; the stage supplies the width. Video is the one <strong>16:9</strong> surface.
+          Caps below
+          mirror <code>MEDIA_PROFILES</code> in <code>packages/validators/src/media.ts</code> (the
+          server already converts photos to WebP at max 2048px); the new rules are the 1:1
+          composition for photos and 1080p for video.
+        </p>
+        <div class="spec-wrap">
+          <table class="spec">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Ratio</th>
+                <th>Recommended upload</th>
+                <th>Rules</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Gallery photo</td>
+                <td>1:1</td>
+                <td>2048×2048 px (never below 1200×1200) · JPEG/PNG/WebP/AVIF</td>
+                <td>
+                  White or neutral background, product fills 80–90% of the frame, sRGB. Server
+                  re-encodes to WebP ≤2048px.
+                </td>
+              </tr>
+              <tr>
+                <td>Thumbnail</td>
+                <td>1:1</td>
+                <td>Same standard — usually the first gallery shot</td>
+                <td>The card renders it at ≤800px; never upload a small file for it.</td>
+              </tr>
+              <tr>
+                <td>Clean PNG</td>
+                <td>1:1</td>
+                <td>2048×2048 px · PNG with transparency</td>
+                <td>
+                  Cut-out product on transparent background, fills ~90%. Used on hero and tint
+                  stages.
+                </td>
+              </tr>
+              <tr>
+                <td>Video</td>
+                <td>16:9</td>
+                <td>1920×1080 (1080p) · MP4 H.264+AAC or WebM · ≤30 MB</td>
+                <td>Stored as-is (no server conversion) — keep clips ~60–90 s.</td>
+              </tr>
+              <tr>
+                <td>Icons</td>
+                <td>1:1</td>
+                <td>SVG preferred; raster lands 256×256 (icons) / ≤1024 (addons)</td>
+                <td>Existing rule, unchanged — same 1:1 discipline as the photos.</td>
+              </tr>
+              <tr>
+                <td>Documents</td>
+                <td>—</td>
+                <td>PDF · ≤15 MB</td>
+                <td>Manuals and schede tecniche, stored as-is.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="verdict">
+      <div class="inner">
+        <p class="kicker" style="color: #fff">To build it for real</p>
+        <h2>One data point, plus a token change.</h2>
+        <ol>
+          <li>
+            <span
+              ><b>Spec tags — small API change.</b> Specifications exist only on the product detail
+              today. The list DTO needs the top 3 comparable ones, trimmed server-side.</span
+            >
+          </li>
+          <li>
+            <span
+              ><b>Type + ink tokens.</b> The card family becomes self-hosted Inter, and the site's
+              `--color-ink` softens to #2e3237 — no pure black anywhere.</span
+            >
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <script>
+      /*
+        One product list rendered through one template. Six products so the grid
+        shows a full 3×2, including one out-of-stock card.
+      */
+      const ART = {
+        carrozzina: `<circle cx="60" cy="80" r="27" stroke-width="6"/><circle cx="60" cy="80" r="5" fill="currentColor" stroke="none"/><path d="M60 80V57M60 80l19-15M60 80 41 65"/><path d="M44 46h44" stroke-width="9"/><path d="M47 44 41 12"/><path d="M41 12H26"/><path d="M88 46l19 41"/><circle cx="110" cy="94" r="8" fill="currentColor" stroke="none"/><path d="M49 30h34"/>`,
+        letto: `<rect x="16" y="28" width="9" height="56" rx="4.5" fill="currentColor" stroke="none"/><rect x="135" y="42" width="9" height="42" rx="4.5" fill="currentColor" stroke="none"/><path d="M34 42 70 58h60" stroke-width="11"/><path d="M25 72h110"/><path d="M42 72v14M118 72v14"/><circle cx="42" cy="92" r="6" fill="currentColor" stroke="none"/><circle cx="118" cy="92" r="6" fill="currentColor" stroke="none"/>`,
+        deambulatore: `<path d="M46 26 40 90"/><path d="M114 26l6 64"/><path d="M46 26H29" stroke-width="8"/><path d="M114 26h17" stroke-width="8"/><path d="M51 56h58" stroke-width="9"/><path d="M49 74h62"/><circle cx="40" cy="97" r="8" fill="currentColor" stroke="none"/><circle cx="120" cy="97" r="8" fill="currentColor" stroke="none"/>`,
+        materasso: `<rect x="16" y="50" width="102" height="28" rx="14"/><path d="M36 50v28M56 50v28M76 50v28M98 50v28"/><rect x="126" y="56" width="20" height="22" rx="5" fill="currentColor" stroke="none"/><path d="M118 66h8"/>`,
+        sollevatore: `<path d="M30 100h54"/><circle cx="32" cy="107" r="6" fill="currentColor" stroke="none"/><circle cx="82" cy="107" r="6" fill="currentColor" stroke="none"/><path d="M42 100V28"/><path d="M42 32l54 16"/><path d="M96 48v14"/><path d="M78 74h36" stroke-width="7"/><path d="M96 62 82 73" stroke-width="3.5"/><path d="M96 62l14 11" stroke-width="3.5"/>`,
+        concentratore: `<rect x="54" y="26" width="54" height="72" rx="10"/><path d="M64 26v-8h34v8"/><path d="M66 42h30"/><path d="M66 56h18" stroke-width="3.5"/><path d="M66 64h12" stroke-width="3.5"/><circle cx="81" cy="82" r="8"/><circle cx="62" cy="104" r="5" fill="currentColor" stroke="none"/><circle cx="100" cy="104" r="5" fill="currentColor" stroke="none"/>`,
+      };
+
+      const PRODUCTS = [
+        {
+          art: 'carrozzina',
+          category: 'Carrozzine',
+          name: 'Carrozzina pieghevole superleggera',
+          blurb: 'Leggera e pieghevole, per visite, viaggi e la mobilità di ogni giorno.',
+          specs: ['Fino a 120 kg', 'Pieghevole', 'Manuale'],
+          amount: '4,90',
+          inStock: true,
+        },
+        {
+          art: 'letto',
+          category: 'Letti da degenza',
+          name: 'Letto da degenza elettrico a 3 snodi',
+          blurb: 'Consegnato, montato e collaudato nella stanza che preferisci.',
+          specs: ['Fino a 170 kg', 'Elettrico', 'Sponde'],
+          amount: '3,50',
+          inStock: true,
+        },
+        {
+          art: 'deambulatore',
+          category: 'Deambulatori',
+          name: 'Deambulatore con ruote e seduta',
+          blurb: 'Stabile sui percorsi lunghi, con seduta per riposare quando serve.',
+          specs: ['Fino a 130 kg', '4 ruote', 'Con seduta'],
+          amount: '2,50',
+          inStock: true,
+        },
+        {
+          art: 'materasso',
+          category: 'Antidecubito',
+          name: 'Materasso antidecubito a pressione alternata',
+          blurb: 'Prevenzione delle lesioni da decubito, compressore silenzioso incluso.',
+          specs: ['Fino a 135 kg', 'Aria alternata', '90 cm'],
+          amount: '3,20',
+          inStock: false,
+        },
+        {
+          art: 'sollevatore',
+          category: 'Sollevatori',
+          name: 'Sollevatore elettrico per pazienti',
+          blurb: 'Trasferimenti letto–carrozzina in sicurezza, senza sforzo per chi assiste.',
+          specs: ['Fino a 180 kg', 'Elettrico', 'Imbracatura'],
+          amount: '6,90',
+          inStock: true,
+        },
+        {
+          art: 'concentratore',
+          category: 'Ossigenoterapia',
+          name: 'Concentratore di ossigeno 5 litri',
+          blurb: 'Ossigenoterapia a casa, silenzioso e pronto all’uso.',
+          specs: ['5 L/min', 'Silenzioso', 'Uso continuo'],
+          amount: '5,50',
+          inStock: true,
+        },
+      ];
+
+      const card = (p) => `
+        <a class="card${p.inStock ? '' : ' card--out'}" href="#">
+          <span class="stage">
+            ${
+              p.photo
+                ? `<img class="stage__photo" src="${p.photo}" alt="" loading="lazy"/>`
+                : `<span class="stage__floor" aria-hidden="true"></span>
+                   <svg class="stage__art" viewBox="0 0 160 120" fill="none" stroke="currentColor"
+                        stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                     ${ART[p.art]}
+                   </svg>`
+            }
+          </span>
+          <span class="body">
+            <h3 class="name">${p.name}</h3>
+            <span class="blurb">${p.blurb}</span>
+            <span class="specs">${p.specs.map((s) => `<span>${s}</span>`).join('')}</span>
+          </span>
+          <span class="rule" aria-hidden="true"></span>
+          <span class="foot">
+            ${
+              p.inStock
+                ? `<span class="price"><b>${p.amount} €</b> al giorno</span>
+                   <span class="btn">Noleggia</span>`
+                : `<span class="btn btn--dead">Esaurito</span>`
+            }
+          </span>
+        </a>`;
+
+      document.querySelectorAll('[data-cards]').forEach((list) => {
+        const items = list.dataset.cards === 'four' ? PRODUCTS.slice(0, 4) : PRODUCTS;
+        list.innerHTML = items.map((p) => `<li>${card(p)}</li>`).join('');
+      });
+    </script>
+  </body>
+</html>

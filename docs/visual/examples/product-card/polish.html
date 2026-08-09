@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scheda prodotto — cinque concept rifiniti</title>
+    <!--
+      SECONDO GIRO.
+
+      Il primo giro toglieva righe. Sbagliato: la scheda non sembrava affollata
+      perché diceva troppo, sembrava affollata perché non diceva niente in
+      ordine. Quattro righe di testo tutte dello stesso peso, incolonnate, senza
+      un piano. Togliere due righe lascia due righe senza piano.
+
+      Qui l'informazione resta — anzi cresce — e cambia il mestiere:
+
+        · La figura ha un palco, non un rettangolo: luce al centro, ombra di
+          contatto sotto il prodotto. Un ausilio fotografato su fondo bianco
+          senza appoggio galleggia; con l'ombra sta su un piano.
+        · Il pozzetto è a filo di scheda, non un riquadro dentro un riquadro.
+          Sparisce un bordo su due e sparisce metà del rumore.
+        · Tre livelli invece di quattro pari: occhiello (categoria), nome,
+          e in fondo i numeri. Si legge in quest'ordine perché è disegnato in
+          quest'ordine.
+        · Il prezzo è composto, non scritto: cifra grande a larghezza fissa,
+          valuta e unità piccole, tutte sulla stessa linea di base.
+        · Il movimento è coordinato: il prodotto si alza, l'ombra si allarga, il
+          filo si scurisce, la freccia si riempie. Un gesto solo, non quattro.
+
+      NOTA SULLA REGOLA DELL'OMBRA UNICA. La Variante B ammette una sola ombra
+      in tutta la pagina, sotto il pannello di ricerca. Tre di questi concept la
+      estendono con un sollevamento all'hover: è transitoria, non è nello stato
+      di riposo della pagina. È una decisione da prendere apposta — è segnalata
+      su ogni concept che la usa.
+
+      Dati inventati. I font si caricano solo servendo la cartella via http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+
+      /* Gli stessi token del sito: apps/website/src/styles/app.css */
+      :root {
+        --ink: #1a1d21;
+        --ink-2: #49536b;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --accent-deep: #1d2c62;
+        --ok: #0e6b41;
+        --r: 18px;
+        --r-sm: 12px;
+        --pill: 999px;
+        --display: 'Lexend', system-ui, sans-serif;
+        --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+        --lift: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 18px;
+        line-height: 1.6;
+      }
+      svg {
+        display: block;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -0.028em;
+      }
+      p {
+        margin: 0;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px var(--ink);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      .inner {
+        width: 100%;
+        max-width: 1244px;
+        margin-inline: auto;
+        padding-inline: 32px;
+      }
+
+      /* ------------------------------------------------------ impaginazione */
+      .lede {
+        padding-block: 72px 0;
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .kicker::before {
+        content: '';
+        width: 26px;
+        height: 2px;
+        background: var(--accent);
+      }
+      .lede h1 {
+        margin-top: 12px;
+        font-size: clamp(2rem, 3.2vw, 2.5rem);
+        line-height: 1.14;
+      }
+      .lede > .inner > p {
+        max-width: 64ch;
+        margin-top: 16px;
+        color: var(--ink-2);
+        font-size: 19px;
+      }
+      .craft {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        margin-top: 30px;
+        overflow: hidden;
+        border: 1px solid var(--hair-strong);
+        border-radius: var(--r);
+        background: var(--tint);
+      }
+      .craft li {
+        padding: 22px 26px;
+        font-size: 17px;
+      }
+      .craft li:nth-child(n + 3) {
+        box-shadow: inset 0 1px 0 var(--hair-strong);
+      }
+      .craft li:nth-child(even) {
+        box-shadow: inset 1px 0 0 var(--hair-strong);
+      }
+      .craft li:nth-child(even):nth-child(n + 3) {
+        box-shadow:
+          inset 1px 0 0 var(--hair-strong),
+          inset 0 1px 0 var(--hair-strong);
+      }
+      .craft b {
+        display: block;
+        margin-bottom: 4px;
+        font-family: var(--display);
+        font-weight: 600;
+      }
+      .craft span {
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      .concept {
+        padding-block: 96px 0;
+      }
+      .concept--band {
+        margin-top: 96px;
+        padding-block: 96px;
+        background: var(--tint);
+      }
+      .concept h2 {
+        margin-top: 12px;
+        font-size: 30px;
+        line-height: 1.2;
+      }
+      .concept__why {
+        max-width: 62ch;
+        margin-top: 10px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .note {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 16px;
+        padding: 9px 16px;
+        border: 1px solid var(--hair-strong);
+        border-radius: var(--pill);
+        background: #fff;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .concept--band .note {
+        background: #fff;
+      }
+      .note::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        flex: none;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .rows {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-top: 36px;
+      }
+      /* `min-width: 0` o una cella con testo che non va a capo allarga tutta la
+         griglia e la pagina si mette a scorrere in orizzontale. */
+      .rows > li {
+        display: flex;
+        min-width: 0;
+      }
+
+      /* =========================================================== IL PALCO */
+      /*
+        Non un rettangolo in tinta: una luce che sale dal centro e un'ombra di
+        contatto sotto il prodotto. È quello che fa stare l'ausilio SU un piano
+        invece che galleggiare nel vuoto.
+      */
+      /* La luce sale dall'alto e il fondo si scurisce di un solo gradino: è
+         quel gradino a fare da pavimento. Senza, l'ombra di contatto non ha
+         niente su cui cadere e la piastra del concept 2 non si stacca. */
+      .stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(115% 80% at 50% 26%, #ffffff 0%, rgb(255 255 255 / 0) 66%),
+          linear-gradient(180deg, var(--tint) 42%, var(--tint-2) 100%);
+      }
+      .stage__floor {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        width: 54%;
+        height: 18px;
+        background: radial-gradient(
+          ellipse at center,
+          rgb(26 45 98 / 0.17) 0%,
+          rgb(26 45 98 / 0) 72%
+        );
+        transform: translateX(-50%);
+        transition:
+          transform 300ms var(--lift),
+          opacity 300ms ease;
+      }
+      .stage__art {
+        position: relative;
+        width: 62%;
+        max-width: 172px;
+        height: auto;
+        color: var(--ink);
+        transition: transform 300ms var(--lift);
+      }
+      .card:hover .stage__art {
+        transform: translateY(-5px) scale(1.03);
+      }
+      .card:hover .stage__floor {
+        opacity: 0.72;
+        transform: translateX(-50%) scaleX(1.1);
+      }
+
+      /* La pastiglia della disponibilità galleggia sul palco: smette di essere
+         una riga e diventa un'etichetta. Non è mai solo colore — c'è la parola. */
+      .avail {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        border: 1px solid var(--hair);
+        border-radius: var(--pill);
+        background: #fff;
+        color: var(--ok);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .avail::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .avail--out {
+        border-color: transparent;
+        background: var(--ink);
+        color: #fff;
+      }
+      .card--out .stage__art {
+        opacity: 0.4;
+      }
+      .card--out .stage__floor {
+        opacity: 0.4;
+      }
+
+      /* ============================================== TIPOGRAFIA CONDIVISA */
+      .eyebrow {
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+      .name {
+        font-size: 19px;
+        line-height: 1.35;
+        text-wrap: normal;
+      }
+      /* Il prezzo è composto, non scritto: cifra grande a larghezza fissa,
+         valuta e unità piccole, tutto sulla stessa linea di base. */
+      .price {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        color: var(--ink-2);
+        font-size: 16px;
+        white-space: nowrap;
+      }
+      .price__amount {
+        font-family: var(--display);
+        font-size: 25px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+      .price__cur {
+        font-family: var(--display);
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .go {
+        display: grid;
+        width: 46px;
+        height: 46px;
+        flex: none;
+        place-items: center;
+        border: 1px solid var(--hair);
+        border-radius: 50%;
+        background: #fff;
+        color: var(--accent);
+        transition:
+          background-color 200ms ease,
+          border-color 200ms ease,
+          color 200ms ease;
+      }
+      .go svg {
+        width: 20px;
+        height: 20px;
+        transition: transform 240ms var(--lift);
+      }
+      .card:hover .go {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+      .card:hover .go svg {
+        transform: translateX(3px);
+      }
+
+      /* ============================================================= SCHEDE */
+      .card {
+        position: relative;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        height: 100%;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--hair);
+        border-radius: var(--r);
+        background: #fff;
+        text-decoration: none;
+        transition:
+          border-color 200ms ease,
+          transform 300ms var(--lift),
+          box-shadow 300ms ease;
+      }
+      .card:hover {
+        border-color: var(--hair-strong);
+      }
+      /* Il sollevamento: estensione dichiarata della regola dell'ombra unica. */
+      .card--lift:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 2px 4px rgb(26 32 48 / 0.04),
+          0 16px 34px rgb(26 32 48 / 0.1);
+      }
+
+      /* ------------------------------------------------- 1 · VETRINA ----- */
+      /* Palco a filo di scheda: sparisce il riquadro dentro il riquadro, e con
+         lui metà del rumore. Corpo su tre livelli, piede sotto un filo. */
+      .v1 .stage {
+        height: 212px;
+      }
+      .v1__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 7px;
+        padding: 18px 18px 0;
+      }
+      .v1__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 16px;
+        padding: 15px 18px 17px;
+        border-top: 1px solid var(--hair);
+      }
+
+      /* -------------------------------------------------- 2 · PIASTRA ---- */
+      /* Profondità per sovrapposizione, non per ombra: la piastra bianca dei
+         numeri sale dentro il palco e si prende un pezzo di immagine. */
+      .v2 .stage {
+        height: 226px;
+      }
+      .v2 .stage__floor {
+        bottom: 54px;
+      }
+      .v2__plate {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: -34px 14px 0;
+        padding: 13px 14px 13px 18px;
+        border: 1px solid var(--hair);
+        border-radius: 14px;
+        background: #fff;
+        transition: border-color 200ms ease;
+      }
+      .card:hover .v2__plate {
+        border-color: var(--hair-strong);
+      }
+      .v2__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 6px;
+        padding: 15px 18px 20px;
+      }
+      .v2 .go {
+        width: 42px;
+        height: 42px;
+      }
+
+      /* --------------------------------------------- 3 · DOPPIO STRATO --- */
+      /* La regola figura/fondo della Variante B applicata DENTRO la scheda: la
+         tessera è in tinta, il palco è bianco. Nessuna ombra, da nessuna parte. */
+      .v3 {
+        border-color: var(--hair-strong);
+        border-radius: 22px;
+        background: var(--tint);
+      }
+      /* Qui il palco è la figura BIANCA sul fondo in tinta, quindi il pavimento
+         va al contrario: bianco in alto, appena velato in basso. */
+      .v3 .stage {
+        height: 194px;
+        margin: 12px 12px 0;
+        border: 1px solid var(--hair);
+        border-radius: var(--r-sm);
+        background: linear-gradient(180deg, #ffffff 46%, #f7f9fd 100%);
+      }
+      .v3 .avail {
+        border-color: var(--hair);
+      }
+      .v3__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 7px;
+        padding: 16px 18px 0;
+      }
+      .v3__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 16px 12px 12px;
+        padding: 11px 12px 11px 16px;
+        border: 1px solid var(--hair);
+        border-radius: var(--r-sm);
+        background: #fff;
+      }
+      .v3 .go {
+        width: 42px;
+        height: 42px;
+        border-color: var(--hair);
+        background: var(--tint);
+      }
+
+      /* -------------------------------------------- 4 · SCHEDA TECNICA --- */
+      /* La risposta diretta a «troppo scarna»: i tre dati che decidono davvero
+         un noleggio, in pastiglie, sotto il nome. Più informazione, non meno —
+         ma su un livello suo, quindi non compete col nome. */
+      .v4 .stage {
+        height: 194px;
+      }
+      .v4__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 7px;
+        padding: 18px 18px 0;
+      }
+      .v4__specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .v4__specs li {
+        padding: 5px 11px;
+        border-radius: var(--pill);
+        background: var(--tint);
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.35;
+        white-space: nowrap;
+      }
+      .v4__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 16px;
+        padding: 15px 18px 17px;
+        border-top: 1px solid var(--hair);
+      }
+
+      /* -------------------------------------------------- 5 · RIBALTA ---- */
+      /* Il piede esce dai margini: una fascia in tinta a tutta larghezza,
+         tagliata dagli angoli della scheda. È il gesto che si vede da lontano. */
+      .v5 .stage {
+        height: 210px;
+      }
+      .v5__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 6px;
+        padding: 18px 18px 16px;
+      }
+      .v5__ramp {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 18px;
+        border-top: 1px solid var(--hair);
+        background: var(--tint);
+        transition: background-color 200ms ease;
+      }
+      .card:hover .v5__ramp {
+        background: var(--tint-2);
+      }
+      /* Nella fascia il prezzo perde «da» e «al giorno»: la riga deve reggere
+         anche l'invito, e a 285px di colonna la forma lunga non ci sta. */
+      .v5__ramp .price {
+        gap: 3px;
+      }
+      .v5__ramp .price__amount {
+        font-size: 23px;
+      }
+      .v5__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 30px;
+        flex: none;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .v5__cta svg {
+        width: 18px;
+        height: 18px;
+        transition: transform 240ms var(--lift);
+      }
+      .card:hover .v5__cta svg {
+        transform: translateX(4px);
+      }
+
+      /* --------------------------------------------------------- verdetto -- */
+      .verdict {
+        margin-top: 96px;
+        padding-block: 80px;
+        background: var(--accent-deep);
+        color: #fff;
+      }
+      .verdict h2 {
+        max-width: 24ch;
+        font-size: clamp(1.8rem, 3vw, 2.25rem);
+        line-height: 1.18;
+      }
+      .verdict > .inner > p {
+        max-width: 58ch;
+        margin-top: 14px;
+        color: #b3bcd8;
+        font-size: 18px;
+      }
+      .verdict ul {
+        display: grid;
+        gap: 13px;
+        max-width: 66ch;
+        margin-top: 28px;
+      }
+      .verdict li {
+        position: relative;
+        padding-left: 22px;
+        color: #dfe4f2;
+        font-size: 17px;
+      }
+      .verdict li::before {
+        content: '';
+        position: absolute;
+        top: 12px;
+        left: 0;
+        width: 9px;
+        height: 2px;
+        background: #6d7cb0;
+      }
+      .verdict b {
+        color: #fff;
+        font-family: var(--display);
+        font-weight: 600;
+      }
+
+      footer {
+        padding-block: 40px 64px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      @media (max-width: 1100px) {
+        .rows {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 720px) {
+        .inner {
+          padding-inline: 20px;
+        }
+        .rows {
+          grid-template-columns: 1fr;
+        }
+        .craft {
+          grid-template-columns: 1fr;
+        }
+        .craft li:nth-child(even) {
+          box-shadow: inset 0 1px 0 var(--hair-strong);
+        }
+        .concept {
+          padding-block: 60px 0;
+        }
+        .concept--band {
+          margin-top: 60px;
+          padding-block: 60px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="lede">
+      <div class="inner">
+        <p class="kicker">Scheda prodotto · secondo giro</p>
+        <h1>Non meno roba. Roba messa in ordine.</h1>
+        <p>
+          Il primo giro toglieva righe, e sbagliava: la scheda non sembrava affollata perché diceva
+          troppo, ma perché diceva tutto con lo stesso peso, incolonnato, senza un piano. Qui
+          l'informazione resta — in un caso cresce — e cambia il mestiere.
+        </p>
+
+        <ul class="craft">
+          <li>
+            <b>Il palco</b>
+            <span
+              >Luce che sale dal centro e ombra di contatto sotto il prodotto. Un ausilio su fondo
+              piatto galleggia; con l'appoggio sta su un piano.</span
+            >
+          </li>
+          <li>
+            <b>Niente riquadro nel riquadro</b>
+            <span
+              >Il pozzetto va a filo di scheda. Sparisce un bordo su due, e con lui metà del
+              rumore.</span
+            >
+          </li>
+          <li>
+            <b>Tre livelli, non quattro pari</b>
+            <span
+              >Occhiello di categoria, nome, e in fondo i numeri. Si legge in quest'ordine perché è
+              disegnato in quest'ordine.</span
+            >
+          </li>
+          <li>
+            <b>Il prezzo si compone</b>
+            <span
+              >Cifra grande a larghezza fissa, valuta e unità piccole, tutte sulla stessa linea di
+              base. Le colonne di prezzi smettono di ballare.</span
+            >
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- 1 · vetrina -->
+    <section class="concept">
+      <div class="inner">
+        <p class="kicker">Concept 1</p>
+        <h2>Vetrina</h2>
+        <p class="concept__why">
+          Il palco a filo di scheda, la disponibilità come etichetta che galleggia sull'immagine, e
+          il piede sotto un filo con i numeri a sinistra e il bottone a destra. È la scheda di
+          riferimento: tutto quello che c'è oggi, ma su tre livelli invece che su quattro pari.
+        </p>
+        <p class="note">Usa il sollevamento all'hover — estende la regola dell'ombra unica.</p>
+        <ul class="rows" data-cards="v1"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- 2 · piastra -->
+    <section class="concept concept--band">
+      <div class="inner">
+        <p class="kicker">Concept 2</p>
+        <h2>Piastra</h2>
+        <p class="concept__why">
+          Profondità per sovrapposizione invece che per ombra: la piastra bianca dei numeri sale
+          dentro il palco e se ne prende un pezzo. Due piani reali, zero sfocature — è il concept
+          che si riconosce da lontano, e l'unico che dà rilievo senza chiedere un'ombra.
+        </p>
+        <p class="note">Nessuna ombra: il rilievo è tutto geometrico.</p>
+        <ul class="rows" data-cards="v2"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------- 3 · doppio strato -->
+    <section class="concept">
+      <div class="inner">
+        <p class="kicker">Concept 3</p>
+        <h2>Doppio strato</h2>
+        <p class="concept__why">
+          La regola figura/fondo della Variante B applicata <em>dentro</em> la scheda: la tessera è
+          in tinta, il palco e il piede sono bianchi. È il concept più fedele al sistema — non
+          introduce un solo effetto che la pagina non usi già altrove.
+        </p>
+        <p class="note">Nessuna ombra, nessun sollevamento: solo fili e tinta.</p>
+        <ul class="rows" data-cards="v3"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------ 4 · scheda tecnica -->
+    <section class="concept concept--band">
+      <div class="inner">
+        <p class="kicker">Concept 4</p>
+        <h2>Scheda tecnica</h2>
+        <p class="concept__why">
+          La risposta diretta a «troppo scarna»: i tre dati che decidono davvero un noleggio — peso,
+          ingombro, portata — in pastiglie sotto il nome. Più informazione, non meno; ma su un
+          livello suo, quindi non compete con il nome e non si legge come una quarta riga.
+        </p>
+        <p class="note">Richiede tre specifiche governate per prodotto — vedi la nota in fondo.</p>
+        <ul class="rows" data-cards="v4"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- 5 · ribalta -->
+    <section class="concept">
+      <div class="inner">
+        <p class="kicker">Concept 5</p>
+        <h2>Ribalta</h2>
+        <p class="concept__why">
+          Il piede esce dai margini: una fascia in tinta a tutta larghezza, tagliata dagli angoli
+          della scheda, con il prezzo a sinistra e l'invito a destra. È il gesto più visibile dei
+          cinque e l'unico che rende la riga d'azione un oggetto invece che una frase.
+        </p>
+        <p class="note">Usa il sollevamento all'hover — estende la regola dell'ombra unica.</p>
+        <ul class="rows" data-cards="v5"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ verdetto -->
+    <section class="verdict">
+      <div class="inner">
+        <h2>Se devo consigliarne uno: il 2, «Piastra».</h2>
+        <p>
+          È l'unico che ottiene rilievo senza chiedere un'ombra, quindi non deve negoziare con la
+          regola dell'ombra unica. E la sovrapposizione fa il lavoro che la gerarchia da sola non fa:
+          separa fisicamente i numeri dalla figura.
+        </p>
+        <ul>
+          <li>
+            <b>Il 3 è la scelta prudente.</b> Non introduce un solo effetto nuovo — è il sistema
+            applicato dentro la scheda. Se qualcuno chiede «perché così?», la risposta è già scritta
+            nella Variante B.
+          </li>
+          <li>
+            <b>Il 4 va nel catalogo, non in home.</b> Le pastiglie servono a chi confronta; in
+            vetrina rubano l'attenzione al nome. E servono tre specifiche governate su ogni prodotto,
+            che oggi non ci sono.
+          </li>
+          <li>
+            <b>Il 5 è il più teatrale</b> ed è quello che regge meglio da lontano, ma la fascia piena
+            in fondo a ogni scheda diventa pesante in una griglia da quattro.
+          </li>
+          <li>
+            <b>Il 1 è il riferimento.</b> Se nessuno degli altri convince, questo è la scheda di
+            oggi fatta bene: stessa informazione, tre livelli invece di quattro.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="inner">
+      <p>
+        Dati di esempio. Token allineati a <code>apps/website/src/styles/app.css</code>. Le
+        specifiche del concept 4 arrivano da <code>product.specifications</code>: oggi l'API le
+        espone già, ma nessuna regola dice <em>quali tre</em> mostrare — servirebbe un flag
+        «in evidenza» nel back office.
+      </p>
+    </footer>
+
+    <script>
+      /*
+        Un solo elenco di prodotti reso da cinque template. In un prototipo il cui
+        scopo è CONFRONTARE cinque rese degli stessi dati, ricopiare venti schede
+        a mano garantisce solo che una di esse diverga per sbaglio.
+      */
+      const ART = {
+        carrozzina: `<circle cx="46" cy="62" r="27"/><circle cx="46" cy="62" r="7"/><circle cx="86" cy="81" r="8"/><path d="M26 42h44"/><path d="M26 42 20 12"/><path d="M20 12 8 14"/><path d="M70 42 92 70"/><path d="M88 72h16"/><path d="M32 30h34"/>`,
+        letto: `<path d="M14 30v44"/><path d="M14 34h16"/><path d="M106 44v30"/><path d="M92 48h14"/><rect x="18" y="52" width="84" height="13" rx="6"/><path d="M18 68h84"/><circle cx="28" cy="79" r="6"/><circle cx="92" cy="79" r="6"/><rect x="38" y="36" width="34" height="11" rx="5"/>`,
+        deambulatore: `<path d="M34 28v44"/><path d="M86 28v44"/><path d="M34 50h52"/><path d="M26 28h16"/><path d="M78 28h16"/><path d="M34 64h52"/><circle cx="34" cy="78" r="6"/><circle cx="86" cy="78" r="6"/>`,
+        materasso: `<rect x="14" y="40" width="92" height="28" rx="12"/><path d="M32 40v28M50 40v28M68 40v28M86 40v28"/>`,
+      };
+
+      const PRODUCTS = [
+        {
+          art: 'carrozzina',
+          category: 'Carrozzine',
+          name: 'Carrozzina pieghevole superleggera',
+          amount: '4,90',
+          specs: ['11 kg', 'pieghevole', 'portata 120 kg'],
+          inStock: true,
+        },
+        {
+          art: 'letto',
+          category: 'Letti da degenza',
+          name: 'Letto da degenza elettrico a 3 snodi',
+          amount: '3,50',
+          specs: ['3 snodi', 'elettrico', 'sponde incluse'],
+          inStock: true,
+        },
+        {
+          art: 'deambulatore',
+          category: 'Deambulatori',
+          name: 'Deambulatore con ruote e seduta',
+          amount: '2,50',
+          specs: ['4 ruote', 'con seduta', 'freni'],
+          inStock: true,
+        },
+        {
+          art: 'materasso',
+          category: 'Antidecubito',
+          name: 'Materasso antidecubito a pressione alternata',
+          amount: '3,20',
+          specs: ['pressione alternata', 'compressore', '90 cm'],
+          inStock: false,
+        },
+      ];
+
+      const arrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>`;
+
+      const stage = (p) => `
+        <span class="stage">
+          <span class="stage__floor" aria-hidden="true"></span>
+          <svg class="stage__art" viewBox="0 0 120 100" fill="none" stroke="currentColor"
+               stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            ${ART[p.art]}
+          </svg>
+          <span class="avail${p.inStock ? '' : ' avail--out'}">${
+            p.inStock ? 'Disponibile' : 'Esaurito'
+          }</span>
+        </span>`;
+
+      const price = (p) => `
+        <span class="price">
+          <span>da</span>
+          <span class="price__amount">${p.amount}</span>
+          <span class="price__cur">€</span>
+          <span>al giorno</span>
+        </span>`;
+
+      /** Forma compatta per la fascia del concept 5, che deve reggere anche l'invito. */
+      const priceTight = (p) => `
+        <span class="price">
+          <span class="price__amount">${p.amount}</span>
+          <span class="price__cur">€</span>
+          <span>/giorno</span>
+        </span>`;
+
+      const TEMPLATES = {
+        v1: (p) => `
+          <a class="card card--lift v1${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="v1__body">
+              <span class="eyebrow">${p.category}</span>
+              <h3 class="name">${p.name}</h3>
+            </span>
+            <span class="v1__foot">${price(p)}<span class="go">${arrow}</span></span>
+          </a>`,
+
+        v2: (p) => `
+          <a class="card v2${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="v2__plate">${price(p)}<span class="go">${arrow}</span></span>
+            <span class="v2__body">
+              <span class="eyebrow">${p.category}</span>
+              <h3 class="name">${p.name}</h3>
+            </span>
+          </a>`,
+
+        v3: (p) => `
+          <a class="card v3${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="v3__body">
+              <span class="eyebrow">${p.category}</span>
+              <h3 class="name">${p.name}</h3>
+            </span>
+            <span class="v3__foot">${price(p)}<span class="go">${arrow}</span></span>
+          </a>`,
+
+        v4: (p) => `
+          <a class="card card--lift v4${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="v4__body">
+              <span class="eyebrow">${p.category}</span>
+              <h3 class="name">${p.name}</h3>
+              <ul class="v4__specs">${p.specs.map((s) => `<li>${s}</li>`).join('')}</ul>
+            </span>
+            <span class="v4__foot">${price(p)}<span class="go">${arrow}</span></span>
+          </a>`,
+
+        v5: (p) => `
+          <a class="card card--lift v5${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="v5__body">
+              <span class="eyebrow">${p.category}</span>
+              <h3 class="name">${p.name}</h3>
+            </span>
+            <span class="v5__ramp">
+              ${priceTight(p)}
+              <span class="v5__cta">${p.inStock ? 'Noleggia' : 'Chiamaci'}${arrow}</span>
+            </span>
+          </a>`,
+      };
+
+      document.querySelectorAll('[data-cards]').forEach((list) => {
+        const render = TEMPLATES[list.dataset.cards];
+        list.innerHTML = PRODUCTS.map((p) => `<li>${render(p)}</li>`).join('');
+      });
+    </script>
+  </body>
+</html>

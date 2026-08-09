@@ -1,0 +1,2038 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Variante A · Clinica — restyle della home</title>
+    <!--
+      VARIANTE A — "CLINICA": preciso, filettato, freddo.
+
+      Stesse sezioni della home attuale, ma in ordine nuovo: eroe con la
+      ricerca → categorie → prodotti in evidenza → come funziona → il resto.
+      Si sfoglia prima, ci si rassicura dopo. Per il resto cambia solo lo stile.
+      Regole: pagina bianca, zero gradienti, zero blur, e tutti i grigi neutri —
+      il blu compare solo dove è il marchio o dove indica che una cosa si tocca.
+      Nessun oggetto ha una cornice: i piani si separano per quota, con ombre a
+      tre componenti, e per spazio. Due soli raggi (10px e 6px) al posto degli
+      otto attuali. Il blu resta un colore funzionale: bottoni e stati attivi,
+      mai icone o decorazioni.
+      Dati inventati. I font si caricano solo servendo la cartella via http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+
+      :root {
+        /* Grigi neutri, non blu-grigi. Il vecchio #101623 e compagni avevano
+           il canale blu 15-20 punti sopra il rosso: a schermo intero quella
+           differenza si somma e la pagina vira. Qui i tre canali stanno entro
+           4 punti l'uno dall'altro, quindi il fondo resta una gradazione di
+           bianco e l'unico blu della pagina è quello del marchio. */
+        --ink: #16181a; /* 17,9:1 su bianco */
+        --ink-2: #54585d; /* 7,3:1 — testo secondario, AAA */
+        --ink-3: #6f7276; /* icone dentro i campi */
+
+        /* SEPARAZIONE DEI PIANI.
+           Non con il colore (il fondo grigio non è bianco) e non con il bordo
+           (una cornice chiusa attorno a ogni cosa fa subito modulo). Restano
+           la quota e lo spazio: tutto è bianco su bianco e a dire dove
+           finisce un oggetto è l'ombra. */
+        --page: #ffffff; /* la pagina è bianca, punto */
+        --tile: #f5f5f5; /* pozzetto immagine: area piccola, non tinge la pagina */
+
+        /* Nessun oggetto ha un contorno. Niente schede riquadrate, niente
+           pannelli con la cornice: in tutta la pagina non esiste una linea
+           chiusa attorno a niente. Restano solo divisori aperti, dove due
+           cose si toccano davvero, e sono tenuti chiarissimi. */
+        --line: #ededed; /* divisori interni, mai perimetri */
+        --line-mid: #e4e4e4; /* fra due controlli adiacenti */
+
+        /* A separare i piani è la QUOTA, e senza bordo l'ombra deve fare tutto
+           il lavoro — quindi ha tre componenti, non una:
+             contatto  1-2px, quasi nero: è il taglio del bianco sul bianco, ed
+                       è l'unica parte che si vede a fuoco corto;
+             corpo     raggio medio, spread negativo: dà il volume senza
+                       allargarsi ai lati;
+             distanza  raggio ampio, spread molto negativo: stacca dal foglio.
+           Una sfocatura sola, per quanto grande, resta un alone e non separa
+           niente — è l'errore del `0 22px 54px` di adesso. */
+        --lift-0: 0 1px 1px rgb(20 20 20 / 0.07), 0 2px 4px rgb(20 20 20 / 0.09);
+        --lift-1:
+          0 1px 2px rgb(20 20 20 / 0.07), 0 4px 10px -3px rgb(20 20 20 / 0.13),
+          0 14px 30px -12px rgb(20 20 20 / 0.16);
+        --lift-2:
+          0 2px 4px rgb(20 20 20 / 0.08), 0 10px 22px -6px rgb(20 20 20 / 0.16),
+          0 28px 56px -20px rgb(20 20 20 / 0.22);
+        --lift-bar: 0 1px 2px rgb(20 20 20 / 0.06), 0 5px 14px -6px rgb(20 20 20 / 0.14);
+
+        --accent: #2e4699;
+        --accent-hover: #23387d;
+        /* L'unico azzurro che resta come fondo, e solo su hover/focus: lì la
+           tinta è informazione ("questo si tocca"), non decorazione. */
+        --accent-wash: #eff3fd;
+        --ok: #0e6b41;
+        --r: 10px;
+        --r-sm: 6px;
+        --container: 1244px;
+        --pad: 32px;
+        --section: 96px;
+        --display: 'Lexend', system-ui, sans-serif;
+        --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+      svg {
+        display: block;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+      }
+      a {
+        color: inherit;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -0.022em;
+      }
+      p {
+        margin: 0;
+      }
+      ol,
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px var(--ink);
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+
+      .inner {
+        width: 100%;
+        max-width: var(--container);
+        margin-inline: auto;
+        padding-inline: var(--pad);
+      }
+
+      /* Titolo di sezione: occhiello minuscolo + h2. Nessun sottotitolo grigio
+         di riempimento — o dice qualcosa, o non c'è. */
+      .head {
+        margin-bottom: 34px;
+      }
+      /* Barretta accento: dice "qui comincia una sezione" senza leggere nulla.
+         È l'ancora più economica per chi scansiona la pagina a zoom alto. */
+      .head__kicker {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--ink-2);
+        font-size: 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .head__kicker::before {
+        content: '';
+        display: block;
+        width: 44px;
+        height: 4px;
+        margin-bottom: 16px;
+        border-radius: 2px;
+        background: var(--accent);
+      }
+      .head h2 {
+        font-size: 32px;
+        line-height: 1.2;
+      }
+      .head p {
+        margin-top: 8px;
+        color: var(--ink-2);
+        font-size: 18px;
+      }
+      .head--row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+      }
+      .head--row a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 48px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .head--row a:hover {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      /* Bottoni: due varianti, un raggio, nessun contorno. */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 52px;
+        padding-inline: 24px;
+        border: 0;
+        border-radius: var(--r);
+        background: var(--accent);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: var(--accent-hover);
+      }
+      .btn--quiet {
+        background: #fff;
+        box-shadow: var(--lift-0);
+        color: var(--ink);
+      }
+      .btn--quiet:hover {
+        background: #fff;
+        box-shadow: var(--lift-1);
+        color: var(--accent);
+      }
+      .btn svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      /* ------------------------------------------------------------ header */
+      /* La barra è il piano più alto, ma è ancorata al bordo dello schermo:
+         le serve un'ombra corta, non la stessa di una scheda che galleggia. */
+      .hdr {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #fff;
+        box-shadow: var(--lift-bar);
+      }
+      .hdr__bar {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        min-height: 76px;
+      }
+      .hdr__logo img {
+        height: 40px;
+        width: auto;
+      }
+      .hdr__nav {
+        display: flex;
+        gap: 26px;
+        margin-right: auto;
+      }
+      .hdr__nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        border-bottom: 2px solid transparent;
+        color: var(--ink-2);
+        font-size: 17px;
+        text-decoration: none;
+      }
+      .hdr__nav a:hover {
+        color: var(--ink);
+      }
+      .hdr__nav a.is-active {
+        border-color: var(--accent);
+        color: var(--ink);
+      }
+      /* Il verde della pillola "numero verde" spariva contro il blu della CTA:
+         due accenti nella stessa barra. Qui il telefono è testo, non un badge. */
+      .hdr__tel {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .hdr__tel:hover {
+        color: var(--accent);
+      }
+      .hdr__tel svg {
+        width: 18px;
+        height: 18px;
+        color: var(--ink-2);
+      }
+      .hdr__tel em {
+        color: var(--ink-2);
+        font-family: var(--body);
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+      }
+      .hdr__cart {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        place-items: center;
+        border: 0;
+        border-radius: var(--r);
+        color: var(--ink);
+      }
+      .hdr__cart:hover {
+        background: var(--accent-wash);
+        box-shadow: var(--lift-1);
+      }
+      .hdr__cart svg {
+        width: 21px;
+        height: 21px;
+      }
+
+      /* -------------------------------------------------------------- hero */
+      /* Niente gradiente radiale, niente blur, niente ombra a 54px: il fondo è
+         bianco e la gerarchia la fa il corpo del titolo. */
+      .hero {
+        padding-block: 60px 0;
+      }
+      .hero__grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(400px, 0.95fr);
+        align-items: center;
+        column-gap: 56px;
+      }
+      .hero__where {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .hero__where svg {
+        width: 18px;
+        height: 18px;
+      }
+      /* La colonna, non un max-width in ch, decide dove va a capo: fissarlo
+         lasciava "tua." da solo sull'ultima riga. */
+      .hero h1 {
+        font-size: clamp(2.25rem, 3.5vw, 2.9rem);
+        letter-spacing: -0.032em;
+        line-height: 1.08;
+      }
+      .hero__lead {
+        max-width: 34rem;
+        margin-top: 20px;
+        color: var(--ink-2);
+        font-size: 20px;
+        line-height: 1.5;
+      }
+      .hero__acts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      /* Lo spotlight resta, ma diventa un pannello filettato: immagine su
+         tinta neutra, prezzo come testo, frecce quadrate e contatore al posto
+         dei pallini. */
+      .spot {
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+      }
+      /* Il pozzetto è incassato: più scuro del bianco della scheda, più chiaro
+         del grigio della pagina. Tre toni, tre piani, nessun bordo in più. */
+      .spot__stage {
+        display: grid;
+        height: 300px;
+        place-items: center;
+        margin: 14px 14px 0;
+        border-radius: var(--r-sm);
+        background: var(--tile);
+      }
+      .spot__stage svg {
+        width: 62%;
+        max-width: 280px;
+        height: auto;
+        color: var(--ink);
+      }
+      .spot__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 14px;
+        padding: 14px 18px 16px;
+        border-top: 1px solid var(--line);
+      }
+      .spot__link {
+        min-width: 0;
+        text-decoration: none;
+      }
+      /* Nome e prezzo sono due righe: come span in linea si fondevano in una
+         frase sola ("… superleggera da 4,90 € al giorno"). */
+      .spot__name,
+      .spot__price {
+        display: block;
+      }
+      .spot__name {
+        font-family: var(--display);
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .spot__price {
+        margin-top: 3px;
+        color: var(--ink-2);
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+      }
+      .spot__nav {
+        display: flex;
+        flex: none;
+        align-items: center;
+        gap: 8px;
+      }
+      .spot__count {
+        margin-right: 6px;
+        color: var(--ink-2);
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .spot__arrow {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        place-items: center;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: #fff;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .spot__arrow:hover {
+        background: var(--accent-wash);
+        box-shadow: var(--lift-1);
+      }
+      .spot__arrow svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* ------------------------------------------------------------ ricerca */
+      .search {
+        margin-top: 52px;
+      }
+      /* È l'oggetto più importante della pagina, quindi è l'unico al secondo
+         livello di quota: si stacca dal resto senza cambiare colore. */
+      .search__panel {
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-2);
+      }
+      .search__intro {
+        padding: 20px 22px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .search__intro h2 {
+        font-size: 21px;
+      }
+      .search__intro p {
+        margin-top: 4px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      /* "Roma e provincia" è la voce più lunga di tutta la riga: la sua colonna
+         va tenuta più larga delle altre o il select si tronca. */
+      .search__fields {
+        display: grid;
+        grid-template-columns:
+          minmax(0, 1.5fr) minmax(0, 1.15fr) minmax(0, 1fr)
+          minmax(0, 1.05fr) auto;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
+        padding: 14px 20px;
+        min-height: 88px;
+      }
+      /* Fra due controlli adiacenti il divisore va visto: qui il tono è più
+         marcato che sul perimetro, ma resta un capello da 1px. */
+      .field + .field {
+        border-left: 1px solid var(--line-mid);
+      }
+      .field:focus-within {
+        background: var(--accent-wash);
+        box-shadow: inset 0 0 0 2px var(--accent);
+      }
+      .field label {
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .field__control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .field__control svg {
+        width: 19px;
+        height: 19px;
+        flex: none;
+        color: var(--ink-3);
+      }
+      .field input,
+      .field select {
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font-family: var(--display);
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .field input:focus,
+      .field select:focus {
+        outline: none;
+      }
+      .field input::placeholder {
+        color: var(--ink-2);
+        font-weight: 400;
+      }
+      .search__submit {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 14px;
+        padding-inline: 30px;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .search__submit:hover {
+        background: var(--accent-hover);
+      }
+      .search__submit svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      /* --------------------------------------------------------- sezioni */
+      .sec {
+        padding-block: var(--section) 0;
+      }
+
+      /* Come funziona */
+      .how__steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+      }
+      .how__step {
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+      .how__n {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border-radius: var(--r-sm);
+        background: var(--accent);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 19px;
+        font-weight: 700;
+      }
+      .how__step h3 {
+        font-size: 20px;
+      }
+      .how__step p {
+        margin-top: 6px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .how__notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-top: 38px;
+        padding: 20px 22px;
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+        font-size: 17px;
+      }
+      .how__notice svg {
+        width: 24px;
+        height: 24px;
+        flex: none;
+        margin-top: 2px;
+        color: var(--ok);
+      }
+      .how__notice span {
+        color: var(--ink-2);
+      }
+      .how__notice strong {
+        color: var(--ink);
+      }
+
+      /* Prodotti */
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+        text-decoration: none;
+        transition: box-shadow 160ms ease;
+      }
+      /* Sotto il puntatore la scheda sale di un livello: il movimento in quota
+         si nota molto più di un bordo che cambia colore. */
+      .card:hover {
+        box-shadow: var(--lift-2);
+      }
+      .card__media {
+        display: grid;
+        height: 190px;
+        place-items: center;
+        margin: 12px 12px 0;
+        border-radius: var(--r-sm);
+        background: var(--tile);
+      }
+      .card__media svg {
+        width: 66%;
+        max-width: 170px;
+        height: auto;
+      }
+      .card__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 16px 18px 18px;
+      }
+      .card__title {
+        font-size: 19px;
+        line-height: 1.3;
+      }
+      /* Se prezzo e disponibilità non ci stanno affiancati va a capo la riga,
+         non il prezzo: "da 4,90" / "€/giorno" spezzato è illeggibile. */
+      .card__meta {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .card__rate {
+        color: var(--ink-2);
+        font-size: 16px;
+        white-space: nowrap;
+      }
+      .card__rate strong {
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 19px;
+        font-variant-numeric: tabular-nums;
+      }
+      .card__avail {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--ok);
+        font-size: 16px;
+        white-space: nowrap;
+      }
+      .card__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .card__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 48px;
+        margin-top: auto;
+        padding-top: 12px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .card:hover .card__cta {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      /* Categorie */
+      .cats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+      }
+      .cat {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-height: 100px;
+        padding: 16px 18px;
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+        text-decoration: none;
+        transition: box-shadow 160ms ease;
+      }
+      .cat:hover {
+        box-shadow: var(--lift-2);
+      }
+      .cat__icon {
+        display: grid;
+        width: 60px;
+        height: 60px;
+        flex: none;
+        place-items: center;
+        border-radius: var(--r-sm);
+        background: var(--tile);
+      }
+      .cat__icon svg {
+        width: 40px;
+        height: 34px;
+        color: var(--ink);
+      }
+      .cat h3 {
+        font-size: 18px;
+      }
+      .cat p {
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      /* Consegna e ritiro */
+      .del {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+      }
+      .del > li {
+        padding: 26px 24px 28px;
+      }
+      .del > li + li {
+        border-left: 1px solid var(--line);
+      }
+      .del svg {
+        width: 26px;
+        height: 26px;
+        margin-bottom: 14px;
+        color: var(--ink);
+      }
+      .del h3 {
+        font-size: 19px;
+      }
+      .del p {
+        margin-top: 6px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .del__areas {
+        margin-top: 20px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .del__areas strong {
+        color: var(--ink);
+      }
+      .del__areas a {
+        color: var(--accent);
+      }
+
+      /* Recensioni. Stelle in ink: monocromatiche, non oro da widget. */
+      .rev__aggregate {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .rev__score {
+        font-family: var(--display);
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      .rev__stars {
+        color: var(--ink);
+        font-size: 19px;
+        letter-spacing: 0.1em;
+      }
+      .rev__count {
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .rev__list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .rev__item {
+        height: 100%;
+        margin: 0;
+        padding: 24px 24px 22px;
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+      }
+      .rev__item p:first-child {
+        color: var(--ink);
+        font-size: 17px;
+        letter-spacing: 0.1em;
+      }
+      .rev__quote {
+        margin: 12px 0 0;
+        font-size: 18px;
+        line-height: 1.5;
+      }
+      .rev__author {
+        margin-top: 14px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      /* FAQ */
+      /* Le FAQ sono un oggetto solo, non sei righe appoggiate sulla pagina. */
+      .faq__list {
+        overflow: hidden;
+        border: 0;
+        border-radius: var(--r);
+        background: #fff;
+        box-shadow: var(--lift-1);
+      }
+      .faq__list > li + li .faq__item {
+        border-top: 1px solid var(--line);
+      }
+      .faq__item[open] {
+        background: var(--tile);
+      }
+      .faq__q {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 64px;
+        padding: 16px 24px;
+        cursor: pointer;
+        font-family: var(--display);
+        font-size: 19px;
+        font-weight: 600;
+        list-style: none;
+      }
+      .faq__q::-webkit-details-marker {
+        display: none;
+      }
+      .faq__q:hover {
+        color: var(--accent);
+      }
+      .faq__q svg {
+        width: 22px;
+        height: 22px;
+        flex: none;
+        color: var(--ink-2);
+        transition: transform 180ms ease;
+      }
+      .faq__item[open] .faq__q svg {
+        transform: rotate(180deg);
+      }
+      .faq__a {
+        max-width: 68ch;
+        padding: 0 24px 22px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+
+      /* Parla con noi. L'unico blocco scuro della pagina: ink, non blu, così il
+         blu resta esclusivamente il colore dei bottoni. */
+      .talk {
+        margin-top: var(--section);
+      }
+      .talk__panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 24px 40px;
+        padding: 40px 44px 42px;
+        border-radius: var(--r);
+        background: var(--ink);
+        color: #fff;
+      }
+      .talk h2 {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+      .talk p {
+        max-width: 46ch;
+        margin-top: 10px;
+        color: #a9abae; /* 7,7:1 sul fondo scuro, e neutro come il resto */
+        font-size: 17px;
+      }
+      .talk__acts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .talk .btn {
+        background: #fff;
+        color: var(--ink);
+      }
+      .talk .btn:hover {
+        background: #dcdcde;
+      }
+      .talk .btn--quiet {
+        background: rgb(255 255 255 / 0.14);
+        box-shadow: none;
+        color: #fff;
+      }
+      .talk .btn--quiet:hover {
+        background: rgb(255 255 255 / 0.24);
+        box-shadow: none;
+        color: #fff;
+      }
+
+      /* ------------------------------------------------------------ footer */
+      .ftr {
+        margin-top: var(--section);
+        border-top: 1px solid var(--line);
+        background: #fff;
+      }
+      .ftr__cols {
+        display: grid;
+        grid-template-columns: 1.4fr repeat(3, 1fr);
+        gap: 40px;
+        padding-block: 48px 40px;
+      }
+      .ftr__logo img {
+        height: 38px;
+        width: auto;
+        margin-bottom: 16px;
+      }
+      .ftr__cols p {
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .ftr h3 {
+        margin-bottom: 14px;
+        font-size: 16px;
+        font-weight: 400;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .ftr li a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        color: var(--ink-2);
+        font-size: 17px;
+        text-decoration: none;
+      }
+      .ftr li a:hover {
+        color: var(--ink);
+      }
+      .ftr__legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px 32px;
+        padding-block: 20px 40px;
+        border-top: 1px solid var(--line);
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      .tag {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 60;
+        padding: 9px 15px;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: #fff;
+        box-shadow: var(--lift-0);
+        color: var(--ink-2);
+        font-size: 15px;
+        text-decoration: none;
+      }
+
+      @media (max-width: 1100px) {
+        .hero__grid {
+          grid-template-columns: 1fr;
+          row-gap: 34px;
+        }
+        .search__fields {
+          grid-template-columns: 1fr 1fr;
+        }
+        .field:nth-child(odd) {
+          border-left: 0;
+        }
+        .field:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+        .search__submit {
+          grid-column: 1 / -1;
+          justify-content: center;
+          min-height: 56px;
+        }
+        .grid-4,
+        .cats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .how__steps,
+        .rev__list {
+          grid-template-columns: 1fr;
+        }
+        .del {
+          grid-template-columns: 1fr;
+        }
+        .del > li + li {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .ftr__cols {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        :root {
+          --pad: 20px;
+          --section: 60px;
+        }
+        .hdr__nav {
+          display: none;
+        }
+        .hdr__tel em {
+          display: none;
+        }
+        .grid-4,
+        .cats,
+        .search__fields {
+          grid-template-columns: 1fr;
+        }
+        .field + .field {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .talk__panel {
+          padding: 28px 24px 30px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ---------------------------------------------------------- header -->
+    <header class="hdr">
+      <div class="inner hdr__bar">
+        <a class="hdr__logo" href="#" aria-label="Mia Medical Italia, home">
+          <img src="../../../../apps/website/public/img/logo.svg" alt="M.I.A. Medical Italia" />
+        </a>
+        <nav class="hdr__nav" aria-label="Navigazione principale">
+          <a class="is-active" href="#" aria-current="page">Home</a>
+          <a href="#">Catalogo noleggio</a>
+          <a href="#">Cerca</a>
+          <a href="#">Assistenza</a>
+        </nav>
+        <a class="hdr__tel" href="tel:+39800031962">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.1"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+            />
+          </svg>
+          800 031962 <em>— gratis</em>
+        </a>
+        <a class="hdr__cart" href="#" aria-label="Richiesta di noleggio">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4" />
+            <circle cx="10.5" cy="20" r="1.4" />
+            <circle cx="17.5" cy="20" r="1.4" />
+          </svg>
+        </a>
+        <a class="btn" href="#">Noleggia ora</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- ------------------------------------------------------------ hero -->
+      <section class="hero" aria-labelledby="home-title">
+        <div class="inner hero__grid">
+          <div>
+            <p class="hero__where">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z" />
+                <circle cx="12" cy="10" r="2.6" />
+              </svg>
+              Roma e Firenze · consegna a domicilio in 24–48 ore
+            </p>
+
+            <h1 id="home-title">Noleggio carrozzine e ausili medicali, consegnati a casa tua.</h1>
+
+            <p class="hero__lead">
+              Scegli il prodotto e le date: pensiamo a tutto noi, dalla consegna al ritiro. Prodotti
+              sanificati e certificati, assistenza al telefono con persone vere.
+            </p>
+
+            <div class="hero__acts">
+              <a class="btn" href="#">Vedi il catalogo</a>
+              <a class="btn btn--quiet" href="tel:+39800031962">Parla con noi</a>
+            </div>
+          </div>
+
+          <div class="spot" aria-label="Prodotti in evidenza">
+            <div class="spot__stage">
+              <svg
+                viewBox="0 0 120 100"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="46" cy="62" r="27" />
+                <circle cx="46" cy="62" r="7" />
+                <circle cx="86" cy="81" r="8" />
+                <path d="M26 42h44" />
+                <path d="M26 42 20 12" />
+                <path d="M20 12 8 14" />
+                <path d="M70 42 92 70" />
+                <path d="M88 72h16" />
+                <path d="M32 30h34" />
+                <path d="M66 30v12" />
+              </svg>
+            </div>
+            <div class="spot__foot">
+              <a class="spot__link" href="#">
+                <span class="spot__name">Carrozzina pieghevole superleggera</span>
+                <span class="spot__price">da 4,90 € al giorno</span>
+              </a>
+              <div class="spot__nav">
+                <span class="spot__count">1 / 4</span>
+                <button class="spot__arrow" type="button" aria-label="Prodotto precedente">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m14 6-6 6 6 6" />
+                  </svg>
+                </button>
+                <button class="spot__arrow" type="button" aria-label="Prodotto successivo">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m10 6 6 6-6 6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- --------------------------------------------------------- ricerca -->
+        <div class="inner search">
+          <form class="search__panel" onsubmit="return false">
+            <div class="search__intro">
+              <h2>Dove e quando ti serve l'ausilio?</h2>
+              <p>Consegniamo a domicilio a Roma e Firenze.</p>
+            </div>
+            <div class="search__fields">
+              <div class="field">
+                <label for="f-q">Ausilio</label>
+                <div class="field__control">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="11" cy="11" r="6.5" />
+                    <path d="m20 20-4.2-4.2" />
+                  </svg>
+                  <input id="f-q" type="search" placeholder="Es. carrozzina, letto…" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-z">Zona</label>
+                <div class="field__control">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                  </svg>
+                  <select id="f-z">
+                    <option>Roma e provincia</option>
+                    <option>Firenze e provincia</option>
+                    <option>Altra zona</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-d">Da quando</label>
+                <div class="field__control">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="5" width="18" height="16" rx="2" />
+                    <path d="M16 3v4M8 3v4M3 10h18" />
+                  </svg>
+                  <input id="f-d" type="date" value="2026-08-12" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-t">Per quanto</label>
+                <div class="field__control">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                  <select id="f-t">
+                    <option>1 settimana</option>
+                    <option>15 giorni</option>
+                    <option>1 mese</option>
+                    <option>2 mesi o più</option>
+                    <option>Non lo so ancora</option>
+                  </select>
+                </div>
+              </div>
+              <button class="search__submit" type="submit">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.3"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="6.5" />
+                  <path d="m20 20-4.2-4.2" />
+                </svg>
+                Cerca
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------ categorie -->
+      <section class="sec" aria-labelledby="cat-title">
+        <div class="inner">
+          <div class="head">
+            <span class="head__kicker">Sfoglia</span>
+            <h2 id="cat-title">Categorie</h2>
+          </div>
+          <ul class="cats">
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="46" cy="62" r="27" />
+                    <circle cx="86" cy="81" r="8" />
+                    <path d="M26 42h44" />
+                    <path d="M26 42 20 12" />
+                    <path d="M70 42 92 70" />
+                    <path d="M88 72h16" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Carrozzine</h3>
+                  <p>14 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M14 30v44" />
+                    <path d="M106 44v30" />
+                    <rect x="18" y="52" width="84" height="13" rx="6" />
+                    <path d="M18 68h84" />
+                    <circle cx="28" cy="79" r="6" />
+                    <circle cx="92" cy="79" r="6" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Letti da degenza</h3>
+                  <p>9 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M34 28v44" />
+                    <path d="M86 28v44" />
+                    <path d="M34 50h52" />
+                    <path d="M26 28h16" />
+                    <path d="M78 28h16" />
+                    <circle cx="34" cy="78" r="6" />
+                    <circle cx="86" cy="78" r="6" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Deambulatori</h3>
+                  <p>11 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="14" y="40" width="92" height="28" rx="12" />
+                    <path d="M38 40v28M60 40v28M82 40v28" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Antidecubito</h3>
+                  <p>8 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M32 84V26" />
+                    <path d="M18 84h28" />
+                    <path d="M32 30h42l14 14" />
+                    <path d="M88 44v12" />
+                    <path d="M72 58h32l-16 22z" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Sollevatori</h3>
+                  <p>6 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 84h24V64h24V44h24V24h24" />
+                    <path d="M20 88 98 18" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Montascale</h3>
+                  <p>4 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="26" y="48" width="62" height="11" rx="5" />
+                    <path d="M36 59v24M78 59v24" />
+                    <path d="M26 48 22 20" />
+                    <path d="M22 20h18" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Bagno e igiene</h3>
+                  <p>7 ausili</p>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="cat" href="#">
+                <span class="cat__icon">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M30 16h20M40 16v66M30 38h20" />
+                    <path d="M70 16h20M80 16v66M70 38h20" />
+                  </svg>
+                </span>
+                <span>
+                  <h3>Stampelle e bastoni</h3>
+                  <p>5 ausili</p>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------- prodotti -->
+      <section class="sec" aria-labelledby="prod-title">
+        <div class="inner">
+          <div class="head head--row">
+            <div>
+              <span class="head__kicker">Catalogo</span>
+              <h2 id="prod-title">I più noleggiati</h2>
+              <p>Prezzi chiari, tutto incluso.</p>
+            </div>
+            <a href="#">Vedi tutto il catalogo →</a>
+          </div>
+
+          <ul class="grid-4">
+            <li>
+              <a class="card" href="#">
+                <span class="card__media">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="46" cy="62" r="27" />
+                    <circle cx="46" cy="62" r="7" />
+                    <circle cx="86" cy="81" r="8" />
+                    <path d="M26 42h44" />
+                    <path d="M26 42 20 12" />
+                    <path d="M20 12 8 14" />
+                    <path d="M70 42 92 70" />
+                    <path d="M88 72h16" />
+                    <path d="M32 30h34" />
+                  </svg>
+                </span>
+                <span class="card__body">
+                  <h3 class="card__title">Carrozzina pieghevole superleggera</h3>
+                  <span class="card__meta">
+                    <span class="card__rate">da <strong>4,90 €</strong>/giorno</span>
+                    <span class="card__avail"><i class="card__dot"></i>Disponibile</span>
+                  </span>
+                  <span class="card__cta">Vedi e noleggia →</span>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="card" href="#">
+                <span class="card__media">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M14 30v44" />
+                    <path d="M14 34h16" />
+                    <path d="M106 44v30" />
+                    <path d="M92 48h14" />
+                    <rect x="18" y="52" width="84" height="13" rx="6" />
+                    <path d="M18 68h84" />
+                    <circle cx="28" cy="79" r="6" />
+                    <circle cx="92" cy="79" r="6" />
+                    <rect x="38" y="36" width="34" height="11" rx="5" />
+                  </svg>
+                </span>
+                <span class="card__body">
+                  <h3 class="card__title">Letto da degenza elettrico a 3 snodi</h3>
+                  <span class="card__meta">
+                    <span class="card__rate">da <strong>3,50 €</strong>/giorno</span>
+                    <span class="card__avail"><i class="card__dot"></i>Disponibile</span>
+                  </span>
+                  <span class="card__cta">Vedi e noleggia →</span>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="card" href="#">
+                <span class="card__media">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M34 28v44" />
+                    <path d="M86 28v44" />
+                    <path d="M34 50h52" />
+                    <path d="M26 28h16" />
+                    <path d="M78 28h16" />
+                    <path d="M34 64h52" />
+                    <circle cx="34" cy="78" r="6" />
+                    <circle cx="86" cy="78" r="6" />
+                  </svg>
+                </span>
+                <span class="card__body">
+                  <h3 class="card__title">Deambulatore con ruote e seduta</h3>
+                  <span class="card__meta">
+                    <span class="card__rate">da <strong>2,50 €</strong>/giorno</span>
+                    <span class="card__avail"><i class="card__dot"></i>Disponibile</span>
+                  </span>
+                  <span class="card__cta">Vedi e noleggia →</span>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="card" href="#">
+                <span class="card__media">
+                  <svg
+                    viewBox="0 0 120 100"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="14" y="40" width="92" height="28" rx="12" />
+                    <path d="M32 40v28M50 40v28M68 40v28M86 40v28" />
+                  </svg>
+                </span>
+                <span class="card__body">
+                  <h3 class="card__title">Materasso antidecubito a pressione alternata</h3>
+                  <span class="card__meta">
+                    <span class="card__rate">da <strong>3,20 €</strong>/giorno</span>
+                    <span class="card__avail"><i class="card__dot"></i>Disponibile</span>
+                  </span>
+                  <span class="card__cta">Vedi e noleggia →</span>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------- come funziona -->
+      <section class="sec" aria-labelledby="how-title">
+        <div class="inner">
+          <div class="head">
+            <span class="head__kicker">Come funziona</span>
+            <h2 id="how-title">Tre passaggi, senza pagare nulla online.</h2>
+          </div>
+          <ol class="how__steps">
+            <li class="how__step">
+              <span class="how__n" aria-hidden="true">1</span>
+              <div>
+                <h3>Scegli il prodotto</h3>
+                <p>Dal catalogo, oppure chiamaci: ti consigliamo noi quello giusto.</p>
+              </div>
+            </li>
+            <li class="how__step">
+              <span class="how__n" aria-hidden="true">2</span>
+              <div>
+                <h3>Seleziona le date</h3>
+                <p>Indichi quando ti serve e per quanto tempo. Puoi sempre prolungare.</p>
+              </div>
+            </li>
+            <li class="how__step">
+              <span class="how__n" aria-hidden="true">3</span>
+              <div>
+                <h3>Lo ricevi a domicilio</h3>
+                <p>Ti chiamiamo per confermare, consegniamo e montiamo. A fine noleggio ritiriamo noi.</p>
+              </div>
+            </li>
+          </ol>
+          <p class="how__notice">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8.5 12.5 2.5 2.5 5-5.5" />
+            </svg>
+            <span>
+              <strong>Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata di conferma,
+              con un link di pagamento sicuro via SMS o email.
+            </span>
+          </p>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------- consegna e ritiro -->
+      <section class="sec" aria-labelledby="del-title">
+        <div class="inner">
+          <div class="head">
+            <span class="head__kicker">Servizio</span>
+            <h2 id="del-title">Consegna e ritiro</h2>
+            <p>Pensiamo a tutto noi, dall'inizio alla fine.</p>
+          </div>
+          <ul class="del">
+            <li>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 7h13v9H1z" />
+                <path d="M14 10h4l3 3v3h-7" />
+                <circle cx="5.5" cy="18.5" r="1.8" />
+                <circle cx="17.5" cy="18.5" r="1.8" />
+              </svg>
+              <h3>Consegna in 24–48 ore</h3>
+              <p>A Roma, Firenze e provincia. Anche in appartamento, al piano.</p>
+            </li>
+            <li>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14.7 6.3a4.5 4.5 0 0 0 5.6 5.6L17 15.2a4.5 4.5 0 0 1-6.4 0l-4.8-4.8a4.5 4.5 0 0 1 0-6.4z" transform="rotate(90 12 12)" />
+                <path d="m3.5 20.5 5-5" />
+              </svg>
+              <h3>Montaggio incluso</h3>
+              <p>Installiamo letti e ausili e ti mostriamo come si usano, con calma.</p>
+            </li>
+            <li>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 3-6.7" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <h3>Ritiro a fine noleggio</h3>
+              <p>Fissiamo insieme il giorno: non devi riconsegnare nulla.</p>
+            </li>
+          </ul>
+          <p class="del__areas">
+            <strong>Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in un'altra
+            zona? <a href="tel:+39800031962">Chiamaci</a>: spesso riusciamo a organizzare la consegna.
+          </p>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------ recensioni -->
+      <section class="sec" aria-labelledby="rev-title">
+        <div class="inner">
+          <div class="head">
+            <span class="head__kicker">Recensioni</span>
+            <h2 id="rev-title">Chi ci ha scelto</h2>
+            <p class="rev__aggregate">
+              <span class="rev__score">4,9</span>
+              <span class="rev__stars" aria-hidden="true">★★★★★</span>
+              <span class="rev__count">oltre 600 recensioni Google</span>
+            </p>
+          </div>
+          <ul class="rev__list">
+            <li>
+              <figure class="rev__item">
+                <p aria-hidden="true">★★★★★</p>
+                <blockquote class="rev__quote">
+                  "Cortesia, efficienza e puntualità nella consegna. Personale molto gentile e
+                  disponibile."
+                </blockquote>
+                <figcaption class="rev__author">Marina C. — Roma</figcaption>
+              </figure>
+            </li>
+            <li>
+              <figure class="rev__item">
+                <p aria-hidden="true">★★★★★</p>
+                <blockquote class="rev__quote">
+                  "Servizio eccellente: ordinato il letto per mio padre, consegnato e montato il
+                  giorno dopo."
+                </blockquote>
+                <figcaption class="rev__author">Daniele G. — Firenze</figcaption>
+              </figure>
+            </li>
+            <li>
+              <figure class="rev__item">
+                <p aria-hidden="true">★★★★★</p>
+                <blockquote class="rev__quote">
+                  "I miei complimenti per l'organizzazione e per la qualità dei prodotti offerti."
+                </blockquote>
+                <figcaption class="rev__author">Marcello P. — Roma</figcaption>
+              </figure>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------- faq -->
+      <section class="sec" aria-labelledby="faq-title">
+        <div class="inner">
+          <div class="head">
+            <span class="head__kicker">Dubbi</span>
+            <h2 id="faq-title">Domande frequenti</h2>
+          </div>
+          <ul class="faq__list">
+            <li>
+              <details class="faq__item" open>
+                <summary class="faq__q">
+                  Quando e come si paga?
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <p class="faq__a">
+                  Non paghi nulla sul sito. Invii la richiesta, ti chiamiamo per confermare
+                  disponibilità e consegna, poi ricevi un link di pagamento sicuro via SMS o email.
+                  Il pagamento avviene solo dopo la nostra telefonata.
+                </p>
+              </details>
+            </li>
+            <li>
+              <details class="faq__item">
+                <summary class="faq__q">
+                  Serve una cauzione?
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <p class="faq__a">
+                  Per la maggior parte degli ausili no. Solo per alcuni prodotti di valore è prevista
+                  una cauzione, indicata sulla scheda prodotto e restituita per intero a fine
+                  noleggio.
+                </p>
+              </details>
+            </li>
+            <li>
+              <details class="faq__item">
+                <summary class="faq__q">
+                  Quanto costa la consegna?
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <p class="faq__a">
+                  Dipende dalla zona e dal prodotto: te la confermiamo al telefono prima del
+                  pagamento, senza sorprese. Per molti prodotti è gratuita per i noleggi da 30 giorni.
+                </p>
+              </details>
+            </li>
+            <li>
+              <details class="faq__item">
+                <summary class="faq__q">
+                  I prodotti sono igienizzati?
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <p class="faq__a">
+                  Sì. Ogni ausilio viene sanificato, controllato e certificato dopo ogni noleggio. Lo
+                  ricevi igienizzato e pronto all'uso.
+                </p>
+              </details>
+            </li>
+            <li>
+              <details class="faq__item">
+                <summary class="faq__q">
+                  Posso prolungare il noleggio?
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <p class="faq__a">
+                  Sì, basta una telefonata: prolunghi quando vuoi e paghi solo i giorni in più.
+                </p>
+              </details>
+            </li>
+            <li>
+              <details class="faq__item">
+                <summary class="faq__q">
+                  E se il prodotto non va bene?
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <p class="faq__a">
+                  Chiamaci: lo sostituiamo con uno più adatto o lo ritiriamo. Ti aiutiamo anche a
+                  scegliere prima di ordinare.
+                </p>
+              </details>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- -------------------------------------------------- parla con noi -->
+      <section class="talk" aria-labelledby="talk-title">
+        <div class="inner">
+          <div class="talk__panel">
+            <div>
+              <h2 id="talk-title">Preferisci parlare con una persona?</h2>
+              <p>
+                Ti aiutiamo a scegliere e possiamo fare l'ordine per te, al telefono. Lun–Sab,
+                9:00–19:00.
+              </p>
+            </div>
+            <div class="talk__acts">
+              <a class="btn" href="tel:+39800031962">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z" /></svg>
+                800 031962 — gratis
+              </a>
+              <a class="btn btn--quiet" href="#">WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ---------------------------------------------------------- footer -->
+    <footer class="ftr">
+      <div class="inner ftr__cols">
+        <div>
+          <span class="ftr__logo"
+            ><img src="../../../../apps/website/public/img/logo.svg" alt="M.I.A. Medical Italia"
+          /></span>
+          <p>Via Gian Pietro Talamini 44, Roma<br />Viale Guidoni 129, Firenze</p>
+        </div>
+        <div>
+          <h3>Noleggio</h3>
+          <ul>
+            <li><a href="#">Carrozzine</a></li>
+            <li><a href="#">Letti da degenza</a></li>
+            <li><a href="#">Deambulatori</a></li>
+            <li><a href="#">Antidecubito</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Aiuto</h3>
+          <ul>
+            <li><a href="#">Come funziona</a></li>
+            <li><a href="#">Domande frequenti</a></li>
+            <li><a href="#">Assistenza</a></li>
+            <li><a href="#">Contatti</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Legale</h3>
+          <ul>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Condizioni</a></li>
+            <li><a href="#">Cookie</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="inner ftr__legal">
+        <span>MIA MEDICAL ITALIA S.R.L. · P.IVA 16028971006</span>
+        <span>Dati di esempio</span>
+      </div>
+    </footer>
+
+    <a class="tag" href="./variant-b-sereno.html">Variante A · Clinica — vedi la B →</a>
+  </body>
+</html>
