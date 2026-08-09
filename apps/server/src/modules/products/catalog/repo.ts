@@ -225,8 +225,10 @@ export async function findMany(
       offset: (filters.page - 1) * filters.perPage,
       with: {
         translations: true,
-        category: { with: { translations: true } },
+        category: { with: { translations: true, specs: { with: { options: true } } } },
         skus: { columns: { stock: true, isActive: true } },
+        specValues: true,
+        specValueOptions: true,
       },
     }),
     db.select({ value: count() }).from(products).where(where),
@@ -235,6 +237,7 @@ export async function findMany(
   return {
     rows: rows.map((row) => ({
       ...row,
+      specs: row.category.specs,
       // No SKU matrix → stock is untracked → sellable.
       inStock: row.skus.length === 0 || row.skus.some((sku) => sku.isActive && sku.stock > 0),
     })) as unknown as ProductSummaryRowData[],

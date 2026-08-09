@@ -217,6 +217,8 @@ export interface PublicProductSummaryDto {
   category: { slug: string; name: string };
   pricing: PricingDto;
   thumbnail: PublicMediaItemDto | null;
+  /** Ready-to-render card tags — the top comparable specs, collapsed to short strings. */
+  specs: string[];
   inStock: boolean;
 }
 
