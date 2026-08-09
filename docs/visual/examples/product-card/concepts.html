@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scheda prodotto — cinque concept</title>
+    <!--
+      IL PROBLEMA
+
+      La scheda attuale impila quattro righe di testo in una colonna stretta:
+      titolo, prezzo, disponibilità, invito all'azione. Ognuna chiede attenzione
+      e nessuna la ottiene. Peggio: "Disponibile" compare su quasi ogni scheda,
+      quindi non informa — occupa una riga per dire quello che il lettore dà già
+      per scontato. Diventa informazione solo quando MANCA.
+
+      E "Vedi e noleggia →" ripete quello che la scheda già è: un link. Tutta la
+      tessera è cliccabile.
+
+      Cinque concept, stesso vocabolario della Variante B — Sereno: filo unico,
+      un raggio, pozzetto in tinta, accento solo dove serve. Cambia solo quanta
+      informazione resta e dove sta.
+
+      Dati inventati. I font si caricano solo servendo la cartella via http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+
+      /* Gli stessi token del sito: apps/website/src/styles/app.css */
+      :root {
+        --ink: #1a1d21;
+        --ink-2: #49536b; /* corretto ad AAA rispetto al prototipo */
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --accent-deep: #1d2c62;
+        --ok: #0e6b41;
+        --r: 18px;
+        --r-sm: 12px;
+        --pill: 999px;
+        --display: 'Lexend', system-ui, sans-serif;
+        --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 18px;
+        line-height: 1.6;
+      }
+      svg {
+        display: block;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -0.028em;
+      }
+      p {
+        margin: 0;
+      }
+      ul,
+      ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px var(--ink);
+      }
+
+      .inner {
+        width: 100%;
+        max-width: 1244px;
+        margin-inline: auto;
+        padding-inline: 32px;
+      }
+
+      /* ------------------------------------------------------ impaginazione */
+      .lede {
+        padding-block: 72px 0;
+      }
+      .lede h1 {
+        font-size: clamp(2rem, 3.2vw, 2.5rem);
+        line-height: 1.14;
+      }
+      .lede > .inner > p {
+        max-width: 62ch;
+        margin-top: 16px;
+        color: var(--ink-2);
+        font-size: 19px;
+      }
+      .problem {
+        display: grid;
+        gap: 10px;
+        margin-top: 28px;
+        padding: 22px 26px;
+        border: 1px solid var(--hair);
+        border-radius: var(--r);
+        background: var(--tint);
+        font-size: 17px;
+      }
+      .problem strong {
+        font-family: var(--display);
+      }
+
+      .concept {
+        padding-block: 88px 0;
+      }
+      .concept--band {
+        margin-top: 88px;
+        padding-block: 88px;
+        background: var(--tint);
+      }
+      .concept__head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px 32px;
+        margin-bottom: 10px;
+      }
+      .concept__n {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .concept__n::before {
+        content: '';
+        width: 26px;
+        height: 2px;
+        background: var(--accent);
+      }
+      .concept h2 {
+        margin-top: 12px;
+        font-size: 30px;
+        line-height: 1.2;
+      }
+      .concept__why {
+        max-width: 60ch;
+        margin-top: 10px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .tradeoff {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        max-width: 60ch;
+        margin-top: 14px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .tradeoff b {
+        flex: none;
+        color: var(--ink);
+        font-family: var(--display);
+        font-weight: 600;
+      }
+      .rows {
+        margin-top: 34px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      /* ============================================================ SCHEDE */
+
+      /* Base comune a tutte: bianca su bianco o su fascia, un filo, un raggio.
+         Il filo si scurisce all'hover, non cambia colore. */
+      .c {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        border: 1px solid var(--hair);
+        border-radius: var(--r);
+        background: #fff;
+        text-decoration: none;
+        transition: border-color 160ms ease;
+      }
+      .c:hover {
+        border-color: var(--hair-strong);
+      }
+      .c__well {
+        position: relative;
+        display: grid;
+        place-items: center;
+        border-radius: var(--r-sm);
+        background: var(--tint);
+      }
+      .c__well svg {
+        width: 64%;
+        max-width: 170px;
+        height: auto;
+        color: var(--ink);
+        transition: transform 220ms ease;
+      }
+      .c:hover .c__well svg {
+        transform: scale(1.04);
+      }
+      .c__title {
+        font-size: 19px;
+        line-height: 1.35;
+        text-wrap: normal;
+      }
+      /* Il prezzo è un numero: cifre a larghezza fissa o le colonne ballano. */
+      .num {
+        font-family: var(--display);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Esaurito: è l'unico stato che vale una riga, perché è l'unico che
+         cambia quello che il lettore può fare. Non è mai solo colore. */
+      .c--out .c__well svg {
+        opacity: 0.38;
+      }
+      .out-tag {
+        position: absolute;
+        inset-inline: 10px;
+        bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: var(--pill);
+        background: var(--ink);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      /* ------------------------------------------------ 1 · ESSENZIALE ---- */
+      .c1 {
+        padding: 14px 14px 18px;
+      }
+      .c1 .c__well {
+        height: 190px;
+      }
+      .c1 .c__title {
+        margin-top: 16px;
+        padding-inline: 6px;
+      }
+      .c1__price {
+        margin-top: 8px;
+        padding-inline: 6px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .c1__price b {
+        color: var(--ink);
+        font-size: 20px;
+        font-weight: 600;
+      }
+      /* Il titolo si sottolinea all'hover: l'affordance non sparisce quando il
+         mouse non c'è, perché il cursore e il colore la portano comunque. */
+      .c1:hover .c__title {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      /* --------------------------------------- 2 · POZZETTO PARLANTE ------ */
+      /* Il prezzo torna dov'è già nella pagina: sulla pastiglia sopra
+         l'immagine, esattamente come nell'eroe. Sotto resta solo il nome. */
+      .c2 {
+        padding: 14px 14px 18px;
+      }
+      .c2 .c__well {
+        height: 200px;
+      }
+      .c2__price {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 8px 15px;
+        border: 1px solid var(--hair);
+        border-radius: var(--pill);
+        background: #fff;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .c2 .c__title {
+        margin-top: 16px;
+        padding-inline: 6px;
+      }
+      .c2:hover .c__title {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      /* ------------------------------------------- 3 · PIEDE DIVISO ------- */
+      /* Tutto quello che non è il nome scende in una riga sola, sotto un filo:
+         prezzo a sinistra, freccia a destra. Una riga invece di tre. */
+      .c3 {
+        padding: 14px;
+      }
+      .c3 .c__well {
+        height: 180px;
+      }
+      .c3 .c__title {
+        margin-top: 15px;
+        margin-bottom: 14px;
+        padding-inline: 4px;
+      }
+      .c3__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: auto;
+        padding: 13px 4px 0;
+        border-top: 1px solid var(--hair);
+      }
+      /* Su una riga sola: spezzarla in due righe rimetteva dentro la scheda
+         proprio l'incolonnamento che questo concept va a togliere. */
+      .c3__price {
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.35;
+      }
+      .c3__price b {
+        color: var(--ink);
+        font-size: 19px;
+        font-weight: 600;
+      }
+      .c3__go {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        flex: none;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--tint);
+        color: var(--accent);
+        transition:
+          background-color 160ms ease,
+          transform 160ms ease;
+      }
+      .c3:hover .c3__go {
+        background: var(--accent);
+        color: #fff;
+        transform: translateX(2px);
+      }
+      .c3__go svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* --------------------------------------------- 4 · PREZZO PRIMO ----- */
+      /* Per chi confronta. Il prezzo è la prima cosa leggibile dopo la figura e
+         il nome scende a riga di servizio: si scorre la colonna dei numeri. */
+      .c4 {
+        padding: 14px 14px 18px;
+      }
+      .c4 .c__well {
+        height: 176px;
+      }
+      .c4__price {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        margin-top: 16px;
+        padding-inline: 6px;
+      }
+      .c4__from {
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .c4__amount {
+        font-size: 25px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .c4__unit {
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .c4 .c__title {
+        margin-top: 6px;
+        padding-inline: 6px;
+        color: var(--ink-2);
+        font-family: var(--body);
+        font-size: 17px;
+        font-weight: 400;
+      }
+      .c4:hover .c__title {
+        color: var(--ink);
+      }
+
+      /* -------------------------------------------------- 5 · RIGA -------- */
+      /* Il rimedio più diretto all'incolonnamento: si smette di incolonnare.
+         Figura a sinistra, testo a destra, freccia in fondo. */
+      .c5 {
+        flex-direction: row;
+        align-items: center;
+        gap: 18px;
+        padding: 14px 18px 14px 14px;
+      }
+      .c5 .c__well {
+        width: 108px;
+        height: 108px;
+        flex: none;
+      }
+      .c5 .c__well svg {
+        width: 74%;
+      }
+      .c5__body {
+        min-width: 0;
+        flex: 1;
+      }
+      .c5__price {
+        margin-top: 5px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .c5__price b {
+        color: var(--ink);
+        font-size: 19px;
+        font-weight: 600;
+      }
+      .c5__go {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        flex: none;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--tint);
+        color: var(--accent);
+        transition:
+          background-color 160ms ease,
+          transform 160ms ease;
+      }
+      .c5:hover .c5__go {
+        background: var(--accent);
+        color: #fff;
+        transform: translateX(2px);
+      }
+      .c5__go svg {
+        width: 20px;
+        height: 20px;
+      }
+      .c5 .out-tag {
+        position: static;
+        margin-top: 7px;
+        padding: 5px 11px;
+        font-size: 14px;
+      }
+
+      /* ------------------------------------------------------- confronto -- */
+      /* Quattro, non cinque: la «Riga» è di forma diversa e a un quinto di
+         larghezza non si può giudicare — sta sotto, a larghezza vera. */
+      .phones {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        margin-top: 34px;
+      }
+      .phone {
+        min-width: 0;
+      }
+      .phone--wide {
+        max-width: 620px;
+        margin-top: 30px;
+      }
+      .phone > p {
+        margin-bottom: 12px;
+        color: var(--ink-2);
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .verdict {
+        margin-top: 88px;
+        padding-block: 76px;
+        background: var(--accent-deep);
+        color: #fff;
+      }
+      .verdict h2 {
+        max-width: 24ch;
+        font-size: clamp(1.8rem, 3vw, 2.25rem);
+        line-height: 1.18;
+      }
+      .verdict p {
+        max-width: 56ch;
+        margin-top: 14px;
+        color: #b3bcd8;
+        font-size: 18px;
+      }
+      .verdict ul {
+        display: grid;
+        gap: 12px;
+        margin-top: 26px;
+        max-width: 64ch;
+      }
+      .verdict li {
+        padding-left: 22px;
+        position: relative;
+        color: #dfe4f2;
+        font-size: 17px;
+      }
+      .verdict li::before {
+        content: '';
+        position: absolute;
+        top: 12px;
+        left: 0;
+        width: 9px;
+        height: 2px;
+        background: #6d7cb0;
+      }
+      .verdict b {
+        color: #fff;
+        font-family: var(--display);
+        font-weight: 600;
+      }
+
+      footer {
+        padding-block: 40px 64px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      @media (max-width: 1100px) {
+        .grid-4,
+        .phones {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        .inner {
+          padding-inline: 20px;
+        }
+        .grid-4,
+        .phones {
+          grid-template-columns: 1fr;
+        }
+        .concept {
+          padding-block: 56px 0;
+        }
+        .concept--band {
+          margin-top: 56px;
+          padding-block: 56px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ------------------------------------------------------------ lede -->
+    <section class="lede">
+      <div class="inner">
+        <p class="concept__n">Scheda prodotto</p>
+        <h1>Cinque modi di dire meno.</h1>
+        <p>
+          La scheda di oggi impila quattro righe di testo in una colonna stretta. Ognuna chiede
+          attenzione, nessuna la ottiene. Nessuno di questi concept aggiunge qualcosa: tolgono, e si
+          distinguono per <em>che cosa</em> tolgono.
+        </p>
+
+        <div class="problem">
+          <p>
+            <strong>«Disponibile» non informa.</strong> Compare su quasi ogni scheda, quindi il
+            lettore lo dà per scontato: costa una riga per confermare un'aspettativa. Diventa
+            informazione solo quando manca — ed è lì che va speso lo spazio.
+          </p>
+          <p>
+            <strong>«Vedi e noleggia →» ripete la scheda.</strong> Tutta la tessera è già un link,
+            con un solo punto di tabulazione. La riga in fondo non aggiunge una destinazione: aggiunge
+            una quarta cosa da leggere.
+          </p>
+          <p>
+            <strong>Il titolo tiene due righe anche quando ne usa una.</strong> Serve ad allineare i
+            prezzi fra le tessere, ma va pagato con un vuoto sopra ogni nome corto.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------- 1 · essenziale -->
+    <section class="concept">
+      <div class="inner">
+        <div class="concept__head">
+          <div>
+            <p class="concept__n">Concept 1</p>
+            <h2>Essenziale</h2>
+            <p class="concept__why">
+              Tre elementi: figura, nome, prezzo. La disponibilità sparisce finché è positiva e
+              torna, forte, solo quando il prodotto non c'è. L'invito all'azione se ne va: la scheda
+              <em>è</em> il link.
+            </p>
+          </div>
+        </div>
+        <p class="tradeoff">
+          <b>Rinuncia a:</b>
+          <span
+            >un'affordance esplicita. Restano cursore, colore e sottolineatura del nome all'hover —
+            che su desktop bastano, ma sul touch nessuna delle tre esiste.</span
+          >
+        </p>
+
+        <ul class="rows grid-4">
+          <li>
+            <a class="c c1" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M20 12 8 14" /><path d="M70 42 92 70" /><path d="M88 72h16" /><path d="M32 30h34" />
+                </svg>
+              </span>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+              <p class="c1__price">da <b class="num">4,90 €</b> al giorno</p>
+            </a>
+          </li>
+          <li>
+            <a class="c c1" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 30v44" /><path d="M14 34h16" /><path d="M106 44v30" /><path d="M92 48h14" /><rect x="18" y="52" width="84" height="13" rx="6" /><path d="M18 68h84" /><circle cx="28" cy="79" r="6" /><circle cx="92" cy="79" r="6" /><rect x="38" y="36" width="34" height="11" rx="5" />
+                </svg>
+              </span>
+              <h3 class="c__title">Letto da degenza elettrico a 3 snodi</h3>
+              <p class="c1__price">da <b class="num">3,50 €</b> al giorno</p>
+            </a>
+          </li>
+          <li>
+            <a class="c c1" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M34 28v44" /><path d="M86 28v44" /><path d="M34 50h52" /><path d="M26 28h16" /><path d="M78 28h16" /><path d="M34 64h52" /><circle cx="34" cy="78" r="6" /><circle cx="86" cy="78" r="6" />
+                </svg>
+              </span>
+              <h3 class="c__title">Deambulatore con ruote e seduta</h3>
+              <p class="c1__price">da <b class="num">2,50 €</b> al giorno</p>
+            </a>
+          </li>
+          <li>
+            <a class="c c1 c--out" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="14" y="40" width="92" height="28" rx="12" /><path d="M32 40v28M50 40v28M68 40v28M86 40v28" />
+                </svg>
+                <span class="out-tag">Esaurito — chiamaci</span>
+              </span>
+              <h3 class="c__title">Materasso antidecubito a pressione alternata</h3>
+              <p class="c1__price">da <b class="num">3,20 €</b> al giorno</p>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------- 2 · pozzetto parlante -->
+    <section class="concept concept--band">
+      <div class="inner">
+        <div class="concept__head">
+          <div>
+            <p class="concept__n">Concept 2</p>
+            <h2>Pozzetto parlante</h2>
+            <p class="concept__why">
+              Il prezzo torna dov'è già nella pagina: sulla pastiglia sopra l'immagine, la stessa
+              dell'eroe. Sotto la figura resta <em>solo</em> il nome. Una riga di testo, non quattro,
+              e la pagina guadagna una rima invece di un'invenzione.
+            </p>
+          </div>
+        </div>
+        <p class="tradeoff">
+          <b>Rinuncia a:</b>
+          <span
+            >prezzi allineati fra le colonne. Stanno sull'immagine, quindi non si confrontano più
+            scorrendo una colonna di numeri.</span
+          >
+        </p>
+
+        <ul class="rows grid-4">
+          <li>
+            <a class="c c2" href="#">
+              <span class="c__well">
+                <span class="c2__price num">da 4,90 €/giorno</span>
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M20 12 8 14" /><path d="M70 42 92 70" /><path d="M88 72h16" /><path d="M32 30h34" />
+                </svg>
+              </span>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+            </a>
+          </li>
+          <li>
+            <a class="c c2" href="#">
+              <span class="c__well">
+                <span class="c2__price num">da 3,50 €/giorno</span>
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 30v44" /><path d="M14 34h16" /><path d="M106 44v30" /><path d="M92 48h14" /><rect x="18" y="52" width="84" height="13" rx="6" /><path d="M18 68h84" /><circle cx="28" cy="79" r="6" /><circle cx="92" cy="79" r="6" /><rect x="38" y="36" width="34" height="11" rx="5" />
+                </svg>
+              </span>
+              <h3 class="c__title">Letto da degenza elettrico a 3 snodi</h3>
+            </a>
+          </li>
+          <li>
+            <a class="c c2" href="#">
+              <span class="c__well">
+                <span class="c2__price num">da 2,50 €/giorno</span>
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M34 28v44" /><path d="M86 28v44" /><path d="M34 50h52" /><path d="M26 28h16" /><path d="M78 28h16" /><path d="M34 64h52" /><circle cx="34" cy="78" r="6" /><circle cx="86" cy="78" r="6" />
+                </svg>
+              </span>
+              <h3 class="c__title">Deambulatore con ruote e seduta</h3>
+            </a>
+          </li>
+          <li>
+            <a class="c c2 c--out" href="#">
+              <span class="c__well">
+                <span class="c2__price num">da 3,20 €/giorno</span>
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="14" y="40" width="92" height="28" rx="12" /><path d="M32 40v28M50 40v28M68 40v28M86 40v28" />
+                </svg>
+                <span class="out-tag">Esaurito — chiamaci</span>
+              </span>
+              <h3 class="c__title">Materasso antidecubito a pressione alternata</h3>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------- 3 · piede diviso -->
+    <section class="concept">
+      <div class="inner">
+        <div class="concept__head">
+          <div>
+            <p class="concept__n">Concept 3</p>
+            <h2>Piede diviso</h2>
+            <p class="concept__why">
+              Il nome resta in alto; tutto il resto scende sotto un filo in una riga sola — prezzo a
+              sinistra, freccia a destra. La freccia è un cerchio in tinta che diventa blu
+              all'hover: l'invito all'azione smette di essere una frase e diventa un bottone che non
+              chiede una riga di testo.
+            </p>
+          </div>
+        </div>
+        <p class="tradeoff">
+          <b>Rinuncia a:</b>
+          <span
+            >un po' di leggerezza. È il concept che conserva più struttura — filo interno più
+            pastiglia — e quindi quello che assomiglia di più alla scheda di oggi.</span
+          >
+        </p>
+
+        <ul class="rows grid-4">
+          <li>
+            <a class="c c3" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M20 12 8 14" /><path d="M70 42 92 70" /><path d="M88 72h16" /><path d="M32 30h34" />
+                </svg>
+              </span>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+              <span class="c3__foot">
+                <span class="c3__price">da <b class="num">4,90 €</b> al giorno</span>
+                <span class="c3__go">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="c c3" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 30v44" /><path d="M14 34h16" /><path d="M106 44v30" /><path d="M92 48h14" /><rect x="18" y="52" width="84" height="13" rx="6" /><path d="M18 68h84" /><circle cx="28" cy="79" r="6" /><circle cx="92" cy="79" r="6" /><rect x="38" y="36" width="34" height="11" rx="5" />
+                </svg>
+              </span>
+              <h3 class="c__title">Letto da degenza elettrico a 3 snodi</h3>
+              <span class="c3__foot">
+                <span class="c3__price">da <b class="num">3,50 €</b> al giorno</span>
+                <span class="c3__go">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="c c3" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M34 28v44" /><path d="M86 28v44" /><path d="M34 50h52" /><path d="M26 28h16" /><path d="M78 28h16" /><path d="M34 64h52" /><circle cx="34" cy="78" r="6" /><circle cx="86" cy="78" r="6" />
+                </svg>
+              </span>
+              <h3 class="c__title">Deambulatore con ruote e seduta</h3>
+              <span class="c3__foot">
+                <span class="c3__price">da <b class="num">2,50 €</b> al giorno</span>
+                <span class="c3__go">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="c c3 c--out" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="14" y="40" width="92" height="28" rx="12" /><path d="M32 40v28M50 40v28M68 40v28M86 40v28" />
+                </svg>
+                <span class="out-tag">Esaurito — chiamaci</span>
+              </span>
+              <h3 class="c__title">Materasso antidecubito a pressione alternata</h3>
+              <span class="c3__foot">
+                <span class="c3__price">da <b class="num">3,20 €</b> al giorno</span>
+                <span class="c3__go">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------- 4 · prezzo primo -->
+    <section class="concept concept--band">
+      <div class="inner">
+        <div class="concept__head">
+          <div>
+            <p class="concept__n">Concept 4</p>
+            <h2>Prezzo primo</h2>
+            <p class="concept__why">
+              Si ribalta la gerarchia: dopo la figura la prima cosa leggibile è la cifra, e il nome
+              scende a riga di servizio. La griglia diventa una colonna di numeri che si scorre
+              — utile a chi sta confrontando, che è quasi sempre il caso in un catalogo a noleggio.
+            </p>
+          </div>
+        </div>
+        <p class="tradeoff">
+          <b>Rinuncia a:</b>
+          <span
+            >il nome come protagonista. Chi non sa ancora <em>cosa</em> gli serve — e qui capita
+            spesso — legge prima un prezzo che non sa a cosa attribuire.</span
+          >
+        </p>
+
+        <ul class="rows grid-4">
+          <li>
+            <a class="c c4" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M20 12 8 14" /><path d="M70 42 92 70" /><path d="M88 72h16" /><path d="M32 30h34" />
+                </svg>
+              </span>
+              <p class="c4__price">
+                <span class="c4__from">da</span><span class="c4__amount num">4,90 €</span
+                ><span class="c4__unit">/giorno</span>
+              </p>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+            </a>
+          </li>
+          <li>
+            <a class="c c4" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 30v44" /><path d="M14 34h16" /><path d="M106 44v30" /><path d="M92 48h14" /><rect x="18" y="52" width="84" height="13" rx="6" /><path d="M18 68h84" /><circle cx="28" cy="79" r="6" /><circle cx="92" cy="79" r="6" /><rect x="38" y="36" width="34" height="11" rx="5" />
+                </svg>
+              </span>
+              <p class="c4__price">
+                <span class="c4__from">da</span><span class="c4__amount num">3,50 €</span
+                ><span class="c4__unit">/giorno</span>
+              </p>
+              <h3 class="c__title">Letto da degenza elettrico a 3 snodi</h3>
+            </a>
+          </li>
+          <li>
+            <a class="c c4" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M34 28v44" /><path d="M86 28v44" /><path d="M34 50h52" /><path d="M26 28h16" /><path d="M78 28h16" /><path d="M34 64h52" /><circle cx="34" cy="78" r="6" /><circle cx="86" cy="78" r="6" />
+                </svg>
+              </span>
+              <p class="c4__price">
+                <span class="c4__from">da</span><span class="c4__amount num">2,50 €</span
+                ><span class="c4__unit">/giorno</span>
+              </p>
+              <h3 class="c__title">Deambulatore con ruote e seduta</h3>
+            </a>
+          </li>
+          <li>
+            <a class="c c4 c--out" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="14" y="40" width="92" height="28" rx="12" /><path d="M32 40v28M50 40v28M68 40v28M86 40v28" />
+                </svg>
+                <span class="out-tag">Esaurito — chiamaci</span>
+              </span>
+              <p class="c4__price">
+                <span class="c4__from">da</span><span class="c4__amount num">3,20 €</span
+                ><span class="c4__unit">/giorno</span>
+              </p>
+              <h3 class="c__title">Materasso antidecubito a pressione alternata</h3>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------- 5 · riga -->
+    <section class="concept">
+      <div class="inner">
+        <div class="concept__head">
+          <div>
+            <p class="concept__n">Concept 5</p>
+            <h2>Riga</h2>
+            <p class="concept__why">
+              Il rimedio più diretto all'incolonnamento: si smette di incolonnare. Figura a sinistra,
+              nome e prezzo a destra, freccia in fondo. Il testo ha larghezza vera, quindi i nomi
+              lunghi smettono di andare a capo tre volte — ed è esattamente la forma che la scheda
+              prende già oggi sul telefono.
+            </p>
+          </div>
+        </div>
+        <p class="tradeoff">
+          <b>Rinuncia a:</b>
+          <span
+            >quattro prodotti per riga. Ne stanno due, quindi la vetrina mostra la metà dei prodotti
+            a parità di altezza — e la figura, più piccola, conta di meno.</span
+          >
+        </p>
+
+        <ul class="rows grid-2">
+          <li>
+            <a class="c c5" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M70 42 92 70" /><path d="M88 72h16" />
+                </svg>
+              </span>
+              <span class="c5__body">
+                <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+                <span class="c5__price">da <b class="num">4,90 €</b> al giorno</span>
+              </span>
+              <span class="c5__go">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="c c5" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 30v44" /><path d="M106 44v30" /><rect x="18" y="52" width="84" height="13" rx="6" /><path d="M18 68h84" /><circle cx="28" cy="79" r="6" /><circle cx="92" cy="79" r="6" />
+                </svg>
+              </span>
+              <span class="c5__body">
+                <h3 class="c__title">Letto da degenza elettrico a 3 snodi</h3>
+                <span class="c5__price">da <b class="num">3,50 €</b> al giorno</span>
+              </span>
+              <span class="c5__go">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="c c5" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M34 28v44" /><path d="M86 28v44" /><path d="M34 50h52" /><path d="M26 28h16" /><path d="M78 28h16" /><circle cx="34" cy="78" r="6" /><circle cx="86" cy="78" r="6" />
+                </svg>
+              </span>
+              <span class="c5__body">
+                <h3 class="c__title">Deambulatore con ruote e seduta</h3>
+                <span class="c5__price">da <b class="num">2,50 €</b> al giorno</span>
+              </span>
+              <span class="c5__go">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="c c5 c--out" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="14" y="40" width="92" height="28" rx="12" /><path d="M38 40v28M60 40v28M82 40v28" />
+                </svg>
+              </span>
+              <span class="c5__body">
+                <h3 class="c__title">Materasso antidecubito a pressione alternata</h3>
+                <span class="c5__price">da <b class="num">3,20 €</b> al giorno</span>
+                <span class="out-tag">Esaurito — chiamaci</span>
+              </span>
+              <span class="c5__go">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- fianco a fianco -->
+    <section class="concept">
+      <div class="inner">
+        <div class="concept__head">
+          <div>
+            <p class="concept__n">Confronto</p>
+            <h2>Gli stessi cinque, affiancati</h2>
+            <p class="concept__why">
+              Stesso prodotto, stessa larghezza, uno accanto all'altro. È il modo più onesto di
+              vedere quanta aria guadagna ognuno.
+            </p>
+          </div>
+        </div>
+
+        <div class="phones">
+          <div class="phone">
+            <p>1 · Essenziale</p>
+            <a class="c c1" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M70 42 92 70" /><path d="M88 72h16" />
+                </svg>
+              </span>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+              <p class="c1__price">da <b class="num">4,90 €</b> al giorno</p>
+            </a>
+          </div>
+
+          <div class="phone">
+            <p>2 · Pozzetto</p>
+            <a class="c c2" href="#">
+              <span class="c__well">
+                <span class="c2__price num">da 4,90 €/giorno</span>
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M70 42 92 70" /><path d="M88 72h16" />
+                </svg>
+              </span>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+            </a>
+          </div>
+
+          <div class="phone">
+            <p>3 · Piede diviso</p>
+            <a class="c c3" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M70 42 92 70" /><path d="M88 72h16" />
+                </svg>
+              </span>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+              <span class="c3__foot">
+                <span class="c3__price">da <b class="num">4,90 €</b> al giorno</span>
+                <span class="c3__go">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+                </span>
+              </span>
+            </a>
+          </div>
+
+          <div class="phone">
+            <p>4 · Prezzo primo</p>
+            <a class="c c4" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M70 42 92 70" /><path d="M88 72h16" />
+                </svg>
+              </span>
+              <p class="c4__price">
+                <span class="c4__from">da</span><span class="c4__amount num">4,90 €</span
+                ><span class="c4__unit">/giorno</span>
+              </p>
+              <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+            </a>
+          </div>
+
+        </div>
+
+        <div class="phone phone--wide">
+          <p>5 · Riga — a larghezza vera</p>
+          <a class="c c5" href="#">
+              <span class="c__well">
+                <svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="46" cy="62" r="27" /><circle cx="46" cy="62" r="7" /><circle cx="86" cy="81" r="8" /><path d="M26 42h44" /><path d="M26 42 20 12" /><path d="M70 42 92 70" /><path d="M88 72h16" />
+                </svg>
+              </span>
+              <span class="c5__body">
+                <h3 class="c__title">Carrozzina pieghevole superleggera</h3>
+                <span class="c5__price">da <b class="num">4,90 €</b> al giorno</span>
+              </span>
+              <span class="c5__go">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+              </span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------- verdetto -->
+    <section class="verdict">
+      <div class="inner">
+        <h2>Se devo consigliarne uno: il 3, «Piede diviso».</h2>
+        <p>
+          Toglie le due righe che non informano e non chiede nulla in cambio: il prezzo resta
+          confrontabile in colonna, l'affordance resta visibile senza hover, e non serve un touch per
+          scoprirla.
+        </p>
+        <ul>
+          <li>
+            <b>Il 2 è il più bello</b> e l'unico che rima con l'eroe, ma sposta i prezzi
+            sull'immagine e li rende difficili da confrontare a colpo d'occhio.
+          </li>
+          <li>
+            <b>Il 5 è il migliore sul telefono</b> — è già la forma che la scheda prende lì. Vale la
+            pena adottarlo <em>come forma mobile</em> di uno degli altri, non come vetrina desktop.
+          </li>
+          <li>
+            <b>Il 4 conviene solo nel catalogo</b>, dove si confronta davvero; in home, dove si
+            scopre, il nome deve venire prima.
+          </li>
+          <li>
+            <b>Il 1 è il più pulito</b> ma, per questo pubblico, un'affordance che vive solo
+            nell'hover è un'affordance che metà delle persone non vedrà mai.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="inner">
+      <p>Dati di esempio. Token allineati a <code>apps/website/src/styles/app.css</code>.</p>
+    </footer>
+  </body>
+</html>

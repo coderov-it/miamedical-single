@@ -1,0 +1,1161 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scheda prodotto — cinque concept ordinati</title>
+    <!--
+      TERZO GIRO.
+
+      I due giri precedenti sbagliavano lo stesso bersaglio da due lati opposti:
+      il primo toglieva righe, il secondo lucidava una scheda che di righe ne
+      aveva tre. Nessuno dei due rispondeva alla domanda vera, che non era
+      "quanto dire" ma "in che ordine".
+
+      Qui la scheda dice TUTTO — categoria, disponibilità, nome, a cosa serve,
+      le caratteristiche che decidono l'acquisto, come arriva, quanto costa, per
+      quanti giorni minimo — e lo dice in zone separate, ognuna con un suo peso:
+
+        ZONA 1  il palco       figura, categoria, disponibilità
+        ZONA 2  l'identità     nome, una frase
+        ZONA 3  i dati         caratteristiche, consegna
+        ZONA 4  la decisione   prezzo, minimo, invito
+
+      Fra la zona 3 e la zona 4 c'è un filo. Fra le altre solo aria, dosata
+      diversamente: 14px dentro una zona, 20px fra due zone. È quel doppio passo
+      a fare l'ordine, non i bordi.
+
+      QUELLO CHE COSTA. La lista prodotti dell'API oggi restituisce titolo,
+      descrizione breve, categoria, prezzo, disponibilità e miniatura. NON
+      restituisce le caratteristiche: stanno solo sul dettaglio, in
+      `specifications[]`, già con `displayValue` e `isComparable`. Tre di questi
+      concept le mostrano in griglia, quindi vanno portate anche sul DTO di
+      lista — le prime 3 comparabili, nient'altro. Il "noleggio minimo" non
+      esiste ancora da nessuna parte: o nasce come campo, o quella riga sparisce.
+
+      Dati inventati. I font si caricano solo servendo la cartella via http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+
+      /* Gli stessi token del sito: apps/website/src/styles/app.css */
+      :root {
+        --ink: #1a1d21;
+        --ink-2: #49536b;
+        --ink-3: #8a93a8;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --accent-deep: #1d2c62;
+        --ok: #0e6b41;
+        --r: 18px;
+        --r-sm: 12px;
+        --pill: 999px;
+        --display: 'Lexend', system-ui, sans-serif;
+        --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+        --lift: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 18px;
+        line-height: 1.6;
+      }
+      svg {
+        display: block;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -0.028em;
+      }
+      p {
+        margin: 0;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px var(--ink);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      .inner {
+        width: 100%;
+        max-width: 1244px;
+        margin-inline: auto;
+        padding-inline: 32px;
+      }
+
+      /* ------------------------------------------------------ impaginazione */
+      .lede {
+        padding-block: 72px 0;
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .kicker::before {
+        content: '';
+        width: 26px;
+        height: 2px;
+        background: var(--accent);
+      }
+      .lede h1 {
+        margin-top: 12px;
+        font-size: clamp(2rem, 3.2vw, 2.5rem);
+        line-height: 1.14;
+      }
+      .lede > .inner > p {
+        max-width: 64ch;
+        margin-top: 16px;
+        color: var(--ink-2);
+        font-size: 19px;
+      }
+
+      /* Le quattro zone, dichiarate una volta in cima: tutti i concept le
+         rispettano, cambia solo come le vestono. */
+      .zones {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 30px;
+        overflow: hidden;
+        border: 1px solid var(--hair-strong);
+        border-radius: var(--r);
+        background: var(--tint);
+      }
+      .zones li {
+        padding: 22px 24px;
+        font-size: 16px;
+        color: var(--ink-2);
+      }
+      .zones li + li {
+        box-shadow: inset 1px 0 0 var(--hair-strong);
+      }
+      .zones b {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .zones i {
+        display: block;
+        color: var(--ink-3);
+        font-family: var(--display);
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .concept {
+        padding-block: 96px 0;
+      }
+      .concept--band {
+        margin-top: 96px;
+        padding-block: 96px;
+        background: var(--tint);
+      }
+      .concept h2 {
+        margin-top: 12px;
+        font-size: 30px;
+        line-height: 1.2;
+      }
+      .concept__why {
+        max-width: 64ch;
+        margin-top: 10px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .note {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 16px;
+        padding: 9px 16px;
+        border: 1px solid var(--hair-strong);
+        border-radius: var(--pill);
+        background: #fff;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .note::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        flex: none;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .rows {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 24px;
+        margin-top: 36px;
+      }
+      /* Senza `min-width: 0` una cella che non va a capo allarga tutta la
+         griglia e la pagina si mette a scorrere in orizzontale. */
+      .rows > li {
+        display: flex;
+        min-width: 0;
+      }
+      .rows--wide {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      /* ======================================================= PARTI COMUNI */
+      .card {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--hair);
+        border-radius: var(--r);
+        background: #fff;
+        color: inherit;
+        text-decoration: none;
+        transition:
+          border-color 150ms ease,
+          box-shadow 300ms var(--lift),
+          transform 300ms var(--lift);
+      }
+      .card:hover {
+        border-color: var(--hair-strong);
+      }
+      .card--lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px -24px rgb(19 29 64 / 0.42);
+      }
+      .card--out {
+        background: #fcfdff;
+      }
+
+      /* ---- zona 1: il palco */
+      .stage {
+        position: relative;
+        display: grid;
+        height: 172px;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(115% 80% at 50% 26%, #ffffff 0%, rgb(255 255 255 / 0) 66%),
+          linear-gradient(180deg, var(--tint) 42%, var(--tint-2) 100%);
+      }
+      .stage__floor {
+        position: absolute;
+        bottom: 26px;
+        left: 50%;
+        width: 54%;
+        height: 16px;
+        background: radial-gradient(
+          ellipse at center,
+          rgb(26 45 98 / 0.17) 0%,
+          rgb(26 45 98 / 0) 72%
+        );
+        transform: translateX(-50%);
+        transition:
+          transform 300ms var(--lift),
+          opacity 300ms ease;
+      }
+      .stage__art {
+        position: relative;
+        width: 60%;
+        max-width: 168px;
+        height: auto;
+        color: var(--ink);
+        transition: transform 300ms var(--lift);
+      }
+      .card:hover .stage__art {
+        transform: translateY(-5px) scale(1.03);
+      }
+      .card:hover .stage__floor {
+        opacity: 0.72;
+        transform: translateX(-50%) scaleX(1.1);
+      }
+      .card--out .stage__art {
+        color: var(--ink-2);
+        opacity: 0.62;
+      }
+
+      /* La categoria è un'etichetta appoggiata sul palco: è un filtro, non una
+         proprietà del prodotto, quindi non entra nella colonna del testo. */
+      .tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        max-width: calc(100% - 24px);
+        overflow: hidden;
+        padding: 6px 13px;
+        border: 1px solid var(--hair);
+        border-radius: var(--pill);
+        background: rgb(255 255 255 / 0.94);
+        color: var(--ink-2);
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ---- corpo e zone */
+      .body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 18px 18px 0;
+      }
+      /* Il doppio passo: 14px dentro una zona, 20px fra due zone. */
+      .zone {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+      }
+      .zone + .zone {
+        margin-top: 20px;
+      }
+
+      /* La disponibilità non è mai solo colore: la pallina decora, la parola
+         porta il significato. */
+      .avail {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--ok);
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .avail::before {
+        content: '';
+        width: 9px;
+        height: 9px;
+        flex: none;
+        border-radius: 50%;
+        background: currentcolor;
+      }
+      .avail--out {
+        color: var(--ink-2);
+      }
+
+      .name {
+        font-size: 19px;
+        line-height: 1.32;
+      }
+      /* Due righe e basta: la terza riga della descrizione non ha mai deciso un
+         noleggio, e sposta il prezzo di 24px da scheda a scheda. */
+      .blurb {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      /* Le caratteristiche in riga, separate dai punti medi: la forma più
+         compatta che esista per tre valori brevi. */
+      .meta {
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.45;
+      }
+      .meta b {
+        color: var(--ink);
+        font-weight: 400;
+      }
+      .meta span + span::before {
+        content: ' · ';
+        color: var(--ink-3);
+      }
+
+      /* Come arriva. Icona piccola, testo pieno: è una promessa di servizio,
+         non un'altra caratteristica del prodotto. */
+      .service {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.4;
+      }
+      .service svg {
+        width: 20px;
+        height: 20px;
+        flex: none;
+        margin-top: 2px;
+        color: var(--ink-3);
+      }
+
+      .hair {
+        height: 1px;
+        background: var(--hair);
+      }
+
+      /* ---- zona 4: il prezzo, composto invece che scritto */
+      .price {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        color: var(--ink-2);
+        font-size: 15px;
+        white-space: nowrap;
+      }
+      .price__amount {
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 26px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .price__cur {
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .price__unit {
+        font-size: 15px;
+      }
+      .under {
+        display: block;
+        margin-top: 2px;
+        color: var(--ink-3);
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      /* Sembra un bottone, non lo è: tutta la scheda è già un solo link, e un
+         link dentro un link è un secondo tab-stop verso la stessa pagina. */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        flex: none;
+        padding: 0 18px;
+        border-radius: var(--r-sm);
+        background: var(--accent);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 17px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .card:hover .btn {
+        background: var(--accent-deep);
+      }
+      .btn--ghost {
+        border: 1px solid var(--hair-strong);
+        background: #fff;
+        color: var(--accent);
+      }
+      .card:hover .btn--ghost {
+        border-color: var(--accent);
+        background: var(--tint);
+      }
+      .btn svg {
+        width: 18px;
+        height: 18px;
+        transition: transform 220ms var(--lift);
+      }
+      .card:hover .btn svg {
+        transform: translateX(3px);
+      }
+
+      /* =============================================== 1 · SCHEDA ORDINATA */
+      .v1__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 18px;
+        padding: 16px 18px 18px;
+        border-top: 1px solid var(--hair);
+      }
+      .v1__foot > span:first-child {
+        min-width: 0;
+      }
+
+      /* =============================================== 2 · SCHEDA TECNICA */
+      /*
+        Le stesse tre caratteristiche, ma etichettate. Costa 24px di altezza e
+        toglie ogni ambiguità: "120 kg" da solo non dice se è la portata o il
+        peso dell'ausilio.
+      */
+      .v2__grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow: hidden;
+        border: 1px solid var(--hair);
+        border-radius: var(--r-sm);
+        background: var(--tint);
+      }
+      .v2__grid > span {
+        min-width: 0;
+        padding: 10px 12px;
+      }
+      .v2__grid > span + span {
+        box-shadow: inset 1px 0 0 var(--hair);
+      }
+      .v2__grid i {
+        display: block;
+        color: var(--ink-3);
+        font-family: var(--display);
+        font-size: 13px;
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .v2__grid b {
+        display: block;
+        overflow: hidden;
+        margin-top: 2px;
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .v2__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 18px;
+        padding: 16px 18px 18px;
+        border-top: 1px solid var(--hair);
+      }
+
+      /* ==================================================== 3 · PASTIGLIE */
+      .v3__chips {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .v3__chips > span {
+        padding: 5px 12px;
+        border: 1px solid var(--hair);
+        border-radius: var(--pill);
+        background: var(--tint);
+        color: var(--ink-2);
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      /* La riga di servizio diventa una fascia piena: si stacca dalle
+         caratteristiche senza aggiungere un altro filo. */
+      .v3__service {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 18px -18px 0;
+        padding: 11px 18px;
+        background: var(--tint);
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.35;
+        box-shadow:
+          inset 0 1px 0 var(--hair),
+          inset 0 -1px 0 var(--hair);
+      }
+      .v3__service svg {
+        width: 20px;
+        height: 20px;
+        flex: none;
+        color: var(--ink-3);
+      }
+      .v3__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 18px 18px;
+      }
+
+      /* ==================================================== 4 · PREVENTIVO */
+      /*
+        La zona 4 smette di essere una riga e diventa un piccolo prospetto:
+        tre voci etichettate, valore a destra, e l'invito a tutta larghezza
+        sotto. È la scheda che risponde a "quanto mi viene" prima ancora del
+        click, ed è quella giusta dove il noleggio ha un minimo di giorni.
+      */
+      .v4__sheet {
+        margin-top: 18px;
+        padding: 14px 18px 18px;
+        border-top: 1px solid var(--hair);
+        background: var(--tint);
+      }
+      .v4__lines {
+        display: block;
+      }
+      .v4__lines > span {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        min-width: 0;
+        padding-block: 5px;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+      .v4__lines > span + span {
+        box-shadow: inset 0 1px 0 var(--hair-strong);
+      }
+      .v4__lines b {
+        flex: none;
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 17px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .v4__lines > span:first-child {
+        padding-top: 0;
+      }
+      .v4__lines > span:first-child b {
+        font-size: 22px;
+      }
+      .v4__sheet .btn {
+        width: 100%;
+        margin-top: 14px;
+      }
+
+      /* ================================================= 5 · RIGA LARGA */
+      /*
+        Per il catalogo e la ricerca, dove la colonna è larga e la griglia a
+        quattro sprecherebbe metà pagina. Stessi dati, tre colonne: figura,
+        contenuto, decisione. Il rail di destra è la sola parte che cambia.
+      */
+      .v5 {
+        display: grid;
+        grid-template-columns: 232px minmax(0, 1fr) 268px;
+        align-items: stretch;
+      }
+      .v5 .stage {
+        height: 100%;
+        min-height: 196px;
+        border-right: 1px solid var(--hair);
+      }
+      .v5 .stage__art {
+        width: 66%;
+      }
+      .v5__body {
+        display: flex;
+        flex-direction: column;
+        padding: 20px 22px;
+      }
+      .v5 .blurb {
+        -webkit-line-clamp: 3;
+        max-width: 62ch;
+      }
+      .v5__rail {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+        padding: 20px 22px;
+        border-left: 1px solid var(--hair);
+        background: var(--tint);
+      }
+      .v5__rail .btn {
+        width: 100%;
+      }
+      .v5__reassure {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--ink-2);
+        font-size: 15px;
+      }
+      .v5__reassure svg {
+        width: 17px;
+        height: 17px;
+        flex: none;
+        color: var(--ok);
+      }
+      @media (max-width: 900px) {
+        .v5 {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .v5 .stage {
+          border-right: 0;
+          border-bottom: 1px solid var(--hair);
+        }
+        .v5__rail {
+          border-left: 0;
+          border-top: 1px solid var(--hair);
+        }
+      }
+
+      /* ------------------------------------------------------------ chiusa */
+      .verdict {
+        margin-top: 96px;
+        padding-block: 88px 104px;
+        background: #131d40;
+        color: #fff;
+      }
+      .verdict h2 {
+        font-size: 30px;
+      }
+      .verdict p {
+        max-width: 64ch;
+        margin-top: 14px;
+        color: #b3bcd8;
+        font-size: 18px;
+      }
+      .verdict ol {
+        display: grid;
+        gap: 14px;
+        max-width: 74ch;
+        margin: 26px 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: v;
+      }
+      .verdict li {
+        display: flex;
+        gap: 14px;
+        color: #b3bcd8;
+        font-size: 17px;
+        counter-increment: v;
+      }
+      .verdict li::before {
+        content: counter(v);
+        display: grid;
+        width: 30px;
+        height: 30px;
+        flex: none;
+        place-items: center;
+        border-radius: 50%;
+        background: rgb(255 255 255 / 0.12);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .verdict b {
+        color: #fff;
+        font-family: var(--display);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="lede">
+      <div class="inner">
+        <p class="kicker">Terzo giro · schede ordinate</p>
+        <h1>Non meno informazione. La stessa informazione, in quattro zone.</h1>
+        <p>
+          La scheda del rail non sembrava affollata perché diceva troppo: sembrava affollata perché
+          diceva tutto con lo stesso peso, in colonna, senza un piano. Qui l'informazione cresce —
+          categoria, disponibilità, caratteristiche, consegna, minimo di noleggio — e sta ferma in
+          quattro zone che si leggono sempre nello stesso ordine.
+        </p>
+
+        <ul class="zones">
+          <li>
+            <i>Zona 1</i><b>Il palco</b>
+            Figura sul piano, categoria appoggiata, stato in chiaro.
+          </li>
+          <li>
+            <i>Zona 2</i><b>L'identità</b>
+            Nome e una frase sola: cos'è e a cosa serve.
+          </li>
+          <li>
+            <i>Zona 3</i><b>I dati</b>
+            Le tre caratteristiche che decidono, più come arriva.
+          </li>
+          <li>
+            <i>Zona 4</i><b>La decisione</b>
+            Prezzo composto, minimo di noleggio, invito.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="concept">
+      <div class="inner">
+        <p class="kicker">Concept 1</p>
+        <h2>Scheda ordinata</h2>
+        <p class="concept__why">
+          Il riferimento, portato dentro la Variante B. Tutte e quattro le zone, un filo solo prima
+          del piede, caratteristiche in riga separate dai punti medi. È la resa più economica: due
+          righe di testo in più della scheda di oggi e nient'altro.
+        </p>
+        <ul class="rows" data-cards="v1"></ul>
+      </div>
+    </section>
+
+    <section class="concept concept--band">
+      <div class="inner">
+        <p class="kicker">Concept 2</p>
+        <h2>Scheda tecnica</h2>
+        <p class="concept__why">
+          Le stesse tre caratteristiche, etichettate in una griglia a tre celle. Costa una ventina
+          di pixel di altezza e in cambio "120 kg" smette di essere ambiguo. È la resa che regge il
+          confronto fianco a fianco fra due carrozzine simili — ed è la ragione per cui esiste una
+          griglia.
+        </p>
+        <ul class="rows" data-cards="v2"></ul>
+      </div>
+    </section>
+
+    <section class="concept">
+      <div class="inner">
+        <p class="kicker">Concept 3</p>
+        <h2>Pastiglie e fascia</h2>
+        <p class="concept__why">
+          Le caratteristiche diventano pastiglie — si contano con l'occhio, non si leggono — e la
+          consegna diventa una fascia in tinta a filo di scheda, che separa la zona 3 dalla zona 4
+          senza aggiungere un secondo filo. La più leggera da scorrere, la meno precisa da
+          confrontare.
+        </p>
+        <ul class="rows" data-cards="v3"></ul>
+      </div>
+    </section>
+
+    <section class="concept concept--band">
+      <div class="inner">
+        <p class="kicker">Concept 4</p>
+        <h2>Preventivo</h2>
+        <p class="concept__why">
+          La zona 4 smette di essere una riga e diventa un prospetto: prezzo, noleggio minimo,
+          consegna, ognuno con la sua etichetta e il valore incolonnato a destra. Risponde a "quanto
+          mi viene" prima del click. È la resa giusta se il noleggio minimo diventa un campo vero.
+        </p>
+        <ul class="rows" data-cards="v4"></ul>
+      </div>
+    </section>
+
+    <section class="concept">
+      <div class="inner">
+        <p class="kicker">Concept 5</p>
+        <h2>Riga larga</h2>
+        <p class="concept__why">
+          Non un'alternativa alle altre quattro: il loro compagno per il catalogo e la ricerca, dove
+          la colonna è larga e una griglia a quattro sprecherebbe mezza pagina. Stessi dati, tre
+          colonne — figura, contenuto, decisione — e la descrizione può finalmente respirare su tre
+          righe.
+        </p>
+        <p class="note">Sotto i 900px torna a impilarsi nell'ordine delle quattro zone.</p>
+        <ul class="rows rows--wide" data-cards="v5"></ul>
+      </div>
+    </section>
+
+    <section class="verdict">
+      <div class="inner">
+        <p class="kicker" style="color: #fff">Cosa serve per farlo davvero</p>
+        <h2>Tre cose, in ordine di costo.</h2>
+        <p>
+          Nessuno di questi concept è disegnabile con i dati che la lista prodotti restituisce oggi.
+          Ecco esattamente cosa manca, dal meno al più costoso.
+        </p>
+        <ol>
+          <li>
+            <span
+              ><b>La categoria c'è già.</b> `category.name` arriva con ogni prodotto della lista.
+              L'etichetta sul palco è gratis.</span
+            >
+          </li>
+          <li>
+            <span
+              ><b>Le caratteristiche no.</b> Stanno solo sul dettaglio, in `specifications[]`, già
+              con `displayValue` e `isComparable`. Vanno portate sul DTO di lista — le prime tre
+              comparabili, tagliate lato server, non tutte.</span
+            >
+          </li>
+          <li>
+            <span
+              ><b>Il noleggio minimo non esiste.</b> Non è un campo, da nessuna parte. O nasce sul
+              prodotto (o sui pacchetti di noleggio, che oggi tornano vuoti), oppure quella riga
+              sparisce da ogni concept — e il concept 4 perde metà del suo motivo.</span
+            >
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <script>
+      /*
+        Un solo elenco di prodotti reso da cinque template. In un prototipo il cui
+        scopo è CONFRONTARE cinque rese degli stessi dati, ricopiare venti schede
+        a mano garantisce solo che una di esse diverga per sbaglio.
+      */
+      const ART = {
+        carrozzina: `<circle cx="46" cy="62" r="27"/><circle cx="46" cy="62" r="7"/><circle cx="86" cy="81" r="8"/><path d="M26 42h44"/><path d="M26 42 20 12"/><path d="M20 12 8 14"/><path d="M70 42 92 70"/><path d="M88 72h16"/><path d="M32 30h34"/>`,
+        letto: `<path d="M14 30v44"/><path d="M14 34h16"/><path d="M106 44v30"/><path d="M92 48h14"/><rect x="18" y="52" width="84" height="13" rx="6"/><path d="M18 68h84"/><circle cx="28" cy="79" r="6"/><circle cx="92" cy="79" r="6"/><rect x="38" y="36" width="34" height="11" rx="5"/>`,
+        deambulatore: `<path d="M34 28v44"/><path d="M86 28v44"/><path d="M34 50h52"/><path d="M26 28h16"/><path d="M78 28h16"/><path d="M34 64h52"/><circle cx="34" cy="78" r="6"/><circle cx="86" cy="78" r="6"/>`,
+        materasso: `<rect x="14" y="40" width="92" height="28" rx="12"/><path d="M32 40v28M50 40v28M68 40v28M86 40v28"/>`,
+      };
+
+      const PRODUCTS = [
+        {
+          art: 'carrozzina',
+          category: 'Carrozzine',
+          name: 'Carrozzina pieghevole superleggera',
+          blurb: 'Telaio in alluminio da 11 kg, si piega in un gesto ed entra nel bagagliaio.',
+          meta: ['Fino a 120 kg', 'Pieghevole', 'Freni a leva'],
+          specs: [
+            ['Portata', '120 kg'],
+            ['Peso', '11 kg'],
+            ['Chiusura', 'Pieghevole'],
+          ],
+          service: 'Consegna e ritiro a domicilio',
+          amount: '4,90',
+          minDays: 7,
+          inStock: true,
+        },
+        {
+          art: 'letto',
+          category: 'Letti da degenza',
+          name: 'Letto da degenza elettrico a 3 snodi',
+          blurb: 'Movimentazione elettrica con pulsantiera, consegnato e montato nella stanza.',
+          meta: ['Fino a 170 kg', '3 snodi elettrici', 'Sponde incluse'],
+          specs: [
+            ['Portata', '170 kg'],
+            ['Snodi', '3 elettrici'],
+            ['Rete', '90 cm'],
+          ],
+          service: 'Consegna con montaggio incluso',
+          amount: '3,50',
+          minDays: 14,
+          inStock: true,
+        },
+        {
+          art: 'deambulatore',
+          category: 'Deambulatori',
+          name: 'Deambulatore con ruote e seduta',
+          blurb: 'Quattro ruote, freni a leva e una seduta per riposare durante il percorso.',
+          meta: ['Fino a 130 kg', '4 ruote', 'Con seduta'],
+          specs: [
+            ['Portata', '130 kg'],
+            ['Ruote', '4 frenanti'],
+            ['Seduta', 'Inclusa'],
+          ],
+          service: 'Consegna e ritiro a domicilio',
+          amount: '2,50',
+          minDays: 7,
+          inStock: true,
+        },
+        {
+          art: 'materasso',
+          category: 'Antidecubito',
+          name: 'Materasso antidecubito a pressione alternata',
+          blurb: 'Compressore silenzioso incluso, cicli regolabili per la prevenzione delle lesioni.',
+          meta: ['Fino a 135 kg', 'Pressione alternata', 'Compressore incluso'],
+          specs: [
+            ['Portata', '135 kg'],
+            ['Ciclo', 'Alternato'],
+            ['Larghezza', '90 cm'],
+          ],
+          service: 'Consegna con installazione',
+          amount: '3,20',
+          minDays: 14,
+          inStock: false,
+        },
+      ];
+
+      const arrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>`;
+
+      const truck = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>`;
+
+      const check = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12.5 5 5L20 6.5"/></svg>`;
+
+      /* Zona 1 — sempre identica: è la costante che tiene insieme i cinque. */
+      const stage = (p) => `
+        <span class="stage">
+          <span class="stage__floor" aria-hidden="true"></span>
+          <svg class="stage__art" viewBox="0 0 120 100" fill="none" stroke="currentColor"
+               stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            ${ART[p.art]}
+          </svg>
+          <span class="tag">${p.category}</span>
+        </span>`;
+
+      const avail = (p) => `
+        <span class="avail${p.inStock ? '' : ' avail--out'}">${
+          p.inStock ? 'Disponibile subito' : 'Su richiesta'
+        }</span>`;
+
+      /* Zona 2 — identità. */
+      const identity = (p) => `
+        <span class="zone">
+          ${avail(p)}
+          <h3 class="name">${p.name}</h3>
+          <span class="blurb">${p.blurb}</span>
+        </span>`;
+
+      const service = (p) => `<span class="service">${truck}<span>${p.service}</span></span>`;
+
+      /* Zona 4 — il prezzo è composto, non scritto: cifra a larghezza fissa,
+         valuta e unità piccole, tutte sulla stessa linea di base. */
+      const price = (p) => `
+        <span>
+          <span class="price">
+            <span>da</span>
+            <span class="price__amount">${p.amount}</span>
+            <span class="price__cur">€</span>
+            <span class="price__unit">al giorno</span>
+          </span>
+          <span class="under">Noleggio minimo ${p.minDays} giorni</span>
+        </span>`;
+
+      const cta = (p, ghost) =>
+        `<span class="btn${ghost ? ' btn--ghost' : ''}">${
+          p.inStock ? 'Noleggia' : 'Chiamaci'
+        }${arrow}</span>`;
+
+      const TEMPLATES = {
+        v1: (p) => `
+          <a class="card card--lift v1${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="body">
+              ${identity(p)}
+              <span class="zone">
+                <span class="meta">${p.meta.map((m) => `<span>${m}</span>`).join('')}</span>
+                ${service(p)}
+              </span>
+            </span>
+            <span class="v1__foot">${price(p)}${cta(p, true)}</span>
+          </a>`,
+
+        v2: (p) => `
+          <a class="card card--lift v2${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="body">
+              ${identity(p)}
+              <span class="zone">
+                <span class="v2__grid">${p.specs
+                  .map(([label, value]) => `<span><i>${label}</i><b>${value}</b></span>`)
+                  .join('')}</span>
+                ${service(p)}
+              </span>
+            </span>
+            <span class="v2__foot">${price(p)}${cta(p, true)}</span>
+          </a>`,
+
+        v3: (p) => `
+          <a class="card v3${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="body">
+              ${identity(p)}
+              <span class="v3__chips zone">${p.meta.map((m) => `<span>${m}</span>`).join('')}</span>
+              <span class="v3__service">${truck}<span>${p.service}</span></span>
+            </span>
+            <span class="v3__foot">${price(p)}${cta(p, false)}</span>
+          </a>`,
+
+        v4: (p) => `
+          <a class="card card--lift v4${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="body">
+              ${identity(p)}
+              <span class="zone">
+                <span class="meta">${p.meta.map((m) => `<span>${m}</span>`).join('')}</span>
+              </span>
+            </span>
+            <span class="v4__sheet">
+              <span class="v4__lines">
+                <span><span>Noleggio</span><b>${p.amount} €<span class="price__unit"> / giorno</span></b></span>
+                <span><span>Minimo</span><b>${p.minDays} giorni</b></span>
+                <span><span>Consegna</span><b>${
+                  p.service.includes('montaggio') || p.service.includes('installazione')
+                    ? 'Con montaggio'
+                    : 'A domicilio'
+                }</b></span>
+              </span>
+              ${cta(p, false)}
+            </span>
+          </a>`,
+
+        v5: (p) => `
+          <a class="card v5${p.inStock ? '' : ' card--out'}" href="#">
+            ${stage(p)}
+            <span class="v5__body">
+              ${identity(p)}
+              <span class="zone">
+                <span class="meta">${p.meta.map((m) => `<span>${m}</span>`).join('')}</span>
+                ${service(p)}
+              </span>
+            </span>
+            <span class="v5__rail">
+              ${price(p)}
+              ${cta(p, false)}
+              <span class="v5__reassure">${check}<span>Igienizzato e controllato</span></span>
+            </span>
+          </a>`,
+      };
+
+      document.querySelectorAll('[data-cards]').forEach((list) => {
+        const render = TEMPLATES[list.dataset.cards];
+        list.innerHTML = PRODUCTS.map((p) => `<li>${render(p)}</li>`).join('');
+      });
+    </script>
+  </body>
+</html>
