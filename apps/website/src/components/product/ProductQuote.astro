@@ -5,6 +5,10 @@
  * A native GET form whose field names come from `request-config.ts`. Nothing is
  * priced in the browser and the CTA sends a request, never a payment — see
  * docs/code/storefront-design-system.md.
+ *
+ * The choice grids are radio/checkbox `peer`s followed by their label, so the
+ * whole selected state — border, fill and tick — is expressed as variants on
+ * the label rather than as a stylesheet the markup cannot see.
  */
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import { formatMoney, formatPricing } from '~/lib/api';
@@ -30,11 +34,36 @@ const today = new Intl.DateTimeFormat('en-CA', {
   month: '2-digit',
   day: '2-digit',
 }).format(new Date());
+
+/*
+ * The selected state of a choice tile: accent border, tinted fill and a tick.
+ *
+ * The tick is a real element toggled by the peer, not a `content-['✓']`
+ * pseudo-element — Tailwind's arbitrary-value parser silently drops the unicode
+ * escape and you end up with an empty string and no tick at all.
+ */
+const tierLabel =
+  'grid h-full min-h-12 cursor-pointer content-center justify-items-center gap-1 rounded-field border border-hair-strong bg-white p-3 text-center ' +
+  'peer-checked:border-accent peer-checked:bg-tint peer-checked:shadow-[inset_0_0_0_1px_var(--color-accent)] ' +
+  'peer-checked:[&_[data-tick]]:inline ' +
+  'peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-white ' +
+  'peer-focus-visible:shadow-[0_0_0_6px_var(--color-ink)]';
+
+const tick = 'mr-1 hidden text-accent';
+
+const fieldRow = 'grid gap-2.25';
+/* The buy box labels every control the same way — sentence case, never the
+   hero panel's uppercase treatment, which belongs to that panel alone. */
+const labelClass = 'font-display text-ui-strong font-semibold';
+const legendClass = `mb-3 ${labelClass}`;
+const hintClass = 'mt-2 text-ui text-ink-2';
+const textInput =
+  'w-full min-h-12 rounded-field border border-hair-strong bg-white px-4 py-3 text-ui-strong';
 ---
 
 {
   inStock ? (
-    <form class="quote" id="quote-form" method="get" action={routes.cart}>
+    <form class="grid gap-5" id="quote-form" method="get" action={routes.cart}>
       <input type="hidden" name={FIELD.product} value={product.slug} />
 
       {/*
@@ -48,17 +77,17 @@ const today = new Intl.DateTimeFormat('en-CA', {
 
         if (group.options.length > 0) {
           return (
-            <fieldset class="quote__set">
-              <legend class="quote__legend">
+            <fieldset class="grid gap-4">
+              <legend class={legendClass}>
                 {group.label}
-                {!group.isRequired && <span class="quote__optional"> (facoltativo)</span>}
+                {!group.isRequired && <span class="text-ink-2 font-normal"> (facoltativo)</span>}
               </legend>
-              {group.helpText && <p class="quote__help">{group.helpText}</p>}
-              <ul class="tiers">
+              {group.helpText && <p class="text-ui text-ink-2 mb-3">{group.helpText}</p>}
+              <ul class="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
                 {group.options.map((option, index) => (
                   <li>
                     <input
-                      class="tiers__input sr-only"
+                      class="peer sr-only"
                       type={multiple ? 'checkbox' : 'radio'}
                       name={name}
                       id={`v-${group.id}-${option.id}`}
@@ -66,10 +95,15 @@ const today = new Intl.DateTimeFormat('en-CA', {
                       checked={multiple ? option.isDefault : option.isDefault || index === 0}
                       required={group.isRequired && !multiple}
                     />
-                    <label class="tiers__label" for={`v-${group.id}-${option.id}`}>
-                      <span class="tiers__name">{option.label}</span>
+                    <label class={tierLabel} for={`v-${group.id}-${option.id}`}>
+                      <span class="font-display text-ui font-semibold">
+                        <span class={tick} data-tick aria-hidden="true">
+                          ✓
+                        </span>
+                        {option.label}
+                      </span>
                       {option.priceModifier.amount !== '0.00' && (
-                        <span class="tiers__price">
+                        <span class="font-display text-body font-semibold text-accent">
                           {signed(option.priceModifier.amount, option.priceModifier.currency)}
                         </span>
                       )}
@@ -83,12 +117,13 @@ const today = new Intl.DateTimeFormat('en-CA', {
 
         if (group.valueType === 'number' || group.valueType === 'number_range') {
           return (
-            <div class="quote__row">
-              <label for={`v-${group.id}`}>
+            <div class={fieldRow}>
+              <label class={labelClass} for={`v-${group.id}`}>
                 {group.unit ? `${group.label} (${group.unit})` : group.label}
               </label>
               <input
                 id={`v-${group.id}`}
+                class={textInput}
                 type="number"
                 name={name}
                 min={group.min ?? undefined}
@@ -97,39 +132,50 @@ const today = new Intl.DateTimeFormat('en-CA', {
                 required={group.isRequired}
                 inputmode="numeric"
               />
-              {group.helpText && <p class="field-hint">{group.helpText}</p>}
+              {group.helpText && <p class={hintClass}>{group.helpText}</p>}
             </div>
           );
         }
 
         return (
-          <div class="quote__row">
-            <label for={`v-${group.id}`}>{group.label}</label>
+          <div class={fieldRow}>
+            <label class={labelClass} for={`v-${group.id}`}>
+              {group.label}
+            </label>
             <input
               id={`v-${group.id}`}
+              class={textInput}
               type="text"
               name={name}
               maxlength="300"
               required={group.isRequired}
             />
-            {group.helpText && <p class="field-hint">{group.helpText}</p>}
+            {group.helpText && <p class={hintClass}>{group.helpText}</p>}
           </div>
         );
       })}
 
       {isRental && (
-        <div class="quote__row">
-          <label for={`inizio-${product.id}`}>Da quando ti serve?</label>
-          <input id={`inizio-${product.id}`} type="date" name={FIELD.startDate} min={today} />
+        <div class={fieldRow}>
+          <label class={labelClass} for={`inizio-${product.id}`}>
+            Da quando ti serve?
+          </label>
+          <input
+            id={`inizio-${product.id}`}
+            class={textInput}
+            type="date"
+            name={FIELD.startDate}
+            min={today}
+          />
         </div>
       )}
 
       {product.addons.length > 0 && (
-        <fieldset class="quote__set">
-          <legend class="quote__legend">Vuoi aggiungere qualcosa?</legend>
-          <ul class="addons">
+        <fieldset class="grid gap-4">
+          <legend class={legendClass}>Vuoi aggiungere qualcosa?</legend>
+          <ul class="grid gap-2">
             {product.addons.map((addon) => (
-              <li class="addon">
+              <li class="grid grid-cols-[48px_minmax(0,1fr)] items-center">
                 {/*
                   A required add-on is shown checked and disabled so it cannot be
                   removed. A disabled control is not submitted, which is fine:
@@ -137,7 +183,7 @@ const today = new Intl.DateTimeFormat('en-CA', {
                   itself rather than trusting the URL.
                 */}
                 <input
-                  class="addon__input"
+                  class="size-12 accent-accent"
                   type="checkbox"
                   name={FIELD.addon}
                   id={`addon-${addon.id}`}
@@ -145,12 +191,14 @@ const today = new Intl.DateTimeFormat('en-CA', {
                   checked={addon.isRequired}
                   disabled={addon.isRequired}
                 />
-                <label class="addon__label" for={`addon-${addon.id}`}>
-                  <span class="addon__name">
+                <label class="flex items-center justify-between gap-3" for={`addon-${addon.id}`}>
+                  <span class="text-ui">
                     {addon.name}
-                    {addon.isRequired && <span class="addon__required"> — incluso</span>}
+                    {addon.isRequired && <span class="text-ok"> — incluso</span>}
                   </span>
-                  <span class="addon__price">{formatPricing(addon.pricing)}</span>
+                  <span class="font-display text-ui flex-none font-semibold text-accent">
+                    {formatPricing(addon.pricing)}
+                  </span>
                 </label>
               </li>
             ))}
@@ -159,9 +207,9 @@ const today = new Intl.DateTimeFormat('en-CA', {
       )}
 
       {product.questions.length > 0 && (
-        <fieldset class="quote__set">
-          <legend class="quote__legend">Qualche informazione per la consegna</legend>
-          <p class="quote__help">
+        <fieldset class="grid gap-4">
+          <legend class={legendClass}>Qualche informazione per la consegna</legend>
+          <p class="text-ui text-ink-2 mb-3">
             Ci serve per organizzare il trasporto. Se preferisci, ce lo dici al telefono.
           </p>
 
@@ -171,21 +219,26 @@ const today = new Intl.DateTimeFormat('en-CA', {
             if (question.options.length > 0) {
               const multiple = question.valueType === 'multi_select';
               return (
-                <fieldset class="quote__subset">
-                  <legend class="quote__sublegend">{question.prompt}</legend>
-                  {question.helpText && <p class="field-hint">{question.helpText}</p>}
-                  <ul class="tiers">
+                <fieldset>
+                  <legend class="font-display text-ui mb-2 font-semibold">{question.prompt}</legend>
+                  {question.helpText && <p class={hintClass}>{question.helpText}</p>}
+                  <ul class="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
                     {question.options.map((option) => (
                       <li>
                         <input
-                          class="tiers__input sr-only"
+                          class="peer sr-only"
                           type={multiple ? 'checkbox' : 'radio'}
                           name={name}
                           id={`q-${question.id}-${option.id}`}
                           value={option.value}
                         />
-                        <label class="tiers__label" for={`q-${question.id}-${option.id}`}>
-                          <span class="tiers__name">{option.label}</span>
+                        <label class={tierLabel} for={`q-${question.id}-${option.id}`}>
+                          <span class="font-display text-ui font-semibold">
+                            <span class={tick} data-tick aria-hidden="true">
+                              ✓
+                            </span>
+                            {option.label}
+                          </span>
                         </label>
                       </li>
                     ))}
@@ -196,24 +249,29 @@ const today = new Intl.DateTimeFormat('en-CA', {
 
             if (question.valueType === 'boolean') {
               return (
-                <fieldset class="quote__subset">
-                  <legend class="quote__sublegend">{question.prompt}</legend>
-                  {question.helpText && <p class="field-hint">{question.helpText}</p>}
-                  <ul class="tiers">
+                <fieldset>
+                  <legend class="font-display text-ui mb-2 font-semibold">{question.prompt}</legend>
+                  {question.helpText && <p class={hintClass}>{question.helpText}</p>}
+                  <ul class="grid grid-cols-2 gap-2">
                     {[
                       { value: 'si', label: 'Sì' },
                       { value: 'no', label: 'No' },
                     ].map((option) => (
                       <li>
                         <input
-                          class="tiers__input sr-only"
+                          class="peer sr-only"
                           type="radio"
                           name={name}
                           id={`q-${question.id}-${option.value}`}
                           value={option.value}
                         />
-                        <label class="tiers__label" for={`q-${question.id}-${option.value}`}>
-                          <span class="tiers__name">{option.label}</span>
+                        <label class={tierLabel} for={`q-${question.id}-${option.value}`}>
+                          <span class="font-display text-ui font-semibold">
+                            <span class={tick} data-tick aria-hidden="true">
+                              ✓
+                            </span>
+                            {option.label}
+                          </span>
                         </label>
                       </li>
                     ))}
@@ -223,11 +281,14 @@ const today = new Intl.DateTimeFormat('en-CA', {
             }
 
             return (
-              <div class="quote__row">
-                <label for={`q-${question.id}`}>{question.prompt}</label>
+              <div class={fieldRow}>
+                <label class={labelClass} for={`q-${question.id}`}>
+                  {question.prompt}
+                </label>
                 {question.valueType === 'text' ? (
                   <textarea
                     id={`q-${question.id}`}
+                    class={textInput}
                     name={name}
                     rows="3"
                     maxlength={question.maxLength ?? 300}
@@ -235,6 +296,7 @@ const today = new Intl.DateTimeFormat('en-CA', {
                 ) : (
                   <input
                     id={`q-${question.id}`}
+                    class={textInput}
                     name={name}
                     type={
                       question.valueType === 'number'
@@ -250,46 +312,63 @@ const today = new Intl.DateTimeFormat('en-CA', {
                     }
                   />
                 )}
-                {question.helpText && <p class="field-hint">{question.helpText}</p>}
+                {question.helpText && <p class={hintClass}>{question.helpText}</p>}
               </div>
             );
           })}
         </fieldset>
       )}
 
-      <div class="quote__qty-row">
-        <label for={`qta-${product.id}`}>Quantità</label>
-        <div class="quote__qty-controls">
-          <button type="button" class="quote__qty-btn" data-qty-dec aria-label="Riduci quantità">
+      <div class="flex items-center justify-between gap-4" data-qty-row>
+        <label class={labelClass} for={`qta-${product.id}`}>
+          Quantità
+        </label>
+        <div class="rounded-field border-hair-strong flex items-center overflow-hidden border">
+          <button
+            type="button"
+            class="hover:bg-tint grid size-12 place-items-center border-0 bg-white text-xl font-bold"
+            data-qty-dec
+            aria-label="Riduci quantità"
+          >
             −
           </button>
           <input
             id={`qta-${product.id}`}
+            class="border-hair-strong font-display text-ui-strong h-12 min-h-12 w-12 appearance-none border-x bg-white text-center font-bold [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             type="number"
             name={FIELD.quantity}
             value="1"
             min="1"
             max={MAX_QUANTITY}
-            class="quote__qty-input"
             inputmode="numeric"
+            data-qty-input
           />
-          <button type="button" class="quote__qty-btn" data-qty-inc aria-label="Aumenta quantità">
+          <button
+            type="button"
+            class="hover:bg-tint grid size-12 place-items-center border-0 bg-white text-xl font-bold"
+            data-qty-inc
+            aria-label="Aumenta quantità"
+          >
             +
           </button>
         </div>
       </div>
 
-      <div class="quote__total">
-        <span class="quote__total-label">{isRental ? 'Noleggio da' : 'Prezzo'}</span>
-        <span class="quote__total-values">{formatPricing(product.pricing)}</span>
+      <div class="border-hair flex items-baseline justify-between gap-3 border-t pt-4">
+        <span class="font-display text-ui-strong font-semibold">
+          {isRental ? 'Noleggio da' : 'Prezzo'}
+        </span>
+        <span class="font-display text-h3 font-bold tabular-nums">
+          {formatPricing(product.pricing)}
+        </span>
       </div>
 
-      <button class="quote__cta" type="submit">
+      <button class="btn btn-primary w-full" type="submit">
         {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
       </button>
     </form>
   ) : (
-    <div class="quote quote--empty">
+    <div class="rounded-card border-hair-strong bg-tint grid gap-4 border p-5">
       <p>
         Questo ausilio è momentaneamente esaurito. Chiamaci: spesso abbiamo un modello equivalente
         disponibile subito.
@@ -302,8 +381,8 @@ const today = new Intl.DateTimeFormat('en-CA', {
 <script>
   document.querySelectorAll('[data-qty-dec], [data-qty-inc]').forEach((button) => {
     button.addEventListener('click', () => {
-      const row = button.closest('.quote__qty-row');
-      const input = row?.querySelector<HTMLInputElement>('.quote__qty-input');
+      const row = button.closest('[data-qty-row]');
+      const input = row?.querySelector<HTMLInputElement>('[data-qty-input]');
       if (!input) return;
       const current = Number.parseInt(input.value, 10) || 1;
       const min = Number.parseInt(input.min, 10) || 1;
@@ -316,266 +395,3 @@ const today = new Intl.DateTimeFormat('en-CA', {
     });
   });
 </script>
-
-<style>
-  .quote {
-    display: grid;
-    gap: var(--sp-5);
-  }
-
-  .quote__set,
-  .quote__subset {
-    border: 0;
-    padding: 0;
-    margin: 0;
-  }
-
-  .quote__set {
-    display: grid;
-    gap: var(--sp-4);
-  }
-
-  .quote__legend {
-    margin-bottom: var(--sp-3);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-  }
-
-  .quote__sublegend {
-    margin-bottom: var(--sp-2);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 700;
-  }
-
-  .quote__optional {
-    color: var(--c-ink-secondary);
-    font-weight: 400;
-  }
-
-  .quote__help {
-    margin-bottom: var(--sp-3);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-
-  .tiers {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--target-gap);
-    list-style: none;
-  }
-
-  .tiers__label {
-    display: grid;
-    gap: var(--sp-1);
-    min-height: var(--target-min);
-    height: 100%;
-    margin: 0;
-    padding: var(--sp-3);
-    border: 2px solid var(--c-border-strong);
-    border-radius: var(--radius-md);
-    align-content: center;
-    justify-items: center;
-    text-align: center;
-    cursor: pointer;
-  }
-
-  .tiers__name {
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 700;
-    color: var(--c-ink);
-  }
-
-  .tiers__price {
-    font-family: var(--font-heading);
-    font-size: var(--fs-body);
-    font-weight: 700;
-    color: var(--c-primary);
-  }
-
-  .tiers__input:checked + .tiers__label {
-    border-color: var(--c-primary);
-    background: var(--c-surface-tint);
-    box-shadow: inset 0 0 0 1px var(--c-primary);
-  }
-
-  /* A non-breaking space, not a plain one: a trailing space in `content` is
-     collapsed and the tick ends up glued to the label. */
-  .tiers__input:checked + .tiers__label .tiers__name::before {
-    content: '\2713\00a0';
-    color: var(--c-primary);
-  }
-
-  .tiers__input:focus-visible + .tiers__label {
-    outline: var(--focus-ring);
-    outline-offset: var(--focus-offset);
-    box-shadow: var(--focus-halo);
-  }
-
-  .addons {
-    display: grid;
-    gap: var(--target-gap);
-    list-style: none;
-  }
-
-  .addon {
-    display: grid;
-    grid-template-columns: var(--target-min) minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .addon__input {
-    width: var(--target-min);
-    height: var(--target-min);
-  }
-
-  .addon__label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--sp-3);
-    margin: 0;
-    font-family: var(--font-body);
-    font-weight: 400;
-  }
-
-  .addon__name {
-    font-size: var(--fs-ui);
-  }
-
-  .addon__required {
-    color: var(--c-ink-secondary);
-  }
-
-  .addon__price {
-    flex: none;
-    color: var(--c-primary);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 700;
-  }
-
-  .quote__row {
-    display: grid;
-    gap: var(--sp-2);
-  }
-
-  .quote__qty-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .quote__qty-row label {
-    margin: 0;
-  }
-
-  .quote__qty-controls {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--c-border-strong);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-
-  .quote__qty-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--target-min);
-    height: var(--target-min);
-    min-width: var(--target-min);
-    min-height: var(--target-min);
-    padding: 0;
-    border: 0;
-    background: var(--c-surface);
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--c-ink);
-    cursor: pointer;
-  }
-
-  .quote__qty-btn:hover {
-    background: var(--c-surface-tint);
-  }
-
-  .quote__qty-input {
-    width: 48px;
-    min-height: var(--target-min);
-    padding: var(--sp-2);
-    border: 0;
-    border-left: 1px solid var(--c-border-strong);
-    border-right: 1px solid var(--c-border-strong);
-    border-radius: 0;
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    text-align: center;
-    -moz-appearance: textfield;
-    appearance: textfield;
-  }
-
-  .quote__qty-input::-webkit-inner-spin-button,
-  .quote__qty-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  .quote__total {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--sp-3);
-    padding-top: var(--sp-4);
-    border-top: 1px solid var(--c-border);
-  }
-
-  .quote__total-label {
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-  }
-
-  .quote__total-values {
-    font-family: var(--font-heading);
-    font-size: var(--fs-h3);
-    font-weight: 800;
-    color: var(--c-ink);
-  }
-
-  .quote__cta {
-    width: 100%;
-    min-height: 58px;
-    padding: var(--sp-3) var(--sp-6);
-    border: 0;
-    border-radius: 14px;
-    background: var(--c-primary);
-    color: var(--c-primary-ink);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .quote__cta:hover {
-    opacity: 0.9;
-  }
-
-  .quote--empty {
-    display: grid;
-    gap: var(--sp-4);
-    padding: var(--sp-5);
-    border: 2px dashed var(--c-border-strong);
-    border-radius: var(--radius-lg);
-  }
-
-  @media (max-width: 380px) {
-    .tiers {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>

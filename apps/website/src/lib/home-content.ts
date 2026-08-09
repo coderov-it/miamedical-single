@@ -15,7 +15,7 @@ import type { Category, ProductSummary } from './catalog.ts';
  * only way to say "show this on the home page". Remaining slots are filled
  * with other rentals so the rail is never half empty on a fresh catalogue.
  */
-export function selectHomeFeatured(products: ProductSummary[], limit = 4): ProductSummary[] {
+export function selectHomeFeatured(products: ProductSummary[], limit = 3): ProductSummary[] {
   const rank = (product: ProductSummary) =>
     (product.pricing.mode === 'rental' ? 0 : 2) + (product.isFeatured ? 0 : 1);
 

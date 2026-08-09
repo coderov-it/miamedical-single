@@ -48,10 +48,18 @@ const jsonLd = [
   description="Noleggio carrozzine, letti ortopedici e ausili medicali con consegna a domicilio a Roma e Firenze in 24–48 ore. Prodotti sanificati e certificati, assistenza telefonica gratuita."
   jsonLd={jsonLd}
 >
+  {
+    /*
+      The approved order: browse first, reassure after. Hero and search, then
+      what we have, then how it works and the rest. The white sections and the
+      tinted bands alternate — HomeProductRail and HomeReviews own their band,
+      every other section sits on white.
+    */
+  }
   <HomeHero products={featured} suggestions={products.items} />
-  <HomeHowItWorks />
-  <HomeProductRail products={featured} />
   <HomeCategoryGrid categories={categoryCards} />
+  <HomeProductRail products={featured} />
+  <HomeHowItWorks />
   <HomeDelivery />
   <HomeReviews />
   <HomeFaq />

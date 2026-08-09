@@ -10,6 +10,7 @@
 import ProductCard from '~/components/catalog/ProductCard.astro';
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
+import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { listCategories, listProducts, safely, type ProductSort } from '~/lib/catalog';
 import { catalogPath, routes } from '~/lib/routes';
@@ -79,6 +80,9 @@ const heading = activeCategory ? activeCategory.name : 'Catalogo noleggio';
 const title = isFirstPage
   ? `${heading} | Roma e Firenze — Mia Medical Italia`
   : `${heading} — pagina ${meta.page} | Mia Medical Italia`;
+
+const chipClass =
+  'inline-flex min-h-12 items-center rounded-full border px-4.5 font-display text-ui font-semibold no-underline';
 ---
 
 <BaseLayout
@@ -92,7 +96,7 @@ const title = isFirstPage
     {nextUrl && <link rel="next" href={nextUrl} />}
   </Fragment>
 
-  <div class="cat container">
+  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
     <Breadcrumbs
       items={[
         { label: 'Home', href: '/' },
@@ -102,23 +106,18 @@ const title = isFirstPage
       ]}
     />
 
-    <header class="cat__head">
-      <h1>{heading}</h1>
-      <p class="cat__lede">Prezzi al giorno, IVA inclusa. Consegna e ritiro a domicilio.</p>
-      <p class="cat__count">
+    <header class="pt-2 pb-8">
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{heading}</h1>
+      <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">
+        Prezzi al giorno, IVA inclusa. Consegna e ritiro a domicilio.
+      </p>
+      <p class="font-display text-ui text-ink-2 mt-3.5 font-semibold">
         {`${meta.total} ${meta.total === 1 ? 'ausilio disponibile' : 'ausili disponibili'}`}
-        {
-          meta.pageCount > 1 && (
-            <span class="cat__page">
-              {' '}
-              · pagina {meta.page} di {meta.pageCount}
-            </span>
-          )
-        }
+        {meta.pageCount > 1 && <span>{` · pagina ${meta.page} di ${meta.pageCount}`}</span>}
       </p>
       {
         requestContext && (
-          <p class="cat__context">
+          <p class="rounded-field border-hair bg-tint text-ui mt-4 border px-5 py-4">
             <strong>La tua richiesta:</strong> {requestContext}. Confermiamo disponibilità e
             consegna al telefono.
           </p>
@@ -126,40 +125,63 @@ const title = isFirstPage
       }
     </header>
 
-    <form class="cat__controls" method="get" role="search" aria-label="Cerca nel catalogo">
+    <form
+      class="rounded-card border-hair mb-10 flex flex-wrap items-end gap-3.5 border bg-white p-5"
+      method="get"
+      role="search"
+      aria-label="Cerca nel catalogo"
+    >
       {categoria && <input type="hidden" name="categoria" value={categoria} />}
       {zona && <input type="hidden" name="zona" value={zona} />}
       {dal && <input type="hidden" name="dal" value={dal} />}
       {durata && <input type="hidden" name="durata" value={durata} />}
 
-      <div class="cat__field">
-        <label for="catalogo-q">Cerca un ausilio</label>
-        <input
-          id="catalogo-q"
-          type="search"
-          name="q"
-          value={q}
-          placeholder="Es. carrozzina, letto…"
-        />
+      <div class="flex min-w-0 flex-1 basis-65 flex-col gap-2.25">
+        <label class="field-label" for="catalogo-q">Cerca un ausilio</label>
+        <div class="field-control">
+          <input
+            id="catalogo-q"
+            class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold focus:outline-none"
+            type="search"
+            name="q"
+            value={q}
+            placeholder="Es. carrozzina, letto…"
+          />
+        </div>
       </div>
 
-      <div class="cat__field cat__field--sort">
-        <label for="catalogo-ordina">Ordina per</label>
-        <select id="catalogo-ordina" name="ordina">
-          {
-            SORTS.map((option) => (
-              <option value={option.value} selected={option.value === sort}>
-                {option.label}
-              </option>
-            ))
-          }
-        </select>
+      <div class="mid:grow-0 flex min-w-0 flex-1 basis-60 flex-col gap-2.25">
+        <label class="field-label" for="catalogo-ordina">Ordina per</label>
+        <div class="field-control">
+          <select
+            id="catalogo-ordina"
+            class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold focus:outline-none"
+            name="ordina"
+          >
+            {
+              SORTS.map((option) => (
+                <option value={option.value} selected={option.value === sort}>
+                  {option.label}
+                </option>
+              ))
+            }
+          </select>
+        </div>
       </div>
 
-      <button class="cat__submit" type="submit">Applica</button>
+      <button
+        class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"
+        type="submit"
+      >
+        Applica
+      </button>
+
       {
         isFiltered && (
-          <a class="cat__reset" href={routes.catalog}>
+          <a
+            class="font-display text-ui text-ink-2 inline-flex min-h-14.5 items-center px-3 font-semibold"
+            href={routes.catalog}
+          >
             Azzera i filtri
           </a>
         )
@@ -168,8 +190,8 @@ const title = isFirstPage
 
     {
       categories.length > 0 && (
-        <section class="cat__browse" aria-labelledby="browse-title">
-          <h2 id="browse-title" class="cat__h2">
+        <section class="pb-10" aria-labelledby="browse-title">
+          <h2 id="browse-title" class="text-h3 mb-4">
             Sfoglia per categoria
           </h2>
           {/*
@@ -177,10 +199,15 @@ const title = isFirstPage
             overflow scroller: at 200% zoom and 400% reflow the right-hand items
             become undiscoverable, and it reintroduces horizontal scrolling.
           */}
-          <ul class="chips">
+          <ul class="flex flex-wrap gap-2">
             <li>
               <a
-                class:list={['chip', !categoria && 'is-active']}
+                class:list={[
+                  chipClass,
+                  !categoria
+                    ? 'bg-tint border-accent text-accent'
+                    : 'border-hair-strong text-ink hover:bg-tint bg-white',
+                ]}
                 href={catalogPath({ q, ordina: sort })}
                 aria-current={!categoria ? 'true' : undefined}
               >
@@ -190,7 +217,12 @@ const title = isFirstPage
             {categories.map((category) => (
               <li>
                 <a
-                  class:list={['chip', category.code === categoria && 'is-active']}
+                  class:list={[
+                    chipClass,
+                    category.code === categoria
+                      ? 'bg-tint border-accent text-accent'
+                      : 'border-hair-strong text-ink hover:bg-tint bg-white',
+                  ]}
                   href={catalogPath({ q, categoria: category.code, ordina: sort })}
                   aria-current={category.code === categoria ? 'true' : undefined}
                 >
@@ -204,21 +236,21 @@ const title = isFirstPage
     }
 
     <section aria-labelledby="products-title">
-      <h2 id="products-title" class="cat__h2">
+      <h2 id="products-title" class="text-h3 mb-6">
         {q ? `Risultati per “${q}”` : 'Tutti i prodotti'}
       </h2>
 
       {
         productList.length === 0 ? (
-          <div class="empty">
-            <p class="empty__title">Nessun prodotto trovato.</p>
+          <div class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6">
+            <p class="font-display text-h4 font-semibold">Nessun prodotto trovato.</p>
             <p>Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo.</p>
             <PhoneCta variant="primary" />
           </div>
         ) : (
-          <ul class="grid">
+          <ul class="wide:grid-cols-3 grid gap-6 sm:grid-cols-2">
             {productList.map((product, index) => (
-              <li>
+              <li class="flex">
                 <ProductCard
                   product={product}
                   priority={isFirstPage && index === 0}
@@ -233,27 +265,30 @@ const title = isFirstPage
 
     {
       meta.pageCount > 1 && (
-        <nav class="pager" aria-label="Pagine del catalogo">
+        <nav
+          class="border-hair mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6"
+          aria-label="Pagine del catalogo"
+        >
           {prevUrl ? (
-            <a class="pager__link" href={prevUrl} rel="prev">
+            <a class="btn btn-soft" href={prevUrl} rel="prev">
               ← Pagina precedente
             </a>
           ) : (
-            <span class="pager__link pager__link--off" aria-hidden="true">
+            <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
               ← Pagina precedente
             </span>
           )}
 
-          <p class="pager__status">
+          <p class="font-display text-ui text-ink-2 font-semibold">
             Pagina {meta.page} di {meta.pageCount}
           </p>
 
           {nextUrl ? (
-            <a class="pager__link" href={nextUrl} rel="next">
+            <a class="btn btn-soft" href={nextUrl} rel="next">
               Pagina successiva →
             </a>
           ) : (
-            <span class="pager__link pager__link--off" aria-hidden="true">
+            <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
               Pagina successiva →
             </span>
           )}
@@ -261,254 +296,18 @@ const title = isFirstPage
       )
     }
 
-    <section class="help" aria-labelledby="help-title">
-      <h2 id="help-title" class="cat__h2">Non trovi quello che cerchi?</h2>
-      <p>Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo.</p>
-      <p class="help__hours">{CONTACT.hours.it}</p>
-      <PhoneCta variant="primary" />
+    <section class="mt-section-sm mid:mt-section" aria-labelledby="help-title">
+      <SectionHeading
+        id="help"
+        heading="Non trovi quello che cerchi?"
+        lede="Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo."
+      />
+      <div
+        class="rounded-card border-hair bg-tint mid:p-8 flex flex-wrap items-center gap-4 border p-6"
+      >
+        <PhoneCta variant="primary" />
+        <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
+      </div>
     </section>
   </div>
 </BaseLayout>
-
-<style>
-  .cat {
-    padding-bottom: var(--sp-13);
-  }
-
-  .cat__head {
-    padding-block: var(--sp-4) var(--sp-6);
-  }
-
-  .cat__lede {
-    margin-top: var(--sp-2);
-    font-size: var(--fs-body-lg);
-    color: var(--c-ink-secondary);
-    max-width: 56ch;
-  }
-
-  .cat__count {
-    margin-top: var(--sp-3);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-    color: var(--c-ink-secondary);
-  }
-
-  .cat__context {
-    margin-top: var(--sp-4);
-    padding: var(--sp-4) var(--sp-5);
-    border: 1px solid var(--c-surface-accent);
-    border-radius: 16px;
-    background: var(--c-surface-tint);
-    font-size: var(--fs-ui);
-    line-height: var(--lh-body);
-  }
-
-  .cat__controls {
-    display: flex;
-    align-items: end;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-    margin-bottom: var(--sp-8);
-    padding: var(--sp-5);
-    border: 1px solid var(--c-border);
-    border-radius: 18px;
-    background: var(--c-surface);
-  }
-
-  .cat__field {
-    display: grid;
-    flex: 1 1 260px;
-    gap: var(--sp-2);
-    min-width: 0;
-  }
-
-  .cat__field--sort {
-    flex: 0 1 240px;
-  }
-
-  .cat__submit {
-    flex: none;
-    min-height: var(--target-min);
-    padding-inline: var(--sp-6);
-    border: 0;
-    border-radius: var(--radius-md);
-    background: var(--c-primary);
-    color: var(--c-primary-ink);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .cat__reset {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    padding-inline: var(--sp-3);
-    color: var(--c-ink-secondary);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-  }
-
-  .cat__h2 {
-    font-size: var(--fs-h3);
-    margin-bottom: var(--sp-4);
-  }
-
-  .cat__browse {
-    padding-bottom: var(--sp-8);
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--target-gap);
-    list-style: none;
-  }
-
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-2);
-    min-height: var(--target-min);
-    padding: var(--sp-2) var(--sp-4);
-    border: 2px solid var(--c-border-strong);
-    border-radius: var(--radius-pill);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-    color: var(--c-ink);
-    background: var(--c-surface);
-    text-decoration: none;
-  }
-
-  .chip.is-active {
-    border-color: var(--c-primary);
-    background: var(--c-surface-tint);
-    color: var(--c-primary);
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--sp-6);
-    list-style: none;
-  }
-
-  .grid > li {
-    display: flex;
-  }
-
-  .empty {
-    display: grid;
-    gap: var(--sp-3);
-    justify-items: start;
-    padding: var(--sp-8);
-    border: 2px dashed var(--c-border-strong);
-    border-radius: var(--radius-lg);
-  }
-
-  .empty__title {
-    font-family: var(--font-heading);
-    font-size: var(--fs-h4);
-    font-weight: 700;
-  }
-
-  .pager {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--sp-4);
-    margin-top: var(--sp-10);
-    padding-top: var(--sp-6);
-    border-top: 1px solid var(--c-border);
-  }
-
-  .pager__link {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    padding: var(--sp-3) var(--sp-5);
-    border: 2px solid var(--c-primary);
-    border-radius: var(--radius-pill);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    color: var(--c-primary);
-    text-decoration: none;
-  }
-
-  .pager__link--off {
-    border-color: var(--c-border);
-    color: var(--c-ink-secondary);
-  }
-
-  .pager__status {
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-    color: var(--c-ink-secondary);
-  }
-
-  .help {
-    display: grid;
-    gap: var(--sp-3);
-    justify-items: start;
-    margin-top: var(--sp-13);
-    padding: var(--sp-8);
-    background: var(--c-surface-tint);
-    border-radius: var(--radius-lg);
-  }
-
-  .help__hours {
-    font-size: var(--fs-ui);
-    color: var(--c-ink-secondary);
-  }
-
-  /* Desktop design: 4 across. Mobile design: one column of full-width cards.
-     Two intermediate steps keep line length and tap targets sane on tablets and
-     at high zoom. */
-  @media (max-width: 1100px) {
-    .grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  @media (max-width: 860px) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 620px) {
-    .grid {
-      grid-template-columns: 1fr;
-      gap: var(--sp-4);
-    }
-    .cat__controls {
-      padding: var(--sp-4);
-    }
-    .cat__field,
-    .cat__field--sort {
-      flex: 1 1 100%;
-    }
-    .cat__submit {
-      width: 100%;
-    }
-    .pager {
-      justify-content: stretch;
-    }
-    .pager__link {
-      flex: 1;
-      justify-content: center;
-    }
-    .pager__status {
-      order: -1;
-      width: 100%;
-      text-align: center;
-    }
-  }
-</style>

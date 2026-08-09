@@ -11,8 +11,7 @@ import MobileNav from '~/components/global/MobileNav.astro';
 import SiteFooter from '~/components/global/SiteFooter.astro';
 import SiteHeader from '~/components/global/SiteHeader.astro';
 import { serializeJsonLd } from '~/lib/json-ld';
-import '~/styles/tokens.css';
-import '~/styles/base.css';
+import '~/styles/app.css';
 
 interface Props {
   title: string;
@@ -77,6 +76,13 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Ast
       type="font/woff2"
       crossorigin
     />
+    <link
+      rel="preload"
+      href="/fonts/inter-variable-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     {
       jsonLd.map((block) => (
@@ -90,10 +96,10 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Ast
   <body>
     <a class="skip-link" href="#contenuto">Salta al contenuto</a>
 
-    <div class="site-shell">
+    <div class="flex min-h-screen flex-col bg-white">
       <SiteHeader />
 
-      <main id="contenuto">
+      <main id="contenuto" class="flex-1">
         <slot />
       </main>
 

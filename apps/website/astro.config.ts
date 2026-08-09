@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import node from '@astrojs/node';
 import sitemap from '@astrojs/sitemap';
 import svelte from '@astrojs/svelte';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 const site = process.env.PUBLIC_SITE_URL ?? 'http://localhost:4321';
@@ -49,5 +50,12 @@ export default defineConfig({
   // and during SSR alike, so dev and production resolve the API identically.
   vite: {
     envDir,
+
+    /**
+     * Tailwind v4 has no config file: the whole design system lives in
+     * `src/styles/app.css` as `@theme` tokens. See
+     * docs/code/storefront-design-system.md.
+     */
+    plugins: [tailwindcss()],
   },
 });

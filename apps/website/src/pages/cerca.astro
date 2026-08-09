@@ -30,19 +30,25 @@ const result = q
   description="Cerca fra gli ausili disponibili a noleggio: carrozzine, letti ortopedici, deambulatori e molto altro."
   noindex
 >
-  <div class="search container">
-    <header class="search__head">
-      <h1>Cerca un ausilio</h1>
-      <p class="search__lede">
+  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5 pt-10">
+    <header>
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">Cerca un ausilio</h1>
+      <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">
         Scrivi il nome del prodotto o a cosa ti serve. Se non lo trovi, chiamaci: te lo troviamo
         noi.
       </p>
     </header>
 
-    <form class="search__form" method="get" role="search" aria-label="Cerca un ausilio">
+    <form
+      class="mt-6 mb-10 flex flex-wrap gap-3.5"
+      method="get"
+      role="search"
+      aria-label="Cerca un ausilio"
+    >
       <label class="sr-only" for="cerca-q">Cerca un ausilio</label>
-      <div class="search__control">
+      <div class="field-control flex-1 basis-80">
         <svg
+          class="text-ink-2 size-4.75 flex-none"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -55,6 +61,7 @@ const result = q
         </svg>
         <input
           id="cerca-q"
+          class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold focus:outline-none"
           type="search"
           name="q"
           value={q}
@@ -62,36 +69,41 @@ const result = q
           autofocus
         />
       </div>
-      <button class="search__submit" type="submit">Cerca</button>
+      <button
+        class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 min-w-38 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"
+        type="submit"
+      >
+        Cerca
+      </button>
     </form>
 
     {
       result && (
         <section aria-labelledby="search-results-title">
-          <h2 id="search-results-title" class="search__h2">
+          <h2 id="search-results-title" class="text-h3 mb-6">
             {result.meta.total === 0
               ? `Nessun risultato per “${q}”`
               : `${result.meta.total} ${result.meta.total === 1 ? 'risultato' : 'risultati'} per “${q}”`}
           </h2>
 
           {result.data.length > 0 ? (
-            <ul class="grid">
+            <ul class="wide:grid-cols-3 grid gap-6 sm:grid-cols-2">
               {result.data.map((product, index) => (
-                <li>
+                <li class="flex">
                   <ProductCard product={product} priority={index === 0} headingLevel={3} />
                 </li>
               ))}
             </ul>
           ) : (
-            <div class="search__empty">
-              <p>
+            <div class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6">
+              <p class="max-w-[60ch]">
                 Prova con una parola più semplice — per esempio <strong>carrozzina</strong> invece
                 del modello — oppure sfoglia il catalogo completo.
               </p>
-              <a class="search__browse" href={routes.catalog}>
+              <a class="btn btn-soft border-hair-strong bg-white" href={routes.catalog}>
                 Vedi tutto il catalogo
               </a>
-              <p class="search__hours">{CONTACT.hours.it}</p>
+              <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
               <PhoneCta variant="primary" />
             </div>
           )}
@@ -101,174 +113,23 @@ const result = q
 
     {
       !result && (
-        <section class="search__suggest" aria-labelledby="search-suggest-title">
-          <h2 id="search-suggest-title" class="search__h2">
+        <section
+          class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6"
+          aria-labelledby="search-suggest-title"
+        >
+          <h2 id="search-suggest-title" class="text-h3">
             Non sai da dove iniziare?
           </h2>
-          <p>Sfoglia il catalogo per categoria, oppure chiamaci e ti guidiamo noi nella scelta.</p>
-          <a class="search__browse" href={routes.catalog}>
+          <p class="max-w-[60ch]">
+            Sfoglia il catalogo per categoria, oppure chiamaci e ti guidiamo noi nella scelta.
+          </p>
+          <a class="btn btn-soft border-hair-strong bg-white" href={routes.catalog}>
             Vedi tutto il catalogo
           </a>
-          <p class="search__hours">{CONTACT.hours.it}</p>
+          <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
           <PhoneCta variant="primary" />
         </section>
       )
     }
   </div>
 </BaseLayout>
-
-<style>
-  .search {
-    padding-bottom: var(--sp-13);
-  }
-
-  .search__head {
-    padding-block: var(--sp-8) var(--sp-5);
-  }
-
-  .search__lede {
-    margin-top: var(--sp-2);
-    max-width: 56ch;
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body-lg);
-  }
-
-  .search__form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-    margin-bottom: var(--sp-8);
-  }
-
-  .search__control {
-    display: grid;
-    flex: 1 1 320px;
-    grid-template-columns: 24px minmax(0, 1fr);
-    align-items: center;
-    gap: 11px;
-    min-height: 64px;
-    padding-inline: 15px;
-    border: 1px solid var(--c-border-accent);
-    border-radius: 13px;
-    background: var(--c-surface);
-  }
-
-  .search__control:focus-within {
-    border-color: var(--c-primary);
-    box-shadow: 0 0 0 3px rgb(46 70 153 / 0.1);
-  }
-
-  .search__control > svg {
-    width: 24px;
-    height: 24px;
-    color: var(--c-primary);
-  }
-
-  .search__control input {
-    min-height: 60px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font-size: var(--fs-body);
-    font-weight: 600;
-  }
-
-  .search__control input:focus {
-    outline: 0;
-    box-shadow: none;
-  }
-
-  .search__submit {
-    flex: none;
-    min-width: 150px;
-    min-height: 64px;
-    padding-inline: var(--sp-6);
-    border: 0;
-    border-radius: 13px;
-    background: var(--c-primary);
-    color: var(--c-primary-ink);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .search__h2 {
-    margin-bottom: var(--sp-4);
-    font-size: var(--fs-h3);
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--sp-6);
-    list-style: none;
-  }
-
-  .grid > li {
-    display: flex;
-  }
-
-  .search__empty,
-  .search__suggest {
-    display: grid;
-    justify-items: start;
-    gap: var(--sp-3);
-    padding: var(--sp-8);
-    background: var(--c-surface-tint);
-    border-radius: var(--radius-lg);
-  }
-
-  .search__empty p,
-  .search__suggest p {
-    max-width: 60ch;
-  }
-
-  .search__browse {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    padding-inline: var(--sp-5);
-    border: 2px solid var(--c-primary);
-    border-radius: var(--radius-pill);
-    background: var(--c-surface);
-    color: var(--c-primary);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .search__hours {
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-
-  @media (max-width: 1100px) {
-    .grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  @media (max-width: 860px) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 620px) {
-    .grid {
-      grid-template-columns: 1fr;
-      gap: var(--sp-4);
-    }
-
-    .search__submit {
-      width: 100%;
-    }
-
-    .search__empty,
-    .search__suggest {
-      padding: var(--sp-5);
-    }
-  }
-</style>

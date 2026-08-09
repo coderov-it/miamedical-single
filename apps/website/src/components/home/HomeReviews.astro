@@ -1,48 +1,110 @@
 ---
 /**
- * Review aggregate and selected customer quotations.
+ * Review aggregate and selected customer quotations, on a tinted band.
+ *
+ * The score is a column, not a strip above the cards: 4,9 gets the size it
+ * deserves and the testimonials sit in a grid beside it. Amber stars are the
+ * only warm tone on the page, and this is the only place where warmth means
+ * something — they are Google stars.
  *
  * The copy comes from the temporary governed-content adapter so the visible
- * reviews and any structured-data consumer can share one source.
+ * reviews and any structured-data consumer can share one source. Deliberately
+ * NOT emitted as AggregateRating JSON-LD: the aggregate has no governed source
+ * yet, and a stale one is a Google policy problem rather than an inaccuracy.
  */
 import { HOME_REVIEWS, REVIEW_AGGREGATE } from '~/lib/home-content';
 
-const mobileCountLabel = REVIEW_AGGREGATE.countLabel.replace(
-  'recensioni Google',
-  'recensioni su Google',
-);
+/** "Marina C. — Roma" → initial, name and what they rented. */
+const parsed = HOME_REVIEWS.map((review) => {
+  const [name = review.name, context = ''] = review.name.split('—').map((part) => part.trim());
+  return { ...review, name, context, initial: name.charAt(0).toUpperCase() };
+});
 ---
 
-<section id="recensioni" class="reviews" aria-labelledby="recensioni-title">
-  <div class="reviews__inner">
-    <div class="reviews__head">
-      <h2 id="recensioni-title" class="reviews__heading">Chi ci ha scelto</h2>
-      <p
-        class="reviews__aggregate"
-        aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, ${mobileCountLabel}`}
+<section
+  id="recensioni"
+  class="mt-section-sm bg-tint py-section-sm mid:mt-section mid:py-section"
+  aria-labelledby="recensioni-title"
+>
+  <div
+    class="max-w-page mid:px-8 wide:grid-cols-[minmax(0,290px)_minmax(0,1fr)] mx-auto grid w-full items-start gap-x-15 gap-y-10 px-5"
+  >
+    <div>
+      <h2
+        id="recensioni-title"
+        class="text-ui flex items-center gap-3.25 leading-[1.2] font-semibold tracking-[0.07em] uppercase before:h-0.5 before:w-6.5 before:flex-none before:bg-accent before:content-['']"
       >
-        <span class="reviews__score">{REVIEW_AGGREGATE.rating}</span>
-        <span class="reviews__stars" aria-hidden="true">★★★★★</span>
-        <span class="reviews__count reviews__count--desktop">
-          {REVIEW_AGGREGATE.countLabel}
+        Chi ci ha scelto
+      </h2>
+
+      <p
+        aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, basata su ${REVIEW_AGGREGATE.countLabel}`}
+      >
+        <strong class="font-display text-score mt-5 block font-bold tracking-[-0.045em]">
+          {REVIEW_AGGREGATE.rating}
+        </strong>
+        <span class="text-star mt-3.5 block text-[25px] tracking-[0.14em]" aria-hidden="true">
+          ★★★★★
         </span>
-        <span class="reviews__count reviews__count--mobile">
-          {mobileCountLabel}
-        </span>
+      </p>
+
+      <p
+        class="border-hair font-display text-ui mt-5.5 inline-flex items-center gap-2.25 rounded-full border bg-white px-4.5 py-2.75 font-semibold"
+      >
+        <svg
+          class="text-ok size-4.75 flex-none"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 5-5.5"></path>
+        </svg>
+        Recensioni verificate
+      </p>
+
+      <p class="text-ui-strong text-ink-2 mt-5">
+        Basato su <strong class="text-ink">{REVIEW_AGGREGATE.countLabel}</strong> di clienti a Roma e
+        Firenze.
       </p>
     </div>
 
-    <ul class="reviews__list">
+    <ul class="wide:grid-cols-2 grid gap-5.5">
       {
-        HOME_REVIEWS.map((review) => (
-          <li>
-            <figure class="review">
-              <p class="review__rating">
+        parsed.map((review) => (
+          <li class="flex">
+            <figure class="rounded-card border-hair flex h-full flex-col border bg-white px-6.5 pt-6 pb-5.5">
+              <p class="text-ui-strong text-star tracking-[0.14em]">
                 <span aria-hidden="true">{'★'.repeat(review.rating)}</span>
                 <span class="sr-only">Valutazione {review.rating} su 5.</span>
               </p>
-              <blockquote class="review__quote">“{review.text}”</blockquote>
-              <figcaption class="review__author">{review.name}</figcaption>
+
+              <blockquote class="text-ui-strong/[1.55] mt-3.25 mb-5">“{review.text}”</blockquote>
+
+              {/*
+                Who is speaking sits under a hairline, detached from the
+                quotation: it is metadata, not part of the sentence.
+                `mt-auto` keeps it at the bottom even when the card beside it
+                carries a longer quotation.
+              */}
+              <figcaption class="border-hair mt-auto flex items-center gap-3.5 border-t pt-4.5">
+                <span
+                  class="bg-tint-2 font-display text-ui-strong grid size-10.5 flex-none place-items-center rounded-full font-bold text-accent"
+                  aria-hidden="true"
+                >
+                  {review.initial}
+                </span>
+                <span>
+                  <span class="font-display text-ui-strong block font-semibold">{review.name}</span>
+                  {review.context && (
+                    <span class="text-ui text-ink-2 mt-0.5 block">{review.context}</span>
+                  )}
+                </span>
+              </figcaption>
             </figure>
           </li>
         ))
@@ -50,153 +112,3 @@ const mobileCountLabel = REVIEW_AGGREGATE.countLabel.replace(
     </ul>
   </div>
 </section>
-
-<style>
-  .reviews {
-    padding-block-start: var(--sp-13);
-  }
-
-  .reviews__inner {
-    width: 100%;
-    max-width: var(--container);
-    margin-inline: auto;
-    padding-inline: var(--container-pad);
-  }
-
-  .reviews__head {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    margin-bottom: var(--sp-5);
-  }
-
-  .reviews__heading {
-    flex: none;
-    font-size: var(--fs-h2);
-  }
-
-  .reviews__aggregate {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: var(--sp-2) var(--sp-4);
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-pill);
-  }
-
-  .reviews__score {
-    color: var(--c-ink);
-    font-family: var(--font-heading);
-    font-size: var(--fs-body-lg);
-    font-weight: 800;
-  }
-
-  .reviews__stars,
-  .review__rating {
-    color: #e8a013;
-    letter-spacing: 0.12em;
-  }
-
-  .reviews__stars {
-    font-size: var(--fs-ui);
-  }
-
-  .reviews__count {
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-    line-height: var(--lh-body);
-  }
-
-  .reviews__count--mobile {
-    display: none;
-  }
-
-  .reviews__list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--sp-4);
-    list-style: none;
-  }
-
-  .review {
-    height: 100%;
-    padding: 22px;
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: 18px;
-  }
-
-  .review__rating {
-    font-size: var(--fs-ui);
-    line-height: 1;
-  }
-
-  .review__quote {
-    margin-top: 10px;
-    color: var(--c-ink);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .review__author {
-    margin-top: var(--sp-3);
-    color: var(--c-ink-secondary);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 700;
-    line-height: var(--lh-body);
-  }
-
-  @media (max-width: 720px) {
-    .reviews {
-      padding-block-start: 30px;
-    }
-
-    .reviews__inner {
-      padding-inline: var(--sp-5);
-      padding-block-end: var(--sp-2);
-    }
-
-    .reviews__head {
-      display: block;
-      margin-bottom: var(--sp-3);
-    }
-
-    .reviews__heading {
-      font-size: 1.5rem;
-    }
-
-    .reviews__aggregate {
-      margin-top: 14px;
-      padding: var(--sp-4);
-      border-radius: 16px;
-    }
-
-    .reviews__score {
-      font-size: 2.125rem;
-    }
-
-    .reviews__stars {
-      font-size: var(--fs-body);
-    }
-
-    .reviews__count--desktop {
-      display: none;
-    }
-
-    .reviews__count--mobile {
-      display: inline;
-    }
-
-    .reviews__list {
-      grid-template-columns: 1fr;
-      gap: var(--sp-3);
-    }
-
-    .review {
-      padding: var(--sp-4);
-      border-radius: 16px;
-    }
-  }
-</style>

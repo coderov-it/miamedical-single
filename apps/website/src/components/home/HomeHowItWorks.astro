@@ -2,9 +2,15 @@
 /**
  * Home-page process summary.
  *
+ * One closed object, not three columns of text hanging off the white: the three
+ * steps, and welded underneath them the reassurance about payment. A rail runs
+ * through the numbered discs and ties them into a sequence.
+ *
  * Static Astro markup only. The ordered list carries the sequence for assistive
- * technology; the numbered tiles are visual reinforcement.
+ * technology; the numbered discs are visual reinforcement.
  */
+import SectionHeading from '~/components/primitives/SectionHeading.astro';
+
 const steps = [
   {
     title: 'Scegli il prodotto',
@@ -21,175 +27,69 @@ const steps = [
 ];
 ---
 
-<section id="come-funziona" class="how" aria-labelledby="come-funziona-title">
-  <div class="how__inner">
-    <h2 id="come-funziona-title" class="how__heading">Come funziona</h2>
-    <p class="how__lede">Tre passaggi, senza pagare nulla online.</p>
+<section
+  id="come-funziona"
+  class="pt-section-sm mid:pt-section"
+  aria-labelledby="come-funziona-title"
+>
+  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
+    <SectionHeading
+      id="come-funziona"
+      heading="Come funziona"
+      lede="Tre passaggi, senza pagare nulla online."
+    />
 
-    <ol class="how__steps">
-      {
-        steps.map((step, index) => (
-          <li class="how__step">
-            <span class="how__number" aria-hidden="true">
-              {index + 1}
-            </span>
-            <div>
-              <h3 class="how__step-title">{step.title}</h3>
-              <p class="how__step-body">{step.body}</p>
-            </div>
-          </li>
-        ))
-      }
-    </ol>
+    <div class="rounded-card border-hair overflow-hidden border bg-white">
+      <ol class="mid:px-9 mid:pt-10 mid:pb-10.5 wide:grid-cols-3 grid px-5 pt-8 pb-9">
+        {
+          steps.map((step, index) => (
+            <li
+              class:list={[
+                'wide:pr-8.5 relative',
+                index > 0 && 'wide:mt-0 mt-7.5',
+                /*
+                  The rail: a 2px line that runs out of each disc into the next
+                  one. It is dropped below the wide breakpoint, where the steps
+                  stack and a horizontal rail would point at nothing.
+                */
+                index < steps.length - 1 &&
+                  'wide:before:absolute wide:before:top-6 wide:before:right-[-12px] wide:before:left-6 wide:before:h-0.5 wide:before:bg-tint-2 wide:before:content-[""]',
+              ]}
+            >
+              <span
+                class="font-display relative z-1 mb-5 grid size-12 place-items-center rounded-full bg-accent text-[21px] font-bold text-white"
+                aria-hidden="true"
+              >
+                {index + 1}
+              </span>
+              <h3 class="text-lead">{step.title}</h3>
+              <p class="text-ui-strong text-ink-2 mt-2">{step.body}</p>
+            </li>
+          ))
+        }
+      </ol>
 
-    <p class="how__notice">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
+      <p
+        class="border-hair bg-tint text-ui-strong text-ink-2 mid:px-9 flex items-start gap-3.5 border-t px-5 pt-5 pb-5.5"
       >
-        <circle cx="12" cy="12" r="9"></circle>
-        <path d="m8.5 12.5 2.5 2.5 5-5.5"></path>
-      </svg>
-      <span>
-        <strong>Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata di conferma, con un
-        link di pagamento sicuro via SMS o email.
-      </span>
-    </p>
+        <svg
+          class="text-ok mt-px size-6.25 flex-none"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="m8.5 12.5 2.5 2.5 5-5.5"></path>
+        </svg>
+        <span>
+          <strong class="text-ink">Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata
+          di conferma, con un link di pagamento sicuro via SMS o email.
+        </span>
+      </p>
+    </div>
   </div>
 </section>
-
-<style>
-  .how {
-    padding-block-start: var(--sp-13);
-  }
-
-  .how__inner {
-    width: 100%;
-    max-width: var(--container);
-    margin-inline: auto;
-    padding-inline: var(--container-pad);
-  }
-
-  .how__heading {
-    font-size: var(--fs-h2);
-  }
-
-  .how__lede {
-    margin-top: var(--sp-1);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .how__steps {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--sp-4);
-    margin-top: var(--sp-5);
-    list-style: none;
-  }
-
-  .how__step {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--sp-4);
-    padding: 22px;
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: 18px;
-  }
-
-  .how__number {
-    display: grid;
-    flex: 0 0 46px;
-    width: 46px;
-    height: 46px;
-    place-items: center;
-    border-radius: 13px;
-    background: var(--c-surface-tint);
-    color: var(--c-primary);
-    font-family: var(--font-heading);
-    font-size: var(--fs-body-lg);
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .how__step-title {
-    font-size: var(--fs-h4);
-    line-height: var(--lh-heading);
-  }
-
-  .how__step-body {
-    margin-top: var(--sp-1);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .how__notice {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--sp-3);
-    margin-top: var(--sp-4);
-    padding: var(--sp-4) var(--sp-5);
-    border: 1px solid #bfe3cf;
-    border-radius: 16px;
-    background: #e8f5ee;
-    color: var(--c-success);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .how__notice svg {
-    flex: none;
-    margin-top: 0.15em;
-  }
-
-  @media (max-width: 720px) {
-    .how {
-      padding-block-start: 30px;
-    }
-
-    .how__inner {
-      padding-inline: var(--sp-5);
-      padding-block-end: var(--sp-2);
-    }
-
-    .how__heading {
-      font-size: 1.5rem;
-    }
-
-    .how__steps {
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-top: var(--sp-4);
-    }
-
-    .how__step {
-      gap: 14px;
-      padding: var(--sp-4);
-      border-radius: 16px;
-    }
-
-    .how__number {
-      flex-basis: 42px;
-      width: 42px;
-      height: 42px;
-      border-radius: var(--radius-md);
-      font-size: var(--fs-h4);
-    }
-
-    .how__notice {
-      margin-top: 14px;
-      padding: 14px var(--sp-4);
-      border-radius: 14px;
-    }
-  }
-</style>

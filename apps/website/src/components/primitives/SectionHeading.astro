@@ -1,0 +1,48 @@
+---
+/**
+ * The one section header in the design: a large title, an optional lede under
+ * it, and an optional link pushed to the right edge on wide screens.
+ *
+ * No eyebrow label — in this design the hierarchy is carried by the type sizes,
+ * not by an extra tag above the heading.
+ *
+ * The heading is always a real `<h2>` with an id, so the host section can point
+ * `aria-labelledby` at it and screen reader users can navigate by section.
+ */
+interface Props {
+  /** Rendered as `<h2 id="{id}-title">`. */
+  id: string;
+  heading: string;
+  /** Supporting line under the heading. */
+  lede?: string | undefined;
+  /** Right-aligned link, e.g. "Vedi tutto il catalogo →". */
+  linkHref?: string | undefined;
+  linkLabel?: string | undefined;
+  class?: string;
+}
+
+const { id, heading, lede, linkHref, linkLabel, class: className = '' } = Astro.props;
+---
+
+<div
+  class:list={[
+    'mid:mb-9.5 mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3.5',
+    className,
+  ]}
+>
+  <div>
+    <h2 id={`${id}-title`} class="mid:text-h2 text-[1.75rem]/[1.18]">{heading}</h2>
+    {lede && <p class="text-ink-2 mid:text-[19px] mt-2.5 max-w-[46ch]">{lede}</p>}
+  </div>
+
+  {
+    linkHref && linkLabel && (
+      <a
+        class="font-display text-ui-strong inline-flex min-h-12 items-center font-semibold text-accent no-underline hover:underline hover:underline-offset-[5px]"
+        href={linkHref}
+      >
+        {linkLabel}
+      </a>
+    )
+  }
+</div>

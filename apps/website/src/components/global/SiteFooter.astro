@@ -1,6 +1,8 @@
 ---
 /**
- * Global footer from the approved storefront design.
+ * Global footer — the darkest step of the closing descent: the "parla con noi"
+ * band sits on --accent-deep, this sits on --footer. Two steps of the same
+ * brand blue, not two different blues.
  *
  * The rental headings are editorial labels, not category records: the footer
  * renders on every page, including on-demand ones, and fetching the category
@@ -19,8 +21,14 @@ const rentalCategories = [
   'Letti ortopedici',
   'Deambulatori e rollatori',
   'Montascale',
-  'Sollevatori e verticalizzatori',
   'Materassi antidecubito',
+];
+
+const help = [
+  { href: `${routes.home}#come-funziona`, label: 'Come funziona' },
+  { href: `${routes.home}#domande-frequenti`, label: 'Domande frequenti' },
+  { href: routes.support, label: 'Assistenza' },
+  { href: routes.catalog, label: 'Catalogo noleggio' },
 ];
 
 const information = [
@@ -30,273 +38,119 @@ const information = [
 ];
 ---
 
-<footer class="footer">
-  <div class="footer__inner">
-    <div class="footer__grid">
-      <section class="footer__brand" aria-label="Mia Medical Italia">
-        <span class="footer__logo">
-          <img
-            src="/img/logo.svg"
-            alt="M.i.a. Medical Italia — moving in autonomy"
-            width="71"
-            height="38"
-          />
-        </span>
-        <p>
-          Noleggio e vendita di ausili sanitari a domicilio, per brevi e lunghi periodi.{' '}
-          <span class="footer__desktop-copy">Consegna a Roma e Firenze in 24–48 ore.</span>
+<footer class="bg-footer text-white">
+  <div class="max-w-page mid:px-8 mid:pt-16 mx-auto w-full px-5 pt-12">
+    <div class="mid:grid-cols-2 wide:grid-cols-[1.4fr_repeat(3,1fr)] grid gap-10 pb-12">
+      <section aria-label="Mia Medical Italia">
+        {
+          /*
+            The mark is brand blue on transparent and would disappear on the
+            dark footer. Production wants a dedicated white file; until then it
+            is knocked out here.
+          */
+        }
+        <img
+          class="mb-4.5 h-10 w-auto brightness-0 invert"
+          src="/img/logo.svg"
+          alt="M.i.a. Medical Italia — moving in autonomy"
+          width="71"
+          height="38"
+        />
+        <p class="text-ui text-on-dark">
+          Noleggio e vendita di ausili sanitari a domicilio, per brevi e lunghi periodi. Consegna a
+          Roma e Firenze in 24–48 ore.
         </p>
-        <address class="footer__contacts">
-          Numero verde: <a href={`tel:${CONTACT.phoneE164}`}>{CONTACT.phoneDisplay}</a><br />
-          WhatsApp: <a href={whatsappUrl()} target="_blank" rel="noopener">
+        <address class="text-ui text-on-dark mt-4 not-italic">
+          Numero verde: <a class="text-white" href={`tel:${CONTACT.phoneE164}`}
+            >{CONTACT.phoneDisplay}</a
+          ><br />
+          WhatsApp: <a class="text-white" href={whatsappUrl()} target="_blank" rel="noopener">
             {CONTACT.whatsappDisplay}
           </a><br />
-          Email: <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+          Email: <a class="text-white" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
         </address>
       </section>
 
-      <nav class="footer__categories" aria-labelledby="footer-rental-title">
-        <h2 id="footer-rental-title">Affitto e noleggio</h2>
+      <nav aria-labelledby="footer-rental-title">
+        <h2 id="footer-rental-title" class="text-ui-strong mb-3 text-white">Noleggio</h2>
         <ul>
           {
             rentalCategories.map((category) => (
               <li>
-                <a href={catalogPath({ q: category })}>{category}</a>
+                <a
+                  class="text-ui-strong text-on-dark inline-flex min-h-10.5 items-center no-underline hover:text-white hover:underline"
+                  href={catalogPath({ q: category })}
+                >
+                  {category}
+                </a>
               </li>
             ))
           }
         </ul>
       </nav>
 
-      <section class="footer__locations" aria-labelledby="footer-location-title">
-        <h2 id="footer-location-title">Le nostre sedi</h2>
+      <nav aria-labelledby="footer-help-title">
+        <h2 id="footer-help-title" class="text-ui-strong mb-3 text-white">Aiuto</h2>
         <ul>
+          {
+            help.map((item) => (
+              <li>
+                <a
+                  class="text-ui-strong text-on-dark inline-flex min-h-10.5 items-center no-underline hover:text-white hover:underline"
+                  href={item.href}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div>
+        <nav aria-labelledby="footer-info-title">
+          <h2 id="footer-info-title" class="text-ui-strong mb-3 text-white">Legale</h2>
+          <ul>
+            {
+              information.map((item) => (
+                <li>
+                  <a
+                    class="text-ui-strong text-on-dark inline-flex min-h-10.5 items-center no-underline hover:text-white hover:underline"
+                    href={item.href}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <h2 class="text-ui-strong mt-6 mb-3 text-white">Le nostre sedi</h2>
+        <ul class="text-ui text-on-dark grid gap-1">
           {
             LOCATIONS.map((location) => (
               <li>
-                <strong>{location.city}</strong>
-                <span>{location.street}</span>
+                <strong class="text-white">{location.city}</strong> — {location.street}
               </li>
             ))
           }
         </ul>
-      </section>
-
-      <nav class="footer__information" aria-labelledby="footer-info-title">
-        <h2 id="footer-info-title">Informazioni</h2>
-        <ul>
-          {
-            information.map((item) => (
-              <li>
-                <a href={item.href}>{item.label}</a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+      </div>
     </div>
 
     {
       /*
-      One expression, not three adjacent ones: the formatter breaks adjacent
-      expressions onto separate lines and the whitespace between them is dropped
-      at compile time, gluing the year to the company name.
-    */
+        One expression, not three adjacent ones: the formatter breaks adjacent
+        expressions onto separate lines and the whitespace between them is
+        dropped at compile time, gluing the year to the company name.
+      */
     }
-    <p class="footer__legal">{`© ${year} ${COMPANY.legalName} — P.IVA ${COMPANY.vat}`}</p>
+    <div
+      class="text-ui text-on-dark flex flex-wrap justify-between gap-x-8 gap-y-2.5 pt-6 pb-11 shadow-[inset_0_1px_0_rgb(255_255_255/0.14)]"
+    >
+      <span>{`© ${year} ${COMPANY.legalName} — P.IVA ${COMPANY.vat}`}</span>
+      <span>Consegna a domicilio a Roma e Firenze</span>
+    </div>
   </div>
 </footer>
-
-<style>
-  .footer {
-    background: var(--c-ink);
-    color: #b9c2d6;
-  }
-
-  .footer__inner {
-    max-width: var(--container);
-    margin-inline: auto;
-    padding: 44px var(--container-pad) 20px;
-  }
-
-  .footer__grid {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr 1fr;
-    gap: 36px;
-  }
-
-  .footer__logo {
-    display: inline-flex;
-    margin-bottom: var(--sp-4);
-    padding: 7px 12px;
-    border-radius: 10px;
-    background: var(--c-surface);
-  }
-
-  .footer__logo img {
-    width: auto;
-    height: 38px;
-  }
-
-  .footer__brand > p,
-  .footer__contacts,
-  .footer__locations li {
-    font-size: var(--fs-ui);
-    line-height: var(--lh-body);
-  }
-
-  .footer__brand > p {
-    margin-bottom: 14px;
-  }
-
-  .footer__contacts {
-    color: inherit;
-    font-style: normal;
-  }
-
-  .footer a {
-    color: #fff;
-  }
-
-  .footer h2 {
-    margin-bottom: var(--sp-3);
-    color: #fff;
-    font-size: var(--fs-ui);
-  }
-
-  .footer ul {
-    display: grid;
-    gap: 9px;
-    list-style: none;
-  }
-
-  .footer__categories a,
-  .footer__information a {
-    font-size: var(--fs-ui);
-    line-height: 1.5;
-  }
-
-  .footer__categories a {
-    color: #b9c2d6;
-    text-decoration: none;
-  }
-
-  .footer__categories a:hover {
-    color: #fff;
-    text-decoration: underline;
-  }
-
-  .footer__locations li {
-    display: grid;
-  }
-
-  .footer__locations li + li {
-    margin-top: 1px;
-  }
-
-  .footer__locations strong {
-    color: #fff;
-  }
-
-  .footer__information a {
-    color: #b9c2d6;
-  }
-
-  .footer__legal {
-    margin-top: var(--sp-8);
-    padding-top: 18px;
-    border-top: 1px solid #2a3550;
-    color: #9aa5bc;
-    font-size: var(--fs-ui);
-    line-height: 1.5;
-  }
-
-  @media (max-width: 900px) {
-    .footer__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 720px) {
-    .footer__inner {
-      padding: 28px var(--sp-5) 30px;
-    }
-
-    .footer__grid {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .footer__brand {
-      display: contents;
-    }
-
-    .footer__logo {
-      order: 1;
-      align-self: flex-start;
-      margin-bottom: 14px;
-      padding: 6px 10px;
-    }
-
-    .footer__logo img {
-      height: 34px;
-    }
-
-    .footer__desktop-copy,
-    .footer__categories,
-    .footer__locations h2,
-    .footer__information h2 {
-      display: none;
-    }
-
-    .footer__brand > p {
-      order: 2;
-    }
-
-    .footer__locations {
-      order: 3;
-      margin-top: 14px;
-    }
-
-    .footer__locations ul {
-      gap: 4px;
-    }
-
-    .footer__locations li {
-      display: block;
-    }
-
-    .footer__locations strong::after {
-      content: ' — ';
-      color: #b9c2d6;
-      font-weight: 400;
-    }
-
-    .footer__information {
-      order: 5;
-      margin-top: 14px;
-    }
-
-    .footer__contacts {
-      order: 4;
-      margin-top: 14px;
-    }
-
-    .footer__information ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 16px;
-    }
-
-    .footer__information a {
-      display: inline-flex;
-      min-height: 48px;
-      align-items: center;
-    }
-
-    .footer__legal {
-      margin-top: var(--sp-3);
-      padding-top: var(--sp-3);
-    }
-  }
-</style>

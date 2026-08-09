@@ -1,0 +1,363 @@
+/*
+ * M.I.A. Medical Italia storefront — the whole design system.
+ *
+ * The approved design is "Variante B — Sereno"
+ * (docs/visual/examples/home/variant-b-sereno.html). Tailwind v4 has no config
+ * file: the tokens below ARE the theme, and every one of them generates
+ * utilities (`bg-tint`, `border-hair`, `rounded-card`, `text-ui`, …).
+ *
+ * Read docs/code/storefront-design-system.md before changing a token. Several
+ * carry a deliberate accessibility correction over the prototype value.
+ */
+
+@import 'tailwindcss';
+
+/* app.css lives two levels below `src/`, which is where every template is. */
+@source '../';
+
+/* ---------------------------------------------------------------- fonts --- */
+
+/* Lexend is designed to improve reading proficiency; Atkinson Hyperlegible is
+   designed by the Braille Institute to maximise character distinction for
+   low-vision readers. Both are deliberate for this audience — do not substitute
+   a generic sans. Self-hosted and preloaded by BaseLayout.
+
+   Inter is the product-card face (the locked card design): a neutral grotesque
+   with proper tabular numerals for prices and full Italian diacritics. Card and
+   commerce UI only — Lexend stays the display face, Atkinson the prose face. */
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-400-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-400-italic-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-700-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/lexend-variable-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/inter-variable-latin.woff2') format('woff2');
+}
+
+/* ---------------------------------------------------------------- theme --- */
+
+@theme {
+  /* -- typefaces ---------------------------------------------------------- */
+  --font-display: 'Lexend', system-ui, -apple-system, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+  --font-card: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* -- colour ------------------------------------------------------------- */
+
+  /* The tint/hairline family is a dilution of the brand blue, not an arbitrary
+     grey: same hue direction, almost no saturation. That is what makes the
+     section bands read as "quiet" rather than as coloured. A grey hairline on a
+     pale blue ground reads as dirt.
+
+     The ink itself is DELIBERATELY softer: never 100% black (stings on a bright
+     screen) and never navy — a neutral charcoal, per the locked card design. */
+  --color-ink: #2e3237; /* 12.9:1 on white — still comfortably AAA */
+
+  /* CORRECTED. The prototype's secondary ink is #5d6470 (5.96:1) — AA but not
+     AAA. This project raised the muted tier to AAA because magnified and
+     low-vision reading is the norm here, not the exception. Keep 7.68:1. */
+  --color-ink-2: #49536b;
+
+  /* Non-text, aria-hidden ONLY. Never put a readable word in this colour. */
+  --color-ink-decorative: #8a93a8;
+
+  --color-tint: #f2f5fb; /* section bands, wells, soft fills */
+  --color-tint-2: #e7edf8; /* pressed / hover state of a tint fill */
+
+  /* The hairline. One step below --tint, so it reads on white AND on a band
+     without ever hardening into a frame. --hair-strong is hover only: the line
+     darkens, it does not change. */
+  --color-hair: #dfe6f2;
+  --color-hair-strong: #c8d2e6;
+
+  --color-accent: #2e4699; /* 8.56:1 — safe as text and as a button fill */
+  --color-accent-deep: #1d2c62; /* 13.2:1 with white — the closing CTA band */
+
+  /* The page closes by descending: dark CTA band, then a darker footer. Two
+     steps of the same brand blue, not two different blues. */
+  --color-footer: #131d40;
+  --color-on-dark: #a7b0cc; /* 7.6:1 on --color-footer */
+  --color-on-deep: #b3bcd8; /* 6.99:1 on --color-accent-deep */
+
+  --color-ok: #0e6b41; /* 6.57:1 — "Disponibile", "incluso" */
+  --color-danger: #c2402a; /* 5.17:1 — errors */
+  --color-star: #d99a2b; /* the page's only warm tone, aria-hidden stars */
+
+  /* -- type scale ---------------------------------------------------------- */
+
+  /* There is no token below 16px, by design. If you need one, the answer is no.
+     The prototypes go down to 12px; this audience cannot read it. */
+  --text-ui: 1rem; /* 16px — labels, chips, meta. FLOOR. */
+  --text-ui--line-height: 1.4;
+  --text-ui-strong: 1.0625rem; /* 17px — buttons, form controls, nav */
+  --text-ui-strong--line-height: 1.4;
+  --text-body: 1.125rem; /* 18px — default body */
+  --text-body--line-height: 1.6;
+  --text-lead: 1.25rem; /* 20px — hero and section ledes */
+  --text-lead--line-height: 1.5;
+
+  --text-h4: 1.1875rem; /* 19px */
+  --text-h4--line-height: 1.35;
+  --text-h3: 1.4375rem; /* 23px */
+  --text-h3--line-height: 1.3;
+  --text-h2: 2.25rem; /* 36px */
+  --text-h2--line-height: 1.18;
+  --text-h1: 3rem; /* 48px */
+  --text-h1--line-height: 1.1;
+  --text-score: 4.875rem; /* 78px — the review aggregate, and nothing else */
+  --text-score--line-height: 0.92;
+
+  /* -- shape --------------------------------------------------------------- */
+
+  /* One generous radius plus the pill for buttons. --radius-field is the only
+     smaller step, for controls and wells inside a card. */
+  --radius-field: 12px;
+  --radius-card: 18px;
+  --radius-panel: 22px;
+  --radius-spot: 28px;
+
+  /* The page's ONLY shadow, under the search panel: wide and almost invisible.
+     Everything else is defined by the hairline. */
+  --shadow-soft: 0 2px 4px rgb(26 32 48 / 0.04), 0 12px 34px rgb(26 32 48 / 0.07);
+
+  /* -- layout -------------------------------------------------------------- */
+
+  /* 1180px of content plus 32px of padding each side, in border-box terms. */
+  --container-page: 1244px;
+
+  /* Section rhythm. A section on white gets air above only; a tinted band gets
+     equal air above and below. */
+  --spacing-section: 104px;
+  --spacing-section-sm: 68px;
+
+  /* The two fixed bars at the bottom of a phone viewport. They must agree, or
+     one of them covers the other: MobileNav is 58px of target plus its 6px/8px
+     padding, and the product page's price bar sits directly above it.
+     Anything that must clear them adds both. */
+  --spacing-mobile-nav: 72px;
+  --spacing-mobile-bar: 88px;
+
+  /* -- breakpoints --------------------------------------------------------- */
+
+  /* The design has exactly two switches. Tailwind's defaults stay available,
+     but prefer these: they are where the prototype actually reflows. */
+  --breakpoint-mid: 45rem; /* 720px — phone → desktop */
+  --breakpoint-wide: 68.75rem; /* 1100px — narrow desktop → full */
+}
+
+/* ----------------------------------------------------------------- base --- */
+
+/*
+ * Everything in this layer is a project accessibility obligation, not a
+ * preference. Tailwind's preflight already handles the margin/padding/list
+ * reset and `display: block` on media, so only the obligations remain.
+ */
+
+@layer base {
+  html {
+    /* Never set a px root font-size: it breaks user font-size preferences,
+       which this audience is more likely than most to have changed. */
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: #fff;
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    /* Helps line-length control under magnification. */
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    text-wrap: balance;
+  }
+
+  a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* A placeholder is a hint, never a label: it disappears exactly when the user
+     needs it most. Corrected tone — the prototype's #8A93A8 fails 1.4.3. */
+  ::placeholder {
+    color: var(--color-ink-2);
+    opacity: 1; /* Firefox dims placeholders by default */
+  }
+
+  /* Error state must never rely on colour alone; pair with text and an icon. */
+  [aria-invalid='true'] {
+    border-color: var(--color-danger);
+    border-width: 2px;
+  }
+
+  /* ---------------------------------------------------------------- focus */
+
+  /* The highest-leverage accessibility fix in the design. The prototypes' single
+     brand-blue ring is 1.0:1 against a brand-blue button — literally invisible
+     on every primary CTA (SC 2.4.13 / 1.4.11). This two-tone ring survives
+     white, tint, brand blue, the dark band and the footer alike. */
+  *:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--color-ink);
+    /* Follow the control's own shape rather than forcing a square ring. */
+    border-radius: inherit;
+  }
+
+  /* -------------------------------------------------------- target sizing */
+
+  /* Project minimum interactive target: 48×48. WCAG 2.5.8 asks for 24; 48 is a
+     project rule because tremor and reduced motor precision are common here. */
+  button,
+  [role='button'],
+  summary,
+  input[type='checkbox'],
+  input[type='radio'],
+  select,
+  .target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Links inside running prose keep the WCAG 2.5.8 inline exception; a
+     paragraph link must not become a 48px block. */
+  p a,
+  li a,
+  .prose a {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* ------------------------------------------------------- reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ----------------------------------------------------------- components --- */
+
+/*
+ * Six composites, and only because each appears on nearly every page. Anything
+ * used fewer than a handful of times belongs in the markup as plain utilities.
+ * These sit in the components layer, so a utility in the markup always wins
+ * (`class="btn w-full"` does what it looks like).
+ */
+
+@layer components {
+  /* Pill buttons are the design's most immediate signal — every call to action
+     on the site is one of these three. */
+  .btn {
+    @apply font-display text-ui-strong inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline;
+  }
+
+  .btn-primary {
+    @apply hover:bg-accent-deep bg-accent text-white;
+  }
+
+  .btn-soft {
+    @apply border-hair bg-tint text-ink hover:border-hair-strong hover:bg-tint-2 border;
+  }
+
+  /* On the dark closing band the figure/ground rule inverts: the solid button
+     becomes white, the soft one a translucent white. */
+  .btn-on-dark {
+    @apply text-accent-deep bg-white hover:bg-[#dfe4f2];
+  }
+
+  .btn-soft-on-dark {
+    @apply border border-white/30 bg-white/12 text-white hover:border-white/50 hover:bg-white/20;
+  }
+
+  /*
+   * A form control. The label sits OUTSIDE the box and the box itself is white:
+   * the field stops being a coloured well and becomes a container, so it is
+   * obvious where to type and the label stays readable once the field is full.
+   */
+  .field-control {
+    @apply rounded-field border-hair-strong flex min-h-14.5 items-center gap-3 border bg-white px-4;
+  }
+
+  .field-control:focus-within {
+    @apply border-accent;
+
+    box-shadow: 0 0 0 3px rgb(46 70 153 / 0.14);
+  }
+
+  /* The uppercase field label. Always visible, never a placeholder. */
+  .field-label {
+    @apply font-display text-ui text-ink-2 font-semibold tracking-wider uppercase;
+  }
+
+  /* The one card treatment: white, one hairline, one radius. On a tinted band
+     this is the figure; on white the fills inside it go tinted instead. */
+  .hair-card {
+    @apply rounded-card border-hair border bg-white;
+  }
+
+  .skip-link {
+    @apply absolute top-0 left-0 z-100 -translate-y-full bg-accent px-4 py-3 text-white focus:translate-y-0;
+  }
+}
