@@ -1,14 +1,14 @@
 ---
 /**
- * Sticky site header, transcribed from the approved desktop design.
+ * Sticky site header, in the approved "Sereno" style.
  *
- * Design values: inner max-width 1244px (border-box equivalent of the 1180px
- * content column), padding 12px 32px, flex with 28px gaps; logo 44px tall;
- * free-phone pill #E8F5EE on #BFE3CF with #0E6B41 text; cart 50×50 #EDF1FA on
- * #D9E1F2 at 12px radius; "Noleggia ora" 50px tall, 12px radius, #2E4699.
+ * White bar on one hairline, pill navigation, and the free-phone number as a
+ * tinted pill rather than a green one: the design keeps a single accent family,
+ * and green is reserved for availability and "incluso".
  *
- * Zero JavaScript. Tablet navigation is a native `<details>` disclosure; the
- * mobile layout uses the persistent bottom navigation instead.
+ * Zero JavaScript. Below the wide breakpoint the inline navigation collapses
+ * into a native `<details>` disclosure; on phones the persistent bottom
+ * navigation takes over instead.
  */
 import { CONTACT } from '~/lib/site';
 import { routes } from '~/lib/routes';
@@ -25,10 +25,23 @@ const isActive = (item: (typeof nav)[number]) =>
   item.exact ? path === item.href : path.startsWith(item.href);
 ---
 
-<header class="hdr">
-  <div class="hdr__bar">
-    <a class="hdr__logo" href="/" aria-label="Vai alla home di Mia Medical Italia">
+<header class="border-hair sticky top-0 z-50 border-b bg-white">
+  {
+    /*
+      The bar wraps. The prototype's fixed row overflows horizontally at 200%
+      zoom, which is a reflow failure for exactly the people who use this site.
+    */
+  }
+  <div
+    class="max-w-page mid:px-8 mx-auto flex min-h-20.5 w-full flex-wrap items-center gap-x-6 gap-y-3 px-5 py-3"
+  >
+    <a
+      class="flex flex-none items-center"
+      href="/"
+      aria-label="Vai alla home di Mia Medical Italia"
+    >
       <img
+        class="mid:h-[42px] h-9 w-auto"
         src="/img/logo.svg"
         alt="M.i.a. Medical Italia — moving in autonomy"
         width="82"
@@ -36,11 +49,14 @@ const isActive = (item: (typeof nav)[number]) =>
       />
     </a>
 
-    <nav class="hdr__nav" aria-label="Navigazione principale">
+    <nav class="wide:flex mr-auto hidden gap-1.5" aria-label="Navigazione principale">
       {
         nav.map((item) => (
           <a
-            class:list={['hdr__navlink', isActive(item) && 'is-active']}
+            class:list={[
+              'text-ui-strong hover:bg-tint hover:text-ink inline-flex min-h-12 items-center rounded-full px-4 whitespace-nowrap no-underline',
+              isActive(item) ? 'bg-tint text-ink font-bold' : 'text-ink-2',
+            ]}
             href={item.href}
             aria-current={isActive(item) ? 'page' : undefined}
           >
@@ -51,17 +67,17 @@ const isActive = (item: (typeof nav)[number]) =>
     </nav>
 
     <a
-      class="hdr__phone"
+      class="border-hair bg-tint font-display text-ui-strong hover:border-hair-strong hover:bg-tint-2 wide:ml-0 wide:px-5 ml-auto inline-flex min-h-13 flex-none items-center gap-2.5 rounded-full border px-4 font-semibold whitespace-nowrap no-underline"
       href={`tel:${CONTACT.phoneE164}`}
       aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
+      data-analytics="phone-call"
     >
       <svg
-        width="19"
-        height="19"
+        class="text-ink-2 size-4.5 flex-none"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2.2"
+        stroke-width="2.1"
         stroke-linecap="round"
         aria-hidden="true"
       >
@@ -69,42 +85,48 @@ const isActive = (item: (typeof nav)[number]) =>
           d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
         ></path>
       </svg>
-      <span class="hdr__phone-text">
-        <strong>{CONTACT.phoneDisplay}</strong><span class="hdr__phone-free"> — gratis</span>
-      </span>
+      {CONTACT.phoneDisplay}<span class="mid:inline hidden font-normal">— gratis</span>
     </a>
 
     {
       /*
-      Cart. A link, not a button: it navigates. The numeric count is deliberately
-      absent — on a prerendered page it would either be stale or force every
-      cached page to bootstrap a script.
-    */
+        Cart. A link, not a button: it navigates. The numeric count is
+        deliberately absent — on a prerendered page it would either be stale or
+        force every cached page to bootstrap a script.
+      */
     }
-    <a class="hdr__cart" href={routes.cart} aria-label="Apri il carrello">
+    <a
+      class="border-hair bg-tint hover:border-hair-strong hover:bg-tint-2 grid size-13 flex-none place-items-center rounded-full border"
+      href={routes.cart}
+      aria-label="Apri la tua richiesta di noleggio"
+    >
       <svg
-        width="24"
-        height="24"
+        class="size-5.25"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="1.9"
         stroke-linecap="round"
+        stroke-linejoin="round"
         aria-hidden="true"
       >
-        <circle cx="9" cy="20" r="1.4"></circle>
-        <circle cx="18" cy="20" r="1.4"></circle>
-        <path d="M2 3h2.6l2.6 12.2h11.4l2.4-8.6H6"></path>
+        <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4"></path>
+        <circle cx="10.5" cy="20" r="1.4"></circle>
+        <circle cx="17.5" cy="20" r="1.4"></circle>
       </svg>
     </a>
 
-    <a class="hdr__cta" href={routes.catalog}>Noleggia ora</a>
+    <a class="btn btn-primary wide:inline-flex hidden flex-none" href={routes.catalog}>
+      Noleggia ora
+    </a>
 
-    <details class="hdr__menu">
-      <summary aria-label="Apri il menu">
+    <details class="wide:hidden flex-none">
+      <summary
+        class="border-hair bg-tint grid size-13 cursor-pointer list-none place-items-center rounded-full border [&::-webkit-details-marker]:hidden"
+        aria-label="Apri il menu"
+      >
         <svg
-          width="26"
-          height="26"
+          class="size-6"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -115,211 +137,22 @@ const isActive = (item: (typeof nav)[number]) =>
           <path d="M4 7h16M4 12h16M4 17h16"></path>
         </svg>
       </summary>
-      <nav class="hdr__menu-nav" aria-label="Navigazione principale">
-        {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+      <nav
+        class="border-hair mid:px-8 absolute inset-x-0 grid border-b bg-white px-5 pt-2 pb-4"
+        aria-label="Navigazione principale"
+      >
+        {
+          nav.map((item) => (
+            <a
+              class="border-hair font-display text-ui-strong text-ink flex min-h-12 items-center border-b font-semibold no-underline last:border-b-0"
+              href={item.href}
+              aria-current={isActive(item) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          ))
+        }
       </nav>
     </details>
   </div>
 </header>
-
-<style>
-  .hdr {
-    position: sticky;
-    top: 0;
-    z-index: var(--z-header);
-    background: var(--c-surface);
-    border-bottom: 1px solid var(--c-border);
-  }
-
-  .hdr__bar {
-    display: flex;
-    align-items: center;
-    /* Design gap is 28px. Wrapping is added so the bar cannot overflow
-       horizontally at 200% zoom, which the original prototype does. */
-    flex-wrap: wrap;
-    gap: var(--sp-3) 28px;
-    max-width: var(--container);
-    min-height: 75px;
-    margin-inline: auto;
-    padding: var(--sp-3) var(--container-pad);
-  }
-
-  .hdr__logo {
-    display: flex;
-    align-items: center;
-    flex: none;
-  }
-
-  .hdr__logo img {
-    height: 44px;
-    width: auto;
-  }
-
-  /* flex:1 pushes the phone, cart and CTA to the right edge. */
-  .hdr__nav {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .hdr__navlink {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    padding: 11px 16px;
-    border-radius: 10px;
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    color: var(--c-ink);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .hdr__navlink.is-active {
-    background: var(--c-surface-tint);
-    color: var(--c-primary);
-  }
-
-  .hdr__phone {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    flex: none;
-    min-height: 50px;
-    padding-inline: var(--sp-5);
-    border-radius: var(--radius-pill);
-    background: #e8f5ee;
-    border: 1px solid #bfe3cf;
-    /* 6.3:1 on #E8F5EE */
-    color: #0e6b41;
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 600;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .hdr__cart {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    background: var(--c-surface-tint);
-    border: 1px solid var(--c-surface-accent);
-    color: var(--c-primary);
-  }
-
-  .hdr__cta {
-    display: inline-flex;
-    align-items: center;
-    flex: none;
-    height: 50px;
-    padding-inline: 22px;
-    border-radius: 12px;
-    background: var(--c-primary);
-    color: var(--c-primary-ink);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .hdr__menu {
-    display: none;
-    flex: none;
-  }
-
-  .hdr__menu summary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--target-min);
-    height: var(--target-min);
-    border-radius: 12px;
-    background: var(--c-surface-tint);
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .hdr__menu summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .hdr__menu-nav {
-    position: absolute;
-    inset-inline: 0;
-    display: grid;
-    background: var(--c-surface);
-    border-bottom: 1px solid var(--c-border);
-    padding: var(--sp-2) var(--container-pad) var(--sp-4);
-  }
-
-  .hdr__menu-nav a {
-    display: flex;
-    align-items: center;
-    min-height: var(--target-min);
-    border-bottom: 1px solid var(--c-border);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 600;
-    color: var(--c-ink);
-    text-decoration: none;
-  }
-
-  @media (max-width: 1080px) {
-    .hdr__nav {
-      display: none;
-    }
-    .hdr__menu {
-      display: block;
-      order: 3;
-    }
-    .hdr__logo {
-      flex: 1;
-    }
-  }
-
-  @media (max-width: 700px) {
-    .hdr__bar {
-      min-height: 67px;
-      flex-wrap: nowrap;
-      gap: 10px;
-      padding: 10px 16px;
-    }
-
-    .hdr__logo img {
-      width: auto;
-      height: 36px;
-    }
-
-    .hdr__phone {
-      min-height: 48px;
-      gap: 7px;
-      padding-inline: 13px;
-      font-size: var(--fs-ui);
-    }
-
-    .hdr__phone-free {
-      display: none;
-    }
-
-    .hdr__cart {
-      width: 48px;
-      height: 48px;
-    }
-
-    .hdr__cta {
-      display: none;
-    }
-
-    .hdr__menu {
-      display: none;
-    }
-  }
-</style>

@@ -2,31 +2,38 @@
 /**
  * Home-page frequently asked questions.
  *
- * Native details/summary disclosures provide keyboard and screen-reader
- * behaviour without shipping a client-side island.
+ * Tinted rows, spaced apart: the spacing does most of the work and the hairline
+ * only finishes the edge. Native details/summary disclosures give keyboard and
+ * screen-reader behaviour without shipping a client-side island.
  */
+import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import { HOME_FAQ } from '~/lib/home-content';
 ---
 
-<section id="domande-frequenti" class="faq" aria-labelledby="domande-frequenti-title">
-  <div class="faq__inner">
-    <h2 id="domande-frequenti-title" class="faq__heading">Domande frequenti</h2>
+<section
+  id="domande-frequenti"
+  class="pt-section-sm mid:pt-section"
+  aria-labelledby="domande-frequenti-title"
+>
+  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
+    <SectionHeading id="domande-frequenti" heading="Domande frequenti" />
 
-    <ul class="faq__list">
+    <ul class="grid gap-2.5">
       {
-        HOME_FAQ.map((item) => (
-          <li class="faq__entry">
-            <details class="faq__item">
-              <summary class="faq__question">
-                <span>{item.question}</span>
+        HOME_FAQ.map((item, index) => (
+          <li>
+            <details
+              class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
+              open={index === 0}
+            >
+              <summary class="font-display text-h4 flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-semibold [&::-webkit-details-marker]:hidden">
+                {item.question}
                 <svg
-                  class="faq__chevron"
-                  width="22"
-                  height="22"
+                  class="text-ink-2 size-5.5 flex-none transition-transform duration-200 group-open:rotate-180"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2.6"
+                  stroke-width="2.4"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   aria-hidden="true"
@@ -34,7 +41,7 @@ import { HOME_FAQ } from '~/lib/home-content';
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </summary>
-              <p class="faq__answer">{item.answer}</p>
+              <p class="text-ui-strong text-ink-2 max-w-[68ch] pb-5.5">{item.answer}</p>
             </details>
           </li>
         ))
@@ -42,120 +49,3 @@ import { HOME_FAQ } from '~/lib/home-content';
     </ul>
   </div>
 </section>
-
-<style>
-  .faq {
-    padding-block-start: var(--sp-13);
-  }
-
-  .faq__inner {
-    width: 100%;
-    max-width: var(--container);
-    margin-inline: auto;
-    padding-inline: var(--container-pad);
-  }
-
-  .faq__heading {
-    margin-bottom: var(--sp-5);
-    font-size: var(--fs-h2);
-  }
-
-  .faq__list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--sp-6);
-    padding: var(--sp-2) 26px;
-    overflow: hidden;
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: 18px;
-    list-style: none;
-  }
-
-  .faq__item {
-    border-bottom: 1px solid var(--c-surface-tint-alt);
-  }
-
-  .faq__entry:nth-last-child(-n + 2) .faq__item {
-    border-bottom: 0;
-  }
-
-  .faq__question {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-    min-height: var(--target-min);
-    padding-block: 18px;
-    color: var(--c-ink);
-    cursor: pointer;
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    line-height: var(--lh-body);
-    list-style: none;
-  }
-
-  .faq__question::-webkit-details-marker {
-    display: none;
-  }
-
-  .faq__question > span {
-    flex: 1;
-  }
-
-  .faq__chevron {
-    flex: none;
-    color: var(--c-primary);
-    transition: transform 180ms ease;
-  }
-
-  .faq__item[open] .faq__chevron {
-    transform: rotate(180deg);
-  }
-
-  .faq__answer {
-    padding-block-end: 18px;
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  @media (max-width: 720px) {
-    .faq {
-      padding-block-start: 30px;
-    }
-
-    .faq__inner {
-      padding-inline: var(--sp-5);
-      padding-block-end: var(--sp-2);
-    }
-
-    .faq__heading {
-      margin-bottom: var(--sp-4);
-      font-size: 1.5rem;
-    }
-
-    .faq__list {
-      grid-template-columns: 1fr;
-      column-gap: 0;
-      padding: 0 var(--sp-4);
-      border-radius: 16px;
-    }
-
-    .faq__entry:nth-last-child(-n + 2) .faq__item {
-      border-bottom: 1px solid var(--c-surface-tint-alt);
-    }
-
-    .faq__entry:last-child .faq__item {
-      border-bottom: 0;
-    }
-
-    .faq__question {
-      padding-block: var(--sp-4);
-    }
-
-    .faq__answer {
-      padding-block-end: var(--sp-4);
-    }
-  }
-</style>

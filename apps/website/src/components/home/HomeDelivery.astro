@@ -1,265 +1,130 @@
 ---
 /**
- * Delivery and collection promises from the approved home-page prototypes.
+ * Delivery and collection promises.
  *
- * The desktop cards collapse into the mobile prototype's single divided card
- * without changing reading order.
+ * Not a second grid of text but a strip: three guarantees side by side, icon
+ * beside the heading rather than above it, divided by vertical hairlines. The
+ * areas served close the strip as a row of their own.
+ *
+ * The block's ground is tinted, so the objects inside it are white — the same
+ * figure/ground rule as everywhere else.
  */
+import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import { CONTACT } from '~/lib/site';
+
+const promises = [
+  {
+    title: 'Consegna in 24–48 ore',
+    body: 'A Roma, Firenze e provincia. Anche in appartamento, al piano.',
+    icon: 'truck',
+  },
+  {
+    title: 'Montaggio incluso',
+    body: 'Installiamo letti e ausili e ti mostriamo come si usano, con calma.',
+    icon: 'tool',
+  },
+  {
+    title: 'Ritiro a fine noleggio',
+    body: 'Fissiamo insieme il giorno: non devi riconsegnare nulla.',
+    icon: 'return',
+  },
+] as const;
 ---
 
-<section id="consegna-e-ritiro" class="delivery" aria-labelledby="consegna-e-ritiro-title">
-  <div class="delivery__inner">
-    <h2 id="consegna-e-ritiro-title" class="delivery__heading">Consegna e ritiro</h2>
-    <p class="delivery__lede">Pensiamo a tutto noi, dall'inizio alla fine.</p>
+<section
+  id="consegna-e-ritiro"
+  class="pt-section-sm mid:pt-section"
+  aria-labelledby="consegna-e-ritiro-title"
+>
+  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
+    <SectionHeading
+      id="consegna-e-ritiro"
+      heading="Consegna e ritiro"
+      lede="Pensiamo a tutto noi, dall'inizio alla fine."
+    />
 
-    <ul class="delivery__list">
-      <li class="delivery__item">
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M1 7h13v9H1z"></path>
-          <path d="M14 10h4l3 3v3h-7"></path>
-          <circle cx="5.5" cy="18.5" r="1.8"></circle>
-          <circle cx="17.5" cy="18.5" r="1.8"></circle>
-        </svg>
-        <div>
-          <h3 class="delivery__title">
-            <span class="delivery__desktop-copy">Consegna in 24–48 ore</span>
-            <span class="delivery__mobile-copy"> Consegniamo a casa tua in 24–48 ore </span>
-          </h3>
-          <p class="delivery__body">
-            A Roma, Firenze e provincia. Anche in appartamento, al piano.
-          </p>
-        </div>
-      </li>
+    <div class="rounded-card border-hair-strong bg-tint overflow-hidden border">
+      <ul class="wide:grid-cols-3 grid">
+        {
+          promises.map((promise, index) => (
+            <li
+              class:list={[
+                'mid:px-7 flex items-start gap-4 px-5 pt-6.5 pb-7',
+                /*
+                  An inset box-shadow, not a border: it draws the divider without
+                  adding a pixel to the cell, so the three columns stay equal.
+                  It flips from a left edge to a top edge when they stack.
+                */
+                index > 0 &&
+                  'wide:shadow-[inset_1px_0_0_var(--color-hair-strong)] shadow-[inset_0_1px_0_var(--color-hair-strong)]',
+              ]}
+            >
+              <span class="rounded-field border-hair grid size-11.5 flex-none place-items-center border bg-white">
+                {promise.icon === 'truck' && (
+                  <svg
+                    class="size-6 text-accent"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 7h13v9H1z" />
+                    <path d="M14 10h4l3 3v3h-7" />
+                    <circle cx="5.5" cy="18.5" r="1.8" />
+                    <circle cx="17.5" cy="18.5" r="1.8" />
+                  </svg>
+                )}
+                {promise.icon === 'tool' && (
+                  <svg
+                    class="size-6 text-accent"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M14.7 6.3a4.5 4.5 0 0 0 5.6 5.6L17 15.2a4.5 4.5 0 0 1-6.4 0l-4.8-4.8a4.5 4.5 0 0 1 0-6.4z"
+                      transform="rotate(90 12 12)"
+                    />
+                    <path d="m3.5 20.5 5-5" />
+                  </svg>
+                )}
+                {promise.icon === 'return' && (
+                  <svg
+                    class="size-6 text-accent"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 12a9 9 0 1 0 3-6.7" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                )}
+              </span>
+              <div>
+                <h3 class="text-body/[1.3]">{promise.title}</h3>
+                <p class="text-ui text-ink-2 mt-1.75">{promise.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
 
-      <li class="delivery__item">
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path
-            d="M14.7 6.3a4.5 4.5 0 0 0 5.6 5.6L17 15.2a4.5 4.5 0 0 1-6.4 0l-4.8-4.8a4.5 4.5 0 0 1 0-6.4z"
-            transform="rotate(90 12 12)"></path>
-          <path d="m3.5 20.5 5-5"></path>
-        </svg>
-        <div>
-          <h3 class="delivery__title">
-            <span class="delivery__desktop-copy">Montaggio incluso</span>
-            <span class="delivery__mobile-copy"> Montaggio e spiegazione inclusi </span>
-          </h3>
-          <p class="delivery__body">
-            <span class="delivery__desktop-copy">
-              Installiamo letti e ausili e ti mostriamo come si usano, con calma.
-            </span>
-            <span class="delivery__mobile-copy">
-              Installiamo letti e ausili e ti mostriamo come si usano.
-            </span>
-          </p>
-        </div>
-      </li>
-
-      <li class="delivery__item">
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M3 12a9 9 0 1 0 3-6.7"></path>
-          <path d="M3 3v5h5"></path>
-        </svg>
-        <div>
-          <h3 class="delivery__title">
-            <span class="delivery__desktop-copy">Ritiro a fine noleggio</span>
-            <span class="delivery__mobile-copy"> A fine noleggio ritiriamo noi </span>
-          </h3>
-          <p class="delivery__body">
-            <span class="delivery__desktop-copy">
-              Fissiamo insieme il giorno: non devi riconsegnare nulla.
-            </span>
-            <span class="delivery__mobile-copy">
-              Fissiamo insieme il giorno del ritiro: non devi riconsegnare nulla.
-            </span>
-          </p>
-        </div>
-      </li>
-    </ul>
-
-    <p class="delivery__areas">
-      <strong>Zone servite:</strong> Roma e provincia · Firenze e provincia.
-      <span class="delivery__areas-secondary">
-        {' '}Sei in un'altra zona?{' '}
-        <a href={`tel:${CONTACT.phoneE164}`}>Chiamaci</a>: spesso riusciamo a organizzare la
-        consegna.
-      </span>
-    </p>
+      <p class="border-hair-strong text-ui text-ink-2 mid:px-7 border-t bg-white px-5 py-4.5">
+        <strong class="text-ink">Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in
+        un'altra zona? <a class="text-accent" href={`tel:${CONTACT.phoneE164}`}>Chiamaci</a>: spesso
+        riusciamo a organizzare la consegna.
+      </p>
+    </div>
   </div>
 </section>
-
-<style>
-  .delivery {
-    padding-block-start: var(--sp-13);
-  }
-
-  .delivery__inner {
-    width: 100%;
-    max-width: var(--container);
-    margin-inline: auto;
-    padding-inline: var(--container-pad);
-  }
-
-  .delivery__heading {
-    font-size: var(--fs-h2);
-  }
-
-  .delivery__lede {
-    margin-top: var(--sp-1);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .delivery__list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--sp-4);
-    margin-top: var(--sp-5);
-    list-style: none;
-  }
-
-  .delivery__item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 22px;
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: 18px;
-  }
-
-  .delivery__item > svg {
-    flex: none;
-    margin-bottom: var(--sp-3);
-    color: var(--c-primary);
-  }
-
-  .delivery__title {
-    font-size: var(--fs-h4);
-    line-height: var(--lh-heading);
-  }
-
-  .delivery__body {
-    margin-top: var(--sp-1);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .delivery__mobile-copy {
-    display: none;
-  }
-
-  .delivery__areas {
-    margin-top: var(--sp-4);
-    padding: var(--sp-4) var(--sp-5);
-    border: 1px solid var(--c-surface-accent);
-    border-radius: 16px;
-    background: var(--c-surface-tint);
-    color: var(--c-ink);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  .delivery__areas-secondary {
-    color: var(--c-ink-secondary);
-  }
-
-  .delivery__areas a {
-    color: var(--c-primary);
-    font-weight: 700;
-  }
-
-  @media (max-width: 720px) {
-    .delivery {
-      padding-block-start: 30px;
-    }
-
-    .delivery__inner {
-      padding-inline: var(--sp-5);
-      padding-block-end: var(--sp-2);
-    }
-
-    .delivery__heading {
-      font-size: 1.5rem;
-    }
-
-    .delivery__list {
-      display: block;
-      margin-top: var(--sp-4);
-      padding: 6px var(--sp-4);
-      overflow: hidden;
-      background: var(--c-surface);
-      border: 1px solid var(--c-border);
-      border-radius: 16px;
-    }
-
-    .delivery__item {
-      flex-direction: row;
-      gap: 14px;
-      padding: 14px 0;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-    }
-
-    .delivery__item + .delivery__item {
-      border-top: 1px solid var(--c-surface-tint-alt);
-    }
-
-    .delivery__item > svg {
-      width: 24px;
-      height: 24px;
-      margin: 0.2em 0 0;
-    }
-
-    .delivery__desktop-copy {
-      display: none;
-    }
-
-    .delivery__mobile-copy {
-      display: inline;
-    }
-
-    .delivery__areas {
-      margin-top: var(--sp-3);
-      padding: 14px var(--sp-4);
-      border-radius: 14px;
-    }
-
-    .delivery__areas-secondary {
-      display: block;
-    }
-  }
-</style>

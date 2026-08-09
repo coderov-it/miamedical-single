@@ -38,31 +38,35 @@ const effectiveDate = document?.publishedAt
 ---
 
 <BaseLayout title={`${title} | Mia Medical Italia`} {description}>
-  <div class="policy container">
+  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: title }]} />
 
-    <article>
-      <h1>{title}</h1>
+    <article class="max-w-[78ch]">
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{title}</h1>
 
       {
         document ? (
           <Fragment>
-            <p class="policy__version">
+            <p class="text-ui text-ink-2 mt-3 mb-6">
               {`Versione ${document.version}`}
               {effectiveDate && ` — in vigore dal ${effectiveDate}`}
             </p>
-            <div class="policy__body">{body}</div>
+            <div class="whitespace-pre-line">{body}</div>
           </Fragment>
         ) : (
-          <div class="policy__pending">
+          <div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
             <p>
               Questo documento è in aggiornamento e non è ancora pubblicato online. Possiamo
               inviartelo subito per email o leggertelo al telefono.
             </p>
-            <p class="policy__hours">{CONTACT.hours.it}</p>
+            <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
             <PhoneCta variant="primary" />
             <p>
-              Oppure scrivici a <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>.
+              Oppure scrivici a{' '}
+              <a class="text-accent underline" href={`mailto:${CONTACT.email}`}>
+                {CONTACT.email}
+              </a>
+              .
             </p>
           </div>
         )
@@ -70,39 +74,3 @@ const effectiveDate = document?.publishedAt
     </article>
   </div>
 </BaseLayout>
-
-<style>
-  .policy {
-    padding-bottom: var(--sp-13);
-  }
-
-  .policy article {
-    max-width: 78ch;
-  }
-
-  .policy__version {
-    margin-block: var(--sp-3) var(--sp-6);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-
-  .policy__body {
-    white-space: pre-line;
-    line-height: var(--lh-body);
-  }
-
-  .policy__pending {
-    display: grid;
-    justify-items: start;
-    gap: var(--sp-4);
-    margin-top: var(--sp-6);
-    padding: var(--sp-8);
-    background: var(--c-surface-tint);
-    border-radius: var(--radius-lg);
-  }
-
-  .policy__hours {
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-</style>

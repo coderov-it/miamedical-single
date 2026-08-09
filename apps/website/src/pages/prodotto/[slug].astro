@@ -5,6 +5,10 @@
  * Rendered on demand so stock, price and specifications are never stale. The
  * whole page is server-rendered HTML; the only JavaScript is the quantity
  * stepper inside the buy box.
+ *
+ * Reading order on phones is gallery → identity → buy box → the rest, achieved
+ * with `display: contents` on the left column so its children join the page
+ * grid and can be ordered independently.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
@@ -41,6 +45,19 @@ const whyPoints = (product.shortDescription ?? '')
   .filter((sentence) => sentence.length > 0)
   .slice(0, 4);
 
+const includes = [
+  'Consegna a domicilio',
+  'Ritiro a fine noleggio',
+  'Montaggio e istruzioni',
+  'Assistenza telefonica',
+];
+
+const hygiene = [
+  'Sanificato e certificato',
+  'Controllato prima della consegna',
+  'Accessori inclusi e integri',
+];
+
 const jsonLd: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
@@ -72,6 +89,8 @@ if (product.faqs.length > 0) {
     })),
   });
 }
+
+const sectionTitle = 'mb-4 text-h3';
 ---
 
 <BaseLayout
@@ -84,7 +103,15 @@ if (product.faqs.length > 0) {
   ogImage={hero ? new URL(mediaUrl(hero.path), Astro.url.origin).href : undefined}
   {jsonLd}
 >
-  <div class="container">
+  {
+    /*
+      The bottom padding clears BOTH fixed bars on phones: the price bar and the
+      persistent navigation under it.
+    */
+  }
+  <div
+    class="max-w-page mid:px-8 mid:pb-16 mx-auto w-full px-5 pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]"
+  >
     <Breadcrumbs
       items={[
         { label: 'Home', href: '/' },
@@ -93,30 +120,32 @@ if (product.faqs.length > 0) {
       ]}
     />
 
-    <div class="pdp">
-      <div class="pdp__left">
-        <div class="pdp__gallery-card">
-          {
-            hero ? (
-              <img
-                class="pdp__hero"
-                src={mediaUrl(hero.path)}
-                alt={hero.alt ?? product.title}
-                loading="eager"
-                fetchpriority="high"
-                decoding="sync"
-              />
-            ) : (
-              <div class="pdp__hero pdp__hero--empty" aria-hidden="true" />
-            )
-          }
+    <div class="mid:gap-9 wide:grid-cols-[minmax(0,1fr)_400px] grid items-start gap-5 pt-2">
+      <div class="wide:flex wide:flex-col wide:gap-8 contents min-w-0">
+        <div class="rounded-card border-hair mid:p-6 order-1 border bg-white p-4">
+          {/* The site-wide 4:3 media well — same ratio as the card stage. */}
+          <div class="rounded-field bg-tint relative grid aspect-4/3 place-items-center">
+            {
+              hero && (
+                <img
+                  class="absolute inset-0 size-full object-contain p-6 mix-blend-multiply"
+                  src={mediaUrl(hero.path)}
+                  alt={hero.alt ?? product.title}
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="sync"
+                />
+              )
+            }
+          </div>
 
           {
             gallery.length > 0 && (
-              <ul class="pdp__thumbs">
+              <ul class="mt-4 flex gap-3 overflow-x-auto">
                 {gallery.map((item) => (
-                  <li>
+                  <li class="flex-none">
                     <img
+                      class="rounded-field border-hair bg-tint aspect-4/3 w-24 border object-contain p-1.5 mix-blend-multiply"
                       src={mediaUrl(item.path)}
                       alt={item.alt ?? ''}
                       loading="lazy"
@@ -129,11 +158,20 @@ if (product.faqs.length > 0) {
           }
         </div>
 
-        <div class="pdp__mobile-identity">
-          <a class="pdp__back" href={routes.catalog}>
+        {
+          /*
+            The identity block lives here on phones and inside the buy box on
+            desktop. Only one of the two is ever rendered visible, so the title
+            is never announced twice.
+          */
+        }
+        <div class="wide:hidden order-2 flex flex-col gap-3">
+          <a
+            class="font-display text-ui text-ink-2 inline-flex min-h-12 items-center gap-2 self-start font-semibold no-underline"
+            href={routes.catalog}
+          >
             <svg
-              width="20"
-              height="20"
+              class="size-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -145,39 +183,43 @@ if (product.faqs.length > 0) {
             </svg>
             Torna al catalogo
           </a>
-          <div class="pdp__identity-meta">
-            <span class="pdp__cat-pill">{product.category.name}</span>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <span
+              class="bg-tint font-display text-ui inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-accent"
+            >
+              {product.category.name}
+            </span>
             {
               inStock && (
-                <span class="pdp__avail-badge">
-                  <span class="pdp__dot" aria-hidden="true" />
+                <span class="font-display text-ui text-ok inline-flex items-center gap-1.5 font-semibold">
+                  <span class="size-2 rounded-full bg-current" aria-hidden="true" />
                   Disponibile subito
                 </span>
               )
             }
           </div>
-          <h1 class="pdp__title">{product.title}</h1>
-          {product.shortDescription && <p class="pdp__summary">{product.shortDescription}</p>}
+
+          <h1 class="text-[1.5625rem]/[1.25]">{product.title}</h1>
+          {product.shortDescription && <p class="text-ink-2">{product.shortDescription}</p>}
         </div>
 
         {
           whyPoints.length > 0 && (
-            <section class="pdp__section pdp__why" aria-labelledby="why-title">
-              <h2 id="why-title">
+            <section class="order-4" aria-labelledby="why-title">
+              <h2 id="why-title" class={sectionTitle}>
                 {isRental ? 'Perché scegliere questo ausilio' : 'Perché sceglierlo'}
               </h2>
-              <ul class="pdp__why-list">
+              <ul class="grid gap-4">
                 {whyPoints.map((point) => (
-                  <li>
+                  <li class="flex items-start gap-3">
                     <svg
-                      class="pdp__check-icon"
-                      width="22"
-                      height="22"
+                      class="mt-0.5 size-5.5 flex-none"
                       viewBox="0 0 24 24"
                       fill="none"
                       aria-hidden="true"
                     >
-                      <circle cx="12" cy="12" r="12" fill="var(--c-primary)" />
+                      <circle cx="12" cy="12" r="12" fill="var(--color-accent)" />
                       <path
                         d="M7 12.5l3 3 7-7"
                         stroke="#fff"
@@ -196,9 +238,11 @@ if (product.faqs.length > 0) {
 
         {
           product.description && (
-            <section class="pdp__section" aria-labelledby="desc-title">
-              <h2 id="desc-title">Descrizione</h2>
-              <div class="pdp__prose">
+            <section class="order-5" aria-labelledby="desc-title">
+              <h2 id="desc-title" class={sectionTitle}>
+                Descrizione
+              </h2>
+              <div class="grid gap-4">
                 {product.description.split(/\n{2,}/).map((paragraph) => (
                   <p>{paragraph}</p>
                 ))}
@@ -209,28 +253,26 @@ if (product.faqs.length > 0) {
 
         {
           isRental && (
-            <div class="pdp__includes-row">
-              <section class="pdp__includes-card" aria-labelledby="includes-title">
-                <h3 id="includes-title">Cosa è incluso</h3>
-                <ul class="pdp__includes-list">
-                  {[
-                    'Consegna a domicilio',
-                    'Ritiro a fine noleggio',
-                    'Montaggio e istruzioni',
-                    'Assistenza telefonica',
-                  ].map((item) => (
-                    <li>
+            <div class="wide:grid-cols-2 order-5 grid gap-5">
+              <section
+                class="rounded-card border-hair mid:p-6 border bg-white p-5"
+                aria-labelledby="includes-title"
+              >
+                <h3 id="includes-title" class="text-lead mb-4">
+                  Cosa è incluso
+                </h3>
+                <ul class="grid gap-3">
+                  {includes.map((item) => (
+                    <li class="text-ui flex items-center gap-3">
                       <svg
-                        class="pdp__include-icon"
-                        width="20"
-                        height="20"
+                        class="text-ok size-5 flex-none"
                         viewBox="0 0 24 24"
                         fill="none"
                         aria-hidden="true"
                       >
                         <path
                           d="M20 6L9 17l-5-5"
-                          stroke="var(--c-success)"
+                          stroke="currentColor"
                           stroke-width="2.5"
                           stroke-linecap="round"
                           stroke-linejoin="round"
@@ -242,32 +284,31 @@ if (product.faqs.length > 0) {
                 </ul>
               </section>
 
-              <section class="pdp__includes-card" aria-labelledby="hygiene-title">
-                <h3 id="hygiene-title">Igiene e sicurezza</h3>
-                <ul class="pdp__includes-list">
-                  {[
-                    'Sanificato e certificato',
-                    'Controllato prima della consegna',
-                    'Accessori inclusi e integri',
-                  ].map((item) => (
-                    <li>
+              <section
+                class="rounded-card border-hair mid:p-6 border bg-white p-5"
+                aria-labelledby="hygiene-title"
+              >
+                <h3 id="hygiene-title" class="text-lead mb-4">
+                  Igiene e sicurezza
+                </h3>
+                <ul class="grid gap-3">
+                  {hygiene.map((item) => (
+                    <li class="text-ui flex items-center gap-3">
                       <svg
-                        class="pdp__shield-icon"
-                        width="20"
-                        height="20"
+                        class="text-ok size-5 flex-none"
                         viewBox="0 0 24 24"
                         fill="none"
                         aria-hidden="true"
                       >
                         <path
                           d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                          stroke="var(--c-success)"
+                          stroke="currentColor"
                           stroke-width="2"
                           fill="none"
                         />
                         <path
                           d="M9 12l2 2 4-4"
-                          stroke="var(--c-success)"
+                          stroke="currentColor"
                           stroke-width="2"
                           stroke-linecap="round"
                           stroke-linejoin="round"
@@ -284,8 +325,10 @@ if (product.faqs.length > 0) {
 
         {
           !isRental && (
-            <section class="pdp__section" aria-labelledby="hygiene-title">
-              <h2 id="hygiene-title">Igiene e sicurezza</h2>
+            <section class="order-5" aria-labelledby="hygiene-title">
+              <h2 id="hygiene-title" class={sectionTitle}>
+                Igiene e sicurezza
+              </h2>
               <p>
                 Ogni ausilio viene <strong>sanificato, controllato e certificato</strong>. Lo ricevi
                 igienizzato e pronto all'uso, con tutti gli accessori.
@@ -296,13 +339,22 @@ if (product.faqs.length > 0) {
 
         {
           product.specifications.length > 0 && (
-            <section class="pdp__section" aria-labelledby="specs-title">
-              <h2 id="specs-title">Scheda tecnica</h2>
-              <div class="pdp__specs-table">
+            <section class="order-5" aria-labelledby="specs-title">
+              <h2 id="specs-title" class={sectionTitle}>
+                Scheda tecnica
+              </h2>
+              <div class="rounded-card border-hair overflow-hidden border">
                 {product.specifications.map((spec, index) => (
-                  <div class:list={['pdp__spec-row', index % 2 === 0 && 'pdp__spec-row--alt']}>
-                    <span class="pdp__spec-label">{spec.label}</span>
-                    <span class="pdp__spec-value">{spec.displayValue}</span>
+                  <div
+                    class:list={[
+                      'border-hair text-ui flex gap-4 border-b px-4 py-3.5 last:border-b-0',
+                      index % 2 === 0 ? 'bg-tint' : 'bg-white',
+                    ]}
+                  >
+                    <span class="font-display flex-none basis-[45%] font-semibold">
+                      {spec.label}
+                    </span>
+                    <span class="text-ink-2 flex-1">{spec.displayValue}</span>
                   </div>
                 ))}
               </div>
@@ -312,45 +364,56 @@ if (product.faqs.length > 0) {
 
         {
           product.faqs.length > 0 && (
-            <section class="pdp__section" aria-labelledby="faq-title">
-              <h2 id="faq-title">Domande frequenti su questo ausilio</h2>
-              <div class="pdp__faq">
+            <section class="order-5" aria-labelledby="faq-title">
+              <h2 id="faq-title" class={sectionTitle}>
+                Domande frequenti su questo ausilio
+              </h2>
+              <ul class="grid gap-2.5">
                 {product.faqs.map((faq, index) => (
-                  <details class="pdp__faq-item" open={index === 0}>
-                    <summary class="pdp__faq-question">
-                      <span>{faq.question}</span>
-                      <svg
-                        class="pdp__faq-chevron"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        stroke-linecap="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </summary>
-                    <div class="pdp__faq-answer">
-                      <p>{faq.answer}</p>
-                    </div>
-                  </details>
+                  <li>
+                    <details
+                      class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
+                      open={index === 0}
+                    >
+                      <summary class="font-display text-h4 flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-semibold [&::-webkit-details-marker]:hidden">
+                        {faq.question}
+                        <svg
+                          class="text-ink-2 size-5.5 flex-none transition-transform duration-200 group-open:rotate-180"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.4"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </summary>
+                      <p class="text-ui-strong text-ink-2 max-w-[68ch] pb-5.5">{faq.answer}</p>
+                    </details>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           )
         }
 
         {
           product.terms.length > 0 && (
-            <section class="pdp__section" aria-labelledby="terms-title">
-              <h2 id="terms-title">Condizioni applicabili</h2>
-              <ul class="pdp__terms">
+            <section class="order-5" aria-labelledby="terms-title">
+              <h2 id="terms-title" class={sectionTitle}>
+                Condizioni applicabili
+              </h2>
+              <ul class="grid gap-2">
                 {product.terms.map((terms) => (
                   <li>
-                    <a href={`/${terms.slug}/`}>{terms.title}</a>
+                    <a
+                      class="font-display text-ui inline-flex min-h-12 items-center font-semibold text-accent"
+                      href={`/${terms.slug}/`}
+                    >
+                      {terms.title}
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -359,612 +422,99 @@ if (product.faqs.length > 0) {
         }
       </div>
 
-      <div class="pdp__right">
-        <div class="pdp__buybox">
-          <div class="pdp__buybox-meta">
-            <span class="pdp__cat-pill">{product.category.name}</span>
-            {
-              inStock && (
-                <span class="pdp__avail-badge">
-                  <span class="pdp__dot" aria-hidden="true" />
-                  Disponibile subito
-                </span>
-              )
-            }
-          </div>
+      <div class="wide:sticky wide:top-24 order-3 flex flex-col gap-5">
+        <div
+          class="rounded-card border-hair-strong mid:p-6 flex flex-col gap-4 border bg-white p-5"
+        >
+          <div class="wide:block hidden">
+            <div class="flex flex-wrap items-center gap-3">
+              <span
+                class="bg-tint font-display text-ui inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-accent"
+              >
+                {product.category.name}
+              </span>
+              {
+                inStock && (
+                  <span class="font-display text-ui text-ok inline-flex items-center gap-1.5 font-semibold">
+                    <span class="size-2 rounded-full bg-current" aria-hidden="true" />
+                    Disponibile subito
+                  </span>
+                )
+              }
+            </div>
 
-          <h1 class="pdp__title">{product.title}</h1>
-          {product.brand && <p class="pdp__brand">{product.brand}</p>}
-          {product.shortDescription && <p class="pdp__summary">{product.shortDescription}</p>}
+            <p class="font-display mt-3 text-[1.5625rem]/[1.25] font-semibold tracking-[-0.028em]">
+              {product.title}
+            </p>
+            {product.brand && <p class="text-ui text-ink-2 mt-1">{product.brand}</p>}
+            {product.shortDescription && <p class="text-ink-2 mt-3">{product.shortDescription}</p>}
+          </div>
 
           <ProductQuote {product} />
 
-          <div class="pdp__reassure">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" stroke="var(--c-success)" stroke-width="2"></circle>
+          <p class="rounded-field bg-tint text-ui flex items-start gap-3 px-4 py-3.5">
+            <svg
+              class="text-ok mt-0.5 size-5 flex-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
               <path
                 d="M9 12l2 2 4-4"
-                stroke="var(--c-success)"
+                stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"></path>
             </svg>
-            <p>
+            <span>
               <strong>Nessun pagamento online adesso.</strong> Invia la richiesta e confermiamo tutto
               al telefono.
-            </p>
-          </div>
+            </span>
+          </p>
         </div>
 
-        <div class="pdp__help-card">
-          <p class="pdp__help-title">Non sai se è adatto a te?</p>
-          <p class="pdp__help-subtitle">Chiamaci, ti aiutiamo a scegliere</p>
-          <PhoneCta variant="primary" srHint="per informazioni su questo prodotto" />
+        <div
+          class="rounded-card border-hair mid:p-6 flex flex-col items-start gap-3 border bg-white p-5"
+        >
+          <p class="font-display text-lead font-semibold">Non sai se è adatto a te?</p>
+          <p class="text-ui text-ink-2">Chiamaci, ti aiutiamo a scegliere</p>
+          <PhoneCta variant="primary" class="w-full" srHint="per informazioni su questo prodotto" />
           <a
-            class="pdp__wa-btn"
+            class="btn btn-soft w-full"
             href={whatsappUrl(`Informazioni su: ${product.title}`)}
             target="_blank"
             rel="noopener"
+            data-analytics="whatsapp"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path
-                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
-              ></path>
-            </svg>
             WhatsApp
           </a>
-          <p class="pdp__help-hours">{CONTACT.hours.it}</p>
+          <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="pdp__mobile-bar">
-    <div class="pdp__mobile-bar-inner">
-      <div class="pdp__mobile-bar-price">
-        {isRental && <span class="pdp__mobile-bar-label">da</span>}
-        <span class="pdp__mobile-bar-amount">{formatPricing(product.pricing)}</span>
-      </div>
-      <a class="pdp__mobile-bar-cta" href="#quote-form">
+  {
+    /*
+      The mobile price bar sits directly ABOVE the persistent bottom navigation
+      rather than fighting it for `bottom: 0` — two overlapping bars means one of
+      them is unusable, and the navigation already reserves the safe-area inset.
+    */
+  }
+  <div
+    class="bg-ink mid:hidden fixed inset-x-0 bottom-[calc(var(--spacing-mobile-nav)+env(safe-area-inset-bottom,0px))] z-65 px-5 py-4"
+  >
+    <div class="max-w-page mx-auto flex items-center justify-between gap-4">
+      <p class="flex items-baseline gap-2 text-white">
+        {isRental && <span class="text-ui opacity-70">da</span>}
+        <span class="font-display text-h4 font-bold tabular-nums">
+          {formatPricing(product.pricing)}
+        </span>
+      </p>
+      <a class="btn btn-primary min-h-12 px-6" href="#quote-form">
         {isRental ? 'Noleggia ora' : 'Richiedi'}
       </a>
     </div>
   </div>
 </BaseLayout>
-
-<style>
-  /* -------------------- Two-column desktop layout -------------------- */
-  .pdp {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 36px;
-    padding-block: var(--sp-4) var(--sp-10);
-    align-items: start;
-  }
-
-  .pdp__left {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-8);
-    min-width: 0;
-  }
-
-  /* -------------------- Gallery -------------------- */
-  .pdp__gallery-card {
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-  }
-
-  .pdp__hero {
-    width: 100%;
-    height: 400px;
-    object-fit: contain;
-    border-radius: var(--radius-md);
-    background: var(--c-surface);
-    mix-blend-mode: multiply;
-  }
-
-  .pdp__hero--empty {
-    background: var(--c-surface-tint);
-  }
-
-  .pdp__thumbs {
-    display: flex;
-    gap: var(--sp-3);
-    margin-top: var(--sp-4);
-    list-style: none;
-    overflow-x: auto;
-  }
-
-  .pdp__thumbs li {
-    flex: 0 0 74px;
-  }
-
-  .pdp__thumbs img {
-    width: 74px;
-    height: 74px;
-    object-fit: contain;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--c-border);
-    background: var(--c-surface);
-  }
-
-  /* -------------------- Mobile-only identity -------------------- */
-  .pdp__mobile-identity {
-    display: none;
-  }
-
-  .pdp__back {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-2);
-    min-height: var(--target-min);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-    color: var(--c-ink-secondary);
-    text-decoration: none;
-  }
-
-  .pdp__identity-meta,
-  .pdp__buybox-meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-  }
-
-  .pdp__cat-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 14px;
-    background: var(--c-surface-tint);
-    color: var(--c-primary);
-    border-radius: var(--radius-pill);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-  }
-
-  .pdp__avail-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-    color: var(--c-success);
-  }
-
-  .pdp__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-  }
-
-  .pdp__title {
-    margin-top: var(--sp-3);
-    font-family: var(--font-heading);
-    font-size: 1.5625rem; /* 25px, per the design */
-    font-weight: 800;
-    line-height: var(--lh-heading);
-    color: var(--c-ink);
-  }
-
-  .pdp__brand {
-    margin-top: var(--sp-1);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-
-  .pdp__summary {
-    margin-top: var(--sp-3);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  /* -------------------- Right column (buy box) -------------------- */
-  .pdp__right {
-    position: sticky;
-    top: 92px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-5);
-  }
-
-  .pdp__buybox {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-4);
-    padding: 24px;
-    background: var(--c-surface);
-    border: 2px solid var(--c-surface-accent);
-    border-radius: var(--radius-lg);
-  }
-
-  .pdp__reassure {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--sp-3);
-    padding: var(--sp-4);
-    background: #e8f5ee;
-    border-radius: var(--radius-md);
-    font-size: var(--fs-ui);
-    color: var(--c-ink);
-  }
-
-  .pdp__reassure svg {
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  /* -------------------- Help card -------------------- */
-  .pdp__help-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-3);
-    padding: 24px;
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
-  }
-
-  .pdp__help-title {
-    font-family: var(--font-heading);
-    font-size: var(--fs-h4);
-    font-weight: 700;
-    color: var(--c-ink);
-  }
-
-  .pdp__help-subtitle {
-    margin-bottom: var(--sp-2);
-    font-size: var(--fs-ui);
-    color: var(--c-ink-secondary);
-  }
-
-  .pdp__wa-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-2);
-    min-height: var(--target-min);
-    padding: var(--sp-3) var(--sp-5);
-    border: 2px solid var(--c-success);
-    border-radius: var(--radius-pill);
-    background: transparent;
-    color: var(--c-success);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .pdp__help-hours {
-    font-size: var(--fs-ui);
-    color: var(--c-ink-secondary);
-  }
-
-  /* -------------------- Sections -------------------- */
-  .pdp__section h2 {
-    font-size: var(--fs-h3);
-    margin-bottom: var(--sp-4);
-  }
-
-  .pdp__why-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-4);
-    list-style: none;
-  }
-
-  .pdp__why-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--sp-3);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-    color: var(--c-ink);
-  }
-
-  .pdp__check-icon {
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .pdp__prose {
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-    color: var(--c-ink);
-  }
-
-  .pdp__prose p + p {
-    margin-top: var(--sp-4);
-  }
-
-  .pdp__terms {
-    display: grid;
-    gap: var(--sp-2);
-    list-style: none;
-  }
-
-  .pdp__terms a {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 600;
-  }
-
-  /* -------------------- Includes / hygiene -------------------- */
-  .pdp__includes-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--sp-5);
-  }
-
-  .pdp__includes-card {
-    padding: 24px;
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
-  }
-
-  .pdp__includes-card h3 {
-    font-size: var(--fs-h4);
-    margin-bottom: var(--sp-4);
-  }
-
-  .pdp__includes-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-3);
-    list-style: none;
-  }
-
-  .pdp__includes-list li {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-    font-size: var(--fs-ui);
-    color: var(--c-ink);
-  }
-
-  .pdp__include-icon,
-  .pdp__shield-icon {
-    flex-shrink: 0;
-  }
-
-  /* -------------------- Specs table -------------------- */
-  .pdp__specs-table {
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-
-  .pdp__spec-row {
-    display: flex;
-    padding: var(--sp-3) var(--sp-4);
-    border-bottom: 1px solid var(--c-border);
-    font-size: var(--fs-ui);
-  }
-
-  .pdp__spec-row:last-child {
-    border-bottom: 0;
-  }
-
-  .pdp__spec-row--alt {
-    background: var(--c-surface-tint);
-  }
-
-  .pdp__spec-label {
-    flex: 0 0 45%;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    color: var(--c-ink);
-  }
-
-  .pdp__spec-value {
-    flex: 1;
-    color: var(--c-ink-secondary);
-  }
-
-  /* -------------------- FAQ accordion -------------------- */
-  .pdp__faq {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-
-  .pdp__faq-item {
-    border-bottom: 1px solid var(--c-border);
-  }
-
-  .pdp__faq-item:last-child {
-    border-bottom: 0;
-  }
-
-  .pdp__faq-question {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--sp-3);
-    min-height: var(--target-min);
-    padding: var(--sp-4) var(--sp-5);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    color: var(--c-ink);
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .pdp__faq-question::-webkit-details-marker {
-    display: none;
-  }
-
-  .pdp__faq-chevron {
-    flex-shrink: 0;
-    color: var(--c-ink-secondary);
-    transition: transform 0.2s ease;
-  }
-
-  .pdp__faq-item[open] .pdp__faq-chevron {
-    transform: rotate(180deg);
-  }
-
-  .pdp__faq-answer {
-    padding: 0 var(--sp-5) var(--sp-4);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-  }
-
-  /* -------------------- Mobile sticky bar -------------------- */
-  .pdp__mobile-bar {
-    display: none;
-  }
-
-  @media (max-width: 1100px) {
-    .pdp {
-      grid-template-columns: 1fr 360px;
-      gap: 24px;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .pdp {
-      grid-template-columns: 1fr;
-      gap: var(--sp-5);
-    }
-
-    /* Reading order on mobile: gallery → identity → buy box → the rest. */
-    .pdp__left {
-      display: contents;
-    }
-
-    .pdp__gallery-card {
-      order: 1;
-      padding: 16px;
-    }
-
-    .pdp__mobile-identity {
-      display: flex;
-      flex-direction: column;
-      gap: var(--sp-3);
-      order: 2;
-    }
-
-    .pdp__right {
-      order: 3;
-      position: static;
-    }
-
-    .pdp__why {
-      order: 4;
-    }
-
-    .pdp__section {
-      order: 5;
-    }
-
-    .pdp__includes-row {
-      order: 5;
-      grid-template-columns: 1fr;
-    }
-
-    /* The buy box repeats the identity block on desktop; on mobile it lives
-       above, so hide the duplicate rather than reading it out twice. */
-    .pdp__buybox .pdp__buybox-meta,
-    .pdp__buybox .pdp__title,
-    .pdp__buybox .pdp__brand,
-    .pdp__buybox .pdp__summary {
-      display: none;
-    }
-
-    .pdp__hero {
-      height: 260px;
-    }
-
-    .pdp__thumbs li {
-      flex: 0 0 62px;
-    }
-
-    .pdp__thumbs img {
-      width: 62px;
-      height: 62px;
-    }
-
-    .pdp__title {
-      font-size: var(--fs-h3);
-    }
-
-    /* Sits directly above the persistent bottom navigation rather than fighting
-       it for `bottom: 0` — two overlapping bars means one of them is unusable,
-       and the navigation already reserves the safe-area inset. */
-    .pdp__mobile-bar {
-      display: block;
-      position: fixed;
-      inset-inline: 0;
-      bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px));
-      z-index: var(--z-island-bar);
-      padding: var(--sp-4) var(--container-pad);
-      background: #1b2437;
-    }
-
-    .pdp__mobile-bar-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--sp-4);
-      max-width: 430px;
-      margin-inline: auto;
-    }
-
-    .pdp__mobile-bar-price {
-      display: flex;
-      align-items: baseline;
-      gap: var(--sp-2);
-      color: #fff;
-    }
-
-    .pdp__mobile-bar-label {
-      font-size: var(--fs-ui);
-      opacity: 0.7;
-    }
-
-    .pdp__mobile-bar-amount {
-      font-family: var(--font-heading);
-      font-size: var(--fs-h4);
-      font-weight: 800;
-    }
-
-    .pdp__mobile-bar-cta {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: var(--target-min);
-      padding: var(--sp-3) var(--sp-6);
-      border-radius: 14px;
-      background: var(--c-primary);
-      color: var(--c-primary-ink);
-      font-family: var(--font-heading);
-      font-size: var(--fs-ui-strong);
-      font-weight: 700;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    /* Keep the last section clear of both bottom bars. */
-    .container {
-      padding-bottom: calc(var(--mobile-bar-h) + var(--mobile-nav-h) + var(--sp-5));
-    }
-  }
-</style>

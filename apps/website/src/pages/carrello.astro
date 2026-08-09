@@ -13,7 +13,6 @@ import { getProductBySlug } from '~/lib/catalog';
 import { FIELD, formatDateLabel, resolveRequest } from '~/lib/request-config';
 import { productPath, routes } from '~/lib/routes';
 import { CONTACT, whatsappUrl } from '~/lib/site';
-import '~/styles/commerce.css';
 
 export const prerender = false;
 
@@ -48,10 +47,10 @@ const requestLines = product
   description="Controlla la tua richiesta di noleggio e confermala al telefono."
   noindex
 >
-  <div class="commerce-page">
-    <header class="commerce-page__intro">
-      <h1>La tua richiesta</h1>
-      <p>
+  <div class="pb-section-sm mid:px-8 mid:pb-section mx-auto w-full max-w-275 px-5 pt-8">
+    <header class="mb-10 max-w-180">
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">La tua richiesta</h1>
+      <p class="text-lead text-ink-2 mt-3">
         Controlla i dettagli e chiamaci per confermare: verifichiamo la disponibilità, concordiamo
         la consegna e solo dopo ricevi il link di pagamento.
       </p>
@@ -59,72 +58,74 @@ const requestLines = product
 
     {
       product ? (
-        <div class="commerce-grid">
+        <div class="wide:grid-cols-[minmax(0,1fr)_340px] grid items-start gap-8">
           <section aria-labelledby="request-items-title">
             <h2 id="request-items-title" class="sr-only">
               Prodotto richiesto
             </h2>
-            <ul class="cart-list">
-              <li class="cart-item">
-                {product.media.thumbnail ? (
+
+            <div class="rounded-card border-hair mid:grid-cols-[148px_minmax(0,1fr)] mid:p-6 grid gap-5 border bg-white p-5">
+              <div class="rounded-field bg-tint relative grid aspect-4/3 place-items-center">
+                {product.media.thumbnail && (
                   <img
-                    class="cart-item__image"
+                    class="absolute inset-0 size-full object-contain p-3 mix-blend-multiply"
                     src={mediaUrl(product.media.thumbnail.path)}
                     alt={product.media.thumbnail.alt ?? product.title}
                     loading="eager"
                   />
-                ) : (
-                  <div class="cart-item__image" aria-hidden="true" />
                 )}
+              </div>
 
-                <div class="cart-item__body">
-                  <p class="cart-item__title">{product.title}</p>
+              <div class="grid gap-3">
+                <p class="font-display text-lead font-semibold">{product.title}</p>
 
-                  <ul class="cart-item__meta">
-                    <li>{formatPricing(product.pricing)}</li>
-                    {request.selections.map((entry) => (
-                      <li>
-                        {`${entry.label}: `}
-                        <strong>{entry.value}</strong>
-                        {entry.note && ` (${entry.note})`}
-                      </li>
-                    ))}
-                    {startDateLabel && (
-                      <li>
-                        {'Da quando: '}
-                        <strong>{startDateLabel}</strong>
-                      </li>
-                    )}
+                <ul class="text-ui text-ink-2 grid gap-1">
+                  <li>{formatPricing(product.pricing)}</li>
+                  {request.selections.map((entry) => (
                     <li>
-                      {'Quantità: '}
-                      <strong>{request.quantity}</strong>
+                      {`${entry.label}: `}
+                      <strong class="text-ink">{entry.value}</strong>
+                      {entry.note && ` (${entry.note})`}
                     </li>
-                    {request.addons.map((addon) => (
-                      <li>
-                        {'Extra: '}
-                        <strong>{addon.name}</strong>
-                        {` — ${formatPricing(addon.pricing)}`}
-                      </li>
-                    ))}
-                  </ul>
+                  ))}
+                  {startDateLabel && (
+                    <li>
+                      {'Da quando: '}
+                      <strong class="text-ink">{startDateLabel}</strong>
+                    </li>
+                  )}
+                  <li>
+                    {'Quantità: '}
+                    <strong class="text-ink">{request.quantity}</strong>
+                  </li>
+                  {request.addons.map((addon) => (
+                    <li>
+                      {'Extra: '}
+                      <strong class="text-ink">{addon.name}</strong>
+                      {` — ${formatPricing(addon.pricing)}`}
+                    </li>
+                  ))}
+                </ul>
 
-                  <div class="cart-item__actions">
-                    <a class="secondary-action" href={productPath(product.slug)}>
-                      Modifica la scelta
-                    </a>
-                  </div>
-                </div>
-              </li>
-            </ul>
+                <a class="btn btn-soft justify-self-start" href={productPath(product.slug)}>
+                  Modifica la scelta
+                </a>
+              </div>
+            </div>
 
             {request.answers.length > 0 && (
-              <section class="request-answers" aria-labelledby="request-answers-title">
-                <h2 id="request-answers-title">Informazioni per la consegna</h2>
+              <section
+                class="rounded-card border-hair mid:p-6 mt-5 border bg-white p-5"
+                aria-labelledby="request-answers-title"
+              >
+                <h2 id="request-answers-title" class="text-lead mb-4">
+                  Informazioni per la consegna
+                </h2>
                 <dl>
                   {request.answers.map((entry) => (
-                    <div class="request-answers__row">
-                      <dt>{entry.label}</dt>
-                      <dd>{entry.value}</dd>
+                    <div class="border-hair grid gap-1 border-b py-3 last:border-b-0 min-[560px]:grid-cols-2 min-[560px]:gap-3">
+                      <dt class="font-display text-ui font-semibold">{entry.label}</dt>
+                      <dd class="text-ui text-ink-2">{entry.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -132,132 +133,76 @@ const requestLines = product
             )}
           </section>
 
-          <aside class="summary-card" aria-labelledby="request-summary-title">
-            <h2 id="request-summary-title">Come si conclude</h2>
+          <aside
+            class="rounded-card border-hair bg-tint mid:p-6 wide:sticky wide:top-24 border p-5"
+            aria-labelledby="request-summary-title"
+          >
+            <h2 id="request-summary-title" class="text-h3 mb-5">
+              Come si conclude
+            </h2>
 
-            <div class="summary-card__row">
+            <div class="border-hair-strong flex justify-between gap-3 border-b py-3">
               <span>Prezzo indicativo</span>
-              <span>{formatPricing(product.pricing)}</span>
+              <span class="tabular-nums">{formatPricing(product.pricing)}</span>
             </div>
-            <div class="summary-card__row">
+            <div class="border-hair-strong flex justify-between gap-3 border-b py-3">
               <span>Consegna e ritiro</span>
               <span>da confermare</span>
             </div>
-            <div class="summary-card__row summary-card__row--total">
+            <div class="font-display text-lead flex justify-between gap-3 py-3 font-bold">
               <span>Oggi paghi</span>
-              <span>€ 0,00</span>
+              <span class="tabular-nums">€ 0,00</span>
             </div>
 
-            <p class="pay-later">
-              <strong>Nessun pagamento online.</strong> Ti chiamiamo per confermare tutto, poi
-              ricevi un link di pagamento sicuro via SMS o email.
+            <p class="rounded-field text-ui my-5 flex items-start gap-3 bg-white px-4 py-3.5">
+              <svg
+                class="text-ok mt-0.5 size-5 flex-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8.5 12.5 2.5 2.5 5-5.5" />
+              </svg>
+              <span>
+                <strong>Nessun pagamento online.</strong> Ti chiamiamo per confermare tutto, poi
+                ricevi un link di pagamento sicuro via SMS o email.
+              </span>
             </p>
 
-            <PhoneCta variant="primary" class="request-phone" />
+            <PhoneCta variant="primary" class="mb-3 w-full" />
 
             <a
-              class="secondary-action request-whatsapp"
+              class="btn btn-soft border-hair-strong w-full bg-white"
               href={whatsappUrl(requestLines.join('\n'))}
               target="_blank"
               rel="noopener"
+              data-analytics="whatsapp"
             >
               Invia la richiesta su WhatsApp
             </a>
 
-            <p class="request-hours">{CONTACT.hours.it}</p>
+            <p class="text-ui text-ink-2 mt-3">{CONTACT.hours.it}</p>
           </aside>
         </div>
       ) : (
-        <div class="empty-state">
-          <h2>Non hai ancora scelto nessun ausilio</h2>
-          <p>
+        <div class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6">
+          <h2 class="text-h3">Non hai ancora scelto nessun ausilio</h2>
+          <p class="max-w-[60ch]">
             Sfoglia il catalogo, scegli il prodotto e le opzioni: poi confermiamo tutto insieme al
             telefono. Se preferisci, possiamo fare la richiesta per te adesso.
           </p>
-          <a class="secondary-action" href={routes.catalog}>
+          <a class="btn btn-soft border-hair-strong bg-white" href={routes.catalog}>
             Vai al catalogo
           </a>
-          <p class="request-hours">{CONTACT.hours.it}</p>
+          <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
           <PhoneCta variant="primary" />
         </div>
       )
     }
   </div>
 </BaseLayout>
-
-<style>
-  .summary-card :global(.request-phone),
-  .request-whatsapp {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .summary-card :global(.request-phone) {
-    margin-bottom: var(--sp-3);
-    min-height: 54px;
-  }
-
-  .request-hours {
-    margin-top: var(--sp-3);
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-
-  .request-answers {
-    margin-top: var(--sp-5);
-    padding: var(--sp-5);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
-    background: var(--c-surface);
-  }
-
-  .request-answers h2 {
-    margin-bottom: var(--sp-4);
-    font-size: var(--fs-h4);
-  }
-
-  .request-answers__row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--sp-3);
-    padding-block: var(--sp-3);
-    border-bottom: 1px solid var(--c-border);
-  }
-
-  .request-answers__row:last-child {
-    border-bottom: 0;
-  }
-
-  .request-answers dt {
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui);
-    font-weight: 700;
-  }
-
-  .request-answers dd {
-    font-size: var(--fs-ui);
-    color: var(--c-ink-secondary);
-  }
-
-  .empty-state {
-    display: grid;
-    justify-items: center;
-    gap: var(--sp-3);
-  }
-
-  .empty-state h2 {
-    font-size: var(--fs-h3);
-  }
-
-  .empty-state p {
-    max-width: 60ch;
-    margin: 0;
-  }
-
-  @media (max-width: 560px) {
-    .request-answers__row {
-      grid-template-columns: 1fr;
-      gap: var(--sp-1);
-    }
-  }
-</style>

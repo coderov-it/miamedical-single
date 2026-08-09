@@ -25,7 +25,9 @@
   "devDependencies": {
     "@astrojs/check": "catalog:",
     "@mia/tsconfig": "workspace:*",
+    "@tailwindcss/vite": "catalog:",
     "@types/node": "catalog:",
+    "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }
 }

@@ -18,54 +18,20 @@ export const prerender = false;
   description="La pagina che cercavi non esiste più. Sfoglia il catalogo o chiamaci: ti aiutiamo noi."
   noindex
 >
-  <div class="notfound container">
-    <h1>Questa pagina non c'è più</h1>
-    <p>
-      Forse il prodotto è stato spostato o l'indirizzo è stato digitato male. Puoi ripartire dal
-      catalogo, oppure chiamarci: ti diciamo subito dove trovare quello che cerchi.
-    </p>
+  <div class="max-w-page py-section-sm mid:px-8 mid:py-section mx-auto w-full px-5">
+    <div class="max-w-[62ch]">
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">Questa pagina non c'è più</h1>
+      <p class="text-lead text-ink-2 mt-4">
+        Forse il prodotto è stato spostato o l'indirizzo è stato digitato male. Puoi ripartire dal
+        catalogo, oppure chiamarci: ti diciamo subito dove trovare quello che cerchi.
+      </p>
 
-    <div class="notfound__actions">
-      <a class="notfound__browse" href={routes.catalog}>Vai al catalogo</a>
-      <PhoneCta variant="secondary" />
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a class="btn btn-primary" href={routes.catalog}>Vai al catalogo</a>
+        <PhoneCta variant="soft" />
+      </div>
+
+      <p class="text-ui text-ink-2 mt-5">{CONTACT.hours.it}</p>
     </div>
-
-    <p class="notfound__hours">{CONTACT.hours.it}</p>
   </div>
 </BaseLayout>
-
-<style>
-  .notfound {
-    display: grid;
-    justify-items: start;
-    gap: var(--sp-4);
-    max-width: 62ch;
-    padding-block: var(--sp-13);
-  }
-
-  .notfound__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-    margin-top: var(--sp-2);
-  }
-
-  .notfound__browse {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    padding-inline: var(--sp-6);
-    border-radius: var(--radius-pill);
-    background: var(--c-primary);
-    color: var(--c-primary-ink);
-    font-family: var(--font-heading);
-    font-size: var(--fs-ui-strong);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .notfound__hours {
-    color: var(--c-ink-secondary);
-    font-size: var(--fs-ui);
-  }
-</style>

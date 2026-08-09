@@ -1,10 +1,13 @@
 ---
 /**
- * Category tiles arranged as in the approved home design.
+ * Category tiles. A section on white, so the tiles are white too and the
+ * hairline does the separating; the fill inside each tile goes tinted.
  *
- * Each tile is a real link into the catalogue filtered by category code, so a
- * category rename cannot orphan the tile — the code is stable, the slug is not.
+ * Each tile is a real link into the catalogue filtered by category **code**, so
+ * a category rename cannot orphan the tile — the code is stable, the slug is
+ * not.
  */
+import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import { mediaUrl } from '~/lib/api';
 import type { HomeCategoryCard } from '~/lib/home-content';
 import { catalogPath } from '~/lib/routes';
@@ -18,20 +21,32 @@ const { categories } = Astro.props;
 
 {
   categories.length > 0 && (
-    <section class="categories" aria-labelledby="home-categories-title">
-      <div class="categories__inner">
-        <h2 id="home-categories-title">Categorie</h2>
-        <ul class="categories__grid">
+    <section class="pt-section-sm mid:pt-section" aria-labelledby="home-categories-title">
+      <div class="max-w-page mid:px-8 mx-auto w-full px-5">
+        <SectionHeading id="home-categories" heading="Categorie" />
+
+        <ul class="mid:grid-cols-2 wide:grid-cols-4 grid gap-4.5">
           {categories.map((category) => (
-            <li>
-              <a class="category" href={catalogPath({ categoria: category.code })}>
-                {category.imagePath ? (
-                  <img src={mediaUrl(category.imagePath)} alt="" loading="lazy" decoding="async" />
-                ) : (
-                  <span class="category__image-empty" aria-hidden="true" />
-                )}
-                <h3>{category.title}</h3>
-                <p>{category.detail}</p>
+            <li class="flex">
+              <a
+                class="rounded-card border-hair hover:border-hair-strong flex min-h-26 w-full items-center gap-4.5 border bg-white px-5.5 py-4.5 no-underline hover:bg-[#fcfdff]"
+                href={catalogPath({ categoria: category.code })}
+              >
+                <span class="rounded-field border-hair bg-tint grid size-15.5 flex-none place-items-center border">
+                  {category.imagePath && (
+                    <img
+                      class="size-10 object-contain mix-blend-multiply"
+                      src={mediaUrl(category.imagePath)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                </span>
+                <span class="min-w-0">
+                  <h3 class="text-body">{category.title}</h3>
+                  <p class="text-ui text-ink-2 mt-0.5">{category.detail}</p>
+                </span>
               </a>
             </li>
           ))}
@@ -40,111 +55,3 @@ const { categories } = Astro.props;
     </section>
   )
 }
-
-<style>
-  .categories {
-    padding-top: var(--sp-13);
-  }
-
-  .categories__inner {
-    max-width: var(--container);
-    margin-inline: auto;
-    padding-inline: var(--container-pad);
-  }
-
-  .categories h2 {
-    margin-bottom: var(--sp-5);
-  }
-
-  .categories__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--sp-4);
-    list-style: none;
-  }
-
-  .categories__grid > li {
-    display: flex;
-  }
-
-  .category {
-    display: flex;
-    width: 100%;
-    min-width: 0;
-    align-items: center;
-    flex-direction: column;
-    gap: 9px;
-    padding: 18px 14px;
-    border: 1px solid var(--c-border);
-    border-radius: 18px;
-    background: var(--c-surface);
-    color: inherit;
-    text-align: center;
-    text-decoration: none;
-  }
-
-  .category:hover {
-    border-color: #a9badf;
-  }
-
-  .category img,
-  .category__image-empty {
-    width: 100%;
-    height: 104px;
-    object-fit: contain;
-    mix-blend-mode: multiply;
-  }
-
-  .category h3 {
-    font-size: var(--fs-ui-strong);
-    line-height: 1.35;
-  }
-
-  .category p {
-    color: var(--c-primary);
-    font-size: var(--fs-ui);
-    font-weight: 700;
-    line-height: 1.35;
-  }
-
-  @media (max-width: 900px) {
-    .categories__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 720px) {
-    .categories {
-      padding-top: 30px;
-    }
-
-    .categories__inner {
-      padding-inline: var(--sp-5);
-      padding-bottom: var(--sp-2);
-    }
-
-    .categories h2 {
-      margin-bottom: var(--sp-4);
-      font-size: var(--fs-h2);
-    }
-
-    .categories__grid {
-      gap: var(--sp-3);
-    }
-
-    .category {
-      gap: var(--sp-2);
-      padding: 14px 12px;
-      border-radius: 16px;
-    }
-
-    .category img,
-    .category__image-empty {
-      height: 84px;
-    }
-
-    .category h3 {
-      font-size: var(--fs-ui);
-    }
-  }
-</style>

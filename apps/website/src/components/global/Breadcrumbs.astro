@@ -33,18 +33,30 @@ const jsonLd = {
 };
 ---
 
-<nav class="bc" aria-label="Percorso di navigazione">
-  <ol class="bc__list">
+<nav class="py-3" aria-label="Percorso di navigazione">
+  <ol class="text-ui flex flex-wrap items-center gap-2">
     {
       items.map((crumb, index) => (
-        <li class="bc__item">
+        <li class="flex items-center gap-2">
+          {/*
+            Breadcrumb links are navigation, not prose, so they take the full
+            48px target rather than the WCAG 2.5.8 inline exception.
+          */}
           {crumb.href ? (
-            <a href={crumb.href}>{crumb.label}</a>
+            <a class="text-ink-2 inline-flex min-h-12 items-center font-semibold" href={crumb.href}>
+              {crumb.label}
+            </a>
           ) : (
-            <span aria-current="page">{crumb.label}</span>
+            <span class="text-ink font-bold" aria-current="page">
+              {crumb.label}
+            </span>
           )}
+          {/*
+            Decorative only: it carries no information and is hidden from
+            assistive technology, so the lighter tone is acceptable here.
+          */}
           {index < items.length - 1 && (
-            <span class="bc__sep" aria-hidden="true">
+            <span class="text-ink-decorative" aria-hidden="true">
               ›
             </span>
           )}
@@ -55,45 +67,3 @@ const jsonLd = {
 </nav>
 
 <script type="application/ld+json" is:inline set:html={serializeJsonLd(jsonLd)} />
-
-<style>
-  .bc {
-    padding-block: var(--sp-3);
-  }
-
-  .bc__list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sp-2);
-    list-style: none;
-    font-size: var(--fs-ui);
-  }
-
-  .bc__item {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-  }
-
-  /* Breadcrumb links are navigation, not prose, so they take the full target
-     size rather than the WCAG 2.5.8 inline exception. */
-  .bc__item a {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    color: var(--c-ink-secondary);
-    font-weight: 600;
-  }
-
-  .bc__item [aria-current='page'] {
-    color: var(--c-ink);
-    font-weight: 700;
-  }
-
-  /* Decorative only: it carries no information and is hidden from assistive
-     technology, so the lighter tone is acceptable here. */
-  .bc__sep {
-    color: var(--c-ink-decorative);
-  }
-</style>
