@@ -79,6 +79,10 @@ export interface ProductAggregate extends ProductRow {
 export interface ProductSummaryRowData extends ProductRow {
   translations: ProductTranslationRow[];
   category: CategoryWithTranslations;
+  specValues: SpecValueRow[];
+  specValueOptions: SpecValueOptionRow[];
+  /** The category's spec definitions — needed to render the card's spec tags. */
+  specs: Array<SpecRow & { options: SpecOptionRow[] }>;
   inStock: boolean;
 }
 

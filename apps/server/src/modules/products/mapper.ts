@@ -411,6 +411,20 @@ export function toPublicDetail(
 
 // --- public summary --------------------------------------------------------
 
+/**
+ * The card's spec tags: at most three comparable specs, each collapsed to one
+ * short string. Booleans read as their label ("Pieghevole"), and only when
+ * true — "Sì" alone tells a shopper nothing; everything else shows its
+ * displayValue ("120 kg", "Elettrico").
+ */
+function toCardSpecTags(row: ProductSummaryRowData, locale: LanguageCode): string[] {
+  return toPublicSpecs(row.specs, row.specValues, row.specValueOptions, locale)
+    .filter((spec) => spec.isComparable && spec.displayValue !== '—')
+    .filter((spec) => spec.valueType !== 'boolean' || spec.value === true)
+    .slice(0, 3)
+    .map((spec) => (spec.valueType === 'boolean' ? spec.label : spec.displayValue));
+}
+
 export function toPublicSummary(
   row: ProductSummaryRowData,
   locale: LanguageCode,
@@ -436,6 +450,7 @@ export function toPublicSummary(
       price: row.basePrice,
     },
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
+    specs: toCardSpecTags(row, locale),
     inStock: row.inStock,
   };
 }
