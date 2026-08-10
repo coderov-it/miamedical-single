@@ -12,7 +12,15 @@
  *
  * Rendered on demand so stock, price and specifications are never stale. One
  * native GET form wraps both columns; the page script only mirrors the form
- * into the panel's display estimate — /carrello/ re-resolves everything.
+ * into the panel's display estimate — the server re-resolves everything.
+ *
+ * The form's own target is the CHECKOUT: "Richiedi il noleggio" is a book-now and
+ * goes straight to confirmation with this one product. The panel's second button
+ * overrides it with `formaction={routes.cart}` to add to the cart instead, and the
+ * page script upgrades that one to write the store without leaving the page. Both
+ * paths send the SAME field names — `resolveCheckout()` reads the un-prefixed
+ * single-item form directly — so neither needs a second vocabulary. See
+ * docs/code/storefront-cart.md.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
@@ -118,7 +126,7 @@ if (product.faqs.length > 0) {
         <form
           id="quote-form"
           method="get"
-          action={routes.cart}
+          action={routes.checkout}
           class="flex flex-wrap items-start gap-x-12 gap-y-10 pt-3"
           data-est-base={product.pricing.price}
           data-est-mode={product.pricing.mode}
@@ -202,13 +210,26 @@ if (product.faqs.length > 0) {
 
 <script>
   /*
-   * The PDP's only JavaScript. Three jobs, all enhancements:
+   * The PDP's only JavaScript. Four jobs, all enhancements:
    *  - gallery thumbnails swap the main image;
    *  - the quantity stepper;
-   *  - the order panel's display estimate, mirrored from the form.
-   * Pricing is never authoritative here — /carrello/ re-resolves the request
-   * and the phone call confirms the real price.
+   *  - the order panel's display estimate, mirrored from the form;
+   *  - "Aggiungi alla richiesta", which writes the cart store instead of
+   *    navigating (and without this script, navigates instead — see below).
+   * Pricing is never authoritative here — /checkout/ and /carrello/ both
+   * re-resolve the request, and the phone call confirms the real price.
    */
+  import {
+    CART_PRODUCT_FIELD,
+    CART_QUANTITY_FIELD,
+    type CartLine,
+    cartCount,
+    clampQuantity,
+    lineKey,
+    readCartLines,
+    writeCartLines,
+  } from '~/lib/cart-store';
+
   const DAY = 86_400_000;
 
   // --- gallery ---------------------------------------------------------------
@@ -627,5 +648,85 @@ if (product.faqs.length > 0) {
     }
 
     update();
+  }
+
+  // --- add to the cart ---------------------------------------------------------
+
+  /*
+   * Upgrades the panel's second submit button from "navigate to /carrello/" to
+   * "write the store and stay here".
+   *
+   * The button is a real submit with `formaction={routes.cart}`, so with this
+   * script absent it still adds the product — it just arrives on the cart page to
+   * do it, and the cart folds the URL's line into the store on mount. Everything
+   * below is the difference between that and not losing the customer's place.
+   */
+  const $addToCart = document.querySelector<HTMLButtonElement>('[data-add-to-cart]');
+  const $added = document.querySelector<HTMLElement>('[data-cart-added]');
+  const $announce = document.querySelector<HTMLElement>('[data-cart-announce]');
+
+  if ($addToCart && form) {
+    $addToCart.addEventListener('click', (event) => {
+      /* The form is the source of truth for the configuration, exactly as it is
+         for the estimate — reading FormData means a control added to the buy box
+         later is carried without this handler having to learn about it. Native
+         validation still applies: let the browser refuse an invalid form first. */
+      if (!form.reportValidity()) return;
+      event.preventDefault();
+
+      const data = new FormData(form);
+      const config = new URLSearchParams();
+      let quantity = 1;
+
+      for (const [key, value] of data) {
+        if (typeof value !== 'string') continue;
+        if (key === CART_QUANTITY_FIELD) {
+          // Quantity lives beside the config, never inside it — see CartLine.
+          quantity = clampQuantity(value);
+          continue;
+        }
+        if (value === '') continue;
+        config.append(key, value);
+      }
+
+      if (!config.get(CART_PRODUCT_FIELD)) return;
+
+      const serialized = config.toString();
+      const key = lineKey(serialized);
+      const lines = readCartLines();
+      const existing = lines.find((line) => lineKey(line.config) === key);
+
+      if (existing) {
+        // Same product, same configuration: one row, more of it.
+        existing.quantity = clampQuantity(existing.quantity + quantity);
+      } else {
+        const line: CartLine = {
+          /* Random is fine HERE — unlike the server-rendered ids in `cart.ts`,
+             this runs only in the browser, so there is no markup to disagree
+             with, and a fresh row genuinely is a new identity. */
+          id: `line-${Math.random().toString(36).slice(2, 10)}`,
+          config: serialized,
+          quantity,
+        };
+        lines.push(line);
+      }
+
+      writeCartLines(lines);
+
+      if ($added) $added.hidden = false;
+
+      /* Spoken separately from the visible confirmation, and ending in the cart's
+         new size so the text differs on every add — see the panel's comment. */
+      if ($announce) {
+        const total = cartCount(lines);
+        const countLabel = (
+          total === 1 ? ($announce.dataset.countOne ?? '') : ($announce.dataset.countMany ?? '')
+        ).replace('{count}', String(total));
+        $announce.textContent = ($announce.dataset.messageTemplate ?? '').replace(
+          '{count}',
+          countLabel,
+        );
+      }
+    });
   }
 </script>

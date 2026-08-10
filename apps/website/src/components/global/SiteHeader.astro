@@ -6,9 +6,10 @@
  * tinted pill rather than a green one: the design keeps a single accent family,
  * and green is reserved for availability and "incluso".
  *
- * Zero JavaScript. Below the wide breakpoint the inline navigation collapses
- * into a native `<details>` disclosure; on phones the persistent bottom
- * navigation takes over instead.
+ * Below the wide breakpoint the inline navigation collapses into a native
+ * `<details>` disclosure; on phones the persistent bottom navigation takes over
+ * instead. Both are CSS and markup — the header's one script does nothing but
+ * paint the cart badge, and every link here works without it.
  */
 import { CONTACT } from '~/lib/site';
 import { routes } from '~/lib/routes';
@@ -90,15 +91,22 @@ const isActive = (item: (typeof nav)[number]) =>
 
     {
       /*
-        Cart. A link, not a button: it navigates. The numeric count is
-        deliberately absent — on a prerendered page it would either be stale or
-        force every cached page to bootstrap a script.
+        Cart. A link, not a button: it navigates.
+
+        The count used to be deliberately absent, because on a PRERENDERED page a
+        server-rendered number is either stale or forces every cached page to
+        bootstrap a script. Now that the cart is real, the first half of that is
+        still true and settles the design: the badge is never rendered on the
+        server. It ships empty and `hidden`, and the script below fills it from the
+        same store the cart page reads — so a cached page cannot carry a wrong
+        number, only no number, and only for as long as the script takes to run.
       */
     }
     <a
-      class="border-hair bg-tint hover:border-hair-strong hover:bg-tint-2 grid size-13 flex-none place-items-center rounded-full border"
+      class="border-hair bg-tint hover:border-hair-strong hover:bg-tint-2 relative grid size-13 flex-none place-items-center rounded-full border"
       href={routes.cart}
       aria-label="Apri la tua richiesta di noleggio"
+      data-cart-link
     >
       <svg
         class="size-5.25"
@@ -114,6 +122,21 @@ const isActive = (item: (typeof nav)[number]) =>
         <circle cx="10.5" cy="20" r="1.4"></circle>
         <circle cx="17.5" cy="20" r="1.4"></circle>
       </svg>
+
+      {
+        /*
+          `aria-hidden`, because the link's own `aria-label` is rewritten with the
+          count by the script. Two announcements of the same number — one from the
+          label, one from a badge in the accessibility tree — is worse than one.
+        */
+      }
+      <span
+        class="absolute -top-0.5 -right-0.5 grid min-w-5.5 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-bold text-white tabular-nums"
+        data-cart-count
+        aria-hidden="true"
+        hidden
+      >
+      </span>
     </a>
 
     <a class="btn btn-primary wide:inline-flex hidden flex-none" href={routes.catalog}>
@@ -156,3 +179,48 @@ const isActive = (item: (typeof nav)[number]) =>
     </details>
   </div>
 </header>
+
+<script>
+  /*
+   * The cart badge, and the header's only JavaScript.
+   *
+   * It reads the same store the cart page and the product page write, and listens
+   * on two channels because they cover different cases: `mia:cart-changed` for
+   * this tab (a native `storage` event never fires in the tab that wrote), and
+   * `storage` for the others (add something on one tab, the badge updates here).
+   *
+   * The count is a paint, never a source of truth. Nothing branches on it — the
+   * cart page always re-reads storage itself — so a badge that is briefly wrong
+   * after a bfcache restore is cosmetic, which is why `pageshow` is enough.
+   */
+  import { CART_CHANGED_EVENT, cartCount, readCartLines } from '~/lib/cart-store';
+
+  const $link = document.querySelector<HTMLAnchorElement>('[data-cart-link]');
+  const $badge = document.querySelector<HTMLElement>('[data-cart-count]');
+
+  if ($link && $badge) {
+    const baseLabel = $link.getAttribute('aria-label') ?? '';
+
+    const paint = (count: number) => {
+      $badge.hidden = count === 0;
+      /* Capped at 9+, because two digits do not fit the 22px badge and a cart of
+         10 aids is already a phone call rather than a number to read. */
+      $badge.textContent = count > 9 ? '9+' : String(count);
+      /* The count belongs in the LINK's name, not in a second announced element —
+         see the badge's `aria-hidden` in the markup above. */
+      $link.setAttribute(
+        'aria-label',
+        count === 0 ? baseLabel : `${baseLabel} — ${count} ${count === 1 ? 'ausilio' : 'ausili'}`,
+      );
+    };
+
+    const refresh = () => paint(cartCount(readCartLines()));
+
+    refresh();
+    window.addEventListener(CART_CHANGED_EVENT, refresh);
+    // Another tab wrote the store.
+    window.addEventListener('storage', refresh);
+    // Restored from the back/forward cache, where no script re-runs.
+    window.addEventListener('pageshow', refresh);
+  }
+</script>

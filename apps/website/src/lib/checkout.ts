@@ -60,6 +60,13 @@ export interface CheckoutItem {
    * rather than a sum. An open period is normal here — see the module doc.
    */
   openPeriod: boolean;
+  /**
+   * "/giorno", or empty. The unit `total` is expressed in when `openPeriod` is
+   * set, already folded into `subtotal` — carried separately for the cart, which
+   * re-formats this figure client-side when the stepper moves and would otherwise
+   * render a daily rate as though it were a total.
+   */
+  unitSuffix: string;
 }
 
 export interface Checkout {
@@ -217,6 +224,11 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
     openPeriod,
     subtotal: money(total) + (openPeriod ? perUnitSuffix : ''),
     units,
+    /* Handed out rather than kept private because the cart re-formats this row's
+       figure client-side when the stepper moves, and a per-unit RATE rendered
+       without its "/giorno" reads as a total. Empty unless the period is open —
+       the same condition `subtotal` above applies. */
+    unitSuffix: openPeriod ? perUnitSuffix : '',
   };
 }
 
@@ -285,6 +297,7 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
         total: priced.total,
         subtotal: priced.subtotal,
         openPeriod: priced.openPeriod,
+        unitSuffix: priced.unitSuffix,
       } satisfies CheckoutItem;
     }),
   );
