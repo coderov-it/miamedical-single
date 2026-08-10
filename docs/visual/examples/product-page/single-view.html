@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prodotto — vista unica</title>
+    <!--
+      One page, one view. Gallery, identity, the whole configuration and the
+      order summary sit together on screen; description, specs and FAQ live in
+      tabs at the foot of the view instead of a long scroll. Zero JavaScript —
+      tabs and segmented controls are CSS radios. Example data; serve over http
+      for the font.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --ink: #21252d;
+        --mut: #5c6474;
+        --faint: #8b93a5;
+        --line: #e5e8ef;
+        --line-2: #d4d9e4;
+        --soft: #f5f6fa;
+        --soft-2: #eceff5;
+        --acc: #2e4699;
+        --acc-deep: #22346f;
+        --acc-soft: #eef1fa;
+        --ok: #0e6b41;
+        --r: 12px;
+        --r-lg: 16px;
+        --shadow: 0 1px 2px rgb(23 28 45 / 0.05), 0 10px 30px rgb(23 28 45 / 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: #fff;
+        color: var(--ink);
+        font: 16px/1.5 'Inter', system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.011em;
+      }
+      svg {
+        display: block;
+      }
+      p,
+      h1,
+      h2 {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      input.hide {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      :focus-visible {
+        outline: 2px solid var(--acc);
+        outline-offset: 2px;
+      }
+
+      .wrap {
+        max-width: 1360px;
+        margin-inline: auto;
+        padding-inline: 28px;
+      }
+
+      /* ---------------------------------------------------------- header -- */
+      header {
+        border-bottom: 1px solid var(--line);
+      }
+      header .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        height: 58px;
+      }
+      .logo {
+        font-size: 17px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+      .logo b {
+        color: var(--acc);
+        font-weight: 750;
+      }
+      .hnav {
+        display: flex;
+        gap: 22px;
+        margin-right: auto;
+        margin-left: 36px;
+        color: var(--mut);
+        font-size: 14.5px;
+        font-weight: 550;
+      }
+      .htel {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 15px;
+        border-radius: 999px;
+        background: var(--acc-soft);
+        color: var(--acc);
+        font-size: 14.5px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      .htel svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      /* ------------------------------------------------------------ main -- */
+      main.wrap {
+        display: grid;
+        grid-template-columns: 330px minmax(0, 1fr) 318px;
+        gap: 28px;
+        padding-block: 16px 14px;
+        align-items: start;
+      }
+
+      /* gallery ------------------------------------------------------------ */
+      .well {
+        display: grid;
+        place-items: center;
+        aspect-ratio: 4 / 3;
+        border-radius: var(--r);
+        background: var(--soft);
+      }
+      .well svg {
+        width: 58%;
+        color: var(--ink);
+      }
+      .thumbs {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .thumbs .well {
+        width: 68px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--soft);
+      }
+      .thumbs .well.on {
+        border-color: var(--acc);
+      }
+      .thumbs .well svg {
+        width: 54%;
+      }
+      .trust {
+        display: grid;
+        gap: 7px;
+        margin-top: 14px;
+        color: var(--mut);
+        font-size: 14px;
+      }
+      .trust span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .trust svg {
+        width: 15px;
+        height: 15px;
+        flex: none;
+        color: var(--ok);
+      }
+
+      /* identity + configuration ------------------------------------------- */
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .meta .cat {
+        color: var(--acc);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .meta .ok {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--ok);
+      }
+      .meta .ok i {
+        width: 6px;
+        height: 6px;
+        border-radius: 99px;
+        background: currentColor;
+      }
+      h1 {
+        margin-top: 6px;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.25;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 30px;
+        padding: 0 11px;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--mut);
+        font-size: 13.5px;
+        font-weight: 550;
+        white-space: nowrap;
+      }
+      .chip b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .conf {
+        display: grid;
+        gap: 13px;
+        margin-top: 14px;
+        padding-top: 13px;
+        border-top: 1px solid var(--line);
+      }
+      .grp {
+        display: grid;
+        gap: 7px;
+      }
+      .grp > .lbl {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 15px;
+        font-weight: 650;
+      }
+      .grp > .lbl small {
+        color: var(--faint);
+        font-size: 13.5px;
+        font-weight: 500;
+      }
+
+      /* segmented choice: one row per variant group */
+      .seg {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 6px;
+      }
+      .seg label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 4px 12px;
+        border: 1px solid var(--line-2);
+        border-radius: 10px;
+        background: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .seg label .pr {
+        color: var(--acc);
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .seg label .pr.inc {
+        color: var(--ok);
+      }
+      .seg label .tick {
+        display: none;
+        width: 15px;
+        height: 15px;
+        color: var(--acc);
+      }
+      .seg input:checked + label {
+        border-color: var(--acc);
+        box-shadow: inset 0 0 0 1px var(--acc);
+      }
+      .seg input:checked + label .tick {
+        display: block;
+      }
+      .note {
+        color: var(--mut);
+        font-size: 14px;
+      }
+
+      /* add-ons: one-line checks */
+      .adds {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+      }
+      .add {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 4px 12px;
+        border: 1px solid var(--line-2);
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .add .box {
+        display: grid;
+        place-items: center;
+        width: 19px;
+        height: 19px;
+        flex: none;
+        border: 1.5px solid var(--line-2);
+        border-radius: 5px;
+        color: #fff;
+      }
+      .add .box svg {
+        width: 12px;
+        height: 12px;
+      }
+      .add .nm {
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      .add .pr {
+        margin-left: auto;
+        font-size: 14px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      .add .pr small {
+        color: var(--faint);
+        font-weight: 500;
+      }
+      .add.on {
+        border-color: var(--acc);
+        box-shadow: inset 0 0 0 1px var(--acc);
+      }
+      .add.on .box {
+        border-color: var(--acc);
+        background: var(--acc);
+      }
+
+      /* delivery: compact field grid */
+      .dgrid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr 1fr;
+        gap: 7px;
+      }
+      .fld {
+        display: grid;
+        gap: 5px;
+      }
+      .fld > span {
+        color: var(--mut);
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .fbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 0 12px;
+        border: 1px solid var(--line-2);
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 550;
+      }
+      .fbox svg {
+        width: 15px;
+        height: 15px;
+        flex: none;
+        color: var(--faint);
+      }
+      .fbox.mut {
+        color: var(--faint);
+        font-weight: 450;
+      }
+      .dnote {
+        grid-column: 1 / -1;
+      }
+
+      /* ----------------------------------------------------------- order -- */
+      aside {
+        border: 1px solid var(--line);
+        border-radius: var(--r-lg);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        display: grid;
+        gap: 14px;
+      }
+      .k {
+        color: var(--faint);
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+      .tot {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        margin-top: -8px;
+      }
+      .tot b {
+        font-size: 31px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .tot span {
+        color: var(--mut);
+        font-size: 14.5px;
+      }
+      .lines {
+        display: grid;
+        gap: 6px;
+        padding-block: 11px;
+        border-block: 1px solid var(--line);
+        font-size: 14px;
+      }
+      .lines > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .lines .l {
+        color: var(--mut);
+      }
+      .lines .v {
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      .qrow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 15px;
+        font-weight: 650;
+      }
+      .qty {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--line-2);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .qty span {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        font-size: 17px;
+        font-weight: 650;
+      }
+      .qty span:nth-child(2) {
+        border-inline: 1px solid var(--line-2);
+        font-size: 15px;
+      }
+      .cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        border-radius: 11px;
+        background: var(--acc);
+        color: #fff;
+        font-size: 15.5px;
+        font-weight: 650;
+      }
+      .cta:hover {
+        background: var(--acc-deep);
+      }
+      .cta-soft {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--soft);
+        font-size: 14.5px;
+        font-weight: 600;
+      }
+      .cta-soft svg {
+        width: 15px;
+        height: 15px;
+      }
+      .pay {
+        display: flex;
+        gap: 8px;
+        color: var(--mut);
+        font-size: 13.5px;
+        line-height: 1.45;
+      }
+      .pay svg {
+        width: 16px;
+        height: 16px;
+        flex: none;
+        margin-top: 2px;
+        color: var(--ok);
+      }
+      .pay b {
+        color: var(--ink);
+      }
+
+      /* ------------------------------------------------------------ tabs -- */
+      .tabzone .wrap {
+        border-top: 1px solid var(--line);
+      }
+      .tabbar {
+        display: flex;
+        gap: 26px;
+      }
+      .tabbar label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 42px;
+        color: var(--mut);
+        font-size: 14.5px;
+        font-weight: 600;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .panels {
+        border-top: 1px solid var(--line);
+        padding-block: 14px 20px;
+      }
+      .panel {
+        display: none;
+        max-width: 1050px;
+      }
+      #t1:checked ~ .wrap .tabbar label[for='t1'],
+      #t2:checked ~ .wrap .tabbar label[for='t2'],
+      #t3:checked ~ .wrap .tabbar label[for='t3'],
+      #t4:checked ~ .wrap .tabbar label[for='t4'] {
+        color: var(--ink);
+        border-bottom-color: var(--acc);
+      }
+      #t1:checked ~ .wrap .panels .p1,
+      #t2:checked ~ .wrap .panels .p2,
+      #t3:checked ~ .wrap .panels .p3,
+      #t4:checked ~ .wrap .panels .p4 {
+        display: block;
+      }
+
+      .p1 p {
+        color: var(--mut);
+        font-size: 15px;
+        max-width: 72ch;
+      }
+      .inchecks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        margin-top: 12px;
+        font-size: 14px;
+        font-weight: 550;
+      }
+      .inchecks span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .inchecks svg {
+        width: 14px;
+        height: 14px;
+        color: var(--ok);
+      }
+
+      .tiles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .tile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 172px;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .tile svg {
+        width: 18px;
+        height: 18px;
+        flex: none;
+        color: var(--mut);
+      }
+      .tile b {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .tile small {
+        display: block;
+        color: var(--faint);
+        font-size: 12.5px;
+        font-weight: 550;
+      }
+
+      .qa {
+        display: grid;
+        gap: 12px;
+        font-size: 15px;
+      }
+      .qa b {
+        font-weight: 650;
+      }
+      .qa p {
+        color: var(--mut);
+        margin-top: 2px;
+        max-width: 72ch;
+      }
+      .tlink {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 10px;
+        color: var(--acc);
+        font-size: 14.5px;
+        font-weight: 650;
+      }
+      .tlink svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* --------------------------------------------------------- narrow --- */
+      @media (max-width: 1080px) {
+        main.wrap {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        aside {
+          order: 3;
+        }
+        .adds,
+        .dgrid {
+          grid-template-columns: 1fr;
+        }
+        .seg label {
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg style="display: none" aria-hidden="true">
+      <symbol id="bed" viewBox="0 0 160 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 16v56" /><path d="M136 32v40" /><path d="M24 48h112" /><path d="M24 64h112" />
+        <path d="M30 48v-6q0-5 5-5h14q5 0 5 5v6" />
+        <path d="M60 48V32m16 16V32m16 16V32" /><path d="M56 32h40" />
+        <path d="M38 64v8m84-8v8" /><circle cx="38" cy="79" r="6" /><circle cx="122" cy="79" r="6" />
+      </symbol>
+      <symbol id="remote" viewBox="0 0 60 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="16" y="10" width="28" height="80" rx="9" /><circle cx="30" cy="30" r="6" />
+        <path d="M25 55l5-7 5 7z" /><path d="M25 70l5 7 5-7z" />
+      </symbol>
+      <symbol id="matt" viewBox="0 0 120 70" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="8" y="20" width="104" height="32" rx="10" /><path d="M26 20v32m17-32v32m17-32v32m17-32v32" />
+      </symbol>
+      <symbol id="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12.5l4.5 4.5L19 7.5" />
+      </symbol>
+      <symbol id="tel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.4 2.1L8 9.6a16 16 0 0 0 6.3 6.3l1.2-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.8 2.1z" />
+      </symbol>
+      <symbol id="okc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" /><path d="M9 12l2 2 4-4" />
+      </symbol>
+      <symbol id="cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18" /><path d="M8 3v4m8-4v4" />
+      </symbol>
+      <symbol id="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14" /><path d="m13 6 6 6-6 6" />
+      </symbol>
+      <symbol id="w" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12h16" /><path d="m7 9-3 3 3 3" /><path d="m17 9 3 3-3 3" />
+      </symbol>
+      <symbol id="len" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6v12" /><path d="M20 6v12" /><path d="M4 12h16" />
+      </symbol>
+      <symbol id="kg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="6" r="3" /><path d="M8.5 9h7L18 21H6z" />
+      </symbol>
+      <symbol id="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2 3 14h7l-1 8 10-12h-7z" />
+      </symbol>
+      <symbol id="plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 2v6" /><path d="M15 2v6" /><path d="M7 8h10v4a5 5 0 0 1-10 0z" /><path d="M12 17v5" />
+      </symbol>
+      <symbol id="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" />
+      </symbol>
+    </svg>
+
+    <header>
+      <div class="wrap">
+        <p class="logo">Mia <b>Medical</b> Italia</p>
+        <nav class="hnav"><span>Catalogo noleggio</span><span>Assistenza</span></nav>
+        <span class="htel"><svg><use href="#tel" /></svg>06 4555 8899</span>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- gallery -->
+      <div>
+        <div class="well"><svg viewBox="0 0 160 100"><use href="#bed" /></svg></div>
+        <div class="thumbs">
+          <div class="well on"><svg viewBox="0 0 160 100"><use href="#bed" /></svg></div>
+          <div class="well"><svg viewBox="0 0 60 100"><use href="#remote" /></svg></div>
+          <div class="well"><svg viewBox="0 0 120 70"><use href="#matt" /></svg></div>
+        </div>
+        <div class="trust">
+          <span><svg><use href="#ck" /></svg>Consegna, montaggio e ritiro inclusi</span>
+          <span><svg><use href="#ck" /></svg>Sanificato e certificato prima della consegna</span>
+          <span><svg><use href="#ck" /></svg>Assistenza telefonica 7 giorni su 7</span>
+        </div>
+      </div>
+
+      <!-- identity + configuration -->
+      <div>
+        <p class="meta"><span class="cat">Letti ortopedici</span><span class="ok"><i></i>Disponibile subito</span></p>
+        <h1>Noleggio letto ortopedico elettrico con sponde</h1>
+        <div class="chips">
+          <span class="chip">Portata <b>135 kg</b></span>
+          <span class="chip">Piano rete <b>90 × 200 cm</b></span>
+          <span class="chip"><b>2</b> motori · telecomando</span>
+          <span class="chip">Sponde <b>incluse</b></span>
+        </div>
+
+        <div class="conf">
+          <div class="grp">
+            <p class="lbl">Materasso</p>
+            <div class="seg">
+              <input class="hide" type="radio" name="mat" id="mat-a" />
+              <label for="mat-a"><svg class="tick"><use href="#ck" /></svg>Standard<span class="pr inc">incluso</span></label>
+              <input class="hide" type="radio" name="mat" id="mat-b" checked />
+              <label for="mat-b"><svg class="tick"><use href="#ck" /></svg>Antidecubito<span class="pr">+25,00 €</span></label>
+            </div>
+            <p class="note">Antidecubito: previene le piaghe, consigliato se si resta a letto gran parte del giorno.</p>
+          </div>
+
+          <div class="grp">
+            <p class="lbl">Sponde laterali</p>
+            <div class="seg">
+              <input class="hide" type="radio" name="spo" id="spo-a" checked />
+              <label for="spo-a"><svg class="tick"><use href="#ck" /></svg>Con sponde<span class="pr inc">incluse</span></label>
+              <input class="hide" type="radio" name="spo" id="spo-b" />
+              <label for="spo-b"><svg class="tick"><use href="#ck" /></svg>Senza sponde</label>
+            </div>
+            <p class="note">Le sponde proteggono dalle cadute e si abbassano da entrambi i lati.</p>
+          </div>
+
+          <div class="grp">
+            <p class="lbl">Accessori <small>ognuno si toglie quando vuoi</small></p>
+            <div class="adds">
+              <label class="add on">
+                <span class="box"><svg><use href="#ck" /></svg></span>
+                <span class="nm">Asta solleva-malato</span>
+                <span class="pr">+8,00 € <small>/mese</small></span>
+              </label>
+              <label class="add">
+                <span class="box"></span>
+                <span class="nm">Tavolino servitore</span>
+                <span class="pr">+6,00 € <small>/mese</small></span>
+              </label>
+              <label class="add">
+                <span class="box"></span>
+                <span class="nm">Cuscino antidecubito</span>
+                <span class="pr">+9,00 € <small>/mese</small></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grp">
+            <p class="lbl">Consegna <small>se preferisci, ce lo dici al telefono</small></p>
+            <div class="dgrid">
+              <div class="fld">
+                <span>Da quando</span>
+                <div class="fbox"><svg><use href="#cal" /></svg>15/09/2026</div>
+              </div>
+              <div class="fld">
+                <span>Piano</span>
+                <div class="fbox">2°</div>
+              </div>
+              <div class="fld">
+                <span>Ascensore</span>
+                <div class="seg">
+                  <input class="hide" type="radio" name="asc" id="asc-si" checked />
+                  <label for="asc-si"><svg class="tick"><use href="#ck" /></svg>Sì</label>
+                  <input class="hide" type="radio" name="asc" id="asc-no" />
+                  <label for="asc-no"><svg class="tick"><use href="#ck" /></svg>No</label>
+                </div>
+              </div>
+              <div class="fld dnote">
+                <span>Note per la consegna (facoltative)</span>
+                <div class="fbox mut">Es. citofono, orari, portineria…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- order summary -->
+      <aside>
+        <p class="k">Totale stimato</p>
+        <p class="tot"><b>122,00 €</b><span>al mese</span></p>
+        <div class="lines">
+          <div><span class="l">Noleggio letto elettrico</span><span class="v">89,00 €</span></div>
+          <div><span class="l">Materasso antidecubito</span><span class="v">+25,00 €</span></div>
+          <div><span class="l">Asta solleva-malato</span><span class="v">+8,00 €</span></div>
+          <div><span class="l">Consegna e montaggio</span><span class="v" style="color: var(--ok)">inclusi</span></div>
+        </div>
+        <div class="qrow">
+          Quantità
+          <span class="qty"><span>−</span><span>1</span><span>+</span></span>
+        </div>
+        <a class="cta" href="#">Richiedi il noleggio</a>
+        <a class="cta-soft" href="#"><svg><use href="#tel" /></svg>Preferisci parlarne? 06 4555 8899</a>
+        <p class="pay"><svg><use href="#okc" /></svg><span><b>Nessun pagamento online adesso.</b> Invii la richiesta e confermiamo tutto al telefono.</span></p>
+      </aside>
+    </main>
+
+    <!-- secondary content: tabs, not scroll -->
+    <section class="tabzone">
+      <input class="hide" type="radio" name="tab" id="t1" checked />
+      <input class="hide" type="radio" name="tab" id="t2" />
+      <input class="hide" type="radio" name="tab" id="t3" />
+      <input class="hide" type="radio" name="tab" id="t4" />
+      <div class="wrap">
+        <nav class="tabbar">
+          <label for="t1">Descrizione</label>
+          <label for="t2">Caratteristiche</label>
+          <label for="t3">Domande frequenti</label>
+          <label for="t4">Igiene e condizioni</label>
+        </nav>
+        <div class="panels">
+          <div class="panel p1">
+            <p>
+              Letto elettrico a due motori: schienale e piano gambe si regolano dal telecomando.
+              Le sponde si abbassano da entrambi i lati. Lo consegniamo montato, con spiegazione
+              d'uso, e lo ritiriamo a fine noleggio.
+            </p>
+            <div class="inchecks">
+              <span><svg><use href="#ck" /></svg>Due motori con telecomando</span>
+              <span><svg><use href="#ck" /></svg>Sponde ribaltabili sui due lati</span>
+              <span><svg><use href="#ck" /></svg>Montaggio e ritiro inclusi</span>
+            </div>
+          </div>
+          <div class="panel p2">
+            <div class="tiles">
+              <div class="tile"><svg><use href="#w" /></svg><span><b>90 cm</b><small>Larghezza piano rete</small></span></div>
+              <div class="tile"><svg><use href="#len" /></svg><span><b>200 cm</b><small>Lunghezza</small></span></div>
+              <div class="tile"><svg><use href="#kg" /></svg><span><b>135 kg</b><small>Portata massima</small></span></div>
+              <div class="tile"><svg><use href="#zap" /></svg><span><b>2 motori</b><small>Con telecomando</small></span></div>
+              <div class="tile"><svg><use href="#plug" /></svg><span><b>220 V</b><small>Alimentazione</small></span></div>
+            </div>
+          </div>
+          <div class="panel p3">
+            <div class="qa">
+              <div><b>Qual è la durata minima del noleggio?</b><p>Un mese. Dopo il primo mese il noleggio si rinnova di settimana in settimana.</p></div>
+              <div><b>Il montaggio è incluso nel prezzo?</b><p>Sì. Consegniamo il letto montato e ti spieghiamo come usarlo.</p></div>
+            </div>
+          </div>
+          <div class="panel p4">
+            <div class="qa">
+              <div><b>Sanificato e certificato</b><p>Ogni ausilio è sanificato, controllato e certificato prima della consegna, con accessori completi e integri.</p></div>
+            </div>
+            <a class="tlink" href="#">Condizioni di noleggio<svg><use href="#arr" /></svg></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

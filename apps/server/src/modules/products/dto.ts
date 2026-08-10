@@ -1,4 +1,4 @@
-import type { LanguageCode, Localized, MediaAlt, RentalPackage } from '@mia/db/schema';
+import type { LanguageCode, Localized, MediaAlt, ProductChip, RentalPackage } from '@mia/db/schema';
 
 /**
  * Network contracts, consumed through the typed RPC client. Two surfaces:
@@ -190,6 +190,8 @@ export interface PublicProductDetailDto {
   shortDescriptionLocale?: 'it';
   descriptionLocale?: 'it';
   seo: { title: string | null; description: string | null };
+  /** Short display claims for the hero, already resolved to `locale`. */
+  chips: string[];
   category: PublicCategoryRefDto;
   pricing: PricingDto;
   /** Empty on a fixed product. Sold beside `pricing.price`, never instead of it. */
@@ -217,8 +219,8 @@ export interface PublicProductSummaryDto {
   category: { slug: string; name: string };
   pricing: PricingDto;
   thumbnail: PublicMediaItemDto | null;
-  /** Ready-to-render card tags — the top comparable specs, collapsed to short strings. */
-  specs: string[];
+  /** Ready-to-render card chips — the product's own, or the legacy spec fallback. */
+  chips: string[];
   inStock: boolean;
 }
 
@@ -388,6 +390,8 @@ export interface AdminProductDetailDto {
   currency: string;
   /** Raw `{ it, en }` names, like every other admin field — nothing collapsed. */
   rentalPackages: RentalPackage[];
+  /** Raw `{ it, en }` chips, in the order they render. */
+  chips: ProductChip[];
   translations: Partial<Record<LanguageCode, AdminProductTranslationDto>>;
   translationStatus: TranslationStatusDto;
   variants: AdminVariantGroupDto[];

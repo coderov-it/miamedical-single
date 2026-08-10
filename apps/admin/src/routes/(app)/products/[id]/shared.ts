@@ -37,6 +37,20 @@ export function localizedOrNull(value: Localized): Localized | null {
   return en ? { it, en } : { it };
 }
 
+/**
+ * Card/hero chips. The limits mirror `ProductChipsSchema` in @mia/validators —
+ * the server is the authority, these two numbers only let the form say so
+ * before a save round-trip.
+ */
+export const MAX_CHIPS = 5;
+export const MAX_CHIP_LENGTH = 20;
+
+export interface ChipEdit {
+  /** Client-only stable key — reordering keyed by index corrupts edits. */
+  uid: string;
+  text: Localized;
+}
+
 export interface TabProps {
   product: AdminProduct;
   onSaved: (product: AdminProduct) => void;

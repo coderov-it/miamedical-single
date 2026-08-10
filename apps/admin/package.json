@@ -19,12 +19,16 @@
     "@mia/permissions": "workspace:*",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",
+    "@tiptap/core": "^3.29.2",
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
     "cnfast": "catalog:",
     "hono": "catalog:",
     "svelte": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {
+    "@eslint/js": "catalog:",
     "@fontsource-variable/geist": "catalog:",
     "@internationalized/date": "catalog:",
     "@lucide/svelte": "^1.29.0",
@@ -35,14 +39,12 @@
     "@tailwindcss/vite": "catalog:",
     "@types/node": "catalog:",
     "bits-ui": "catalog:",
-    "@eslint/js": "catalog:",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-svelte": "catalog:",
     "globals": "catalog:",
     "mode-watcher": "catalog:",
     "prettier": "catalog:",
-    "typescript-eslint": "catalog:",
     "shadcn-svelte": "catalog:",
     "svelte-check": "catalog:",
     "svelte-sonner": "catalog:",
@@ -50,6 +52,7 @@
     "tailwindcss": "catalog:",
     "tw-animate-css": "catalog:",
     "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
     "vite": "catalog:"
   }
 }

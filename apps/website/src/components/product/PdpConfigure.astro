@@ -1,0 +1,166 @@
+---
+/**
+ * Section 01 — the variant groups, one hairline row per group with pill
+ * options. Real radios/checkboxes styled through `peer`, so the whole page
+ * stays a native GET form.
+ *
+ * Price semantics (owner's rule): on a rental product every modifier is per
+ * rental unit — a "+4,00 €" option raises the daily/hourly rate, it is not a
+ * one-time charge. On a fixed product the modifier is one-time. The estimate
+ * script reads the `data-est-*` attributes; the server never trusts them.
+ */
+import { formatMoney, mediaUrl } from '~/lib/api';
+import type { ProductDetail } from '~/lib/catalog';
+import { VARIANT_PREFIX } from '~/lib/request-config';
+import PdpSectionHead from './PdpSectionHead.astro';
+
+interface Props {
+  variants: ProductDetail['variants'];
+  isRental: boolean;
+  /** "giorno" / "ora" — suffix for per-unit deltas. Empty on fixed pricing. */
+  unitNoun: string;
+}
+
+const { variants, isRental, unitNoun } = Astro.props;
+
+const signed = (amount: string, currency: string) =>
+  `${Number(amount) > 0 ? '+' : ''}${formatMoney(amount, currency)}`;
+
+const deltaSuffix = isRental && unitNoun ? `/${unitNoun}` : '';
+
+const pill =
+  'flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-hair-strong bg-white px-4 text-[14px]/[1] ' +
+  'peer-checked:border-accent peer-checked:bg-tint peer-checked:text-accent peer-checked:[&_[data-delta]]:text-accent ' +
+  'hover:border-accent ' +
+  'peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-white ' +
+  'peer-focus-visible:shadow-[0_0_0_6px_var(--color-ink)]';
+
+const rowCard =
+  'flex flex-wrap items-center gap-x-4.5 gap-y-2.5 rounded-field border border-hair bg-white px-4.5 py-3.5 shadow-pdp-card';
+
+/* Reference: `flex: 0 0 88px; font-size: 13.5px; font-weight: 700`. The Italian
+   labels are longer than the reference's ("Sponde laterali" vs "Size"), so the
+   column may wrap to two lines where the reference never does. */
+const groupLabel = 'flex flex-none basis-22 items-center gap-2 text-[13.5px] font-bold';
+
+const inlineInput =
+  'min-h-11 rounded-[9px] border border-hair-strong bg-white px-3.5 text-[15px] font-normal';
+---
+
+<section>
+  <PdpSectionHead n="01" title="Configura" hint="influisce sul prezzo" />
+
+  <div class="flex flex-col gap-2.5">
+    {
+      variants.map((group) => {
+        const name = `${VARIANT_PREFIX}${group.key}`;
+        const multiple = group.valueType === 'multi_select';
+
+        if (group.options.length > 0) {
+          // No `border-0 p-0` reset on the fieldset: those are the same utility
+          // families as `rowCard`'s `border` and `px-4.5 py-3.5`, and Tailwind
+          // resolves the clash by its own canonical CSS order rather than the
+          // order written here — the resets win and the row silently loses the
+          // card border every other section has. `rowCard` states both in full.
+          return (
+            <fieldset class:list={['m-0 min-w-0', rowCard]}>
+              <legend class="sr-only">{group.label}</legend>
+              <span class={groupLabel} aria-hidden="true">
+                {group.icon && (
+                  <img
+                    class="size-5.5 flex-none object-contain"
+                    src={mediaUrl(group.icon)}
+                    alt=""
+                  />
+                )}
+                {group.label}
+              </span>
+              <span class="flex min-w-0 flex-wrap gap-2">
+                {group.options.map((option, index) => (
+                  <span>
+                    <input
+                      class="peer sr-only"
+                      type={multiple ? 'checkbox' : 'radio'}
+                      name={name}
+                      id={`v-${group.id}-${option.id}`}
+                      value={option.value}
+                      checked={multiple ? option.isDefault : option.isDefault || index === 0}
+                      data-est-kind="variant"
+                      data-est-price={option.priceModifier.amount}
+                      data-est-label={option.label}
+                    />
+                    <label class={pill} for={`v-${group.id}-${option.id}`}>
+                      <span class="font-semibold">{option.label}</span>
+                      <span class="text-ink-2 text-[13px]" data-delta>
+                        {option.priceModifier.amount === '0.00'
+                          ? 'incluso'
+                          : signed(option.priceModifier.amount, option.priceModifier.currency) +
+                            deltaSuffix}
+                      </span>
+                    </label>
+                  </span>
+                ))}
+              </span>
+              {group.helpText && (
+                <p class="text-ink-2 m-0 w-full text-[13.5px]">{group.helpText}</p>
+              )}
+            </fieldset>
+          );
+        }
+
+        if (group.valueType === 'number' || group.valueType === 'number_range') {
+          return (
+            <div class={rowCard}>
+              <label class={groupLabel} for={`v-${group.id}`}>
+                {group.label}
+              </label>
+              <span class="flex items-center gap-2">
+                <input
+                  id={`v-${group.id}`}
+                  class:list={[inlineInput, 'w-30']}
+                  type="number"
+                  name={name}
+                  min={group.min ?? undefined}
+                  max={group.max ?? undefined}
+                  step={group.step ?? undefined}
+                  required={group.isRequired}
+                  inputmode="numeric"
+                  data-est-kind="number"
+                  data-est-per-unit={group.priceModifierPerUnit?.amount ?? '0.00'}
+                />
+                {group.unit && <span class="text-ink-2 text-[14px]">{group.unit}</span>}
+              </span>
+              {group.priceModifierPerUnit && (
+                <span class="text-ink-2 text-[13px]">
+                  {signed(group.priceModifierPerUnit.amount, group.priceModifierPerUnit.currency) +
+                    deltaSuffix}{' '}
+                  per {group.unit ?? 'unità'}
+                </span>
+              )}
+              {group.helpText && (
+                <p class="text-ink-2 m-0 w-full text-[13.5px]">{group.helpText}</p>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div class={rowCard}>
+            <label class={groupLabel} for={`v-${group.id}`}>
+              {group.label}
+            </label>
+            <input
+              id={`v-${group.id}`}
+              class:list={[inlineInput, 'min-w-50 flex-1']}
+              type="text"
+              name={name}
+              maxlength="300"
+              required={group.isRequired}
+            />
+            {group.helpText && <p class="text-ink-2 m-0 w-full text-[13.5px]">{group.helpText}</p>}
+          </div>
+        );
+      })
+    }
+  </div>
+</section>

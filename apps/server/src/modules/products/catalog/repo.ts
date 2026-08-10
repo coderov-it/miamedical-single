@@ -1,6 +1,12 @@
 import type { Database } from '@mia/db';
 import { and, asc, count, desc, eq, sql } from '@mia/db';
-import type { LanguageCode, Localized, ProductMedia, RentalPackage } from '@mia/db/schema';
+import type {
+  LanguageCode,
+  Localized,
+  ProductChip,
+  ProductMedia,
+  RentalPackage,
+} from '@mia/db/schema';
 import {
   categories,
   categorySpecOptions,
@@ -13,6 +19,7 @@ import {
   searchVectorFor,
 } from '@mia/db/schema';
 
+import { richTextToPlain } from '../../../shared/html/rich-text.ts';
 import type {
   ProductAggregate,
   ProductListFilters,
@@ -41,6 +48,7 @@ export interface CreateProductData {
   currency: string;
   rentalUnit: 'hour' | 'day' | null;
   isFeatured: boolean;
+  chips: ProductChip[];
   translations: Partial<Record<LanguageCode, TranslationData>>;
 }
 
@@ -55,6 +63,8 @@ export interface UpdateProductData {
   /** Replaces the whole list — the service rejects a non-empty one on `fixed`. */
   rentalPackages?: RentalPackage[];
   isFeatured?: boolean;
+  /** Replaces the whole list — `[]` clears the product's chips. */
+  chips?: ProductChip[];
   media?: ProductMedia;
   translations?: Partial<Record<LanguageCode, TranslationData>>;
 }
@@ -355,10 +365,11 @@ function translationInsert(productId: string, languageCode: LanguageCode, data: 
     metaTitle: data.metaTitle,
     metaDescription: data.metaDescription,
     // Not a generated column — see packages/db/src/schema/search.ts for why.
+    // `description` is rich text: index the words, never the markup.
     searchVector: searchVectorFor(
       languageCode,
       data.title,
-      [data.shortDescription, data.description].filter(Boolean).join(' ') || null,
+      [data.shortDescription, richTextToPlain(data.description)].filter(Boolean).join(' ') || null,
     ) as unknown as string,
   };
 }
@@ -377,6 +388,7 @@ export async function create(db: Database, data: CreateProductData): Promise<str
         currency: data.currency,
         rentalUnit: data.rentalUnit,
         isFeatured: data.isFeatured,
+        chips: data.chips,
       })
       .returning({ id: products.id });
     if (!product) throw new Error('Product insert returned no row.');

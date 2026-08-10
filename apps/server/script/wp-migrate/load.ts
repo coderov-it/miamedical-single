@@ -28,6 +28,7 @@ import {
 import * as v from 'valibot';
 
 import { env } from '../../src/config/env.ts';
+import { richTextToPlain } from '../../src/shared/html/rich-text.ts';
 import { imageConverter } from '../../src/infra/convert/sharp.ts';
 import { r2FileUploader } from '../../src/infra/storage/r2.ts';
 import {
@@ -390,10 +391,11 @@ async function main(): Promise<void> {
         },
       });
 
+    // `description` is HTML; the tsvector gets its words, never its tags.
     const vector = searchVectorFor(
       'it',
       body.title,
-      [body.shortDescription, body.description].filter(Boolean).join(' ') || null,
+      [body.shortDescription, richTextToPlain(body.description)].filter(Boolean).join(' ') || null,
     ) as unknown as string;
 
     await db

@@ -8,6 +8,12 @@
 
 export const PRODUCT_TABS = [
   { key: 'basics', label: 'Basics' },
+  /**
+   * The long description has its own tab because it is the one field edited in
+   * a rich-text surface: it needs a toolbar and room to write, and both fight
+   * a column of single-line fields.
+   */
+  { key: 'description', label: 'Description' },
   { key: 'pricing', label: 'Pricing' },
   { key: 'variants', label: 'Variants' },
   { key: 'skus', label: 'SKUs' },

@@ -9,14 +9,22 @@ import { commitIcon } from '../media/service.ts';
 import * as catalogRepo from '../catalog/repo.ts';
 
 /**
- * Product addons — the optional extras. The one rule that matters:
+ * Product addons — the optional extras. Two rules that matter:
  *
  *   rental product → rental and fixed addons
  *   fixed product  → fixed addons only
  *
+ *   a rental addon bills in the PRODUCT's rental unit — never its own
+ *
  * A rental addon on a sold product is meaningless — nothing comes back and
  * there is no period to bill against. The service rejects it with a message;
  * the CHECK constraint plus composite FK reject it even on a raw INSERT.
+ *
+ * The unit rule is the owner's pricing model: per-day product, per-day extras;
+ * per-hour product, per-hour extras. One duration multiplies every rental
+ * amount on the page, so a second unit would make the totals unsummable. This
+ * is service-level only (the CHECK ties the unit to the addon's own mode, not
+ * to the parent), so keep this guard when refactoring.
  */
 export async function replaceAddons(
   db: Database,
@@ -32,6 +40,17 @@ export async function replaceAddons(
       422,
       'A fixed-price product cannot have rental addons — nothing is returned, so there is no period to bill.',
       'invalid_addon_mode',
+    );
+  }
+
+  const unitMismatch = addons.find(
+    (addon) => addon.pricingMode === 'rental' && addon.rentalUnit !== product.rentalUnit,
+  );
+  if (unitMismatch) {
+    throw httpError(
+      422,
+      `A rental addon bills in the product's rental unit ("${product.rentalUnit}"), not its own — one period must multiply every amount on the page.`,
+      'invalid_addon_rental_unit',
     );
   }
 

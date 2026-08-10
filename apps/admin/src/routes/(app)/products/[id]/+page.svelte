@@ -46,6 +46,7 @@
   import { uiLang } from '~/lib/ui-lang.svelte';
   import AddonsTab from './AddonsTab.svelte';
   import BasicsTab from './BasicsTab.svelte';
+  import DescriptionTab from './DescriptionTab.svelte';
   import FaqsTab from './FaqsTab.svelte';
   import MediaTab from './MediaTab.svelte';
   import PricingTab from './PricingTab.svelte';
@@ -241,6 +242,8 @@
         <div hidden={activeTab !== tab.key}>
           {#if tab.key === 'basics'}
             <BasicsTab product={current} {onSaved} {dirty} />
+          {:else if tab.key === 'description'}
+            <DescriptionTab product={current} {onSaved} {dirty} />
           {:else if tab.key === 'pricing'}
             <PricingTab product={current} {onSaved} {dirty} />
           {:else if tab.key === 'variants'}

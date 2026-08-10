@@ -82,12 +82,41 @@ export const RentalPackagesSchema = v.pipe(
   ),
 );
 
+// --- chips -----------------------------------------------------------------
+
+/**
+ * The card/hero chips. 20 characters is the presentation ceiling, not a
+ * storage one: the card gives chips a single cropped line, so anything longer
+ * pushes its neighbours out of sight. Five is the ceiling, three reads best —
+ * the admin says so next to the field.
+ *
+ * Blank chips are rejected rather than dropped: a client that renders an empty
+ * row must not silently save it as a chip, and `localizedSchema` already makes
+ * Italian mandatory per entry.
+ */
+export const ProductChipSchema = localizedSchema(20);
+
+export const ProductChipsSchema = v.pipe(
+  v.array(ProductChipSchema),
+  v.maxLength(5, 'A product can show at most 5 chips.'),
+  v.check(
+    (chips) => new Set(chips.map((chip) => chip.it.toLowerCase())).size === chips.length,
+    'Chips must not repeat.',
+  ),
+);
+
 // --- product ---------------------------------------------------------------
 
 export const ProductTranslationFields = {
   title: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(200)),
   shortDescription: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(500)))),
-  description: v.optional(v.nullable(v.pipe(v.string(), v.maxLength(20_000)))),
+  /**
+   * Rich text (HTML from the admin's editor), so the cap counts markup as well
+   * as prose — 20k of tags and 20k of words is still a long product page. The
+   * server sanitises it against an allowlist before storing; this only bounds
+   * the request body.
+   */
+  description: v.optional(v.nullable(v.pipe(v.string(), v.maxLength(40_000)))),
   slug: SlugSchema,
   metaTitle: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(200)))),
   metaDescription: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(400)))),
@@ -107,6 +136,7 @@ export const CreateProductSchema = v.pipe(
     currency: v.optional(CurrencySchema, 'EUR'),
     rentalUnit: v.optional(v.nullable(RentalUnitSchema)),
     isFeatured: v.optional(v.boolean(), false),
+    chips: v.optional(ProductChipsSchema, []),
     translations: ProductTranslationsSchema,
   }),
   v.forward(
@@ -135,6 +165,8 @@ export const UpdateProductSchema = v.pipe(
       /** hour ↔ day is legal on a rental product; the service rejects it on fixed. */
       rentalUnit: RentalUnitSchema,
       isFeatured: v.boolean(),
+      /** Replaces the whole list, like `rentalPackages` — `[]` clears it. */
+      chips: ProductChipsSchema,
       translations: ProductTranslationsSchema,
       media: ProductMediaSchema,
       /** Rejected on a fixed product by the service, as `rentalUnit` is. */
@@ -349,6 +381,7 @@ export type ValueType = v.InferOutput<typeof ValueTypeSchema>;
 export type QuestionValueType = v.InferOutput<typeof QuestionValueTypeSchema>;
 
 export type RentalPackageInput = v.InferOutput<typeof RentalPackageSchema>;
+export type ProductChipInput = v.InferOutput<typeof ProductChipSchema>;
 
 export type CreateProductInput = v.InferOutput<typeof CreateProductSchema>;
 export type UpdateProductInput = v.InferOutput<typeof UpdateProductSchema>;

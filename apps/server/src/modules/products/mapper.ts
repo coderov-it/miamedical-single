@@ -2,6 +2,7 @@ import type {
   LanguageCode,
   Localized,
   MediaItem,
+  ProductChip,
   ProductMedia,
   RentalPackage,
 } from '@mia/db/schema';
@@ -326,6 +327,7 @@ export function toPublicDetail(
       title: resolveField(requested?.metaTitle, italian?.metaTitle, locale).value,
       description: resolveField(requested?.metaDescription, italian?.metaDescription, locale).value,
     },
+    chips: toChips(row.chips, locale),
     category: {
       id: row.category.id,
       code: row.category.code,
@@ -412,10 +414,23 @@ export function toPublicDetail(
 // --- public summary --------------------------------------------------------
 
 /**
- * The card's spec tags: at most three comparable specs, each collapsed to one
- * short string. Booleans read as their label ("Pieghevole"), and only when
- * true — "Sì" alone tells a shopper nothing; everything else shows its
- * displayValue ("120 kg", "Elettrico").
+ * A product's own chips, resolved for the reader. Order is the order the back
+ * office typed; the 20-character and five-chip limits were enforced on write,
+ * so nothing is trimmed or dropped here.
+ */
+function toChips(chips: ProductChip[], locale: LanguageCode): string[] {
+  return chips.map((chip) => pick(chip, locale));
+}
+
+/**
+ * The fallback for a product nobody has written chips for yet: at most three
+ * comparable specs, each collapsed to one short string. Booleans read as their
+ * label ("Pieghevole"), and only when true — "Sì" alone tells a shopper
+ * nothing; everything else shows its displayValue ("120 kg", "Elettrico").
+ *
+ * Kept so the pre-chip catalog still looks finished. It is second choice
+ * everywhere: a spec is written to be filtered and compared, which is not the
+ * same job as selling the product in four words.
  */
 function toCardSpecTags(row: ProductSummaryRowData, locale: LanguageCode): string[] {
   return toPublicSpecs(row.specs, row.specValues, row.specValueOptions, locale)
@@ -450,7 +465,7 @@ export function toPublicSummary(
       price: row.basePrice,
     },
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
-    specs: toCardSpecTags(row, locale),
+    chips: row.chips.length > 0 ? toChips(row.chips, locale) : toCardSpecTags(row, locale),
     inStock: row.inStock,
   };
 }
@@ -536,6 +551,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     basePrice: row.basePrice,
     currency: row.currency,
     rentalPackages: row.rentalPackages,
+    chips: row.chips,
     translations,
     translationStatus: toTranslationStatus(row.translations),
     variants: row.variantGroups

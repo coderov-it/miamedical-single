@@ -1,0 +1,330 @@
+---
+/**
+ * The sticky order panel — the one elevated card on the page. Total first,
+ * then the rental period, the duration packages, the line items, quantity and
+ * the request CTA.
+ *
+ * Everything money-shaped here is a DISPLAY ESTIMATE: the page script mirrors
+ * the form into these slots, the server re-resolves the real configuration on
+ * /carrello/, and the price that counts is the one confirmed by phone. Per the
+ * owner's rule, on a rental product every modifier and every rental-mode
+ * add-on is per rental unit — the same unit as the base rate.
+ *
+ * The return date is deliberately optional: medical rentals often end "when
+ * recovery ends". An empty return renders the per-unit rate and the phone call
+ * settles the period. Picking a package fills the return date instead.
+ *
+ * The package popover is a CSS disclosure (focusable hidden checkbox + label),
+ * so it opens without JavaScript; its radios sit inside the hidden container,
+ * which keeps them out of the keyboard order while it is closed. The checkbox
+ * carries `form="pdp-detached"` (an id that exists nowhere) so it never joins
+ * the GET submission; the package radios DO belong to the form.
+ */
+import PdpDatePicker from '~/components/product/PdpDatePicker.astro';
+import { formatMoney } from '~/lib/api';
+import type { ProductDetail } from '~/lib/catalog';
+import { REVIEW_AGGREGATE } from '~/lib/home-content';
+import { FIELD, MAX_QUANTITY } from '~/lib/request-config';
+import { routes } from '~/lib/routes';
+import { whatsappUrl } from '~/lib/site';
+
+interface Props {
+  product: ProductDetail;
+  /** "al giorno" / "all'ora". Empty on fixed pricing. */
+  unitLabel: string;
+  /** "giorno" / "ora". Empty on fixed pricing. */
+  unitNoun: string;
+}
+
+const { product, unitLabel, unitNoun } = Astro.props;
+
+const isRental = product.pricing.mode === 'rental';
+const { currency } = product.pricing;
+const money = (amount: number) => formatMoney(amount.toFixed(2), currency);
+
+/* Initial paint mirrors the form's default state (default option per group,
+   required add-ons, no dates, quantity 1) so the script never causes a flash. */
+const defaultLabels: string[] = [];
+const defaultRate = product.variants.reduce((sum, group) => {
+  if (group.options.length === 0) return sum;
+  if (group.valueType === 'multi_select') {
+    const chosen = group.options.filter((option) => option.isDefault);
+    defaultLabels.push(...chosen.map((option) => option.label));
+    return sum + chosen.reduce((acc, option) => acc + Number(option.priceModifier.amount), 0);
+  }
+  const chosen = group.options.find((option) => option.isDefault) ?? group.options[0];
+  if (!chosen) return sum;
+  defaultLabels.push(chosen.label);
+  return sum + Number(chosen.priceModifier.amount);
+}, Number(product.pricing.price));
+
+const requiredAddons = product.addons.filter((addon) => addon.isRequired);
+const perUnitTotal =
+  defaultRate +
+  requiredAddons
+    .filter((addon) => addon.pricing.mode === 'rental')
+    .reduce((sum, addon) => sum + Number(addon.pricing.price), 0);
+const oneTimeTotal = requiredAddons
+  .filter((addon) => addon.pricing.mode === 'fixed')
+  .reduce((sum, addon) => sum + Number(addon.pricing.price), 0);
+
+const initialTotal = isRental ? perUnitTotal : perUnitTotal + oneTimeTotal;
+const initialNote = isRental ? `${unitLabel} · periodo da definire` : 'prezzo del prodotto';
+const baseLineLabel = defaultLabels.length > 0 ? defaultLabels.join(' · ') : 'Tariffa base';
+const perUnitSuffix = isRental ? `/${unitNoun}` : '';
+
+/* Package savings are computed against the DEFAULT rate for the initial paint;
+   the script recomputes them against the configured rate. A package whose unit
+   differs from the product's has no comparable "regular" price — no claim. */
+const packages = product.rentalPackages.map((pkg) => {
+  const comparable = pkg.unit === product.pricing.rentalUnit;
+  const regular = comparable ? defaultRate * pkg.duration : null;
+  const save =
+    regular !== null && regular > Number(pkg.price)
+      ? Math.round((1 - Number(pkg.price) / regular) * 100)
+      : null;
+  return { ...pkg, regular, save };
+});
+const maxSave = Math.max(0, ...packages.map((pkg) => pkg.save ?? 0));
+
+const today = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Rome',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
+
+const pkgRow =
+  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-tint ' +
+  'peer-checked:bg-tint peer-checked:[&_[data-pkg-name]]:text-accent ' +
+  'peer-focus-visible:outline-3 peer-focus-visible:-outline-offset-3 peer-focus-visible:outline-white ' +
+  'peer-focus-visible:shadow-[inset_0_0_0_3px_var(--color-ink)]';
+---
+
+<aside
+  id="ordina"
+  class="border-hair wide:sticky wide:top-6 flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-6 rounded-2xl border bg-white px-7 py-[30px] shadow-pdp-panel"
+>
+  <div>
+    <div class="text-ink-2 text-[11.5px] font-bold tracking-[0.1em] uppercase">Totale stimato</div>
+    <div class="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+      <span class="text-[32px] font-bold tracking-[-0.02em] tabular-nums" data-est-total>
+        {money(initialTotal)}
+      </span>
+      <span class="text-ink-2 text-[13.5px]" data-est-note>{initialNote}</span>
+    </div>
+  </div>
+
+  {
+    isRental && (
+      <div class="flex flex-col gap-4">
+        <PdpDatePicker {today} />
+
+        {packages.length > 0 && (
+          <>
+            <div class="flex items-center gap-2.5" aria-hidden="true">
+              <span class="bg-hair h-px flex-1" />
+              <span class="text-ink-2 text-[11.5px] font-bold tracking-[0.1em] uppercase">
+                oppure
+              </span>
+              <span class="bg-hair h-px flex-1" />
+            </div>
+
+            <div class="relative">
+              <input
+                class="peer sr-only"
+                type="checkbox"
+                id="pdp-pkg-open"
+                form="pdp-detached"
+                data-pkg-toggle
+              />
+              <label
+                class="data-[active]:bg-tint flex w-full cursor-pointer items-center gap-3 rounded-[11px] border-[1.5px] border-dashed border-accent/60 bg-white px-3.5 py-3 select-none peer-focus-visible:shadow-[0_0_0_6px_var(--color-ink)] peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-white data-[active]:border-solid peer-checked:[&_[data-chev]]:rotate-180"
+                for="pdp-pkg-open"
+                data-pkg-trigger
+              >
+                <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+                  <strong class="text-[14px]" data-pkg-title>
+                    Nessun pacchetto scelto
+                  </strong>
+                  <span class="text-ink-2 text-[13px]" data-pkg-detail>
+                    {maxSave > 0
+                      ? `scegline uno e risparmi fino al ${maxSave}%`
+                      : 'durate fisse a prezzo bloccato'}
+                  </span>
+                </span>
+                <span
+                  class="text-ink-2 text-[13px] transition-transform duration-150"
+                  data-chev
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </label>
+
+              <div class="border-hair rounded-field absolute inset-x-0 top-[calc(100%+6px)] z-20 hidden max-h-75 flex-col gap-0.5 overflow-x-clip overflow-y-auto border bg-white p-1.5 shadow-pdp-pop peer-checked:flex">
+                <span>
+                  <input
+                    class="peer sr-only"
+                    type="radio"
+                    name={FIELD.rentalPackage}
+                    id="pdp-pkg-none"
+                    value=""
+                    checked
+                    data-est-kind="package"
+                  />
+                  <label class={pkgRow} for="pdp-pkg-none">
+                    <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+                      <strong class="text-[14px]" data-pkg-name>
+                        Nessun pacchetto
+                      </strong>
+                      <span class="text-ink-2 text-[13px]">Tariffa standard {unitLabel}</span>
+                    </span>
+                    <strong class="text-[14px] whitespace-nowrap tabular-nums" data-pkg-none-rate>
+                      {money(defaultRate)}
+                      {perUnitSuffix}
+                    </strong>
+                  </label>
+                </span>
+                {packages.map((pkg) => (
+                  <span>
+                    <input
+                      class="peer sr-only"
+                      type="radio"
+                      name={FIELD.rentalPackage}
+                      id={`pdp-pkg-${pkg.code}`}
+                      value={pkg.code}
+                      data-est-kind="package"
+                      data-est-price={pkg.price}
+                      data-est-duration={pkg.duration}
+                      data-est-unit={pkg.unit}
+                      data-est-label={pkg.name}
+                      data-est-detail={pkg.label}
+                    />
+                    <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
+                      <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+                        <strong class="text-[14px]" data-pkg-name>
+                          {pkg.name}
+                        </strong>
+                        <span class="text-ink-2 text-[13px]">
+                          {pkg.label}
+                          {pkg.save !== null && <span data-pkg-save> · risparmi {pkg.save}%</span>}
+                        </span>
+                      </span>
+                      <span class="flex flex-none flex-col items-end gap-0.5">
+                        <strong class="text-[14px] tabular-nums">
+                          {formatMoney(pkg.price, currency)}
+                        </strong>
+                        {pkg.regular !== null && pkg.regular > Number(pkg.price) && (
+                          <s class="text-ink-2 text-[12.5px] tabular-nums" data-pkg-regular>
+                            {money(pkg.regular)}
+                          </s>
+                        )}
+                      </span>
+                    </label>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  <ul
+    class="border-hair m-0 flex list-none flex-col gap-2.5 border-t p-0 pt-5 text-[13.5px]"
+    data-est-lines
+  >
+    <li class="flex justify-between gap-3">
+      <span class="text-ink-2 min-w-0">{baseLineLabel}</span>
+      <span class="font-semibold whitespace-nowrap tabular-nums">
+        {money(defaultRate)}{perUnitSuffix}
+      </span>
+    </li>
+    {
+      requiredAddons.map((addon) => (
+        <li class="flex justify-between gap-3">
+          <span class="text-ink-2 min-w-0">{addon.name}</span>
+          <span class="font-semibold whitespace-nowrap tabular-nums">
+            {addon.pricing.price === '0.00'
+              ? 'Incluso'
+              : money(Number(addon.pricing.price)) +
+                (addon.pricing.mode === 'rental' ? perUnitSuffix : ' una tantum')}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="flex items-center justify-between gap-4" data-qty-row>
+    <label class="text-[14px] font-semibold" for={`qta-${product.id}`}>Quantità</label>
+    <div class="border-hair-strong flex items-center overflow-clip rounded-[10px] border">
+      <button
+        type="button"
+        class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
+        data-qty-dec
+        aria-label="Riduci quantità"
+      >
+        −
+      </button>
+      <input
+        id={`qta-${product.id}`}
+        class="border-hair-strong h-11 w-11 appearance-none border-x bg-white text-center text-[15px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        type="number"
+        name={FIELD.quantity}
+        value="1"
+        min="1"
+        max={MAX_QUANTITY}
+        inputmode="numeric"
+        data-qty-input
+        data-est-qty
+      />
+      <button
+        type="button"
+        class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
+        data-qty-inc
+        aria-label="Aumenta quantità"
+      >
+        +
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2.5">
+    <button
+      class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[15.5px] font-semibold text-white focus-visible:shadow-[0_0_0_6px_var(--color-ink)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
+      type="submit"
+    >
+      {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
+    </button>
+    <a
+      class="border-hair-strong text-ink flex min-h-12 items-center justify-center rounded-full border-[1.5px] bg-transparent px-5 text-[14.5px] font-semibold no-underline hover:border-accent hover:text-accent"
+      href={whatsappUrl(`Domanda su: ${product.title}`)}
+      target="_blank"
+      rel="noopener"
+      data-analytics="whatsapp"
+    >
+      Fai una domanda
+    </a>
+  </div>
+
+  {
+    /*
+      The aggregate review line of the reference design. It reuses the SAME
+      governed-content adapter as the home page, so the storefront never shows
+      two different ratings — and, for the same reason as the home band, it is
+      deliberately NOT emitted as AggregateRating structured data: the figure
+      has no governed source yet, and a stale one is a Google policy problem.
+    */
+  }
+  <a
+    class="border-hair text-ink flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3.5 text-[13px] no-underline"
+    href={`${routes.home}#recensioni`}
+    aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, basata su ${REVIEW_AGGREGATE.countLabel}`}
+  >
+    <span class="text-star tracking-[0.12em]" aria-hidden="true">★★★★★</span>
+    <strong class="tabular-nums">{REVIEW_AGGREGATE.rating}</strong>
+    <span class="text-ink-2">· {REVIEW_AGGREGATE.countLabel}</span>
+  </a>
+</aside>

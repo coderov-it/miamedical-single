@@ -1,3 +1,4 @@
+export * from './chip-types.ts';
 export * from './enums.ts';
 export * from './i18n.ts';
 export * from './media-types.ts';

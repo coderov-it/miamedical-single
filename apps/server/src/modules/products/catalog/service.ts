@@ -5,6 +5,7 @@ import type { CreateProductInput, ProductQuery, UpdateProductInput } from '@mia/
 
 import type { FileUploader } from '../../../infra/storage/port.ts';
 import type { SessionUser } from '../../../shared/http/context.ts';
+import { sanitizeRichText } from '../../../shared/html/rich-text.ts';
 import { conflict, httpError, notFound } from '../../../shared/http/errors.ts';
 import { pick } from '../i18n.ts';
 import type { FacetDto } from '../dto.ts';
@@ -198,6 +199,7 @@ export async function create(db: Database, input: CreateProductInput): Promise<P
     currency: input.currency,
     rentalUnit: input.rentalUnit ?? null,
     isFeatured: input.isFeatured,
+    chips: input.chips,
     translations: normalizeTranslations(input.translations),
   });
   return getAggregate(db, id);
@@ -213,7 +215,9 @@ function normalizeTranslations(
     result[lang] = {
       title: t.title,
       shortDescription: t.shortDescription ?? null,
-      description: t.description ?? null,
+      // The only rich-text field in the catalog. Sanitised here, on the way in,
+      // so the database never holds markup the storefront would not dare render.
+      description: sanitizeRichText(t.description),
       slug: t.slug,
       metaTitle: t.metaTitle ?? null,
       metaDescription: t.metaDescription ?? null,
@@ -261,6 +265,7 @@ export async function update(
   if (input.rentalUnit !== undefined) data.rentalUnit = input.rentalUnit;
   if (input.rentalPackages !== undefined) data.rentalPackages = input.rentalPackages;
   if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
+  if (input.chips !== undefined) data.chips = input.chips;
   if (input.translations !== undefined) {
     data.translations = normalizeTranslations(input.translations);
   }

@@ -1,0 +1,20 @@
+---
+/**
+ * Numbered section header of the product detail page — accent index, title,
+ * muted hint. Part of the owner-authored PDP reference design; see
+ * docs/code/storefront-design-system.md § Product detail page.
+ */
+interface Props {
+  n: string;
+  title: string;
+  hint?: string;
+}
+
+const { n, title, hint } = Astro.props;
+---
+
+<header class="mb-4.5 flex items-baseline gap-3">
+  <span class="text-[13px] font-bold text-accent" aria-hidden="true">{n}</span>
+  <h2 class="m-0 text-[19px] font-bold tracking-[-0.01em]">{title}</h2>
+  {hint && <span class="text-ink-2 text-[13.5px]">{hint}</span>}
+</header>

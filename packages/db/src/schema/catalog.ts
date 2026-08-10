@@ -16,6 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+import { EMPTY_PRODUCT_CHIPS, type ProductChip } from './chip-types.ts';
 import { termsDocuments } from './content.ts';
 import { pricingMode, productStatus, questionValueType, rentalUnit, valueType } from './enums.ts';
 import { languageCode, localized, localizedCheck, optionalLocalizedCheck } from './i18n.ts';
@@ -154,6 +155,11 @@ export const products = pgTable(
      */
     rentalPackages: jsonb().$type<RentalPackage[]>().notNull().default(EMPTY_RENTAL_PACKAGES),
     isFeatured: boolean().notNull().default(false),
+    /**
+     * Short display claims for the card and the hero — see chip-types.ts.
+     * Never indexed, never searched: presentation text, not data.
+     */
+    chips: jsonb().$type<ProductChip[]>().notNull().default(EMPTY_PRODUCT_CHIPS),
     media: jsonb().$type<ProductMedia>().notNull().default(EMPTY_PRODUCT_MEDIA),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
