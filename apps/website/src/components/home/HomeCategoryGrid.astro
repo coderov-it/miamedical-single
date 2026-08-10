@@ -30,7 +30,7 @@ const { categories } = Astro.props;
             <li class="flex">
               <a
                 class="rounded-card border-hair hover:border-hair-strong flex min-h-26 w-full items-center gap-4.5 border bg-white px-5.5 py-4.5 no-underline hover:bg-[#fcfdff]"
-                href={catalogPath({ categoria: category.code })}
+                href={catalogPath({ category: category.code })}
               >
                 <span class="rounded-field border-hair bg-tint grid size-15.5 flex-none place-items-center border">
                   {category.imagePath && (

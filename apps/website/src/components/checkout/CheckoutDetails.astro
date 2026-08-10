@@ -1,0 +1,163 @@
+---
+/**
+ * Step 1 — who the customer is and where they are.
+ *
+ * The identity chips decide which fiscal field is asked for, because Italy asks
+ * a different one of each: a private customer has a codice fiscale, a company
+ * has both a partita IVA and its own codice fiscale, and a tourist has neither.
+ * The two conditional blocks are server-rendered in the state that matches the
+ * default chip, so the form is already correct before the script runs.
+ *
+ * Nothing here is ever put in a URL — see docs/code/storefront-checkout.md.
+ */
+import { CUSTOMER_TYPES } from '~/lib/checkout';
+import { t } from '~/lib/labels';
+import { CHIP, CTA, FIELD_GRID, FIELD_INPUT, FIELD_LABEL } from './styles';
+
+/** The chip the page opens on, and so the fiscal block that starts visible. */
+const DEFAULT_TYPE = 'private';
+---
+
+<div class={FIELD_GRID}>
+  <label class={FIELD_LABEL}>
+    {t('firstName')}
+    <input
+      class={FIELD_INPUT}
+      type="text"
+      name="first-name"
+      autocomplete="given-name"
+      placeholder={t('placeholderFirstName')}
+      data-field="firstName"
+    />
+  </label>
+  <label class={FIELD_LABEL}>
+    {t('lastName')}
+    <input
+      class={FIELD_INPUT}
+      type="text"
+      name="last-name"
+      autocomplete="family-name"
+      placeholder={t('placeholderLastName')}
+      data-field="lastName"
+    />
+  </label>
+</div>
+
+<label class={FIELD_LABEL}>
+  {t('address')}
+  <input
+    class={FIELD_INPUT}
+    type="text"
+    name="address"
+    autocomplete="street-address"
+    placeholder={t('placeholderAddress')}
+    data-field="address"
+  />
+</label>
+
+<div class={FIELD_GRID}>
+  <label class={FIELD_LABEL}>
+    {t('email')}
+    <input
+      class={FIELD_INPUT}
+      type="email"
+      name="email"
+      autocomplete="email"
+      inputmode="email"
+      placeholder={t('placeholderEmail')}
+      data-field="email"
+    />
+  </label>
+  <label class={FIELD_LABEL}>
+    {t('phoneNumber')}
+    <input
+      class={FIELD_INPUT}
+      type="tel"
+      name="phone"
+      autocomplete="tel"
+      inputmode="tel"
+      placeholder={t('placeholderPhone')}
+      data-field="phone"
+    />
+  </label>
+</div>
+
+{
+  /*
+    A radio group, not three buttons: this is one choice out of three, so arrow
+    keys have to move between them and a screen reader has to announce the group
+    and the position in it. The reference design uses plain buttons, which
+    announce as three unrelated controls.
+  */
+}
+<div class="flex flex-col gap-2.5" role="radiogroup" aria-labelledby="checkout-type-label">
+  <span class="text-[14.5px] font-semibold" id="checkout-type-label">{t('iAmA')}</span>
+  <div class="flex flex-wrap gap-2">
+    {
+      CUSTOMER_TYPES.map((type) => (
+        <button
+          class={CHIP}
+          type="button"
+          role="radio"
+          aria-checked={type.id === DEFAULT_TYPE ? 'true' : 'false'}
+          aria-pressed={type.id === DEFAULT_TYPE ? 'true' : 'false'}
+          data-customer-type={type.id}
+        >
+          {t(type.id)}
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<label class={FIELD_LABEL} data-when-type="private">
+  {t('codiceFiscale')}
+  <input
+    class={`${FIELD_INPUT} uppercase`}
+    type="text"
+    name="codice-fiscale"
+    autocapitalize="characters"
+    spellcheck="false"
+    placeholder={t('placeholderCodiceFiscale')}
+    data-field="codiceFiscale"
+  />
+</label>
+
+<div class={FIELD_GRID} data-when-type="company" hidden>
+  <label class={FIELD_LABEL}>
+    {t('partitaIva')}
+    <input
+      class={`${FIELD_INPUT} uppercase`}
+      type="text"
+      name="partita-iva"
+      autocapitalize="characters"
+      spellcheck="false"
+      placeholder={t('placeholderPartitaIva')}
+      data-field="partitaIva"
+    />
+  </label>
+  <label class={FIELD_LABEL}>
+    {t('companyCodiceFiscale')}
+    <input
+      class={`${FIELD_INPUT} uppercase`}
+      type="text"
+      name="company-codice-fiscale"
+      autocapitalize="characters"
+      spellcheck="false"
+      placeholder={t('placeholderCompanyCodiceFiscale')}
+      data-field="companyCodiceFiscale"
+    />
+  </label>
+</div>
+
+<label class={FIELD_LABEL}>
+  <span>{t('comments')} <span class="text-ink-2 font-normal">{t('optionalSuffix')}</span></span>
+  <textarea
+    class={`${FIELD_INPUT} resize-y`}
+    name="comments"
+    rows="2"
+    placeholder={t('placeholderComments')}
+    data-field="comments"></textarea>
+</label>
+
+<button class={CTA} type="button" data-step-continue="1" hidden>{t('continueToDelivery')}</button>

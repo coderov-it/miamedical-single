@@ -1,0 +1,83 @@
+---
+/**
+ * One numbered step of the checkout: the card, the badge, the collapsed summary
+ * and the "Modifica" affordance. The body is a slot, so a step's contents never
+ * has to know how the accordion works.
+ *
+ * `data-state` on the <section> is the single switch — `todo`, `active`, `done`.
+ * The page script only ever writes that one attribute; what each state LOOKS
+ * like is CSS, in the checkout block of app.css. The reference design builds
+ * those style strings in JavaScript instead, which would put the page's whole
+ * visual state in a script that has to run before anything looks right.
+ */
+import { t } from '~/lib/labels';
+
+interface Props {
+  /** 1-based; also the badge's label until the step is done. */
+  index: number;
+  title: string;
+  /** Step 3 is terminal: there is nothing to go back and edit. */
+  editable?: boolean;
+  /** Gap between the body's children. The design gives step 2 a tighter one. */
+  bodyGap?: string;
+}
+
+const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
+---
+
+{
+  /*
+    `scroll-mt-24` clears the sticky site header when the script scrolls a step
+    into view; without it a forward step's badge lands behind the bar.
+  */
+}
+<section
+  class="border-hair shadow-pdp-card scroll-mt-24 overflow-hidden rounded-[14px] border bg-white"
+  data-step={index}
+  data-state={index === 1 ? 'active' : 'todo'}
+>
+  <header class="flex items-center gap-3.5 px-7 py-5">
+    {
+      /*
+        Both glyphs stay in the DOM and CSS picks one, so the page's visible
+        numbering is never something a script has to write.
+      */
+    }
+    <span
+      class="grid size-7.5 flex-none place-items-center rounded-full text-[13.5px] font-bold"
+      data-step-badge
+      aria-hidden="true"
+    >
+      <span data-badge-number>{index}</span>
+      <span data-badge-tick>✓</span>
+    </span>
+
+    <span class="flex flex-1 flex-col gap-px">
+      <strong class="text-[17px]">{title}</strong>
+      {
+        /*
+          Filled only with values the customer typed on this page, and shown only
+          while the step is collapsed: it is the receipt for a section they can no
+          longer see.
+        */
+      }
+      <span class="text-ink-2 text-[13.5px]" data-step-summary></span>
+    </span>
+
+    {
+      editable && (
+        <button
+          class="target-48 border-hair-strong cursor-pointer rounded-full border bg-white px-4 py-1.75 text-[14px] font-semibold text-accent"
+          type="button"
+          data-step-edit={index}
+        >
+          {t('edit')}
+        </button>
+      )
+    }
+  </header>
+
+  <div class:list={['flex-col px-7 pt-2 pb-7', bodyGap]} data-step-body={index}>
+    <slot />
+  </div>
+</section>

@@ -1,0 +1,221 @@
+---
+/**
+ * Step 2 — how the equipment gets there and comes back.
+ *
+ * Each option owns the panel it needs: a hotel needs a front desk and a guest
+ * name, a home delivery needs to know whether step 1's address is the right one,
+ * a collection needs to know which branch. The panels are server-rendered and
+ * hidden by attribute, so choosing an option reveals markup that already exists
+ * rather than markup a script has to build.
+ *
+ * A delivery option's `id` doubles as its label key: `storePickup` resolves the
+ * name, `storePickupDetail` the sub-line, `storePickupShort` the order-overview
+ * row. No Italian word appears in this file — see src/lib/labels.ts.
+ *
+ * The fees are placeholders from the reference design — see the note on
+ * `DELIVERY_OPTIONS` in src/lib/checkout.ts.
+ */
+import { formatMoney } from '~/lib/api';
+import { DELIVERY_OPTIONS, PICKUP_POINTS } from '~/lib/checkout';
+import { t } from '~/lib/labels';
+import { CTA, FIELD_GRID, FIELD_INPUT, FIELD_LABEL, PANEL } from './styles';
+---
+
+{
+  /*
+    Each card carries its own fee and labels as data attributes. The page script
+    reads them from there rather than importing them: importing would pull
+    src/lib/checkout.ts — and with it the whole typed API client — into the
+    browser bundle for the sake of three numbers.
+  */
+}
+<div class="flex flex-col gap-3.5" role="radiogroup" aria-label={t('deliveryAndPickup')}>
+  {
+    DELIVERY_OPTIONS.map((option) => (
+      <div
+        class="border-hair rounded-xl border-[1.5px] bg-white"
+        data-delivery-card={option.id}
+        data-delivery-fee={option.fee}
+        data-delivery-name={t(option.id)}
+        data-delivery-short={t(`${option.id}Short`)}
+      >
+        <button
+          class="flex w-full cursor-pointer items-center gap-3.5 border-0 bg-transparent px-4.5 py-4 text-left"
+          type="button"
+          role="radio"
+          aria-checked="false"
+          data-delivery-select={option.id}
+        >
+          <span class="box-border size-4 flex-none rounded-full bg-white" data-delivery-dot />
+
+          <span
+            class="grid size-10.5 flex-none place-items-center rounded-[10px]"
+            data-delivery-icon
+            aria-hidden="true"
+          >
+            {option.id === 'hotelDelivery' && (
+              <svg
+                class="size-6"
+                viewBox="0 0 36 36"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="10" y="6" width="16" height="24" rx="1.5" />
+                <rect x="14" y="10" width="3" height="3" />
+                <rect x="19" y="10" width="3" height="3" />
+                <rect x="14" y="16" width="3" height="3" />
+                <rect x="19" y="16" width="3" height="3" />
+                <rect x="15.5" y="24" width="5" height="6" />
+                <line x1="7" y1="30" x2="29" y2="30" />
+              </svg>
+            )}
+            {option.id === 'homeDelivery' && (
+              <svg
+                class="size-6"
+                viewBox="0 0 36 36"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M7 17 L18 7 L29 17" />
+                <path d="M10 15 V29 H26 V15" />
+                <rect x="15.5" y="21" width="5" height="8" />
+              </svg>
+            )}
+            {option.id === 'storePickup' && (
+              <svg
+                class="size-6"
+                viewBox="0 0 36 36"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M8 13 L10 7 H26 L28 13" />
+                <path d="M8 13 V29 H28 V13" />
+                <line x1="8" y1="13" x2="28" y2="13" />
+                <rect x="12" y="17" width="5" height="5" />
+                <rect x="20" y="17" width="4" height="12" />
+              </svg>
+            )}
+          </span>
+
+          <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <strong class="text-[15.5px]">{t(option.id)}</strong>
+            <span class="text-ink-2 text-[13.5px] leading-[1.45]">{t(`${option.id}Detail`)}</span>
+          </span>
+
+          <strong class="text-[15px] whitespace-nowrap tabular-nums">
+            {option.fee === 0 ? t('free') : `+${formatMoney(option.fee.toFixed(2))}`}
+          </strong>
+        </button>
+
+        {option.id === 'hotelDelivery' && (
+          <div class={`${PANEL} ${FIELD_GRID}`} data-delivery-panel={option.id} hidden>
+            <label class={FIELD_LABEL}>
+              {t('venueNameAndAddress')}
+              <input
+                class={FIELD_INPUT}
+                type="text"
+                name="venue"
+                placeholder={t('placeholderVenue')}
+                data-field="hotelAddress"
+              />
+            </label>
+            <label class={FIELD_LABEL}>
+              {t('guestNameAtReception')}
+              <input
+                class={FIELD_INPUT}
+                type="text"
+                name="guest-name"
+                autocomplete="name"
+                placeholder={t('placeholderGuestName')}
+                data-field="hotelGuest"
+              />
+            </label>
+          </div>
+        )}
+
+        {option.id === 'homeDelivery' && (
+          <div class={`${PANEL} flex flex-col gap-3.5`} data-delivery-panel={option.id} hidden>
+            {/*
+              The 18px box is the design's; the 48px target is the project's. The
+              LABEL carries the target — clicking anywhere on the row toggles the
+              checkbox it wraps — so both hold at once.
+            */}
+            <label class="flex min-h-12 cursor-pointer items-center gap-2.5 text-[15px]">
+              <input
+                class="size-4.5 accent-accent"
+                type="checkbox"
+                name="same-address"
+                checked
+                data-field="sameAddress"
+              />
+              {t('deliverToDetailsAddress')}
+            </label>
+            <label class={FIELD_LABEL} data-home-address hidden>
+              {t('deliveryAddress')}
+              <input
+                class={FIELD_INPUT}
+                type="text"
+                name="delivery-address"
+                autocomplete="street-address"
+                placeholder={t('placeholderAddress')}
+                data-field="homeAddress"
+              />
+            </label>
+          </div>
+        )}
+
+        {option.id === 'storePickup' && (
+          <div class={`${PANEL} flex flex-col gap-2.5`} data-delivery-panel={option.id} hidden>
+            <span class="text-ink-2 text-[13.5px]" id="checkout-pickup-label">
+              {t('choosePickupPoint')}
+            </span>
+            {/*
+              The reference file spreads the items across every store at once,
+              which only makes sense for a multi-warehouse fleet. Here one order
+              is collected from one branch, so this is a choice.
+            */}
+            <div
+              class="flex flex-col gap-2.5"
+              role="radiogroup"
+              aria-labelledby="checkout-pickup-label"
+            >
+              {PICKUP_POINTS.map((point, index) => (
+                <button
+                  class="border-hair-strong shadow-pdp-card flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border bg-white px-4.25 py-3.75 text-left"
+                  type="button"
+                  role="radio"
+                  aria-checked={index === 0 ? 'true' : 'false'}
+                  data-pickup-card={point.city}
+                >
+                  <span
+                    class="bg-tint grid size-8.5 flex-none place-items-center rounded-lg text-[15px] font-bold text-accent"
+                    aria-hidden="true"
+                  >
+                    {index + 1}
+                  </span>
+                  <span class="flex min-w-0 flex-1 flex-col">
+                    <strong class="text-[15.5px]">{point.name}</strong>
+                    <span class="text-ink-2 mt-0.75 text-[13.5px]">{point.detail}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    ))
+  }
+</div>
+
+<button class={CTA} type="button" data-step-continue="2" hidden>
+  {t('continueToConfirmation')}
+</button>

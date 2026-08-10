@@ -9,12 +9,7 @@ import {
 } from '@aws-sdk/client-s3';
 
 import { env } from '../../config/env.ts';
-import type {
-  FileUploader,
-  ImageDimensions,
-  ObjectStat,
-  StoredObject,
-} from './port.ts';
+import type { FileUploader, ImageDimensions, ObjectStat, StoredObject } from './port.ts';
 
 /**
  * Cloudflare R2 through its S3-compatible API: `region: 'auto'` plus the

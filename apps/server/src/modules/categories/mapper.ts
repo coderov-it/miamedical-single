@@ -1,11 +1,7 @@
 import type { LanguageCode } from '@mia/db/schema';
 
 import { pick, pickOptional, pickTranslation } from '../products/i18n.ts';
-import type {
-  AdminCategoryDto,
-  AdminCategoryTranslationDto,
-  PublicCategoryDto,
-} from './dto.ts';
+import type { AdminCategoryDto, AdminCategoryTranslationDto, PublicCategoryDto } from './dto.ts';
 import type { CategoryAggregate } from './types.ts';
 
 export function toPublicCategory(row: CategoryAggregate, locale: LanguageCode): PublicCategoryDto {

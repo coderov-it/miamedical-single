@@ -38,7 +38,8 @@ export class SharpImageConverter implements ImageConverter {
     if (target.square) {
       // Exact-edge profiles always land on the edge (upscaling included);
       // maxEdge squares crop at the source's short side and only shrink.
-      const side = target.edge ?? Math.min(width, height, target.maxEdge ?? Number.MAX_SAFE_INTEGER);
+      const side =
+        target.edge ?? Math.min(width, height, target.maxEdge ?? Number.MAX_SAFE_INTEGER);
       image = image.resize(side, side, { fit: 'cover', position: 'centre' });
     } else if (target.maxEdge) {
       image = image.resize(target.maxEdge, target.maxEdge, {

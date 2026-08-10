@@ -111,8 +111,8 @@ export async function commitProductMedia(
   const one = (item: MediaItem | null, profile: MediaProfileName) =>
     commitItem(storage, item, profile, scope, known);
   const many = (items: MediaItem[], profile: MediaProfileName) =>
-    Promise.all(items.map((item) => one(item, profile))).then(
-      (list) => list.filter((item): item is MediaItem => item !== null),
+    Promise.all(items.map((item) => one(item, profile))).then((list) =>
+      list.filter((item): item is MediaItem => item !== null),
     );
 
   const committed: ProductMedia = {

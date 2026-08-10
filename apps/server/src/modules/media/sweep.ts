@@ -31,10 +31,7 @@ export async function sweepStagingObjects(
 export function startStagingSweep(uploader: FileUploader): void {
   const run = async () => {
     try {
-      const removed = await sweepStagingObjects(
-        uploader,
-        env.MEDIA_STAGING_TTL_HOURS * 3_600_000,
-      );
+      const removed = await sweepStagingObjects(uploader, env.MEDIA_STAGING_TTL_HOURS * 3_600_000);
       if (removed > 0) console.log(`media: swept ${removed} orphaned staging object(s)`);
     } catch (error) {
       // Unconfigured R2 in local dev is expected — one quiet line, no crash.

@@ -164,7 +164,7 @@ if (product.faqs.length > 0) {
           </main>
 
           <aside
-            id="ordina"
+            id="order"
             class="border-hair-strong bg-tint flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-4 rounded-2xl border p-6"
           >
             <p class="m-0">
@@ -193,7 +193,7 @@ if (product.faqs.length > 0) {
         {isRental && <span class="text-[14px] opacity-70">da</span>}
         <span class="text-[18px] font-bold tabular-nums">{formatPricing(product.pricing)}</span>
       </p>
-      <a class="btn btn-primary min-h-12 px-6" href="#ordina">
+      <a class="btn btn-primary min-h-12 px-6" href="#order">
         {inStock ? (isRental ? 'Noleggia ora' : 'Richiedi') : 'Contattaci'}
       </a>
     </div>

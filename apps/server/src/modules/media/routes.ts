@@ -84,9 +84,7 @@ export const mediaRoutes = new Hono<AppEnv>()
       // It must fit the profile's *final* budget, since nothing shrinks it.
       if (file.type === 'image/svg+xml') {
         if (source.byteLength > profile.maxBytes) {
-          throw invalidMedia(
-            `SVG is too large (max ${Math.round(profile.maxBytes / 1024)} KB).`,
-          );
+          throw invalidMedia(`SVG is too large (max ${Math.round(profile.maxBytes / 1024)} KB).`);
         }
         const key = `${STAGING_PREFIX}${uuid}/${sanitizeFileName(file.name)}`;
         await r2FileUploader.upload(key, source, file.type);
@@ -134,13 +132,18 @@ export const mediaRoutes = new Hono<AppEnv>()
     },
   )
 
-  .delete('/object', requirePermission(P.MEDIA_DELETE), validate('json', DeleteSchema), async (c) => {
-    const { path } = c.req.valid('json');
-    // Committed objects are deleted by the save-diff of the entity that owns
-    // them; a direct delete is only for cancelling an upload still in staging.
-    if (!path.startsWith(STAGING_PREFIX)) {
-      throw httpError(422, 'Only staging objects can be deleted directly.', 'invalid_media');
-    }
-    await r2FileUploader.delete(path);
-    return c.json({ data: { deleted: true } });
-  });
+  .delete(
+    '/object',
+    requirePermission(P.MEDIA_DELETE),
+    validate('json', DeleteSchema),
+    async (c) => {
+      const { path } = c.req.valid('json');
+      // Committed objects are deleted by the save-diff of the entity that owns
+      // them; a direct delete is only for cancelling an upload still in staging.
+      if (!path.startsWith(STAGING_PREFIX)) {
+        throw httpError(422, 'Only staging objects can be deleted directly.', 'invalid_media');
+      }
+      await r2FileUploader.delete(path);
+      return c.json({ data: { deleted: true } });
+    },
+  );

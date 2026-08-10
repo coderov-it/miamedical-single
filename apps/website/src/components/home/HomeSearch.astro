@@ -11,7 +11,7 @@
  * the chosen criteria in the destination URL. One small inline enhancement
  * copies a selected suggestion into the search field without navigating away.
  *
- * `zona`, `dal` and `durata` are carried to the catalogue but are not filters
+ * `area`, `from` and `duration` are carried to the catalogue but are not filters
  * yet — see docs/code/storefront-design-system.md.
  */
 import type { ProductSummary } from '~/lib/catalog';
@@ -34,7 +34,7 @@ const durations = [
 ] as const;
 
 const inputClass =
-  'w-full min-w-0 border-0 bg-transparent p-0 font-display text-body font-semibold text-ellipsis whitespace-nowrap focus:outline-none';
+  'w-full min-w-0 border-0 bg-transparent p-0 font-display text-body font-semibold text-ellipsis whitespace-nowrap';
 ---
 
 <section
@@ -173,7 +173,7 @@ const inputClass =
             <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"></path>
             <circle cx="12" cy="10" r="2.5"></circle>
           </svg>
-          <select id="home-area-search" class={inputClass} name="zona">
+          <select id="home-area-search" class={inputClass} name="area">
             {SERVICE_AREAS.map((area) => <option value={area.value}>{area.label}</option>)}
           </select>
         </div>
@@ -198,7 +198,7 @@ const inputClass =
           <input
             id="home-start-search"
             class={inputClass}
-            name="dal"
+            name="from"
             type="date"
             autocomplete="off"
           />
@@ -221,7 +221,7 @@ const inputClass =
             <circle cx="12" cy="12" r="9"></circle>
             <path d="M12 7v5l3 2"></path>
           </svg>
-          <select id="home-duration-search" class={inputClass} name="durata">
+          <select id="home-duration-search" class={inputClass} name="duration">
             {durations.map((duration) => <option value={duration.value}>{duration.label}</option>)}
           </select>
         </div>

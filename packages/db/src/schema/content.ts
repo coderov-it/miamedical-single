@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  integer,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 import { termsStatus } from './enums.ts';
 import { languageCode } from './i18n.ts';

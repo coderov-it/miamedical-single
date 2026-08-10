@@ -41,9 +41,7 @@
     >
       {tab.label}
       {#if tab.code === 'en' && enMissing}
-        <span
-          class="size-1.5 rounded-full bg-amber-500"
-          title="English translation incomplete"
+        <span class="size-1.5 rounded-full bg-amber-500" title="English translation incomplete"
         ></span>
       {/if}
     </button>

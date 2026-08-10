@@ -59,9 +59,8 @@ async function upsertTranslations(
 }
 
 function toAdminDto(row: TermsAggregate) {
-  const translations: Partial<
-    Record<LanguageCode, { title: string; body: string; slug: string }>
-  > = {};
+  const translations: Partial<Record<LanguageCode, { title: string; body: string; slug: string }>> =
+    {};
   for (const t of row.translations) {
     translations[t.languageCode] = { title: t.title, body: t.body, slug: t.slug };
   }
@@ -175,7 +174,10 @@ export const termsAdminRoutes = new Hono<AppEnv>()
         }
         await db.update(termsDocuments).set({ code: input.code }).where(eq(termsDocuments.id, id));
       } else {
-        await db.update(termsDocuments).set({ updatedAt: new Date() }).where(eq(termsDocuments.id, id));
+        await db
+          .update(termsDocuments)
+          .set({ updatedAt: new Date() })
+          .where(eq(termsDocuments.id, id));
       }
       await upsertTranslations(db, id, input.translations);
 
