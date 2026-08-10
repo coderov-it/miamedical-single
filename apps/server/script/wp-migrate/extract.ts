@@ -27,6 +27,7 @@ import {
   specKey,
   type ValueType,
 } from './mapping.ts';
+import { sanitizeRichText } from '../../src/shared/html/rich-text.ts';
 import {
   cleanBlockHtml,
   htmlToText,
@@ -501,7 +502,10 @@ async function main(): Promise<void> {
       });
     }
 
-    const description = cleanBlockHtml(str(row.post_content));
+    // `description` is rich text on the storefront (`set:html`), so WordPress
+    // markup passes the same allowlist an admin edit would — here rather than in
+    // load.ts, so the reviewable JSON is what actually lands.
+    const description = sanitizeRichText(cleanBlockHtml(str(row.post_content)));
     const excerpt = htmlToText(str(row.post_excerpt));
     const seoTitle = metaOf(postId, '_yoast_wpseo_title').trim() || null;
     const seoDesc = metaOf(postId, '_yoast_wpseo_metadesc').trim() || null;

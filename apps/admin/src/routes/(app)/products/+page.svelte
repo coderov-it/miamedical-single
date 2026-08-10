@@ -201,11 +201,9 @@
           </Select.Content>
         </Select.Root>
 
-        <Button type="submit" variant="secondary" size="sm">Apply</Button>
+        <Button type="submit" variant="secondary">Apply</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" size="sm" onclick={() => draft.clear()}>
-            Clear
-          </Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
         {/if}
       </form>
     {/snippet}

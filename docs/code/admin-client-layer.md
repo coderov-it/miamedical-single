@@ -250,3 +250,35 @@ the bubble opens over the row it is describing, which on a dense list means it
 covers the field you were reading. The ordinal beside the pair already answers
 what the arrows do, so the tooltip was paying rent it could not afford.
 `aria-label` is the part that has to be there, and it stays.
+
+### `info-hint.svelte` — the (i) beside a label
+
+A popover, not a tooltip, for the same reason: hover text is unreachable on
+touch and gone the moment you move to read it. This one opens on click and
+stays open, because what it holds is a paragraph — the reasoning behind a limit,
+not a restatement of the label.
+
+The division it enforces: the visible `hint` under a field is what the operator
+needs on every keystroke; the (i) is what they need once. Chips are the case
+that prompted it — the field can say "3 / 5" and count characters inline, but
+"three read better than five, because the card crops the row" is a sentence, and
+a sentence under every field turns the form into prose nobody reads.
+
+### Chips (`ChipsField.svelte`) — limits the operator can see
+
+The product's chips (`products.chips`, ≤5 entries of ≤20 characters — see
+`packages/db/src/schema/chip-types.ts`) are edited on the Basics tab as compact
+one-line rows, deliberately **not** through `sortable-list.svelte`: a chip is
+one short input, and five bordered row-cards would make one field look like five
+sections. It keeps the shared `Reorder` motion, because order is render order.
+
+Every limit is visible rather than merely enforced — "3 / 5" beside the label, a
+live `n/20` counter inside each input that turns amber past 16, and `maxlength`
+stopping the 21st character so the counter never has to scold. The rule the
+counters serve is the card's cropped single line, which is why the numbers live
+in the field and the reasoning lives in the (i).
+
+Blank rows are dropped on save rather than bounced back as a validation error: a
+row the operator added and never filled is not a chip they typed wrong. While
+the form is on English, each input's placeholder is the Italian text it will
+fall back to, so an untranslated chip shows what the storefront will render.

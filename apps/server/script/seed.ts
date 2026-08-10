@@ -484,6 +484,12 @@ if (letti) {
       currency: 'EUR',
       rentalUnit: 'day',
       isFeatured: true,
+      /** Three claims, ≤20 characters each — what the chip rule looks like applied. */
+      chips: [
+        { it: 'Portata 170 kg', en: 'Holds 170 kg' },
+        { it: '3 snodi elettrici', en: '3 electric joints' },
+        { it: 'Consegna in 48 h', en: 'Delivery in 48 h' },
+      ],
     })
     .onConflictDoNothing()
     .returning({ id: products.id });
@@ -496,7 +502,7 @@ if (letti) {
         title: 'Letto da degenza elettrico a 3 snodi',
         shortDescription: 'Letto elettrico regolabile per assistenza domiciliare.',
         description:
-          'Struttura in acciaio verniciato a polveri, rete a doghe in faggio, movimentazione elettrica a 3 snodi con pulsantiera. Ideale per il noleggio a domicilio.',
+          '<p>Struttura in acciaio verniciato a polveri, rete a doghe in faggio, movimentazione elettrica a 3 snodi con pulsantiera. Ideale per il noleggio a domicilio.</p><h2>Cosa comprende il noleggio</h2><ul><li><p>Consegna, montaggio e ritiro a fine periodo</p></li><li><p>Sanificazione certificata prima di ogni consegna</p></li><li><p>Assistenza telefonica per tutta la durata</p></li></ul>',
         slug: 'letto-degenza-elettrico',
         metaTitle: 'Letto da degenza elettrico | MiaMedical',
         metaDescription: 'Noleggio letto da degenza elettrico a 3 snodi.',
@@ -733,6 +739,10 @@ if (carrozzine) {
       basePrice: '289.00',
       currency: 'EUR',
       rentalUnit: null,
+      chips: [
+        { it: 'Peso 11,5 kg', en: 'Weighs 11.5 kg' },
+        { it: 'Pieghevole', en: 'Folding frame' },
+      ],
     })
     .onConflictDoNothing()
     .returning({ id: products.id });
@@ -745,7 +755,7 @@ if (carrozzine) {
         title: 'Carrozzina pieghevole superleggera',
         shortDescription: 'Telaio in alluminio da 11 kg, pieghevole in un gesto.',
         description:
-          'Carrozzina in alluminio con crociera pieghevole, ruote ad estrazione rapida e pedane regolabili.',
+          "<p>Carrozzina in alluminio con crociera pieghevole, ruote ad estrazione rapida e pedane regolabili.</p><h2>Adatta a</h2><ul><li><p>Spostamenti quotidiani in casa e all'esterno</p></li><li><p>Trasporto in auto: si piega in un gesto</p></li></ul>",
         slug: 'carrozzina-pieghevole-superleggera',
         metaTitle: 'Carrozzina pieghevole superleggera | MiaMedical',
         metaDescription: 'Vendita carrozzina superleggera in alluminio.',

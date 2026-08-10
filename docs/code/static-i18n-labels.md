@@ -7,14 +7,14 @@ Covers `packages/i18n/src/enum-labels.ts`.
 The existing rule (`docs/backend-structure-and-standart.md`, `schema/i18n.ts`) is about
 **content** — text an operator typed, which therefore has to be stored per row:
 
-| Storage | When | Example |
-| --- | --- | --- |
-| `*_translations` table | PostgreSQL indexes the text (tsvector, per-locale unique slug) | product title, category slug |
-| inline `{ it, en }` jsonb via `localized()` | everything else | spec label, addon name |
+| Storage                                     | When                                                           | Example                      |
+| ------------------------------------------- | -------------------------------------------------------------- | ---------------------------- |
+| `*_translations` table                      | PostgreSQL indexes the text (tsvector, per-locale unique slug) | product title, category slug |
+| inline `{ it, en }` jsonb via `localized()` | everything else                                                | spec label, addon name       |
 
 Neither applies to an **enum value**. `'day'`, `'draft'`, `'partially_refunded'` are machine
 tokens: they are written by the code, identical in every install, and never edited by a
-human. There is nothing bilingual to *store* — only to *display*. Putting `{it: 'giorno',
+human. There is nothing bilingual to _store_ — only to _display_. Putting `{it: 'giorno',
 en: 'day'}` on every row would be storing the same two strings 98 times and inviting them
 to drift.
 
@@ -23,12 +23,12 @@ So they live in code, keyed by the token:
 ```ts
 export const RENTAL_UNIT = {
   hour: {
-    it: { one: 'ora',    many: 'ore',    per: "all'ora"   },
-    en: { one: 'hour',   many: 'hours',  per: 'per hour'  },
+    it: { one: 'ora', many: 'ore', per: "all'ora" },
+    en: { one: 'hour', many: 'hours', per: 'per hour' },
   },
   day: {
     it: { one: 'giorno', many: 'giorni', per: 'al giorno' },
-    en: { one: 'day',    many: 'days',   per: 'per day'   },
+    en: { one: 'day', many: 'days', per: 'per day' },
   },
 } as const satisfies Labels<RentalUnit, UnitForms>;
 ```
@@ -67,9 +67,9 @@ from the noun alone. `many` is not `one + 's'` either (`ora` → `ore`). The for
 therefore written out and selected, never composed:
 
 ```ts
-unitLabel('hour', 'it', 'per')   // "all'ora"
-durationLabel(7, 'day', 'it')    // "7 giorni"
-durationLabel(1, 'day', 'it')    // "1 giorno"
+unitLabel('hour', 'it', 'per'); // "all'ora"
+durationLabel(7, 'day', 'it'); // "7 giorni"
+durationLabel(1, 'day', 'it'); // "1 giorno"
 ```
 
 Every other catalog is one string per language (`Plain`), because statuses and value types
@@ -87,7 +87,7 @@ disagreeing. The admin now passes `uiLang.current`; the storefront passes a `LOC
 constant, since it is Italian-only — explicit rather than hardcoded, so adding an English
 storefront is threading a value through, not hunting down string literals.
 
-## What this is *not*
+## What this is _not_
 
 Not a UI-chrome translation system. Buttons, headings and validation prose are hundreds of
 open-ended strings and do not belong in a hand-maintained `as const` map. When the admin

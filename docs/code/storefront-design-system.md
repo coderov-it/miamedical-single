@@ -144,9 +144,9 @@ Anatomy, top to bottom:
 2. **Name** — Inter 18px/700, two-line clamp, **no** minimum-height floor (feet
    align via the auto margin on the divider, so a one-line name leaves no hole).
 3. **Blurb** — `shortDescription`, 15px, two-line clamp.
-4. **Spec tags** — quiet tint pills, 14px/500, **one line only**: the row is
-   `h-7.5 overflow-hidden`, so a tag that does not fit is cropped, never
-   wrapped. The full sheet lives on the detail page.
+4. **Chips** — quiet tint pills, 14px/500, **one line only**: the row is
+   `h-7.5 overflow-hidden`, so a chip that does not fit is cropped, never
+   wrapped. The full spec sheet lives on the detail page.
 5. **Divider** — one hairline, full-bleed edge to edge, outside the padding.
    `mt-auto` on it pins the foot so every foot in a row aligns.
 6. **Foot** — price (24px/700 tabular amount + 14px unit, one baseline, **no
@@ -166,10 +166,19 @@ has to stack. Applies to the catalogue, search and the home rail.
 weights 400/500/700 carry the hierarchy. The 14/15px rows are the one sanctioned
 exception to the 16px floor.
 
-**Spec tags come from the list API**: `PublicProductSummaryDto.specs` is at most
+**Chips come from the list API**, already resolved to the reader's locale:
+`PublicProductSummaryDto.chips`. Their source is the product's own
+`products.chips` jsonb — at most five back-office claims of ≤20 characters
+("Portata 170 kg", "Consegna in 48 h"), written in the admin's Basics tab and
+described in `packages/db/src/schema/chip-types.ts`.
+
+A product with no chips of its own falls back to the pre-chip behaviour: at most
 three comparable specs collapsed server-side to short strings ("120 kg",
 "Pieghevole") in `apps/server/src/modules/products/mapper.ts`. Booleans read as
-their label and only when true — "Sì" alone tells a shopper nothing.
+their label and only when true — "Sì" alone tells a shopper nothing. The
+fallback exists so an unedited catalogue still looks finished; it is not the
+target state, because a spec is written to be filtered and compared, which is a
+different job from selling the product in four words.
 
 ## Media standard — one frame, one master
 
@@ -213,8 +222,10 @@ the sections that need data hide themselves when the list comes back empty.
 ## Zero-JavaScript patterns worth knowing
 
 The storefront ships no framework islands. Svelte stays configured, but the only
-client script on the whole site is the search suggestion panel and the buy box
-quantity stepper. Three interactive pieces are pure CSS, and each has a trap:
+client scripts on the whole site are the search suggestion panel and the product
+page's enhancement script (gallery thumbnails, quantity stepper, and the order
+panel's display estimate — see the product detail page section). Several
+interactive pieces are pure CSS, and each has a trap:
 
 **The hero spotlight** is four radios driving one track. Every state class lives
 on the wrapper `<div>`, not on the `<ul>`, and reaches the track through
@@ -225,9 +236,10 @@ of them rings the track (they are `sr-only`, so without it there is no focus
 indicator at all), and a per-slide `sN` for the transform. Off-screen slides are
 `invisible`, not merely clipped, so their links are not focusable.
 
-**The choice tiles** in the buy box are a `peer` input immediately followed by its
-label, so the whole selected state is variants on the label. The tick is a real
-element toggled by `peer-checked:[&_[data-tick]]:inline` — **not** a
+**The option pills and add-on cards** on the product page are a `peer` input
+immediately followed by its label, so the whole selected state is variants on
+the label. Any mark (tick, filled box) is a real element toggled by an arbitrary
+variant like `peer-checked:[&_[data-box]_svg]:opacity-100` — **never** a
 `content-['✓']` pseudo-element. Tailwind's arbitrary-value parser drops the
 unicode escape and you get an empty string with no error.
 
@@ -272,26 +284,120 @@ no error anywhere.
   &v_<groupKey>=<optionValue>   // repeats for multi_select
   &q_<questionKey>=<answer>     // repeats for multi_select
   &extra=<addonId>              // repeats
-  &dal=YYYY-MM-DD&qta=<1..10>
+  &pacchetto=<packageCode>      // optional fixed-duration bundle, by stable code
+  &dal=YYYY-MM-DD&al=YYYY-MM-DD // return date optional: open-ended rentals are normal
+  &qta=<1..10>
 ```
 
-`ProductQuote.astro` renders one control per value shape, and covers all of them
-explicitly — `single_select`/`boolean` as a choice grid, `multi_select` as
-checkboxes, `number`/`number_range` as a stepper-friendly field, `string` as a
-text input, plus the product's intake `questions`. A shape with no branch would
-vanish from the form with no error, which is why there is no `default` fallthrough.
+`PdpConfigure.astro` and `PdpQuestions.astro` render one control per value
+shape, and cover all of them explicitly — `single_select` as radio pills,
+`multi_select` as checkbox pills, `boolean` as a Sì/No pair,
+`number`/`number_range` as a numeric field, `string` as a text input. A shape
+with no branch would vanish from the form with no error, which is why there is
+no `default` fallthrough.
 
 `resolveRequest()` maps the URL back to the labels the customer actually saw.
-Unknown group keys and option values are **dropped, never echoed**: the resolved
-text is rendered on the page and pushed into a `wa.me` link, so a value that does
-not correspond to a real option has no business appearing as if it did. Free text
-survives, but stripped of control characters and capped. Required add-ons are
-re-added from the product rather than trusted from the URL, because a disabled
-checkbox is not submitted.
+Unknown group keys, option values and package codes are **dropped, never
+echoed**: the resolved text is rendered on the page and pushed into a `wa.me`
+link, so a value that does not correspond to a real option has no business
+appearing as if it did. A return date before the start date is dropped the same
+way. Free text survives, but stripped of control characters and capped. Required
+add-ons are re-added from the product rather than trusted from the URL, because
+a disabled checkbox is not submitted.
 
 It is a GET form because there is no cart or orders endpoint on the API yet. When
 one lands this becomes a POST with a session-bound CSRF token, and the server
 re-resolves the configuration before pricing. The field names carry over.
+
+## The product detail page (owner's reference design)
+
+`/prodotto/[slug]/` does NOT follow Variante B. Its spec is the owner-authored
+Claude Design file — project "Product details page design", file
+`Product Details.dc.html` — and it was deliberately released from the design
+system above. What carries over from the site is the brand accent `#2e4699`
+(applied through the reference design's own `accentColor` prop), the ink/hair
+palette, and the focus-ring convention; everything else (Instrument Sans via
+`--font-pdp`, sub-16px secondary text, pill options, numbered sections) is the
+reference design's own language. Do not "correct" the PDP back toward Variante
+B tokens.
+
+Structure: breadcrumb → hero (gallery + identity with the product's chips, or
+comparable specs where none are written) →
+`01 Configura` (variant pills) → `02 Extra` (checkbox cards) → `03 Per la
+consegna` (intake questions) → `04 Scheda tecnica` (icon tiles with
+initial-letter fallback) → information tabs → one sticky order panel, the only
+elevated card on the page. One native GET form wraps both columns.
+
+Pricing semantics, per the owner's rule: **on a rental product, every modifier
+is per rental unit** — variant option modifiers, per-unit number modifiers and
+rental-mode add-ons all bill in the product's `rentalUnit`, so one duration
+multiplies every amount. The addon service enforces the unit
+(`invalid_addon_rental_unit`). Rental packages are a fixed total for a fixed
+duration; the estimate adds `(configured rate − base rate) × duration` on top
+and shows the strikethrough/savings claim only when the package unit equals the
+product unit.
+
+The order panel is a **display estimate only**: the page script mirrors the
+form into the total, the period badge and the line items; `/carrello/`
+re-resolves the request server-side and the phone call confirms the real price.
+Without JavaScript everything still submits — the panel simply shows the
+initial server-rendered state (defaults + required add-ons).
+
+Three tricks worth knowing before touching it:
+
+- **The calendar is an enhancement, never the source of truth.**
+  `PdpDatePicker.astro` renders the reference design's summary card and
+  range-highlighting calendar popover **and** the two plain
+  `<input type="date">` fields. The native row is what the server sends; the
+  card and popover ship with the `hidden` attribute, and the page script swaps
+  them only once it has mounted, so the no-JavaScript path is a complete
+  control rather than a degraded one. The calendar never holds state: it
+  writes through those same inputs and dispatches `change`, which is why the
+  estimate, the package auto-fill and the unpick rule below all keep working
+  without knowing it exists. A `display:none` input still submits — only
+  `disabled` suppresses it — so `dal`/`al` reach `/carrello/` in both modes.
+  Visibility is the `hidden` **attribute** alone: Tailwind's preflight makes
+  `[hidden]` `display:none !important`, so a `hidden` utility class on the
+  popover would survive the attribute being removed and silently keep it
+  collapsed. The popover is deliberately wider than the panel column
+  (7 × 48px targets + gaps + padding = 368px) and breaks out symmetrically,
+  because seven 48px cells do not fit inside it.
+- **The detached-form escape.** The info-tab radios and the package-popover
+  checkbox carry `form="pdp-detached"`, an id that exists nowhere. A control
+  whose `form` attribute matches no element has no form owner, which keeps
+  purely-presentational inputs out of the GET submission while they sit inside
+  the form element. The package **radios** deliberately do NOT carry it — they
+  are real fields (`pacchetto`).
+- **The return date is optional by design.** Medical rentals often end "when
+  recovery ends"; an empty `al` renders the per-unit rate with "periodo da
+  definire" and the call settles it. Picking a package auto-fills the return
+  date; hand-editing the return date unpicks the package.
+
+The panel closes on the reference's aggregate review line, which reads from the
+same `REVIEW_AGGREGATE` adapter as the home band so the storefront can never
+show two different ratings. For the same reason as that band it is deliberately
+**not** emitted as `AggregateRating` structured data: the figure has no governed
+source yet, and a stale one is a Google policy problem rather than an
+inaccuracy.
+
+Deviations from the reference file, all business-driven: copy is Italian; the
+CTA stays "Richiedi il noleggio" (no online payment exists); the city selector
+is dropped from the calendar popover (one service area, and street-level detail
+is section 03's job). The panel carries one element the reference has no need
+of, the quantity stepper (`qta`). Nothing else may be added to it: the owner
+has removed the hygiene/delivery trust line, the "nessun pagamento online"
+footnote and the phone CTA from this panel specifically, and the hero's
+in-stock badge, because the panel is meant to read exactly as the reference
+does. Put new reassurance copy somewhere other than the order panel.
+
+**Never pair a Tailwind reset with a utility from the same family in one
+`class:list`.** The Configure rows are a `<fieldset>`, so the instinct is
+`class:list={['border-0 p-0', rowCard]}` — but `border-0`/`border` and
+`p-0`/`px-4.5 py-3.5` are the same utility families, and Tailwind settles the
+clash by its own canonical stylesheet order, not by the order written in the
+attribute. The resets won, and every variant row rendered with no card border
+and no padding while the number/text rows beside them kept theirs. State the
+border and padding once, in `rowCard`.
 
 ## Deliberate deviations from the prototype
 

@@ -16,6 +16,8 @@ export const FIELD = {
   product: 'prodotto',
   quantity: 'qta',
   startDate: 'dal',
+  endDate: 'al',
+  rentalPackage: 'pacchetto',
   addon: 'extra',
 } as const;
 
@@ -38,6 +40,10 @@ export interface ResolvedRequest {
   quantity: number;
   /** ISO `YYYY-MM-DD`, or `''`. */
   startDate: string;
+  /** ISO `YYYY-MM-DD`, or `''` — open-ended rentals leave the return date unset. */
+  endDate: string;
+  /** The duration bundle, resolved by `code`. An unknown code is dropped, never echoed. */
+  rentalPackage: ProductDetail['rentalPackages'][number] | null;
 }
 
 /**
@@ -177,12 +183,24 @@ export function resolveRequest(
     Math.max(1, Math.trunc(Number(params.get(FIELD.quantity) ?? '1')) || 1),
   );
 
+  const startDate = cleanDate(params.get(FIELD.startDate)?.trim() ?? '');
+  let endDate = cleanDate(params.get(FIELD.endDate)?.trim() ?? '');
+  // ISO dates compare lexicographically. A return before the start is nonsense,
+  // so it is dropped rather than shown as if the customer had picked it.
+  if (endDate && startDate && endDate < startDate) endDate = '';
+
+  const packageCode = params.get(FIELD.rentalPackage)?.trim() ?? '';
+  const rentalPackage =
+    product.rentalPackages.find((candidate) => candidate.code === packageCode) ?? null;
+
   return {
     selections,
     answers,
     addons,
     quantity,
-    startDate: cleanDate(params.get(FIELD.startDate)?.trim() ?? ''),
+    startDate,
+    endDate,
+    rentalPackage,
   };
 }
 

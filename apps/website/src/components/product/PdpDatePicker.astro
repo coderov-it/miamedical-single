@@ -1,0 +1,145 @@
+---
+/**
+ * The rental period control of the order panel, per the owner's reference
+ * design: a summary card that opens a custom calendar popover with a
+ * highlighted range, rather than two bare date fields.
+ *
+ * PROGRESSIVE ENHANCEMENT, and this is the whole point of the shape below.
+ * A calendar grid cannot exist without JavaScript, but the request form must.
+ * So this renders BOTH:
+ *
+ *   - `[data-date-native]` — two real `<input type="date">`, visible by
+ *     default. Without JavaScript this is the entire control and it works.
+ *   - `[data-cal-trigger]` + `[data-cal-pop]` — the reference design's summary
+ *     card and calendar, `hidden` by default.
+ *
+ * The page script swaps them on load: it unhides the card, hides the native
+ * row, and drives the SAME two inputs. A `display:none` input still submits
+ * (only `disabled` suppresses it), so `dal`/`al` reach /carrello/ either way,
+ * and every existing listener — the estimate, the package auto-fill, the
+ * package unpick on a hand-edited return date — keeps working untouched
+ * because the calendar writes through the inputs and dispatches `change`.
+ *
+ * The return date stays optional in both modes: medical rentals often end
+ * "when recovery ends", and the phone call settles it.
+ */
+import { FIELD } from '~/lib/request-config';
+
+interface Props {
+  /** Today in Europe/Rome, ISO `YYYY-MM-DD`. The floor for both fields. */
+  today: string;
+}
+
+const { today } = Astro.props;
+
+const dateField =
+  'min-h-11 w-full rounded-lg border border-hair-strong bg-white px-2.5 py-1.5 text-[13.5px] font-semibold tabular-nums';
+const kicker = 'text-[11px] font-bold tracking-[0.08em] uppercase text-ink-2';
+
+/* The calendar is 7 columns of a 48×48 target — the project floor — plus the
+   gaps and the popover padding: 7·48 + 6·2 + 2·10 = 368px. The popover is
+   therefore WIDER than the panel column and breaks out symmetrically. On a
+   narrow phone it clamps to the viewport and the cells fall back to a 44px
+   floor, which keeps the row readable rather than overflowing the screen. */
+const dayCell =
+  'grid min-h-12 min-w-11 place-items-center rounded-lg border-0 bg-transparent text-[13.5px] font-semibold tabular-nums cursor-pointer ' +
+  'hover:bg-tint-2 disabled:cursor-default disabled:text-ink-decorative disabled:hover:bg-transparent ' +
+  'data-[range]:bg-tint-2 data-[edge]:bg-accent data-[edge]:text-white data-[edge]:hover:bg-accent ' +
+  'data-[out]:text-ink-decorative';
+
+const navButton =
+  'grid size-11 flex-none place-items-center rounded-lg border border-hair-strong bg-white text-[15px] cursor-pointer hover:bg-tint';
+---
+
+<div class="relative flex flex-col gap-2.5" data-date-block>
+  {/* ---- no-JavaScript control, and the source of truth in both modes ---- */}
+  <div class="bg-tint flex flex-col gap-2.5 rounded-[11px] px-3.5 py-3" data-date-native>
+    <div class="border-hair-strong flex items-baseline justify-between gap-2 border-b pb-2">
+      <span class="text-ink-2 text-[12.5px]">Periodo di noleggio</span>
+      <strong class="text-[12.5px] text-accent" data-est-duration>da definire</strong>
+    </div>
+    <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2.5">
+      <label class="flex min-w-0 flex-col gap-1">
+        <span class={kicker}>Inizio</span>
+        <input class={dateField} type="date" name={FIELD.startDate} min={today} data-est-start />
+      </label>
+      <span class="pb-2.5 text-[15px] text-accent" aria-hidden="true">→</span>
+      <label class="flex min-w-0 flex-col gap-1">
+        <span class={kicker}>Riconsegna</span>
+        <input class={dateField} type="date" name={FIELD.endDate} min={today} data-est-end />
+      </label>
+    </div>
+  </div>
+
+  {/* ---- enhanced control: summary card + calendar popover ---- */}
+  <button
+    class="bg-tint grid w-full cursor-pointer grid-cols-[1fr_auto_1fr] items-center gap-x-2.5 gap-y-2 rounded-[11px] border-[1.5px] border-transparent px-3.5 py-3 text-left aria-expanded:border-accent"
+    type="button"
+    hidden
+    aria-expanded="false"
+    data-cal-trigger
+  >
+    <span
+      class="border-hair-strong col-span-3 flex items-baseline justify-between gap-2 border-b pb-2"
+    >
+      <span class="text-ink-2 text-[12.5px]">
+        Periodo · <span data-cal-duration>da definire</span>
+      </span>
+      <span class="text-[12px] font-semibold text-accent">Modifica</span>
+    </span>
+    <span class="flex min-w-0 flex-col gap-0.5">
+      <span class={kicker}>Inizio</span>
+      <strong class="text-[13.5px]" data-cal-start>Da scegliere</strong>
+    </span>
+    <span class="text-[15px] text-accent" aria-hidden="true">→</span>
+    <span class="flex min-w-0 flex-col gap-0.5">
+      <span class={kicker}>Riconsegna</span>
+      <strong class="text-[13.5px]" data-cal-end>Da definire</strong>
+    </span>
+  </button>
+
+  {
+    /* Visibility is the `hidden` ATTRIBUTE alone — Tailwind's preflight makes
+      `[hidden]` `display:none !important`, so it beats the `flex` below and the
+      script has exactly one thing to toggle. A `hidden` CLASS here would survive
+      the attribute being removed and keep the popover silently collapsed. */
+  }
+  <div
+    class="border-hair rounded-field absolute top-[calc(100%-6px)] left-1/2 z-30 flex max-h-[62vh] w-92 max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col gap-3 overflow-x-clip overflow-y-auto border bg-white p-2.5 shadow-pdp-cal"
+    hidden
+    data-cal-pop
+  >
+    <div class="flex items-center justify-between gap-2">
+      <button class={navButton} type="button" data-cal-prev aria-label="Mese precedente">‹</button>
+      <strong class="text-[14px]" aria-live="polite" data-cal-title></strong>
+      <button class={navButton} type="button" data-cal-next aria-label="Mese successivo">›</button>
+    </div>
+
+    <div
+      class="text-ink-2 grid grid-cols-7 gap-0.5 text-center text-[11px] font-bold"
+      aria-hidden="true"
+    >
+      <span>lun</span><span>mar</span><span>mer</span><span>gio</span><span>ven</span><span
+        >sab</span
+      ><span>dom</span>
+    </div>
+
+    <div class="grid grid-cols-7 gap-0.5" data-cal-grid></div>
+
+    <p class="text-ink-2 m-0 text-[13px]" data-cal-hint>Scegli il giorno di inizio.</p>
+
+    <button
+      class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[14.5px] font-semibold text-white"
+      type="button"
+      data-cal-done
+    >
+      Fatto
+    </button>
+  </div>
+
+  {
+    /* The day-cell class list lives on the server so the script never hard-codes
+      design tokens; it clones this template for each of the 42 cells. */
+  }
+  <template data-cal-cell-class={dayCell}></template>
+</div>

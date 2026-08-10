@@ -2,22 +2,32 @@
 /**
  * Product detail, from one composed product read.
  *
- * Rendered on demand so stock, price and specifications are never stale. The
- * whole page is server-rendered HTML; the only JavaScript is the quantity
- * stepper inside the buy box.
+ * Layout and visual language follow the owner-authored reference design
+ * (Claude Design project "Product details page design", file
+ * "Product Details.dc.html"): hero with gallery and identity side by side,
+ * numbered sections 01 Configura / 02 Extra / 03 Per la consegna / 04 Scheda
+ * tecnica, information tabs, and one sticky order panel. Rationale and the
+ * few deliberate deviations: docs/code/storefront-design-system.md § Product
+ * detail page.
  *
- * Reading order on phones is gallery → identity → buy box → the rest, achieved
- * with `display: contents` on the left column so its children join the page
- * grid and can be ordered independently.
+ * Rendered on demand so stock, price and specifications are never stale. One
+ * native GET form wraps both columns; the page script only mirrors the form
+ * into the panel's display estimate — /carrello/ re-resolves everything.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
-import ProductQuote from '~/components/product/ProductQuote.astro';
+import PdpAddons from '~/components/product/PdpAddons.astro';
+import PdpConfigure from '~/components/product/PdpConfigure.astro';
+import PdpHero from '~/components/product/PdpHero.astro';
+import PdpInfoTabs from '~/components/product/PdpInfoTabs.astro';
+import PdpOrderPanel from '~/components/product/PdpOrderPanel.astro';
+import PdpQuestions from '~/components/product/PdpQuestions.astro';
+import PdpSpecs from '~/components/product/PdpSpecs.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { formatPricing, mediaUrl, offerPrice } from '~/lib/api';
 import { getProductBySlug } from '~/lib/catalog';
+import { FIELD } from '~/lib/request-config';
 import { productPath, routes } from '~/lib/routes';
-import { CONTACT, whatsappUrl } from '~/lib/site';
 
 export const prerender = false;
 
@@ -32,31 +42,16 @@ const isRental = product.pricing.mode === 'rental';
 const inStock = product.skus.length === 0 || product.skus.some((sku) => sku.inStock);
 
 const hero = product.media.cleanPng ?? product.media.thumbnail ?? product.media.gallery[0] ?? null;
-const gallery = product.media.gallery.filter((item) => item.path !== hero?.path).slice(0, 4);
+const images = hero
+  ? [hero, ...product.media.gallery.filter((item) => item.path !== hero.path)]
+  : product.media.gallery;
 
-/**
- * "Perché sceglierla" reuses the short description, split into its sentences.
- * The back office has no dedicated bullet field, and inventing marketing claims
- * here is not an option — every line on this page is a governed fact.
- */
-const whyPoints = (product.shortDescription ?? '')
-  .split(/(?<=[.!])\s+/)
-  .map((sentence) => sentence.replace(/[.!]+$/, '').trim())
-  .filter((sentence) => sentence.length > 0)
-  .slice(0, 4);
-
-const includes = [
-  'Consegna a domicilio',
-  'Ritiro a fine noleggio',
-  'Montaggio e istruzioni',
-  'Assistenza telefonica',
-];
-
-const hygiene = [
-  'Sanificato e certificato',
-  'Controllato prima della consegna',
-  'Accessori inclusi e integri',
-];
+/** The Italian words the panel builds its period strings from. */
+const UNIT_WORDS = {
+  day: { label: 'al giorno', noun: 'giorno', plural: 'giorni' },
+  hour: { label: "all'ora", noun: 'ora', plural: 'ore' },
+} as const;
+const unitWords = product.pricing.rentalUnit ? UNIT_WORDS[product.pricing.rentalUnit] : null;
 
 const jsonLd: Record<string, unknown>[] = [
   {
@@ -89,8 +84,6 @@ if (product.faqs.length > 0) {
     })),
   });
 }
-
-const sectionTitle = 'mb-4 text-h3';
 ---
 
 <BaseLayout
@@ -110,7 +103,7 @@ const sectionTitle = 'mb-4 text-h3';
     */
   }
   <div
-    class="max-w-page mid:px-8 mid:pb-16 mx-auto w-full px-5 pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]"
+    class="pdp mid:px-8 mid:pb-20 mx-auto w-full max-w-310 px-5 pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]"
   >
     <Breadcrumbs
       items={[
@@ -120,379 +113,69 @@ const sectionTitle = 'mb-4 text-h3';
       ]}
     />
 
-    <div class="mid:gap-9 wide:grid-cols-[minmax(0,1fr)_400px] grid items-start gap-5 pt-2">
-      <div class="wide:flex wide:flex-col wide:gap-8 contents min-w-0">
-        <div class="rounded-card border-hair mid:p-6 order-1 border bg-white p-4">
-          {/* The site-wide 4:3 media well — same ratio as the card stage. */}
-          <div class="rounded-field bg-tint relative grid aspect-4/3 place-items-center">
-            {
-              hero && (
-                <img
-                  class="absolute inset-0 size-full object-contain p-6 mix-blend-multiply"
-                  src={mediaUrl(hero.path)}
-                  alt={hero.alt ?? product.title}
-                  loading="eager"
-                  fetchpriority="high"
-                  decoding="sync"
-                />
-              )
-            }
-          </div>
-
-          {
-            gallery.length > 0 && (
-              <ul class="mt-4 flex gap-3 overflow-x-auto">
-                {gallery.map((item) => (
-                  <li class="flex-none">
-                    <img
-                      class="rounded-field border-hair bg-tint aspect-4/3 w-24 border object-contain p-1.5 mix-blend-multiply"
-                      src={mediaUrl(item.path)}
-                      alt={item.alt ?? ''}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </li>
-                ))}
-              </ul>
-            )
-          }
-        </div>
-
-        {
-          /*
-            The identity block lives here on phones and inside the buy box on
-            desktop. Only one of the two is ever rendered visible, so the title
-            is never announced twice.
-          */
-        }
-        <div class="wide:hidden order-2 flex flex-col gap-3">
-          <a
-            class="font-display text-ui text-ink-2 inline-flex min-h-12 items-center gap-2 self-start font-semibold no-underline"
-            href={routes.catalog}
-          >
-            <svg
-              class="size-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7"></path>
-            </svg>
-            Torna al catalogo
-          </a>
-
-          <div class="flex flex-wrap items-center gap-3">
-            <span
-              class="bg-tint font-display text-ui inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-accent"
-            >
-              {product.category.name}
-            </span>
-            {
-              inStock && (
-                <span class="font-display text-ui text-ok inline-flex items-center gap-1.5 font-semibold">
-                  <span class="size-2 rounded-full bg-current" aria-hidden="true" />
-                  Disponibile subito
-                </span>
-              )
-            }
-          </div>
-
-          <h1 class="text-[1.5625rem]/[1.25]">{product.title}</h1>
-          {product.shortDescription && <p class="text-ink-2">{product.shortDescription}</p>}
-        </div>
-
-        {
-          whyPoints.length > 0 && (
-            <section class="order-4" aria-labelledby="why-title">
-              <h2 id="why-title" class={sectionTitle}>
-                {isRental ? 'Perché scegliere questo ausilio' : 'Perché sceglierlo'}
-              </h2>
-              <ul class="grid gap-4">
-                {whyPoints.map((point) => (
-                  <li class="flex items-start gap-3">
-                    <svg
-                      class="mt-0.5 size-5.5 flex-none"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <circle cx="12" cy="12" r="12" fill="var(--color-accent)" />
-                      <path
-                        d="M7 12.5l3 3 7-7"
-                        stroke="#fff"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )
-        }
-
-        {
-          product.description && (
-            <section class="order-5" aria-labelledby="desc-title">
-              <h2 id="desc-title" class={sectionTitle}>
-                Descrizione
-              </h2>
-              <div class="grid gap-4">
-                {product.description.split(/\n{2,}/).map((paragraph) => (
-                  <p>{paragraph}</p>
-                ))}
-              </div>
-            </section>
-          )
-        }
-
-        {
-          isRental && (
-            <div class="wide:grid-cols-2 order-5 grid gap-5">
-              <section
-                class="rounded-card border-hair mid:p-6 border bg-white p-5"
-                aria-labelledby="includes-title"
-              >
-                <h3 id="includes-title" class="text-lead mb-4">
-                  Cosa è incluso
-                </h3>
-                <ul class="grid gap-3">
-                  {includes.map((item) => (
-                    <li class="text-ui flex items-center gap-3">
-                      <svg
-                        class="text-ok size-5 flex-none"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M20 6L9 17l-5-5"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <section
-                class="rounded-card border-hair mid:p-6 border bg-white p-5"
-                aria-labelledby="hygiene-title"
-              >
-                <h3 id="hygiene-title" class="text-lead mb-4">
-                  Igiene e sicurezza
-                </h3>
-                <ul class="grid gap-3">
-                  {hygiene.map((item) => (
-                    <li class="text-ui flex items-center gap-3">
-                      <svg
-                        class="text-ok size-5 flex-none"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          fill="none"
-                        />
-                        <path
-                          d="M9 12l2 2 4-4"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
-          )
-        }
-
-        {
-          !isRental && (
-            <section class="order-5" aria-labelledby="hygiene-title">
-              <h2 id="hygiene-title" class={sectionTitle}>
-                Igiene e sicurezza
-              </h2>
-              <p>
-                Ogni ausilio viene <strong>sanificato, controllato e certificato</strong>. Lo ricevi
-                igienizzato e pronto all'uso, con tutti gli accessori.
-              </p>
-            </section>
-          )
-        }
-
-        {
-          product.specifications.length > 0 && (
-            <section class="order-5" aria-labelledby="specs-title">
-              <h2 id="specs-title" class={sectionTitle}>
-                Scheda tecnica
-              </h2>
-              <div class="rounded-card border-hair overflow-hidden border">
-                {product.specifications.map((spec, index) => (
-                  <div
-                    class:list={[
-                      'border-hair text-ui flex gap-4 border-b px-4 py-3.5 last:border-b-0',
-                      index % 2 === 0 ? 'bg-tint' : 'bg-white',
-                    ]}
-                  >
-                    <span class="font-display flex-none basis-[45%] font-semibold">
-                      {spec.label}
-                    </span>
-                    <span class="text-ink-2 flex-1">{spec.displayValue}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )
-        }
-
-        {
-          product.faqs.length > 0 && (
-            <section class="order-5" aria-labelledby="faq-title">
-              <h2 id="faq-title" class={sectionTitle}>
-                Domande frequenti su questo ausilio
-              </h2>
-              <ul class="grid gap-2.5">
-                {product.faqs.map((faq, index) => (
-                  <li>
-                    <details
-                      class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
-                      open={index === 0}
-                    >
-                      <summary class="font-display text-h4 flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-semibold [&::-webkit-details-marker]:hidden">
-                        {faq.question}
-                        <svg
-                          class="text-ink-2 size-5.5 flex-none transition-transform duration-200 group-open:rotate-180"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2.4"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M6 9l6 6 6-6" />
-                        </svg>
-                      </summary>
-                      <p class="text-ui-strong text-ink-2 max-w-[68ch] pb-5.5">{faq.answer}</p>
-                    </details>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )
-        }
-
-        {
-          product.terms.length > 0 && (
-            <section class="order-5" aria-labelledby="terms-title">
-              <h2 id="terms-title" class={sectionTitle}>
-                Condizioni applicabili
-              </h2>
-              <ul class="grid gap-2">
-                {product.terms.map((terms) => (
-                  <li>
-                    <a
-                      class="font-display text-ui inline-flex min-h-12 items-center font-semibold text-accent"
-                      href={`/${terms.slug}/`}
-                    >
-                      {terms.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )
-        }
-      </div>
-
-      <div class="wide:sticky wide:top-24 order-3 flex flex-col gap-5">
-        <div
-          class="rounded-card border-hair-strong mid:p-6 flex flex-col gap-4 border bg-white p-5"
+    {
+      inStock ? (
+        <form
+          id="quote-form"
+          method="get"
+          action={routes.cart}
+          class="flex flex-wrap items-start gap-x-12 gap-y-10 pt-3"
+          data-est-base={product.pricing.price}
+          data-est-mode={product.pricing.mode}
+          data-est-unit={product.pricing.rentalUnit ?? ''}
+          data-est-unit-label={unitWords?.label ?? ''}
+          data-est-unit-noun={unitWords?.noun ?? ''}
+          data-est-unit-plural={unitWords?.plural ?? ''}
+          data-est-currency={product.pricing.currency}
         >
-          <div class="wide:block hidden">
-            <div class="flex flex-wrap items-center gap-3">
-              <span
-                class="bg-tint font-display text-ui inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-accent"
-              >
-                {product.category.name}
-              </span>
-              {
-                inStock && (
-                  <span class="font-display text-ui text-ok inline-flex items-center gap-1.5 font-semibold">
-                    <span class="size-2 rounded-full bg-current" aria-hidden="true" />
-                    Disponibile subito
-                  </span>
-                )
-              }
-            </div>
+          <input type="hidden" name={FIELD.product} value={product.slug} />
 
-            <p class="font-display mt-3 text-[1.5625rem]/[1.25] font-semibold tracking-[-0.028em]">
-              {product.title}
+          <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-13">
+            <PdpHero {product} {images} unitLabel={unitWords?.label ?? ''} />
+            {product.variants.length > 0 && (
+              <PdpConfigure
+                variants={product.variants}
+                {isRental}
+                unitNoun={unitWords?.noun ?? ''}
+              />
+            )}
+            {product.addons.length > 0 && <PdpAddons addons={product.addons} />}
+            {product.questions.length > 0 && <PdpQuestions questions={product.questions} />}
+            {product.specifications.length > 0 && (
+              <PdpSpecs specifications={product.specifications} />
+            )}
+            <PdpInfoTabs {product} />
+          </main>
+
+          <PdpOrderPanel
+            {product}
+            unitLabel={unitWords?.label ?? ''}
+            unitNoun={unitWords?.noun ?? ''}
+          />
+        </form>
+      ) : (
+        <div class="flex flex-wrap items-start gap-x-12 gap-y-10 pt-3">
+          <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-13">
+            <PdpHero {product} {images} unitLabel={unitWords?.label ?? ''} />
+            {product.specifications.length > 0 && (
+              <PdpSpecs specifications={product.specifications} />
+            )}
+            <PdpInfoTabs {product} />
+          </main>
+
+          <aside
+            id="ordina"
+            class="border-hair-strong bg-tint flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-4 rounded-2xl border p-6"
+          >
+            <p class="m-0">
+              Questo ausilio è momentaneamente esaurito. Chiamaci: spesso abbiamo un modello
+              equivalente disponibile subito.
             </p>
-            {product.brand && <p class="text-ui text-ink-2 mt-1">{product.brand}</p>}
-            {product.shortDescription && <p class="text-ink-2 mt-3">{product.shortDescription}</p>}
-          </div>
-
-          <ProductQuote {product} />
-
-          <p class="rounded-field bg-tint text-ui flex items-start gap-3 px-4 py-3.5">
-            <svg
-              class="text-ok mt-0.5 size-5 flex-none"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
-              <path
-                d="M9 12l2 2 4-4"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </svg>
-            <span>
-              <strong>Nessun pagamento online adesso.</strong> Invia la richiesta e confermiamo tutto
-              al telefono.
-            </span>
-          </p>
+            <PhoneCta variant="primary" />
+          </aside>
         </div>
-
-        <div
-          class="rounded-card border-hair mid:p-6 flex flex-col items-start gap-3 border bg-white p-5"
-        >
-          <p class="font-display text-lead font-semibold">Non sai se è adatto a te?</p>
-          <p class="text-ui text-ink-2">Chiamaci, ti aiutiamo a scegliere</p>
-          <PhoneCta variant="primary" class="w-full" srHint="per informazioni su questo prodotto" />
-          <a
-            class="btn btn-soft w-full"
-            href={whatsappUrl(`Informazioni su: ${product.title}`)}
-            target="_blank"
-            rel="noopener"
-            data-analytics="whatsapp"
-          >
-            WhatsApp
-          </a>
-          <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
-        </div>
-      </div>
-    </div>
+      )
+    }
   </div>
 
   {
@@ -505,16 +188,444 @@ const sectionTitle = 'mb-4 text-h3';
   <div
     class="bg-ink mid:hidden fixed inset-x-0 bottom-[calc(var(--spacing-mobile-nav)+env(safe-area-inset-bottom,0px))] z-65 px-5 py-4"
   >
-    <div class="max-w-page mx-auto flex items-center justify-between gap-4">
-      <p class="flex items-baseline gap-2 text-white">
-        {isRental && <span class="text-ui opacity-70">da</span>}
-        <span class="font-display text-h4 font-bold tabular-nums">
-          {formatPricing(product.pricing)}
-        </span>
+    <div class="mx-auto flex max-w-310 items-center justify-between gap-4">
+      <p class="m-0 flex items-baseline gap-2 text-white">
+        {isRental && <span class="text-[14px] opacity-70">da</span>}
+        <span class="text-[18px] font-bold tabular-nums">{formatPricing(product.pricing)}</span>
       </p>
-      <a class="btn btn-primary min-h-12 px-6" href="#quote-form">
-        {isRental ? 'Noleggia ora' : 'Richiedi'}
+      <a class="btn btn-primary min-h-12 px-6" href="#ordina">
+        {inStock ? (isRental ? 'Noleggia ora' : 'Richiedi') : 'Contattaci'}
       </a>
     </div>
   </div>
 </BaseLayout>
+
+<script>
+  /*
+   * The PDP's only JavaScript. Three jobs, all enhancements:
+   *  - gallery thumbnails swap the main image;
+   *  - the quantity stepper;
+   *  - the order panel's display estimate, mirrored from the form.
+   * Pricing is never authoritative here — /carrello/ re-resolves the request
+   * and the phone call confirms the real price.
+   */
+  const DAY = 86_400_000;
+
+  // --- gallery ---------------------------------------------------------------
+  const mainImg = document.querySelector<HTMLImageElement>('[data-pdp-main-img]');
+  const thumbs = [...document.querySelectorAll<HTMLButtonElement>('[data-pdp-thumb]')];
+  for (const thumb of thumbs) {
+    thumb.addEventListener('click', () => {
+      if (!mainImg) return;
+      mainImg.src = thumb.dataset.src ?? mainImg.src;
+      mainImg.alt = thumb.dataset.alt ?? '';
+      for (const other of thumbs) {
+        const active = other === thumb;
+        other.classList.toggle('border-accent', active);
+        other.classList.toggle('border-transparent', !active);
+        if (active) other.setAttribute('aria-current', 'true');
+        else other.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  // --- quantity stepper --------------------------------------------------------
+  for (const button of document.querySelectorAll('[data-qty-dec], [data-qty-inc]')) {
+    button.addEventListener('click', () => {
+      const row = button.closest('[data-qty-row]');
+      const input = row?.querySelector<HTMLInputElement>('[data-qty-input]');
+      if (!input) return;
+      const current = Number.parseInt(input.value, 10) || 1;
+      const min = Number.parseInt(input.min, 10) || 1;
+      const max = Number.parseInt(input.max, 10) || 10;
+      input.value = String(
+        button.hasAttribute('data-qty-dec')
+          ? Math.max(min, current - 1)
+          : Math.min(max, current + 1),
+      );
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  // --- display estimate --------------------------------------------------------
+  const form = document.getElementById('quote-form') as HTMLFormElement | null;
+
+  if (form) {
+    const cfg = form.dataset;
+    const base = Number(cfg.estBase ?? '0');
+    const rental = cfg.estMode === 'rental';
+    const unit = cfg.estUnit ?? '';
+    const fmt = new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: cfg.estCurrency || 'EUR',
+    });
+    const perUnitSuffix = rental ? `/${cfg.estUnitNoun}` : '';
+    const unitWord = (n: number) => (n === 1 ? cfg.estUnitNoun : cfg.estUnitPlural);
+
+    const $total = document.querySelector('[data-est-total]');
+    const $note = document.querySelector('[data-est-note]');
+    const $lines = document.querySelector('[data-est-lines]');
+    const $duration = document.querySelector('[data-est-duration]');
+    const $start = form.querySelector<HTMLInputElement>('[data-est-start]');
+    const $end = form.querySelector<HTMLInputElement>('[data-est-end]');
+    const $qty = form.querySelector<HTMLInputElement>('[data-est-qty]');
+    const $pkgTitle = document.querySelector('[data-pkg-title]');
+    const $pkgDetail = document.querySelector('[data-pkg-detail]');
+    const $pkgTrigger = document.querySelector<HTMLElement>('[data-pkg-trigger]');
+    const $pkgToggle = document.querySelector<HTMLInputElement>('[data-pkg-toggle]');
+    const pkgDetailDefault = $pkgDetail?.textContent?.trim() ?? '';
+
+    const checkedPackage = () =>
+      form.querySelector<HTMLInputElement>('[data-est-kind="package"]:checked');
+
+    const isoAfter = (isoDate: string, days: number) =>
+      new Date(Date.parse(isoDate) + days * DAY).toISOString().slice(0, 10);
+
+    function update() {
+      // Rate: base + checked option modifiers + numeric inputs × per-unit price.
+      let rate = base;
+      const labels: string[] = [];
+      for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="variant"]')) {
+        if (!input.checked) continue;
+        rate += Number(input.dataset.estPrice ?? '0');
+        if (input.dataset.estLabel) labels.push(input.dataset.estLabel);
+      }
+      for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="number"]')) {
+        const value = Number(input.value);
+        if (input.value !== '' && Number.isFinite(value)) {
+          rate += value * Number(input.dataset.estPerUnit ?? '0');
+        }
+      }
+
+      const pkgInput = checkedPackage();
+      const pkg =
+        pkgInput && pkgInput.value
+          ? {
+              label: pkgInput.dataset.estLabel ?? '',
+              detail: pkgInput.dataset.estDetail ?? '',
+              price: Number(pkgInput.dataset.estPrice ?? '0'),
+              duration: Number(pkgInput.dataset.estDuration ?? '0'),
+              unit: pkgInput.dataset.estUnit ?? '',
+            }
+          : null;
+
+      // Duration in the PRODUCT's unit. A date pair cannot express hours, and a
+      // package in a different unit has no per-unit equivalent — both stay null.
+      let units: number | null = null;
+      if (rental) {
+        if (pkg) {
+          units = pkg.unit === unit ? pkg.duration : null;
+        } else if (unit === 'day' && $start?.value && $end?.value) {
+          const span = Math.round((Date.parse($end.value) - Date.parse($start.value)) / DAY);
+          if (Number.isFinite(span) && span >= 0) units = Math.max(1, span);
+        }
+      }
+
+      const qty = Math.max(1, Math.min(Number($qty?.value) || 1, Number($qty?.max) || 10));
+      const baseLabel = labels.length > 0 ? labels.join(' · ') : 'Tariffa base';
+      const lines: { label: string; amount: string }[] = [];
+      let total = 0;
+      let openPeriod = false; // the big number is still a per-unit figure
+
+      if (!rental) {
+        total = rate;
+        lines.push({ label: baseLabel, amount: fmt.format(rate) });
+      } else if (pkg) {
+        const extra = pkg.unit === unit ? (rate - base) * pkg.duration : 0;
+        total = pkg.price + extra;
+        lines.push({ label: `Pacchetto ${pkg.label} · ${baseLabel}`, amount: fmt.format(total) });
+        if (pkg.unit === unit) {
+          const saved = rate * pkg.duration - total;
+          if (saved > 0.005) {
+            lines.push({
+              label: 'Sconto pacchetto già applicato',
+              amount: `−${fmt.format(saved)}`,
+            });
+          }
+        }
+      } else if (units !== null) {
+        total = rate * units;
+        lines.push({
+          label: `${baseLabel} × ${units} ${unitWord(units)}`,
+          amount: fmt.format(total),
+        });
+      } else {
+        total = rate;
+        openPeriod = true;
+        lines.push({ label: baseLabel, amount: fmt.format(rate) + perUnitSuffix });
+      }
+
+      // Add-ons. Rental-mode add-ons follow the product's rental unit (owner's
+      // rule), so they multiply by the same duration as the base rate.
+      let oneTime = 0;
+      for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="addon"]')) {
+        if (!input.checked) continue;
+        const price = Number(input.dataset.estPrice ?? '0');
+        const label = input.dataset.estLabel ?? 'Extra';
+        if (price === 0) {
+          lines.push({ label, amount: 'Incluso' });
+        } else if (rental && input.dataset.estMode === 'rental') {
+          if (units !== null) {
+            total += price * units;
+            lines.push({ label, amount: fmt.format(price * units) });
+          } else {
+            total += price;
+            lines.push({ label, amount: fmt.format(price) + perUnitSuffix });
+          }
+        } else {
+          oneTime += price;
+          lines.push({ label, amount: fmt.format(price) + (rental ? ' una tantum' : '') });
+        }
+      }
+      // While the period is open the big number is a per-unit rate; folding a
+      // one-time amount into it would mix incompatible quantities.
+      if (!openPeriod) total += oneTime;
+
+      total *= qty;
+      if (qty > 1) lines.push({ label: 'Quantità', amount: `× ${qty}` });
+
+      if ($total) $total.textContent = fmt.format(total);
+      if ($note) {
+        $note.textContent = !rental
+          ? 'prezzo del prodotto'
+          : pkg
+            ? `pacchetto ${pkg.label}`
+            : units !== null
+              ? `stima per ${units} ${unitWord(units)}`
+              : `${cfg.estUnitLabel} · periodo da definire`;
+      }
+      if ($duration) {
+        $duration.textContent = pkg
+          ? pkg.detail
+          : units !== null
+            ? `${units} ${unitWord(units)}`
+            : 'da definire';
+      }
+      if ($lines) {
+        $lines.replaceChildren(
+          ...lines.map((line) => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between gap-3';
+            const label = document.createElement('span');
+            label.className = 'text-ink-2 min-w-0';
+            label.textContent = line.label;
+            const amount = document.createElement('span');
+            amount.className = 'font-semibold whitespace-nowrap tabular-nums';
+            amount.textContent = line.amount;
+            li.append(label, amount);
+            return li;
+          }),
+        );
+      }
+      if ($pkgTitle) {
+        $pkgTitle.textContent = pkg ? `Pacchetto ${pkg.label}` : 'Nessun pacchetto scelto';
+      }
+      if ($pkgDetail) {
+        $pkgDetail.textContent = pkg ? `${pkg.detail} · prezzo bloccato` : pkgDetailDefault;
+      }
+      if ($pkgTrigger) {
+        if (pkg) $pkgTrigger.dataset.active = '';
+        else delete $pkgTrigger.dataset.active;
+      }
+    }
+
+    form.addEventListener('change', (event) => {
+      const target = event.target as HTMLInputElement;
+
+      if (target.dataset.estKind === 'package') {
+        if ($pkgToggle) $pkgToggle.checked = false;
+        if (target.value && target.dataset.estUnit === 'day' && $start?.value && $end) {
+          $end.value = isoAfter($start.value, Number(target.dataset.estDuration ?? '0'));
+        }
+      }
+
+      if (target === $start && $start) {
+        if ($end) $end.min = $start.value || $end.min;
+        const pkg = checkedPackage();
+        if (pkg?.value && pkg.dataset.estUnit === 'day' && $start.value && $end) {
+          $end.value = isoAfter($start.value, Number(pkg.dataset.estDuration ?? '0'));
+        }
+      }
+
+      // Editing the return date by hand means the fixed-duration package no
+      // longer describes the period — quietly fall back to the standard rate.
+      if (target === $end) {
+        const pkg = checkedPackage();
+        if (pkg?.value) {
+          const none = form.querySelector<HTMLInputElement>('[data-est-kind="package"][value=""]');
+          if (none) none.checked = true;
+        }
+      }
+
+      update();
+    });
+    form.addEventListener('input', update);
+
+    // --- calendar ----------------------------------------------------------
+    /*
+     * The reference design's period control. It never owns the value: it
+     * writes through the two native date inputs and dispatches `change`, so
+     * the estimate, the package auto-fill and the "hand-edited return date
+     * unpicks the package" rule above all keep working unmodified.
+     *
+     * It only replaces the native row once it has actually mounted, which is
+     * what keeps the no-JavaScript path whole.
+     */
+    const block = document.querySelector<HTMLElement>('[data-date-block]');
+    const native = block?.querySelector<HTMLElement>('[data-date-native]');
+    const trigger = block?.querySelector<HTMLButtonElement>('[data-cal-trigger]');
+    const pop = block?.querySelector<HTMLElement>('[data-cal-pop]');
+    const grid = block?.querySelector<HTMLElement>('[data-cal-grid]');
+
+    if (block && native && trigger && pop && grid && $start && $end) {
+      const cellClass =
+        block.querySelector<HTMLElement>('[data-cal-cell-class]')?.dataset.calCellClass ?? '';
+      const $calTitle = block.querySelector('[data-cal-title]');
+      const $calStart = block.querySelector('[data-cal-start]');
+      const $calEnd = block.querySelector('[data-cal-end]');
+      const $calDuration = block.querySelector('[data-cal-duration]');
+      const $calHint = block.querySelector('[data-cal-hint]');
+
+      const longFmt = new Intl.DateTimeFormat('it-IT', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+      });
+      const monthFmt = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
+      const fullFmt = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full' });
+
+      // Dates are handled as local Y-M-D triples. Parsing "YYYY-MM-DD" with
+      // Date.parse() yields UTC midnight, which shifts a day in Rome's summer
+      // offset and lands the range highlight on the wrong cell.
+      const toIso = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const fromIso = (iso: string) => {
+        const [y, m, d] = iso.split('-').map(Number);
+        return new Date(y!, (m ?? 1) - 1, d ?? 1);
+      };
+
+      const floor = $start.min || toIso(new Date());
+      let picking: 'start' | 'end' = 'start';
+      let cursor = fromIso($start.value || floor);
+      cursor.setDate(1);
+
+      function paint() {
+        const start = $start!.value;
+        const end = $end!.value;
+
+        if ($calTitle) {
+          const title = monthFmt.format(cursor);
+          $calTitle.textContent = title.charAt(0).toUpperCase() + title.slice(1);
+        }
+        if ($calStart)
+          $calStart.textContent = start ? longFmt.format(fromIso(start)) : 'Da scegliere';
+        if ($calEnd) $calEnd.textContent = end ? longFmt.format(fromIso(end)) : 'Da definire';
+        if ($calDuration) $calDuration.textContent = $duration?.textContent ?? 'da definire';
+        if ($calHint) {
+          $calHint.textContent =
+            picking === 'start'
+              ? 'Scegli il giorno di inizio.'
+              : 'Ora scegli la riconsegna, oppure lasciala vuota e la definiamo insieme.';
+        }
+
+        // Monday-first: JS getDay() is Sunday-first, so rotate by 6 mod 7.
+        const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+        const lead = (first.getDay() + 6) % 7;
+        const cells: HTMLButtonElement[] = [];
+
+        for (let i = 0; i < 42; i++) {
+          const day = new Date(cursor.getFullYear(), cursor.getMonth(), 1 - lead + i);
+          const iso = toIso(day);
+          const cell = document.createElement('button');
+          cell.type = 'button'; // inside a form, the default would submit it
+          cell.className = cellClass;
+          cell.textContent = String(day.getDate());
+          cell.dataset.iso = iso;
+
+          if (iso < floor) cell.disabled = true;
+          if (day.getMonth() !== cursor.getMonth()) cell.dataset.out = '';
+          if (iso === start || (end && iso === end)) cell.dataset.edge = '';
+          else if (start && end && iso > start && iso < end) cell.dataset.range = '';
+
+          cell.setAttribute('aria-label', fullFmt.format(day));
+          if (iso === start || iso === end) cell.setAttribute('aria-current', 'date');
+
+          cells.push(cell);
+        }
+        grid!.replaceChildren(...cells);
+      }
+
+      function choose(iso: string) {
+        // Picking a start before the current return, or re-picking a start at
+        // all, must never leave an inverted range on screen.
+        if (picking === 'start' || iso <= $start!.value || !$start!.value) {
+          $start!.value = iso;
+          if ($end!.value && $end!.value <= iso) $end!.value = '';
+          picking = 'end';
+          $start!.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          $end!.value = iso;
+          picking = 'start';
+          $end!.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        paint();
+      }
+
+      const setOpen = (open: boolean) => {
+        pop!.hidden = !open;
+        trigger!.setAttribute('aria-expanded', String(open));
+        if (open) paint();
+      };
+
+      grid.addEventListener('click', (event) => {
+        const cell = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-iso]');
+        if (cell && !cell.disabled) choose(cell.dataset.iso!);
+      });
+
+      const shift = (months: number) => {
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth() + months, 1);
+        paint();
+      };
+      block.querySelector('[data-cal-prev]')?.addEventListener('click', () => shift(-1));
+      block.querySelector('[data-cal-next]')?.addEventListener('click', () => shift(1));
+      block.querySelector('[data-cal-done]')?.addEventListener('click', () => {
+        setOpen(false);
+        trigger.focus();
+      });
+      trigger.addEventListener('click', () => setOpen(pop.hidden !== false));
+
+      document.addEventListener('click', (event) => {
+        if (!pop.hidden && !block.contains(event.target as Node)) setOpen(false);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !pop.hidden) {
+          setOpen(false);
+          trigger.focus();
+        }
+      });
+
+      // A package fills the return date behind the calendar's back; repaint so
+      // the highlighted range agrees with the panel.
+      form.addEventListener('change', paint);
+
+      // Only now is the enhanced control real — swap it in.
+      native.hidden = true;
+      trigger.hidden = false;
+      paint();
+    }
+
+    // The package popover is a CSS disclosure; close it on outside click/Escape.
+    if ($pkgToggle) {
+      const wrapper = $pkgToggle.closest('div');
+      document.addEventListener('click', (event) => {
+        if (!$pkgToggle.checked) return;
+        if (wrapper && !wrapper.contains(event.target as Node)) $pkgToggle.checked = false;
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') $pkgToggle.checked = false;
+      });
+    }
+
+    update();
+  }
+</script>

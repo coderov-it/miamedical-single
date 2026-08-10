@@ -118,14 +118,23 @@ export interface Review {
 }
 
 /**
- * Aggregate rating shown beside the heading. Sourced from Google on the legacy
- * site. This needs a governed source before launch: a stale aggregate rating in
- * structured data is a Google policy problem, not just an inaccuracy — which is
- * why it is deliberately absent from the page's JSON-LD.
+ * Aggregate rating, shown beside the home heading and in the PDP order panel.
+ *
+ * The reviews are NOT a single platform's: they are collected from the social
+ * profiles below and aggregated by hand, so the label must stay source-neutral.
+ * Calling them "recensioni Google" — as this did — claims a Google-verified
+ * figure the business does not have, which is a misrepresentation before it is
+ * a styling problem. Name the platforms in `sources` when you need to show
+ * provenance; never fold one of them into the count.
+ *
+ * This still needs a governed source before launch, which is why it is
+ * deliberately absent from the page's JSON-LD: a stale aggregate rating in
+ * structured data is a Google policy problem, not just an inaccuracy.
  */
 export const REVIEW_AGGREGATE = {
   rating: '4,9',
-  countLabel: 'oltre 600 recensioni Google',
+  countLabel: 'oltre 600 recensioni',
+  sources: ['Google Maps', 'Trustpilot', 'Facebook'],
 } as const;
 
 export const HOME_REVIEWS: Review[] = [

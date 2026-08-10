@@ -25,16 +25,29 @@ const product = slug ? await getProductBySlug(slug) : null;
 
 const request = product
   ? resolveRequest(product, params, formatMoney)
-  : { selections: [], answers: [], addons: [], quantity: 1, startDate: '' };
+  : {
+      selections: [],
+      answers: [],
+      addons: [],
+      quantity: 1,
+      startDate: '',
+      endDate: '',
+      rentalPackage: null,
+    };
 
 const startDateLabel = formatDateLabel(request.startDate);
+const endDateLabel = formatDateLabel(request.endDate);
 
 /** The message body sent to WhatsApp — resolved labels only, never raw input. */
 const requestLines = product
   ? [
       `Richiesta: ${product.title}`,
       ...request.selections.map((entry) => `${entry.label}: ${entry.value}`),
+      ...(request.rentalPackage
+        ? [`Pacchetto: ${request.rentalPackage.name} (${request.rentalPackage.label})`]
+        : []),
       ...(startDateLabel ? [`Da quando: ${startDateLabel}`] : []),
+      ...(endDateLabel ? [`Riconsegna: ${endDateLabel}`] : []),
       ...(request.quantity > 1 ? [`Quantità: ${request.quantity}`] : []),
       ...request.addons.map((addon) => `Extra: ${addon.name}`),
       ...request.answers.map((entry) => `${entry.label} ${entry.value}`),
@@ -88,10 +101,26 @@ const requestLines = product
                       {entry.note && ` (${entry.note})`}
                     </li>
                   ))}
+                  {request.rentalPackage && (
+                    <li>
+                      {'Pacchetto: '}
+                      <strong class="text-ink">{request.rentalPackage.name}</strong>
+                      {` (${request.rentalPackage.label} — ${formatMoney(
+                        request.rentalPackage.price,
+                        product.pricing.currency,
+                      )})`}
+                    </li>
+                  )}
                   {startDateLabel && (
                     <li>
                       {'Da quando: '}
                       <strong class="text-ink">{startDateLabel}</strong>
+                    </li>
+                  )}
+                  {endDateLabel && (
+                    <li>
+                      {'Riconsegna: '}
+                      <strong class="text-ink">{endDateLabel}</strong>
                     </li>
                   )}
                   <li>

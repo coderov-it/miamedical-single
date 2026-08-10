@@ -82,6 +82,35 @@ control's fill. Keep it darker than `--border` — a control outline should out-
 a structural divider, because a divider only has to be found, whereas a control
 has to look interactive.
 
+## Control scale: 40 / 32 / 24
+
+Three rungs, and every control belongs to exactly one:
+
+| Rung  | Height | Used by                                                                      |
+| ----- | ------ | ---------------------------------------------------------------------------- |
+| 40 px | `h-10` | Text inputs, selects, and the button standing beside one (`default`, `icon`) |
+| 32 px | `h-8`  | Dense in-row chrome: `sm` / `icon-sm` buttons, table-cell inputs             |
+| 24 px | `h-6`  | Micro controls inside a row: `xs` / `icon-xs`                                |
+
+Fields render at **16px**, not 14. They started at 32px with a `text-base
+md:text-sm` downshift — 14px type in a 32px box with 10px of side padding, which
+read as cramped and put the text almost against the border. Back-office work is
+typing: the field is the surface an operator spends the day inside, so it gets
+the generous rung and full-size type, and the 14px `text-sm` stays for labels,
+hints and table text where nobody types.
+
+The `default` button sits on the same 40px rung **because of the pairing case** —
+a list filter bar puts a search input, two selects and "Apply" on one line, and
+a shorter button there reads as a mistake rather than a hierarchy. That is also
+why those three filter bars pass no `size` at all. A button inside a row of
+something else (a list row's Remove, a reorder arrow) is dense chrome and takes
+the 32px rung.
+
+Narrow numeric fields (`w-20` min/max/step) and table-cell inputs opt out by
+passing `h-8` explicitly, which beats the base class. Keep that opt-out
+deliberate: it is the exception that lets a 40px default exist without loosening
+the dense tables.
+
 ## Two tokens that are traps
 
 - **`bg-background` is not "white".** Since the canvas moved off white, any

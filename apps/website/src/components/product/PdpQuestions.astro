@@ -1,0 +1,153 @@
+---
+/**
+ * Section 03 — the per-product delivery questions, in one card. Short fields
+ * share a responsive grid; textareas and long option lists take the full row.
+ * Answers travel as `q_<key>` params and are resolved by the summary page.
+ *
+ * ALIGNMENT. Every cell is a three-row `grid-rows-subgrid` — prompt, control,
+ * help text — so those three bands line up across the whole row regardless of
+ * what any individual question carries. The obvious alternatives both fail on
+ * this data: plain stacking leaves the controls ragged as soon as one prompt
+ * wraps to two lines, and bottom-aligning with `mt-auto` aligns the LAST
+ * element, so a question with help text lines its hint up against its
+ * neighbour's buttons and pushes its own control out of line instead.
+ *
+ * Each cell is a `role="group"` rather than a `<fieldset>`: `<legend>` has its
+ * own box-model rules inside a grid container and will not sit in a subgrid
+ * track. `aria-labelledby` gives the group the same accessible name.
+ */
+import type { ProductDetail } from '~/lib/catalog';
+import { QUESTION_PREFIX } from '~/lib/request-config';
+import PdpSectionHead from './PdpSectionHead.astro';
+
+interface Props {
+  questions: ProductDetail['questions'];
+}
+
+const { questions } = Astro.props;
+
+/** Textareas and long option lists break the two-column rhythm — full row. */
+const isWide = (question: Props['questions'][number]) =>
+  question.valueType === 'text' || question.options.length > 3;
+
+/** One cell: three subgrid rows, so prompt/control/hint align row-wide. */
+const cell = 'grid min-w-0 grid-rows-subgrid row-span-3 gap-1.75';
+const promptLabel = 'text-[13.5px] font-semibold';
+const hintBelow = 'm-0 text-[12.5px] font-normal text-ink-2';
+const textInput =
+  'min-h-11 w-full rounded-[9px] border border-hair-strong bg-white px-3.5 py-2.5 text-[15px] font-normal';
+
+const segPill =
+  'flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-[9px] border-[1.5px] border-hair-strong bg-white px-4 text-[14px] font-semibold text-ink-2 ' +
+  'peer-checked:border-accent peer-checked:bg-tint peer-checked:text-accent ' +
+  'hover:border-accent ' +
+  'peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-white ' +
+  'peer-focus-visible:shadow-[0_0_0_6px_var(--color-ink)]';
+---
+
+<section>
+  <PdpSectionHead n="03" title="Per la consegna" hint="facoltativo — ci aiuta a prepararci" />
+
+  <div class="border-hair shadow-pdp-card rounded-[14px] border bg-white p-6">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-3.5 gap-y-4">
+      {
+        questions.map((question) => {
+          const name = `${QUESTION_PREFIX}${question.key}`;
+          const promptId = `q-${question.id}-label`;
+          const wide = isWide(question);
+
+          if (question.options.length > 0 || question.valueType === 'boolean') {
+            const multiple = question.valueType === 'multi_select';
+            const options =
+              question.options.length > 0
+                ? question.options.map((option) => ({
+                    key: option.id,
+                    value: option.value,
+                    label: option.label,
+                  }))
+                : [
+                    { key: 'si', value: 'si', label: 'Sì' },
+                    { key: 'no', value: 'no', label: 'No' },
+                  ];
+
+            return (
+              <div
+                class:list={[cell, wide && 'col-span-full']}
+                role="group"
+                aria-labelledby={promptId}
+              >
+                <span class={promptLabel} id={promptId}>
+                  {question.prompt}
+                </span>
+                <span class="flex flex-wrap items-end gap-2">
+                  {options.map((option) => (
+                    <span class="flex min-w-24 flex-1">
+                      <input
+                        class="peer sr-only"
+                        type={multiple ? 'checkbox' : 'radio'}
+                        name={name}
+                        id={`q-${question.id}-${option.key}`}
+                        value={option.value}
+                      />
+                      <label class={segPill} for={`q-${question.id}-${option.key}`}>
+                        {option.label}
+                      </label>
+                    </span>
+                  ))}
+                </span>
+                {question.helpText && <p class={hintBelow}>{question.helpText}</p>}
+              </div>
+            );
+          }
+
+          if (question.valueType === 'text') {
+            return (
+              <div class:list={[cell, 'col-span-full']}>
+                <label class={promptLabel} for={`q-${question.id}`}>
+                  {question.prompt}
+                </label>
+                <textarea
+                  id={`q-${question.id}`}
+                  class:list={[textInput, 'resize-y self-end']}
+                  name={name}
+                  rows="2"
+                  maxlength={question.maxLength ?? 300}
+                  required={question.isRequired}
+                />
+                {question.helpText && <p class={hintBelow}>{question.helpText}</p>}
+              </div>
+            );
+          }
+
+          return (
+            <div class={cell}>
+              <label class={promptLabel} for={`q-${question.id}`}>
+                {question.prompt}
+              </label>
+              <input
+                id={`q-${question.id}`}
+                class:list={[textInput, 'self-end']}
+                name={name}
+                type={
+                  question.valueType === 'number'
+                    ? 'number'
+                    : question.valueType === 'date'
+                      ? 'date'
+                      : 'text'
+                }
+                min={question.min ?? undefined}
+                max={question.max ?? undefined}
+                maxlength={
+                  question.valueType === 'string' ? (question.maxLength ?? 300) : undefined
+                }
+                required={question.isRequired}
+                inputmode={question.valueType === 'number' ? 'numeric' : undefined}
+              />
+              {question.helpText && <p class={hintBelow}>{question.helpText}</p>}
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>

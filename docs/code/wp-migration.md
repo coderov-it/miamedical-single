@@ -68,16 +68,16 @@ SKUs already priced against it.
 
 ## The chunks
 
-| File | Rows | What it holds |
-| --- | --- | --- |
-| `01-categories.json` | 18 | leaf `product_cat` terms → `categories` + `category_translations` |
-| `02-category-specs.json` | 217 | inferred spec definitions, with the reason for each shape |
-| `03-products.json` | 98 | products, Italian translation, **`rentalPackages`** |
-| `04-product-specs.json` | 430 | coerced spec values, each keeping its `rawValue` |
-| `05-variants.json` | 1 | SKU-affecting variant groups |
-| `06-media.json` | 291 | download manifest: source URL → role |
-| `07-addons.json` | 7 | priced extras |
-| `report.json` | 80 entries | **every judgement call and every dropped row** |
+| File                     | Rows       | What it holds                                                     |
+| ------------------------ | ---------- | ----------------------------------------------------------------- |
+| `01-categories.json`     | 18         | leaf `product_cat` terms → `categories` + `category_translations` |
+| `02-category-specs.json` | 217        | inferred spec definitions, with the reason for each shape         |
+| `03-products.json`       | 98         | products, Italian translation, **`rentalPackages`**               |
+| `04-product-specs.json`  | 430        | coerced spec values, each keeping its `rawValue`                  |
+| `05-variants.json`       | 1          | SKU-affecting variant groups                                      |
+| `06-media.json`          | 291        | download manifest: source URL → role                              |
+| `07-addons.json`         | 7          | priced extras                                                     |
+| `report.json`            | 80 entries | **every judgement call and every dropped row**                    |
 
 `report.json` is the point of the whole split. Read it before loading.
 
@@ -85,12 +85,12 @@ SKUs already priced against it.
 
 ### Pricing mode comes from the tree, not a column
 
-WooCommerce has two roots: *Affitto e noleggio* (260) and *Vendita* (261). The new
+WooCommerce has two roots: _Affitto e noleggio_ (260) and _Vendita_ (261). The new
 `categories` table is flat and has no `parentId`, so the roots do not survive as
 categories — they survive as `products.pricing_mode`, which is all they ever encoded. The
 18 leaves become the category list.
 
-Six products sit in both trees (the *Occasione usato* second-hand items). The tie-break is
+Six products sit in both trees (the _Occasione usato_ second-hand items). The tie-break is
 whether the product actually sells rental periods: duration tiers → rental, otherwise
 fixed. All six resolved to fixed and are flagged `needsReview: ["pricingMode","categoryId"]`.
 
@@ -112,7 +112,7 @@ per-day rate is a business fact, not a computation.
 
 ### Duration vs. a real product option
 
-`parseDuration()` returning null *is* the discriminator — no list of attribute names to
+`parseDuration()` returning null _is_ the discriminator — no list of attribute names to
 maintain:
 
 ```
@@ -127,7 +127,7 @@ A product option then splits by mode:
   absolute price, so the cheapest becomes `basePrice` and the rest become non-negative
   modifiers. `basePrice + modifier` reproduces each option's price exactly, which is what
   `resolveSkuPrice` computes.
-- **rental product** → `product_addons` in fixed mode. *"Acquista gli elettrodi"* is an
+- **rental product** → `product_addons` in fixed mode. _"Acquista gli elettrodi"_ is an
   extra you add to a rental, priced once — not an axis of the thing being rented. Modelling
   it as a variant would multiply the SKU matrix by the tier count for something the
   warehouse does not track separately, and the schema explicitly permits a fixed addon on a
@@ -151,7 +151,7 @@ specification for the category wins.
 2. **WooCommerce attributes** fill the rest (58). Local ones carry proper Italian labels
    inline in `_product_attributes`; taxonomy ones only have English machine names.
 
-The curated tables describe *models* ("Fantastica", "1 Piazza (90 CM)"), not posts, so
+The curated tables describe _models_ ("Fantastica", "1 Piazza (90 CM)"), not posts, so
 their values reach a product by matching every model token against the product title. This
 is the least certain step in the migration and every match, miss and over-broad match is in
 the report.
@@ -165,7 +165,7 @@ Result: 21 boolean, 47 number, 24 single_select, 6 number_range, 119 string; 92 
 ### SKUs
 
 WooCommerce has none — every `_sku` is empty. `baseSku` is derived from the title,
-uppercased, capped at 48 chars and deduplicated. The cap is applied *inside*
+uppercased, capped at 48 chars and deduplicated. The cap is applied _inside_
 `skuFragment()`, because slicing afterwards is what leaves a trailing hyphen, which
 `SkuFragmentSchema` rejects — a bug the dry-run caught on four products.
 
@@ -215,10 +215,10 @@ customers, so there is nothing to migrate there.
 
 - The three YITH addons were global in WooCommerce, bound to no product. They come through
   with `productIds: []` and are **skipped on load** until filled in.
-- Product 15101 (*Vendita Carrozzina Elettrica "Passe-partout"*) has no `product_cat` under
+- Product 15101 (_Vendita Carrozzina Elettrica "Passe-partout"_) has no `product_cat` under
   either root and is skipped. It is a real product — give it a category in WordPress and
   re-extract, or add it by hand.
-- Product 12590 is a plugin artefact (*"Sold Individually -- YITH WooCommerce…"*) that
+- Product 12590 is a plugin artefact (_"Sold Individually -- YITH WooCommerce…"_) that
   acquired a product category. It arrives at `0.00` and should probably be deleted.
 - One product's `basePrice` is taken from its cheapest option rather than WooCommerce's
   `_price`, because one "option" is a spare battery rather than a configuration. Flagged.

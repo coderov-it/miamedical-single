@@ -1,0 +1,128 @@
+---
+/**
+ * PDP hero — gallery on the left, identity on the right: kicker, title,
+ * starting price, chips, short description. Thumbnails swap the main image via
+ * the page script; with no JavaScript the first image simply stays, which is a
+ * complete experience.
+ *
+ * Chips are the product's own short claims when the back office wrote them
+ * (`product.chips`, at most five, ≤20 characters each), and the first four
+ * comparable specs when it did not — the pre-chip fallback, kept so an unedited
+ * catalog still reads as finished. The two render alike: written chips are one
+ * phrase, derived ones a label with the value in bold.
+ */
+import { formatMoney, mediaUrl } from '~/lib/api';
+import type { ProductDetail } from '~/lib/catalog';
+
+interface Props {
+  product: ProductDetail;
+  /** Deduped media list, hero first. Empty when the product has no images. */
+  images: { path: string; alt: string | null }[];
+  /** "al giorno" / "all'ora", already localised. Empty on fixed pricing. */
+  unitLabel: string;
+}
+
+const { product, images, unitLabel } = Astro.props;
+
+const isRental = product.pricing.mode === 'rental';
+const main = images[0];
+const chipClass =
+  'border-hair bg-tint text-ink-2 inline-flex items-baseline gap-1.5 rounded-lg border px-3 py-1.5 text-[13px]';
+const specChips =
+  product.chips.length > 0
+    ? []
+    : product.specifications.filter((spec) => spec.isComparable).slice(0, 4);
+const hasChips = product.chips.length > 0 || specChips.length > 0;
+---
+
+<section class="flex flex-wrap gap-9">
+  <div class="flex min-w-55 flex-[0_1_300px] flex-col gap-3">
+    <div class="bg-tint rounded-field relative grid aspect-4/3 w-full place-items-center">
+      {
+        main && (
+          <img
+            class="absolute inset-0 size-full object-contain p-5 mix-blend-multiply"
+            src={mediaUrl(main.path)}
+            alt={main.alt ?? product.title}
+            loading="eager"
+            fetchpriority="high"
+            decoding="sync"
+            data-pdp-main-img
+          />
+        )
+      }
+    </div>
+    {
+      images.length > 1 && (
+        <ul class="m-0 flex list-none gap-2.5 p-0">
+          {images.slice(0, 4).map((item, index) => (
+            <li>
+              <button
+                type="button"
+                class:list={[
+                  'bg-tint block aspect-square w-17 cursor-pointer rounded-lg border-[1.5px] p-1',
+                  index === 0 ? 'border-accent' : 'border-transparent',
+                ]}
+                data-pdp-thumb
+                data-src={mediaUrl(item.path)}
+                data-alt={item.alt ?? product.title}
+                aria-label={`Immagine ${index + 1} di ${Math.min(images.length, 4)}`}
+                aria-current={index === 0 ? 'true' : undefined}
+              >
+                <img
+                  class="size-full object-contain mix-blend-multiply"
+                  src={mediaUrl(item.path)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+
+  <div class="flex min-w-0 flex-[1_1_300px] flex-col gap-4 pt-1">
+    <span class="text-[12px] font-bold tracking-[0.12em] text-accent uppercase">
+      {product.category.name} · {isRental ? 'Noleggio' : 'Vendita'}
+    </span>
+
+    <h1
+      class="m-0 text-[clamp(1.75rem,3.4vw,2.125rem)]/[1.15] font-bold tracking-[-0.015em] text-balance"
+    >
+      {product.title}
+    </h1>
+
+    <p class="m-0 flex flex-wrap items-baseline gap-2">
+      <span class="text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
+        {formatMoney(product.pricing.price, product.pricing.currency)}
+      </span>
+      <span class="text-ink-2 text-[14px]">
+        {isRental && unitLabel && `${unitLabel} · `}IVA inclusa
+      </span>
+    </p>
+
+    {
+      hasChips && (
+        <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
+          {product.chips.map((chip) => (
+            <li class={`${chipClass} text-ink font-medium`}>{chip}</li>
+          ))}
+          {specChips.map((spec) => (
+            <li class={chipClass}>
+              {spec.label} <strong class="text-ink">{spec.displayValue}</strong>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      product.shortDescription && (
+        <p class="text-ink-2 m-0 mt-1 text-[15px]/[1.6] text-pretty">{product.shortDescription}</p>
+      )
+    }
+  </div>
+</section>
