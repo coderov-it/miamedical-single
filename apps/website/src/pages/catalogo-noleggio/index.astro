@@ -13,6 +13,7 @@ import PhoneCta from '~/components/global/PhoneCta.astro';
 import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { listCategories, listProducts, safely, type ProductSort } from '~/lib/catalog';
+import { t } from '~/lib/labels';
 import { catalogPath, routes } from '~/lib/routes';
 import { CONTACT, SERVICE_AREAS } from '~/lib/site';
 
@@ -29,24 +30,30 @@ const SORTS: { value: ProductSort; label: string }[] = [
 
 const params = Astro.url.searchParams;
 const q = params.get('q')?.trim() ?? '';
-const categoria = params.get('categoria')?.trim() ?? '';
-const requestedSort = params.get('ordina') ?? '';
+const category = params.get('category')?.trim() ?? '';
+const requestedSort = params.get('sort') ?? '';
 const sort: ProductSort = SORTS.find((option) => option.value === requestedSort)?.value ?? 'newest';
 const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
 
 // Carried over from the home search. Not filters yet — the API matches on text,
 // category and price only — but they are what the confirmation call needs, so
 // they are echoed back rather than silently dropped.
-const zona = params.get('zona')?.trim() ?? '';
-const dal = params.get('dal')?.trim() ?? '';
-const durata = params.get('durata')?.trim() ?? '';
-const zonaLabel = SERVICE_AREAS.find((area) => area.value === zona)?.label ?? '';
-const durataLabel =
-  durata && durata !== '0'
-    ? `per ${durata === '7' ? '1 settimana' : durata === '30' ? '1 mese' : `${durata} giorni`}`
+const area = params.get('area')?.trim() ?? '';
+const fromDate = params.get('from')?.trim() ?? '';
+const duration = params.get('duration')?.trim() ?? '';
+const areaLabel = SERVICE_AREAS.find((candidate) => candidate.value === area)?.label ?? '';
+const durationLabel =
+  duration && duration !== '0'
+    ? duration === '7'
+      ? t('durationOneWeek')
+      : duration === '30'
+        ? t('durationOneMonth')
+        : t('durationDays', { count: duration })
     : '';
-const dalLabel = dal ? `dal ${dal.split('-').reverse().join('/')}` : '';
-const requestContext = [zonaLabel, dalLabel, durataLabel].filter(Boolean).join(' · ');
+const fromLabel = fromDate
+  ? t('fromDateContext', { date: fromDate.split('-').reverse().join('/') })
+  : '';
+const requestContext = [areaLabel, fromLabel, durationLabel].filter(Boolean).join(' · ');
 
 const [result, categories] = await Promise.all([
   safely(
@@ -56,7 +63,7 @@ const [result, categories] = await Promise.all([
         perPage: PER_PAGE,
         sort,
         ...(q ? { q } : {}),
-        ...(categoria ? { category: categoria } : {}),
+        ...(category ? { category } : {}),
       }),
     { data: [], meta: { page, perPage: PER_PAGE, total: 0, pageCount: 1 }, facets: { specs: [] } },
     'listProducts',
@@ -66,15 +73,12 @@ const [result, categories] = await Promise.all([
 
 const { data: productList, meta } = result;
 const isFirstPage = meta.page <= 1;
-const isFiltered = Boolean(q || categoria);
-const activeCategory = categories.find((category) => category.code === categoria);
+const isFiltered = Boolean(q || category);
+const activeCategory = categories.find((candidate) => candidate.code === category);
 
-const prevUrl =
-  meta.page > 1 ? catalogPath({ q, categoria, ordina: sort, page: meta.page - 1 }) : null;
+const prevUrl = meta.page > 1 ? catalogPath({ q, category, sort, page: meta.page - 1 }) : null;
 const nextUrl =
-  meta.page < meta.pageCount
-    ? catalogPath({ q, categoria, ordina: sort, page: meta.page + 1 })
-    : null;
+  meta.page < meta.pageCount ? catalogPath({ q, category, sort, page: meta.page + 1 }) : null;
 
 const heading = activeCategory ? activeCategory.name : 'Catalogo noleggio';
 const title = isFirstPage
@@ -131,17 +135,17 @@ const chipClass =
       role="search"
       aria-label="Cerca nel catalogo"
     >
-      {categoria && <input type="hidden" name="categoria" value={categoria} />}
-      {zona && <input type="hidden" name="zona" value={zona} />}
-      {dal && <input type="hidden" name="dal" value={dal} />}
-      {durata && <input type="hidden" name="durata" value={durata} />}
+      {category && <input type="hidden" name="category" value={category} />}
+      {area && <input type="hidden" name="area" value={area} />}
+      {fromDate && <input type="hidden" name="from" value={fromDate} />}
+      {duration && <input type="hidden" name="duration" value={duration} />}
 
       <div class="flex min-w-0 flex-1 basis-65 flex-col gap-2.25">
-        <label class="field-label" for="catalogo-q">Cerca un ausilio</label>
+        <label class="field-label" for="catalog-q">Cerca un ausilio</label>
         <div class="field-control">
           <input
-            id="catalogo-q"
-            class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold focus:outline-none"
+            id="catalog-q"
+            class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold"
             type="search"
             name="q"
             value={q}
@@ -151,12 +155,12 @@ const chipClass =
       </div>
 
       <div class="mid:grow-0 flex min-w-0 flex-1 basis-60 flex-col gap-2.25">
-        <label class="field-label" for="catalogo-ordina">Ordina per</label>
+        <label class="field-label" for="catalog-sort">Ordina per</label>
         <div class="field-control">
           <select
-            id="catalogo-ordina"
-            class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold focus:outline-none"
-            name="ordina"
+            id="catalog-sort"
+            class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold"
+            name="sort"
           >
             {
               SORTS.map((option) => (
@@ -204,29 +208,32 @@ const chipClass =
               <a
                 class:list={[
                   chipClass,
-                  !categoria
+                  !category
                     ? 'bg-tint border-accent text-accent'
                     : 'border-hair-strong text-ink hover:bg-tint bg-white',
                 ]}
-                href={catalogPath({ q, ordina: sort })}
-                aria-current={!categoria ? 'true' : undefined}
+                href={catalogPath({ q, sort })}
+                aria-current={!category ? 'true' : undefined}
               >
                 Tutte
               </a>
             </li>
-            {categories.map((category) => (
+            {/* `candidate`, not `category`: the outer `category` is the ACTIVE
+                one from the URL, and shadowing it here silently compares a
+                category against itself. */}
+            {categories.map((candidate) => (
               <li>
                 <a
                   class:list={[
                     chipClass,
-                    category.code === categoria
+                    candidate.code === category
                       ? 'bg-tint border-accent text-accent'
                       : 'border-hair-strong text-ink hover:bg-tint bg-white',
                   ]}
-                  href={catalogPath({ q, categoria: category.code, ordina: sort })}
-                  aria-current={category.code === categoria ? 'true' : undefined}
+                  href={catalogPath({ q, category: candidate.code, sort })}
+                  aria-current={candidate.code === category ? 'true' : undefined}
                 >
-                  {category.name}
+                  {candidate.name}
                 </a>
               </li>
             ))}

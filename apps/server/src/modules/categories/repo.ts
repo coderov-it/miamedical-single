@@ -87,7 +87,10 @@ export interface CategoryData {
   translations?: Partial<Record<LanguageCode, CategoryTranslationData>>;
 }
 
-export async function create(db: Database, data: Required<Pick<CategoryData, 'code'>> & CategoryData): Promise<string> {
+export async function create(
+  db: Database,
+  data: Required<Pick<CategoryData, 'code'>> & CategoryData,
+): Promise<string> {
   return db.transaction(async (tx) => {
     const [category] = await tx
       .insert(categories)

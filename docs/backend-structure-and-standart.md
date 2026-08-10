@@ -203,7 +203,12 @@ export function toPublicSummary(row: ProductSummaryRowData, locale: LanguageCode
   return {
     /* … */
     title: translation?.title ?? '',
-    pricing: { mode: row.pricingMode, rentalUnit: row.rentalUnit, currency: row.currency, price: row.basePrice },
+    pricing: {
+      mode: row.pricingMode,
+      rentalUnit: row.rentalUnit,
+      currency: row.currency,
+      price: row.basePrice,
+    },
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
   };
 }

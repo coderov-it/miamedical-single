@@ -6,20 +6,30 @@
  * Format and rationale: docs/code/storefront-design-system.md
  */
 import type { ProductDetail } from './catalog.ts';
+import { t } from './labels.ts';
 
-/** `v_<groupKey>` — one variant group selection. Repeats for multi-select. */
-export const VARIANT_PREFIX = 'v_';
-/** `q_<questionKey>` — one intake answer. Repeats for multi-select. */
-export const QUESTION_PREFIX = 'q_';
+/**
+ * The keys are English because they are code, not content: a wire format is read
+ * by a program, never by a customer. Public route paths are the opposite case and
+ * stay Italian — see the RULES section of AGENTS.md.
+ */
+
+/** `variant.<groupKey>` — one variant group selection. Repeats for multi-select. */
+export const VARIANT_PREFIX = 'variant.';
+/** `question.<questionKey>` — one intake answer. Repeats for multi-select. */
+export const QUESTION_PREFIX = 'question.';
 
 export const FIELD = {
-  product: 'prodotto',
-  quantity: 'qta',
-  startDate: 'dal',
-  endDate: 'al',
-  rentalPackage: 'pacchetto',
-  addon: 'extra',
+  product: 'product',
+  quantity: 'qty',
+  startDate: 'from',
+  endDate: 'to',
+  rentalPackage: 'package',
+  addon: 'addon',
 } as const;
+
+/** The wire values of a `boolean` intake answer. Displayed via `t('yes'|'no')`. */
+export const BOOLEAN_VALUES = { yes: 'yes', no: 'no' } as const;
 
 export const MAX_QUANTITY = 10;
 
@@ -31,6 +41,18 @@ export interface ResolvedEntry {
   value: string;
   /** Price effect, already formatted, when the choice has one. */
   note: string | null;
+  /**
+   * The same price effect as a number, in the product's currency, already
+   * multiplied out (a numeric group contributes `value × perUnit`). `0` when the
+   * choice is free.
+   *
+   * It exists so the checkout estimate can price a resolved request without
+   * re-walking the product and re-validating the URL — the validation above
+   * already dropped everything that is not a real option, and a second pass
+   * would be a second chance to disagree with it. On a rental product this is a
+   * PER-UNIT amount, per the owner's rule.
+   */
+  amount: number;
 }
 
 export interface ResolvedRequest {
@@ -73,7 +95,12 @@ function cleanNumber(raw: string, min: number | null, max: number | null): strin
   return String(value);
 }
 
-const BOOLEAN_LABELS: Record<string, string> = { si: 'Sì', sì: 'Sì', no: 'No' };
+/* Wire value → the word the customer saw. The Italian comes from the label
+   catalog, so this map holds keys only. */
+const BOOLEAN_LABELS: Record<string, string> = {
+  yes: t('yes'),
+  no: t('no'),
+};
 
 /**
  * Resolves a configuration back to the labels the customer actually saw.
@@ -104,6 +131,7 @@ export function resolveRequest(
             option.priceModifier.amount === '0.00'
               ? null
               : formatModifier(option.priceModifier.amount, option.priceModifier.currency),
+          amount: Number(option.priceModifier.amount),
         });
       }
       continue;
@@ -119,17 +147,23 @@ export function resolveRequest(
         label: group.label,
         value: group.unit ? `${value} ${group.unit}` : value,
         note: group.priceModifierPerUnit
-          ? `${formatModifier(
-              group.priceModifierPerUnit.amount,
-              group.priceModifierPerUnit.currency,
-            )} per ${group.unit ?? 'unità'}`
+          ? t('perUnitNote', {
+              amount: formatModifier(
+                group.priceModifierPerUnit.amount,
+                group.priceModifierPerUnit.currency,
+              ),
+              unit: group.unit ?? t('unitFallback'),
+            })
           : null,
+        amount: group.priceModifierPerUnit
+          ? Number(value) * Number(group.priceModifierPerUnit.amount)
+          : 0,
       });
       continue;
     }
 
     const text = cleanFreeText(first);
-    if (text) selections.push({ label: group.label, value: text, note: null });
+    if (text) selections.push({ label: group.label, value: text, note: null, amount: 0 });
   }
 
   const answers: ResolvedEntry[] = [];
@@ -141,7 +175,7 @@ export function resolveRequest(
 
     if (question.options.length > 0) {
       for (const option of question.options.filter((candidate) => raw.includes(candidate.value))) {
-        answers.push({ label: question.prompt, value: option.label, note: null });
+        answers.push({ label: question.prompt, value: option.label, note: null, amount: 0 });
       }
       continue;
     }
@@ -151,26 +185,31 @@ export function resolveRequest(
 
     if (question.valueType === 'boolean') {
       const label = BOOLEAN_LABELS[first.toLowerCase()];
-      if (label) answers.push({ label: question.prompt, value: label, note: null });
+      if (label) answers.push({ label: question.prompt, value: label, note: null, amount: 0 });
       continue;
     }
 
     if (question.valueType === 'number') {
       const value = cleanNumber(first, question.min, question.max);
-      if (value !== null) answers.push({ label: question.prompt, value, note: null });
+      if (value !== null) answers.push({ label: question.prompt, value, note: null, amount: 0 });
       continue;
     }
 
     if (question.valueType === 'date') {
       const value = cleanDate(first);
       if (value) {
-        answers.push({ label: question.prompt, value: formatDateLabel(value), note: null });
+        answers.push({
+          label: question.prompt,
+          value: formatDateLabel(value),
+          note: null,
+          amount: 0,
+        });
       }
       continue;
     }
 
     const text = cleanFreeText(first);
-    if (text) answers.push({ label: question.prompt, value: text, note: null });
+    if (text) answers.push({ label: question.prompt, value: text, note: null, amount: 0 });
   }
 
   const requestedAddons = params.getAll(FIELD.addon);

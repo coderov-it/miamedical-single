@@ -1,0 +1,2008 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Delivery fee from the price list — walkthrough</title>
+    <!--
+      WHAT THIS IS
+
+      A playable version of checkout step 2, priced from the OWNER'S SPREADSHEET
+      instead of from a computed distance. It exists so you can feel the idea
+      before we commit to an implementation.
+
+      The customer types an address, picks a suggestion, and the fee appears.
+      That is the whole flow. What is worth watching is the panel on the right:
+      it traces what the server did to reach the figure. Pricing costs ZERO API
+      calls and stores NO coordinates, because the sheet is keyed on comune and
+      CAP (postal code) — both of which every Italian address already carries.
+
+      Three cases are wired, reachable from the suggestion list:
+        · a plainly covered comune         → type "Portuense"  (Fiumicino)
+        · a CAP exception inside a comune  → type "Romagnoli"  (CAP 00121,
+                                             Rome's Lido di Ostia, priced apart
+                                             from Rome city)
+        · an address outside the sheet     → type "Vannucci"   (Perugia)
+                                             → quote on request
+
+      The "can't find your address" fallback is a province → comune picker, NOT
+      a map. The "Why this way" tab explains that choice.
+
+      THIS PAGE IS IN ENGLISH ON PURPOSE. The real storefront copy is Italian;
+      here every string is English so the walkthrough is readable. Place names,
+      street names and the euro number format stay as the storefront has them,
+      because those are data, not copy.
+
+      DEMO DATA. Fees, the comune list and the ISTAT codes are invented to stand
+      in for the client's sheet. The real import is the ISTAT comune ↔ CAP ↔
+      province dataset. Zero dependencies, zero network: open the file directly,
+      or serve it over http if you want the repo's fonts.
+    -->
+    <style>
+      /* Fonts and tokens are the storefront's own — apps/website/src/styles/app.css.
+         Paths are relative to this file so the prototype needs no build. */
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --ink: #2e3237;
+        --ink-2: #49536b;
+        --ink-dec: #8a93a8;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --ok: #0e6b41;
+        --warn: #8a5a06;
+        --warn-tint: #fdf6e8;
+        --warn-hair: #efdfba;
+
+        --font-display: 'Lexend', system-ui, sans-serif;
+        --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+        --font-ui: 'Inter', system-ui, sans-serif;
+
+        --r-lg: 16px;
+        --shadow-card: 0 1px 2px rgb(23 28 45 / 0.04), 0 8px 24px rgb(23 28 45 / 0.06);
+        --shadow-pop: 0 2px 6px rgb(23 28 45 / 0.08), 0 18px 44px rgb(23 28 45 / 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: var(--tint);
+        color: var(--ink);
+        font: 16px/1.55 var(--font-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      svg {
+        display: block;
+      }
+      p,
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+      }
+
+      /* Numerals are Lexend everywhere — the project's rule for figures. */
+      .num {
+        font-family: var(--font-display);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+
+      /* ------------------------------------------------------------ head --- */
+
+      .head {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 44px 24px 26px;
+      }
+      .eyebrow {
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .head h1 {
+        margin-top: 10px;
+        font-family: var(--font-display);
+        font-size: clamp(26px, 3.2vw, 34px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+      }
+      .lede {
+        margin-top: 12px;
+        max-width: 68ch;
+        color: var(--ink-2);
+        font-size: 16.5px;
+      }
+      .lede b {
+        color: var(--ink);
+      }
+      .demo-note {
+        margin-top: 18px;
+        max-width: 74ch;
+        padding: 11px 14px;
+        border: 1px solid var(--warn-hair);
+        border-radius: 11px;
+        background: var(--warn-tint);
+        color: var(--warn);
+        font-size: 13.5px;
+        line-height: 1.55;
+      }
+      .demo-note strong {
+        font-family: var(--font-ui);
+        font-weight: 700;
+      }
+      .demo-note code {
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: #fff;
+        border: 1px solid var(--warn-hair);
+        font-family: var(--font-ui);
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      /* ----------------------------------------------------------- stage --- */
+
+      .stage {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 24px 64px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+        gap: 26px;
+        align-items: start;
+      }
+      @media (max-width: 1000px) {
+        .stage {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .card {
+        border: 1px solid var(--hair);
+        border-radius: var(--r-lg);
+        background: #fff;
+        box-shadow: var(--shadow-card);
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--hair);
+      }
+      .step-badge {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: #fff;
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .card-head h2 {
+        font-family: var(--font-display);
+        font-size: 18px;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+      }
+      .card-body {
+        padding: 22px;
+      }
+
+      /* -------------------------------------------------- delivery cards --- */
+
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .option {
+        border: 1.5px solid var(--hair);
+        border-radius: 12px;
+        background: #fff;
+        transition:
+          border-color 0.14s,
+          box-shadow 0.14s;
+      }
+      .option[data-on='true'] {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(46 70 153 / 0.09);
+      }
+      .option-btn {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 17px;
+        border: 0;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 11px;
+      }
+      .dot {
+        flex: none;
+        width: 17px;
+        height: 17px;
+        border: 1.5px solid var(--hair-strong);
+        border-radius: 50%;
+        background: #fff;
+      }
+      .option[data-on='true'] .dot {
+        border: 5px solid var(--accent);
+      }
+      .opt-icon {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--tint);
+        color: var(--ink-2);
+      }
+      .option[data-on='true'] .opt-icon {
+        background: var(--tint-2);
+        color: var(--accent);
+      }
+      .opt-icon svg {
+        width: 23px;
+        height: 23px;
+      }
+      .opt-text {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .opt-text strong {
+        font-family: var(--font-ui);
+        font-size: 15.5px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .opt-text span {
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.45;
+      }
+      .opt-fee {
+        flex: none;
+        font-size: 15.5px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .opt-fee[data-state='pending'] {
+        color: var(--ink-dec);
+        font-weight: 600;
+      }
+      .opt-fee[data-state='quote'] {
+        color: var(--warn);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 650;
+      }
+      .opt-fee[data-state='free'] {
+        color: var(--ok);
+        font-family: var(--font-ui);
+        font-size: 14px;
+        font-weight: 650;
+      }
+
+      .panel {
+        padding: 4px 17px 18px;
+        border-top: 1px solid var(--hair);
+      }
+      .panel[hidden] {
+        display: none;
+      }
+      .panel-inner {
+        padding-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+        letter-spacing: 0.01em;
+      }
+      .field input {
+        width: 100%;
+        min-height: 46px;
+        padding: 11px 13px;
+        border: 1.5px solid var(--hair);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--ink);
+        font: 15.5px var(--font-body);
+      }
+      .field input::placeholder {
+        color: var(--ink-dec);
+      }
+      .field input:focus-visible {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(46 70 153 / 0.13);
+      }
+      .row-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 130px;
+        gap: 12px;
+      }
+      /* An explicit `display` outranks the UA's [hidden] rule, so every element
+         this prototype toggles with the attribute has to restate it. */
+      .row-2[hidden],
+      .res-cta[hidden] {
+        display: none;
+      }
+
+      .link-btn {
+        align-self: flex-start;
+        padding: 4px 0;
+        border: 0;
+        background: none;
+        color: var(--accent);
+        font-family: var(--font-ui);
+        font-size: 13.5px;
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 3px;
+        cursor: pointer;
+      }
+
+      /* ---------------------------------------------------- autocomplete --- */
+
+      .ac {
+        position: relative;
+      }
+      .ac-list {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        max-height: 306px;
+        overflow-y: auto;
+        margin: 0;
+        padding: 6px;
+        border: 1px solid var(--hair);
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: var(--shadow-pop);
+        list-style: none;
+      }
+      .ac-list[hidden] {
+        display: none;
+      }
+      .ac-item {
+        display: flex;
+        gap: 11px;
+        align-items: flex-start;
+        padding: 9px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .ac-item[aria-selected='true'] {
+        background: var(--tint);
+      }
+      .ac-pin {
+        flex: none;
+        margin-top: 2px;
+        color: var(--ink-dec);
+      }
+      .ac-pin svg {
+        width: 16px;
+        height: 16px;
+      }
+      .ac-main {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+      .ac-main b {
+        font-family: var(--font-ui);
+        font-size: 14.5px;
+        font-weight: 600;
+      }
+      .ac-main small {
+        color: var(--ink-2);
+        font-size: 12.5px;
+      }
+      .ac-empty {
+        padding: 12px 10px;
+        color: var(--ink-2);
+        font-size: 13.5px;
+      }
+
+      /* ------------------------------------------------------- resolved --- */
+
+      .resolved {
+        display: flex;
+        gap: 13px;
+        padding: 15px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--hair);
+        background: var(--tint);
+      }
+      .resolved[hidden] {
+        display: none;
+      }
+      .resolved[data-kind='quote'] {
+        border-color: var(--warn-hair);
+        background: var(--warn-tint);
+      }
+      .res-mark {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--ok);
+        color: #fff;
+      }
+      .resolved[data-kind='quote'] .res-mark {
+        background: var(--warn);
+      }
+      .res-mark svg {
+        width: 15px;
+        height: 15px;
+      }
+      .res-body {
+        min-width: 0;
+        flex: 1;
+      }
+      .res-title {
+        font-family: var(--font-ui);
+        font-size: 14.5px;
+        font-weight: 650;
+      }
+      .res-sub {
+        margin-top: 3px;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .res-amount {
+        flex: none;
+        align-self: center;
+        font-size: 21px;
+        font-weight: 700;
+      }
+      .res-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 10px;
+        padding: 9px 14px;
+        border-radius: 9px;
+        border: 1.5px solid var(--warn);
+        background: #fff;
+        color: var(--warn);
+        font-family: var(--font-ui);
+        font-size: 13.5px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      /* --------------------------------------------------------- pickup --- */
+
+      .branches {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .branch {
+        display: flex;
+        width: 100%;
+        gap: 13px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border: 1px solid var(--hair);
+        border-radius: 11px;
+        background: #fff;
+        text-align: left;
+        cursor: pointer;
+      }
+      .branch[data-on='true'] {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgb(46 70 153 / 0.09);
+      }
+      .branch-n {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--tint);
+        color: var(--ink-2);
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .branch[data-on='true'] .branch-n {
+        background: var(--tint-2);
+        color: var(--accent);
+      }
+      .branch strong {
+        font-family: var(--font-ui);
+        font-size: 15px;
+        font-weight: 650;
+      }
+      .branch small {
+        display: block;
+        margin-top: 3px;
+        color: var(--ink-2);
+        font-size: 13px;
+      }
+
+      /* -------------------------------------------------------- summary --- */
+
+      .summary {
+        margin-top: 22px;
+        border-top: 1px solid var(--hair);
+        padding-top: 18px;
+      }
+      .sum-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 16px;
+        padding: 6px 0;
+        font-size: 14.5px;
+      }
+      .sum-row span:first-child {
+        color: var(--ink-2);
+      }
+      .sum-row.total {
+        margin-top: 8px;
+        padding-top: 14px;
+        border-top: 1px solid var(--hair);
+        font-size: 16px;
+      }
+      .sum-row.total span:first-child {
+        color: var(--ink);
+        font-family: var(--font-ui);
+        font-weight: 650;
+      }
+      .sum-row.total b {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .sum-quote {
+        font-family: var(--font-ui);
+        font-size: 14px;
+        font-weight: 650;
+        color: var(--warn);
+      }
+      .item-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 13px 15px;
+        border-radius: 11px;
+        background: var(--tint);
+        font-size: 14.5px;
+      }
+      .item-line small {
+        display: block;
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: 13px;
+      }
+
+      /* ---------------------------------------------------------- aside --- */
+
+      .tabs {
+        display: flex;
+        gap: 4px;
+        padding: 6px;
+        border-bottom: 1px solid var(--hair);
+        background: var(--tint);
+        border-radius: 15px 15px 0 0;
+      }
+      .tab {
+        flex: 1;
+        padding: 9px 10px;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--ink-2);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .tab[aria-selected='true'] {
+        background: #fff;
+        color: var(--accent);
+        box-shadow: 0 1px 2px rgb(23 28 45 / 0.07);
+      }
+      .tabpanel {
+        padding: 20px 22px 24px;
+      }
+      .tabpanel[hidden] {
+        display: none;
+      }
+      .aside-h {
+        font-family: var(--font-ui);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-dec);
+      }
+
+      /* trace */
+      .trace {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        list-style: none;
+        padding: 0;
+      }
+      .trace li {
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr);
+        gap: 12px;
+        padding-bottom: 16px;
+      }
+      .trace li:last-child {
+        padding-bottom: 0;
+      }
+      .t-n {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--tint-2);
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+      .trace li:not(:last-child) .t-n::after {
+        content: '';
+        position: absolute;
+        top: 24px;
+        left: 50%;
+        width: 1.5px;
+        height: calc(100% + 10px);
+        background: var(--hair);
+        transform: translateX(-50%);
+      }
+      .t-label {
+        font-family: var(--font-ui);
+        font-size: 13.5px;
+        font-weight: 650;
+      }
+      .t-note {
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .t-out {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        display: inline-flex;
+        gap: 6px;
+        align-items: baseline;
+        padding: 4px 9px;
+        border: 1px solid var(--hair);
+        border-radius: 7px;
+        background: var(--tint);
+        font-family: var(--font-ui);
+        font-size: 12px;
+      }
+      .chip i {
+        font-style: normal;
+        color: var(--ink-dec);
+        font-weight: 600;
+      }
+      .chip b {
+        font-weight: 650;
+      }
+      .chip[data-hit='miss'] {
+        border-color: var(--warn-hair);
+        background: var(--warn-tint);
+        color: var(--warn);
+      }
+      .t-idle {
+        margin-top: 14px;
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .cost-strip {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .cost-cell {
+        padding: 12px 13px;
+        border: 1px solid var(--hair);
+        border-radius: 11px;
+        background: #fff;
+      }
+      .cost-cell b {
+        display: block;
+        font-size: 21px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .cost-cell small {
+        display: block;
+        margin-top: 5px;
+        color: var(--ink-2);
+        font-family: var(--font-ui);
+        font-size: 11.5px;
+        font-weight: 600;
+        line-height: 1.35;
+      }
+
+      /* price list */
+      .listino {
+        margin-top: 14px;
+        max-height: 440px;
+        overflow-y: auto;
+        border: 1px solid var(--hair);
+        border-radius: 11px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        padding: 9px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--hair);
+      }
+      thead th {
+        position: sticky;
+        top: 0;
+        background: var(--tint);
+        font-family: var(--font-ui);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      td.fee {
+        text-align: right;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      td.code {
+        color: var(--ink-2);
+        font-family: var(--font-display);
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+      }
+      .sub-row td:first-child {
+        padding-left: 26px;
+        color: var(--ink-2);
+      }
+      .sub-tag {
+        display: inline-block;
+        margin-left: 7px;
+        padding: 1px 6px;
+        border-radius: 5px;
+        background: var(--tint-2);
+        color: var(--accent);
+        font-family: var(--font-ui);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        vertical-align: 1px;
+      }
+
+      /* notes */
+      .notes {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .note h3 {
+        font-family: var(--font-ui);
+        font-size: 14.5px;
+        font-weight: 650;
+      }
+      .note p {
+        margin-top: 5px;
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .note b {
+        font-weight: 700;
+      }
+      .note.open {
+        padding: 14px 15px;
+        border: 1px solid var(--warn-hair);
+        border-radius: 11px;
+        background: var(--warn-tint);
+      }
+      .note.open h3 {
+        color: var(--warn);
+      }
+      .note.open p {
+        color: #6f4905;
+      }
+
+      /* ---------------------------------------------------------- modal --- */
+
+      /* A flex column so only .m-body scrolls — the heading and the footer note
+         must stay put, since the footer is what explains the fallback. */
+      dialog {
+        display: flex;
+        flex-direction: column;
+        width: min(520px, calc(100vw - 32px));
+        max-height: min(680px, calc(100vh - 48px));
+        padding: 0;
+        border: 0;
+        border-radius: var(--r-lg);
+        background: #fff;
+        color: var(--ink);
+        box-shadow: var(--shadow-pop);
+      }
+      dialog:not([open]) {
+        display: none;
+      }
+      dialog::backdrop {
+        background: rgb(23 28 45 / 0.42);
+        backdrop-filter: blur(2px);
+      }
+      .m-head,
+      .m-foot {
+        flex: none;
+      }
+      .m-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 20px 22px 16px;
+        border-bottom: 1px solid var(--hair);
+      }
+      .m-head h2 {
+        font-family: var(--font-display);
+        font-size: 17.5px;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+      }
+      .m-head p {
+        margin-top: 5px;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .m-close {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--hair);
+        border-radius: 9px;
+        background: #fff;
+        color: var(--ink-2);
+        cursor: pointer;
+      }
+      .m-close svg {
+        width: 16px;
+        height: 16px;
+      }
+      .m-body {
+        flex: 1;
+        min-height: 0;
+        padding: 16px 22px 20px;
+        overflow-y: auto;
+      }
+      .m-group + .m-group {
+        margin-top: 18px;
+      }
+      .m-group-h {
+        padding-bottom: 8px;
+        font-family: var(--font-ui);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-dec);
+      }
+      .m-pick {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 8px;
+        padding: 11px 13px;
+        border: 1px solid var(--hair);
+        border-radius: 10px;
+        background: #fff;
+        text-align: left;
+        cursor: pointer;
+      }
+      .m-pick:hover {
+        border-color: var(--hair-strong);
+        background: var(--tint);
+      }
+      .m-pick strong {
+        font-family: var(--font-ui);
+        font-size: 14.5px;
+        font-weight: 600;
+      }
+      .m-pick small {
+        display: block;
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: 12.5px;
+      }
+      .m-pick b {
+        flex: none;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .m-foot {
+        padding: 14px 22px 20px;
+        border-top: 1px solid var(--hair);
+        background: var(--tint);
+        border-radius: 0 0 var(--r-lg) var(--r-lg);
+        color: var(--ink-2);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="head">
+      <p class="eyebrow">Prototype · checkout step 2</p>
+      <h1>The delivery fee comes out of the price list, not out of a calculation</h1>
+      <p class="lede">
+        The customer types an address, picks a suggestion, and the fee appears. Underneath there is no
+        map and no distance maths — only the <b>comune</b> (municipality) and the <b>CAP</b> (postal
+        code) that every Italian address already carries, looked up in your client's sheet.
+      </p>
+      <p class="demo-note">
+        <strong>Demo data.</strong> The fees, the comune list and the ISTAT codes are invented, to
+        stand in for your client's spreadsheet. Type <code>Portuense</code> for a plainly covered
+        comune, <code>Romagnoli</code> for a CAP priced apart from the city it sits in, and
+        <code>Vannucci</code> for an address outside the sheet. Place names and the euro number format
+        are the storefront's real ones; everything else on this page is English so it reads.
+      </p>
+    </header>
+
+    <main class="stage">
+      <!-- ============================================ checkout column === -->
+      <section class="card" aria-label="Delivery and collection">
+        <div class="card-head">
+          <span class="step-badge" aria-hidden="true">2</span>
+          <h2>Delivery and collection</h2>
+        </div>
+
+        <div class="card-body">
+          <div class="options" role="radiogroup" aria-label="Delivery method">
+            <!-- home delivery -->
+            <div class="option" data-option="homeDelivery" data-on="true">
+              <button class="option-btn" type="button" role="radio" aria-checked="true">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="opt-icon" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 36 36"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 17 L18 7 L29 17" />
+                    <path d="M10 15 V29 H26 V15" />
+                    <rect x="15.5" y="21" width="5" height="8" />
+                  </svg>
+                </span>
+                <span class="opt-text">
+                  <strong>Home delivery</strong>
+                  <span>We bring the equipment to your address and collect it afterwards</span>
+                </span>
+                <span class="opt-fee num" data-fee="homeDelivery" data-state="pending">—</span>
+              </button>
+
+              <div class="panel" data-panel="homeDelivery">
+                <div class="panel-inner">
+                  <div class="ac">
+                    <label class="field">
+                      Delivery address
+                      <input
+                        type="text"
+                        id="home-address"
+                        autocomplete="off"
+                        role="combobox"
+                        aria-expanded="false"
+                        aria-controls="home-list"
+                        aria-autocomplete="list"
+                        placeholder="Street, number and town — start typing"
+                      />
+                    </label>
+                    <ul class="ac-list" id="home-list" role="listbox" hidden></ul>
+                  </div>
+
+                  <div class="row-2" data-street-fill hidden>
+                    <label class="field">
+                      Street
+                      <input type="text" id="fill-street" placeholder="Via Roma" />
+                    </label>
+                    <label class="field">
+                      House number
+                      <input type="text" id="fill-civico" placeholder="12" />
+                    </label>
+                  </div>
+
+                  <button class="link-btn" type="button" id="open-picker">
+                    Can't find your address? Pick your comune
+                  </button>
+
+                  <div class="resolved" id="resolved" hidden>
+                    <span class="res-mark" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M4 10.5 L8 14.5 L16 6" data-mark-check />
+                      </svg>
+                    </span>
+                    <div class="res-body">
+                      <p class="res-title" id="res-title"></p>
+                      <p class="res-sub" id="res-sub"></p>
+                      <button class="res-cta" type="button" id="res-cta" hidden>
+                        <svg
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.9"
+                          stroke-linecap="round"
+                          style="width: 16px; height: 16px"
+                        >
+                          <path
+                            d="M3 5.5 A2.5 2.5 0 0 1 5.5 3 h1.8 l1.2 3 -1.5 1.2 a9 9 0 0 0 4.6 4.6
+                            L12.8 10.3 l3 1.2 v1.8 A2.5 2.5 0 0 1 13.3 16 A12 12 0 0 1 3 5.5 z"
+                          />
+                        </svg>
+                        Ask for a quote on WhatsApp
+                      </button>
+                    </div>
+                    <strong class="res-amount num" id="res-amount"></strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- hotel delivery -->
+            <div class="option" data-option="hotelDelivery" data-on="false">
+              <button class="option-btn" type="button" role="radio" aria-checked="false">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="opt-icon" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 36 36"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="10" y="6" width="16" height="24" rx="1.5" />
+                    <rect x="14" y="10" width="3" height="3" />
+                    <rect x="19" y="10" width="3" height="3" />
+                    <rect x="14" y="16" width="3" height="3" />
+                    <rect x="19" y="16" width="3" height="3" />
+                    <rect x="15.5" y="24" width="5" height="6" />
+                    <line x1="7" y1="30" x2="29" y2="30" />
+                  </svg>
+                </span>
+                <span class="opt-text">
+                  <strong>Hotel or venue delivery</strong>
+                  <span>We leave everything at reception, under the guest's name</span>
+                </span>
+                <span class="opt-fee num" data-fee="hotelDelivery" data-state="pending">—</span>
+              </button>
+
+              <div class="panel" data-panel="hotelDelivery" hidden>
+                <div class="panel-inner">
+                  <div class="ac">
+                    <label class="field">
+                      Venue name and address
+                      <input
+                        type="text"
+                        id="venue-address"
+                        autocomplete="off"
+                        role="combobox"
+                        aria-expanded="false"
+                        aria-controls="venue-list"
+                        aria-autocomplete="list"
+                        placeholder="Try: Artemide, Panorama, Trevi"
+                      />
+                    </label>
+                    <ul class="ac-list" id="venue-list" role="listbox" hidden></ul>
+                  </div>
+                  <label class="field">
+                    Guest name at reception
+                    <input type="text" placeholder="Mario Rossi" autocomplete="name" />
+                  </label>
+                  <p class="res-sub" style="font-size: 13px">
+                    Same fee as home delivery — it depends on the venue's comune, nothing else.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- store pickup -->
+            <div class="option" data-option="storePickup" data-on="false">
+              <button class="option-btn" type="button" role="radio" aria-checked="false">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="opt-icon" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 36 36"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M8 13 L10 7 H26 L28 13" />
+                    <path d="M8 13 V29 H28 V13" />
+                    <line x1="8" y1="13" x2="28" y2="13" />
+                    <rect x="12" y="17" width="5" height="5" />
+                    <rect x="20" y="17" width="4" height="12" />
+                  </svg>
+                </span>
+                <span class="opt-text">
+                  <strong>Store pickup</strong>
+                  <span>You collect from a branch during opening hours</span>
+                </span>
+                <span class="opt-fee" data-fee="storePickup" data-state="free">Free</span>
+              </button>
+
+              <div class="panel" data-panel="storePickup" hidden>
+                <div class="panel-inner">
+                  <span class="aside-h" id="branch-label">Choose a branch</span>
+                  <div class="branches" role="radiogroup" aria-labelledby="branch-label">
+                    <button
+                      class="branch"
+                      type="button"
+                      role="radio"
+                      aria-checked="true"
+                      data-on="true"
+                    >
+                      <span class="branch-n num" aria-hidden="true">1</span>
+                      <span>
+                        <strong>Rome branch</strong>
+                        <small>Via Gian Pietro Talamini 44 · Mon–Fri 9–18</small>
+                      </span>
+                    </button>
+                    <button
+                      class="branch"
+                      type="button"
+                      role="radio"
+                      aria-checked="false"
+                      data-on="false"
+                    >
+                      <span class="branch-n num" aria-hidden="true">2</span>
+                      <span>
+                        <strong>Florence branch</strong>
+                        <small>Viale Guidoni 129 · Mon–Fri 9–18</small>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- order summary -->
+          <div class="summary">
+            <div class="item-line">
+              <span>
+                Self-propelled folding wheelchair
+                <small>Rental · 7 days · quantity 1</small>
+              </span>
+              <strong class="num">84,00&nbsp;€</strong>
+            </div>
+            <div class="sum-row">
+              <span>Rental subtotal</span>
+              <span class="num">84,00&nbsp;€</span>
+            </div>
+            <div class="sum-row">
+              <span id="sum-delivery-label">Delivery</span>
+              <span class="num" id="sum-delivery">—</span>
+            </div>
+            <div class="sum-row total">
+              <span>Total</span>
+              <b class="num" id="sum-total">84,00&nbsp;€</b>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================ aside column === -->
+      <aside class="card">
+        <div class="tabs" role="tablist" aria-label="Explanation">
+          <button class="tab" type="button" role="tab" aria-selected="true" data-tab="trace">
+            What the server does
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="listino">
+            Price list
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="notes">
+            Why this way
+          </button>
+        </div>
+
+        <!-- trace -->
+        <div class="tabpanel" role="tabpanel" data-tabpanel="trace">
+          <p class="aside-h">Pricing trace</p>
+          <div id="trace-host"></div>
+
+          <div class="cost-strip">
+            <div class="cost-cell">
+              <b class="num" id="cost-calls">0</b>
+              <small>API calls<br />to price it</small>
+            </div>
+            <div class="cost-cell">
+              <b class="num">0</b>
+              <small>coordinates<br />stored</small>
+            </div>
+            <div class="cost-cell">
+              <b class="num" id="cost-rows">18</b>
+              <small>rows in<br />the sheet</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- price list -->
+        <div class="tabpanel" role="tabpanel" data-tabpanel="listino" hidden>
+          <p class="aside-h">Your client's sheet, as a table</p>
+          <p class="res-sub" style="margin-top: 8px">
+            One row per comune, keyed on the ISTAT code. A CAP row beats its comune row — that is how
+            Lido di Ostia sits inside the comune of Rome and still carries its own fee. The indented
+            rows are those CAP exceptions.
+          </p>
+          <div class="listino">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Comune</th>
+                  <th scope="col">ISTAT / CAP</th>
+                  <th scope="col" style="text-align: right">Fee</th>
+                </tr>
+              </thead>
+              <tbody id="listino-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- notes -->
+        <div class="tabpanel" role="tabpanel" data-tabpanel="notes" hidden>
+          <p class="aside-h">Why it is built this way</p>
+          <div class="notes">
+            <div class="note">
+              <h3>There is no zone to detect</h3>
+              <p>
+                No polygons, no point-in-polygon test. Autocomplete already hands back the comune and
+                the CAP, so the fee is a lookup on an indexed column. The part you were worried about
+                never has to be built.
+              </p>
+            </div>
+            <div class="note">
+              <h3>The fallback is a list, not a map</h3>
+              <p>
+                Pricing needs one fact: the comune. A map makes the customer <em>guess</em> it by
+                dropping a pin, and then we reverse-geocode the guess. A province → comune list makes
+                them <em>state</em> it — no map tiles, no reverse geocoding, and no doubt about what we
+                understood. Open "Can't find your address?" on the left to try it.
+              </p>
+            </div>
+            <div class="note">
+              <h3>CAP is not a unique key</h3>
+              <p>
+                Rome has roughly 200 CAPs, and one CAP can span several small comuni. That is why the
+                primary key is the comune's ISTAT code and the CAP is only an exception row. Do it the
+                other way round and Rome becomes 200 rows that disagree with each other.
+              </p>
+            </div>
+            <div class="note">
+              <h3>Outside the list, nothing is guessed</h3>
+              <p>
+                A comune that is not in the sheet routes to a phone quote rather than an automatic
+                estimate — your client has to price those by hand anyway. Log the misses: the comuni
+                people ask for repeatedly are the rows worth adding.
+              </p>
+            </div>
+            <div class="note">
+              <h3>The fee is computed server-side</h3>
+              <p>
+                The browser sends an address; the server does the lookup and stores the figure on the
+                order. A fee that arrives from the browser is a price the customer can edit.
+              </p>
+            </div>
+            <div class="note open">
+              <h3>Open question for your client</h3>
+              <p>
+                Does a sheet price cover <b>delivery and collection</b>? This is a rental — the van
+                makes two trips. If those numbers are one-way, every quote on the site is half the real
+                cost. Worth asking before the sheet gets imported.
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- ==================================================== comune picker === -->
+    <dialog id="picker" aria-labelledby="picker-title">
+      <div class="m-head">
+        <div>
+          <h2 id="picker-title">Pick the delivery comune</h2>
+          <p>The fee only needs the comune. Street and house number come after, in the field behind.</p>
+        </div>
+        <button class="m-close" type="button" id="picker-close" aria-label="Close">
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M5 5 L15 15 M15 5 L5 15" />
+          </svg>
+        </button>
+      </div>
+      <div class="m-body" id="picker-body"></div>
+      <p class="m-foot">
+        This is the fallback your idea called a map. Every covered comune, grouped by province, with
+        its fee visible <em>before</em> the customer commits — which a pin on a map cannot show. Not in
+        the list means a phone quote.
+      </p>
+    </dialog>
+
+    <script>
+      'use strict';
+
+      /* ------------------------------------------------------------- data ---
+         Two tables and one address book. COMUNI is the client's sheet keyed on
+         the ISTAT code — the identifier that survives renames. CAP_OVERRIDES is
+         the exception list: a CAP row wins over its comune row, which is how a
+         big city gets sub-areas priced apart. PLACES stands in for whatever the
+         autocomplete provider returns; the shape is the point, not the rows.
+      */
+
+      const COMUNI = {
+        '058091': { name: 'Roma', provincia: 'RM', fee: 15 },
+        '058120': { name: 'Fiumicino', provincia: 'RM', fee: 30 },
+        '058043': { name: 'Frascati', provincia: 'RM', fee: 30 },
+        '058047': { name: 'Guidonia Montecelio', provincia: 'RM', fee: 35 },
+        '058104': { name: 'Tivoli', provincia: 'RM', fee: 35 },
+        '058007': { name: 'Anzio', provincia: 'RM', fee: 40 },
+        '058032': { name: 'Civitavecchia', provincia: 'RM', fee: 45 },
+        '059011': { name: 'Latina', provincia: 'LT', fee: 55 },
+        '048017': { name: 'Firenze', provincia: 'FI', fee: 15 },
+        '048018': { name: 'Scandicci', provincia: 'FI', fee: 25 },
+        '048043': { name: 'Sesto Fiorentino', provincia: 'FI', fee: 25 },
+        '048019': { name: 'Fiesole', provincia: 'FI', fee: 30 },
+        '048014': { name: 'Empoli', provincia: 'FI', fee: 40 },
+        '100005': { name: 'Prato', provincia: 'PO', fee: 35 },
+        '052032': { name: 'Siena', provincia: 'SI', fee: 60 },
+      };
+
+      /** CAP rows. Each one narrows a comune the client prices in pieces. */
+      const CAP_OVERRIDES = {
+        '00121': { label: 'Roma · Lido di Ostia', istat: '058091', fee: 25 },
+        '00122': { label: 'Roma · Lido di Ostia', istat: '058091', fee: 25 },
+        '00125': { label: 'Roma · Acilia', istat: '058091', fee: 25 },
+      };
+
+      /** Province code → name, for the picker's group headings. */
+      const PROVINCE_NAMES = {
+        RM: 'Rome',
+        FI: 'Florence',
+        LT: 'Latina',
+        PO: 'Prato',
+        SI: 'Siena',
+      };
+
+      /** What the autocomplete provider hands back, already structured. */
+      const PLACES = [
+        { street: 'Via Appia Nuova', civico: '421', comune: 'Roma', istat: '058091', cap: '00181', provincia: 'RM' },
+        { street: 'Via Gregorio VII', civico: '186', comune: 'Roma', istat: '058091', cap: '00165', provincia: 'RM' },
+        { street: 'Viale dei Romagnoli', civico: '120', comune: 'Roma', istat: '058091', cap: '00121', provincia: 'RM' },
+        { street: 'Via di Acilia', civico: '70', comune: 'Roma', istat: '058091', cap: '00125', provincia: 'RM' },
+        { street: 'Via Portuense', civico: '2451', comune: 'Fiumicino', istat: '058120', cap: '00054', provincia: 'RM' },
+        { street: 'Via Tiburtina Valeria', civico: '12', comune: 'Tivoli', istat: '058104', cap: '00019', provincia: 'RM' },
+        { street: 'Piazza del Gesù', civico: '4', comune: 'Frascati', istat: '058043', cap: '00044', provincia: 'RM' },
+        { street: 'Lungomare Marconi', civico: '58', comune: 'Anzio', istat: '058007', cap: '00042', provincia: 'RM' },
+        { street: 'Piazza del Duomo', civico: '1', comune: 'Firenze', istat: '048017', cap: '50122', provincia: 'FI' },
+        { street: 'Viale Guidoni', civico: '129', comune: 'Firenze', istat: '048017', cap: '50127', provincia: 'FI' },
+        { street: 'Via Gramsci', civico: '44', comune: 'Sesto Fiorentino', istat: '048043', cap: '50019', provincia: 'FI' },
+        { street: 'Via Roma', civico: '15', comune: 'Prato', istat: '100005', cap: '59100', provincia: 'PO' },
+        { street: 'Via Banchi di Sopra', civico: '32', comune: 'Siena', istat: '052032', cap: '53100', provincia: 'SI' },
+        // Deliberately outside the sheet — these two reach the quote-on-request branch.
+        { street: 'Corso Vannucci', civico: '10', comune: 'Perugia', istat: '054039', cap: '06121', provincia: 'PG' },
+        { street: 'Via Toledo', civico: '148', comune: 'Napoli', istat: '063049', cap: '80132', provincia: 'NA' },
+        { street: 'Via Nazionale', civico: '22', comune: 'Roma', istat: '058091', cap: '00184', provincia: 'RM', venue: 'Hotel Artemide' },
+        { street: 'Via Cavour', civico: '18', comune: 'Firenze', istat: '048017', cap: '50129', provincia: 'FI', venue: 'Hotel Panorama' },
+        { street: 'Via del Corso', civico: '126', comune: 'Roma', istat: '058091', cap: '00186', provincia: 'RM', venue: 'Residenza Trevi' },
+      ];
+
+      const RENTAL_SUBTOTAL = 84;
+
+      /* Euro formatting stays it-IT: that is what the storefront prints, and a
+         number format is data rather than copy. */
+      const eur = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+      const money = (n) => eur.format(n);
+
+      /* ------------------------------------------------------------ quote ---
+         The one function that prices a delivery. Deliberately pure and
+         synchronous — that is the whole argument for the sheet: no await, no
+         network, and so no failure mode to degrade from.
+      */
+      function quote(place) {
+        const override = CAP_OVERRIDES[place.cap];
+        if (override) {
+          return { fee: override.fee, area: override.label, hit: 'CAP', key: place.cap };
+        }
+        const row = COMUNI[place.istat];
+        if (row) {
+          return {
+            fee: row.fee,
+            area: row.name + ' (' + row.provincia + ')',
+            hit: 'comune',
+            key: place.istat,
+          };
+        }
+        return {
+          fee: null,
+          area: place.comune + ' (' + place.provincia + ')',
+          hit: 'miss',
+          key: place.istat,
+        };
+      }
+
+      const addressLine = (p) =>
+        [p.street, p.civico].filter(Boolean).join(' ') +
+        (p.street ? ', ' : '') +
+        p.comune +
+        ' (' +
+        p.provincia +
+        ')' +
+        (p.cap ? ', ' + p.cap : '');
+
+      /* ------------------------------------------------------------ state --- */
+
+      const state = { option: 'homeDelivery', place: null, fromPicker: false };
+
+      /* ---------------------------------------------------- autocomplete --- */
+
+      function mountAutocomplete(inputId, listId, opts) {
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        let matches = [];
+        let active = -1;
+
+        const close = () => {
+          list.hidden = true;
+          input.setAttribute('aria-expanded', 'false');
+          active = -1;
+        };
+
+        function search(term) {
+          const q = term.trim().toLowerCase();
+          if (q.length < 2) return [];
+          return PLACES.filter((p) => {
+            if (opts.venuesOnly && !p.venue) return false;
+            const hay = [p.venue, p.street, p.comune, p.cap, p.provincia]
+              .filter(Boolean)
+              .join(' ')
+              .toLowerCase();
+            return hay.includes(q);
+          }).slice(0, 6);
+        }
+
+        function render() {
+          list.innerHTML = '';
+          if (matches.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'ac-empty';
+            li.textContent = 'No address found. Try the name of the comune.';
+            list.append(li);
+            list.hidden = false;
+            input.setAttribute('aria-expanded', 'true');
+            return;
+          }
+          matches.forEach((p, i) => {
+            const li = document.createElement('li');
+            li.className = 'ac-item';
+            li.setAttribute('role', 'option');
+            li.setAttribute('aria-selected', String(i === active));
+            li.innerHTML =
+              '<span class="ac-pin" aria-hidden="true">' +
+              '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+              'stroke-linecap="round" stroke-linejoin="round">' +
+              '<path d="M10 17.5 C10 17.5 15.5 12.4 15.5 8.4 A5.5 5.5 0 0 0 4.5 8.4 C4.5 12.4 10 17.5 10 17.5 z"/>' +
+              '<circle cx="10" cy="8.3" r="2"/></svg></span>' +
+              '<span class="ac-main"><b></b><small></small></span>';
+            li.querySelector('b').textContent = p.venue ? p.venue : p.street + ' ' + p.civico;
+            li.querySelector('small').textContent = p.venue
+              ? addressLine(p)
+              : p.comune + ' (' + p.provincia + '), ' + p.cap;
+            li.addEventListener('mousedown', (event) => {
+              event.preventDefault();
+              choose(p);
+            });
+            list.append(li);
+          });
+          list.hidden = false;
+          input.setAttribute('aria-expanded', 'true');
+        }
+
+        function choose(p) {
+          input.value = p.venue ? p.venue + ', ' + addressLine(p) : addressLine(p);
+          close();
+          opts.onChoose(p);
+        }
+
+        input.addEventListener('input', () => {
+          matches = search(input.value);
+          active = -1;
+          if (input.value.trim().length < 2) {
+            close();
+            return;
+          }
+          render();
+        });
+
+        input.addEventListener('keydown', (event) => {
+          if (list.hidden) return;
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (matches.length === 0) return;
+            active =
+              (active + (event.key === 'ArrowDown' ? 1 : -1) + matches.length) % matches.length;
+            render();
+            list.children[active]?.scrollIntoView({ block: 'nearest' });
+          } else if (event.key === 'Enter') {
+            if (active >= 0) {
+              event.preventDefault();
+              choose(matches[active]);
+            }
+          } else if (event.key === 'Escape') {
+            close();
+          }
+        });
+
+        input.addEventListener('blur', () => setTimeout(close, 80));
+        return input;
+      }
+
+      const homeInput = mountAutocomplete('home-address', 'home-list', {
+        onChoose(place) {
+          state.place = place;
+          state.fromPicker = false;
+          document.querySelector('[data-street-fill]').hidden = true;
+          render();
+        },
+      });
+
+      mountAutocomplete('venue-address', 'venue-list', {
+        venuesOnly: true,
+        onChoose(place) {
+          state.place = place;
+          state.fromPicker = false;
+          render();
+        },
+      });
+
+      /* --------------------------------------------------------- options --- */
+
+      document.querySelectorAll('.option').forEach((card) => {
+        card.querySelector('.option-btn').addEventListener('click', () => {
+          state.option = card.dataset.option;
+          render();
+        });
+      });
+
+      document.querySelectorAll('.branch').forEach((branch) => {
+        branch.addEventListener('click', () => {
+          document.querySelectorAll('.branch').forEach((other) => {
+            other.dataset.on = String(other === branch);
+            other.setAttribute('aria-checked', String(other === branch));
+          });
+        });
+      });
+
+      /* ---------------------------------------------------------- picker --- */
+
+      const picker = document.getElementById('picker');
+
+      (function buildPicker() {
+        const byProvince = new Map();
+        for (const [istat, row] of Object.entries(COMUNI)) {
+          if (!byProvince.has(row.provincia)) byProvince.set(row.provincia, []);
+          byProvince.get(row.provincia).push({ istat, ...row });
+        }
+
+        const host = document.getElementById('picker-body');
+        const sorted = [...byProvince].sort(([a], [b]) =>
+          (PROVINCE_NAMES[a] ?? a).localeCompare(PROVINCE_NAMES[b] ?? b),
+        );
+
+        for (const [code, rows] of sorted) {
+          const group = document.createElement('section');
+          group.className = 'm-group';
+          const heading = document.createElement('p');
+          heading.className = 'm-group-h';
+          heading.textContent = 'Province of ' + (PROVINCE_NAMES[code] ?? code);
+          group.append(heading);
+
+          rows
+            .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+            .forEach((row) => {
+              const button = document.createElement('button');
+              button.className = 'm-pick';
+              button.type = 'button';
+              button.innerHTML = '<span><strong></strong><small></small></span><b class="num"></b>';
+              button.querySelector('strong').textContent = row.name;
+              button.querySelector('small').textContent = 'ISTAT code ' + row.istat;
+              button.querySelector('b').textContent = money(row.fee);
+              button.addEventListener('click', () => {
+                /* A comune is enough to price. Street and house number are
+                   collected afterwards, because the delivery note needs them
+                   and the fee does not. */
+                state.place = {
+                  street: '',
+                  civico: '',
+                  comune: row.name,
+                  istat: row.istat,
+                  cap: '',
+                  provincia: row.provincia,
+                };
+                state.fromPicker = true;
+                homeInput.value = row.name + ' (' + row.provincia + ')';
+                document.querySelector('[data-street-fill]').hidden = false;
+                picker.close();
+                render();
+                document.getElementById('fill-street').focus();
+              });
+              group.append(button);
+            });
+          host.append(group);
+        }
+      })();
+
+      document.getElementById('open-picker').addEventListener('click', () => picker.showModal());
+      document.getElementById('picker-close').addEventListener('click', () => picker.close());
+      picker.addEventListener('click', (event) => {
+        if (event.target === picker) picker.close();
+      });
+
+      ['fill-street', 'fill-civico'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', () => {
+          if (!state.place) return;
+          state.place.street = document.getElementById('fill-street').value;
+          state.place.civico = document.getElementById('fill-civico').value;
+          render();
+        });
+      });
+
+      /* ----------------------------------------------------- price table --- */
+
+      (function buildListino() {
+        const body = document.getElementById('listino-body');
+        const capByIstat = new Map();
+        for (const [cap, row] of Object.entries(CAP_OVERRIDES)) {
+          if (!capByIstat.has(row.istat)) capByIstat.set(row.istat, []);
+          capByIstat.get(row.istat).push({ cap, ...row });
+        }
+
+        const rows = Object.entries(COMUNI).sort((a, b) =>
+          (a[1].provincia + a[1].name).localeCompare(b[1].provincia + b[1].name, 'it'),
+        );
+
+        for (const [istat, row] of rows) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = '<td><b></b></td><td class="code"></td><td class="fee num"></td>';
+          tr.querySelector('b').textContent = row.name + ' (' + row.provincia + ')';
+          tr.children[1].textContent = istat;
+          tr.children[2].textContent = money(row.fee);
+          body.append(tr);
+
+          for (const sub of capByIstat.get(istat) ?? []) {
+            const subTr = document.createElement('tr');
+            subTr.className = 'sub-row';
+            subTr.innerHTML =
+              '<td><span></span><span class="sub-tag">CAP</span></td>' +
+              '<td class="code"></td><td class="fee num"></td>';
+            subTr.querySelector('span').textContent = sub.label.split(' · ')[1] ?? sub.label;
+            subTr.children[1].textContent = sub.cap;
+            subTr.children[2].textContent = money(sub.fee);
+            body.append(subTr);
+          }
+        }
+
+        document.getElementById('cost-rows').textContent = String(
+          rows.length + Object.keys(CAP_OVERRIDES).length,
+        );
+      })();
+
+      /* ------------------------------------------------------------ tabs --- */
+
+      document.querySelectorAll('.tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document
+            .querySelectorAll('.tab')
+            .forEach((other) => other.setAttribute('aria-selected', String(other === tab)));
+          document.querySelectorAll('[data-tabpanel]').forEach((panel) => {
+            panel.hidden = panel.dataset.tabpanel !== tab.dataset.tab;
+          });
+        });
+      });
+
+      /* ---------------------------------------------------------- render --- */
+
+      const chip = (label, value, hit) =>
+        '<span class="chip"' +
+        (hit ? ' data-hit="' + hit + '"' : '') +
+        '><i>' +
+        label +
+        '</i><b>' +
+        value +
+        '</b></span>';
+
+      const traceStep = (n, label, note, chips) =>
+        '<li><span class="t-n num">' +
+        n +
+        '</span><div><p class="t-label">' +
+        label +
+        '</p><p class="t-note">' +
+        note +
+        '</p>' +
+        (chips ? '<div class="t-out">' + chips + '</div>' : '') +
+        '</div></li>';
+
+      function renderTrace(place, priced) {
+        const host = document.getElementById('trace-host');
+        if (!place) {
+          host.innerHTML =
+            '<p class="t-idle">Pick an address in the field on the left. Every step the server ' +
+            'takes to reach the fee shows up here.</p>';
+          return;
+        }
+
+        const steps = [];
+
+        steps.push(
+          traceStep(
+            1,
+            state.fromPicker
+              ? 'Comune stated by the customer'
+              : 'Autocomplete provider → structured address',
+            state.fromPicker
+              ? 'Picked from the covered-comune list, so there is no provider call at all — the customer named the comune, and nothing is left to geocode.'
+              : 'One call, and only while typing. It returns separate fields rather than a display string, which is what keeps everything after this a plain lookup.',
+            [
+              place.street ? chip('street', place.street + ' ' + place.civico) : '',
+              chip('comune', place.comune),
+              chip('ISTAT', place.istat),
+              place.cap ? chip('CAP', place.cap) : '',
+              chip('province', place.provincia),
+            ].join(''),
+          ),
+        );
+
+        steps.push(
+          traceStep(
+            2,
+            'CAP exception lookup',
+            priced.hit === 'CAP'
+              ? 'A row exists for this CAP, and it beats the comune row. This is how one comune can hold more than one fee.'
+              : 'No row for this CAP, so the comune row decides.',
+            priced.hit === 'CAP'
+              ? chip('CAP_OVERRIDES', place.cap + ' → ' + priced.area)
+              : chip('CAP_OVERRIDES', place.cap ? place.cap + ' → no row' : 'not applicable'),
+          ),
+        );
+
+        steps.push(
+          traceStep(
+            3,
+            'Comune row lookup',
+            priced.hit === 'miss'
+              ? 'This ISTAT code is not in the sheet. Nothing gets estimated here — the request becomes a phone quote.'
+              : priced.hit === 'CAP'
+                ? 'The row exists but goes unused: the CAP already decided. The key is still the ISTAT code rather than the name — comuni get renamed, codes do not.'
+                : 'Keyed on the ISTAT code rather than the name: comuni get renamed, codes do not.',
+            priced.hit === 'miss'
+              ? chip('COMUNI', place.istat + ' → not in the sheet', 'miss')
+              : chip(
+                  'COMUNI',
+                  place.istat +
+                    ' → ' +
+                    (COMUNI[place.istat]?.name ?? '') +
+                    (priced.hit === 'CAP' ? ' (discarded)' : ''),
+                ),
+          ),
+        );
+
+        steps.push(
+          traceStep(
+            4,
+            'Delivery fee',
+            priced.fee === null
+              ? 'The order can still be placed: the fee is settled on the phone, which is already how payment works here.'
+              : 'Computed by the server and stored on the order. The browser never sends a fee — it sends an address.',
+            priced.fee === null
+              ? chip('fee', 'quote on request', 'miss')
+              : chip('fee', money(priced.fee)) + chip('from', priced.hit + ' row'),
+          ),
+        );
+
+        host.innerHTML = '<ul class="trace">' + steps.join('') + '</ul>';
+      }
+
+      function render() {
+        document.querySelectorAll('.option').forEach((card) => {
+          const on = card.dataset.option === state.option;
+          card.dataset.on = String(on);
+          card.querySelector('.option-btn').setAttribute('aria-checked', String(on));
+          const panel = card.querySelector('.panel');
+          if (panel) panel.hidden = !on;
+        });
+
+        const isPickup = state.option === 'storePickup';
+        const priced = state.place ? quote(state.place) : null;
+
+        // the fee shown on each delivery card
+        ['homeDelivery', 'hotelDelivery'].forEach((id) => {
+          const cell = document.querySelector('[data-fee="' + id + '"]');
+          if (!priced) {
+            cell.dataset.state = 'pending';
+            cell.textContent = '—';
+          } else if (priced.fee === null) {
+            cell.dataset.state = 'quote';
+            cell.textContent = 'On request';
+          } else {
+            cell.dataset.state = 'set';
+            cell.textContent = '+' + money(priced.fee);
+          }
+        });
+
+        // resolved block
+        const block = document.getElementById('resolved');
+        if (!priced) {
+          block.hidden = true;
+        } else {
+          block.hidden = false;
+          const covered = priced.fee !== null;
+          const awaitingStreet = state.fromPicker && !state.place.street;
+          block.dataset.kind = covered ? 'ok' : 'quote';
+          document.getElementById('res-title').textContent = covered
+            ? 'Delivering to ' + priced.area
+            : priced.area + ' is outside the fixed-fee areas';
+          document.getElementById('res-sub').textContent = covered
+            ? awaitingStreet
+              ? 'Fee already confirmed. Add the street and house number to complete the delivery.'
+              : addressLine(state.place) + ' · matched on the ' + priced.hit + ' row'
+            : 'We do deliver there, but the cost is confirmed by phone: it depends on the vehicle and the delivery round.';
+          document.getElementById('res-amount').textContent = covered ? money(priced.fee) : '';
+          document.getElementById('res-cta').hidden = covered;
+          block
+            .querySelector('[data-mark-check]')
+            .setAttribute('d', covered ? 'M4 10.5 L8 14.5 L16 6' : 'M10 5 V11 M10 14.5 V15');
+        }
+
+        // summary
+        const label = document.getElementById('sum-delivery-label');
+        const cell = document.getElementById('sum-delivery');
+        const total = document.getElementById('sum-total');
+        label.textContent = isPickup ? 'Store pickup' : 'Delivery';
+        cell.className = 'num';
+        total.className = 'num';
+
+        if (isPickup) {
+          cell.textContent = money(0);
+          total.textContent = money(RENTAL_SUBTOTAL);
+        } else if (!priced) {
+          cell.textContent = '—';
+          total.textContent = money(RENTAL_SUBTOTAL);
+        } else if (priced.fee === null) {
+          cell.className = 'sum-quote';
+          cell.textContent = 'On request';
+          total.className = 'sum-quote';
+          total.textContent = money(RENTAL_SUBTOTAL) + ' + delivery';
+        } else {
+          cell.textContent = money(priced.fee);
+          total.textContent = money(RENTAL_SUBTOTAL + priced.fee);
+        }
+
+        renderTrace(state.place, priced ?? { hit: 'none', fee: null });
+      }
+
+      render();
+    </script>
+  </body>
+</html>

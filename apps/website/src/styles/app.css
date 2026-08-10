@@ -275,9 +275,20 @@
     outline: 3px solid #fff;
     outline-offset: 2px;
     box-shadow: 0 0 0 6px var(--color-ink);
-    /* Follow the control's own shape rather than forcing a square ring. */
-    border-radius: inherit;
   }
+
+  /*
+    The ring is TWO paints, so opting out of it takes two declarations. A lone
+    `outline: none` — the reflex, and what four search fields had via Tailwind's
+    `focus:outline-none` — removes the white band and leaves the 6px ink
+    box-shadow drawn tight around the element: a fat black slug, not a focus
+    ring. Anything that hands its ring to a wrapper must surrender both, which is
+    what `.field-control` does below.
+
+    `border-radius: inherit` used to live here and is gone: a focused element
+    with no radius of its own was taking its PARENT's, so a link inside a rounded
+    card got the card's corners on its ring.
+  */
 
   /* -------------------------------------------------------- target sizing */
 
@@ -364,10 +375,34 @@
     @apply rounded-field border-hair-strong flex min-h-14.5 items-center gap-3 border bg-white px-4;
   }
 
+  /* Pointer affordance: the box reacts to focus of any kind, including a click. */
   .field-control:focus-within {
     @apply border-accent;
 
     box-shadow: 0 0 0 3px rgb(46 70 153 / 0.14);
+  }
+
+  /*
+   * The accessible ring belongs to the BOX, not to the bare input inside it. The
+   * input has no border of its own and fills the box, so ringing it draws the
+   * ring *inside* the visible control — the black slug that showed up around
+   * every search field and, most plainly, around a Firefox date field's
+   * `mm/dd/yyyy` text.
+   *
+   * Both paints go (see the focus block in @layer base for why one is not
+   * enough), and the box picks them up. `:has(:focus-visible)` rather than
+   * `:focus-within`, so a mouse click on a button inside the field does not
+   * raise a keyboard-grade ring — for text inputs the two coincide anyway.
+   */
+  .field-control :is(input, select, textarea):focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .field-control:has(:is(input, select, textarea):focus-visible) {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--color-ink);
   }
 
   /* The uppercase field label. Always visible, never a placeholder. */
@@ -386,14 +421,16 @@
   }
 }
 
-/* ------------------------------------------ product detail page face --- */
+/* ------------------------------------ reference design page face --- */
 
-/* The PDP follows the owner-authored reference design and speaks Instrument
-   Sans throughout — including headings and form controls, which otherwise keep
-   the base layer's display face / the UA's control font. Un-layered on purpose
-   so it outranks @layer base without a specificity fight. */
+/* The PDP and the checkout both follow owner-authored reference designs and
+   speak Instrument Sans throughout — including headings and form controls,
+   which otherwise keep the base layer's display face / the UA's control font.
+   Un-layered on purpose so it outranks @layer base without a specificity
+   fight. */
 .pdp,
-.pdp :is(h1, h2, h3, h4, legend, button, input, textarea, select) {
+.checkout,
+:is(.pdp, .checkout) :is(h1, h2, h3, h4, legend, button, input, textarea, select) {
   font-family: var(--font-pdp);
 }
 
@@ -403,9 +440,129 @@
    design and nothing lined up across columns — the metrics have to come with
    the face. This is the whole PDP release from Variante B, in two declarations;
    see docs/code/storefront-design-system.md § Product detail page. */
-.pdp {
+.pdp,
+.checkout {
   font-size: 1rem;
   line-height: 1.5;
+}
+
+/*
+ * The 48px target rule in @layer base is a PROJECT accessibility rule, not a
+ * style, and it does not get dropped to match a mock. But the checkout's
+ * reference design paints several controls smaller than 48px — the 33px "Modifica"
+ * pill, the 44px identity chips, an 18px checkbox — and forcing those to 48
+ * square deforms the layout the design is copied from (an 18px checkbox becomes
+ * a 48px block and the delivery panel falls apart).
+ *
+ * So the two are separated: the control keeps the painted size the design asks
+ * for, and `.target-48` puts a centred, invisible 48×48 hit area back on top of
+ * it. Nothing about the paint changes and nothing about the target size is lost.
+ * Un-layered, so it outranks the base rule without !important.
+ */
+.checkout :is(button, input[type='checkbox'], input[type='radio']) {
+  min-height: 0;
+  min-width: 0;
+}
+
+.checkout .target-48 {
+  position: relative;
+}
+
+.checkout .target-48::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 48px;
+  min-height: 48px;
+  translate: -50% -50%;
+}
+
+/*
+ * The step bodies are laid out with flex, so revealing one is `display: flex`,
+ * never `block`. Preflight makes `[hidden]` `display: none !important`, which
+ * wins over any utility class — so visibility here is the `hidden` ATTRIBUTE
+ * alone, exactly as on the PDP's calendar popover, and this rule only has to
+ * name the open geometry.
+ */
+.checkout [data-step-body] {
+  display: flex;
+}
+
+/*
+ * The three step states. `data-state` on the <section> is the only thing the
+ * page script writes; everything below is what each state looks like, kept out
+ * of JavaScript so the server-rendered page is already correct.
+ */
+.checkout [data-step-badge] {
+  background: var(--color-tint);
+  color: var(--color-ink-2);
+}
+
+.checkout [data-state='active'] [data-step-badge],
+.checkout [data-state='done'] [data-step-badge] {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.checkout [data-state='done'] [data-step-badge] {
+  font-size: 15px;
+}
+
+.checkout [data-badge-tick],
+.checkout [data-state='done'] [data-badge-number] {
+  display: none;
+}
+
+.checkout [data-state='done'] [data-badge-tick] {
+  display: block;
+}
+
+/* The collapsed receipt and the way back into a finished step. */
+.checkout [data-step-summary],
+.checkout [data-step-edit] {
+  display: none;
+}
+
+.checkout [data-state='done'] [data-step-summary],
+.checkout [data-state='done'] [data-step-edit] {
+  display: block;
+}
+
+/*
+ * Delivery and pickup selection. `data-selected` on the card is again the only
+ * thing the script writes — the radio dot, the icon wash and the card's own
+ * border all follow from it. Accent marks selection here and nothing else, which
+ * is the storefront's rule as much as the reference design's.
+ */
+.checkout [data-delivery-card][data-selected],
+.checkout [data-pickup-card][data-selected] {
+  border-color: var(--color-accent);
+}
+
+.checkout [data-delivery-dot] {
+  border: 1.5px solid var(--color-hair-strong);
+}
+
+.checkout [data-selected] [data-delivery-dot] {
+  border: 5px solid var(--color-accent);
+}
+
+.checkout [data-delivery-icon] {
+  background: var(--color-tint);
+  color: var(--color-ink-2);
+}
+
+.checkout [data-selected] [data-delivery-icon] {
+  background: var(--color-tint-2);
+  color: var(--color-accent);
+}
+
+/* The expanded line item's chevron. */
+.checkout [aria-expanded='true'] [data-item-chevron] {
+  rotate: 180deg;
 }
 
 /* The site breadcrumb is a 16px/600 component because 16px is the storefront's

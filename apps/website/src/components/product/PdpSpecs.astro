@@ -21,7 +21,7 @@ const { specifications } = Astro.props;
   <div class="grid [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))] gap-3">
     {
       specifications.map((spec) => (
-        <div class="border-hair rounded-field flex items-center gap-3.5 border bg-white px-4 py-3.5 shadow-pdp-card">
+        <div class="border-hair rounded-field shadow-pdp-card flex items-center gap-3.5 border bg-white px-4 py-3.5">
           {spec.icon ? (
             <img
               class="bg-tint size-9.5 flex-none rounded-[9px] object-contain p-1"

@@ -1,0 +1,606 @@
+---
+/**
+ * Checkout — the owner-authored reference design, in three steps.
+ *
+ * Its spec is the Claude Design file "Checkout.dc.html" from the same project as
+ * the product detail page, and like the PDP it is deliberately released from
+ * Variante B: Instrument Sans, sub-16px secondary text, the reference's own
+ * radii and spacing. Layout, rationale and every deliberate deviation:
+ * docs/code/storefront-checkout.md
+ *
+ * One page serves both entry points. `resolveCheckout()` reads the single-item
+ * form a product detail page writes and the `i<n>.`-indexed form a cart writes
+ * into the same list, so nothing below branches on where the request came from —
+ * only on how many items came with it.
+ *
+ * Rendered on demand, never cached and never indexed: this page is built out of
+ * one person's request.
+ */
+import CheckoutConfirm from '~/components/checkout/CheckoutConfirm.astro';
+import CheckoutDelivery from '~/components/checkout/CheckoutDelivery.astro';
+import CheckoutDetails from '~/components/checkout/CheckoutDetails.astro';
+import CheckoutOverview from '~/components/checkout/CheckoutOverview.astro';
+import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { resolveCheckout } from '~/lib/checkout';
+import { t } from '~/lib/labels';
+import { formatDateLabel } from '~/lib/request-config';
+import { productPath, routes } from '~/lib/routes';
+import { CONTACT, whatsappUrl } from '~/lib/site';
+
+export const prerender = false;
+
+// Never cache a page built from someone's request details.
+Astro.response.headers.set('cache-control', 'no-store, max-age=0');
+
+/**
+ * A cart POSTs its line items; a product detail page can still GET a single one.
+ *
+ * POST is the cart's path because a multi-item request outgrows a URL and none of
+ * it belongs in browser history — but it is a NATIVE form post of hidden inputs,
+ * not a fetch, so it still works with JavaScript off. A FormData is normalised
+ * into URLSearchParams here so everything downstream reads one shape and cannot
+ * tell the two apart. Astro's `security.checkOrigin` default rejects a
+ * cross-origin post before this runs.
+ */
+async function readRequestParams(): Promise<URLSearchParams> {
+  if (Astro.request.method !== 'POST') return Astro.url.searchParams;
+
+  const params = new URLSearchParams();
+  try {
+    for (const [key, value] of await Astro.request.formData()) {
+      // A file upload has no business in a checkout request; drop it rather than
+      // stringify it into "[object File]".
+      if (typeof value === 'string') params.append(key, value);
+    }
+  } catch {
+    // Malformed or missing body — fall through to the empty state.
+  }
+  return params;
+}
+
+const checkout = await resolveCheckout(await readRequestParams());
+const { items } = checkout;
+const single = items.length === 1;
+
+/**
+ * The handover message, from resolved labels only — never from raw input.
+ *
+ * The page script appends the contact and delivery details the customer types in
+ * here; this part is server-built so the WhatsApp link is already complete and
+ * correct without JavaScript.
+ */
+const whatsappBase = items
+  .flatMap((item) => [
+    `• ${item.product.title}`,
+    ...item.request.selections.map((entry) => `  ${entry.label}: ${entry.value}`),
+    ...(item.request.rentalPackage
+      ? [
+          `  ${t('msgPackage')}: ${item.request.rentalPackage.name} (${item.request.rentalPackage.label})`,
+        ]
+      : []),
+    ...(item.request.startDate
+      ? [`  ${t('msgFrom')}: ${formatDateLabel(item.request.startDate)}`]
+      : []),
+    ...(item.request.endDate ? [`  ${t('msgTo')}: ${formatDateLabel(item.request.endDate)}`] : []),
+    ...(item.request.quantity > 1 ? [`  ${t('quantity')}: ${item.request.quantity}`] : []),
+    ...item.request.addons.map((addon) => `  ${t('msgExtra')}: ${addon.name}`),
+    ...item.request.answers.map((entry) => `  ${entry.label} ${entry.value}`),
+    `  ${t('msgEstimate')}: ${item.subtotal}`,
+  ])
+  .join('\n');
+
+const whatsappMessage = `${t('rentalRequestHeading')}\n${whatsappBase}`;
+
+/**
+ * The words the page script needs at click time, resolved on the server.
+ *
+ * It ships as a JSON island rather than being imported, for the same reason the
+ * delivery fees ride on their cards: importing `~/lib/labels` would put the whole
+ * storefront catalog in the browser bundle to get fourteen strings. This also
+ * keeps the rule intact — no Italian literal exists inside the script.
+ */
+const SCRIPT_LABELS = {
+  delivery: t('delivery'),
+  free: t('free'),
+  name: t('msgName'),
+  email: t('msgEmail'),
+  phone: t('msgPhone'),
+  address: t('msgAddress'),
+  customerType: t('msgCustomerType'),
+  codiceFiscale: t('codiceFiscale'),
+  partitaIva: t('partitaIva'),
+  deliveryLine: t('msgDelivery'),
+  toBeArranged: t('msgToBeArranged'),
+  venue: t('msgVenue'),
+  guest: t('msgGuest'),
+  deliveryAddress: t('msgDeliveryAddress'),
+  pickupBranch: t('msgPickupBranch'),
+  notes: t('msgNotes'),
+  collectedAtBranch: t('collectedAtBranch'),
+} as const;
+
+/* The trail names where the request came from: the product itself when there is
+   one, the cart when there are several. */
+const originCrumb =
+  single && items[0]
+    ? { label: items[0].product.title, href: productPath(items[0].product.slug) }
+    : { label: t('yourRequest'), href: routes.cart };
+---
+
+<BaseLayout title={t('checkoutMetaTitle')} description={t('checkoutMetaDescription')} noindex>
+  {
+    /*
+      The bottom padding clears the persistent bottom navigation on phones; the
+      reference design's own 96px takes over from `mid` up.
+    */
+  }
+  <div
+    class="checkout mid:px-8 mid:pb-24 mx-auto w-full max-w-310 px-5 pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
+    data-checkout
+  >
+    <Breadcrumbs items={[{ label: t('home'), href: '/' }, originCrumb, { label: t('checkout') }]} />
+
+    <h1 class="mb-7 text-[30px] font-bold tracking-[-0.015em]">{t('checkout')}</h1>
+
+    {
+      items.length > 0 ? (
+        <div class="flex flex-wrap items-start gap-12">
+          <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-4">
+            <CheckoutStep index={1} title={t('yourDetails')}>
+              <CheckoutDetails />
+            </CheckoutStep>
+
+            <CheckoutStep index={2} title={t('delivery')} bodyGap="gap-3.5">
+              <CheckoutDelivery />
+            </CheckoutStep>
+
+            <CheckoutStep index={3} title={t('confirmRequest')} editable={false}>
+              <CheckoutConfirm
+                whatsappHref={whatsappUrl(whatsappMessage)}
+                whatsappBase={whatsappMessage}
+              />
+            </CheckoutStep>
+          </main>
+
+          <CheckoutOverview {checkout} />
+        </div>
+      ) : (
+        /*
+          The reference design has no empty state — it always has a cart behind
+          it. Arriving here with nothing resolvable is normal all the same (a
+          shared link, a product since unpublished), and it must not be a dead
+          end.
+        */
+        <div class="border-hair shadow-pdp-card flex max-w-150 flex-col items-start gap-4 rounded-[14px] border bg-white p-7">
+          <h2 class="text-[17px] font-bold">{t('nothingToConfirm')}</h2>
+          <p class="text-ink-2 m-0 text-[15px] leading-[1.55]">{t('nothingToConfirmDetail')}</p>
+          <a
+            class="border-hair-strong text-ink rounded-full border-[1.5px] bg-white px-5.5 py-2.75 text-[15.5px] font-semibold no-underline hover:border-accent hover:text-accent"
+            href={routes.catalog}
+          >
+            {t('goToCatalog')}
+          </a>
+          <p class="text-ink-2 m-0 text-[13.5px]">{CONTACT.hours.it}</p>
+          <PhoneCta variant="primary" />
+        </div>
+      )
+    }
+  </div>
+
+  {
+    /*
+      Synchronous and inline on purpose. The step bodies are server-rendered OPEN
+      and the stepper's forward buttons server-rendered hidden, so that a
+      browser with no JavaScript gets one long readable form and a WhatsApp
+      handover that already carries the line items — a complete path, not a
+      degraded one. This flips that arrangement during parse, before first paint,
+      which is what keeps the enhanced page from flashing every step open.
+    */
+  }
+  <script
+    type="application/json"
+    data-checkout-labels
+    is:inline
+    set:html={JSON.stringify(SCRIPT_LABELS)}
+  />
+
+  <script is:inline>
+    (function () {
+      var root = document.querySelector('[data-checkout]');
+      if (!root) return;
+      var bodies = root.querySelectorAll('[data-step-body]');
+      for (var i = 0; i < bodies.length; i++) {
+        if (bodies[i].getAttribute('data-step-body') !== '1') bodies[i].hidden = true;
+      }
+      var ctas = root.querySelectorAll('[data-step-continue]');
+      for (var j = 0; j < ctas.length; j++) ctas[j].hidden = false;
+    })();
+  </script>
+</BaseLayout>
+
+<script>
+  /*
+   * The checkout's only module script.
+   *
+   * It owns exactly one thing the server cannot: the customer's in-progress
+   * answers. Everything visual is CSS keyed off `data-state` on a step and
+   * `data-selected` on a card (see the checkout block in app.css), so this file
+   * writes attributes and text, never style strings — unlike the reference
+   * design, which rebuilds every style string on every render.
+   *
+   * Money is a DISPLAY ESTIMATE. The item totals are server-computed and arrive
+   * in `data-items-total`; the only arithmetic here is adding the delivery fee.
+   *
+   * Nothing is imported on purpose. The delivery fees and labels live on the
+   * cards as data attributes because importing them from src/lib/checkout.ts
+   * would drag the whole typed API client into the browser bundle to get three
+   * numbers, and the chips carry their own labels as text already.
+   */
+  const checkoutEl = document.querySelector<HTMLElement>('[data-checkout]');
+  const overviewEl = document.querySelector<HTMLElement>('[data-overview]');
+
+  if (checkoutEl && overviewEl) {
+    /* Re-bound inside the guard: the functions below are hoisted declarations, so
+       a narrowing that lives outside their scope does not reach them. */
+    const root = checkoutEl;
+    const overview = overviewEl;
+
+    type StepIndex = 1 | 2 | 3;
+
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-delivery-card]')];
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('[data-customer-type]')];
+
+    const FEES = new Map(
+      cards.map((card) => [card.dataset.deliveryCard ?? '', Number(card.dataset.deliveryFee ?? 0)]),
+    );
+    const NAMES = new Map(
+      cards.map((card) => [card.dataset.deliveryCard ?? '', card.dataset.deliveryName ?? '']),
+    );
+    const SHORT = new Map(
+      cards.map((card) => [card.dataset.deliveryCard ?? '', card.dataset.deliveryShort ?? '']),
+    );
+    const TYPE_LABELS = new Map(
+      chips.map((chip) => [chip.dataset.customerType ?? '', chip.textContent?.trim() ?? '']),
+    );
+
+    /* Server-resolved words; see SCRIPT_LABELS in this file's frontmatter. */
+    const labels: Record<string, string | undefined> = JSON.parse(
+      document.querySelector('[data-checkout-labels]')?.textContent ?? '{}',
+    );
+    /* A missing key is a build-time bug, not a runtime one — but an empty string
+       beats "undefined" turning up in a customer's WhatsApp message. */
+    const L = (key: string): string => labels[key] ?? '';
+
+    const itemsTotal = Number(overview.dataset.itemsTotal ?? '0');
+    /* An open period means the big figure is a per-unit rate, so the delivery fee
+       must not be folded into it — two incompatible quantities. The qualifier
+       under the number already says which kind of figure this is. */
+    const openPeriod = overview.dataset.openPeriod !== undefined;
+    const money = new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: overview.dataset.currency || 'EUR',
+    });
+
+    const state = {
+      step: 1 as StepIndex,
+      done: { 1: false, 2: false } as Record<number, boolean>,
+      type: 'private',
+      delivery: '' as string,
+      pickup: '',
+      placed: false,
+    };
+
+    const field = (name: string) =>
+      root.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[data-field="${name}"]`);
+    const value = (name: string) => field(name)?.value.trim() ?? '';
+    const sections = [...root.querySelectorAll<HTMLElement>('[data-step]')];
+
+    // --- steps ---------------------------------------------------------------
+
+    function summarise(index: StepIndex): string {
+      if (index === 1) {
+        return [
+          `${value('firstName')} ${value('lastName')}`.trim(),
+          value('email'),
+          TYPE_LABELS.get(state.type) ?? '',
+        ]
+          .filter(Boolean)
+          .join(' · ');
+      }
+      return NAMES.get(state.delivery) ?? '';
+    }
+
+    function paintSteps() {
+      for (const section of sections) {
+        const index = Number(section.dataset.step) as StepIndex;
+        const done = state.done[index] === true && state.step !== index;
+        section.dataset.state = done ? 'done' : state.step === index ? 'active' : 'todo';
+
+        const body = section.querySelector<HTMLElement>('[data-step-body]');
+        if (body) body.hidden = state.step !== index;
+
+        const summary = section.querySelector<HTMLElement>('[data-step-summary]');
+        if (summary) summary.textContent = index === 3 ? '' : summarise(index);
+      }
+    }
+
+    function goTo(step: StepIndex) {
+      state.step = step;
+      paintSteps();
+      if (step === 3) paintReview();
+      const section = sections.find((candidate) => Number(candidate.dataset.step) === step);
+      section?.scrollIntoView({ block: 'nearest' });
+    }
+
+    for (const button of root.querySelectorAll<HTMLButtonElement>('[data-step-edit]')) {
+      button.addEventListener('click', () => goTo(Number(button.dataset.stepEdit) as StepIndex));
+    }
+
+    // --- validity ------------------------------------------------------------
+
+    /* Deliberately the same rules the reference design applies, in the same
+       order: a name, an address, something that looks like an email, a phone,
+       and whichever fiscal identifier the chosen identity implies. */
+    const step1Valid = () =>
+      Boolean(
+        value('firstName') &&
+        value('lastName') &&
+        value('address') &&
+        value('email').includes('@') &&
+        value('phone') &&
+        (state.type !== 'private' || value('codiceFiscale')) &&
+        (state.type !== 'company' || (value('partitaIva') && value('companyCodiceFiscale'))),
+      );
+
+    const step2Valid = () => {
+      if (!state.delivery) return false;
+      if (state.delivery === 'hotelDelivery') {
+        return Boolean(value('hotelAddress') && value('hotelGuest'));
+      }
+      if (state.delivery === 'homeDelivery') {
+        const same = (field('sameAddress') as HTMLInputElement | null)?.checked;
+        return Boolean(same || value('homeAddress'));
+      }
+      return Boolean(state.pickup);
+    };
+
+    function paintCtas() {
+      const checks: Record<string, boolean> = { 1: step1Valid(), 2: step2Valid() };
+      for (const cta of root.querySelectorAll<HTMLButtonElement>('[data-step-continue]')) {
+        const ok = checks[cta.dataset.stepContinue ?? ''] === true;
+        cta.setAttribute('aria-disabled', String(!ok));
+      }
+    }
+
+    for (const cta of root.querySelectorAll<HTMLButtonElement>('[data-step-continue]')) {
+      cta.addEventListener('click', () => {
+        if (cta.getAttribute('aria-disabled') === 'true') return;
+        const from = Number(cta.dataset.stepContinue) as StepIndex;
+        state.done[from] = true;
+        goTo((from + 1) as StepIndex);
+      });
+    }
+
+    // --- identity chips ------------------------------------------------------
+
+    function selectType(id: string) {
+      state.type = id;
+      for (const chip of chips) {
+        const on = chip.dataset.customerType === id;
+        chip.setAttribute('aria-checked', String(on));
+        chip.setAttribute('aria-pressed', String(on));
+      }
+      for (const block of root.querySelectorAll<HTMLElement>('[data-when-type]')) {
+        block.hidden = block.dataset.whenType !== id;
+      }
+      paintCtas();
+    }
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => selectType(chip.dataset.customerType ?? 'private'));
+    }
+
+    // --- delivery ------------------------------------------------------------
+
+    function selectDelivery(id: string) {
+      state.delivery = id;
+      for (const card of cards) {
+        const on = card.dataset.deliveryCard === id;
+        card.toggleAttribute('data-selected', on);
+        card.querySelector('[data-delivery-select]')?.setAttribute('aria-checked', String(on));
+        const panel = card.querySelector<HTMLElement>('[data-delivery-panel]');
+        if (panel) panel.hidden = !on;
+      }
+      paintTotal();
+      paintCtas();
+    }
+
+    for (const card of cards) {
+      card
+        .querySelector('[data-delivery-select]')
+        ?.addEventListener('click', () => selectDelivery(card.dataset.deliveryCard ?? ''));
+    }
+
+    const sameAddress = field('sameAddress') as HTMLInputElement | null;
+    const homeAddressBlock = root.querySelector<HTMLElement>('[data-home-address]');
+    sameAddress?.addEventListener('change', () => {
+      if (homeAddressBlock) homeAddressBlock.hidden = sameAddress.checked;
+      paintCtas();
+    });
+
+    const pickups = [...root.querySelectorAll<HTMLElement>('[data-pickup-card]')];
+    function selectPickup(city: string) {
+      state.pickup = city;
+      for (const card of pickups) {
+        const on = card.dataset.pickupCard === city;
+        card.toggleAttribute('data-selected', on);
+        card.setAttribute('aria-checked', String(on));
+      }
+      paintCtas();
+    }
+    for (const card of pickups) {
+      card.addEventListener('click', () => selectPickup(card.dataset.pickupCard ?? ''));
+    }
+    // The first sede is the server-rendered default; adopt it as real state.
+    if (pickups[0]) selectPickup(pickups[0].dataset.pickupCard ?? '');
+
+    // --- overview total -----------------------------------------------------
+
+    function paintTotal() {
+      const fee = FEES.get(state.delivery) ?? 0;
+      const row = overview.querySelector<HTMLElement>('[data-overview-delivery]');
+      if (row) {
+        row.hidden = !state.delivery;
+        const label = row.querySelector('[data-overview-delivery-label]');
+        const amount = row.querySelector('[data-overview-delivery-fee]');
+        if (label) label.textContent = SHORT.get(state.delivery) || L('delivery');
+        if (amount) amount.textContent = fee === 0 ? L('free') : money.format(fee);
+      }
+      const total = overview.querySelector('[data-overview-total]');
+      if (total) total.textContent = money.format(openPeriod ? itemsTotal : itemsTotal + fee);
+    }
+
+    // --- review -------------------------------------------------------------
+
+    function paintReview() {
+      const fiscal =
+        state.type === 'private'
+          ? value('codiceFiscale')
+          : state.type === 'company'
+            ? value('partitaIva')
+            : '';
+      const typeLabel = TYPE_LABELS.get(state.type) ?? '';
+
+      const detail =
+        state.delivery === 'hotelDelivery'
+          ? [value('hotelAddress'), value('hotelGuest')].filter(Boolean).join(' · ')
+          : state.delivery === 'homeDelivery'
+            ? sameAddress?.checked
+              ? value('address')
+              : value('homeAddress')
+            : state.delivery === 'storePickup'
+              ? L('collectedAtBranch').replace('{city}', state.pickup)
+              : '';
+
+      const fill = (key: string, text: string) => {
+        const node = root.querySelector(`[data-review="${key}"]`);
+        if (node) node.textContent = text || '—';
+      };
+
+      fill('name', `${value('firstName')} ${value('lastName')}`.trim());
+      fill('email', value('email'));
+      fill('phone', value('phone'));
+      fill('type', fiscal ? `${typeLabel} · ${fiscal}` : typeLabel);
+      fill('delivery', NAMES.get(state.delivery) ?? '');
+      fill('deliveryDetail', detail);
+    }
+
+    // --- handover -----------------------------------------------------------
+
+    const placeOrder = root.querySelector<HTMLAnchorElement>('[data-place-order]');
+    const pending = root.querySelector<HTMLElement>('[data-confirm-pending]');
+    const placedPanel = root.querySelector<HTMLElement>('[data-confirm-placed]');
+
+    placeOrder?.addEventListener('click', () => {
+      /* The href is rebuilt at click time, not on every keystroke: the message is
+         only ever read once, and the server-built base is already a valid link if
+         this never runs. */
+      const base = placeOrder.dataset.waBase ?? '';
+      const extra = [
+        '',
+        `${L('name')}: ${value('firstName')} ${value('lastName')}`.trim(),
+        `${L('email')}: ${value('email')}`,
+        `${L('phone')}: ${value('phone')}`,
+        `${L('address')}: ${value('address')}`,
+        `${L('customerType')}: ${TYPE_LABELS.get(state.type) ?? ''}`,
+        ...(state.type === 'private' ? [`${L('codiceFiscale')}: ${value('codiceFiscale')}`] : []),
+        ...(state.type === 'company'
+          ? [
+              `${L('partitaIva')}: ${value('partitaIva')}`,
+              `${L('codiceFiscale')}: ${value('companyCodiceFiscale')}`,
+            ]
+          : []),
+        `${L('deliveryLine')}: ${NAMES.get(state.delivery) ?? L('toBeArranged')}`,
+        /* Gated on the CHOSEN option, not merely on the field having a value:
+           a customer who fills the hotel panel and then switches to collection
+           would otherwise send both, and the agent cannot tell which is real. */
+        ...(state.delivery === 'hotelDelivery' && value('hotelAddress')
+          ? [`${L('venue')}: ${value('hotelAddress')}`]
+          : []),
+        ...(state.delivery === 'hotelDelivery' && value('hotelGuest')
+          ? [`${L('guest')}: ${value('hotelGuest')}`]
+          : []),
+        ...(state.delivery === 'homeDelivery' && !sameAddress?.checked && value('homeAddress')
+          ? [`${L('deliveryAddress')}: ${value('homeAddress')}`]
+          : []),
+        ...(state.delivery === 'storePickup' ? [`${L('pickupBranch')}: ${state.pickup}`] : []),
+        ...(value('comments') ? [`${L('notes')}: ${value('comments')}`] : []),
+      ].join('\n');
+
+      const url = new URL(placeOrder.href);
+      url.searchParams.set('text', `${base}\n${extra}`);
+      placeOrder.href = url.toString();
+
+      state.placed = true;
+      if (pending) pending.hidden = true;
+      if (placedPanel) {
+        placedPanel.hidden = false;
+        const greeting = placedPanel.querySelector<HTMLElement>('[data-placed-greeting]');
+        const first = value('firstName');
+        if (greeting && first) {
+          greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
+        }
+      }
+    });
+
+    // --- line-item accordion -------------------------------------------------
+
+    for (const toggle of overview.querySelectorAll<HTMLButtonElement>('[data-item-toggle]')) {
+      toggle.addEventListener('click', () => {
+        const panel = overview.querySelector<HTMLElement>(
+          `[data-item-panel="${toggle.dataset.itemToggle}"]`,
+        );
+        if (!panel) return;
+        const open = panel.hidden;
+        panel.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    // --- keyboard ------------------------------------------------------------
+
+    /*
+     * A `role="radio"` group has to answer to the arrow keys, or it announces
+     * itself as a radio group and then behaves like a row of buttons. Native
+     * radios would give this for free, but the reference design's options are
+     * whole cards with panels inside them, which an <input> cannot be.
+     */
+    for (const group of root.querySelectorAll<HTMLElement>('[role="radiogroup"]')) {
+      group.addEventListener('keydown', (event) => {
+        const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];
+        if (!keys.includes(event.key)) return;
+        const radios = [...group.querySelectorAll<HTMLElement>('[role="radio"]')];
+        const current = radios.indexOf(event.target as HTMLElement);
+        if (current === -1) return;
+        event.preventDefault();
+        const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight';
+        const next = radios[(current + (forward ? 1 : -1) + radios.length) % radios.length];
+        next?.focus();
+        next?.click();
+      });
+    }
+
+    // --- go ------------------------------------------------------------------
+
+    root.addEventListener('input', paintCtas);
+    root.addEventListener('change', paintCtas);
+
+    selectType(state.type);
+    paintSteps();
+    paintTotal();
+    paintCtas();
+  }
+</script>

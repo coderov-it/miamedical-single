@@ -80,7 +80,45 @@ components layer sorts before utilities, so a utility in the markup always wins:
 `class="btn w-full"` does what it looks like.
 
 No `.astro` file has a `<style>` block. If you find yourself wanting one, the
-answer is almost always a `@theme` token you have not defined yet.
+answer is almost always a `@theme` token you have not defined yet. (The PDP is
+the exception the § below explains: it is a released design, and its prose and
+tab styles live with the components that own them.)
+
+### The focus ring is two paints — never remove only one
+
+`*:focus-visible` is a white `outline` **and** a 6px ink `box-shadow`. Two paints,
+because a single brand-blue ring is 1.0:1 against a brand-blue button and
+therefore invisible on every primary CTA; this pair survives white, tint, brand
+blue, the dark band and the footer alike.
+
+The trap: `focus:outline-none` — the reflex when a control shouldn't ring — takes
+the white band away and **leaves the ink shadow**, drawn tight around the
+element. Four search fields had exactly that, so focusing them painted a fat
+black slug where a ring should be: worst on a native date input, where the black
+band wrapped the `gg/mm/aaaa` text itself. Opting out means both:
+
+```css
+outline: none;
+box-shadow: none;
+```
+
+For `.field-control` this is already done. The box owns the border, so the box
+owns the ring — the inner `<input>` has no border and fills the box, so ringing
+_it_ draws the ring inside the visible control. The wrapper takes the ring via
+`:has(:is(input, select, textarea):focus-visible)`, and `:focus-within` keeps the
+softer accent border as the pointer affordance. Any new composed field follows
+that pair; a bare control needs neither, because the global rule is already right.
+
+Also gone from the global rule: `border-radius: inherit`. It was there so a ring
+would follow the control's shape, but an element with no radius of its own took
+its **parent's** — a link inside a rounded card wore the card's corners. Controls
+with their own radius never needed it; outlines follow `border-radius` on their
+own.
+
+Native date inputs render `mm/dd/yyyy` or `gg/mm/aaaa` per the **browser's**
+locale, not the page's `lang` — nothing in CSS or markup changes that. The PDP's
+own period control is a custom calendar for exactly this reason; the home search
+still uses the native field on purpose, since it is a hint, not a booking.
 
 ### Breakpoints
 
@@ -280,14 +318,19 @@ renamed field would otherwise fail silently, dropping a customer's choice with
 no error anywhere.
 
 ```text
-/carrello/?prodotto=<slug>
-  &v_<groupKey>=<optionValue>   // repeats for multi_select
-  &q_<questionKey>=<answer>     // repeats for multi_select
-  &extra=<addonId>              // repeats
-  &pacchetto=<packageCode>      // optional fixed-duration bundle, by stable code
-  &dal=YYYY-MM-DD&al=YYYY-MM-DD // return date optional: open-ended rentals are normal
-  &qta=<1..10>
+/carrello/?product=<slug>
+  &variant.<groupKey>=<optionValue>   // repeats for multi_select
+  &question.<questionKey>=<answer>    // repeats for multi_select; boolean is yes|no
+  &addon=<addonId>                    // repeats
+  &package=<packageCode>              // optional fixed-duration bundle, by stable code
+  &from=YYYY-MM-DD&to=YYYY-MM-DD      // return date optional: open-ended rentals are normal
+  &qty=<1..10>
 ```
+
+The keys are English: a wire format is read by a program, never by a customer, so
+it is code and follows the English rule in AGENTS.md. Public route paths are the
+opposite case and deliberately stay Italian. The catalogue's browse params were
+renamed the same way — `category`, `sort`, `area`, `from`, `duration`.
 
 `PdpConfigure.astro` and `PdpQuestions.astro` render one control per value
 shape, and cover all of them explicitly — `single_select` as radio pills,
@@ -305,9 +348,22 @@ way. Free text survives, but stripped of control characters and capped. Required
 add-ons are re-added from the product rather than trusted from the URL, because
 a disabled checkbox is not submitted.
 
+`ResolvedEntry` carries the price effect twice: `note` is the formatted string a
+page renders, `amount` the same effect as a number, already multiplied out. The
+second one exists so the checkout estimate can price a resolved request without
+re-walking the product and re-validating the URL — this function has already
+dropped everything that is not a real option, and a second pass would be a
+second chance to disagree with it.
+
 It is a GET form because there is no cart or orders endpoint on the API yet. When
 one lands this becomes a POST with a session-bound CSRF token, and the server
 re-resolves the configuration before pricing. The field names carry over.
+
+`/checkout/` extends this format rather than replacing it: the same field names,
+optionally prefixed `item.<n>.` to describe more than one line item, so a cart
+needs no second vocabulary and the single-item URL above is accepted unchanged. A
+cart sends them as a POST body rather than a query string. See
+[storefront-checkout.md](./storefront-checkout.md).
 
 ## The product detail page (owner's reference design)
 
@@ -320,6 +376,11 @@ palette, and the focus-ring convention; everything else (Instrument Sans via
 `--font-pdp`, sub-16px secondary text, pill options, numbered sections) is the
 reference design's own language. Do not "correct" the PDP back toward Variante
 B tokens.
+
+`/checkout/` is released the same way, from the same Claude Design project, and
+carries over the same three things and nothing else. It is documented separately
+in [storefront-checkout.md](./storefront-checkout.md); read this section first,
+because the reasoning is shared.
 
 Structure: breadcrumb → hero (gallery + identity with the product's chips, or
 comparable specs where none are written) →

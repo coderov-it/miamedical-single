@@ -77,7 +77,10 @@ async function replaceOptions(
       position: option.position,
     };
     if (option.id && existingById.has(option.id)) {
-      await db.update(attributePresetOptions).set(values).where(eq(attributePresetOptions.id, option.id));
+      await db
+        .update(attributePresetOptions)
+        .set(values)
+        .where(eq(attributePresetOptions.id, option.id));
       keptIds.push(option.id);
     } else {
       const [inserted] = await db
@@ -135,7 +138,13 @@ export const attributeAdminRoutes = new Hono<AppEnv>()
       if (!created) throw new Error('Preset insert returned no row.');
 
       if (input.icon) {
-        const icon = await commitIcon(r2FileUploader, `presets/${created.id}`, null, input.icon, 'icon_256');
+        const icon = await commitIcon(
+          r2FileUploader,
+          `presets/${created.id}`,
+          null,
+          input.icon,
+          'icon_256',
+        );
         await db.update(attributePresets).set({ icon }).where(eq(attributePresets.id, created.id));
       }
       await replaceOptions(db, created.id, input.options, []);
@@ -171,7 +180,13 @@ export const attributeAdminRoutes = new Hono<AppEnv>()
       if (input.isActive !== undefined) values.isActive = input.isActive;
       if (input.position !== undefined) values.position = input.position;
       if (input.icon !== undefined) {
-        values.icon = await commitIcon(r2FileUploader, `presets/${id}`, existing.icon, input.icon, 'icon_256');
+        values.icon = await commitIcon(
+          r2FileUploader,
+          `presets/${id}`,
+          existing.icon,
+          input.icon,
+          'icon_256',
+        );
       }
       await db.update(attributePresets).set(values).where(eq(attributePresets.id, id));
 

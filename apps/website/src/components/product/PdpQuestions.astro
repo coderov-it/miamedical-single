@@ -2,7 +2,7 @@
 /**
  * Section 03 — the per-product delivery questions, in one card. Short fields
  * share a responsive grid; textareas and long option lists take the full row.
- * Answers travel as `q_<key>` params and are resolved by the summary page.
+ * Answers travel as `question.<key>` params and are resolved by the summary page.
  *
  * ALIGNMENT. Every cell is a three-row `grid-rows-subgrid` — prompt, control,
  * help text — so those three bands line up across the whole row regardless of
@@ -17,7 +17,8 @@
  * track. `aria-labelledby` gives the group the same accessible name.
  */
 import type { ProductDetail } from '~/lib/catalog';
-import { QUESTION_PREFIX } from '~/lib/request-config';
+import { t } from '~/lib/labels';
+import { BOOLEAN_VALUES, QUESTION_PREFIX } from '~/lib/request-config';
 import PdpSectionHead from './PdpSectionHead.astro';
 
 interface Props {
@@ -66,8 +67,8 @@ const segPill =
                     label: option.label,
                   }))
                 : [
-                    { key: 'si', value: 'si', label: 'Sì' },
-                    { key: 'no', value: 'no', label: 'No' },
+                    { key: 'yes', value: BOOLEAN_VALUES.yes, label: t('yes') },
+                    { key: 'no', value: BOOLEAN_VALUES.no, label: t('no') },
                   ];
 
             return (

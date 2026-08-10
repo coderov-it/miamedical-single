@@ -73,7 +73,13 @@ export async function update(
     data.translations = normalizeTranslations(input.translations);
   }
   if (input.icon !== undefined) {
-    data.icon = await commitIcon(storage, `categories/${id}`, existing.icon, input.icon, 'icon_256');
+    data.icon = await commitIcon(
+      storage,
+      `categories/${id}`,
+      existing.icon,
+      input.icon,
+      'icon_256',
+    );
   }
   await repo.update(db, id, data);
   return getById(db, id);

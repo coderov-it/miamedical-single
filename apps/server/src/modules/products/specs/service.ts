@@ -40,7 +40,9 @@ export async function replaceSpecValues(
 
   await db.transaction(async (tx) => {
     await tx.delete(productSpecValues).where(eq(productSpecValues.productId, productId));
-    await tx.delete(productSpecValueOptions).where(eq(productSpecValueOptions.productId, productId));
+    await tx
+      .delete(productSpecValueOptions)
+      .where(eq(productSpecValueOptions.productId, productId));
 
     for (const value of values) {
       const spec = specById.get(value.specId)!;
@@ -60,9 +62,9 @@ export async function replaceSpecValues(
       if (value.optionIds.length > 0) {
         const ids =
           spec.valueType === 'single_select' ? value.optionIds.slice(0, 1) : value.optionIds;
-        await tx.insert(productSpecValueOptions).values(
-          ids.map((optionId) => ({ productId, specId: value.specId, optionId })),
-        );
+        await tx
+          .insert(productSpecValueOptions)
+          .values(ids.map((optionId) => ({ productId, specId: value.specId, optionId })));
       }
     }
   });

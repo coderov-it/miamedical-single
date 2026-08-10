@@ -1,4 +1,9 @@
-import type { categories, categorySpecOptions, categorySpecs, categoryTranslations } from '@mia/db/schema';
+import type {
+  categories,
+  categorySpecOptions,
+  categorySpecs,
+  categoryTranslations,
+} from '@mia/db/schema';
 
 export type CategoryRow = typeof categories.$inferSelect;
 export type CategoryTranslationRow = typeof categoryTranslations.$inferSelect;

@@ -77,7 +77,10 @@ export async function replaceVariantGroups(
       let groupId: string;
       if (group.id && existingGroupById.has(group.id)) {
         groupId = group.id;
-        await tx.update(productVariantGroups).set(values).where(eq(productVariantGroups.id, groupId));
+        await tx
+          .update(productVariantGroups)
+          .set(values)
+          .where(eq(productVariantGroups.id, groupId));
       } else {
         const [inserted] = await tx
           .insert(productVariantGroups)
@@ -142,7 +145,9 @@ export async function replaceVariantGroups(
       (id) => !keptGroupIds.includes(id),
     );
     if (removedGroupIds.length > 0) {
-      await tx.delete(productVariantGroups).where(inArray(productVariantGroups.id, removedGroupIds));
+      await tx
+        .delete(productVariantGroups)
+        .where(inArray(productVariantGroups.id, removedGroupIds));
     }
   });
 
@@ -192,7 +197,10 @@ export async function generateSkus(db: Database, productId: string): Promise<Gen
       if (present) {
         // Reactivate a combination that came back.
         if (!present.isActive) {
-          await tx.update(productSkus).set({ isActive: true }).where(eq(productSkus.id, present.id));
+          await tx
+            .update(productSkus)
+            .set({ isActive: true })
+            .where(eq(productSkus.id, present.id));
         }
         continue;
       }
