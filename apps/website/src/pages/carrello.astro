@@ -1,237 +1,89 @@
 ---
 /**
- * Rental request summary — the storefront's "carrello".
+ * `/carrello/` — the cart, from the owner's reference design.
  *
- * No payment happens online, so this reads the configuration out of the URL,
- * resolves it to real option labels, and hands over to the phone with everything
- * written out. Not a persisted cart: see docs/code/storefront-design-system.md.
+ * Spec: the Claude Design file "Cart.dc.html", same project as the product detail
+ * page and the checkout, and released from Variante B the same way they are.
+ * Layout, deviations and the no-JavaScript path: docs/code/storefront-cart.md
+ *
+ * This page is a SHELL. It renders the chrome and the first paint, and
+ * `CartApp.svelte` owns everything after that, because the cart lives in
+ * `localStorage` and the server cannot know what is in it.
+ *
+ * The first paint is not a placeholder, though. Whatever the URL carries is
+ * resolved and rendered server-side, which is the whole no-JavaScript path: with
+ * scripting off, "Aggiungi alla richiesta" on a product page degrades to a plain
+ * GET of its form to here, and this page shows that one configured product,
+ * priced, with a working way on to the checkout — which is exactly what the page
+ * did before it became a cart at all.
  */
+import CartApp from '~/components/cart/CartApp.svelte';
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { formatMoney, formatPricing, mediaUrl } from '~/lib/api';
-import { getProductBySlug } from '~/lib/catalog';
-import { FIELD, formatDateLabel, resolveRequest } from '~/lib/request-config';
-import { productPath, routes } from '~/lib/routes';
-import { CONTACT, whatsappUrl } from '~/lib/site';
+import { cartCopy, cartLinesFromParams, resolveCart } from '~/lib/cart';
+import { t } from '~/lib/labels';
+import { routes } from '~/lib/routes';
+import { CONTACT } from '~/lib/site';
 
 export const prerender = false;
 
 // Never cache a page built from someone's request details.
 Astro.response.headers.set('cache-control', 'no-store, max-age=0');
 
-const params = Astro.url.searchParams;
-const slug = params.get(FIELD.product)?.trim() ?? '';
-const product = slug ? await getProductBySlug(slug) : null;
+/*
+ * Read the URL, not a store: the server has no access to one. `cartLinesFromParams`
+ * accepts the product page's un-prefixed single-item form AND a full `item.<n>.`
+ * set, so a hand-off and a re-post read identically.
+ */
+const urlLines = cartLinesFromParams(Astro.url.searchParams);
+const initial = await resolveCart(urlLines);
 
-const request = product
-  ? resolveRequest(product, params, formatMoney)
-  : {
-      selections: [],
-      answers: [],
-      addons: [],
-      quantity: 1,
-      startDate: '',
-      endDate: '',
-      rentalPackage: null,
-    };
-
-const startDateLabel = formatDateLabel(request.startDate);
-const endDateLabel = formatDateLabel(request.endDate);
-
-/** The message body sent to WhatsApp — resolved labels only, never raw input. */
-const requestLines = product
-  ? [
-      `Richiesta: ${product.title}`,
-      ...request.selections.map((entry) => `${entry.label}: ${entry.value}`),
-      ...(request.rentalPackage
-        ? [`Pacchetto: ${request.rentalPackage.name} (${request.rentalPackage.label})`]
-        : []),
-      ...(startDateLabel ? [`Da quando: ${startDateLabel}`] : []),
-      ...(endDateLabel ? [`Riconsegna: ${endDateLabel}`] : []),
-      ...(request.quantity > 1 ? [`Quantità: ${request.quantity}`] : []),
-      ...request.addons.map((addon) => `Extra: ${addon.name}`),
-      ...request.answers.map((entry) => `${entry.label} ${entry.value}`),
-    ]
-  : [];
+const copy = cartCopy();
 ---
 
-<BaseLayout
-  title="La tua richiesta | Mia Medical Italia"
-  description="Controlla la tua richiesta di noleggio e confermala al telefono."
-  noindex
->
-  <div class="pb-section-sm mid:px-8 mid:pb-section mx-auto w-full max-w-275 px-5 pt-8">
-    <header class="mb-10 max-w-180">
-      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">La tua richiesta</h1>
-      <p class="text-lead text-ink-2 mt-3">
-        Controlla i dettagli e chiamaci per confermare: verifichiamo la disponibilità, concordiamo
-        la consegna e solo dopo ricevi il link di pagamento.
-      </p>
-    </header>
+<BaseLayout title={t('cartMetaTitle')} description={t('cartMetaDescription')} noindex>
+  <div
+    class="cart mid:px-8 mid:pb-24 mx-auto w-full max-w-310 px-5 pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
+  >
+    <Breadcrumbs items={[{ label: t('home'), href: routes.home }, { label: t('cart') }]} />
 
     {
-      product ? (
-        <div class="wide:grid-cols-[minmax(0,1fr)_340px] grid items-start gap-8">
-          <section aria-labelledby="request-items-title">
-            <h2 id="request-items-title" class="sr-only">
-              Prodotto richiesto
-            </h2>
-
-            <div class="rounded-card border-hair mid:grid-cols-[148px_minmax(0,1fr)] mid:p-6 grid gap-5 border bg-white p-5">
-              <div class="rounded-field bg-tint relative grid aspect-4/3 place-items-center">
-                {product.media.thumbnail && (
-                  <img
-                    class="absolute inset-0 size-full object-contain p-3 mix-blend-multiply"
-                    src={mediaUrl(product.media.thumbnail.path)}
-                    alt={product.media.thumbnail.alt ?? product.title}
-                    loading="eager"
-                  />
-                )}
-              </div>
-
-              <div class="grid gap-3">
-                <p class="font-display text-lead font-semibold">{product.title}</p>
-
-                <ul class="text-ui text-ink-2 grid gap-1">
-                  <li>{formatPricing(product.pricing)}</li>
-                  {request.selections.map((entry) => (
-                    <li>
-                      {`${entry.label}: `}
-                      <strong class="text-ink">{entry.value}</strong>
-                      {entry.note && ` (${entry.note})`}
-                    </li>
-                  ))}
-                  {request.rentalPackage && (
-                    <li>
-                      {'Pacchetto: '}
-                      <strong class="text-ink">{request.rentalPackage.name}</strong>
-                      {` (${request.rentalPackage.label} — ${formatMoney(
-                        request.rentalPackage.price,
-                        product.pricing.currency,
-                      )})`}
-                    </li>
-                  )}
-                  {startDateLabel && (
-                    <li>
-                      {'Da quando: '}
-                      <strong class="text-ink">{startDateLabel}</strong>
-                    </li>
-                  )}
-                  {endDateLabel && (
-                    <li>
-                      {'Riconsegna: '}
-                      <strong class="text-ink">{endDateLabel}</strong>
-                    </li>
-                  )}
-                  <li>
-                    {'Quantità: '}
-                    <strong class="text-ink">{request.quantity}</strong>
-                  </li>
-                  {request.addons.map((addon) => (
-                    <li>
-                      {'Extra: '}
-                      <strong class="text-ink">{addon.name}</strong>
-                      {` — ${formatPricing(addon.pricing)}`}
-                    </li>
-                  ))}
-                </ul>
-
-                <a class="btn btn-soft justify-self-start" href={productPath(product.slug)}>
-                  Modifica la scelta
-                </a>
-              </div>
-            </div>
-
-            {request.answers.length > 0 && (
-              <section
-                class="rounded-card border-hair mid:p-6 mt-5 border bg-white p-5"
-                aria-labelledby="request-answers-title"
-              >
-                <h2 id="request-answers-title" class="text-lead mb-4">
-                  Informazioni per la consegna
-                </h2>
-                <dl>
-                  {request.answers.map((entry) => (
-                    <div class="border-hair grid gap-1 border-b py-3 last:border-b-0 min-[560px]:grid-cols-2 min-[560px]:gap-3">
-                      <dt class="font-display text-ui font-semibold">{entry.label}</dt>
-                      <dd class="text-ui text-ink-2">{entry.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            )}
-          </section>
-
-          <aside
-            class="rounded-card border-hair bg-tint mid:p-6 wide:sticky wide:top-24 border p-5"
-            aria-labelledby="request-summary-title"
-          >
-            <h2 id="request-summary-title" class="text-h3 mb-5">
-              Come si conclude
-            </h2>
-
-            <div class="border-hair-strong flex justify-between gap-3 border-b py-3">
-              <span>Prezzo indicativo</span>
-              <span class="tabular-nums">{formatPricing(product.pricing)}</span>
-            </div>
-            <div class="border-hair-strong flex justify-between gap-3 border-b py-3">
-              <span>Consegna e ritiro</span>
-              <span>da confermare</span>
-            </div>
-            <div class="font-display text-lead flex justify-between gap-3 py-3 font-bold">
-              <span>Oggi paghi</span>
-              <span class="tabular-nums">€ 0,00</span>
-            </div>
-
-            <p class="rounded-field text-ui my-5 flex items-start gap-3 bg-white px-4 py-3.5">
-              <svg
-                class="text-ok mt-0.5 size-5 flex-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="9" />
-                <path d="m8.5 12.5 2.5 2.5 5-5.5" />
-              </svg>
-              <span>
-                <strong>Nessun pagamento online.</strong> Ti chiamiamo per confermare tutto, poi
-                ricevi un link di pagamento sicuro via SMS o email.
-              </span>
-            </p>
-
-            <PhoneCta variant="primary" class="mb-3 w-full" />
-
-            <a
-              class="btn btn-soft border-hair-strong w-full bg-white"
-              href={whatsappUrl(requestLines.join('\n'))}
-              target="_blank"
-              rel="noopener"
-              data-analytics="whatsapp"
-            >
-              Invia la richiesta su WhatsApp
-            </a>
-
-            <p class="text-ui text-ink-2 mt-3">{CONTACT.hours.it}</p>
-          </aside>
-        </div>
-      ) : (
-        <div class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6">
-          <h2 class="text-h3">Non hai ancora scelto nessun ausilio</h2>
-          <p class="max-w-[60ch]">
-            Sfoglia il catalogo, scegli il prodotto e le opzioni: poi confermiamo tutto insieme al
-            telefono. Se preferisci, possiamo fare la richiesta per te adesso.
-          </p>
-          <a class="btn btn-soft border-hair-strong bg-white" href={routes.catalog}>
-            Vai al catalogo
-          </a>
-          <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
-          <PhoneCta variant="primary" />
-        </div>
-      )
+      /*
+        `client:load` rather than `client:visible`: the island is the page. Waiting
+        for an intersection would leave a customer looking at a server-rendered
+        empty cart while their actual cart sat unread in `localStorage`.
+      */
     }
+    <CartApp
+      client:load
+      {initial}
+      {urlLines}
+      {copy}
+      checkoutPath={routes.checkout}
+      catalogPath={routes.catalog}
+    />
+
+    {
+      /*
+        One helper line, not a card with a call button.
+
+        Still outside the island on purpose: a phone call is a successful conversion
+        here, not a fallback for a cart that failed, so the number is server-rendered
+        and present whether or not the island ever mounts. But it is a HYPERLINK in a
+        sentence rather than a second pill — the page already closes on a primary
+        action ("Vai alla conferma"), and a same-weight phone button beside it made
+        two competing CTAs out of one page.
+
+        `showFree={false}` because "gratuito" is in the sentence: the qualifier is
+        not dropped, only moved out of the link so the link is just the number.
+      */
+    }
+    <p class="border-hair text-ink-2 mt-10 border-t pt-6 text-[13.5px] leading-[1.55]">
+      <strong class="text-ink font-semibold">{t('cartHelpTitle')}</strong>
+      {' '}{t('cartHelpDetail')}{' '}
+      <PhoneCta variant="inline" showFree={false} />
+      {' '}<span class="whitespace-nowrap">· {CONTACT.hours.it}</span>
+    </p>
   </div>
 </BaseLayout>

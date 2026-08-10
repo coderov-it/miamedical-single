@@ -76,9 +76,12 @@ against, and hiding its dates behind a disclosure would be hiding the whole
 order) and several as collapsible rows with their own subtotals — exactly the
 reference design's two shapes.
 
-`/carrello/` is unchanged and still the PDP's form target. `/checkout/` accepts
-the identical single-item request, so repointing the PDP at it is a one-line change
-to `action={routes.cart}` when that is wanted.
+**That repointing has since happened.** The product page's form now targets
+`/checkout/` directly — "Richiedi il noleggio" is a book-now and goes straight to
+confirmation with its one product — and its second button overrides the target with
+`formaction={routes.cart}` to add to the cart instead. Both entry points therefore
+exercise the two shapes above, and neither needed a new field name:
+[storefront-cart.md](./storefront-cart.md).
 
 ## Not one Italian word in the code
 

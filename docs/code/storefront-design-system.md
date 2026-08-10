@@ -30,9 +30,12 @@ Three consequences that look like over-engineering until you know that:
 - **No payment happens online.** The customer configures a product, sends a
   request, and price and delivery are agreed on the call. The buy box CTA is
   "Richiedi il noleggio", never "Paga".
-- **Nothing below 16px.** There is no type token smaller than `--text-ui: 1rem`.
-  The one sanctioned exception is the product card's data rows (14/15px) — a
-  locked design decision, scoped to the card. See "The product card".
+- **Nothing below 16px, in the TOKENS.** There is no type token smaller than
+  `--text-ui: 1rem`, and there will not be one. Two sanctioned exceptions, both
+  scoped: the product card's data rows (14/15px), a locked design decision; and the
+  three released commerce pages — product detail, checkout, cart — which follow
+  owner-authored reference designs down to 12.5px in secondary text, via arbitrary
+  values rather than tokens. Marketing and prose pages have no exception.
 
 ## The design language, in five rules
 
@@ -40,8 +43,9 @@ Variant B is a system of very few moves. Breaking one of them is what makes a
 new page look like it belongs to a different site.
 
 1. **Sections separate by alternating white and a band of `--color-tint`**, a
-   very pale blue derived from the brand blue. The tint appears as whole bands
-   and as small fills — never smeared over every individual panel.
+   very pale NEUTRAL grey. The tint appears as whole bands and as small fills —
+   never smeared over every individual panel. (It used to be a pale blue derived
+   from the brand blue; see § The palette is neutral grey.)
 2. **Objects are defined by one hairline**, `--color-hair`, always the same, one
    step below the tint. It reads on white and on a band alike without ever
    hardening into a frame. On hover it darkens to `--color-hair-strong`; it does
@@ -52,12 +56,14 @@ new page look like it belongs to a different site.
 4. **One generous radius (`--radius-card`, 18px) plus the pill for buttons.**
    `--radius-field` (12px) is the only smaller step, for controls and wells
    inside a card.
-5. **One shadow on the whole site**, under the home search panel: wide and almost
-   invisible. Everything else is the hairline.
+5. **One shadow on the marketing pages**, under the home search panel: wide and
+   almost invisible. Everything else there is the hairline. The three released
+   commerce pages have their own elevation set (`--shadow-pdp-*`).
 
 The page closes by descending: the "parla con noi" band on `--color-accent-deep`,
-then the footer on `--color-footer`. Two steps of the same brand blue, not two
-different blues.
+then the footer on `--color-footer`. Since the recolour these are no longer two
+steps of one blue — the CTA band is the accent's dark step and the footer is neutral
+near-black. See § The palette is neutral grey.
 
 ## Tailwind v4, and where the theme lives
 
@@ -132,22 +138,95 @@ Tailwind's defaults (`sm`, `md`, `lg`, `xl`) still exist and are occasionally
 right for a grid that has nothing to do with the page's own reflow, but prefer
 `mid` and `wide`.
 
-### Fonts
+### Fonts — one face, by owner override (2026-08-10)
 
-**Lexend** for headings and UI (designed to improve reading proficiency) and
-**Atkinson Hyperlegible** for body (designed by the Braille Institute to maximise
-character distinction for low-vision readers). All fonts are self-hosted in
-`public/fonts/`, declared in `app.css` and preloaded by `BaseLayout`. Do not
-substitute a generic sans.
+**Instrument Sans, everywhere.** `--font-display`, `--font-body`, `--font-card`
+and `--font-pdp` all resolve to it. The four token names are kept rather than
+collapsed into one, because `font-display` appears in 40 places and `font-card` in
+three: they are the seams that made a three-face site possible, and they are what a
+revert would re-point. Nothing in the markup changed to go single-face and nothing
+would have to change to go back.
 
-**Inter** (`--font-card`, utility `font-card`) is the third face, for the product
-card and commerce UI only: a neutral grotesque with proper tabular numerals for
-prices and full Italian diacritics. It never replaces Lexend as the display face
-or Atkinson as the prose face.
+The base metric moved with the face: **16px/1.5**, which is the reference designs'
+own, and what the product page and checkout had already been released to. The two
+`.pdp` / `.checkout` blocks that used to re-declare it are gone, because the base
+now says it.
 
-The ink is deliberately soft: `--color-ink: #2e3237` (12.9:1) — never 100% black,
-which stings on a bright screen, and never navy. The tint/hairline family stays a
-dilution of the brand blue.
+**This override replaced a deliberate accessibility choice, and that is recorded
+rather than quietly dropped.** The previous faces were **Lexend** for headings
+(designed to improve reading proficiency) and **Atkinson Hyperlegible** for body
+(designed by the Braille Institute to maximise character distinction for low-vision
+readers); this document forbade substituting a generic sans, for this audience. The
+owner overrode that in favour of the reference designs' single face. Costs, stated
+plainly:
+
+- Atkinson's character-distinction advantage is gone for body prose.
+- Instrument Sans ships **upright only**, so prose `<em>` is synthesised oblique.
+  There is no italic file to add without a new licence-checked download.
+- Body type dropped from 18px to 16px.
+
+`lexend-variable-latin.woff2` and the three `atkinson-*.woff2` files are still in
+`public/fonts/`, unreferenced and unpreloaded, so the revert is one `@font-face`
+block plus the `BaseLayout` preload. **Inter** stays declared as the numeral
+fallback behind Instrument Sans — every price, quantity and total leans on
+`tabular-nums` — but is never selected on its own and is no longer preloaded.
+
+What the override did **not** touch, and what is still not up for taste: the 16px
+type floor, the two-paint focus ring, the 48px target rule, and every AAA contrast
+ratio.
+
+### The palette is neutral grey, by owner decision (2026-08-10)
+
+The greys used to be a dilution of the brand blue — same hue direction, a little
+saturation — which made every surface read faintly blue. They are now
+**near-neutral: hue 275 held at chroma 0.002–0.011**, where the reference designs
+put them. Blue survives in exactly one place, the accent, and it got **more**
+saturated rather than less. The contrast between a neutral ground and one vivid
+accent is the whole look.
+
+Every value was re-derived in **OKLCh with its lightness preserved**, so the
+recolour cost nothing in contrast. Each ratio below is measured and within 0.01 of
+what the blue-tinted token measured:
+
+| Token                    | Was       | Now       | On white          |
+| ------------------------ | --------- | --------- | ----------------- |
+| `--color-ink`            | `#2e3237` | `#303137` | 12.96:1           |
+| `--color-ink-2`          | `#49536b` | `#525358` | 7.67:1 — **AAA**  |
+| `--color-ink-decorative` | `#8a93a8` | `#929397` | 3.07:1, non-text  |
+| `--color-tint`           | `#f2f5fb` | `#f5f6f7` | —                 |
+| `--color-tint-2`         | `#e7edf8` | `#f0f0f1` | —                 |
+| `--color-hair`           | `#dfe6f2` | `#e7e8ea` | —                 |
+| `--color-hair-strong`    | `#c8d2e6` | `#d1d1d4` | 1.52:1, unchanged |
+| `--color-accent`         | `#2e4699` | `#3846b1` | 7.84:1 — **AAA**  |
+| `--color-accent-deep`    | `#1d2c62` | `#262d97` | 11.03:1           |
+| `--color-footer`         | `#131d40` | `#1f2023` | 16.29:1           |
+| `--color-on-dark`        | `#a7b0cc` | `#a9aaae` | 7.02:1 on footer  |
+| `--color-on-deep`        | `#b3bcd8` | `#cdced2` | 7.01:1 on deep    |
+
+Four decisions inside that table are worth knowing before you change one:
+
+- **`--hair-strong` kept its lightness** rather than taking the reference's lighter
+  tone. It draws form-control boundaries (`.field-control`), where the line is the
+  only thing saying where to type — and at 1.52:1 that edge has no room to give.
+- **`--accent` is AAA but only just** (7.84:1, down from 8.56:1). Do not lighten it,
+  and do not lighten `--accent-deep`: `--on-deep` had to go lighter to hold 7:1 on
+  it as it is.
+- **The closing descent is no longer two steps of one blue.** The CTA band is the
+  accent's dark step and the footer below it is neutral near-black. Blue is the
+  accent and the footer is ground — the old navy-on-navy descent was the single
+  largest source of the blue cast.
+- **`--ok`, `--danger` and `--star` keep their chroma.** Neutralising these is the
+  one recolour that would cost something real: a desaturated "Disponibile" or a grey
+  error stops being identifiable as status at all (SC 1.4.1).
+
+The commerce shadow tint went from `oklch(0.35 0.06 275)` to chroma `0.012` for the
+same reason it always had a rule: at a 30px blur a saturated blue stops reading as a
+shadow and becomes a coloured halo. The old 0.06 was a mild case of that.
+
+**If you add a grey, add it at hue 275 with chroma ≤ 0.012, and measure it.**
+
+The ink is still deliberately soft — never 100% black, which stings on a bright
+screen, and never navy.
 
 ## Deliberate corrections to the prototype
 
@@ -157,9 +236,9 @@ value over a correction without resolving it with the designer first.
 
 | What           | Prototype                 | Token                                        | Why                                                                                                                                           |
 | -------------- | ------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Secondary ink  | `#5d6470` (5.96:1)        | `--color-ink-2: #49536b` (7.68:1)            | AA but not AAA. This audience reads magnified and with low vision as the norm, so the muted text tier is held at AAA.                         |
+| Secondary ink  | `#5d6470` (5.96:1)        | `--color-ink-2: #525358` (7.67:1)            | AA but not AAA. This audience reads magnified and with low vision as the norm, so the muted text tier is held at AAA.                         |
 | Focus ring     | `3px solid #2E4699`       | white outline + `--color-ink` halo           | The brand blue ring is 1.0:1 against a brand-blue button — literally invisible on every primary CTA. SC 2.4.13 / 1.4.11 failure.              |
-| Body / UI type | 13–15px, 12px on mobile   | `--text-body: 18px`, `--text-ui: 16px` floor | Below the project floor.                                                                                                                      |
+| Body / UI type | 13–15px, 12px on mobile   | `--text-body: 16px`, `--text-ui: 16px` floor | Below the project floor. The 18px body became 16px with the owner's typography override; the 16px FLOOR is untouched.                         |
 | Target size    | steppers/chips under 24px | 48px minimum in `@layer base`                | WCAG 2.5.8 asks 24px; 48 is a project rule because tremor and reduced motor precision are common here. Prose links keep the inline exception. |
 
 `prefers-reduced-motion` is also handled in `@layer base`; the prototypes declare
@@ -355,7 +434,10 @@ re-walking the product and re-validating the URL — this function has already
 dropped everything that is not a real option, and a second pass would be a
 second chance to disagree with it.
 
-It is a GET form because there is no cart or orders endpoint on the API yet. When
+It is a GET form because there is no SERVER-side cart or orders endpoint on the
+API yet. There is now a client-side cart — see
+[storefront-cart.md](./storefront-cart.md) — which speaks exactly the indexed form
+below, and the buy box's second button feeds it. When
 one lands this becomes a POST with a session-bound CSRF token, and the server
 re-resolves the configuration before pricing. The field names carry over.
 
@@ -370,7 +452,7 @@ cart sends them as a POST body rather than a query string. See
 `/prodotto/[slug]/` does NOT follow Variante B. Its spec is the owner-authored
 Claude Design file — project "Product details page design", file
 `Product Details.dc.html` — and it was deliberately released from the design
-system above. What carries over from the site is the brand accent `#2e4699`
+system above. What carries over from the site is the brand accent `#3846b1`
 (applied through the reference design's own `accentColor` prop), the ink/hair
 palette, and the focus-ring convention; everything else (Instrument Sans via
 `--font-pdp`, sub-16px secondary text, pill options, numbered sections) is the
@@ -491,8 +573,11 @@ border and padding once, in `rowCard`.
 
 ## Known gaps
 
-- **No cart or orders endpoint.** `/carrello/` is a request summary read from the
-  URL, not a persisted cart. See the wire format section.
+- **No SERVER-side cart or orders endpoint.** `/carrello/` is now a real
+  multi-item cart, but it is persisted in the browser (`localStorage`), so it does
+  not survive a device change and the header count cannot be server-rendered. A
+  `/api/cart` read/write model is still missing. See
+  [storefront-cart.md](./storefront-cart.md).
 - **Home FAQ, reviews and the review aggregate are hardcoded** in
   `src/lib/home-content.ts`. This is editorial content and belongs in the back
   office as page sections plus a governed reviews source. The legacy WordPress

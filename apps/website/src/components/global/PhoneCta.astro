@@ -31,8 +31,17 @@ const variants = {
   primary: 'btn btn-primary',
   soft: 'btn btn-soft',
   'on-dark': 'btn btn-on-dark',
-  inline: 'inline-flex items-center gap-2 font-semibold text-accent underline decoration-2',
+  inline: 'font-semibold text-accent underline decoration-2',
 } as const;
+
+/*
+ * `inline` carries no icon and is not a flex container — it is a hyperlink in a
+ * sentence, which is what "bare underlined link inside prose" means. The handset
+ * is a 20px glyph sized for a 17px pill; beside 13.5px helper text it reads as a
+ * shrunken button rather than a link, and `inline-flex` on a link inside a
+ * paragraph stops it wrapping with the text around it.
+ */
+const bare = variant === 'inline';
 ---
 
 <a
@@ -40,19 +49,21 @@ const variants = {
   class:list={[variants[variant], className]}
   data-analytics="phone-call"
 >
-  <svg
-    class="size-5 flex-none"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2.1"
-    stroke-linecap="round"
-    aria-hidden="true"
-  >
-    <path
-      d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
-    ></path>
-  </svg>
+  {
+    !bare && (
+      <svg
+        class="size-5 flex-none"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.1"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z" />
+      </svg>
+    )
+  }
 
   <span>{CONTACT.phoneDisplay}</span>
   {showFree && <span class="font-normal opacity-90">— gratis</span>}

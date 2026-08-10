@@ -145,7 +145,58 @@ const STOREFRONT_LABELS = {
   packageDiscountApplied: { it: 'Sconto pacchetto già applicato' },
   packagePrefix: { it: 'Pacchetto' },
 
+  // -- cart ----------------------------------------------------------------
+  cart: { it: 'La tua richiesta' },
+  cartMetaTitle: { it: 'La tua richiesta | Mia Medical Italia' },
+  cartMetaDescription: {
+    it: 'Controlla gli ausili che hai scelto e passa alla conferma: non paghi niente adesso.',
+  },
+  /* "1 ausilio" / "3 ausili". "Ausilio" rather than "prodotto" or "articolo":
+     it is the word this catalogue and the rest of the storefront already use for
+     a medical aid, and the word the owner uses on the phone. */
+  cartCountOne: { it: '1 ausilio' },
+  cartCountMany: { it: '{count} ausili' },
+  cartSummary: { it: 'Riepilogo' },
+  cartSubtotal: { it: 'Totale indicativo' },
+  cartDeliveryPending: { it: 'da concordare' },
+  /* The reference design closes with "Proceed to checkout" over a payable total.
+     Nothing is payable here, so the button says where it goes and the line under
+     it says what it does not do. */
+  goToCheckout: { it: 'Vai alla conferma' },
+  cartNoChargeYet: { it: 'Non paghi niente adesso.' },
+  continueBrowsing: { it: 'Continua a sfogliare' },
+  editConfiguration: { it: 'Modifica la scelta' },
+  remove: { it: 'Rimuovi' },
+  removeNamed: { it: 'Rimuovi {title}' },
+  increaseQuantity: { it: 'Aumenta la quantità' },
+  decreaseQuantity: { it: 'Riduci la quantità' },
+  quantityOf: { it: 'Quantità di {title}' },
+  showDetailsOf: { it: 'Mostra i dettagli di {title}' },
+  /* Announced by the island after a row changes, so a screen reader hears the
+     result of pressing "+" rather than only seeing the number change. */
+  cartUpdated: { it: 'Richiesta aggiornata' },
+  cartHelpTitle: { it: 'Preferisci al telefono?' },
+  /* Ends without punctuation and reads into the phone-number link that follows it:
+     the cart's helper is one sentence on one line, not a card with a call button. */
+  cartHelpDetail: { it: 'Chiamaci al numero verde gratuito' },
+  cartLoading: { it: 'Calcolo dei prezzi…' },
+  cartOffline: {
+    it: 'Non riusciamo ad aggiornare i prezzi in questo momento. Gli importi qui sotto potrebbero non essere aggiornati — la conferma al telefono vale sempre.',
+  },
+  /* A product that no longer resolves. The checkout drops these silently; the
+     cart says so, because this is the page where the customer can still act. */
+  cartLineUnavailableOne: {
+    it: 'Un ausilio non è più disponibile e l’abbiamo tolto dalla richiesta.',
+  },
+  cartLineUnavailableMany: {
+    it: '{count} ausili non sono più disponibili e li abbiamo tolti dalla richiesta.',
+  },
+
   // -- empty state ---------------------------------------------------------
+  cartEmpty: { it: 'La tua richiesta è vuota' },
+  cartEmptyDetail: {
+    it: 'Scegli un ausilio dal catalogo e aggiungilo qui: poi confermiamo tutto insieme al telefono, senza pagare niente adesso.',
+  },
   nothingToConfirm: { it: 'Non c’è niente da confermare' },
   nothingToConfirmDetail: {
     it: 'La tua richiesta è vuota, oppure uno dei prodotti non è più disponibile. Scegli un ausilio dal catalogo e torna qui: confermiamo tutto insieme, senza pagare nulla adesso.',

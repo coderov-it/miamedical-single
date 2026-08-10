@@ -1,13 +1,21 @@
 /*
  * M.I.A. Medical Italia storefront — the whole design system.
  *
- * The approved design is "Variante B — Sereno"
- * (docs/visual/examples/home/variant-b-sereno.html). Tailwind v4 has no config
- * file: the tokens below ARE the theme, and every one of them generates
- * utilities (`bg-tint`, `border-hair`, `rounded-card`, `text-ui`, …).
+ * Tailwind v4 has no config file: the tokens below ARE the theme, and every one
+ * of them generates utilities (`bg-tint`, `border-hair`, `rounded-card`,
+ * `text-ui`, …).
  *
- * Read docs/code/storefront-design-system.md before changing a token. Several
- * carry a deliberate accessibility correction over the prototype value.
+ * The layout language is still "Variante B — Sereno"
+ * (docs/visual/examples/home/variant-b-sereno.html) — alternating bands, one
+ * hairline, one radius, figure/ground inversion. Its PALETTE and its TYPEFACES
+ * are not: on 2026-08-10 the owner took the whole site to the reference designs'
+ * near-neutral grey with a single blue accent, and to Instrument Sans as the one
+ * face. Both are recorded as decisions in
+ * docs/code/storefront-design-system.md — read it before changing a token.
+ *
+ * What did NOT move, and is not up for taste: the 16px type floor, the two-paint
+ * focus ring, the 48px target rule, and every AAA contrast ratio. The recolour
+ * was done in OKLCh with lightness preserved precisely so it cost none of them.
  */
 
 @import 'tailwindcss';
@@ -17,59 +25,22 @@
 
 /* ---------------------------------------------------------------- fonts --- */
 
-/* Lexend is designed to improve reading proficiency; Atkinson Hyperlegible is
-   designed by the Braille Institute to maximise character distinction for
-   low-vision readers. Both are deliberate for this audience — do not substitute
-   a generic sans. Self-hosted and preloaded by BaseLayout.
-
-   Inter is the product-card face (the locked card design): a neutral grotesque
-   with proper tabular numerals for prices and full Italian diacritics. Card and
-   commerce UI only — Lexend stays the display face, Atkinson the prose face. */
-
-@font-face {
-  font-family: 'Atkinson Hyperlegible';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/atkinson-hyperlegible-400-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Atkinson Hyperlegible';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/atkinson-hyperlegible-400-italic-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Atkinson Hyperlegible';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/atkinson-hyperlegible-700-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Lexend';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('/fonts/lexend-variable-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('/fonts/inter-variable-latin.woff2') format('woff2');
-}
-
-/* Instrument Sans is the product-detail-page face only. The PDP follows the
-   owner-authored reference design (Claude Design project, "Product Details"),
-   which was deliberately released from Variante B — see
-   docs/code/storefront-design-system.md § Product detail page. */
+/*
+ * ONE face for the whole storefront: Instrument Sans.
+ *
+ * OWNER OVERRIDE, 2026-08-10. This replaces Lexend (display) and Atkinson
+ * Hyperlegible (prose) site-wide. Both were picked for this audience on purpose
+ * — Atkinson is the Braille Institute's low-vision face and this file used to
+ * forbid substituting a generic sans — and the owner has overridden that in
+ * favour of the reference designs' single face. It is recorded as a decision in
+ * docs/code/storefront-design-system.md § Typography, not left to look like
+ * drift. Restoring Atkinson is a one-line change here plus the BaseLayout
+ * preload; the type-size floor and every contrast rule are UNAFFECTED and stay.
+ *
+ * Instrument Sans ships upright only, so prose <em> is synthesised oblique. That
+ * is the one legibility cost of the override; there is no italic file to add
+ * without a new licence-checked download.
+ */
 @font-face {
   font-family: 'Instrument Sans';
   font-style: normal;
@@ -78,67 +49,128 @@
   src: url('/fonts/instrument-sans-variable-latin.woff2') format('woff2');
 }
 
+/*
+ * Inter stays declared as the numeral fallback behind Instrument Sans: it has
+ * true tabular figures, which every price, quantity and total on the site leans
+ * on via `tabular-nums`. It is never selected on its own any more.
+ *
+ * lexend-variable-latin.woff2 and the three atkinson-*.woff2 files are still in
+ * public/fonts/ but no longer referenced or preloaded. They are kept so the
+ * override above can be reverted without re-downloading them.
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/inter-variable-latin.woff2') format('woff2');
+}
+
 /* ---------------------------------------------------------------- theme --- */
 
 @theme {
   /* -- typefaces ---------------------------------------------------------- */
-  --font-display: 'Lexend', system-ui, -apple-system, sans-serif;
-  --font-body: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
-  --font-card: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-pdp: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* All four resolve to the same stack after the owner override above. The names
+     are KEPT rather than collapsed to one, because `font-display` appears in 40
+     places and `font-card` in 3: they are the seams that made a three-face site
+     possible and they are what a revert would re-point. Nothing in the markup
+     had to change to go single-face, and nothing would have to change to go
+     back. */
+  --font-ui: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-ui);
+  --font-body: var(--font-ui);
+  --font-card: var(--font-ui);
+  --font-pdp: var(--font-ui);
 
   /* -- colour ------------------------------------------------------------- */
 
-  /* The tint/hairline family is a dilution of the brand blue, not an arbitrary
-     grey: same hue direction, almost no saturation. That is what makes the
-     section bands read as "quiet" rather than as coloured. A grey hairline on a
-     pale blue ground reads as dirt.
+  /*
+   * NEUTRAL GREY + ONE BLUE ACCENT. Owner decision, 2026-08-10.
+   *
+   * The greys used to be a dilution of the brand blue — same hue direction, a
+   * little saturation — which made every surface on the site read faintly blue.
+   * They are now near-neutral: hue 275 held at chroma 0.002–0.011, which is
+   * where the reference designs put them. Blue survives in exactly one place,
+   * the accent, and it got MORE saturated rather than less. That contrast
+   * between neutral ground and one vivid accent is the whole look.
+   *
+   * Every value was re-derived in OKLCh with its LIGHTNESS PRESERVED, so the
+   * recolour cost nothing in contrast — the ratios in the comments below are
+   * measured, and each is within 0.01 of what the blue-tinted token measured.
+   * If you add a grey, add it at hue 275 and chroma <= 0.012, and check it.
+   */
 
-     The ink itself is DELIBERATELY softer: never 100% black (stings on a bright
-     screen) and never navy — a neutral charcoal, per the locked card design. */
-  --color-ink: #2e3237; /* 12.9:1 on white — still comfortably AAA */
+  /* Never 100% black (stings on a bright screen) and never navy. 12.96:1. */
+  --color-ink: #303137;
 
-  /* CORRECTED. The prototype's secondary ink is #5d6470 (5.96:1) — AA but not
-     AAA. This project raised the muted tier to AAA because magnified and
-     low-vision reading is the norm here, not the exception. Keep 7.68:1. */
-  --color-ink-2: #49536b;
+  /* STILL CORRECTED, and still the reason this tier exists. The prototype's
+     secondary ink is #5d6470 (5.96:1) — AA but not AAA. This project holds the
+     muted tier at AAA because magnified and low-vision reading is the norm
+     here, not the exception. 7.67:1 — do not lighten it. */
+  --color-ink-2: #525358;
 
   /* Non-text, aria-hidden ONLY. Never put a readable word in this colour. */
-  --color-ink-decorative: #8a93a8;
+  --color-ink-decorative: #929397;
 
-  --color-tint: #f2f5fb; /* section bands, wells, soft fills */
-  --color-tint-2: #e7edf8; /* pressed / hover state of a tint fill */
+  --color-tint: #f5f6f7; /* section bands, wells, soft fills */
+  --color-tint-2: #f0f0f1; /* pressed / hover state of a tint fill */
 
   /* The hairline. One step below --tint, so it reads on white AND on a band
      without ever hardening into a frame. --hair-strong is hover only: the line
-     darkens, it does not change. */
-  --color-hair: #dfe6f2;
-  --color-hair-strong: #c8d2e6;
+     darkens, it does not change.
 
-  --color-accent: #2e4699; /* 8.56:1 — safe as text and as a button fill */
-  --color-accent-deep: #1d2c62; /* 13.2:1 with white — the closing CTA band */
+     --hair-strong alone did NOT get the reference's lighter value. It draws
+     form-control boundaries (`.field-control`), where the line is the only
+     thing saying where to type — lightening it weakens an edge that is already
+     only 1.52:1. Lightness kept, chroma dropped. */
+  --color-hair: #e7e8ea;
+  --color-hair-strong: #d1d1d4;
 
-  /* The page closes by descending: dark CTA band, then a darker footer. Two
-     steps of the same brand blue, not two different blues. */
-  --color-footer: #131d40;
-  --color-on-dark: #a7b0cc; /* 7.6:1 on --color-footer */
-  --color-on-deep: #b3bcd8; /* 6.99:1 on --color-accent-deep */
+  /* The one blue, from the reference designs. More saturated than the old
+     #2e4699 and slightly lighter, so it still clears AAA as text and as a
+     button fill — but only just. Do not lighten either of these. */
+  --color-accent: #3846b1; /* 7.84:1 — safe as text and as a button fill */
+  --color-accent-deep: #262d97; /* 11.03:1 with white — the closing CTA band */
 
+  /* The page still closes by descending, but the two steps are no longer the
+     same colour: the CTA band is the blue accent's dark step, and the footer
+     below it is neutral near-black. Blue is the accent and the footer is
+     ground, which is the point of the recolour — the old navy-on-navy descent
+     was the single largest source of the blue cast. */
+  --color-footer: #1f2023;
+  --color-on-dark: #a9aaae; /* 7.02:1 on --color-footer */
+  --color-on-deep: #cdced2; /* 7.01:1 on the LIGHTER --color-accent-deep */
+
+  /* Semantic colours keep their chroma. Neutralising these would be the one
+     recolour that costs something real: a desaturated "Disponibile" or a grey
+     error stops being identifiable as status at all (SC 1.4.1). */
   --color-ok: #0e6b41; /* 6.57:1 — "Disponibile", "incluso" */
   --color-danger: #c2402a; /* 5.17:1 — errors */
   --color-star: #d99a2b; /* the page's only warm tone, aria-hidden stars */
 
   /* -- type scale ---------------------------------------------------------- */
 
-  /* There is no token below 16px, by design. If you need one, the answer is no.
-     The prototypes go down to 12px; this audience cannot read it. */
+  /*
+   * There is STILL no token below 16px, and the answer is still no. That floor
+   * survived the owner's typography override untouched: the override changed
+   * which face the site speaks, not how small it is allowed to get.
+   *
+   * What did change: the base metric is now 16px/1.5 rather than 18px/1.6, which
+   * is the reference designs' own metric and what the product page and checkout
+   * had already been released to. `--text-body` and `--text-ui` therefore both
+   * sit at 16px — deliberately, not by accident. They are kept as two tokens
+   * because they carry different LEADING (1.5 for running prose, 1.4 for a chip
+   * or a label that must not grow taller than its row), and because `text-body`
+   * appearing in markup still says "this is prose".
+   */
   --text-ui: 1rem; /* 16px — labels, chips, meta. FLOOR. */
   --text-ui--line-height: 1.4;
   --text-ui-strong: 1.0625rem; /* 17px — buttons, form controls, nav */
   --text-ui-strong--line-height: 1.4;
-  --text-body: 1.125rem; /* 18px — default body */
-  --text-body--line-height: 1.6;
-  --text-lead: 1.25rem; /* 20px — hero and section ledes */
+  --text-body: 1rem; /* 16px — default body, reference metric */
+  --text-body--line-height: 1.5;
+  --text-lead: 1.125rem; /* 18px — hero and section ledes */
   --text-lead--line-height: 1.5;
 
   --text-h4: 1.1875rem; /* 19px */
@@ -161,20 +193,27 @@
   --radius-panel: 22px;
   --radius-spot: 28px;
 
-  /* The page's ONLY shadow, under the search panel: wide and almost invisible.
-     Everything else is defined by the hairline. */
-  --shadow-soft: 0 2px 4px rgb(26 32 48 / 0.04), 0 12px 34px rgb(26 32 48 / 0.07);
+  /* The marketing pages' one shadow, under the home search panel: wide and
+     almost invisible. Everything else there is defined by the hairline. */
+  --shadow-soft: 0 2px 4px rgb(31 32 35 / 0.04), 0 12px 34px rgb(31 32 35 / 0.07);
 
-  /* PDP shadows, from the reference design. The tint MUST stay this dark,
-     desaturated slate — `oklch(0.35 0.06 275)` — and never the brand accent
-     `#2e4699`. At a 30px blur a saturated blue stops reading as a shadow and
-     becomes a coloured halo ringing the card. Same geometry, wrong colour, and
-     the whole panel looks like it is glowing. */
-  --shadow-pdp-card: 0 1px 3px oklch(0.35 0.06 275 / 0.06);
+  /*
+   * The commerce elevation set, from the reference designs — used by the product
+   * page, the checkout and the cart. (Named `pdp` because the product page was
+   * the first to need them; they are the whole site's now.)
+   *
+   * The tint is a dark NEUTRAL — chroma 0.012, down from 0.06 with the recolour —
+   * and must never be the accent `#3846b1`. At a 30px blur a saturated blue
+   * stops reading as a shadow and becomes a coloured halo ringing the card: same
+   * geometry, wrong colour, and the whole panel looks like it is glowing. The
+   * old 0.06 was a mild case of exactly that, which is why it went down rather
+   * than merely sideways.
+   */
+  --shadow-pdp-card: 0 1px 3px oklch(0.35 0.012 275 / 0.06);
   --shadow-pdp-panel:
-    0 1px 2px oklch(0.35 0.06 275 / 0.05), 0 10px 30px oklch(0.35 0.06 275 / 0.08);
-  --shadow-pdp-pop: 0 12px 32px oklch(0.35 0.06 275 / 0.16);
-  --shadow-pdp-cal: 0 16px 40px oklch(0.35 0.06 275 / 0.18);
+    0 1px 2px oklch(0.35 0.012 275 / 0.05), 0 10px 30px oklch(0.35 0.012 275 / 0.08);
+  --shadow-pdp-pop: 0 12px 32px oklch(0.35 0.012 275 / 0.16);
+  --shadow-pdp-cal: 0 16px 40px oklch(0.35 0.012 275 / 0.18);
 
   /* -- layout -------------------------------------------------------------- */
 
@@ -217,12 +256,17 @@
     scroll-behavior: smooth;
   }
 
+  /*
+   * 16px/1.5, which is the reference designs' metric and now the whole site's.
+   * The product page and checkout used to override this back to 16/1.5 from
+   * their own scope; that override is gone because the base agrees with them.
+   */
   body {
     background: #fff;
     color: var(--color-ink);
     font-family: var(--font-body);
     font-size: var(--text-body);
-    line-height: 1.6;
+    line-height: var(--text-body--line-height);
     /* Helps line-length control under magnification. */
     text-wrap: pretty;
   }
@@ -235,7 +279,10 @@
   h6 {
     font-family: var(--font-display);
     font-weight: 600;
-    letter-spacing: -0.028em;
+    /* -0.028em was tuned for Lexend, whose counters are wide enough to take it.
+       Instrument Sans is a tighter face and went muddy at that value; -0.015em
+       is the reference designs' own tracking on their headings. */
+    letter-spacing: -0.015em;
     text-wrap: balance;
   }
 
@@ -423,52 +470,51 @@
 
 /* ------------------------------------ reference design page face --- */
 
-/* The PDP and the checkout both follow owner-authored reference designs and
-   speak Instrument Sans throughout — including headings and form controls,
-   which otherwise keep the base layer's display face / the UA's control font.
-   Un-layered on purpose so it outranks @layer base without a specificity
-   fight. */
-.pdp,
-.checkout,
-:is(.pdp, .checkout) :is(h1, h2, h3, h4, legend, button, input, textarea, select) {
-  font-family: var(--font-pdp);
-}
-
-/* The reference page is `font: 16px/1.5`, not the site's 18px/1.6. Setting only
-   the family left every unsized element inheriting the larger, looser base, so
-   each chip, pill, card row and line item came out a few pixels taller than the
-   design and nothing lined up across columns — the metrics have to come with
-   the face. This is the whole PDP release from Variante B, in two declarations;
-   see docs/code/storefront-design-system.md § Product detail page. */
-.pdp,
-.checkout {
-  font-size: 1rem;
-  line-height: 1.5;
+/*
+ * GONE, and deliberately: the two blocks that used to live here gave the product
+ * page and the checkout Instrument Sans at 16px/1.5 while the rest of the site
+ * ran Lexend/Atkinson at 18px/1.6. The owner's typography override made the base
+ * layer say exactly that, so a scope that re-declares it is now a no-op that
+ * only invites drift.
+ *
+ * One thing they did that the base cannot: `font: inherit` in @layer base covers
+ * input/button/textarea/select, but a <legend> takes the UA's font, so it is
+ * named here. Un-layered on purpose, so it outranks @layer base without a
+ * specificity fight.
+ */
+legend {
+  font-family: var(--font-ui);
 }
 
 /*
  * The 48px target rule in @layer base is a PROJECT accessibility rule, not a
- * style, and it does not get dropped to match a mock. But the checkout's
- * reference design paints several controls smaller than 48px — the 33px "Modifica"
- * pill, the 44px identity chips, an 18px checkbox — and forcing those to 48
- * square deforms the layout the design is copied from (an 18px checkbox becomes
- * a 48px block and the delivery panel falls apart).
+ * style, and it does not get dropped to match a mock. But the reference designs
+ * paint several controls smaller than 48px — the checkout's 33px "Modifica"
+ * pill, its 44px identity chips, an 18px checkbox, the cart row's 32px quantity
+ * stepper — and forcing those to 48 square deforms the layout the design is
+ * copied from (an 18px checkbox becomes a 48px block and the delivery panel
+ * falls apart).
  *
  * So the two are separated: the control keeps the painted size the design asks
  * for, and `.target-48` puts a centred, invisible 48×48 hit area back on top of
  * it. Nothing about the paint changes and nothing about the target size is lost.
  * Un-layered, so it outranks the base rule without !important.
+ *
+ * `.cart` is in scope for the same reason `.checkout` is — its stepper buttons
+ * are 32px painted, 48px to the finger. Anything smaller than 48 in either scope
+ * MUST carry `.target-48`; that is the deal that makes the release legitimate
+ * rather than just a dropped rule.
  */
-.checkout :is(button, input[type='checkbox'], input[type='radio']) {
+:is(.checkout, .cart) :is(button, input[type='checkbox'], input[type='radio']) {
   min-height: 0;
   min-width: 0;
 }
 
-.checkout .target-48 {
+:is(.checkout, .cart) .target-48 {
   position: relative;
 }
 
-.checkout .target-48::after {
+:is(.checkout, .cart) .target-48::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -566,25 +612,30 @@
 }
 
 /* The site breadcrumb is a 16px/600 component because 16px is the storefront's
-   floor. On the PDP the reference makes it a quiet 13.5px trail, and it is the
-   first thing on the page, so the mismatch reads immediately. Un-layered, so it
+   floor. The reference designs make it a quiet 13.5px trail, and it is the first
+   thing on the page, so the mismatch reads immediately. Un-layered, so it
    outranks the `text-ui` utility on the <ol> without needing !important.
+
+   All THREE commerce scopes now, not just `.pdp`. The checkout was rendering a
+   16px trail above a 30px reference-design heading — the same mismatch this
+   block exists to fix, missed because the selector was written when the product
+   page was the only released page. The cart is the third.
 
    The 48px target on each link STAYS — it is a project accessibility rule, not
    a style — so this row is still taller than the reference's. Dropping the
    nav's own padding buys back the 24px that is not load-bearing. */
-.pdp nav[aria-label] {
+:is(.pdp, .checkout, .cart) nav[aria-label] {
   padding-block: 0;
 }
 
-.pdp nav[aria-label] ol {
+:is(.pdp, .checkout, .cart) nav[aria-label] ol {
   font-size: 13.5px;
 }
 
-.pdp nav[aria-label] :is(a, span) {
+:is(.pdp, .checkout, .cart) nav[aria-label] :is(a, span) {
   font-weight: 400;
 }
 
-.pdp nav[aria-label] [aria-current] {
+:is(.pdp, .checkout, .cart) nav[aria-label] [aria-current] {
   font-weight: 500;
 }
