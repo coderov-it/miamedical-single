@@ -12,6 +12,7 @@ import PackageIcon from '@lucide/svelte/icons/package';
 import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import TagsIcon from '@lucide/svelte/icons/tags';
+import TruckIcon from '@lucide/svelte/icons/truck';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
 import type { Component } from 'svelte';
 
@@ -48,6 +49,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { title: 'Orders', url: routes.orders, icon: ShoppingCartIcon },
       { title: 'Carts', url: routes.carts, icon: BanknoteIcon },
+      { title: 'Delivery Zones', url: routes.deliveryZones, icon: TruckIcon },
     ],
   },
 ];

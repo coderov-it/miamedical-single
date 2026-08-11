@@ -17,11 +17,17 @@
       calls and stores NO coordinates, because the sheet is keyed on comune and
       CAP (postal code) — both of which every Italian address already carries.
 
-      Three cases are wired, reachable from the suggestion list:
+      Four cases are wired, reachable from the suggestion list:
         · a plainly covered comune         → type "Portuense"  (Fiumicino)
         · a CAP exception inside a comune  → type "Romagnoli"  (CAP 00121,
                                              Rome's Lido di Ostia, priced apart
-                                             from Rome city)
+                                             from Rome city — CAP finer than
+                                             comune)
+        · ONE CAP, THREE COMUNI, two fees  → type "00060"      (Formello, Riano,
+                                             Sacrofano — comune finer than CAP.
+                                             This is why CAP_OVERRIDES is keyed
+                                             on the PAIR ISTAT:CAP and not on the
+                                             CAP alone.)
         · an address outside the sheet     → type "Vannucci"   (Perugia)
                                              → quote on request
 
@@ -854,6 +860,11 @@
         padding-left: 26px;
         color: var(--ink-2);
       }
+      .sub-tag[data-shared] {
+        background: var(--warn-tint);
+        border: 1px solid var(--warn-hair);
+        color: var(--warn);
+      }
       .sub-tag {
         display: inline-block;
         margin-left: 7px;
@@ -1040,7 +1051,8 @@
       <p class="demo-note">
         <strong>Demo data.</strong> The fees, the comune list and the ISTAT codes are invented, to
         stand in for your client's spreadsheet. Type <code>Portuense</code> for a plainly covered
-        comune, <code>Romagnoli</code> for a CAP priced apart from the city it sits in, and
+        comune, <code>Romagnoli</code> for a CAP priced apart from the city it sits in,
+        <code>00060</code> for one CAP shared by three comuni at two different fees, and
         <code>Vannucci</code> for an address outside the sheet. Place names and the euro number format
         are the storefront's real ones; everything else on this page is English so it reads.
       </p>
@@ -1379,11 +1391,30 @@
               </p>
             </div>
             <div class="note">
-              <h3>CAP is not a unique key</h3>
+              <h3>CAP is not a unique key — it cuts both ways</h3>
               <p>
-                Rome has roughly 200 CAPs, and one CAP can span several small comuni. That is why the
-                primary key is the comune's ISTAT code and the CAP is only an exception row. Do it the
-                other way round and Rome becomes 200 rows that disagree with each other.
+                Rome has roughly 200 CAPs, so there the CAP is <em>finer</em> than the comune. But CAP
+                <b>00060</b> covers Formello, Riano and Sacrofano, so there the comune is finer — and
+                the sheet prices Riano higher than the other two. A CAP is therefore neither reliably
+                bigger nor reliably smaller than a comune.
+              </p>
+              <p>
+                Which is why the exception key is the <b>pair</b> <code>ISTAT:CAP</code>, and the
+                comune is pinned before the CAP is consulted. A shared CAP then physically cannot leak
+                one comune's price onto its neighbours. Type <code>00060</code> on the left: three
+                suggestions, one CAP, and the fee still comes out right for each.
+              </p>
+            </div>
+            <div class="note">
+              <h3>Finer than a CAP is not worth building</h3>
+              <p>
+                Inside one comune <em>and</em> one CAP, no postal data can tell two addresses apart —
+                you would need locality or street-level rules, which autocomplete returns
+                inconsistently, so the mechanism would fail unpredictably. And the deeper point: the
+                sheet <em>is</em> the commercial policy. If your client does not price two places
+                differently, there is nothing to model. When a genuine exception turns up (an island, a
+                mountain hamlet, a restricted-traffic zone), flag that order "fee to verify" and settle
+                it on the call — free, because no payment is taken online.
               </p>
             </div>
             <div class="note">
@@ -1460,6 +1491,11 @@
         '058104': { name: 'Tivoli', provincia: 'RM', fee: 35 },
         '058007': { name: 'Anzio', provincia: 'RM', fee: 40 },
         '058032': { name: 'Civitavecchia', provincia: 'RM', fee: 45 },
+        /* These three SHARE CAP 00060 and are priced differently. They are why the
+           CAP can never be the deciding key — see CAP_OVERRIDES below. */
+        '058040': { name: 'Formello', provincia: 'RM', fee: 35, sharedCap: '00060' },
+        '058083': { name: 'Riano', provincia: 'RM', fee: 40, sharedCap: '00060' },
+        '058093': { name: 'Sacrofano', provincia: 'RM', fee: 35, sharedCap: '00060' },
         '059011': { name: 'Latina', provincia: 'LT', fee: 55 },
         '048017': { name: 'Firenze', provincia: 'FI', fee: 15 },
         '048018': { name: 'Scandicci', provincia: 'FI', fee: 25 },
@@ -1470,11 +1506,19 @@
         '052032': { name: 'Siena', provincia: 'SI', fee: 60 },
       };
 
-      /** CAP rows. Each one narrows a comune the client prices in pieces. */
+      /**
+       * CAP exception rows, keyed `<ISTAT>:<CAP>` — a COMPOSITE key, deliberately.
+       *
+       * Keying on the CAP alone looks tempting and is wrong: CAP 00060 covers
+       * Formello, Riano and Sacrofano, which the sheet prices differently, so a
+       * bare-CAP row would leak one comune's price onto its neighbours. Pinning
+       * the comune first makes that impossible — the CAP can only ever REFINE
+       * inside a comune, never decide across comuni.
+       */
       const CAP_OVERRIDES = {
-        '00121': { label: 'Roma · Lido di Ostia', istat: '058091', fee: 25 },
-        '00122': { label: 'Roma · Lido di Ostia', istat: '058091', fee: 25 },
-        '00125': { label: 'Roma · Acilia', istat: '058091', fee: 25 },
+        '058091:00121': { label: 'Roma · Lido di Ostia', fee: 25 },
+        '058091:00122': { label: 'Roma · Lido di Ostia', fee: 25 },
+        '058091:00125': { label: 'Roma · Acilia', fee: 25 },
       };
 
       /** Province code → name, for the picker's group headings. */
@@ -1496,6 +1540,11 @@
         { street: 'Via Tiburtina Valeria', civico: '12', comune: 'Tivoli', istat: '058104', cap: '00019', provincia: 'RM' },
         { street: 'Piazza del Gesù', civico: '4', comune: 'Frascati', istat: '058043', cap: '00044', provincia: 'RM' },
         { street: 'Lungomare Marconi', civico: '58', comune: 'Anzio', istat: '058007', cap: '00042', provincia: 'RM' },
+        /* Same CAP, three comuni, two different fees. Type "00060" to see all of
+           them side by side — this is the shared-CAP case. */
+        { street: 'Via Filippo Tommaso Marinetti', civico: '9', comune: 'Formello', istat: '058040', cap: '00060', provincia: 'RM' },
+        { street: 'Via della Stazione', civico: '24', comune: 'Riano', istat: '058083', cap: '00060', provincia: 'RM' },
+        { street: 'Via Roma', civico: '3', comune: 'Sacrofano', istat: '058093', cap: '00060', provincia: 'RM' },
         { street: 'Piazza del Duomo', civico: '1', comune: 'Firenze', istat: '048017', cap: '50122', provincia: 'FI' },
         { street: 'Viale Guidoni', civico: '129', comune: 'Firenze', istat: '048017', cap: '50127', provincia: 'FI' },
         { street: 'Via Gramsci', civico: '44', comune: 'Sesto Fiorentino', istat: '048043', cap: '50019', provincia: 'FI' },
@@ -1522,9 +1571,16 @@
          network, and so no failure mode to degrade from.
       */
       function quote(place) {
-        const override = CAP_OVERRIDES[place.cap];
+        /* Comune first, always. The CAP is consulted only as a refinement of a
+           comune we have already pinned. */
+        const override = CAP_OVERRIDES[place.istat + ':' + place.cap];
         if (override) {
-          return { fee: override.fee, area: override.label, hit: 'CAP', key: place.cap };
+          return {
+            fee: override.fee,
+            area: override.label,
+            hit: 'CAP',
+            key: place.istat + ':' + place.cap,
+          };
         }
         const row = COMUNI[place.istat];
         if (row) {
@@ -1774,9 +1830,10 @@
       (function buildListino() {
         const body = document.getElementById('listino-body');
         const capByIstat = new Map();
-        for (const [cap, row] of Object.entries(CAP_OVERRIDES)) {
-          if (!capByIstat.has(row.istat)) capByIstat.set(row.istat, []);
-          capByIstat.get(row.istat).push({ cap, ...row });
+        for (const [key, row] of Object.entries(CAP_OVERRIDES)) {
+          const [istat, cap] = key.split(':');
+          if (!capByIstat.has(istat)) capByIstat.set(istat, []);
+          capByIstat.get(istat).push({ cap, ...row });
         }
 
         const rows = Object.entries(COMUNI).sort((a, b) =>
@@ -1789,6 +1846,15 @@
           tr.querySelector('b').textContent = row.name + ' (' + row.provincia + ')';
           tr.children[1].textContent = istat;
           tr.children[2].textContent = money(row.fee);
+          /* Flags a comune whose CAP it does not own alone. Nothing in the pricing
+             path reads this — it is here so the shared-CAP case is visible. */
+          if (row.sharedCap) {
+            const tag = document.createElement('span');
+            tag.className = 'sub-tag';
+            tag.dataset.shared = 'true';
+            tag.textContent = 'CAP ' + row.sharedCap + ' shared';
+            tr.children[0].append(tag);
+          }
           body.append(tr);
 
           for (const sub of capByIstat.get(istat) ?? []) {
@@ -1877,13 +1943,16 @@
         steps.push(
           traceStep(
             2,
-            'CAP exception lookup',
+            'CAP exception lookup, scoped to the comune',
             priced.hit === 'CAP'
-              ? 'A row exists for this CAP, and it beats the comune row. This is how one comune can hold more than one fee.'
-              : 'No row for this CAP, so the comune row decides.',
+              ? 'A row exists for this comune + CAP pair, and it beats the plain comune row. This is how one comune can hold more than one fee.'
+              : 'No exception row for this comune + CAP pair, so the plain comune row decides. Note the key is the PAIR: a CAP shared with neighbouring comuni can never reach across into them.',
             priced.hit === 'CAP'
-              ? chip('CAP_OVERRIDES', place.cap + ' → ' + priced.area)
-              : chip('CAP_OVERRIDES', place.cap ? place.cap + ' → no row' : 'not applicable'),
+              ? chip('CAP_OVERRIDES', place.istat + ':' + place.cap + ' → ' + priced.area)
+              : chip(
+                  'CAP_OVERRIDES',
+                  place.cap ? place.istat + ':' + place.cap + ' → no row' : 'not applicable',
+                ),
           ),
         );
 

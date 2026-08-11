@@ -43,6 +43,13 @@
       "when": 1786355928376,
       "tag": "0005_product_chips",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786460016690,
+      "tag": "0006_thankful_carnage",
+      "breakpoints": true
     }
   ]
 }

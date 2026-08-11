@@ -1,4 +1,11 @@
-import { createDatabase, eq } from '@mia/db';
+import { readFileSync } from 'node:fs';
+
+import { count, createDatabase, eq } from '@mia/db';
+import {
+  istatComuneCapsCsvPath,
+  istatComuniCsvPath,
+  parseReferenceCsv,
+} from '@mia/db/reference';
 import type { LanguageCode } from '@mia/db/schema';
 import {
   attributePresetOptions,
@@ -9,6 +16,9 @@ import {
   categorySpecOptions,
   categorySpecs,
   categoryTranslations,
+  deliveryZones,
+  istatComuneCaps,
+  istatComuni,
   orderItems,
   orders,
   orderStatusEvents,
@@ -1036,6 +1046,157 @@ if (!env.R2_BUCKET) {
       }
 
       console.log(`  ✓ ${PLAN.length} orders and 2 carts`);
+    }
+  }
+}
+
+// --- delivery: reference geography, then the price tree ----------------------
+//
+// `istat_comuni` and `istat_comune_caps` are imported reference data, loaded from
+// the CSVs in packages/db/data/ that `pnpm --filter @mia/server istat:build`
+// generates and git carries. No network, no API key.
+//
+// The price tree holds ISTAT codes in a plain text column with NO foreign key to
+// those tables, deliberately: refreshing the geography must never cascade a price
+// the owner set into oblivion. See docs/code/delivery-pricing.md.
+
+{
+  const comuneRows = parseReferenceCsv(readFileSync(istatComuniCsvPath, 'utf8'));
+  const capRows = parseReferenceCsv(readFileSync(istatComuneCapsCsvPath, 'utf8'));
+  const [existing] = await db.select({ total: count() }).from(istatComuni);
+
+  if (existing?.total === comuneRows.length) {
+    console.log(`  · ${comuneRows.length} comuni already loaded, skipping`);
+  } else {
+    // Reload wholesale rather than reconcile: the CSVs are the source of truth and
+    // a merged comune must disappear, not linger. Cascades into the CAP junction.
+    await db.delete(istatComuni);
+
+    // Chunked because a single statement would blow past Postgres' parameter limit.
+    const CHUNK = 1000;
+    for (let i = 0; i < comuneRows.length; i += CHUNK) {
+      await db.insert(istatComuni).values(
+        comuneRows.slice(i, i + CHUNK).map(([istatCode, name, nameNormalised, provinceCode, regionCode]) => ({
+          istatCode: istatCode!,
+          name: name!,
+          nameNormalised: nameNormalised!,
+          provinceCode: provinceCode!,
+          regionCode: regionCode!,
+        })),
+      );
+    }
+    for (let i = 0; i < capRows.length; i += CHUNK) {
+      await db.insert(istatComuneCaps).values(
+        capRows.slice(i, i + CHUNK).map(([istatCode, cap]) => ({ istatCode: istatCode!, cap: cap! })),
+      );
+    }
+    console.log(`  ✓ ${comuneRows.length} comuni and ${capRows.length} comune↔CAP pairs`);
+  }
+}
+
+/**
+ * A node of the price tree. `code` is what an address matches on — an ISTAT code
+ * at comune level, the two letters at province level, the CAP at cap level. `name`
+ * is only ever displayed.
+ */
+interface ZoneSeed {
+  level: 'country' | 'region' | 'province' | 'comune' | 'cap';
+  code: string;
+  name: string;
+  /** Omitted means inherit from the nearest ancestor that decided something. */
+  value?: { kind: 'fee'; fee: string } | { kind: 'call' };
+  children?: ZoneSeed[];
+}
+
+/**
+ * The country row exists in every environment, carries a value, and is why every
+ * Italian address gets an answer instead of an error. The owner replaces `call`
+ * with a flat fee the day they want one.
+ */
+const COUNTRY_ROW: ZoneSeed = {
+  level: 'country',
+  code: 'IT',
+  name: 'Italia',
+  value: { kind: 'call' },
+};
+
+/**
+ * Development-only demo tree, sized to exercise every branch of the resolver once:
+ *
+ *   00121 → an exact CAP row under Roma            → 35,00 €
+ *   00118 → Roma has no row for it, comune does    → 25,00 €
+ *   00060 → shared by 17 comuni; Riano has 40,00 € but the others inherit 45,00 €,
+ *           so with no comune name they disagree and it falls to Lazio → 45,00 €
+ *   01100 → Viterbo province says call             → needs a phone quote
+ *   50100 → Toscana inherits, so the country row answers → needs a phone quote
+ */
+const DEMO_ZONES: ZoneSeed[] = [
+  {
+    level: 'region',
+    code: '12',
+    name: 'Lazio',
+    value: { kind: 'fee', fee: '45.00' },
+    children: [
+      {
+        level: 'province',
+        code: 'RM',
+        name: 'Roma',
+        children: [
+          {
+            level: 'comune',
+            code: '058091',
+            name: 'Roma',
+            value: { kind: 'fee', fee: '25.00' },
+            children: [
+              { level: 'cap', code: '00121', name: 'Roma 00121', value: { kind: 'fee', fee: '35.00' } },
+            ],
+          },
+          { level: 'comune', code: '058081', name: 'Riano', value: { kind: 'fee', fee: '40.00' } },
+        ],
+      },
+      { level: 'province', code: 'VT', name: 'Viterbo', value: { kind: 'call' } },
+    ],
+  },
+  { level: 'region', code: '09', name: 'Toscana' },
+];
+
+{
+  const [existingZone] = await db.select({ id: deliveryZones.id }).from(deliveryZones).limit(1);
+
+  if (existingZone) {
+    console.log('  · delivery zones already exist, skipping');
+  } else {
+    const insertZone = async (node: ZoneSeed, parent: { id: string; level: string } | null): Promise<void> => {
+      const [row] = await db
+        .insert(deliveryZones)
+        .values({
+          parentId: parent?.id ?? null,
+          parentLevel: (parent?.level ?? null) as ZoneSeed['level'] | null,
+          level: node.level,
+          code: node.code,
+          name: node.name,
+          valueKind: node.value?.kind ?? null,
+          fee: node.value?.kind === 'fee' ? node.value.fee : null,
+        })
+        .returning({ id: deliveryZones.id });
+
+      if (!row) throw new Error(`could not insert zone ${node.level} ${node.code}`);
+      for (const child of node.children ?? []) {
+        await insertZone(child, { id: row.id, level: node.level });
+      }
+    };
+
+    const isProduction = env.NODE_ENV === 'production';
+    await insertZone(
+      { ...COUNTRY_ROW, children: isProduction ? [] : DEMO_ZONES },
+      null,
+    );
+
+    if (isProduction) {
+      console.log('  ✓ the Italia country row (no demo tree, NODE_ENV=production)');
+    } else {
+      const [{ total } = { total: 0 }] = await db.select({ total: count() }).from(deliveryZones);
+      console.log(`  ✓ ${total} delivery zones — Italia, Lazio and Toscana`);
     }
   }
 }

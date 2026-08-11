@@ -27,6 +27,7 @@
  * | 1700  | Access control (admin users)|
  * | 1800  | Content (terms documents)   |
  * | 1900  | Attributes (preset library) |
+ * | 2000  | Delivery zones              |
  */
 
 export interface PermissionDefinition {
@@ -51,6 +52,7 @@ export const PERMISSION_GROUPS = [
   'Access',
   'Content',
   'Attributes',
+  'Delivery',
 ] as const;
 
 export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
@@ -230,6 +232,34 @@ export const PERMISSION_DEFINITIONS = {
     key: 'attribute:delete',
     label: 'Delete attribute presets',
     group: 'Attributes',
+  },
+
+  // --- 2000 · delivery zones ----------------------------------------------
+  // The price tree is money the customer is charged, so writing it is separated
+  // from reading it: an operator who checks coverage need not be able to reprice.
+  DELIVERY_ZONE_READ: {
+    code: 2000,
+    key: 'delivery_zone:read',
+    label: 'View delivery zones',
+    group: 'Delivery',
+  },
+  DELIVERY_ZONE_UPDATE: {
+    code: 2001,
+    key: 'delivery_zone:update',
+    label: 'Update delivery zones',
+    group: 'Delivery',
+  },
+  DELIVERY_ZONE_CREATE: {
+    code: 2002,
+    key: 'delivery_zone:create',
+    label: 'Create delivery zones',
+    group: 'Delivery',
+  },
+  DELIVERY_ZONE_DELETE: {
+    code: 2003,
+    key: 'delivery_zone:delete',
+    label: 'Delete delivery zones',
+    group: 'Delivery',
   },
 } as const satisfies Record<string, PermissionDefinition>;
 

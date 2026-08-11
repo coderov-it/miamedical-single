@@ -23,3 +23,14 @@
      `/prodotto/`). They are user-facing content and an SEO commitment, governed
      in `apps/website/src/lib/routes.ts`. Query and form keys are NOT covered by
      this — they are a machine wire format, so they are code and must be English.
+
+- **Explaining a concept or process: show it, don't describe it.** When I ask how
+  something works — a flow, a data model, how a value is matched, how a decision
+  is reached — lead with a worked example on real values, as numbered steps in a
+  code block: the input on the left, what we get back on the right. Give two
+  walks, the normal case and the fallback case. Prose comes after the walk, only
+  if the walk left something out.
+  No option tables, no trade-off analysis, no alternatives I did not ask for.
+  Keep the whole answer short enough to read once. Close by asking whether that
+  was the part I meant — do not pre-empt it by adding more sections in case it
+  was not.

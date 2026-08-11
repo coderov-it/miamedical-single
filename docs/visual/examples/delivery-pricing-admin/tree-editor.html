@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Delivery pricing tree — admin concept</title>
+    <!--
+      ADMIN CONCEPT — the delivery-fee tree editor.
+
+      Design concept only: no API, no persistence, demo rows. Admin tokens are
+      copied from apps/admin/src/styles/app.css so the concept sits in the real
+      elevation ramp (see docs/code/admin-theme-elevation.md). Light and dark both
+      work — the toggle is top right.
+
+      THE MODEL
+
+        Region → Province → Comune → { Comune+CAP | Frazione } → Frazione
+
+      Every node carries one of three states:
+
+        · INHERIT   — no value of its own; uses the nearest ancestor that has one
+        · PRICE     — a fixed delivery fee
+        · NEEDS CALL — deliberately unpriced: the customer is told the fee is
+                       confirmed by phone, and the order total shows "+ delivery"
+
+      "Needs call" is a VALUE, not an absence. That is the point: it is how the
+      owner says "we serve this area but will not quote it online", which is
+      different from "we have not filled this in yet" (inherit) and different from
+      "we do not go there" (a needs-call region at the root).
+
+      RESOLUTION — most specific match wins, by this fixed ranking:
+
+        1. comune + CAP + frazione
+        2. comune + frazione
+        3. comune + CAP
+        4. comune
+        5. province
+        6. region
+
+      That ranking is what makes a frazione legal under BOTH a comune and a
+      comune+CAP. The two nodes can describe overlapping ground, so a tiebreak is
+      required; ranking by specificity gives a total order with no ambiguity, and
+      no rule anyone has to remember.
+    -->
+    <style>
+      /* Tokens lifted from apps/admin — keep in sync with that file, not with the
+         storefront's (they are deliberately separate layers). */
+      :root {
+        --background: oklch(0.972 0.003 286);
+        --foreground: oklch(0.155 0.006 286);
+        --card: oklch(1 0 0);
+        --muted: oklch(0.938 0.004 286);
+        --muted-foreground: oklch(0.502 0.008 286);
+        --border: oklch(0.892 0.004 286);
+        --input: oklch(0.858 0.005 286);
+        --ring: oklch(0.62 0.012 286);
+        --primary: oklch(0.488 0.243 264.376);
+        --primary-foreground: oklch(0.97 0.014 254.604);
+        --destructive: oklch(0.577 0.245 27.325);
+        --warn: oklch(0.52 0.11 70);
+        --warn-bg: oklch(0.965 0.03 85);
+        --warn-border: oklch(0.87 0.06 82);
+        --ok: oklch(0.5 0.12 155);
+        --ok-bg: oklch(0.96 0.03 158);
+        --radius: 0.625rem;
+        --shadow-xs: 0 1px 2px oklch(0.155 0.006 286 / 0.06);
+        --shadow-md: 0 1px 3px oklch(0.155 0.006 286 / 0.08), 0 8px 24px oklch(0.155 0.006 286 / 0.07);
+      }
+      :root[data-theme='dark'] {
+        --background: oklch(0.145 0 0);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.205 0 0);
+        --muted: oklch(0.269 0 0);
+        --muted-foreground: oklch(0.708 0 0);
+        --border: oklch(1 0 0 / 10%);
+        --input: oklch(1 0 0 / 15%);
+        --ring: oklch(0.556 0 0);
+        --primary: oklch(0.623 0.214 259.815);
+        --primary-foreground: oklch(0.97 0.014 254.604);
+        --destructive: oklch(0.704 0.191 22.216);
+        --warn: oklch(0.82 0.11 82);
+        --warn-bg: oklch(0.32 0.05 80);
+        --warn-border: oklch(0.45 0.07 80);
+        --ok: oklch(0.78 0.13 158);
+        --ok-bg: oklch(0.28 0.05 158);
+        --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
+        --shadow-md: 0 1px 3px oklch(0 0 0 / 0.5), 0 8px 24px oklch(0 0 0 / 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: var(--background);
+        color: var(--foreground);
+        font:
+          14px/1.5 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      svg {
+        display: block;
+      }
+      p,
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* --------------------------------------------------------- chrome --- */
+
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 28px 24px 56px;
+      }
+      .page-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .page-head h1 {
+        font-size: 22px;
+        font-weight: 650;
+        letter-spacing: -0.018em;
+      }
+      .page-head p {
+        margin-top: 6px;
+        max-width: 74ch;
+        color: var(--muted-foreground);
+        font-size: 13.5px;
+      }
+      .theme-btn {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) * 0.8);
+        background: var(--card);
+        box-shadow: var(--shadow-xs);
+        font-size: 13px;
+        font-weight: 550;
+      }
+      .theme-btn svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .layout {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+      @media (max-width: 1060px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow-xs);
+        overflow: hidden;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in oklch, var(--muted) 40%, var(--card));
+      }
+      .card-head h2 {
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .card-body {
+        padding: 8px;
+      }
+
+      /* --------------------------------------------------------- toolbar --- */
+
+      .search {
+        position: relative;
+        flex: 1;
+        min-width: 180px;
+      }
+      .search svg {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        width: 15px;
+        height: 15px;
+        transform: translateY(-50%);
+        color: var(--muted-foreground);
+      }
+      .search input {
+        width: 100%;
+        min-height: 34px;
+        padding: 6px 10px 6px 32px;
+        border: 1px solid var(--input);
+        border-radius: calc(var(--radius) * 0.7);
+        background: color-mix(in oklch, var(--muted) 25%, var(--card));
+        color: var(--foreground);
+        font: inherit;
+      }
+      .search input:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: -1px;
+      }
+      .ghost-btn {
+        padding: 6px 11px;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) * 0.7);
+        background: var(--card);
+        font-size: 12.5px;
+        font-weight: 550;
+        white-space: nowrap;
+      }
+      .ghost-btn:hover {
+        background: color-mix(in oklch, var(--muted) 50%, var(--card));
+      }
+
+      /* ------------------------------------------------------------ tree --- */
+
+      .tree {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .tree ul {
+        list-style: none;
+        margin: 0;
+        /* The indent guide. One line per level, drawn on the UL so it spans every
+           child row rather than being repeated per row. */
+        padding-left: 21px;
+        border-left: 1px solid var(--border);
+        margin-left: 15px;
+      }
+      .tree li.collapsed > ul {
+        display: none;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 20px auto minmax(0, 1fr) auto auto;
+        gap: 9px;
+        align-items: center;
+        width: 100%;
+        padding: 6px 9px;
+        border: 1px solid transparent;
+        border-radius: calc(var(--radius) * 0.7);
+        background: none;
+        text-align: left;
+      }
+      .row:hover {
+        background: color-mix(in oklch, var(--muted) 45%, var(--card));
+      }
+      .row[aria-selected='true'] {
+        border-color: var(--primary);
+        background: color-mix(in srgb, var(--primary) 8%, var(--card));
+      }
+
+      .twisty {
+        display: grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        color: var(--muted-foreground);
+      }
+      .twisty svg {
+        width: 13px;
+        height: 13px;
+        transition: transform 0.13s;
+      }
+      li.collapsed > .row .twisty svg {
+        transform: rotate(-90deg);
+      }
+      .twisty[data-leaf='true'] {
+        visibility: hidden;
+      }
+
+      .lvl {
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: color-mix(in oklch, var(--muted) 70%, var(--card));
+        color: var(--muted-foreground);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+      }
+      .lvl[data-level='comune'] {
+        background: color-mix(in srgb, var(--primary) 14%, var(--card));
+        color: var(--primary);
+      }
+
+      .row-name {
+        min-width: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .row-name b {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .row-name code {
+        flex: none;
+        color: var(--muted-foreground);
+        font-family: ui-monospace, monospace;
+        font-size: 11.5px;
+      }
+
+      .state {
+        flex: none;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-size: 10.5px;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      .state[data-kind='own'] {
+        border-color: color-mix(in oklch, var(--ok) 45%, transparent);
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+      .state[data-kind='call'] {
+        border-color: var(--warn-border);
+        background: var(--warn-bg);
+        color: var(--warn);
+      }
+      .state[data-kind='inherit'] {
+        color: var(--muted-foreground);
+      }
+
+      .row-fee {
+        flex: none;
+        min-width: 82px;
+        text-align: right;
+        font-size: 13.5px;
+        font-weight: 650;
+      }
+      .row-fee[data-inherited='true'] {
+        color: var(--muted-foreground);
+        font-weight: 500;
+      }
+      .row-fee[data-call='true'] {
+        color: var(--warn);
+        font-size: 11.5px;
+        font-weight: 650;
+      }
+
+      /* --------------------------------------------------------- editor --- */
+
+      .editor-body {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .crumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: center;
+        font-size: 11.5px;
+        color: var(--muted-foreground);
+      }
+      .crumbs b {
+        color: var(--foreground);
+        font-weight: 600;
+      }
+      .field-label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+      }
+      .hint {
+        margin-top: 6px;
+        color: var(--muted-foreground);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      /* Three-state chooser. Each option carries its own explanation — the states
+         are policy decisions, not synonyms, so the labels alone are not enough. */
+      .states {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .state-opt {
+        display: grid;
+        grid-template-columns: 16px minmax(0, 1fr);
+        gap: 11px;
+        align-items: start;
+        padding: 11px 13px;
+        border: 1.5px solid var(--border);
+        border-radius: calc(var(--radius) * 0.8);
+        background: var(--card);
+        text-align: left;
+      }
+      .state-opt[aria-checked='true'] {
+        border-color: var(--primary);
+        background: color-mix(in srgb, var(--primary) 7%, var(--card));
+      }
+      .state-dot {
+        margin-top: 2px;
+        width: 15px;
+        height: 15px;
+        border: 1.5px solid var(--input);
+        border-radius: 50%;
+        background: var(--card);
+      }
+      .state-opt[aria-checked='true'] .state-dot {
+        border: 4.5px solid var(--primary);
+      }
+      .state-opt strong {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .state-opt span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted-foreground);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .price-row {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        margin-top: 10px;
+        margin-left: 27px;
+      }
+      .price-row[hidden] {
+        display: none;
+      }
+      .price-input {
+        position: relative;
+        width: 140px;
+      }
+      .price-input span {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted-foreground);
+        font-size: 13px;
+      }
+      .price-input input {
+        width: 100%;
+        min-height: 36px;
+        padding: 7px 11px 7px 26px;
+        border: 1px solid var(--input);
+        border-radius: calc(var(--radius) * 0.7);
+        background: color-mix(in oklch, var(--muted) 25%, var(--card));
+        color: var(--foreground);
+        font: inherit;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .impact {
+        padding: 11px 13px;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) * 0.8);
+        background: color-mix(in oklch, var(--muted) 35%, var(--card));
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--muted-foreground);
+      }
+      .impact b {
+        color: var(--foreground);
+      }
+
+      .add-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border: 1px dashed var(--input);
+        border-radius: calc(var(--radius) * 0.7);
+        background: none;
+        color: var(--foreground);
+        font-size: 12.5px;
+        font-weight: 550;
+      }
+      .add-btn:hover {
+        border-style: solid;
+        background: color-mix(in oklch, var(--muted) 45%, var(--card));
+      }
+      .add-btn svg {
+        width: 13px;
+        height: 13px;
+      }
+      .add-btn[disabled] {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+
+      /* ------------------------------------------------------- preview --- */
+
+      .preview {
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) * 0.8);
+        overflow: hidden;
+      }
+      .preview-head {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in oklch, var(--muted) 40%, var(--card));
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        color: var(--muted-foreground);
+      }
+      .preview-body {
+        padding: 13px;
+      }
+      .pv-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 3px 0;
+        font-size: 13px;
+      }
+      .pv-line span:first-child {
+        color: var(--muted-foreground);
+      }
+      .pv-total {
+        margin-top: 8px;
+        padding-top: 9px;
+        border-top: 1px solid var(--border);
+        font-weight: 700;
+      }
+      .pv-call {
+        color: var(--warn);
+        font-size: 12px;
+        font-weight: 650;
+      }
+      .pv-note {
+        margin-top: 9px;
+        padding: 9px 11px;
+        border-radius: 7px;
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-border);
+        color: var(--warn);
+        font-size: 11.5px;
+        line-height: 1.5;
+      }
+      .pv-note[hidden] {
+        display: none;
+      }
+
+      /* --------------------------------------------------------- legend --- */
+
+      .legend {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 22px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        font-size: 12.5px;
+        color: var(--muted-foreground);
+      }
+      .legend div {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .rank {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: var(--muted-foreground);
+      }
+      .rank code {
+        padding: 2px 7px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: color-mix(in oklch, var(--muted) 40%, var(--card));
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h1>Delivery pricing tree</h1>
+          <p>
+            Set a fee at any level. Anything below inherits it until a deeper node overrides. Concept
+            only — demo rows, nothing saves.
+          </p>
+        </div>
+        <button class="theme-btn" type="button" id="theme">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <circle cx="10" cy="10" r="3.6" />
+            <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M15.4 4.6L14 6M6 14l-1.4 1.4" />
+          </svg>
+          <span id="theme-label">Dark</span>
+        </button>
+      </div>
+
+      <div class="layout">
+        <!-- ========================================================= tree === -->
+        <section class="card">
+          <div class="card-head">
+            <label class="search">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                <circle cx="9" cy="9" r="5.5" />
+                <path d="M13 13l4 4" />
+              </svg>
+              <input type="search" id="filter" placeholder="Filter by name, ISTAT code or CAP…" />
+            </label>
+            <button class="ghost-btn" type="button" id="expand-all">Expand all</button>
+            <button class="ghost-btn" type="button" id="collapse-all">Collapse</button>
+          </div>
+          <div class="card-body">
+            <ul class="tree" id="tree" role="tree" aria-label="Delivery pricing tree"></ul>
+          </div>
+        </section>
+
+        <!-- ======================================================= editor === -->
+        <aside class="card">
+          <div class="card-head"><h2 id="editor-title">Node</h2></div>
+          <div class="editor-body">
+            <p class="crumbs" id="crumbs"></p>
+
+            <div>
+              <span class="field-label">Delivery fee for this area</span>
+              <div class="states" role="radiogroup" aria-label="Fee state" id="states">
+                <button class="state-opt" type="button" role="radio" data-state="inherit">
+                  <span class="state-dot" aria-hidden="true"></span>
+                  <span>
+                    <strong>Inherit</strong>
+                    <span id="inherit-hint">Uses the nearest parent that has a value.</span>
+                  </span>
+                </button>
+                <button class="state-opt" type="button" role="radio" data-state="price">
+                  <span class="state-dot" aria-hidden="true"></span>
+                  <span>
+                    <strong>Fixed fee</strong>
+                    <span>A price the customer sees immediately at checkout.</span>
+                  </span>
+                </button>
+                <button class="state-opt" type="button" role="radio" data-state="call">
+                  <span class="state-dot" aria-hidden="true"></span>
+                  <span>
+                    <strong>Needs call</strong>
+                    <span>
+                      We serve this area but will not quote it online. The customer is told the fee is
+                      confirmed by phone, and the total shows “+ delivery”.
+                    </span>
+                  </span>
+                </button>
+              </div>
+              <div class="price-row" id="price-row" hidden>
+                <label class="price-input">
+                  <span>€</span>
+                  <input type="text" inputmode="decimal" id="price" value="" aria-label="Fee amount" />
+                </label>
+                <span class="hint" style="margin: 0">per delivery, one way or return per the sheet</span>
+              </div>
+            </div>
+
+            <p class="impact" id="impact"></p>
+
+            <div>
+              <span class="field-label">Add a child area</span>
+              <div class="add-row" id="add-row"></div>
+              <p class="hint" id="add-hint"></p>
+            </div>
+
+            <div class="preview">
+              <div class="preview-head">What the customer sees</div>
+              <div class="preview-body">
+                <div class="pv-line"><span>Rental subtotal</span><span class="num">84,00 €</span></div>
+                <div class="pv-line">
+                  <span id="pv-label">Delivery</span><span class="num" id="pv-fee">—</span>
+                </div>
+                <div class="pv-line pv-total">
+                  <span>Total</span><span class="num" id="pv-total">84,00 €</span>
+                </div>
+                <p class="pv-note" id="pv-note" hidden>
+                  Il costo di consegna viene confermato al telefono e aggiunto al totale.
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="legend">
+        <div><span class="state" data-kind="own">OWN</span> a value set on this node</div>
+        <div><span class="state" data-kind="inherit">INHERITED</span> comes from an ancestor</div>
+        <div><span class="state" data-kind="call">NEEDS CALL</span> served, quoted by phone</div>
+      </div>
+      <p class="rank">
+        Most specific match wins:
+        <code>comune+CAP+frazione</code> → <code>comune+frazione</code> → <code>comune+CAP</code> →
+        <code>comune</code> → <code>province</code> → <code>region</code>
+      </p>
+    </div>
+
+    <script>
+      'use strict';
+
+      /* ------------------------------------------------------------- data ---
+         `own` is the node's own decision and the only thing an editor writes:
+           undefined → inherit      {fee: n} → fixed price      {call: true}
+         Everything else on screen is derived, so there is exactly one source of
+         truth per node and no cached effective value to go stale.
+      */
+      const TREE = [
+        {
+          id: 'r-lazio', level: 'region', name: 'Lazio', own: { fee: 50 },
+          children: [
+            {
+              id: 'p-rm', level: 'province', name: 'Roma', code: 'RM',
+              children: [
+                {
+                  id: 'c-roma', level: 'comune', name: 'Roma', code: '058091', own: { fee: 15 },
+                  children: [
+                    {
+                      id: 'k-roma-121', level: 'cap', name: 'Lido di Ostia', code: '00121',
+                      own: { fee: 25 },
+                      children: [
+                        { id: 'f-ostia-ant', level: 'frazione', name: 'Ostia Antica', own: { fee: 28 } },
+                      ],
+                    },
+                    { id: 'k-roma-125', level: 'cap', name: 'Acilia', code: '00125', own: { fee: 25 } },
+                    { id: 'f-palocco', level: 'frazione', name: 'Casal Palocco' },
+                  ],
+                },
+                {
+                  id: 'c-fiumicino', level: 'comune', name: 'Fiumicino', code: '058120',
+                  own: { fee: 30 },
+                  children: [{ id: 'f-isola', level: 'frazione', name: 'Isola Sacra' }],
+                },
+                { id: 'c-tivoli', level: 'comune', name: 'Tivoli', code: '058104', own: { fee: 35 } },
+                { id: 'c-formello', level: 'comune', name: 'Formello', code: '058040', own: { fee: 35 } },
+                { id: 'c-riano', level: 'comune', name: 'Riano', code: '058083', own: { fee: 40 } },
+                {
+                  id: 'c-civita', level: 'comune', name: 'Civitavecchia', code: '058032',
+                  own: { call: true },
+                },
+                { id: 'c-anzio', level: 'comune', name: 'Anzio', code: '058007' },
+              ],
+            },
+            {
+              id: 'p-lt', level: 'province', name: 'Latina', code: 'LT', own: { fee: 55 },
+              children: [{ id: 'c-latina', level: 'comune', name: 'Latina', code: '059011' }],
+            },
+          ],
+        },
+        {
+          id: 'r-toscana', level: 'region', name: 'Toscana', own: { call: true },
+          children: [
+            {
+              id: 'p-fi', level: 'province', name: 'Firenze', code: 'FI',
+              children: [
+                { id: 'c-firenze', level: 'comune', name: 'Firenze', code: '048017', own: { fee: 15 } },
+                { id: 'c-sesto', level: 'comune', name: 'Sesto Fiorentino', code: '048043', own: { fee: 25 } },
+                { id: 'c-empoli', level: 'comune', name: 'Empoli', code: '048014', own: { fee: 40 } },
+              ],
+            },
+            { id: 'p-si', level: 'province', name: 'Siena', code: 'SI' },
+          ],
+        },
+      ];
+
+      const LEVEL_LABEL = {
+        region: 'REGION',
+        province: 'PROV',
+        comune: 'COMUNE',
+        cap: 'CAP',
+        frazione: 'FRAZ',
+      };
+
+      /** What each level is allowed to contain. CAP is never a level of its own —
+          a `cap` node always means the pair (its parent comune + this CAP). */
+      const ALLOWED_CHILDREN = {
+        region: ['province'],
+        province: ['comune'],
+        comune: ['cap', 'frazione'],
+        cap: ['frazione'],
+        frazione: [],
+      };
+
+      const ADD_LABEL = { province: 'Province', comune: 'Comune', cap: 'CAP', frazione: 'Frazione' };
+
+      const eur = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+      const RENTAL = 84;
+
+      const parents = new Map();
+      const byId = new Map();
+      (function index(nodes, parent) {
+        for (const node of nodes) {
+          byId.set(node.id, node);
+          parents.set(node.id, parent);
+          index(node.children ?? [], node);
+        }
+      })(TREE, null);
+
+      const state = { selected: 'c-roma', collapsed: new Set(), filter: '' };
+
+      /* ------------------------------------------------------- resolution ---
+         Walk up until a node owns a decision. Returns where it came from too —
+         the admin needs to see the SOURCE, otherwise an inherited number looks
+         like it was typed here. */
+      function resolve(node) {
+        let cursor = node;
+        while (cursor) {
+          if (cursor.own) {
+            return { own: cursor.own, source: cursor, inherited: cursor !== node };
+          }
+          cursor = parents.get(cursor.id);
+        }
+        return { own: null, source: null, inherited: false };
+      }
+
+      const path = (node) => {
+        const out = [];
+        for (let c = node; c; c = parents.get(c.id)) out.unshift(c);
+        return out;
+      };
+
+      const countDescendants = (node) =>
+        (node.children ?? []).reduce((n, child) => n + 1 + countDescendants(child), 0);
+
+      /** A node matches the filter itself, or is kept because a descendant does. */
+      function matches(node, term) {
+        if (!term) return true;
+        const self = [node.name, node.code, LEVEL_LABEL[node.level]]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(term);
+        return self || (node.children ?? []).some((child) => matches(child, term));
+      }
+
+      /* ----------------------------------------------------------- render --- */
+
+      function feeCell(node) {
+        const { own, inherited } = resolve(node);
+        const cell = document.createElement('span');
+        cell.className = 'row-fee num';
+        if (!own) {
+          cell.textContent = '—';
+          cell.dataset.inherited = 'true';
+        } else if (own.call) {
+          cell.textContent = 'Needs call';
+          cell.dataset.call = 'true';
+          if (inherited) cell.dataset.inherited = 'true';
+        } else {
+          cell.textContent = eur.format(own.fee);
+          cell.dataset.inherited = String(inherited);
+        }
+        return cell;
+      }
+
+      function stateChip(node) {
+        const chip = document.createElement('span');
+        chip.className = 'state';
+        if (node.own?.call) {
+          chip.dataset.kind = 'call';
+          chip.textContent = 'NEEDS CALL';
+        } else if (node.own) {
+          chip.dataset.kind = 'own';
+          chip.textContent = 'OWN';
+        } else {
+          chip.dataset.kind = 'inherit';
+          chip.textContent = 'INHERITED';
+        }
+        return chip;
+      }
+
+      function renderNode(node, term) {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'none');
+        const kids = (node.children ?? []).filter((child) => matches(child, term));
+        const hasKids = kids.length > 0;
+        if (state.collapsed.has(node.id) && !term) li.className = 'collapsed';
+
+        const row = document.createElement('button');
+        row.className = 'row';
+        row.type = 'button';
+        row.setAttribute('role', 'treeitem');
+        row.setAttribute('aria-selected', String(node.id === state.selected));
+        if (hasKids) row.setAttribute('aria-expanded', String(!li.classList.contains('collapsed')));
+
+        const twisty = document.createElement('span');
+        twisty.className = 'twisty';
+        twisty.dataset.leaf = String(!hasKids);
+        twisty.innerHTML =
+          '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>';
+        twisty.addEventListener('click', (event) => {
+          if (!hasKids) return;
+          event.stopPropagation();
+          if (state.collapsed.has(node.id)) state.collapsed.delete(node.id);
+          else state.collapsed.add(node.id);
+          render();
+        });
+
+        const lvl = document.createElement('span');
+        lvl.className = 'lvl';
+        lvl.dataset.level = node.level;
+        lvl.textContent = LEVEL_LABEL[node.level];
+
+        const name = document.createElement('span');
+        name.className = 'row-name';
+        const strong = document.createElement('b');
+        /* A cap node is the PAIR, so it is named as one — never as a bare CAP. */
+        strong.textContent =
+          node.level === 'cap' ? parents.get(node.id).name + ' + ' + node.code : node.name;
+        name.append(strong);
+        if (node.code) {
+          const code = document.createElement('code');
+          code.textContent = node.level === 'cap' ? node.name : node.code;
+          name.append(code);
+        }
+
+        row.append(twisty, lvl, name, stateChip(node), feeCell(node));
+        row.addEventListener('click', () => {
+          state.selected = node.id;
+          render();
+        });
+        li.append(row);
+
+        if (hasKids) {
+          const ul = document.createElement('ul');
+          ul.setAttribute('role', 'group');
+          for (const child of kids) ul.append(renderNode(child, term));
+          li.append(ul);
+        }
+        return li;
+      }
+
+      function renderEditor() {
+        const node = byId.get(state.selected);
+        const chain = path(node);
+        const { own, source, inherited } = resolve(node);
+
+        document.getElementById('editor-title').textContent =
+          node.level === 'cap' ? parents.get(node.id).name + ' + ' + node.code : node.name;
+
+        const crumbs = document.getElementById('crumbs');
+        crumbs.innerHTML = '';
+        chain.forEach((step, i) => {
+          if (i) crumbs.append(document.createTextNode('›'));
+          const el = document.createElement(step === node ? 'b' : 'span');
+          el.textContent = step.level === 'cap' ? step.code : step.name;
+          crumbs.append(el);
+        });
+
+        // three-state chooser
+        const current = node.own?.call ? 'call' : node.own ? 'price' : 'inherit';
+        document.querySelectorAll('.state-opt').forEach((opt) => {
+          opt.setAttribute('aria-checked', String(opt.dataset.state === current));
+        });
+        document.getElementById('price-row').hidden = current !== 'price';
+        if (current === 'price') document.getElementById('price').value = String(node.own.fee);
+
+        // what inheriting would actually give you — the hint has to be concrete
+        const ancestor = parents.get(node.id) ? resolve(parents.get(node.id)) : { own: null };
+        document.getElementById('inherit-hint').textContent = !ancestor.own
+          ? 'No parent has a value yet, so this area would fall back to a phone quote.'
+          : ancestor.own.call
+            ? 'Would take “needs call” from ' + ancestor.source.name + '.'
+            : 'Would take ' + eur.format(ancestor.own.fee) + ' from ' + ancestor.source.name + '.';
+
+        // impact
+        const kids = countDescendants(node);
+        const impact = document.getElementById('impact');
+        const effective = !own
+          ? 'a phone quote'
+          : own.call
+            ? '“needs call”'
+            : eur.format(own.fee);
+        impact.innerHTML =
+          'Effective now: <b>' +
+          effective +
+          '</b>' +
+          (inherited ? ' — inherited from <b>' + source.name + '</b>.' : ' — set on this node.') +
+          (kids
+            ? ' Applies to <b>' + kids + '</b> nested ' +
+              (kids === 1 ? 'area that has no value of its own.' : 'areas that have no value of their own.')
+            : ' No nested areas below it.');
+
+        // contextual add buttons
+        const addRow = document.getElementById('add-row');
+        addRow.innerHTML = '';
+        const allowed = ALLOWED_CHILDREN[node.level];
+        if (allowed.length === 0) {
+          const note = document.createElement('button');
+          note.className = 'add-btn';
+          note.type = 'button';
+          note.disabled = true;
+          note.textContent = 'A frazione is the deepest level';
+          addRow.append(note);
+        }
+        for (const level of allowed) {
+          const button = document.createElement('button');
+          button.className = 'add-btn';
+          button.type = 'button';
+          button.innerHTML =
+            '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" ' +
+            'stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
+          button.append(document.createTextNode('Add ' + ADD_LABEL[level]));
+          button.addEventListener('click', () => addChild(node, level));
+          addRow.append(button);
+        }
+        document.getElementById('add-hint').textContent =
+          node.level === 'comune'
+            ? 'A CAP child means the pair “' + node.name + ' + CAP”, never a CAP on its own — the same CAP can belong to other comuni.'
+            : node.level === 'cap'
+              ? 'A frazione here is priced only within this CAP. The same frazione may also exist directly under the comune; the deeper node wins.'
+              : node.level === 'frazione'
+                ? 'Frazione match rates from address autocomplete are unreliable — treat these rows as best effort.'
+                : '';
+
+        // customer preview
+        const pvFee = document.getElementById('pv-fee');
+        const pvTotal = document.getElementById('pv-total');
+        const pvNote = document.getElementById('pv-note');
+        pvFee.className = 'num';
+        pvTotal.className = 'num';
+        if (own && !own.call) {
+          pvFee.textContent = eur.format(own.fee);
+          pvTotal.textContent = eur.format(RENTAL + own.fee);
+          pvNote.hidden = true;
+        } else {
+          pvFee.className = 'pv-call';
+          pvFee.textContent = 'Da confermare';
+          pvTotal.className = 'pv-call';
+          pvTotal.textContent = eur.format(RENTAL) + ' + consegna';
+          pvNote.hidden = false;
+        }
+      }
+
+      function render() {
+        const tree = document.getElementById('tree');
+        tree.innerHTML = '';
+        const term = state.filter.trim().toLowerCase();
+        for (const node of TREE) {
+          if (matches(node, term)) tree.append(renderNode(node, term));
+        }
+        renderEditor();
+      }
+
+      /* ----------------------------------------------------------- edits --- */
+
+      function addChild(parent, level) {
+        const n = (parent.children ?? []).filter((c) => c.level === level).length + 1;
+        const node = {
+          id: parent.id + '-' + level + n,
+          level,
+          name: level === 'cap' ? 'New area' : 'New ' + ADD_LABEL[level].toLowerCase(),
+          code: level === 'cap' ? '00' + (100 + n) : level === 'comune' ? '0000' + n : undefined,
+          children: [],
+        };
+        parent.children = parent.children ?? [];
+        parent.children.push(node);
+        byId.set(node.id, node);
+        parents.set(node.id, parent);
+        state.collapsed.delete(parent.id);
+        state.selected = node.id;
+        render();
+      }
+
+      document.querySelectorAll('.state-opt').forEach((opt) => {
+        opt.addEventListener('click', () => {
+          const node = byId.get(state.selected);
+          const kind = opt.dataset.state;
+          if (kind === 'inherit') delete node.own;
+          else if (kind === 'call') node.own = { call: true };
+          else node.own = { fee: node.own?.fee ?? resolve(node).own?.fee ?? 20 };
+          render();
+        });
+      });
+
+      document.getElementById('price').addEventListener('input', (event) => {
+        const node = byId.get(state.selected);
+        const value = Number(event.target.value.replace(',', '.'));
+        if (Number.isFinite(value) && value >= 0) {
+          node.own = { fee: value };
+          // Re-render the tree only: retyping into the field must not fight the caret.
+          const tree = document.getElementById('tree');
+          tree.innerHTML = '';
+          const term = state.filter.trim().toLowerCase();
+          for (const root of TREE) if (matches(root, term)) tree.append(renderNode(root, term));
+        }
+      });
+
+      document.getElementById('filter').addEventListener('input', (event) => {
+        state.filter = event.target.value;
+        render();
+      });
+
+      document.getElementById('expand-all').addEventListener('click', () => {
+        state.collapsed.clear();
+        render();
+      });
+      document.getElementById('collapse-all').addEventListener('click', () => {
+        byId.forEach((node) => {
+          if ((node.children ?? []).length) state.collapsed.add(node.id);
+        });
+        render();
+      });
+
+      document.getElementById('theme').addEventListener('click', () => {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+        document.getElementById('theme-label').textContent = dark ? 'Dark' : 'Light';
+      });
+
+      render();
+    </script>
+  </body>
+</html>

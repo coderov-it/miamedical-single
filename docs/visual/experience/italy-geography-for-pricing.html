@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What a comune actually is</title>
+    <!--
+      COMPANION TO delivery-price-from-list.html
+
+      That file shows the delivery-fee lookup working. This one explains the only
+      concept it depends on, because getting it wrong produces the wrong table:
+
+        A COMUNE IS NOT A CITY AREA.
+
+      It is the single unit Italy divides ALL of its territory into — cities,
+      towns, villages, farmland, mountains, coast. Every square metre of Italy is
+      inside exactly one comune, and no address is outside one. That is what
+      makes it a safe pricing key: the ~7,900 comuni form a complete partition of
+      the country, so a village needs no row of its own — its parent comune
+      already covers it.
+
+      The confusion this file exists to kill: Bangladesh uses DIFFERENT unit types
+      for rural and urban land (Union Parishad vs Pourashava vs City Corporation).
+      Italy uses ONE type for everything. Rome and a 30-person mountain village
+      are both "comuni" — the same kind of object, wildly different in size.
+
+      Figures are approximate and from public sources (ISTAT, national census).
+      They are here for scale intuition, not for computation.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --ink: #2e3237;
+        --ink-2: #49536b;
+        --ink-dec: #8a93a8;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --accent-deep: #1d2c62;
+        --ok: #0e6b41;
+        --ok-tint: #eaf5ef;
+        --ok-hair: #bcdcc9;
+        --warn: #8a5a06;
+        --warn-tint: #fdf6e8;
+        --warn-hair: #efdfba;
+
+        --font-display: 'Lexend', system-ui, sans-serif;
+        --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+        --font-ui: 'Inter', system-ui, sans-serif;
+
+        --shadow-card: 0 1px 2px rgb(23 28 45 / 0.04), 0 8px 24px rgb(23 28 45 / 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: var(--tint);
+        color: var(--ink);
+        font: 16px/1.6 var(--font-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      svg {
+        display: block;
+      }
+      p,
+      h1,
+      h2,
+      h3,
+      figure,
+      ul {
+        margin: 0;
+      }
+      .num {
+        font-family: var(--font-display);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+
+      .wrap {
+        max-width: 940px;
+        margin: 0 auto;
+        padding: 44px 24px 72px;
+      }
+
+      .eyebrow {
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 {
+        margin-top: 10px;
+        font-family: var(--font-display);
+        font-size: clamp(27px, 3.4vw, 36px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.13;
+      }
+      .lede {
+        margin-top: 14px;
+        max-width: 66ch;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .lede b {
+        color: var(--ink);
+      }
+
+      section {
+        margin-top: 44px;
+      }
+      h2 {
+        font-family: var(--font-display);
+        font-size: 21px;
+        font-weight: 650;
+        letter-spacing: -0.018em;
+      }
+      h2 + p,
+      h3 + p {
+        margin-top: 10px;
+      }
+      section > p {
+        max-width: 70ch;
+        color: var(--ink-2);
+      }
+      section > p + p {
+        margin-top: 12px;
+      }
+      section p b {
+        color: var(--ink);
+      }
+      code {
+        padding: 1.5px 5px;
+        border: 1px solid var(--hair);
+        border-radius: 5px;
+        background: #fff;
+        font-family: var(--font-ui);
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+
+      .card {
+        margin-top: 18px;
+        padding: 24px;
+        border: 1px solid var(--hair);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: var(--shadow-card);
+      }
+      figcaption {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--hair);
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.55;
+      }
+
+      /* ---------------------------------------------------------- ladder --- */
+
+      /* Nested boxes rather than an SVG: containment is the whole message, and
+         real nesting survives a narrow window where fixed coordinates do not. */
+      .ladder {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .rung {
+        padding: 14px 16px 16px;
+        border: 1.5px solid var(--hair);
+        border-radius: 12px;
+        background: #fff;
+      }
+      .rung + .rung,
+      .rung .rung {
+        margin-top: 12px;
+      }
+      .rung[data-level='comune'] {
+        border-color: var(--accent);
+        background: var(--tint-2);
+        box-shadow: 0 0 0 3px rgb(46 70 153 / 0.08);
+      }
+      .rung-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 10px;
+      }
+      .rung-kind {
+        font-family: var(--font-ui);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-dec);
+      }
+      .rung[data-level='comune'] .rung-kind {
+        color: var(--accent);
+      }
+      .rung-name {
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+      }
+      .rung-count {
+        margin-left: auto;
+        color: var(--ink-2);
+        font-family: var(--font-ui);
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+      .rung-note {
+        margin-top: 6px;
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .key-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+        padding: 5px 11px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+      }
+
+      /* ----------------------------------------------------------- table --- */
+
+      .table-scroll {
+        margin-top: 18px;
+        overflow-x: auto;
+        border: 1px solid var(--hair);
+        border-radius: 12px;
+        background: #fff;
+      }
+      table {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        font-size: 14.5px;
+      }
+      th,
+      td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--hair);
+        vertical-align: top;
+      }
+      thead th {
+        background: var(--tint);
+        font-family: var(--font-ui);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr[data-hi] td {
+        background: var(--tint-2);
+      }
+      td b {
+        font-family: var(--font-ui);
+        font-weight: 650;
+      }
+      td small {
+        display: block;
+        margin-top: 3px;
+        color: var(--ink-2);
+        font-size: 12.5px;
+        line-height: 1.45;
+      }
+      .count {
+        white-space: nowrap;
+        font-family: var(--font-display);
+        font-variant-numeric: tabular-nums;
+        font-weight: 650;
+      }
+
+      /* ----------------------------------------------------------- facts --- */
+
+      .facts {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+      }
+      .fact {
+        padding: 18px;
+        border: 1px solid var(--hair);
+        border-radius: 13px;
+        background: #fff;
+      }
+      .fact b {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .fact strong {
+        display: block;
+        margin-top: 7px;
+        font-family: var(--font-ui);
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .fact span {
+        display: block;
+        margin-top: 5px;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+
+      /* ---------------------------------------------------------- callout -- */
+
+      .callout {
+        margin-top: 18px;
+        padding: 18px 20px;
+        border: 1px solid var(--ok-hair);
+        border-radius: 13px;
+        background: var(--ok-tint);
+      }
+      .callout h3 {
+        font-family: var(--font-ui);
+        font-size: 15px;
+        font-weight: 650;
+        color: var(--ok);
+      }
+      .callout p {
+        margin-top: 6px;
+        color: #24503a;
+        font-size: 14.5px;
+        line-height: 1.6;
+      }
+      .callout.warn {
+        border-color: var(--warn-hair);
+        background: var(--warn-tint);
+      }
+      .callout.warn h3 {
+        color: var(--warn);
+      }
+      .callout.warn p {
+        color: #6f4905;
+      }
+
+      /* ------------------------------------------------------- worked ex --- */
+
+      .worked {
+        margin-top: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        overflow: hidden;
+        border: 1px solid var(--hair);
+        border-radius: 12px;
+        background: var(--hair);
+      }
+      .worked-row {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: baseline;
+        padding: 12px 16px;
+        background: #fff;
+        font-size: 14.5px;
+      }
+      .worked-row[data-key='true'] {
+        background: var(--tint-2);
+      }
+      .worked-row dt {
+        font-family: var(--font-ui);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--ink-dec);
+      }
+      .worked-row[data-key='true'] dt {
+        color: var(--accent);
+      }
+      .worked-row dd {
+        margin: 0;
+        font-weight: 700;
+      }
+      .worked-row em {
+        color: var(--ink-2);
+        font-size: 13px;
+        font-style: normal;
+      }
+
+      /* ------------------------------------------------------------- svg --- */
+
+      .band-scroll {
+        overflow-x: auto;
+      }
+      .band {
+        width: 100%;
+        min-width: 660px;
+        height: auto;
+      }
+      .band text {
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      .b-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        fill: #8a93a8;
+      }
+      .b-name {
+        font-size: 13px;
+        font-weight: 650;
+        fill: #2e3237;
+      }
+      .b-fee {
+        font-family: 'Lexend', system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        fill: #49536b;
+      }
+      .b-cap {
+        font-family: 'Lexend', system-ui, sans-serif;
+        font-size: 12.5px;
+        font-weight: 650;
+        fill: #2e3237;
+      }
+      .b-note {
+        font-size: 12px;
+        font-weight: 600;
+        fill: #8a5a06;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <p class="eyebrow">Companion · delivery pricing</p>
+      <h1>What a comune actually is — and why it is safe to price on</h1>
+      <p class="lede">
+        I said "municipality" earlier and that was a bad word for it, because it points your mind at
+        <b>towns</b>. A comune is not a town or a city area. It is the <b>one</b> unit Italy divides
+        <b>all</b> of its land into — cities, towns, villages, farmland, mountains, coastline. Every
+        square metre of Italy sits inside exactly one comune. Nothing is left over.
+      </p>
+
+      <!-- ===================================================== the ladder === -->
+      <section>
+        <h2>The four levels, from biggest to smallest</h2>
+        <p>
+          Read this as boxes inside boxes. The blue box is the level your client's price sheet is keyed
+          on.
+        </p>
+
+        <figure class="card">
+          <div class="ladder">
+            <div class="rung" data-level="region">
+              <div class="rung-head">
+                <span class="rung-kind">Regione — region</span>
+                <span class="rung-name">Lazio</span>
+                <span class="rung-count">20 in Italy</span>
+              </div>
+              <p class="rung-note">The top tier. Roughly a state or a division.</p>
+
+              <div class="rung" data-level="province">
+                <div class="rung-head">
+                  <span class="rung-kind">Provincia — province</span>
+                  <span class="rung-name">Roma (RM)</span>
+                  <span class="rung-count">~107 in Italy</span>
+                </div>
+                <p class="rung-note">
+                  The two-letter code you see in every address: <code>RM</code>, <code>FI</code>,
+                  <code>PO</code>. Roughly a district.
+                </p>
+
+                <div class="rung" data-level="comune">
+                  <div class="rung-head">
+                    <span class="rung-kind">Comune</span>
+                    <span class="rung-name">Fiumicino</span>
+                    <span class="rung-count">~7,900 in Italy</span>
+                  </div>
+                  <p class="rung-note">
+                    One local council with one mayor. Covers its whole territory — the built-up centre
+                    <em>and</em> the fields, hills and hamlets around it. Rome is one of these. So is a
+                    village of thirty people.
+                  </p>
+                  <span class="key-flag">← the price sheet is keyed here</span>
+
+                  <div class="rung" data-level="frazione">
+                    <div class="rung-head">
+                      <span class="rung-kind">Frazione — hamlet / village</span>
+                      <span class="rung-name">Isola Sacra</span>
+                      <span class="rung-count">tens of thousands</span>
+                    </div>
+                    <p class="rung-note">
+                      A named settlement <em>inside</em> a comune, with no council of its own. This is
+                      what you were picturing as "village" — and it needs no row in the sheet, because
+                      its comune already covers it.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption>
+            Every Italian address fills in all four levels, and the comune is never missing or
+            ambiguous. That is the property the whole pricing model rests on.
+          </figcaption>
+        </figure>
+      </section>
+
+      <!-- ================================================== bangladesh === -->
+      <section>
+        <h2>Why "Pourashava" threw you off</h2>
+        <p>
+          Bangladesh uses <b>different kinds of unit</b> depending on whether land is rural or urban:
+          Union Parishad for villages, Pourashava for towns, City Corporation for big cities. So
+          "Pourashava" correctly means <em>an urban area</em> to you.
+        </p>
+        <p>
+          Italy has <b>no such split.</b> One type — the comune — is used everywhere, for the largest
+          city and the emptiest mountainside alike. So the closest equivalent is not Pourashava on its
+          own; it is <b>Union Parishad, Pourashava and City Corporation all merged into a single
+          type.</b>
+        </p>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Italy</th>
+                <th scope="col">Count</th>
+                <th scope="col">Closest in Bangladesh</th>
+                <th scope="col">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Regione</b><small>region</small></td>
+                <td class="count">20</td>
+                <td><b>Bibhag</b><small>division</small></td>
+                <td class="count">8</td>
+              </tr>
+              <tr>
+                <td><b>Provincia</b><small>the RM / FI code in an address</small></td>
+                <td class="count">~107</td>
+                <td><b>Zila</b><small>district</small></td>
+                <td class="count">64</td>
+              </tr>
+              <tr data-hi>
+                <td>
+                  <b>Comune</b>
+                  <small>ONE type, covering all land — urban and rural alike</small>
+                </td>
+                <td class="count">~7,900</td>
+                <td>
+                  <b>Union Parishad + Pourashava + City Corporation</b>
+                  <small>three separate types in Bangladesh, one single type in Italy</small>
+                </td>
+                <td class="count">~4,900</td>
+              </tr>
+              <tr>
+                <td><b>Frazione</b><small>hamlet inside a comune, no council</small></td>
+                <td class="count">many</td>
+                <td><b>Gram / mouza</b><small>village</small></td>
+                <td class="count">many</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="facts">
+          <div class="fact">
+            <b class="num">~38 km²</b>
+            <strong>Average comune</strong>
+            <span>
+              About the same land area as an average Union Parishad (~30 km²) — just with far fewer
+              people on it. So the <em>size</em> intuition you already have is roughly right.
+            </span>
+          </div>
+          <div class="fact">
+            <b class="num">1,287 km²</b>
+            <strong>Comune of Rome</strong>
+            <span>2.8 million residents, and legally the same kind of unit as the next card.</span>
+          </div>
+          <div class="fact">
+            <b class="num">~30</b>
+            <strong>Residents of Morterone</strong>
+            <span>
+              Italy's smallest comune by population. Also one comune, also one row in the sheet.
+            </span>
+          </div>
+        </div>
+
+        <div class="callout">
+          <h3>This is the part that answers your worry</h3>
+          <p>
+            "We need to cover the whole of Italy, villages and towns everywhere" — you already do. The
+            ~7,900 comuni are a <b>complete partition</b> of the country: no gaps, no overlaps, nothing
+            outside. A village is inside a comune, so it inherits that comune's fee automatically and
+            needs no row of its own. You never have to list villages.
+          </p>
+        </div>
+      </section>
+
+      <!-- ======================================================== the CAP === -->
+      <section>
+        <h2>And the CAP? That is just a post-office number</h2>
+        <p>
+          The CAP (<em>Codice di Avviamento Postale</em>) is a postal code, exactly like the 4-digit
+          codes in Bangladesh. It is drawn by the <b>post office</b>, for sorting mail efficiently — not
+          by the government, and not to mark any boundary anyone governs.
+        </p>
+        <p>
+          That is the whole reason it does not line up with comuni. It was never trying to. Sometimes a
+          CAP is <b>smaller</b> than a comune, sometimes <b>bigger</b> — and there is no rule telling
+          you which:
+        </p>
+
+        <figure class="card">
+          <div class="band-scroll">
+            <svg class="band" viewBox="0 0 880 300" role="img" aria-labelledby="band-title">
+              <title id="band-title">
+                Comune and CAP boundaries do not align. Rome contains about 200 CAPs, while CAP 00060
+                spans three separate comuni that are priced differently.
+              </title>
+
+              <!-- row labels -->
+              <text class="b-label" x="20" y="26">Comune — the pricing key</text>
+              <text class="b-label" x="20" y="212">CAP — the postal code</text>
+
+              <!-- comuni band -->
+              <g>
+                <rect x="20" y="38" width="376" height="58" rx="9" fill="#e7edf8" stroke="#2e4699" stroke-width="1.5" />
+                <text class="b-name" x="36" y="64">Roma</text>
+                <text class="b-fee" x="36" y="82">15,00 €</text>
+
+                <rect x="404" y="38" width="140" height="58" rx="9" fill="#e7edf8" stroke="#2e4699" stroke-width="1.5" />
+                <text class="b-name" x="418" y="64">Formello</text>
+                <text class="b-fee" x="418" y="82">35,00 €</text>
+
+                <rect x="552" y="38" width="140" height="58" rx="9" fill="#fdf6e8" stroke="#8a5a06" stroke-width="1.5" />
+                <text class="b-name" x="566" y="64">Riano</text>
+                <text class="b-fee" x="566" y="82" fill="#8a5a06">40,00 €</text>
+
+                <rect x="700" y="38" width="160" height="58" rx="9" fill="#e7edf8" stroke="#2e4699" stroke-width="1.5" />
+                <text class="b-name" x="714" y="64">Sacrofano</text>
+                <text class="b-fee" x="714" y="82">35,00 €</text>
+              </g>
+
+              <!-- mismatch guides: comune edges that no CAP edge matches -->
+              <g stroke="#8a5a06" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.85">
+                <line x1="548" y1="100" x2="548" y2="222" />
+                <line x1="696" y1="100" x2="696" y2="222" />
+              </g>
+              <!-- the one edge that DOES line up -->
+              <line x1="400" y1="100" x2="400" y2="222" stroke="#c8d2e6" stroke-width="1.5" />
+
+              <!-- CAP band -->
+              <g>
+                <rect x="20" y="224" width="70" height="52" rx="8" fill="#fff" stroke="#c8d2e6" stroke-width="1.5" />
+                <text class="b-cap" x="33" y="255">00118</text>
+                <rect x="96" y="224" width="70" height="52" rx="8" fill="#fff" stroke="#c8d2e6" stroke-width="1.5" />
+                <text class="b-cap" x="109" y="255">00121</text>
+                <rect x="172" y="224" width="70" height="52" rx="8" fill="#fff" stroke="#c8d2e6" stroke-width="1.5" />
+                <text class="b-cap" x="185" y="255">00125</text>
+                <rect x="248" y="224" width="70" height="52" rx="8" fill="#fff" stroke="#c8d2e6" stroke-width="1.5" />
+                <text class="b-cap" x="261" y="255">00165</text>
+                <rect x="324" y="224" width="72" height="52" rx="8" fill="#fff" stroke="#c8d2e6" stroke-width="1.5" />
+                <text class="b-cap" x="345" y="255">…</text>
+
+                <rect x="404" y="224" width="456" height="52" rx="8" fill="#fdf6e8" stroke="#8a5a06" stroke-width="1.5" />
+                <text class="b-cap" x="608" y="255" text-anchor="middle">00060</text>
+              </g>
+
+              <!-- brackets -->
+              <g>
+                <path d="M20 122 v10 h376 v-10" fill="none" stroke="#8a93a8" stroke-width="1.3" />
+                <text class="b-name" x="208" y="152" text-anchor="middle" fill="#49536b">
+                  1 comune → about 200 CAPs
+                </text>
+                <text class="b-note" x="208" y="172" text-anchor="middle" fill="#49536b">
+                  the CAP is SMALLER than the comune here
+                </text>
+
+                <path d="M404 122 v10 h456 v-10" fill="none" stroke="#8a5a06" stroke-width="1.3" />
+                <text class="b-name" x="632" y="152" text-anchor="middle" fill="#8a5a06">
+                  1 CAP → 3 comuni, at 2 different fees
+                </text>
+                <text class="b-note" x="632" y="172" text-anchor="middle">
+                  the CAP is BIGGER than the comune here
+                </text>
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            Only one boundary in this picture lines up (the grey line). The dashed amber lines are comune
+            borders that the postal code simply ignores — Riano costs €40 while its two CAP-mates cost
+            €35. Ask "what does CAP 00060 cost?" and there is no answer. Ask "what does the comune of
+            Riano cost?" and there always is one.
+          </figcaption>
+        </figure>
+
+        <div class="callout warn">
+          <h3>So the rule is: comune decides, CAP may only refine</h3>
+          <p>
+            The lookup pins the comune first, then checks for an exception row keyed on the
+            <b>pair</b> <code>ISTAT:CAP</code>. A CAP shared between comuni then cannot leak one
+            comune's price onto its neighbours, and a big city can still price its coastal district
+            apart from its centre. Both directions of mismatch, one rule.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================================================== worked ex === -->
+      <section>
+        <h2>One real address, all its levels</h2>
+        <p>
+          This is what the autocomplete provider hands back for a single address. Note that the fee is
+          decided by one line of it, and that the village name is not that line.
+        </p>
+
+        <dl class="worked">
+          <div class="worked-row">
+            <dt>Street</dt>
+            <dd>Via Portuense 2451</dd>
+            <em>needed for the delivery note, not for the fee</em>
+          </div>
+          <div class="worked-row">
+            <dt>Frazione</dt>
+            <dd>Isola Sacra</dd>
+            <em>a village — no council, no row, no effect on price</em>
+          </div>
+          <div class="worked-row" data-key="true">
+            <dt>Comune</dt>
+            <dd>Fiumicino — ISTAT 058120</dd>
+            <em>THIS decides the fee</em>
+          </div>
+          <div class="worked-row">
+            <dt>CAP</dt>
+            <dd>00054</dd>
+            <em>checked only for an exception row within Fiumicino</em>
+          </div>
+          <div class="worked-row">
+            <dt>Provincia</dt>
+            <dd>Roma (RM)</dd>
+            <em>used to group the fallback list for the customer</em>
+          </div>
+          <div class="worked-row">
+            <dt>Regione</dt>
+            <dd>Lazio</dd>
+            <em>unused</em>
+          </div>
+        </dl>
+      </section>
+
+      <!-- ====================================================== the sheet === -->
+      <section>
+        <h2>What this means for the sheet your client gave you</h2>
+        <p>
+          Two things worth being concrete about, because they shrink the job:
+        </p>
+        <div class="facts">
+          <div class="fact">
+            <b class="num">7,900</b>
+            <strong>Rows for all of Italy</strong>
+            <span>
+              The absolute maximum, if your client ever delivered everywhere. It is a small table, and
+              the ISTAT list is a free one-time import refreshed maybe yearly.
+            </span>
+          </div>
+          <div class="fact">
+            <b class="num">~50–200</b>
+            <strong>Rows you will actually have</strong>
+            <span>
+              The comuni your client really serves. Everything else routes to a phone quote — which is
+              what they do today anyway.
+            </span>
+          </div>
+          <div class="fact">
+            <b class="num">0</b>
+            <strong>Villages to list</strong>
+            <span>
+              A frazione inherits its comune's fee. You never enumerate villages, and you never have a
+              gap in coverage.
+            </span>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <h3>The one question left for your client</h3>
+          <p>
+            Are their spreadsheet rows <b>comuni</b> (town names like Fiumicino, Tivoli, Sacrofano) or
+            <b>provinces</b> (the two-letter codes RM, FI)? Comuni means ~7,900 possible rows and fine
+            pricing; provinces means ~107 and much coarser. It changes the import, so it is worth a
+            direct question rather than a guess — and if the sheet turns out to mix both levels, the
+            comune rows win and the province rows become the fallback for anything unlisted.
+          </p>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
