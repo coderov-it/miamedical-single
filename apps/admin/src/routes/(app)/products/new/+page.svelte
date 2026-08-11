@@ -180,7 +180,7 @@
       <!-- Visually set apart because it is the one irreversible choice here. -->
       <div class="space-y-4 border-y border-amber-500/30 bg-amber-500/5 p-5">
         <div class="flex items-start gap-2">
-          <TriangleAlertIcon class="mt-0.5 size-4 shrink-0 text-amber-600" />
+          <TriangleAlertIcon class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
             <Label class="text-sm font-medium">Pricing mode</Label>
             <p class="mt-0.5 text-xs text-muted-foreground">

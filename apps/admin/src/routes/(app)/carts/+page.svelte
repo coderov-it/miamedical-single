@@ -146,7 +146,7 @@
                     Abandoned
                   </Badge>
                 {:else}
-                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600">
+                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">
                     Active
                   </Badge>
                 {/if}

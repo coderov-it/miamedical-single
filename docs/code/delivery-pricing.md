@@ -187,6 +187,21 @@ key is `MATCH SIMPLE` — it is trivially satisfied when *either* referencing co
 is NULL, so a row could name a real parent, leave `parent_level` NULL, and never be
 checked against it.
 
+## Editing the tree
+
+One panel, three modes — `zone-editor.svelte` is read, edit and add. Adding was a
+modal and is not any more: it covered the tree the operator was working in, and it
+carried its own header, footer and copy for a form that asks the same two
+questions Edit already asks. Both writes now share one form, so they cannot drift
+apart, and both report whether the server accepted them — a rejected code has to
+leave the operator looking at what they typed.
+
+Only Delete still interrupts, because it takes every nested area with it.
+
+A created row is grafted into the local tree before the selection moves to it.
+`selected` falls back to the country row for any id it cannot find, so selecting a
+row that exists only on the server flashes Italia until the refetch lands.
+
 ## Deliberately not modelled
 
 **Distance.** The first design routed from the nearest outlet and priced per km.

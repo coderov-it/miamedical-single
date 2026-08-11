@@ -187,11 +187,11 @@
 
               <Table.Cell>
                 {#if category.translations.en?.name}
-                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600">
+                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">
                     complete
                   </Badge>
                 {:else}
-                  <Badge variant="outline" class="border-amber-500/40 text-amber-600">
+                  <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
                     missing
                   </Badge>
                 {/if}

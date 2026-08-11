@@ -116,7 +116,7 @@
           {#if doc.status !== 'published'}
             <!-- Linkable, but flagged: a draft document is not something a
                  customer can be asked to accept at checkout. -->
-            <Badge variant="outline" class="border-amber-500/40 text-amber-600">
+            <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
               not published
             </Badge>
           {/if}

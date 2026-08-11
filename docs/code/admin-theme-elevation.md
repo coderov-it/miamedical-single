@@ -51,9 +51,38 @@ about half of dark's: a grey canvas that matched dark's contrast read as dingy
 rather than muted, so light leans on the card's `shadow-xs` and ring to finish
 the lift that lightness alone does in dark.
 
+Dark's lightnesses are the stock shadcn ramp and have not moved; the only things
+that changed there are its text colours and its hue, below.
+
 Do not close that gap by darkening `--background` without looking at the page —
 it is a judgement that was made by eye, at the value where the canvas stops
 reading as grey paper and starts reading as dirty white.
+
+## Text in dark is not pure white
+
+`--foreground` in dark is `oklch(0.92 …)`, not the stock `0.985`. Measured against
+`--card`:
+
+| Text on `--card` (dark) | Ratio |
+| ----------------------- | ----- |
+| `0.985` — stock shadcn  | 17.2  |
+| `0.92` — now            | 14.1  |
+| AAA for body text       | 7.0   |
+
+17:1 is not legibility, it is glare: on a near-black surface pure white haloes and
+makes every long back-office session harder than it needs to be. 14:1 is still
+double what AAA asks. `--muted-foreground` moved with it, `0.708 → 0.72`, so the
+gap between primary and secondary text stayed where it was (7.2:1 on `--card`).
+
+Dark's neutrals also carry the hue-286 trace that light has always had — every
+lightness in the ramp is unchanged, so no well needed re-deriving, and the greys
+stop reading faintly yellow beside `--primary`.
+
+**Status colours need a `dark:` variant.** `text-emerald-600` on `--card` is
+4.8:1 and reads as murky bottle green; `text-amber-600` is 5.7:1. The pattern is
+`border-emerald-500/40 text-emerald-600 dark:text-emerald-400` — the `400` shades
+land at 9.3:1 and 10.7:1. Anything using a raw Tailwind palette step for text is
+light-mode-only until it has the dark half.
 
 ## Where the numbers came from
 
