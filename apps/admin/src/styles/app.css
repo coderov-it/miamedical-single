@@ -46,10 +46,12 @@
   --sidebar-ring: oklch(0.62 0.012 286);
 }
 
-/* Dark keeps every L from the ramp above and changes two things: text is not pure
-   white (17:1 on `--card` is glare, not legibility — this is 14:1, still past
-   AAA), and the neutrals carry the same hue-286 trace as light instead of being
-   dead `0 0` grey. Both are readability, neither moves an elevation step. */
+/* Dark keeps every L from the ramp above and changes three things: text is not
+   pure white (17:1 on `--card` is glare, not legibility — this is 14:1, still past
+   AAA); the neutrals carry the same hue-286 trace as light instead of being dead
+   `0 0` grey; and the accent is INK-FIRST, so `text-primary` and `border-primary`
+   are legible on a dark surface. All three are readability, none moves an
+   elevation step. */
 .dark {
   --background: oklch(0.145 0.004 286);
   --foreground: oklch(0.92 0.004 286);
@@ -57,8 +59,12 @@
   --card-foreground: oklch(0.92 0.004 286);
   --popover: oklch(0.205 0.004 286);
   --popover-foreground: oklch(0.92 0.004 286);
-  --primary: oklch(0.424 0.199 265.638);
-  --primary-foreground: oklch(0.97 0.014 254.604);
+  /* Bright enough to be TEXT on `--card` (5.3:1), which the stock 0.424 was not
+     (2.0:1 — a blue that vanished as a badge, a border and a link). An accent that
+     bright takes dark ink, not white: navy on it reads 5.4:1 where white manages
+     3.5. Same value as `--sidebar-primary` below, so the app has one accent. */
+  --primary: oklch(0.65 0.2 259.815);
+  --primary-foreground: oklch(0.2 0.06 259.815);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.92 0.004 286);
   --muted: oklch(0.269 0.005 286);
@@ -76,8 +82,8 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0.004 286);
   --sidebar-foreground: oklch(0.92 0.004 286);
-  --sidebar-primary: oklch(0.623 0.214 259.815);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-primary: oklch(0.65 0.2 259.815);
+  --sidebar-primary-foreground: oklch(0.2 0.06 259.815);
   --sidebar-accent: oklch(0.269 0.005 286);
   --sidebar-accent-foreground: oklch(0.92 0.004 286);
   --sidebar-border: oklch(1 0 0 / 10%);
