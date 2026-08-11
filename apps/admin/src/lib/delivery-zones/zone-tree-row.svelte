@@ -11,6 +11,13 @@
   ancestor, and whether "no fee" means nobody filled it in or the owner decided
   it needs a phone call. Hence the state badge beside the amount rather than the
   amount alone.
+
+  THE WHOLE ROW SELECTS. It used to be only the name and the code, which left the
+  level badge, the state badge and the amount — the widest, most obvious target on
+  a pricing screen, and where the eye already is — clicking through to nothing. The
+  chevron is a SIBLING layered over the row's left cell, not a child of it: a
+  button inside a button is invalid HTML, and the browser resolves it by dropping
+  one of the two.
 -->
 <script lang="ts">
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -53,88 +60,89 @@
 </script>
 
 <li>
-  <div
-    class={cn(
-      'flex items-center gap-2 rounded-md border py-1.5 pr-2.5 pl-1 transition-colors',
-      selected ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-muted/60',
-    )}
-  >
+  <div class="relative">
+    <!-- `pl-9` is the chevron's cell (4px offset + 24px button + the old 8px gap),
+         reserved by padding so the overlaid chevron never sits on the badge. -->
+    <button
+      type="button"
+      class={cn(
+        'flex w-full items-center gap-2 rounded-md border py-1.5 pr-2.5 pl-9 text-left transition-colors',
+        selected ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-muted/60',
+      )}
+      aria-current={selected ? 'true' : undefined}
+      onclick={() => onSelect(node)}
+    >
+      <span
+        class={cn(
+          'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wider',
+          node.level === 'comune'
+            ? 'bg-primary/10 text-primary'
+            : 'bg-muted text-muted-foreground',
+        )}
+      >
+        {LEVEL_BADGE[node.level]}
+      </span>
+
+      <span class="flex min-w-0 flex-1 items-baseline gap-2">
+        <span class="truncate font-medium">{title}</span>
+        {#if subCode}
+          <code class="shrink-0 font-mono text-xs text-muted-foreground">{subCode}</code>
+        {/if}
+      </span>
+
+      <!-- State first, amount second: the amount is meaningless until you know
+           whether it belongs to this row. -->
+      {#if node.valueKind === 'call'}
+        <span
+          class="shrink-0 rounded-full border border-amber-500/40 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
+        >
+          NEEDS CALL
+        </span>
+      {:else if node.valueKind === 'fee'}
+        <span
+          class="shrink-0 rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
+        >
+          OWN
+        </span>
+      {:else}
+        <span
+          class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
+        >
+          INHERITED
+        </span>
+      {/if}
+
+      <span
+        class={cn(
+          'w-24 shrink-0 text-right text-sm tabular-nums',
+          resolved.value === null && 'text-muted-foreground',
+          resolved.value?.kind === 'call' &&
+            'text-xs font-semibold text-amber-600 dark:text-amber-400',
+          resolved.value?.kind === 'fee' &&
+            (resolved.inherited ? 'text-muted-foreground' : 'font-semibold'),
+        )}
+      >
+        {#if resolved.value === null}
+          {EM_DASH}
+        {:else if resolved.value.kind === 'call'}
+          Needs call
+        {:else}
+          {formatMoney(resolved.value.fee)}
+        {/if}
+      </span>
+    </button>
+
     {#if kids.length > 0}
       <button
         type="button"
-        class="flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+        class="absolute top-1/2 left-1 flex size-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted"
         aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
         aria-expanded={open}
         onclick={() => onToggle(node.id)}
       >
         <ChevronDownIcon class={cn('size-3.5 transition-transform', !open && '-rotate-90')} />
       </button>
-    {:else}
-      <span class="size-6 shrink-0" aria-hidden="true"></span>
     {/if}
-
-    <span
-      class={cn(
-        'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wider',
-        node.level === 'comune'
-          ? 'bg-primary/10 text-primary'
-          : 'bg-muted text-muted-foreground',
-      )}
-    >
-      {LEVEL_BADGE[node.level]}
-    </span>
-
-    <button
-      type="button"
-      class="flex min-w-0 flex-1 items-baseline gap-2 text-left"
-      aria-current={selected ? 'true' : undefined}
-      onclick={() => onSelect(node)}
-    >
-      <span class="truncate font-medium">{title}</span>
-      {#if subCode}
-        <code class="shrink-0 font-mono text-xs text-muted-foreground">{subCode}</code>
-      {/if}
-    </button>
-
-    <!-- State first, amount second: the amount is meaningless until you know
-         whether it belongs to this row. -->
-    {#if node.valueKind === 'call'}
-      <span
-        class="shrink-0 rounded-full border border-amber-500/40 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
-      >
-        NEEDS CALL
-      </span>
-    {:else if node.valueKind === 'fee'}
-      <span
-        class="shrink-0 rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
-      >
-        OWN
-      </span>
-    {:else}
-      <span
-        class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
-      >
-        INHERITED
-      </span>
-    {/if}
-
-    <span
-      class={cn(
-        'w-24 shrink-0 text-right text-sm tabular-nums',
-        resolved.value === null && 'text-muted-foreground',
-        resolved.value?.kind === 'call' && 'text-xs font-semibold text-amber-600 dark:text-amber-400',
-        resolved.value?.kind === 'fee' &&
-          (resolved.inherited ? 'text-muted-foreground' : 'font-semibold'),
-      )}
-    >
-      {#if resolved.value === null}
-        {EM_DASH}
-      {:else if resolved.value.kind === 'call'}
-        Needs call
-      {:else}
-        {formatMoney(resolved.value.fee)}
-      {/if}
-    </span>
   </div>
 
   {#if kids.length > 0 && open}

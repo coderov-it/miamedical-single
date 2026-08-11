@@ -391,9 +391,13 @@
               class={cn(
                 'flex items-stretch overflow-hidden rounded-md border transition-colors',
                 'has-[input:focus-visible]:border-ring has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50',
-                // Active reads as the blue dot plus a ring, with no fill behind:
-                // a tinted row makes the stepper sitting in it look borrowed.
-                active ? 'border-primary ring-[3px] ring-primary/15' : 'hover:bg-muted/60',
+                // Active is the blue border and the blue dot, nothing else. It
+                // carried a `ring-[3px]` while `--primary` was still 2:1 against
+                // the card and a 1px border could not be seen; a ring is a spread
+                // box-shadow, so at a legible blue it reads as a glow around the
+                // row. The focus ring above stays — that one is keyboard state,
+                // and it is the same ring every input in the admin uses.
+                active ? 'border-primary' : 'hover:bg-muted/60',
               )}
             >
               <button

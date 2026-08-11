@@ -78,6 +78,32 @@ Dark's neutrals also carry the hue-286 trace that light has always had — every
 lightness in the ramp is unchanged, so no well needed re-deriving, and the greys
 stop reading faintly yellow beside `--primary`.
 
+## The dark accent is ink first, not a button fill first
+
+The stock dark `--primary` was `oklch(0.424 0.199 265)` = `#193cb8`, chosen so
+white sits on it at 8:1. Measured the other way round it is **2.0:1 against
+`--card`** — which is what `text-primary` and `border-primary` actually need,
+because the accent is a badge, a link, a selected border and a radio dot far more
+often than it is a button.
+
+Dark now takes the brighter accent and dark ink on it, verified in the browser:
+
+| Use | Ratio |
+| --- | --- |
+| `--primary` `#3d89ff` as text/border on `--card` | 5.3 |
+| the same on `--background` | 5.9 |
+| the same inside its own `bg-primary/10` badge fill | 4.7 |
+| `--primary-foreground` `#051531` on `--primary` | 5.4 |
+| white on `--primary`, had it stayed white | 3.5 |
+
+That last row is why the foreground flipped: at this brightness white _fails_ on
+the accent, and keeping white would have meant keeping a blue too dark to read
+anywhere else. `--sidebar-primary` takes the same pair, so the app has one accent
+rather than a panel blue and a sidebar blue.
+
+Light is untouched: there the accent sits at `0.488` on a white card, where it is
+already ink-legible and white-on-accent works.
+
 **Status colours need a `dark:` variant.** `text-emerald-600` on `--card` is
 4.8:1 and reads as murky bottle green; `text-amber-600` is 5.7:1. The pattern is
 `border-emerald-500/40 text-emerald-600 dark:text-emerald-400` — the `400` shades
