@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Delivery zones — how the data is stored</title>
+    <!--
+      HOW THE TWO TABLES ACTUALLY LOOK.
+
+      Same rows shown three ways so the shape stops being abstract:
+        1. the flat SQL tables, exactly as Postgres holds them
+        2. the tree those rows imply — built only from parent_id
+        3. the JSON, flat as stored and nested as the API returns it
+
+      Then a live lookup: pick an address, watch the walk up parent_id light up
+      in both the table and the tree at once. Five addresses cover every case —
+      a direct hit, a one-step inherit, a shared CAP, a two-step inherit to the
+      region, and a phone quote.
+
+      Zero dependencies, zero network. Open the file directly.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --ink: #2e3237;
+        --ink-2: #49536b;
+        --ink-dec: #8a93a8;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --ok: #0e6b41;
+        --ok-tint: #eaf5ef;
+        --ok-hair: #b9dcc7;
+        --warn: #8a5a06;
+        --warn-tint: #fdf6e8;
+        --warn-hair: #efdfba;
+        --hit: #b45309;
+        --hit-tint: #fff4e2;
+
+        --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+        --shadow: 0 1px 2px rgb(23 28 45 / 0.04), 0 8px 24px rgb(23 28 45 / 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: var(--tint);
+        color: var(--ink);
+        font: 15px/1.55 'Inter', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      p,
+      h1,
+      h2,
+      h3,
+      pre,
+      ul {
+        margin: 0;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 40px 22px 70px;
+      }
+      .eyebrow {
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 {
+        margin-top: 9px;
+        font-family: 'Lexend', sans-serif;
+        font-size: clamp(25px, 3.2vw, 33px);
+        font-weight: 700;
+        letter-spacing: -0.021em;
+        line-height: 1.14;
+      }
+      .lede {
+        margin-top: 11px;
+        max-width: 62ch;
+        color: var(--ink-2);
+        font-size: 16px;
+      }
+
+      section {
+        margin-top: 40px;
+      }
+      h2 {
+        font-family: 'Lexend', sans-serif;
+        font-size: 19px;
+        font-weight: 650;
+        letter-spacing: -0.016em;
+      }
+      .sub {
+        margin-top: 7px;
+        max-width: 74ch;
+        color: var(--ink-2);
+        font-size: 14.5px;
+      }
+      .step {
+        display: inline-grid;
+        place-items: center;
+        width: 23px;
+        height: 23px;
+        margin-right: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-family: 'Lexend', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        vertical-align: 2px;
+      }
+
+      .card {
+        margin-top: 16px;
+        border: 1px solid var(--hair);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .card-h {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 10px;
+        padding: 11px 15px;
+        border-bottom: 1px solid var(--hair);
+        background: var(--tint);
+      }
+      .card-h b {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .card-h span {
+        color: var(--ink-2);
+        font-size: 12.5px;
+      }
+      .card-h .pill {
+        margin-left: auto;
+        padding: 2px 9px;
+        border: 1px solid var(--hair-strong);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--ink-2);
+        font-size: 11px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .scroll {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        min-width: 560px;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--hair);
+        white-space: nowrap;
+      }
+      thead th {
+        background: #fff;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--ink-2);
+        border-bottom: 1.5px solid var(--hair-strong);
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      td.mono,
+      th.mono {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .nul {
+        color: var(--ink-dec);
+        font-style: italic;
+      }
+      .fee {
+        font-family: 'Lexend', sans-serif;
+        font-variant-numeric: tabular-nums;
+        font-weight: 650;
+      }
+
+      /* walk highlight */
+      tbody tr[data-on='walk'] {
+        background: var(--hit-tint);
+      }
+      tbody tr[data-on='answer'] {
+        background: var(--ok-tint);
+      }
+      .walk-n {
+        display: inline-grid;
+        place-items: center;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: var(--hit);
+        color: #fff;
+        font-family: 'Lexend', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      tr[data-on='answer'] .walk-n {
+        background: var(--ok);
+      }
+      .walk-cell {
+        width: 34px;
+        padding-right: 0;
+      }
+
+      /* ------------------------------------------------------ two-up grid --- */
+
+      .two {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .two {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      /* ------------------------------------------------------------ tree --- */
+
+      .tree {
+        padding: 14px 16px;
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .tnode {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 5px 8px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+      }
+      .tnode[data-on='walk'] {
+        border-color: var(--warn-hair);
+        background: var(--hit-tint);
+      }
+      .tnode[data-on='answer'] {
+        border-color: var(--ok-hair);
+        background: var(--ok-tint);
+      }
+      .tnode .id {
+        color: var(--ink-dec);
+        font-size: 11px;
+      }
+      .tnode .nm {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+      }
+      .tnode .val {
+        margin-left: auto;
+        font-family: 'Lexend', sans-serif;
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+        font-weight: 650;
+      }
+      .tnode .val[data-kind='inherit'] {
+        color: var(--ink-dec);
+        font-family: 'Inter', sans-serif;
+        font-size: 11.5px;
+        font-weight: 500;
+      }
+      .tnode .val[data-kind='call'] {
+        color: var(--warn);
+        font-family: 'Inter', sans-serif;
+        font-size: 11.5px;
+        font-weight: 650;
+      }
+      .tkids {
+        margin-left: 15px;
+        padding-left: 14px;
+        border-left: 1px solid var(--hair);
+      }
+
+      /* ------------------------------------------------------------ json --- */
+
+      pre {
+        /* Capped so the flat and nested panels stay comparable in height — the
+           nested one is several times longer and would stretch the section. */
+        max-height: 430px;
+        padding: 15px 16px;
+        overflow: auto;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.6;
+        tab-size: 2;
+      }
+      .k {
+        color: #7b3fa0;
+      }
+      .s {
+        color: #0e6b41;
+      }
+      .n {
+        color: #b45309;
+      }
+      .z {
+        color: var(--ink-dec);
+      }
+      .c {
+        color: var(--ink-dec);
+        font-style: italic;
+      }
+
+      /* ---------------------------------------------------------- lookup --- */
+
+      .addr-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px 15px;
+        border-bottom: 1px solid var(--hair);
+        background: var(--tint);
+      }
+      .addr {
+        padding: 8px 12px;
+        border: 1.5px solid var(--hair);
+        border-radius: 9px;
+        background: #fff;
+        text-align: left;
+        font-size: 12.5px;
+        line-height: 1.35;
+      }
+      .addr[aria-pressed='true'] {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(46 70 153 / 0.1);
+      }
+      .addr b {
+        display: block;
+        font-weight: 650;
+      }
+      .addr span {
+        color: var(--ink-2);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+
+      .verdict {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-top: 1px solid var(--hair);
+        background: var(--ok-tint);
+      }
+      .verdict[data-kind='call'] {
+        background: var(--warn-tint);
+      }
+      .verdict-amt {
+        font-family: 'Lexend', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--ok);
+      }
+      .verdict[data-kind='call'] .verdict-amt {
+        font-size: 17px;
+        color: var(--warn);
+      }
+      .verdict p {
+        color: var(--ink-2);
+        font-size: 13.5px;
+        max-width: 70ch;
+      }
+      .verdict p b {
+        color: var(--ink);
+      }
+
+      .steps {
+        list-style: none;
+        padding: 12px 16px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        font-size: 13px;
+      }
+      .steps li {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .steps code {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .steps .marker {
+        flex: none;
+        display: inline-grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--hit);
+        color: #fff;
+        font-family: 'Lexend', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .steps li[data-final='true'] .marker {
+        background: var(--ok);
+      }
+      .steps .why {
+        color: var(--ink-2);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <p class="eyebrow">Delivery pricing · data model</p>
+      <h1>The same rows, shown three ways</h1>
+      <p class="lede">
+        Two tables. One is a flat dictionary of Italy, imported once. The other is your client's price
+        list, and it is a tree made from a single column — <code>parent_id</code>.
+      </p>
+
+      <!-- ============================================== 1 · the two tables === -->
+      <section>
+        <h2><span class="step">1</span>The two tables, as Postgres holds them</h2>
+        <p class="sub">
+          Note what is <em>not</em> in the first one: no parent, no nesting. Every comune carries its
+          province and region as plain columns, which is all you need to know where an address is.
+        </p>
+
+        <div class="two">
+          <div class="card">
+            <div class="card-h">
+              <b>istat_comuni</b>
+              <span>flat · imported · read-only</span>
+              <span class="pill">7,900 rows</span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="mono">istat_code</th>
+                    <th class="mono">name</th>
+                    <th class="mono">province</th>
+                    <th class="mono">region</th>
+                  </tr>
+                </thead>
+                <tbody id="t-comuni"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <b>istat_comune_caps</b>
+              <span>which CAPs each comune contains</span>
+              <span class="pill">~10,000 rows</span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="mono">istat_code</th>
+                    <th class="mono">cap</th>
+                    <th>note</th>
+                  </tr>
+                </thead>
+                <tbody id="t-caps"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ 2 · delivery_zones === -->
+      <section>
+        <h2><span class="step">2</span><code>delivery_zones</code> — the price list, and the tree</h2>
+        <p class="sub">
+          One row per priced area. <code>parent_id</code> is the only thing making it a tree —
+          everything else is ordinary columns. A <code>null</code> in <code>value_kind</code> means
+          "inherit from above"; <code>call</code> means "we serve it, quote by phone".
+        </p>
+
+        <div class="two">
+          <div class="card">
+            <div class="card-h">
+              <b>delivery_zones</b>
+              <span>flat, as stored</span>
+              <span class="pill">~200 rows in practice</span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="walk-cell"></th>
+                    <th class="mono">id</th>
+                    <th class="mono">parent_id</th>
+                    <th class="mono">level</th>
+                    <th class="mono">code</th>
+                    <th class="mono">name</th>
+                    <th class="mono">value_kind</th>
+                    <th class="mono">fee</th>
+                  </tr>
+                </thead>
+                <tbody id="t-zones"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <b>the same rows, following parent_id</b>
+              <span>nothing else stored</span>
+            </div>
+            <div class="tree" id="tree"></div>
+          </div>
+        </div>
+
+        <p class="sub" style="margin-top: 14px">
+          Look at <code>z7</code> and <code>z10</code>: both have <code>code = '00060'</code>. Same
+          CAP, different <code>parent_id</code>, so they are different areas at different prices —
+          which is legal because the unique index is on
+          <code>(parent_id, level, code)</code>, not on <code>code</code> alone.
+        </p>
+      </section>
+
+      <!-- ==================================================== 3 · as JSON === -->
+      <section>
+        <h2><span class="step">3</span>As JSON — stored flat, served nested</h2>
+        <p class="sub">
+          The database stores rows. The API hands the admin a tree, assembled from
+          <code>parent_id</code> on the way out. Same data, two shapes.
+        </p>
+
+        <div class="two">
+          <div class="card">
+            <div class="card-h"><b>rows, as stored</b><span>SELECT * FROM delivery_zones</span></div>
+            <pre id="json-flat"></pre>
+          </div>
+          <div class="card">
+            <div class="card-h"><b>tree, as the API returns it</b><span>GET /admin/delivery-zones</span></div>
+            <pre id="json-tree"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================== 4 · the walk === -->
+      <section>
+        <h2><span class="step">4</span>One lookup, start to finish</h2>
+        <p class="sub">
+          Pick an address. The walk lights up in the table and the tree at the same time — amber for
+          rows visited, green for the row that answered.
+        </p>
+
+        <div class="card">
+          <div class="addr-row" id="addresses" role="group" aria-label="Sample addresses"></div>
+          <ol class="steps" id="steps"></ol>
+          <div class="verdict" id="verdict"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      'use strict';
+
+      /* ------------------------------------------------------------- data --- */
+
+      const COMUNI = [
+        { istat_code: '058091', name: 'Roma', province_code: 'RM', region_code: '12' },
+        { istat_code: '058083', name: 'Riano', province_code: 'RM', region_code: '12' },
+        { istat_code: '058040', name: 'Formello', province_code: 'RM', region_code: '12' },
+        { istat_code: '058032', name: 'Civitavecchia', province_code: 'RM', region_code: '12' },
+        { istat_code: '058007', name: 'Anzio', province_code: 'RM', region_code: '12' },
+        { istat_code: '048017', name: 'Firenze', province_code: 'FI', region_code: '09' },
+      ];
+
+      const COMUNE_CAPS = [
+        { istat_code: '058091', cap: '00121', note: 'Rome has ~200 of these' },
+        { istat_code: '058091', cap: '00181', note: '' },
+        { istat_code: '058083', cap: '00060', note: 'shared CAP' },
+        { istat_code: '058040', cap: '00060', note: 'same CAP, other comune' },
+        { istat_code: '058032', cap: '00053', note: '' },
+        { istat_code: '058007', cap: '00042', note: '' },
+      ];
+
+      /* value_kind null = inherit. fee is only ever set when value_kind = 'fee'. */
+      const ZONES = [
+        { id: 'z1', parent_id: null, level: 'region', code: '12', name: 'Lazio', value_kind: 'fee', fee: '50.00' },
+        { id: 'z2', parent_id: 'z1', level: 'province', code: 'RM', name: 'Roma', value_kind: null, fee: null },
+        { id: 'z3', parent_id: 'z2', level: 'comune', code: '058091', name: 'Roma', value_kind: 'fee', fee: '15.00' },
+        { id: 'z4', parent_id: 'z3', level: 'cap', code: '00121', name: 'Lido di Ostia', value_kind: 'fee', fee: '25.00' },
+        { id: 'z5', parent_id: 'z4', level: 'frazione', code: 'ostia-antica', name: 'Ostia Antica', value_kind: 'fee', fee: '28.00' },
+        { id: 'z6', parent_id: 'z2', level: 'comune', code: '058083', name: 'Riano', value_kind: 'fee', fee: '40.00' },
+        { id: 'z7', parent_id: 'z6', level: 'cap', code: '00060', name: 'Riano centro', value_kind: null, fee: null },
+        { id: 'z8', parent_id: 'z2', level: 'comune', code: '058032', name: 'Civitavecchia', value_kind: 'call', fee: null },
+        { id: 'z9', parent_id: 'z2', level: 'comune', code: '058007', name: 'Anzio', value_kind: null, fee: null },
+        { id: 'z10', parent_id: 'z2', level: 'comune', code: '058040', name: 'Formello', value_kind: 'fee', fee: '35.00' },
+        { id: 'z11', parent_id: 'z10', level: 'cap', code: '00060', name: 'Le Rughe', value_kind: null, fee: null },
+      ];
+
+      const ADDRESSES = [
+        { label: 'Viale dei Romagnoli 120, Roma', istat: '058091', cap: '00121', teaches: 'direct hit on a CAP row' },
+        { label: 'Via Appia Nuova 421, Roma', istat: '058091', cap: '00181', teaches: 'no CAP row → the comune answers' },
+        { label: 'Via della Stazione 24, Riano', istat: '058083', cap: '00060', teaches: 'shared CAP, and it inherits' },
+        { label: 'Lungomare Marconi 58, Anzio', istat: '058007', cap: '00042', teaches: 'two steps up to the region' },
+        { label: 'Via Roma 1, Civitavecchia', istat: '058032', cap: '00053', teaches: 'phone quote' },
+      ];
+
+      const byId = new Map(ZONES.map((z) => [z.id, z]));
+      const eur = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+
+      /* ---------------------------------------------------------- lookup --- */
+
+      /**
+       * Finds the deepest row the address matches, then walks parent_id up to the
+       * first row with a value_kind. Returns the whole visited chain so the UI can
+       * show WHY, not just the number.
+       */
+      function lookup(addr) {
+        const comune = ZONES.find((z) => z.level === 'comune' && z.code === addr.istat);
+        // A cap row only counts when it hangs off THAT comune — that is the
+        // whole defence against a shared CAP leaking across comuni.
+        const cap =
+          comune && ZONES.find((z) => z.level === 'cap' && z.code === addr.cap && z.parent_id === comune.id);
+
+        const start = cap ?? comune ?? null;
+        const chain = [];
+        let cursor = start;
+        while (cursor) {
+          chain.push(cursor);
+          if (cursor.value_kind) break;
+          cursor = cursor.parent_id ? byId.get(cursor.parent_id) : null;
+        }
+        const answer = chain.length && chain[chain.length - 1].value_kind ? chain[chain.length - 1] : null;
+        return { start, chain, answer, matchedCap: Boolean(cap) };
+      }
+
+      /* ---------------------------------------------------------- render --- */
+
+      const cell = (text, cls) => `<td${cls ? ` class="${cls}"` : ''}>${text}</td>`;
+      const NUL = '<span class="nul">null</span>';
+
+      document.getElementById('t-comuni').innerHTML = COMUNI.map(
+        (r) =>
+          `<tr>${cell(r.istat_code, 'mono')}${cell(r.name)}${cell(r.province_code, 'mono')}${cell(r.region_code, 'mono')}</tr>`,
+      ).join('');
+
+      document.getElementById('t-caps').innerHTML = COMUNE_CAPS.map(
+        (r) =>
+          `<tr>${cell(r.istat_code, 'mono')}${cell(r.cap, 'mono')}${cell(
+            r.note ? `<span class="nul">${r.note}</span>` : '',
+          )}</tr>`,
+      ).join('');
+
+      function zoneRowHtml(z) {
+        const kind =
+          z.value_kind === null
+            ? NUL
+            : z.value_kind === 'call'
+              ? '<b style="color:var(--warn)">call</b>'
+              : 'fee';
+        return (
+          `<tr data-row="${z.id}">` +
+          `<td class="walk-cell" data-walk="${z.id}"></td>` +
+          cell(`<b>${z.id}</b>`, 'mono') +
+          cell(z.parent_id ?? NUL, 'mono') +
+          cell(z.level, 'mono') +
+          cell(`<b>${z.code}</b>`, 'mono') +
+          cell(z.name) +
+          cell(kind, 'mono') +
+          cell(z.fee ? eur.format(Number(z.fee)) : NUL, z.fee ? 'fee' : '') +
+          '</tr>'
+        );
+      }
+      document.getElementById('t-zones').innerHTML = ZONES.map(zoneRowHtml).join('');
+
+      /** The tree is derived from parent_id here too — never stored. */
+      function buildTree(parentId) {
+        return ZONES.filter((z) => z.parent_id === parentId).map((z) => ({
+          ...z,
+          children: buildTree(z.id),
+        }));
+      }
+      const TREE = buildTree(null);
+
+      function treeHtml(nodes) {
+        return nodes
+          .map((n) => {
+            const val =
+              n.value_kind === 'fee'
+                ? `<span class="val">${eur.format(Number(n.fee))}</span>`
+                : n.value_kind === 'call'
+                  ? '<span class="val" data-kind="call">phone quote</span>'
+                  : '<span class="val" data-kind="inherit">inherits ↑</span>';
+            return (
+              `<div class="tnode" data-node="${n.id}">` +
+              `<span class="id">${n.id}</span>` +
+              `<span class="nm">${n.name}</span>` +
+              `<span class="id">${n.code}</span>` +
+              val +
+              '</div>' +
+              (n.children.length ? `<div class="tkids">${treeHtml(n.children)}</div>` : '')
+            );
+          })
+          .join('');
+      }
+      document.getElementById('tree').innerHTML = treeHtml(TREE);
+
+      /* ------------------------------------------------------------ json --- */
+
+      const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+      /** Minimal JSON pretty-printer with classes, so keys and nulls read apart. */
+      function jsonHtml(value, indent = 0) {
+        const pad = '  '.repeat(indent);
+        const padIn = '  '.repeat(indent + 1);
+        if (value === null) return '<span class="z">null</span>';
+        if (typeof value === 'number') return `<span class="n">${value}</span>`;
+        if (typeof value === 'string') return `<span class="s">"${esc(value)}"</span>`;
+        if (Array.isArray(value)) {
+          if (value.length === 0) return '[]';
+          return `[\n${value.map((v) => padIn + jsonHtml(v, indent + 1)).join(',\n')}\n${pad}]`;
+        }
+        const entries = Object.entries(value);
+        if (entries.length === 0) return '{}';
+        return `{\n${entries
+          .map(([k, v]) => `${padIn}<span class="k">"${esc(k)}"</span>: ${jsonHtml(v, indent + 1)}`)
+          .join(',\n')}\n${pad}}`;
+      }
+
+      // Three rows is enough to show the shape; the full set is in the table above.
+      document.getElementById('json-flat').innerHTML =
+        '<span class="c">// each row independent — the tree is implied</span>\n' +
+        jsonHtml(ZONES.slice(0, 4));
+
+      const trim = (nodes) =>
+        nodes.map((n) => ({
+          id: n.id,
+          level: n.level,
+          code: n.code,
+          name: n.name,
+          value_kind: n.value_kind,
+          fee: n.fee,
+          ...(n.children.length ? { children: trim(n.children) } : {}),
+        }));
+      document.getElementById('json-tree').innerHTML =
+        '<span class="c">// parent_id resolved into nesting; no new data</span>\n' +
+        jsonHtml(trim([TREE[0]]));
+
+      /* ---------------------------------------------------------- the walk --- */
+
+      const addrHost = document.getElementById('addresses');
+      addrHost.innerHTML = ADDRESSES.map(
+        (a, i) =>
+          `<button class="addr" type="button" aria-pressed="${i === 0}" data-addr="${i}">` +
+          `<b>${a.label}</b><span>istat=${a.istat} · cap=${a.cap}</span></button>`,
+      ).join('');
+
+      function showWalk(index) {
+        const addr = ADDRESSES[index];
+        const { chain, answer, matchedCap } = lookup(addr);
+        const ids = chain.map((z) => z.id);
+
+        addrHost.querySelectorAll('.addr').forEach((button) => {
+          button.setAttribute('aria-pressed', String(Number(button.dataset.addr) === index));
+        });
+
+        // table + tree, driven from the same chain
+        document.querySelectorAll('tbody#t-zones tr').forEach((tr) => {
+          const at = ids.indexOf(tr.dataset.row);
+          const marker = tr.querySelector('[data-walk]');
+          if (at < 0) {
+            tr.removeAttribute('data-on');
+            marker.innerHTML = '';
+          } else {
+            tr.dataset.on = chain[at] === answer ? 'answer' : 'walk';
+            marker.innerHTML = `<span class="walk-n">${at + 1}</span>`;
+          }
+        });
+        document.querySelectorAll('.tnode').forEach((node) => {
+          const at = ids.indexOf(node.dataset.node);
+          if (at < 0) node.removeAttribute('data-on');
+          else node.dataset.on = chain[at] === answer ? 'answer' : 'walk';
+        });
+
+        // the numbered reasoning
+        const steps = [
+          `<li><span class="marker">·</span><span>Address resolves to <code>istat=${addr.istat}</code>, <code>cap=${addr.cap}</code>.</span></li>`,
+          `<li><span class="marker">·</span><span>${
+            matchedCap
+              ? `A <code>cap</code> row with <code>code='${addr.cap}'</code> exists <b>under this comune</b> — start there.`
+              : `No <code>cap</code> row under this comune for <code>${addr.cap}</code> — start at the comune row.`
+          }</span></li>`,
+        ];
+        chain.forEach((z, i) => {
+          const final = z === answer;
+          steps.push(
+            `<li data-final="${final}"><span class="marker">${i + 1}</span><span><code>${z.id}</code> ${z.name} — ` +
+              (z.value_kind === null
+                ? '<span class="why">value_kind is null → keep walking up</span>'
+                : z.value_kind === 'call'
+                  ? '<b style="color:var(--warn)">value_kind = call</b> <span class="why">→ stop</span>'
+                  : `<b>fee ${eur.format(Number(z.fee))}</b> <span class="why">→ stop</span>`) +
+              '</span></li>',
+          );
+        });
+        document.getElementById('steps').innerHTML = steps.join('');
+
+        const verdict = document.getElementById('verdict');
+        if (!answer) {
+          verdict.dataset.kind = 'call';
+          verdict.innerHTML =
+            '<span class="verdict-amt">Phone quote</span><p>Nothing in the chain had a value.</p>';
+        } else if (answer.value_kind === 'call') {
+          verdict.dataset.kind = 'call';
+          verdict.innerHTML =
+            '<span class="verdict-amt">Phone quote</span>' +
+            `<p><b>${answer.name}</b> is set to <code>call</code> — served, deliberately not quoted online. ` +
+            `The checkout shows “Da confermare”.</p>`;
+        } else {
+          verdict.dataset.kind = 'fee';
+          verdict.innerHTML =
+            `<span class="verdict-amt">${eur.format(Number(answer.fee))}</span>` +
+            `<p>Answered by <code>${answer.id}</code> (<b>${answer.name}</b>, ${answer.level}) after ` +
+            `${chain.length} row${chain.length === 1 ? '' : 's'}. <b>${addr.teaches}</b></p>`;
+        }
+      }
+
+      addrHost.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-addr]');
+        if (button) showWalk(Number(button.dataset.addr));
+      });
+
+      showWalk(0);
+    </script>
+  </body>
+</html>

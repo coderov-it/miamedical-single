@@ -8,3 +8,4 @@ export * from './attribute.ts';
 export * from './terms.ts';
 export * from './cart.ts';
 export * from './order.ts';
+export * from './delivery.ts';

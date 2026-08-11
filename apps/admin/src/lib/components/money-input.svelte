@@ -1,13 +1,17 @@
 <!--
-  Emits a normalised `"0.00"` string, never a JS number — money stays a decimal
-  string end to end, the same way it is stored and sent.
+  A labelled money field. Emits a normalised `"0.00"` string, never a JS number —
+  money stays a decimal string end to end, the same way it is stored and sent.
 
-  Accepts both `,` and `.` as the decimal separator, because the operators are
-  Italian and their keyboards produce a comma.
+  The parsing rules live in `~/lib/money.ts` because the fee stepper in
+  delivery-zones needs the same ones with different chrome.
+
+  `dense` and `hideLabel` are opt-in and off by default, so one screen can ask for
+  a compact field without shrinking every form in the admin.
 -->
 <script lang="ts">
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import { parseMoney, toMoneyText } from '~/lib/money.ts';
 
   interface Props {
     label: string;
@@ -19,6 +23,13 @@
     suffix?: string;
     disabled?: boolean;
     id?: string;
+    /**
+     * Opt-in: shorter field for a dense panel. Off everywhere by default — this
+     * exists so one screen can be compact without shrinking every form.
+     */
+    dense?: boolean;
+    /** Opt-in: keep the label for screen readers only, where context supplies it. */
+    hideLabel?: boolean;
   }
 
   let {
@@ -30,50 +41,46 @@
     suffix = '',
     disabled = false,
     id,
+    dense = false,
+    hideLabel = false,
   }: Props = $props();
 
   const generatedId = $props.id();
   const fieldId = $derived(id ?? generatedId);
 
-  let text = $state(value.replace('.', ','));
+  let text = $state(toMoneyText(value));
   let lastNormalized = value;
 
   // Reflect external changes (loading a product) without fighting live typing.
   $effect(() => {
     if (value !== lastNormalized) {
       lastNormalized = value;
-      text = value.replace('.', ',');
+      text = toMoneyText(value);
     }
   });
 
   /**
-   * Normalising on blur rather than per keystroke: rewriting "1" to "1.00"
-   * while someone is still typing "1.5" makes the field feel possessed.
+   * Normalising on blur rather than per keystroke: rewriting "1" to "1.00" while
+   * someone is still typing "1.5" makes the field feel possessed.
    */
   function normalize() {
-    const raw = text.trim().replace(',', '.');
-    const match = /^(-?)(\d*)(?:\.(\d*))?$/.exec(raw);
+    const parsed = parseMoney(text, { allowNegative });
 
-    // Unparseable input reverts to the last good value rather than becoming
-    // NaN or an empty string the server would reject.
-    if (!match || raw === '' || raw === '-') {
-      text = value.replace('.', ',');
+    // Unparseable input reverts to the last good value rather than becoming NaN
+    // or an empty string the server would reject.
+    if (parsed === null) {
+      text = toMoneyText(value);
       return;
     }
 
-    const sign = allowNegative && match[1] === '-' ? '-' : '';
-    const whole = match[2] || '0';
-    const cents = ((match[3] ?? '') + '00').slice(0, 2);
-    const normalized = `${sign}${whole}.${cents}`;
-
-    value = normalized;
-    lastNormalized = normalized;
-    text = normalized.replace('.', ',');
+    value = parsed;
+    lastNormalized = parsed;
+    text = toMoneyText(parsed);
   }
 </script>
 
 <div>
-  <Label class="mb-1.5" for={fieldId}>{label}</Label>
+  <Label class={hideLabel ? 'sr-only' : 'mb-1.5'} for={fieldId}>{label}</Label>
   <div class="flex items-center gap-2">
     <Input
       id={fieldId}
@@ -84,7 +91,7 @@
       {disabled}
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={error ? `${fieldId}-error` : undefined}
-      class="w-36 text-right tabular-nums"
+      class={dense ? 'h-8 w-24 text-right text-sm tabular-nums' : 'w-36 text-right tabular-nums'}
     />
     {#if suffix}<span class="text-sm text-muted-foreground">{suffix}</span>{/if}
   </div>

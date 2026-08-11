@@ -10,6 +10,7 @@ import { db } from './infra/db/client.ts';
 import { attributeAdminRoutes } from './modules/attributes/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
+import { deliveryPublicRoutes, deliveryZoneAdminRoutes } from './modules/delivery/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes } from './modules/orders/routes.ts';
@@ -50,13 +51,15 @@ const routes = app
   .route('/api/products', productPublicRoutes)
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)
+  .route('/api/delivery', deliveryPublicRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)
   .route('/api/admin/terms', termsAdminRoutes)
   .route('/api/admin/attributes', attributeAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
-  .route('/api/admin/carts', cartAdminRoutes);
+  .route('/api/admin/carts', cartAdminRoutes)
+  .route('/api/admin/delivery-zones', deliveryZoneAdminRoutes);
 
 app.onError(onError);
 app.notFound(onNotFound);

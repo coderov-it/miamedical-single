@@ -25,6 +25,8 @@ export const routes = {
   ordersWithDrawer: (id: string) => `/orders?order=${id}`,
 
   carts: '/carts',
+  /** The delivery price tree: country → region → province → comune → comune+CAP. */
+  deliveryZones: '/delivery-zones',
 
   login: '/login',
 } as const;

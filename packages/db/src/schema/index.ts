@@ -8,3 +8,4 @@ export * from './users.ts';
 export * from './content.ts';
 export * from './catalog.ts';
 export * from './orders.ts';
+export * from './delivery.ts';

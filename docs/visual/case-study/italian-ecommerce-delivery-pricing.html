@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>How Italian e-commerce actually prices delivery</title>
+    <!--
+      CASE STUDY — desk research, August 2026.
+
+      Question: before we build a five-level geographic pricing tree, what do
+      comparable Italian businesses actually do?
+
+      Method: public shipping/delivery pages of Italian retailers, weighted
+      towards the closest analogues (medical-aid rental), plus the shipping-zone
+      data models of the two platforms most Italian shops are built on.
+
+      HONEST LIMITS. Everything here is from public pages read in August 2026;
+      none of it is from talking to these companies. Two sources would not
+      disclose (Mondo Convenienza's cost page was truncated on fetch;
+      sanitaria.it publishes "request a quote" only), and web search was
+      US-region, which under-samples smaller Italian operators. Prices change.
+      Treat the PATTERN as the finding, not any individual figure.
+
+      Sources are linked inline and listed at the foot.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Lexend';
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/lexend-variable-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 400;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/atkinson-hyperlegible-400-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Atkinson Hyperlegible';
+        font-weight: 700;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/atkinson-hyperlegible-700-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --ink: #2e3237;
+        --ink-2: #49536b;
+        --ink-dec: #8a93a8;
+        --tint: #f2f5fb;
+        --tint-2: #e7edf8;
+        --hair: #dfe6f2;
+        --hair-strong: #c8d2e6;
+        --accent: #2e4699;
+        --ok: #0e6b41;
+        --ok-tint: #eaf5ef;
+        --ok-hair: #b9dcc7;
+        --warn: #8a5a06;
+        --warn-tint: #fdf6e8;
+        --warn-hair: #efdfba;
+        --stop: #9f1239;
+        --stop-tint: #fdf2f5;
+        --stop-hair: #f0c9d5;
+        --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+        --shadow: 0 1px 2px rgb(23 28 45 / 0.04), 0 8px 24px rgb(23 28 45 / 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: var(--tint);
+        color: var(--ink);
+        font: 16px/1.6 'Atkinson Hyperlegible', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      p,
+      h1,
+      h2,
+      h3,
+      ul,
+      ol,
+      figure {
+        margin: 0;
+      }
+      a {
+        color: var(--accent);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+      }
+      .num {
+        font-family: 'Lexend', sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .wrap {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 42px 22px 76px;
+      }
+      .eyebrow {
+        font-family: 'Inter', sans-serif;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 {
+        margin-top: 10px;
+        font-family: 'Lexend', sans-serif;
+        font-size: clamp(26px, 3.4vw, 36px);
+        font-weight: 700;
+        letter-spacing: -0.021em;
+        line-height: 1.13;
+      }
+      .lede {
+        margin-top: 13px;
+        max-width: 64ch;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      .lede b {
+        color: var(--ink);
+      }
+
+      .method {
+        margin-top: 20px;
+        padding: 14px 16px;
+        border: 1px solid var(--warn-hair);
+        border-radius: 12px;
+        background: var(--warn-tint);
+        color: var(--warn);
+        font-size: 13.5px;
+        line-height: 1.55;
+      }
+      .method b {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+      }
+
+      section {
+        margin-top: 46px;
+      }
+      h2 {
+        font-family: 'Lexend', sans-serif;
+        font-size: 21px;
+        font-weight: 650;
+        letter-spacing: -0.018em;
+      }
+      h3 {
+        margin-top: 22px;
+        font-family: 'Inter', sans-serif;
+        font-size: 15.5px;
+        font-weight: 650;
+      }
+      section > p,
+      h3 + p {
+        margin-top: 10px;
+        max-width: 74ch;
+        color: var(--ink-2);
+      }
+      section > p + p {
+        margin-top: 12px;
+      }
+      section p b,
+      li b {
+        color: var(--ink);
+      }
+      code {
+        padding: 1.5px 5px;
+        border: 1px solid var(--hair);
+        border-radius: 5px;
+        background: #fff;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+
+      /* -------------------------------------------------------- evidence --- */
+
+      .scroll {
+        margin-top: 18px;
+        overflow-x: auto;
+        border: 1px solid var(--hair);
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+      table {
+        width: 100%;
+        min-width: 780px;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        padding: 11px 13px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--hair);
+      }
+      thead th {
+        position: sticky;
+        top: 0;
+        background: var(--tint);
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr[data-peer='true'] {
+        background: var(--tint-2);
+      }
+      td b {
+        font-family: 'Inter', sans-serif;
+        font-weight: 650;
+      }
+      td small {
+        display: block;
+        margin-top: 3px;
+        color: var(--ink-2);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .geo {
+        white-space: nowrap;
+        font-family: 'Inter', sans-serif;
+        font-size: 11.5px;
+        font-weight: 650;
+      }
+      .geo[data-role='none'] {
+        color: var(--ink-dec);
+      }
+      .geo[data-role='gate'] {
+        color: var(--accent);
+      }
+      .geo[data-role='exception'] {
+        color: var(--warn);
+      }
+
+      /* -------------------------------------------------------- findings --- */
+
+      .findings {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 14px;
+      }
+      .finding {
+        padding: 18px;
+        border: 1px solid var(--hair);
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+      .finding b {
+        display: block;
+        font-family: 'Lexend', sans-serif;
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+      .finding strong {
+        display: block;
+        margin-top: 7px;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .finding span {
+        display: block;
+        margin-top: 5px;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+
+      /* --------------------------------------------------------- callout --- */
+
+      .callout {
+        margin-top: 20px;
+        padding: 18px 20px;
+        border: 1px solid var(--ok-hair);
+        border-radius: 13px;
+        background: var(--ok-tint);
+      }
+      .callout h3 {
+        margin-top: 0;
+        color: var(--ok);
+      }
+      .callout p {
+        margin-top: 7px;
+        color: #234c38;
+        font-size: 15px;
+      }
+      .callout.stop {
+        border-color: var(--stop-hair);
+        background: var(--stop-tint);
+      }
+      .callout.stop h3 {
+        color: var(--stop);
+      }
+      .callout.stop p {
+        color: #7a1230;
+      }
+      .callout.warn {
+        border-color: var(--warn-hair);
+        background: var(--warn-tint);
+      }
+      .callout.warn h3 {
+        color: var(--warn);
+      }
+      .callout.warn p {
+        color: #6f4905;
+      }
+
+      /* ------------------------------------------------------ comparison --- */
+
+      .versus {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+      @media (max-width: 880px) {
+        .versus {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .col {
+        border: 1px solid var(--hair);
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .col-h {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--hair);
+        background: var(--tint);
+      }
+      .col-h b {
+        font-family: 'Inter', sans-serif;
+        font-size: 14.5px;
+        font-weight: 650;
+      }
+      .col-h span {
+        display: block;
+        margin-top: 2px;
+        color: var(--ink-2);
+        font-size: 12.5px;
+      }
+      .col-b {
+        padding: 14px 15px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+      }
+      .col ul {
+        padding: 12px 15px 15px 32px;
+        border-top: 1px solid var(--hair);
+        font-size: 13.5px;
+        color: var(--ink-2);
+      }
+      .col ul li + li {
+        margin-top: 5px;
+      }
+      .verdict-tag {
+        display: inline-block;
+        margin-left: auto;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-family: 'Inter', sans-serif;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .col[data-pick='true'] .col-h {
+        background: var(--ok-tint);
+        border-bottom-color: var(--ok-hair);
+      }
+      .col[data-pick='true'] .verdict-tag {
+        background: var(--ok);
+        color: #fff;
+      }
+      .col[data-pick='false'] .verdict-tag {
+        background: var(--hair-strong);
+        color: var(--ink-2);
+      }
+      .col-h .row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      /* ------------------------------------------------------------ list --- */
+
+      ol.steps,
+      ul.plain {
+        margin-top: 12px;
+        padding-left: 22px;
+        color: var(--ink-2);
+        font-size: 15px;
+      }
+      ol.steps li + li,
+      ul.plain li + li {
+        margin-top: 8px;
+      }
+
+      /* --------------------------------------------------------- sources --- */
+
+      .sources {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px solid var(--hair);
+        border-radius: 13px;
+        background: #fff;
+        font-size: 13.5px;
+      }
+      .sources li + li {
+        margin-top: 6px;
+      }
+      .sources ul {
+        padding-left: 20px;
+      }
+      .sources span {
+        color: var(--ink-dec);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <p class="eyebrow">Case study · August 2026</p>
+      <h1>How Italian e-commerce actually prices delivery</h1>
+      <p class="lede">
+        Before building a five-level geographic pricing tree, the obvious question: what do comparable
+        Italian businesses do? The short answer is <b>far less than we were planning</b> — and the
+        closest analogues to this business do almost nothing at all.
+      </p>
+
+      <p class="method">
+        <b>Method and limits.</b> Desk research on public delivery pages, read August 2026, weighted
+        towards medical-aid rental as the nearest vertical, plus the shipping-zone data models of the
+        two platforms most Italian shops run on. Nobody was interviewed. Two sources would not
+        disclose: Mondo Convenienza's cost page truncated on fetch, and sanitaria.it publishes
+        "request a quote" only. Web search was US-region, which under-samples small Italian operators.
+        Individual prices will drift — <b>the pattern is the finding, not the figures.</b>
+      </p>
+
+      <!-- ================================================ the evidence === -->
+      <section>
+        <h2>What they charge</h2>
+        <p>
+          Rows shaded blue are direct analogues: Italian medical-aid rental, van delivery, assembly on
+          site. The same business this project is for.
+        </p>
+
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Company</th>
+                <th scope="col">Sector</th>
+                <th scope="col">How delivery is priced</th>
+                <th scope="col">Role of geography</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-peer="true">
+                <td>
+                  <b>Mandara Ortopedia</b>
+                  <small>medical aids rental</small>
+                </td>
+                <td>Rental — same vertical</td>
+                <td>
+                  <b>Flat €25</b> nationwide.
+                  <small>Store and branch pickup free, by appointment. Floor delivery on request.</small>
+                </td>
+                <td><span class="geo" data-role="none">None</span></td>
+              </tr>
+              <tr data-peer="true">
+                <td>
+                  <b>Ausilium</b>
+                  <small>medical aids rental</small>
+                </td>
+                <td>Rental — same vertical</td>
+                <td>
+                  <b>Flat €25</b> including delivery, assembly and a usage demo.
+                  <small>Minimum 15-day rental.</small>
+                </td>
+                <td>
+                  <span class="geo" data-role="exception">Exclusion list</span>
+                  <small>"all Italy except Sardinia"</small>
+                </td>
+              </tr>
+              <tr data-peer="true">
+                <td>
+                  <b>Sanitaria Il Giglio</b>
+                  <small>wheelchair rental, Rome</small>
+                </td>
+                <td>Rental — same vertical</td>
+                <td>
+                  <b>Folded into the daily rate</b> — from €2/day with home delivery.
+                </td>
+                <td>
+                  <span class="geo" data-role="gate">City only</span>
+                  <small>single-city operator</small>
+                </td>
+              </tr>
+              <tr data-peer="true">
+                <td>
+                  <b>Sanitaria.it</b>
+                  <small>medical aids rental</small>
+                </td>
+                <td>Rental — same vertical</td>
+                <td>
+                  <b>Quote on request.</b> No price published at all.
+                  <small>Delivery and collection nationwide.</small>
+                </td>
+                <td><span class="geo" data-role="none">Not published</span></td>
+              </tr>
+              <tr>
+                <td><b>Esselunga a Casa</b><small>grocery</small></td>
+                <td>Grocery, own vans</td>
+                <td>
+                  <b>Flat €7.90</b>, €6.90 over €110. €40 order minimum.
+                  <small>
+                    Free for disabled customers; €3.45 for over-70s, one order a week.
+                  </small>
+                </td>
+                <td>
+                  <span class="geo" data-role="gate">CAP as a gate</span>
+                  <small>enter your CAP to see if you are served — not to set a price</small>
+                </td>
+              </tr>
+              <tr>
+                <td><b>IKEA Italia</b><small>furniture</small></td>
+                <td>Bulky goods</td>
+                <td>
+                  <b>Order-value tiers</b> (≤€59, ≤€190, ≤€590, ≤€1,190, &gt;€1,190) crossed with
+                  weight limits per delivery type.
+                  <small>Lower rates for IKEA Family members.</small>
+                </td>
+                <td>
+                  <span class="geo" data-role="exception">Supplements</span>
+                  <small>
+                    zone supplements for distance (Turin, Milan) plus fixed island and Venice
+                    surcharges of €119–€349
+                  </small>
+                </td>
+              </tr>
+              <tr>
+                <td><b>Mondo Convenienza</b><small>furniture</small></td>
+                <td>Bulky goods, own fleet</td>
+                <td>
+                  <b>Product category bands</b> — €30 for fascia A (accessories), €60 for fascia B
+                  (furniture); <b>+12% of order value</b> above €250; free above €2,000.
+                  <small>Street-level delivery, all Italian regions.</small>
+                </td>
+                <td>
+                  <span class="geo" data-role="none">None published</span>
+                  <small>computed at checkout from cart contents</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================================================== 3 findings === -->
+      <section>
+        <h2>Three things the evidence says</h2>
+
+        <div class="findings">
+          <div class="finding">
+            <b class="num">0 of 4</b>
+            <strong>Direct competitors price by location</strong>
+            <span>
+              Every medical-aid rental operator found charges a flat fee, folds it into the day rate,
+              or quotes by phone. Two of them charge <em>exactly €25</em>.
+            </span>
+          </div>
+          <div class="finding">
+            <b class="num">Gate</b>
+            <strong>What CAP is actually used for</strong>
+            <span>
+              Esselunga asks for your CAP to answer "do we serve you?" — a yes/no, not a price. That
+              is the industry's main use of postcodes.
+            </span>
+          </div>
+          <div class="finding">
+            <b class="num">What, not where</b>
+            <strong>The real price driver</strong>
+            <span>
+              Order value, weight, product category, assembly. Geography enters as a surcharge for
+              islands and awkward cities, never as a national gradient.
+            </span>
+          </div>
+        </div>
+
+        <div class="callout stop">
+          <h3>Nobody found builds anything like our tree</h3>
+          <p>
+            Not one of these companies models region → province → comune → CAP → frazione with
+            inherited prices. The most geographic any of them gets is IKEA's island surcharge list and
+            a couple of named city zones. Our design is more machinery than any comparable Italian
+            business runs on — including the ones that own their own delivery fleets and deliver
+            furniture to mountain villages.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================ the platforms === -->
+      <section>
+        <h2>What the platforms model</h2>
+        <p>
+          Most Italian shops run on WooCommerce or Shopify. Both solved this problem years ago, and
+          both landed on the same shape — and it is <b>not</b> a hierarchy.
+        </p>
+
+        <h3>WooCommerce</h3>
+        <p>
+          A flat, <b>manually ordered list of zones</b>. Each zone holds regions plus an optional
+          postcode list, which accepts exact codes and prefix wildcards (<code>902*</code>). At
+          checkout, zones are tested top to bottom and <b>the first match wins</b> — one zone per
+          customer, no exceptions. Specificity is not computed; the shop owner drags the specific
+          zones above the broad ones.
+        </p>
+
+        <h3>Shopify</h3>
+        <p>
+          The same model: ordered custom zones, first match wins, postcodes as exact values, ranges or
+          wildcards. Their own guidance is to prefer ranges and wildcards over enumerating codes.
+          Notably, native Shopify zones stop at region level — postcode and city precision needs an
+          app, which tells you how rarely shops need it.
+        </p>
+
+        <div class="callout warn">
+          <h3>The one thing both platforms have that we do not</h3>
+          <p>
+            <b>An explicit order, set by hand.</b> No inheritance, no computed specificity ranking, no
+            tree to reason about. The owner decides what beats what by dragging rows. That is a
+            weaker model on paper and a much easier one to hold in your head — and it is what
+            thousands of Italian shops actually operate.
+          </p>
+        </div>
+      </section>
+
+      <!-- =================================================== comparison === -->
+      <section>
+        <h2>Our tree versus the industry model</h2>
+        <p>
+          Both satisfy the client's spreadsheet. The difference is how much you have to understand to
+          use them.
+        </p>
+
+        <div class="versus">
+          <div class="col" data-pick="false">
+            <div class="col-h">
+              <div class="row">
+                <b>What we designed</b>
+                <span class="verdict-tag">More machinery</span>
+              </div>
+              <span>5 levels, inheritance, computed specificity</span>
+            </div>
+            <div class="col-b">region
+  └ province
+     └ comune
+        ├ comune + CAP
+        │   └ frazione
+        └ frazione
+
+value_kind: null | fee | call
+resolve: rank 6 candidates,
+         first with a value wins</div>
+            <ul>
+              <li>Complete coverage from the first row, via inheritance</li>
+              <li>Handles a shared CAP correctly by construction</li>
+              <li>But: five levels, a nullable third state, and a ranking rule to explain</li>
+              <li>And: an alias table needed for frazioni, whose match rate is unreliable anyway</li>
+            </ul>
+          </div>
+
+          <div class="col" data-pick="true">
+            <div class="col-h">
+              <div class="row">
+                <b>What the industry does</b>
+                <span class="verdict-tag">Recommended</span>
+              </div>
+              <span>Flat ordered zone list, first match wins</span>
+            </div>
+            <div class="col-b">1. Ostia        caps: 00121,00122   €25
+2. Roma city    comune: 058091      €15
+3. Riano        comune: 058083      €40
+4. RM province  province: RM        €35
+5. Lazio        region: 12          €50
+6. Rest of IT   (catch-all)         call
+
+first match top-down wins</div>
+            <ul>
+              <li>One flat table, one ordering, no inheritance to trace</li>
+              <li>Shared CAPs still safe — a zone can match on comune <em>and</em> CAP</li>
+              <li>The catch-all row at the bottom replaces inheritance entirely</li>
+              <li>Admin UI is a drag-to-reorder list, not a tree</li>
+              <li>Proven at scale by WooCommerce and Shopify</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout">
+          <h3>The tree's one real advantage survives, for one row</h3>
+          <p>
+            Inheritance existed to guarantee no gaps — an address always finds a price. The ordered
+            list gets the same guarantee from a single catch-all zone at the bottom. So the whole
+            reason for five levels and a nullable inherit state collapses into one row that says
+            "everything else: phone quote".
+          </p>
+        </div>
+      </section>
+
+      <!-- ================================================ what to do === -->
+      <section>
+        <h2>What I would change</h2>
+        <ol class="steps">
+          <li>
+            <b>Ask the client the question this research raises first:</b> their competitors charge a
+            flat €25. Do they actually want location pricing, or did they hand over a spreadsheet
+            because I asked for one? This is a commercial decision worth an explicit answer before any
+            more schema.
+          </li>
+          <li>
+            <b>If they confirm location pricing:</b> replace the five-level tree with an ordered zone
+            list — one table, a <code>priority</code> integer, and match rules on comune codes and/or
+            CAPs. Keep the <code>needs_call</code> state; drop inheritance and the specificity ranking.
+          </li>
+          <li>
+            <b>Drop the frazione level for now.</b> No company found prices below CAP, and the match
+            data was never reliable. It can be a match rule on a zone later if it is ever needed.
+          </li>
+          <li>
+            <b>Keep <code>istat_comuni</code>.</b> It is still how a provider's comune name becomes a
+            stable code, whichever pricing shape wins.
+          </li>
+          <li>
+            <b>Borrow two things nobody asked for but the peers all have:</b> free store pickup — which
+            we already have — and Esselunga's reduced or free delivery for disabled customers, which
+            for a medical-equipment business is close to an expectation.
+          </li>
+        </ol>
+
+        <div class="callout warn">
+          <h3>What this does not change</h3>
+          <p>
+            The reasoning about geography still holds: comune is the safe key, CAP is not a unique
+            key, and a shared CAP must be matched together with its comune. The industry model handles
+            all three — it just does it with a flat priority list instead of a hierarchy. Nothing
+            learned earlier was wrong; it was applied to more levels than the problem needs.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================================================== sources === -->
+      <section>
+        <h2>Sources</h2>
+        <div class="sources">
+          <ul>
+            <li>
+              <a href="https://www.ausilium.it/prodotti-noleggio.htm">Ausilium — noleggio ausili</a>
+              <span>flat €25 incl. delivery, assembly, demo; all Italy except Sardinia; 15-day min.</span>
+            </li>
+            <li>
+              <a href="https://mandaraortopedia.it/noleggi-ausili-ortopedici/">Mandara Ortopedia — noleggi</a>
+              <span>flat €25 nationwide; free store/branch pickup by appointment.</span>
+            </li>
+            <li>
+              <a href="https://www.sanitariailgiglio.com/noleggi/noleggio-carrozzine-a-roma/">Sanitaria Il Giglio — noleggio carrozzine Roma</a>
+              <span>from €2/day with home delivery.</span>
+            </li>
+            <li>
+              <a href="https://www.sanitaria.it/noleggio-ausili-sanitari/">Sanitaria.it — noleggio ausili</a>
+              <span>nationwide delivery and collection; price by quote only.</span>
+            </li>
+            <li>
+              <a href="https://spesaonline.esselunga.it/commerce/nav/supermercato/agevolazioni-consegna">Esselunga — spesa online, agevolazioni consegna</a>
+              <span>€7.90 / €6.90 over €110; CAP used as coverage check; social tariffs.</span>
+            </li>
+            <li>
+              <a href="https://www.ikea.com/it/it/customer-service/services/delivery/">IKEA Italia — consegna</a>
+              <span>order-value tiers, weight limits, zone supplements, island/Venice surcharges.</span>
+            </li>
+            <li>
+              <a href="https://www.mondoconv.it/consegna-montaggio/trasporto-e-montaggio">Mondo Convenienza — trasporto e montaggio</a>
+              <span>fascia A €30 / fascia B €60; +12% over €250; free over €2,000. Cost page did not fetch in full.</span>
+            </li>
+            <li>
+              <a href="https://woocommerce.com/document/setting-up-shipping-zones/">WooCommerce — setting up shipping zones</a>
+              <span>ordered zones, first match wins, postcode lists with wildcards.</span>
+            </li>
+            <li>
+              <a href="https://octolize.com/blog/woocommerce-shipping-zones-explained/">Octolize — WooCommerce shipping zones explained</a>
+              <span>zone ordering and priority behaviour.</span>
+            </li>
+            <li>
+              <a href="https://octolize.com/blog/shopify-shipping-based-on-zip-code-postcode-postal-code/">Octolize — Shopify shipping by postcode</a>
+              <span>exact codes, ranges, wildcards; first-match ordering; native zones stop at region.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
