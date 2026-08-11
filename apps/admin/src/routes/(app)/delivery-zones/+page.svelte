@@ -42,10 +42,10 @@
   import { api } from '~/lib/api';
   import PageHeader from '~/lib/components/page-header.svelte';
   import HelpDialog from '~/lib/delivery-zones/help-dialog.svelte';
-  import ZoneAddDialog from '~/lib/delivery-zones/zone-add-dialog.svelte';
   import ZoneEditor from '~/lib/delivery-zones/zone-editor.svelte';
   import ZoneTreeRow from '~/lib/delivery-zones/zone-tree-row.svelte';
   import {
+    type ApiZone,
     type ZoneLevel,
     type ZoneNode,
     type ZoneResponse,
@@ -138,6 +138,9 @@
 
   let busy = $state(false);
   let feeTimer: ReturnType<typeof setTimeout> | undefined;
+  /* The write the timer owes, kept so it can be sent early. Not `$state`: nothing
+     renders it. */
+  let pendingFee: { id: string; fee: string } | null = null;
 
   /**
    * Sends a value change and reconciles.
@@ -169,6 +172,7 @@
 
   function setState(node: ZoneNode, state: 'inherit' | 'fee' | 'call') {
     if (!canWrite) return;
+    flushFee();
     const valueKind = state === 'inherit' ? null : state;
     // Seeded from the row's own figure, or from whatever it currently inherits, so
     // switching to a fixed fee never lands on zero.
@@ -192,50 +196,82 @@
   }
 
   /**
+   * Sends the pending fee now instead of on the timer.
+   *
+   * Every other mutation calls this first, because they all end in `refresh()` —
+   * and a refresh that arrives while a fee is still queued replaces the operator's
+   * figure with the server's older one.
+   */
+  function flushFee() {
+    clearTimeout(feeTimer);
+    feeTimer = undefined;
+    const pending = pendingFee;
+    pendingFee = null;
+    if (pending) void patchZone(pending.id, { valueKind: 'fee', fee: pending.fee });
+  }
+
+  /**
    * The stepper fires on every press, so the write is local and the PATCH waits.
-   * One timer for the whole screen: switching rows mid-debounce would otherwise
-   * leave a pending write aimed at the row the operator just left.
+   *
+   * One timer for the whole screen, so moving to another row mid-debounce FLUSHES
+   * the previous row's write rather than cancelling it. Cancelling was the bug:
+   * the figure stayed on screen, was never sent, and the next refresh quietly put
+   * the old one back.
    */
   function setFee(node: ZoneNode, fee: string) {
     if (!canWrite) return;
     node.valueKind = 'fee';
     node.fee = fee;
 
-    const id = node.id;
+    if (pendingFee && pendingFee.id !== node.id) flushFee();
+    pendingFee = { id: node.id, fee };
     clearTimeout(feeTimer);
-    feeTimer = setTimeout(() => void patchZone(id, { valueKind: 'fee', fee }), FEE_DEBOUNCE_MS);
+    feeTimer = setTimeout(flushFee, FEE_DEBOUNCE_MS);
   }
 
-  async function renameZone(node: ZoneNode, name: string, code: string) {
-    if (!canWrite) return;
+  /** Reports whether the rename was accepted, so the panel's form knows to close. */
+  async function renameZone(node: ZoneNode, name: string, code: string): Promise<boolean> {
+    if (!canWrite) return false;
+    flushFee();
     node.name = name;
     node.code = code;
-    await patchZone(node.id, { name, code });
+    return patchZone(node.id, { name, code });
   }
 
-  /* Add and delete both go through a dialog: creating an area without its code
-     produces a row that prices nothing while looking fine, and deleting one
-     silently takes every nested area with it. */
-  let adding = $state<{ parent: ZoneNode; level: ZoneLevel } | null>(null);
+  /* Deleting still asks, because it silently takes every nested area with it.
+     Adding does not: the panel's own form asks for the name and the code, which is
+     the half that matters — a row created with a placeholder code prices nothing
+     while looking perfectly fine. */
   let deleting = $state<ZoneNode | null>(null);
 
-  async function confirmAdd(parent: ZoneNode, level: ZoneLevel, name: string, code: string) {
+  async function confirmAdd(
+    parent: ZoneNode,
+    level: ZoneLevel,
+    name: string,
+    code: string,
+  ): Promise<boolean> {
+    flushFee();
     busy = true;
     try {
-      const created = await unwrapFull<{ data: { id: string } }>(
+      const created = await unwrapFull<{ data: ApiZone }>(
         await api.api.admin['delivery-zones'].$post({
           json: { parentId: parent.id, level, name, code },
         }),
       );
-      adding = null;
+      // Graft the row in before moving the selection to it. `selected` falls back to
+      // Italia for an id it cannot find, so selecting a row that only exists on the
+      // server would flash the wrong area until the refetch landed.
+      parent.children = [...parent.children, ...toZoneNodes([created.data])];
       collapsed.delete(parent.id);
       selectedId = created.data.id;
       zones.refresh();
       toast.success(`Added “${name}”.`);
+      return true;
     } catch (err) {
       // A duplicate sibling or a malformed code comes back with a reason; show it
-      // and leave the dialog open on the values the operator typed.
+      // and leave the form on the values the operator typed.
       toast.error(errorMessage(err));
+      return false;
     } finally {
       busy = false;
     }
@@ -244,6 +280,7 @@
   async function confirmDelete() {
     const target = deleting;
     if (!target) return;
+    flushFee();
     const parent = parents.get(target.id) ?? null;
 
     busy = true;
@@ -389,7 +426,8 @@
           rentalSubtotal={RENTAL_SUBTOTAL}
           onStateChange={setState}
           onFeeChange={setFee}
-          onAddChild={(parent, level) => canCreate && (adding = { parent, level })}
+          canCreate={canCreate && canWrite}
+          onAddChild={confirmAdd}
           onIdentityChange={renameZone}
           onDelete={(node) => (deleting = node)}
         />
@@ -399,8 +437,6 @@
 </section>
 
 <HelpDialog open={helpOpen} onOpenChange={(open) => (helpOpen = open)} />
-
-<ZoneAddDialog target={adding} {busy} onCancel={() => (adding = null)} onConfirm={confirmAdd} />
 
 <AlertDialog.Root open={deleting !== null} onOpenChange={(open) => !open && (deleting = null)}>
   <AlertDialog.Content>

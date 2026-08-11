@@ -100,13 +100,13 @@
          whether it belongs to this row. -->
     {#if node.valueKind === 'call'}
       <span
-        class="shrink-0 rounded-full border border-amber-500/40 px-2 py-0.5 text-[10px] font-semibold text-amber-600"
+        class="shrink-0 rounded-full border border-amber-500/40 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
       >
         NEEDS CALL
       </span>
     {:else if node.valueKind === 'fee'}
       <span
-        class="shrink-0 rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600"
+        class="shrink-0 rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
       >
         OWN
       </span>
@@ -122,7 +122,7 @@
       class={cn(
         'w-24 shrink-0 text-right text-sm tabular-nums',
         resolved.value === null && 'text-muted-foreground',
-        resolved.value?.kind === 'call' && 'text-xs font-semibold text-amber-600',
+        resolved.value?.kind === 'call' && 'text-xs font-semibold text-amber-600 dark:text-amber-400',
         resolved.value?.kind === 'fee' &&
           (resolved.inherited ? 'text-muted-foreground' : 'font-semibold'),
       )}

@@ -1,16 +1,22 @@
 <!--
   The right-hand panel: what one selected area costs.
 
-  TWO MODES, not one form. Reading is the common case — an operator opens this
-  screen to check or change a fee, not to rename a comune. So the name and the code
-  are shown as facts, and editing them takes a deliberate press that replaces the
-  whole panel with a form. Nothing about identity can be changed by a stray
-  keystroke while aiming for the fee.
+  READ, EDIT, ADD — one panel, three modes, never a dialog. Reading is the common
+  case: an operator opens this screen to change a fee, not to rename a comune. So
+  identity is shown as facts, and both writing forms take a deliberate press that
+  replaces the panel's contents and puts them back when it is done. Adding used to
+  be a modal, which meant a second surface with its own header, its own footer and
+  its own copy, covering the tree the operator was working in.
 
-  TEXT BUDGET. This panel shows values and almost no sentences. Anything
-  explanatory lives behind an (i) or in the Help dialog — see info-hint.svelte for
-  why. Compactness is scoped here with `size="sm"` and the local `DENSE_INPUT`,
-  never by changing the shared components.
+  Edit and Add are the SAME form. They ask for the same two fields and differ only
+  in which level they are for and where the values go, so a change to one cannot
+  drift out of step with the other.
+
+  TEXT BUDGET. This panel shows values, not sentences. A field gets a label and,
+  where the rule is not guessable, an (i) — never a paragraph under the input.
+  Prose that explains the model belongs in the Help dialog. Compactness is scoped
+  here with `size="sm"` and the local `DENSE_INPUT`, never by changing the shared
+  components.
 -->
 <script lang="ts">
   import PencilIcon from '@lucide/svelte/icons/pencil';
@@ -50,12 +56,25 @@
     /** A mutation is in flight; controls are disabled rather than queued. */
     busy: boolean;
     canWrite: boolean;
+    /** Separate from `canWrite`: changing a fee and creating an area are distinct
+        permissions, so the Add row is hidden rather than failing on submit. */
+    canCreate: boolean;
     canDelete: boolean;
     onStateChange: (node: ZoneNode, state: 'inherit' | 'fee' | 'call') => void;
     onFeeChange: (node: ZoneNode, fee: string) => void;
-    onAddChild: (node: ZoneNode, level: ZoneLevel) => void;
-    /** Name and code commit together — the edit form holds both until Save. */
-    onIdentityChange: (node: ZoneNode, name: string, code: string) => void;
+    /*
+      Both writes resolve to whether the server accepted them, because that is what
+      decides whether the form closes. A rejected code — malformed, or a duplicate
+      of a sibling — has to leave the operator looking at what they typed.
+    */
+    onAddChild: (
+      parent: ZoneNode,
+      level: ZoneLevel,
+      name: string,
+      code: string,
+    ) => Promise<boolean>;
+    /** Name and code commit together — the form holds both until Save. */
+    onIdentityChange: (node: ZoneNode, name: string, code: string) => Promise<boolean>;
     onDelete: (node: ZoneNode) => void;
   }
 
@@ -65,6 +84,7 @@
     rentalSubtotal,
     busy,
     canWrite,
+    canCreate,
     canDelete,
     onStateChange,
     onFeeChange,
@@ -81,7 +101,6 @@
   const resolved = $derived(resolveZone(node, parents));
   const descendants = $derived(countDescendants(node));
   const allowed = $derived(ALLOWED_CHILDREN[node.level]);
-  const codeField = $derived(CODE_FIELD[node.level]);
   const storedKey = $derived(describeMatchKey(matchKey(node, parents)));
   const current = $derived<'inherit' | 'fee' | 'call'>(node.valueKind ?? 'inherit');
 
@@ -126,16 +145,28 @@
   let feeDraft = $state('20.00');
   let draftNodeId = '';
   let lastCommitted = '';
+  let lastSeenFee: string | null = null;
 
-  /** Selection moved: seed the draft so "Fixed fee" starts at a sensible figure. */
+  /**
+   * Seed the draft so "Fixed fee" starts at a sensible figure.
+   *
+   * Re-seeds on a new selection AND when this row's own fee changes underneath the
+   * panel — a refresh, or a write from elsewhere. Keying on the id alone was the
+   * bug: the row read `OWN 47,00 €` while the field beside it still said `25,00 €`,
+   * and the field is the one an operator would trust.
+   *
+   * `lastSeenFee` is what stops that from looping. The stepper's own commit writes
+   * the same figure back into the node, so the effect re-runs; comparing against
+   * what we last read makes that pass a no-op instead of a second seed.
+   */
   $effect(() => {
     const id = node.id;
-    if (draftNodeId === id) return;
+    const own = node.valueKind === 'fee' ? node.fee : null;
+    if (draftNodeId === id && own === lastSeenFee) return;
     draftNodeId = id;
+    lastSeenFee = own;
     const seed =
-      (node.valueKind === 'fee' ? node.fee : null) ??
-      (resolved.value?.kind === 'fee' ? resolved.value.fee : null) ??
-      '20.00';
+      own ?? (resolved.value?.kind === 'fee' ? resolved.value.fee : null) ?? '20.00';
     feeDraft = seed;
     lastCommitted = seed;
   });
@@ -155,48 +186,87 @@
     onFeeChange(node, draft);
   });
 
-  /* --- edit mode ---------------------------------------------------------- */
+  /* --- the identity form, for both editing and adding --------------------- */
 
   /*
     The form holds its own copy and commits on Save, unlike the fee. Identity is
-    the field a half-typed value would break: an empty code matches nothing, and a
-    row that matches nothing prices nothing while looking perfectly fine.
+    what a half-typed value breaks: an empty code matches nothing, and a row that
+    matches nothing prices nothing while looking perfectly fine.
   */
-  let editing = $state(false);
+  let form = $state<'none' | 'edit' | 'add'>('none');
+  /** Which child is being added. Meaningless while `form !== 'add'`. */
+  let addLevel = $state<ZoneLevel>('region');
   let nameDraft = $state('');
   let codeDraft = $state('');
+  /* An add form opens empty, and empty-because-untouched must not look like an
+     error. Only leaving the field blank is one. */
+  let nameTouched = $state(false);
 
-  function startEditing() {
+  /** Edit is about this row; Add is about a row that does not exist yet. */
+  const formLevel = $derived(form === 'add' ? addLevel : node.level);
+  const formField = $derived(CODE_FIELD[formLevel]);
+
+  function startEdit() {
     nameDraft = node.name;
     codeDraft = node.code;
-    editing = true;
+    nameTouched = false;
+    form = 'edit';
   }
 
-  /** Mirrors the server's per-level code shape, so a typo is caught before the PATCH. */
-  const codeValid = $derived(codeField.pattern.test(codeDraft.trim()));
-  const canSave = $derived(nameDraft.trim() !== '' && codeValid);
-
-  function save() {
-    if (!canSave) return;
-    onIdentityChange(node, nameDraft.trim(), codeDraft.trim());
-    editing = false;
+  function startAdd(level: ZoneLevel) {
+    addLevel = level;
+    nameDraft = '';
+    codeDraft = '';
+    nameTouched = false;
+    form = 'add';
   }
 
-  // Leaving the row cancels an open form, so a draft can never land on the area
-  // the operator clicked away to. Reading `node.id` is what makes that the
-  // dependency — the form must survive a fee change on the same row.
+  /** Mirrors the server's per-level code shape, so a typo costs no round trip. */
+  const codeValid = $derived(formField.pattern.test(codeDraft.trim()));
+  const canSubmit = $derived(nameDraft.trim() !== '' && codeValid);
+
+  async function submit(event: SubmitEvent) {
+    event.preventDefault();
+    if (!canSubmit || busy) return;
+    const name = nameDraft.trim();
+    const code = codeDraft.trim();
+    const accepted =
+      form === 'add'
+        ? await onAddChild(node, addLevel, name, code)
+        : await onIdentityChange(node, name, code);
+    if (accepted) form = 'none';
+  }
+
+  // Leaving the row closes an open form, so a draft can never land on the area the
+  // operator clicked away to. Reading `node.id` is what makes that the dependency —
+  // the form must survive a fee change on the same row. It is also what puts the
+  // panel back after a successful add, since the selection moves to the new child.
   $effect(() => {
-    if (node.id) editing = false;
+    if (node.id) form = 'none';
   });
 </script>
 
 <Card.Root class="gap-0 py-0">
-  {#if editing}
+  {#if form !== 'none'}
+    <!--
+      Where the new area lands is shown as a breadcrumb rather than said in a
+      sentence: "Inside Toscana. It inherits that area's fee until you give it one."
+      was three lines of prose for one fact the tree already displays.
+    -->
     <div class="border-b px-4 py-2.5">
-      <h2 class="text-sm font-semibold">Edit {LEVEL_LABEL[node.level].toLowerCase()}</h2>
+      {#if form === 'add'}
+        <p class="text-xs text-muted-foreground">
+          {chain.map((step) => (step.level === 'cap' ? step.code : step.name)).join(' › ')}
+        </p>
+      {/if}
+      <h2 class="text-sm font-semibold">
+        {form === 'add' ? 'Add' : 'Edit'}
+        {LEVEL_LABEL[formLevel].toLowerCase()}
+      </h2>
     </div>
 
-    <div class="space-y-3 px-4 py-3.5">
+    <!-- Enter submits, so the form is finished from the keyboard it was typed on. -->
+    <form class="space-y-3 px-4 py-3.5" onsubmit={submit}>
       <div>
         <div class="mb-1.5 flex items-center gap-1">
           <Label for="zone-name">Name</Label>
@@ -210,40 +280,42 @@
           bind:value={nameDraft}
           autocomplete="off"
           class={DENSE_INPUT}
-          aria-invalid={nameDraft.trim() === '' ? 'true' : undefined}
+          placeholder={formLevel === 'cap' ? 'Lido di Ostia' : 'Fiumicino'}
+          onblur={() => (nameTouched = true)}
+          aria-invalid={nameTouched && nameDraft.trim() === '' ? 'true' : undefined}
         />
       </div>
 
       <div>
         <div class="mb-1.5 flex items-center gap-1">
-          <Label for="zone-code">{codeField.label}</Label>
-          <InfoHint label="the {codeField.label} field">{codeField.hint}</InfoHint>
+          <Label for="zone-code">{formField.label}</Label>
+          <InfoHint label="the {formField.label} field">{formField.hint}</InfoHint>
         </div>
         <Input
           id="zone-code"
           bind:value={codeDraft}
           autocomplete="off"
-          disabled={isCountry || busy}
+          disabled={(isCountry && form === 'edit') || busy}
           class={cn(DENSE_INPUT, 'font-mono')}
-          placeholder={codeField.placeholder}
+          placeholder={formField.placeholder}
           aria-invalid={codeDraft.trim() !== '' && !codeValid ? 'true' : undefined}
         />
-        {#if codeDraft.trim() === ''}
-          <p class="mt-1.5 text-xs font-medium text-destructive">
-            Without a code this area matches nothing.
-          </p>
-        {:else if !codeValid}
-          <p class="mt-1.5 text-xs font-medium text-destructive">{codeField.hint}</p>
+        <!-- The only prose left on a field, and only once it is wrong: a malformed
+             code is the one mistake that produces a row which looks correct. -->
+        {#if codeDraft.trim() !== '' && !codeValid}
+          <p class="mt-1.5 text-xs font-medium text-destructive">{formField.hint}</p>
         {/if}
       </div>
 
       <div class="flex justify-end gap-2 pt-1">
-        <Button variant="ghost" size="sm" disabled={busy} onclick={() => (editing = false)}>
+        <Button type="button" variant="ghost" size="sm" disabled={busy} onclick={() => (form = 'none')}>
           Cancel
         </Button>
-        <Button size="sm" disabled={!canSave || busy} onclick={save}>Save</Button>
+        <Button type="submit" size="sm" disabled={!canSubmit || busy}>
+          {form === 'add' ? 'Add area' : 'Save'}
+        </Button>
       </div>
-    </div>
+    </form>
   {:else}
     <div class="flex items-start gap-2 border-b px-4 py-2.5">
       <div class="min-w-0 flex-1">
@@ -269,7 +341,7 @@
           </InfoHint>
         </p>
       </div>
-      <Button variant="outline" size="sm" disabled={!canWrite || busy} onclick={startEditing}>
+      <Button variant="outline" size="sm" disabled={!canWrite || busy} onclick={startEdit}>
         <PencilIcon />
         Edit
       </Button>
@@ -357,7 +429,7 @@
       <div class="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-2 text-xs">
         <span class="text-muted-foreground">Effective</span>
         {#if resolved.value === null}
-          <span class="font-medium text-amber-600">phone quote</span>
+          <span class="font-medium text-amber-600 dark:text-amber-400">phone quote</span>
           <span class="text-muted-foreground">— nothing set above</span>
         {:else if resolved.value.kind === 'call'}
           <span class="font-medium text-foreground">needs call</span>
@@ -379,7 +451,7 @@
         {/if}
       </div>
 
-      {#if allowed.length > 0 && canWrite}
+      {#if allowed.length > 0 && canCreate}
         <Separator />
         <div class="flex items-center gap-2">
           <p class="text-sm font-medium">Add</p>
@@ -391,12 +463,7 @@
           {/if}
           <div class="ml-auto flex flex-wrap gap-1.5">
             {#each allowed as level (level)}
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={busy}
-                onclick={() => onAddChild(node, level)}
-              >
+              <Button variant="outline" size="sm" disabled={busy} onclick={() => startAdd(level)}>
                 <PlusIcon />
                 {LEVEL_LABEL[level]}
               </Button>
@@ -425,7 +492,7 @@
             {#if resolved.value?.kind === 'fee'}
               <span class="tabular-nums">{formatMoney(resolved.value.fee)}</span>
             {:else}
-              <span class="text-xs font-semibold text-amber-600">Da confermare</span>
+              <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">Da confermare</span>
             {/if}
           </div>
           <div class="flex justify-between gap-3 border-t pt-1.5 font-semibold">
@@ -433,7 +500,7 @@
             {#if previewTotal}
               <span class="tabular-nums">{formatMoney(previewTotal)}</span>
             {:else}
-              <span class="text-xs text-amber-600">{formatMoney(rentalSubtotal)} + consegna</span>
+              <span class="text-xs text-amber-600 dark:text-amber-400">{formatMoney(rentalSubtotal)} + consegna</span>
             {/if}
           </div>
           {#if resolved.value?.kind !== 'fee'}

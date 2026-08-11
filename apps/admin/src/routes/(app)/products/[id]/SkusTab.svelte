@@ -224,7 +224,7 @@
           </p>
         {/if}
         {#if lastGeneration}
-          <p class="mt-1 text-xs text-emerald-600">
+          <p class="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
             Generated: {lastGeneration.created} new, {lastGeneration.deactivated} deactivated,
             {lastGeneration.total} total.
           </p>
