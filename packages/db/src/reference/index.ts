@@ -13,6 +13,13 @@ import { fileURLToPath } from 'node:url';
  */
 const dataDir = new URL('../../data/', import.meta.url);
 
+/**
+ * The two tiers above the comune, as names rather than the bare codes ISTAT puts
+ * on every comune row: `12` is Lazio, `RM` is Roma. 20 and 107 rows.
+ */
+export const istatRegionsCsvPath = fileURLToPath(new URL('istat-regions.csv', dataDir));
+export const istatProvincesCsvPath = fileURLToPath(new URL('istat-provinces.csv', dataDir));
+
 /** One row per comune: `istat_code,name,name_normalised,province_code,region_code`. */
 export const istatComuniCsvPath = fileURLToPath(new URL('istat-comuni.csv', dataDir));
 

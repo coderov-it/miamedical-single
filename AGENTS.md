@@ -1,6 +1,6 @@
 # RULES
 
-- Database Indexing Name always should be under 63 bytes in software level, ORM auto generated name shouldn't cross 63 bytes.
+- Database Indexing Name always should be under 63 bytes in software level, ORM auto generated name shouldn't cross 63 bytes. it would be better if you could explicitely define the database index name under 63 bytes (postgres restriction)
 
 - Coding Docuementation should exist on that code file as comments, but if comment cross 5-10 line then create individual file in /docs/code/*.md and always sync these docs with coding changes.
 

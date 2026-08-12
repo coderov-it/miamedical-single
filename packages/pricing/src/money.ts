@@ -1,12 +1,18 @@
 /**
- * Exact money arithmetic on `numeric(12,2)` decimal strings ("35.00").
+ * Exact money arithmetic on `numeric(12, 2)` decimal strings ("35.00").
  *
  * The whole point of storing money as strings is that IEEE-754 never touches
  * an amount — so this module does its maths in bigint hundredths and formats
  * back. No `parseFloat`, no `Number()` on amounts, anywhere.
+ *
+ * It lives in this package rather than in the server because the storefront
+ * prices the same request for display: one set of primitives, so the figure a
+ * customer confirms and the figure the order stores cannot round differently.
  */
 
 const MONEY_RE = /^(-?)(\d+)\.(\d{2})$/;
+
+export const ZERO = '0.00';
 
 /**
  * Restore the two-decimal form of a money value that came back through a
@@ -54,6 +60,11 @@ export function addMoney(...amounts: string[]): string {
   return fromHundredths(amounts.reduce((sum, amount) => sum + toHundredths(amount), 0n));
 }
 
+/** a − b, both two-decimal strings. */
+export function subMoney(a: string, b: string): string {
+  return fromHundredths(toHundredths(a) - toHundredths(b));
+}
+
 /**
  * amount × factor, half-up (commercial rounding, away from zero) to 2 dp.
  * `factor` is a decimal string or a plain number with at most 4 decimals —
@@ -78,4 +89,13 @@ export function mulMoney(amount: string, factor: string | number): string {
 
 export function isNegative(amount: string): boolean {
   return toHundredths(amount) < 0n;
+}
+
+export function isZero(amount: string): boolean {
+  return toHundredths(amount) === 0n;
+}
+
+/** Sum of two-decimal strings. Empty list is "0.00", not an error. */
+export function sumMoney(amounts: readonly string[]): string {
+  return fromHundredths(amounts.reduce((sum, amount) => sum + toHundredths(amount), 0n));
 }

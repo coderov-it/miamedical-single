@@ -25,7 +25,15 @@
   import { api } from '~/lib/api';
   import StatusBadge from '~/lib/components/status-badge.svelte';
   import { cn } from '$lib/utils.js';
-  import { EM_DASH, formatDateTime, formatMoney, orDash, relativeTime } from '~/lib/format';
+  import {
+    EM_DASH,
+    formatDate,
+    formatDateTime,
+    formatMoney,
+    orDash,
+    pluralize,
+    relativeTime,
+  } from '~/lib/format';
   import {
     FULFILMENT_STEPS,
     orderStatusMeta,
@@ -118,6 +126,72 @@
       { title: 'Billing', value: order.billingAddress },
     ].filter((entry) => entry.value !== null),
   );
+
+  /**
+   * How the order changes hands, in one line an operator can act on.
+   *
+   * The method comes back as its wire id, so it is titled here rather than shown
+   * raw — and an id this build has never heard of falls through to itself instead
+   * of to a blank, which is what makes an older stored order still readable.
+   */
+  const DELIVERY_LABELS: Record<string, string> = {
+    homeDelivery: 'Home delivery',
+    storePickup: 'Collection from a branch',
+  };
+
+  const delivery = $derived(order.delivery);
+  const deliveryMethod = $derived(
+    delivery ? (DELIVERY_LABELS[delivery.method] ?? delivery.method) : null,
+  );
+  /** The one detail the chosen method carries. */
+  const deliveryDetail = $derived(
+    [delivery?.deliveryAddress, delivery?.deliveryPostalCode, delivery?.pickupCity]
+      .filter(Boolean)
+      .join(' · '),
+  );
+
+  /**
+   * Where the rental is collected from at the end.
+   *
+   * Only rendered when it is NOT the delivery address, because that is the case
+   * that changes somebody's route. Saying "same address" on every order would put
+   * a line on the card that never means anything.
+   */
+  const returnAddress = $derived(
+    delivery && delivery.returnToSameAddress === false ? delivery.returnAddress : null,
+  );
+
+  /**
+   * How the shipping total was arrived at. Worth a line of its own because a
+   * phone quote is the case where the figure on the order is NOT the figure the
+   * customer ends up paying, and nothing else on this page would say so.
+   */
+  const deliveryQuote = $derived.by(() => {
+    const quote = delivery?.quote;
+    if (!quote) return null;
+    const area = [quote.comune, quote.areaLabel].filter(Boolean).join(' · ');
+    return quote.kind === 'call'
+      ? { tone: 'call' as const, text: area ? `To agree by phone · ${area}` : 'To agree by phone' }
+      : { tone: 'fee' as const, text: area ? `Priced from ${area}` : null };
+  });
+
+  const CUSTOMER_TYPE_LABELS: Record<string, string> = {
+    private: 'Private customer',
+    company: 'Company',
+    tourist: 'Tourist',
+  };
+
+  /**
+   * `unitPrice × quantity` is not the line total — the rental duration and the
+   * add-ons make up the rest. Rather than leave an operator to reconcile two
+   * numbers, the configuration row spells out where the difference comes from.
+   */
+  function periodLabel(rental: { startDate: string; endDate: string | null; units: number }) {
+    const span = rental.endDate
+      ? `${formatDate(rental.startDate)} → ${formatDate(rental.endDate)}`
+      : `from ${formatDate(rental.startDate)}`;
+    return `${span} · ${rental.units} ${pluralize(rental.units, 'unit')}`;
+  }
 </script>
 
 <!--
@@ -201,19 +275,105 @@
           </Table.Header>
           <Table.Body>
             {#each order.items as item (item.id)}
-              <Table.Row>
+              {@const config = item.configuration}
+              <Table.Row class={config ? 'border-b-0' : ''}>
                 <Table.Cell>
                   <p class="font-medium">{item.productTitle}</p>
+                  {#if item.skuLabel}
+                    <p class="text-xs text-muted-foreground">{item.skuLabel}</p>
+                  {/if}
                   <p class="font-mono text-xs text-muted-foreground">{item.sku}</p>
                 </Table.Cell>
                 <Table.Cell class="text-right tabular-nums">{item.quantity}</Table.Cell>
                 <Table.Cell class="text-right tabular-nums">
                   {formatMoney(item.unitPrice, order.totals.currency)}
+                  {#if config?.pricingMode === 'rental'}
+                    <span class="block text-xs text-muted-foreground">per unit</span>
+                  {/if}
                 </Table.Cell>
                 <Table.Cell class="text-right tabular-nums">
                   {formatMoney(item.total, order.totals.currency)}
                 </Table.Cell>
               </Table.Row>
+
+              {#if config}
+                <!--
+                  What the customer actually configured, frozen at the labels they
+                  read. It sits under its line rather than behind a disclosure: this
+                  is the sheet someone reads down the phone, and a rental period
+                  hidden behind a chevron is a rental period nobody checks.
+                -->
+                <Table.Row class="hover:bg-transparent">
+                  <Table.Cell colspan={4} class="pt-0 pb-4">
+                    <div class="space-y-2 border-l-2 pl-3 text-xs">
+                      {#if config.rental}
+                        <p>
+                          <span class="text-muted-foreground">Period</span>
+                          <span class="ml-1 tabular-nums">{periodLabel(config.rental)}</span>
+                        </p>
+                      {/if}
+
+                      {#if config.rentalPackage}
+                        <p>
+                          <span class="text-muted-foreground">Package</span>
+                          <span class="ml-1">
+                            {config.rentalPackage.name} ({config.rentalPackage.label}) ·
+                            {formatMoney(config.rentalPackage.price, order.totals.currency)}
+                          </span>
+                        </p>
+                      {/if}
+
+                      {#if config.selections.length > 0}
+                        <p class="flex flex-wrap gap-x-3 gap-y-1">
+                          {#each config.selections as choice, index (`${choice.key}-${index}`)}
+                            <span>
+                              <span class="text-muted-foreground">{choice.label}</span>
+                              <span class="ml-1">{choice.value}</span>
+                              {#if choice.amount !== '0.00'}
+                                <span class="ml-1 text-muted-foreground tabular-nums">
+                                  ({formatMoney(choice.amount, order.totals.currency)})
+                                </span>
+                              {/if}
+                            </span>
+                          {/each}
+                        </p>
+                      {/if}
+
+                      {#if config.answers.length > 0}
+                        <div class="space-y-0.5">
+                          {#each config.answers as answer, index (`${answer.key}-${index}`)}
+                            <p>
+                              <span class="text-muted-foreground">{answer.label}</span>
+                              <span class="ml-1 font-medium">{answer.value}</span>
+                            </p>
+                          {/each}
+                        </div>
+                      {/if}
+
+                      {#if config.addons.length > 0}
+                        <div class="space-y-0.5">
+                          {#each config.addons as addon (addon.id)}
+                            <p class="flex justify-between gap-3">
+                              <span>
+                                <span class="text-muted-foreground">Extra</span>
+                                <span class="ml-1">{addon.name}</span>
+                                {#if addon.mode === 'rental'}
+                                  <span class="ml-1 text-muted-foreground">
+                                    ({formatMoney(addon.unitPrice, order.totals.currency)} per unit)
+                                  </span>
+                                {/if}
+                              </span>
+                              <span class="tabular-nums">
+                                {formatMoney(addon.total, order.totals.currency)}
+                              </span>
+                            </p>
+                          {/each}
+                        </div>
+                      {/if}
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              {/if}
             {:else}
               <Table.Row>
                 <Table.Cell colspan={4} class="py-6 text-center text-muted-foreground">
@@ -276,12 +436,67 @@
         <div class="border-b px-4 py-2.5 text-sm font-medium">Customer</div>
         <div class="space-y-1 p-4 text-sm">
           <p>{order.email}</p>
+          {#if order.phone}
+            <!-- A tel: link, because the whole flow ends in a phone call. -->
+            <p><a class="hover:underline" href={`tel:${order.phone}`}>{order.phone}</a></p>
+          {/if}
+          {#if order.customerType}
+            <p class="text-muted-foreground">
+              {CUSTOMER_TYPE_LABELS[order.customerType] ?? order.customerType}
+            </p>
+          {/if}
+          {#if order.partitaIva}
+            <p class="text-muted-foreground">
+              Partita IVA <span class="font-mono">{order.partitaIva}</span>
+            </p>
+          {/if}
+          {#if order.codiceFiscale}
+            <p class="text-muted-foreground">
+              Codice fiscale <span class="font-mono">{order.codiceFiscale}</span>
+            </p>
+          {/if}
           <p class="text-muted-foreground">
             {order.userId ? 'Registered account' : 'Guest checkout'}
           </p>
           <p class="text-muted-foreground">Placed {relativeTime(order.placedAt)}</p>
         </div>
       </Card.Root>
+
+      {#if delivery}
+        <Card.Root class="gap-0 py-0">
+          <div class="border-b px-4 py-2.5 text-sm font-medium">Delivery</div>
+          <div class="space-y-1 p-4 text-sm">
+            <p class="font-medium">{deliveryMethod}</p>
+            {#if deliveryDetail}
+              <p class="text-muted-foreground">{deliveryDetail}</p>
+            {/if}
+            <!-- A phone quote records 0,00 €, so the amount alone would read as
+                 free. The line beside it is what says a figure is still owed. -->
+            <p class="flex items-center gap-2 tabular-nums">
+              <span class="text-muted-foreground">
+                {formatMoney(order.totals.shippingTotal, order.totals.currency)}
+              </span>
+              {#if deliveryQuote?.tone === 'call'}
+                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  {deliveryQuote.text}
+                </span>
+              {:else if deliveryQuote?.text}
+                <span class="text-xs text-muted-foreground">{deliveryQuote.text}</span>
+              {/if}
+            </p>
+            <!-- A different collection address is a second stop on somebody's day,
+                 so it is called out rather than folded into the detail line. -->
+            {#if returnAddress}
+              <p class="pt-1">
+                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  Collect from
+                </span>
+                <span class="text-muted-foreground">{returnAddress}</span>
+              </p>
+            {/if}
+          </div>
+        </Card.Root>
+      {/if}
 
       {#each addresses as entry (entry.title)}
         {@const address = entry.value}

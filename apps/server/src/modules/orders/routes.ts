@@ -1,13 +1,21 @@
 /** HTTP edge only: validate, delegate to a service, map records to DTOs. */
 
 import { P } from '@mia/permissions';
+import { PlaceOrderSchema } from '@mia/validators';
 import { Hono } from 'hono';
 
 import { requirePermission } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
+import { rateLimit } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
 import { toPageMeta } from '../products/mapper.ts';
-import { toCartDetail, toCartSummary, toOrderDetail, toOrderSummary } from './mapper.ts';
+import {
+  toCartDetail,
+  toCartSummary,
+  toOrderDetail,
+  toOrderSummary,
+  toPlacedOrder,
+} from './mapper.ts';
 import * as service from './service.ts';
 import {
   AdminCartQuerySchema,
@@ -18,6 +26,37 @@ import {
   OrderStatusTransitionSchema,
   PaymentStatusTransitionSchema,
 } from './validators.ts';
+
+/**
+ * The one public write in this API, so it is throttled before validation.
+ *
+ * Generous on purpose: a hotel or a clinic behind one NAT address is exactly the
+ * customer this shop wants, and locking them out to stop a script nobody has seen
+ * yet would be the wrong trade. Successes count too — unlike the login limiter,
+ * where only failures are interesting — because the thing being bounded here is
+ * how many rows one address can write.
+ */
+const placementRateLimit = rateLimit({ limit: 30, windowMs: 60 * 60 * 1000 });
+
+/**
+ * Placing an order needs no account: the storefront takes rentals from people who
+ * have never signed in, which is why the customer's contact block travels in the
+ * body. It carries no money — every amount is rebuilt from the catalogue in
+ * `resolve.ts` — so the worst a crafted request can do is order the wrong thing
+ * at the right price.
+ *
+ * 201 with the order number: the storefront reads it back to the customer, and it
+ * is the reference the phone call opens with.
+ */
+export const orderPublicRoutes = new Hono<AppEnv>().post(
+  '/',
+  placementRateLimit,
+  validate('json', PlaceOrderSchema),
+  async (c) => {
+    const placed = await service.place(c.get('db'), c.req.valid('json'));
+    return c.json({ data: toPlacedOrder(placed) }, 201);
+  },
+);
 
 export const orderAdminRoutes = new Hono<AppEnv>()
   .get(

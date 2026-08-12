@@ -4,6 +4,8 @@ import { count, createDatabase, eq } from '@mia/db';
 import {
   istatComuneCapsCsvPath,
   istatComuniCsvPath,
+  istatProvincesCsvPath,
+  istatRegionsCsvPath,
   parseReferenceCsv,
 } from '@mia/db/reference';
 import type { LanguageCode } from '@mia/db/schema';
@@ -19,6 +21,8 @@ import {
   deliveryZones,
   istatComuneCaps,
   istatComuni,
+  istatProvinces,
+  istatRegions,
   orderItems,
   orders,
   orderStatusEvents,
@@ -1061,6 +1065,26 @@ if (!env.R2_BUCKET) {
 // the owner set into oblivion. See docs/code/delivery-pricing.md.
 
 {
+  /* The two label tables first: `istat_provinces` points at `istat_regions`, and
+     nothing points at either — they are names for a picker, not the hierarchy the
+     prices hang off. Reloaded wholesale on every seed because 127 rows cost
+     nothing and a renamed province should not need reconciling. */
+  const regionRows = parseReferenceCsv(readFileSync(istatRegionsCsvPath, 'utf8'));
+  const provinceRows = parseReferenceCsv(readFileSync(istatProvincesCsvPath, 'utf8'));
+  await db.delete(istatProvinces);
+  await db.delete(istatRegions);
+  await db.insert(istatRegions).values(
+    regionRows.map(([regionCode, name]) => ({ regionCode: regionCode!, name: name! })),
+  );
+  await db.insert(istatProvinces).values(
+    provinceRows.map(([provinceCode, name, regionCode]) => ({
+      provinceCode: provinceCode!,
+      name: name!,
+      regionCode: regionCode!,
+    })),
+  );
+  console.log(`  ✓ ${regionRows.length} regioni and ${provinceRows.length} province`);
+
   const comuneRows = parseReferenceCsv(readFileSync(istatComuniCsvPath, 'utf8'));
   const capRows = parseReferenceCsv(readFileSync(istatComuneCapsCsvPath, 'utf8'));
   const [existing] = await db.select({ total: count() }).from(istatComuni);

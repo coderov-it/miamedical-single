@@ -189,9 +189,12 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
     lines: item.lines,
     quantity: line.quantity,
     subtotal: item.subtotal,
-    // `estimate()` applies quantity as its last step, so this division is exact.
-    unitTotal: item.total / Math.max(1, line.quantity),
-    total: item.total,
+    /* `Number()` here and below: the island does one multiplication per stepper
+       press to repaint immediately, and that needs a number. Every rule that
+       decides WHAT to multiply has already run in exact money — see
+       `estimate()` — so this is display arithmetic on a settled figure. */
+    unitTotal: Number(item.total) / Math.max(1, line.quantity),
+    total: Number(item.total),
     openPeriod: item.openPeriod,
     unitSuffix: item.unitSuffix,
   };

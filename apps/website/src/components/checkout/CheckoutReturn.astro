@@ -1,0 +1,71 @@
+---
+/**
+ * The second half of step 2: where the rental is collected from at the end.
+ *
+ * Rendered ONLY when something in the order is rented. A purchase has no second
+ * half, and asking about a return the customer will never make is worse than not
+ * asking.
+ *
+ * It sits BELOW the delivery methods rather than inside either panel, because the
+ * question is the same one for both: a home delivery gets collected, a branch
+ * collection gets brought back. Duplicating it into the two panels would mean two
+ * checkboxes that must agree, and the copy is the only thing that differs — so the
+ * copy is what changes, from `data-label-*`, and the control does not.
+ *
+ * The hairline above is the separation the step needed once it carried two
+ * questions: delivery above, return below, each under its own eyebrow.
+ */
+import { t } from '~/lib/labels';
+import { EYEBROW, FIELD_INPUT, FIELD_LABEL } from './styles';
+---
+
+<div class="border-hair mt-1.5 flex flex-col gap-3.5 border-t pt-5" data-return-block>
+  <span class={EYEBROW}>{t('returnStage')}</span>
+
+  {
+    /*
+      Checked by default, and server-rendered checked so it is already true before
+      any script runs. Unticking it is the deliberate act, which is the right way
+      round: almost every rental goes back where it came from.
+
+      18px painted with `target-48` restoring the hit area — the deal described in
+      the target-48 block of app.css. The two labels ride on the element as data
+      attributes rather than being imported, for the same reason the delivery cards
+      carry theirs: the page script must not pull in the label catalog.
+    */
+  }
+  <label class="flex cursor-pointer items-center gap-3 text-[15px]">
+    <input
+      class="target-48 accent-accent size-4.5 flex-none cursor-pointer"
+      type="checkbox"
+      name="return-same-address"
+      checked
+      data-field-return-same
+    />
+    <span
+      data-return-same-label
+      data-label-home={t('returnSameAddress')}
+      data-label-pickup={t('returnSameBranch')}>{t('returnSameAddress')}</span
+    >
+  </label>
+
+  {
+    /*
+      One line, and deliberately not the comune/CAP ladder above. That ladder exists
+      to key a PRICE and the return prices nothing — the fee was settled by the
+      outbound comune. What is left is an address a driver reads, so the placeholder
+      asks for the whole thing at once.
+    */
+  }
+  <label class={FIELD_LABEL} data-return-address-field hidden>
+    {t('returnAddressLabel')}
+    <input
+      class={FIELD_INPUT}
+      type="text"
+      name="return-address"
+      autocomplete="off"
+      placeholder={t('placeholderReturnAddress')}
+      data-field="returnAddress"
+    />
+  </label>
+</div>

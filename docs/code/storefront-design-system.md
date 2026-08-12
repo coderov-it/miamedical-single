@@ -92,16 +92,33 @@ tab styles live with the components that own them.)
 
 ### The focus ring is two paints — never remove only one
 
-`*:focus-visible` is a white `outline` **and** a 6px ink `box-shadow`. Two paints,
-because a single brand-blue ring is 1.0:1 against a brand-blue button and
-therefore invisible on every primary CTA; this pair survives white, tint, brand
-blue, the dark band and the footer alike.
+`*:focus-visible` is a 2px accent `outline` at `outline-offset: 2px` **and** a 2px
+white `box-shadow` filling that gap. Two paints, because a single brand-blue ring is
+1.0:1 against a brand-blue button and therefore invisible on every primary CTA
+(SC 2.4.13 / 1.4.11). Each paint covers what the other cannot:
+
+```text
+white 2px, hugging the control    16.3:1 on --color-footer
+                                  7.84:1 on an accent button
+                                 11.03:1 on the accent-deep band
+accent 2px, just outside it        7.84:1 on white
+                                 ~7.4:1 on a tint band
+```
+
+**It used to be 3px white under a 6px `--color-ink` shadow** — 9px of near-black
+around every focused control, which on a white card reads as a hard slab rather
+than a ring, and was the single thing the owner disliked most about the storefront's
+feel. The obligation did not change; the footprint more than halved and the heavy
+paint became brand blue. Do not put ink back, and do not drop to one paint.
+
+Do not add a blurred bloom either. A soft glow is the obvious way to make a ring
+feel gentle and it is the wrong one here — it over-highlights, and the same request
+was made and reversed in the admin.
 
 The trap: `focus:outline-none` — the reflex when a control shouldn't ring — takes
-the white band away and **leaves the ink shadow**, drawn tight around the
-element. Four search fields had exactly that, so focusing them painted a fat
-black slug where a ring should be: worst on a native date input, where the black
-band wrapped the `gg/mm/aaaa` text itself. Opting out means both:
+the accent ring away and **leaves the white band**, drawn tight around the element,
+which on a white card is no indicator at all. Four search fields had exactly the
+equivalent bug under the old colours. Opting out means both:
 
 ```css
 outline: none;

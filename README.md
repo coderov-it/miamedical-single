@@ -29,6 +29,9 @@ packages/
   db/           Drizzle schema, client, migrations, seed
   permissions/  Permission code catalog + checks, shared by server and admin
   validators/   Valibot schemas shared by every app
+  pricing/      Exact money arithmetic + the rental pricing rules, one copy
+                see docs/code/orders-placement.md
+  i18n/         Enum labels and the label-catalog helper
   tsconfig/     Shared TypeScript bases
 ```
 

@@ -316,21 +316,36 @@
 
   /* The highest-leverage accessibility fix in the design. The prototypes' single
      brand-blue ring is 1.0:1 against a brand-blue button — literally invisible
-     on every primary CTA (SC 2.4.13 / 1.4.11). This two-tone ring survives
-     white, tint, brand blue, the dark band and the footer alike. */
+     on every primary CTA (SC 2.4.13 / 1.4.11). So it stays TWO paints, because
+     neither colour survives every surface on its own.
+
+     What each paint is for, measured:
+
+       white 2px, hugging the control   16.3:1 on --color-footer
+                                         7.84:1 on an accent button
+                                        11.03:1 on the accent-deep band
+       accent 2px, just outside it       7.84:1 on white
+                                        ~7.4:1 on a tint band
+
+     It used to be a 3px white band under a 6px `--color-ink` shadow: 9px of
+     near-black around every focused control, which on a white card reads as a
+     hard slab rather than a ring. Same obligation, less than half the footprint,
+     and the heavy paint is now the brand blue instead of ink. Both paints follow
+     `border-radius` on their own, so the ring keeps the control's shape. */
   *:focus-visible {
-    outline: 3px solid #fff;
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
-    box-shadow: 0 0 0 6px var(--color-ink);
+    /* Fills the 2px gap `outline-offset` opens, so the pair is continuous. */
+    box-shadow: 0 0 0 2px #fff;
   }
 
   /*
     The ring is TWO paints, so opting out of it takes two declarations. A lone
     `outline: none` — the reflex, and what four search fields had via Tailwind's
-    `focus:outline-none` — removes the white band and leaves the 6px ink
-    box-shadow drawn tight around the element: a fat black slug, not a focus
-    ring. Anything that hands its ring to a wrapper must surrender both, which is
-    what `.field-control` does below.
+    `focus:outline-none` — removes the accent ring and leaves the white band drawn
+    tight around the element, which on a white card is no indicator at all.
+    Anything that hands its ring to a wrapper must surrender both, which is what
+    `.field-control` does below.
 
     `border-radius: inherit` used to live here and is gone: a focused element
     with no radius of its own was taking its PARENT's, so a link inside a rounded
@@ -446,10 +461,13 @@
     box-shadow: none;
   }
 
+  /* The same pair as the global rule, on the box. Kept in step with it by hand:
+     hoisting it to a custom property would hide which element owns the ring, and
+     that ownership is the whole point of this block. */
   .field-control:has(:is(input, select, textarea):focus-visible) {
-    outline: 3px solid #fff;
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
-    box-shadow: 0 0 0 6px var(--color-ink);
+    box-shadow: 0 0 0 2px #fff;
   }
 
   /* The uppercase field label. Always visible, never a placeholder. */

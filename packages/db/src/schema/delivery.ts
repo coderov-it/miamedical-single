@@ -41,10 +41,42 @@ import { deliveryZoneLevel, deliveryZoneValue } from './enums.ts';
 /* ------------------------------------------------------------- reference --- */
 
 /**
+ * The two tiers above the comune, as names.
+ *
+ * ISTAT publishes no separate file for either: both are repeated on every comune
+ * row, so the importer collects them while it walks that file. 20 and 107 rows,
+ * and they exist for one reason — a cascading picker has to show `Lazio` and
+ * `Roma`, not `12` and `RM`.
+ *
+ * They are LABELS, not the hierarchy. `istat_comuni` still carries its own
+ * `region_code` and `province_code`, which is what everything joins on, so these
+ * tables can be reloaded or renamed without touching a single price.
+ */
+export const istatRegions = pgTable('istat_regions', {
+  /** Two digits, e.g. `12` for Lazio. */
+  regionCode: char({ length: 2 }).primaryKey(),
+  /** Bilingual where ISTAT says so: `Valle d'Aosta/Vallée d'Aoste`. */
+  name: text().notNull(),
+});
+
+export const istatProvinces = pgTable(
+  'istat_provinces',
+  {
+    /** The two letters that appear in an address: `RM`, `FI`. */
+    provinceCode: char({ length: 2 }).primaryKey(),
+    name: text().notNull(),
+    regionCode: char({ length: 2 })
+      .notNull()
+      .references(() => istatRegions.regionCode, { onDelete: 'cascade' }),
+  },
+  (t) => [index('istat_provinces_region_idx').on(t.regionCode)],
+);
+
+/**
  * The ISTAT comune list: ~7,894 rows, refreshed maybe yearly.
  *
- * Province and region are plain columns rather than foreign keys to their own
- * tables, because that is how ISTAT publishes them and nothing here needs a
+ * Province and region are plain columns rather than foreign keys to the two
+ * tables above, because that is how ISTAT publishes them and nothing here needs a
  * province row to exist on its own — the price tree carries its own province
  * nodes, keyed by these codes.
  */

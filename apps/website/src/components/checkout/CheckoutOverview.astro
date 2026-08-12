@@ -47,7 +47,7 @@ const THUMB_FALLBACK = 'bg-tint';
   class="border-hair shadow-pdp-panel wide:sticky wide:top-24 flex max-w-100 min-w-0 flex-[1_1_320px] flex-col gap-4.5 rounded-2xl border bg-white p-7"
   aria-labelledby="checkout-overview-title"
   data-overview
-  data-items-total={itemsTotal.toFixed(2)}
+  data-items-total={itemsTotal}
   data-currency={currency}
   data-open-period={openPeriod ? '' : undefined}
 >
@@ -182,7 +182,7 @@ const THUMB_FALLBACK = 'bg-tint';
     <span class="text-[13.5px] font-semibold">{t('total')}</span>
     <span class="flex flex-col items-end">
       <strong class="text-[24px] tracking-[-0.01em] tabular-nums" data-overview-total>
-        {formatMoney(itemsTotal.toFixed(2), currency)}
+        {formatMoney(itemsTotal, currency)}
       </strong>
       {
         /*

@@ -7,6 +7,7 @@ import type {
   RentalPackage,
 } from '@mia/db/schema';
 import { durationLabel } from '@mia/i18n';
+import { asMoney } from '@mia/pricing';
 
 import type {
   AdminProductDetailDto,
@@ -29,7 +30,6 @@ import type {
   TranslationStatusDto,
 } from './dto.ts';
 import { pick, pickAlt, pickOptional, pickTranslation, resolveField } from './i18n.ts';
-import { asMoney } from './money.ts';
 import { resolveSkuPrice } from './pricing.ts';
 import type {
   AddonRow,
@@ -128,6 +128,15 @@ export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationS
 
 const YES: Record<LanguageCode, string> = { it: 'Sì', en: 'Yes' };
 const NO: Record<LanguageCode, string> = { it: 'No', en: 'No' };
+
+/**
+ * Exported because an order line snapshots the words the customer read, and a
+ * `boolean` intake answer is one of them: the storefront showed "Sì", so that is
+ * what the record has to say — not the `yes` the wire carried.
+ */
+export function booleanLabel(value: boolean, locale: LanguageCode): string {
+  return value ? YES[locale] : NO[locale];
+}
 
 function specValueAndDisplay(
   spec: SpecRow & { options: SpecOptionRow[] },

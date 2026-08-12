@@ -254,16 +254,42 @@ function deepestSharedAnswer(candidates: readonly ZoneCandidate[]): ZoneRow | nu
 }
 
 /**
- * A CAP (and optionally the comune name an address provider gave us) → a price.
+ * Which comuni this quote could be about.
+ *
+ * An `istatCode` means the customer picked their comune from the cascading picker,
+ * so there is exactly one and nothing to infer — the CAP is then only used to look
+ * for a `cap` row beneath it. An unknown code falls through to the CAP rather than
+ * failing: it means the client is stale or the comune merged, and a coarse answer
+ * beats none.
+ *
+ * Without a code we are back to inferring the comune FROM the CAP, which is the
+ * ambiguous direction — 18% of CAPs name more than one comune.
+ */
+function findCandidateComuni(db: Database, input: QuoteInput): Promise<ComuneRow[]> {
+  if (!input.istatCode) return repo.findComuniByCap(db, input.cap);
+  return repo
+    .findComuneByIstatCode(db, input.istatCode)
+    .then((row) => (row ? [row] : repo.findComuniByCap(db, input.cap)));
+}
+
+/**
+ * An address → a price. The comune comes either picked (`istatCode`) or inferred
+ * from the CAP.
  *
  * Always answers. Never guesses: a wrong price is worse than a coarse one, so the
  * comune name is compared against a normalised column exactly, never fuzzily, and
  * an unbreakable tie widens to the shared parent instead of picking a favourite.
+ *
+ * When the comune was picked, steps 2 to 4 below cannot fire — there is one
+ * candidate, so the tiebreak has nothing to break and the answer is always the
+ * deepest priced row on that comune's own path. That is what makes an incomplete
+ * CAP list harmless: `20130` is missing from our reference data, and a customer who
+ * picked Milano is still charged Milano's fee.
  */
 export async function resolveQuote(db: Database, input: QuoteInput): Promise<QuoteDto> {
   const [zones, comuni] = await Promise.all([
     repo.findAllZones(db),
-    repo.findComuniByCap(db, input.cap),
+    findCandidateComuni(db, input),
   ]);
 
   const country = zones.find((row) => row.level === 'country');
@@ -280,13 +306,14 @@ export async function resolveQuote(db: Database, input: QuoteInput): Promise<Quo
     siblings.set(`${row.level}|${row.code}`, row);
   }
 
-  // 1. A CAP our reference data does not know. Every one of Italy's 4,735 CAPs is
-  //    in there, so this is a typo or a foreign postcode — the country row answers
-  //    and the miss is recorded.
+  // 1. Nothing to go on: no comune under that code, and none under that CAP. A
+  //    typo, a foreign postcode, or reference data older than the client. The
+  //    country row answers and the miss is recorded, since this is the one path
+  //    that produces a deliberately coarse price.
   if (comuni.length === 0) {
     repo.logResolutionMiss(db, {
       cap: input.cap,
-      providerName: input.comuneName ?? null,
+      providerName: input.comuneName ?? input.istatCode ?? null,
       provinceCode: null,
       resolvedVia: country.level,
     });

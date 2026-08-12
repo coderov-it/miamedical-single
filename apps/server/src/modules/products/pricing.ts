@@ -1,4 +1,5 @@
-import { addMoney, asMoney } from './money.ts';
+import { addMoney, asMoney } from '@mia/pricing';
+
 import type { SkuWithOptions, VariantGroupWithOptions } from './types.ts';
 
 /**

@@ -102,7 +102,7 @@ so a misspelled key does not compile.
 The page script holds no Italian either. It cannot import `t` — that would put the
 whole catalog in the browser bundle — so the ~17 words it needs at click time ship
 as a JSON island (`SCRIPT_LABELS`, rendered `<script type="application/json">`),
-and the delivery fees and names ride on their own cards as data attributes. The
+and the delivery names ride on their own cards as data attributes. The
 "Grazie {name}!" greeting carries its template in `data-greeting-template` for the
 same reason.
 
@@ -129,8 +129,9 @@ rate, not a sum**, so:
 
 - the qualifier under the total reads `stima · periodo da definire` instead of
   `IVA inclusa`;
-- the delivery fee is **not** folded into it. Adding €15 to a per-day rate adds
-  two incompatible quantities. The fee still shows on its own row.
+- the delivery fee is **not** folded into it. Adding a one-off delivery charge to
+  a per-day rate adds two incompatible quantities. The fee still shows on its own
+  row.
 
 ## The stepper
 
@@ -173,9 +174,136 @@ becomes a 48px block and the delivery panel falls apart.
 So the two are separated. `.checkout` releases buttons and checkboxes from the
 base `min-height`/`min-width`, and **`.target-48` puts a centred, invisible
 48×48 hit area back** over the painted control. Nothing about the paint changes
-and nothing about the target size is lost. The "same address" checkbox takes the
-other route: its `<label>` carries `min-h-12`, so the whole row is the target for
-the 18px box it wraps.
+and nothing about the target size is lost.
+
+## Step 2 asks two questions, and says so
+
+A rental goes out and comes back. Those are two facts, so step 2 is two blocks
+under their own eyebrows with a hairline between them:
+
+```text
+CONSEGNA                            ← CheckoutDelivery.astro
+  ◉ Consegna e ritiro all'indirizzo che indichi     +40,00 €
+      Regione / Provincia / Comune / CAP / Indirizzo
+  ○ Ritiro in sede                                  Gratis
+────────────────────────────────────
+RICONSEGNA A FINE NOLEGGIO          ← CheckoutReturn.astro
+  ☑ Ritiriamo allo stesso indirizzo
+      (unticked → Indirizzo per il ritiro, one free-text line)
+
+  [ Continua alla conferma ]         ← belongs to the STEP, after both
+```
+
+Three decisions carry that shape:
+
+**Only when something is rented.** `hasRental` in the page frontmatter —
+`items.some((item) => item.product.pricing.mode === 'rental')`. A purchase has no
+second half, and the block, the eyebrows and the fields are all absent for one. The
+script treats `returnSame === null` as "this order has no return", so nothing is
+guarded twice.
+
+`some`, not `every`: a mixed request with one rented line still has a collection to
+arrange, and a customer should not have to split the order to say where.
+
+**Below both methods, not inside either.** Both come back — a home delivery is
+collected, a branch collection is brought back — so it is one question, one control.
+Putting it in each panel would mean two checkboxes that have to agree. Only the
+wording differs, and that swaps from `data-label-home` / `data-label-pickup` in
+`selectDelivery`:
+
+```text
+homeDelivery → "Ritiriamo allo stesso indirizzo"
+storePickup  → "Riconsegna alla stessa sede"
+```
+
+**The "Continua" button moved out of `CheckoutDelivery.astro`** and into step 2's
+own slot. A forward action rendered above a question it does not cover invites the
+customer to skip it.
+
+Ticked is the server-rendered default, so it is already true before any script
+runs, and unticking is the deliberate act. Re-ticking **clears** what was typed
+rather than remembering it — a stale address behind a ticked box is a fact nobody
+can see, and the API refuses that combination anyway.
+
+The return address is **one free-text line, deliberately not the cascade below**.
+The cascade exists to key a price; the return prices nothing, because the fee was
+settled by the outbound comune. What is left is an address a driver reads, so asking
+the customer to pick Roma a second time would buy nothing.
+
+## Step 2 asks for the address as a cascade
+
+Regione → provincia → comune → CAP → via, in `CheckoutDelivery.astro`, driven by
+the `--- the address cascade ---` block in `checkout.astro`.
+
+Not a preference. The fee is keyed on the **comune's ISTAT code**, and a picked
+comune is exact where a typed città is not: names repeat across provinces, and 18%
+of Italian CAPs name more than one comune, so inferring the comune from a CAP means
+guessing — and a guessed comune is a guessed price.
+
+```text
+1. open the home-delivery panel   → GET /api/address/regions          20 rows
+2. pick  Lazio                    → GET /api/address/provinces?…12     5 rows
+3. pick  Roma (RM)                → GET /api/address/comuni?…RM      121 rows
+4. pick  Roma          value = 058091   ← the six digits the fee keys on
+                                          the comune's NAME goes into `city`
+5. its 79 CAPs become the `datalist`; type 00129
+6. POST /api/delivery/quote  { cap: '00129', istatCode: '058091' }
+                                  → 47,00 €  resolvedVia: comune
+```
+
+`00129` is **not in our CAP dataset** — it comes from GeoNames and some big-city
+codes are missing. Step 4 is why that costs nothing: the comune is already known,
+so an unlisted CAP finds no `cap` row and the comune's own fee answers. Before the
+picker the same address fell all the way to the country row and was quoted "da
+confermare".
+
+### Each tier is a dropdown you can type into
+
+`CheckoutComboField.astro`, driven by `createCombobox` in the page script. Three
+instances — regione, provincia, comune — and the rule that defines them:
+
+```text
+type "lomb"       → filters to Lombardia, pre-highlighted; Enter commits it
+type "re"         → Reggio… before Ancona (starts-with, then contains)
+type "citta"      → finds Città…          (case and accents folded)
+type "Gotham"     → "Nessun risultato", nothing selectable
+blur, or Escape   → the text reverts to the committed row's name
+```
+
+So the committed value is **always a code the server knows, or nothing**. Typing
+filters the rows; it never becomes the value. `Enter` is swallowed while a list is
+open, so it cannot submit the step with a half-typed tier showing.
+
+That matters more than it looks. `resolveQuote` prices whatever comune code it is
+handed, so "the tier is non-empty" has to mean "a real place" — otherwise a
+mistyped `Lomb` would need validating on the way out instead of being impossible on
+the way in.
+
+These replaced native `<select>`s, which needed no script at all. A `<select>`
+cannot be filtered, and a province holds up to ~320 comuni — scrolling that was the
+whole problem. The chevron is drawn back in because the native one went with the
+element.
+
+The CAP field is deliberately **not** one of them. Its `datalist` is a
+**suggestion, not a validator**: an unlisted CAP is accepted, because the gap is as
+likely to be ours as the customer's. The tiers are closed sets we own; the CAP list
+is one we know to be short.
+
+For 7,338 of Italy's 7,896 comuni there is exactly one CAP, and the script fills
+it — most customers never touch the field. Changing comune clears a CAP that
+belonged to the previous one, which is correctness rather than tidiness: the server
+prices the code, so a code from one place with a CAP from another would answer.
+
+**The street field no longer fills the città and the CAP.** It completes from HERE
+(`docs/code/address-autocomplete.md`) and writes the street line only — letting a
+provider's spelling of a name decide which comune is priced is exactly the
+ambiguity the picker removes.
+
+**One fallback, and only one.** If `/api/address/regions` cannot be answered the
+three tiers are hidden and the comune becomes an ordinary text field. The quote
+then resolves from the CAP plus that name, which is what it did before the picker
+existed: coarser for a shared CAP, never blocked. `step2Valid` accepts either an
+ISTAT code or a typed name, so a working checkout never depends on that endpoint.
 
 ## Deliberate deviations from the reference file
 
@@ -220,18 +348,53 @@ All business-driven, and all for the same reasons the PDP's are:
   what the reference names this step. It is in `PRIVATE_ROUTES`: `noindex` and
   `no-store`, because the page is built out of one person's request.
 
+## Step 3 records the order
+
+The confirm step posts to `POST /api/orders`, which re-resolves and re-prices the
+whole request from the catalogue before writing it. The wire format, the strictness
+rules and the stored snapshot are documented in `docs/code/orders-placement.md`;
+what matters on this page:
+
+- **`estimate()` no longer owns the pricing rules.** They moved to
+  `packages/pricing`, which the server prices the stored order with too — so the
+  figure in the overview and the figure in `orders.total` are the same arithmetic.
+  This module now only puts Italian words on the structured rows that come back.
+- **Step 1 asks for no address at all.** The address belongs to the delivery and
+  lives in step 2's home-delivery panel — street, città and CAP, as three fields,
+  because the order stores a structured snapshot and the CAP is what prices the
+  delivery. Asking in step 1 meant everyone typed a delivery address, including the
+  customers collecting from a branch. A collected order stores no address.
+- **The street field is a combobox**, completing from `GET /api/address/suggest`
+  (HERE, proxied server-side). Picking a suggestion fills all three fields, so the
+  CAP that prices the order is one the customer never typed. See
+  `docs/code/address-autocomplete.md`.
+- **The CTA is still an `<a>` to WhatsApp** in the served HTML, because with no
+  JavaScript that is the whole path. The parse-time script retitles it and the
+  module script posts instead, revealing the order number and the server's own
+  total; WhatsApp moves one step down, quoting that number. A failed POST says so
+  and leaves the handover in place.
+- **Two gates replace the CTA rather than letting it fail.** A rental with no
+  resolvable duration has a daily rate and no total; a line missing a required
+  choice is one the API refuses. Either way the panel names what is missing and
+  links back to the page where it can be fixed — see `Checkout.blocked`.
+
 ## Known gaps
 
-- **The delivery fees are placeholders** (€25 hotel, €15 home, free pickup) —
-  the reference design's own figures. The API has no delivery-pricing field yet.
-  They are hardcoded in exactly one place, `DELIVERY_OPTIONS` in
-  `src/lib/checkout.ts`, so replacing them with an API read is a one-line change.
-  Nothing is charged online, and the phone call settles the real amount.
-- **`estimate()` and the PDP's inline script apply the same rules twice**, in two
-  languages of the same codebase — server TypeScript here, browser TypeScript
-  there. They agree today (both were written from the rules above). Folding the
-  PDP's estimate onto this module is the fix; it was left alone here because
-  rewriting a working live estimate is not part of adding a page.
-- There is still no orders endpoint. When one lands, "Invia l'ordine" becomes a
-  POST with a session-bound CSRF token and the server re-resolves the whole
-  request before pricing it. The field names and the wire format carry over.
+- **A shared CAP can still be quoted coarsely — but only on the fallback path.**
+  With the picker the comune arrives as an ISTAT code and the tiebreak never runs.
+  Without it (`/api/address/regions` unreachable) the quote is back to the CAP plus a
+  typed name, and a name matching nothing widens the answer rather than guessing —
+  see the walks in `docs/code/orders-placement.md`.
+- **Our CAP list is incomplete for the big cities.** `20130` Milano, `00129` Roma and
+  ~12 others are absent, so they never appear in the datalist. Typing one still
+  prices correctly at comune level; the missing rows only cost the suggestion. The
+  measured accuracy of the dataset is in `packages/db/data/README.md`.
+- **The card's figure can go stale.** It refreshes when the comune or the CAP
+  changes, not on a timer, so a tab left open across an edit to the zone tree shows
+  the older number. `place()` re-resolves, so the stored total is never the stale one.
+- **The PDP's inline script still applies the pricing rules a second time**, in
+  browser TypeScript, for its live estimate. This module and the server now share
+  one implementation; the PDP is the remaining copy. Folding it onto
+  `@mia/pricing` is the fix.
+- **Nothing emails the order number.** The customer sees it on the confirmation and
+  in the WhatsApp message, and nowhere else.
