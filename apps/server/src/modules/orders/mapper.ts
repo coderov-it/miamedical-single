@@ -7,10 +7,13 @@ import type {
   AdminCartSummaryDto,
   AdminOrderDetailDto,
   AdminOrderSummaryDto,
+  OrderDeliveryDto,
   OrderEventDto,
   OrderItemDto,
   OrderTotalsDto,
+  PlacedOrderDto,
 } from './dto.ts';
+import type { OrderItemConfiguration } from './resolve.ts';
 import { nextOrderStatuses, nextPaymentStatuses } from './status.ts';
 import type {
   ActorRef,
@@ -21,6 +24,7 @@ import type {
   OrderItemRow,
   OrderStatusEventRecord,
   OrderSummaryRecord,
+  PlacedOrder,
 } from './types.ts';
 
 const iso = (value: Date) => value.toISOString();
@@ -50,6 +54,74 @@ export function toAddress(value: Record<string, unknown> | null): AddressDto | n
   };
 }
 
+/**
+ * The delivery block, read the same defensive way as an address: field by field,
+ * with a missing one becoming null. It is written by this codebase, but it is
+ * still a blob that outlives the shape that wrote it.
+ */
+export function toDelivery(value: Record<string, unknown> | null): OrderDeliveryDto | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const optional = (key: string): string | null =>
+    typeof value[key] === 'string' && value[key] !== '' ? (value[key] as string) : null;
+
+  const method = optional('method');
+  // A block with no method names nothing — the same rule as the CHECK constraint.
+  if (!method) return null;
+
+  return {
+    method,
+    deliveryAddress: optional('deliveryAddress'),
+    deliveryPostalCode: optional('deliveryPostalCode'),
+    pickupCity: optional('pickupCity'),
+    /* Only an explicit `false` means somewhere else. A block written before this
+       question existed has neither key, and "the same address" is what it meant. */
+    returnToSameAddress: value.returnToSameAddress !== false,
+    returnAddress: optional('returnAddress'),
+    quote: toDeliveryQuote(value.quote),
+  };
+}
+
+/**
+ * The zone answer stored beside the method.
+ *
+ * Gated on `kind`, the one field that decides whether there is an answer at all,
+ * so an order from before the ladder priced anything comes back `null` instead of
+ * as a quote with every field empty.
+ */
+function toDeliveryQuote(value: unknown): OrderDeliveryDto['quote'] {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  const kind = record.kind;
+  if (kind !== 'fee' && kind !== 'call') return null;
+
+  const text = (key: string): string | null =>
+    typeof record[key] === 'string' && record[key] !== '' ? (record[key] as string) : null;
+
+  return {
+    kind,
+    fee: kind === 'fee' ? text('fee') : null,
+    areaLabel: text('areaLabel'),
+    resolvedVia: text('resolvedVia'),
+    comune: text('comune'),
+  };
+}
+
+/**
+ * The line's configuration snapshot.
+ *
+ * Trusted structurally — this module wrote it — but gated on the one field that
+ * decides whether there is anything to render at all, so a line from before the
+ * storefront checkout existed comes back as `null` rather than as a breakdown
+ * with every row empty.
+ */
+export function toConfiguration(
+  value: Record<string, unknown> | null,
+): OrderItemConfiguration | null {
+  if (!value || typeof value !== 'object' || typeof value.productSlug !== 'string') return null;
+  return value as unknown as OrderItemConfiguration;
+}
+
 function actorName(actor: ActorRef | null): string | null {
   if (!actor) return null;
   return actor.fullName ?? actor.email;
@@ -65,6 +137,7 @@ export function toOrderItem(row: OrderItemRow): OrderItemDto {
     quantity: row.quantity,
     unitPrice: row.unitPrice,
     total: row.total,
+    configuration: toConfiguration(row.configuration),
   };
 }
 
@@ -113,6 +186,10 @@ export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
     id: row.id,
     number: row.number,
     email: row.email,
+    phone: row.phone,
+    customerType: row.customerType,
+    codiceFiscale: row.codiceFiscale,
+    partitaIva: row.partitaIva,
     userId: row.userId,
     status: row.status,
     paymentStatus: row.paymentStatus,
@@ -120,12 +197,36 @@ export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
     items: row.items.map(toOrderItem),
     shippingAddress: toAddress(row.shippingAddress),
     billingAddress: toAddress(row.billingAddress),
+    delivery: toDelivery(row.delivery),
     notes: row.notes,
     events: row.events.map(toOrderEvent),
     allowedStatuses: [...nextOrderStatuses(row.status)],
     allowedPaymentStatuses: [...nextPaymentStatuses(row.paymentStatus)],
     placedAt: iso(row.placedAt),
     updatedAt: iso(row.updatedAt),
+  };
+}
+
+/**
+ * The storefront's receipt. Tax and discount are stated as zero rather than
+ * omitted: the checkout renders a totals block, and a missing field would read as
+ * an unknown amount instead of one that does not apply.
+ */
+export function toPlacedOrder(placed: PlacedOrder): PlacedOrderDto {
+  return {
+    number: placed.number,
+    status: 'pending',
+    paymentStatus: 'unpaid',
+    totals: {
+      subtotal: placed.subtotal,
+      shippingTotal: placed.shippingTotal,
+      taxTotal: '0.00',
+      discountTotal: '0.00',
+      total: placed.total,
+      currency: placed.currency,
+    },
+    itemCount: placed.items.length,
+    placedAt: iso(placed.placedAt),
   };
 }
 

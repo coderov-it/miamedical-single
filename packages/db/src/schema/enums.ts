@@ -33,6 +33,15 @@ export const paymentStatus = pgEnum('payment_status', [
 
 export const addressKind = pgEnum('address_kind', ['shipping', 'billing']);
 
+/**
+ * Who is renting, which decides the fiscal identifier the order must carry: a
+ * `private` gives a codice fiscale, a `company` gives both a partita IVA and its
+ * own codice fiscale, and a `tourist` gives neither. The checkout asks the
+ * question in those terms, and `orders_fiscal_check` holds the rule in the
+ * database.
+ */
+export const customerType = pgEnum('customer_type', ['private', 'company', 'tourist']);
+
 /** Chosen at product creation and never updated — the repo's UPDATE omits it. */
 export const pricingMode = pgEnum('pricing_mode', ['fixed', 'rental']);
 

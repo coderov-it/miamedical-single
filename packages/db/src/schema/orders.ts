@@ -1,9 +1,11 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
+  check,
   index,
   integer,
   jsonb,
   numeric,
+  pgSequence,
   pgTable,
   text,
   timestamp,
@@ -12,15 +14,28 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { productSkus } from './catalog.ts';
-import { orderStatus, paymentStatus } from './enums.ts';
+import { customerType, orderStatus, paymentStatus } from './enums.ts';
 import { users } from './users.ts';
 
 /**
- * Nothing reads these tables yet — the orders module is a later pass. They are
- * kept in step with the catalog so the day it lands there is no conversion:
- * money is `numeric(12, 2)` (never integer cents, never a JS float) and lines
- * point at `product_skus`, the sellable unit of the new catalog.
+ * Money is `numeric(12, 2)` throughout — never integer cents, never a JS float —
+ * and lines point at `product_skus`, the sellable unit of the catalog.
+ *
+ * The storefront writes here through `POST /api/orders`; how a checkout request
+ * becomes these rows is documented in docs/code/orders-placement.md.
  */
+
+/**
+ * Feeds the human-facing `orders.number`. A sequence rather than
+ * `MAX(number) + 1`: two customers confirming at the same moment would read the
+ * same maximum, and the unique index would turn that into a failed checkout for
+ * one of them.
+ *
+ * It does not reset per year, so the counter inside `MIA-2026-001042` is global
+ * and simply keeps climbing. Starting at 1000 leaves the seed's own
+ * `MIA-2026-000001…6` alone.
+ */
+export const orderNumberSeq = pgSequence('order_number_seq', { startWith: 1000, increment: 1 });
 
 export const carts = pgTable(
   'carts',
@@ -69,6 +84,20 @@ export const orders = pgTable(
     number: text().notNull(),
     userId: uuid().references(() => users.id, { onDelete: 'set null' }),
     email: text().notNull(),
+    /**
+     * The rest of the contact block. Nullable as a group: these are facts the
+     * storefront checkout collects, and an order raised any other way — the seed,
+     * an operator taking it over the phone — legitimately has none of them.
+     */
+    phone: text(),
+    customerType: customerType(),
+    /**
+     * Italian fiscal instruments keep their Italian names, in code and in the
+     * database — see the RULES section of AGENTS.md. A company writes its own
+     * codice fiscale into `codiceFiscale` alongside its `partitaIva`.
+     */
+    codiceFiscale: text(),
+    partitaIva: text(),
     status: orderStatus().notNull().default('pending'),
     paymentStatus: paymentStatus().notNull().default('unpaid'),
     currency: text().notNull().default('EUR'),
@@ -80,6 +109,21 @@ export const orders = pgTable(
     /** Address snapshots — orders must not change when a user edits an address. */
     shippingAddress: jsonb().$type<Record<string, unknown>>(),
     billingAddress: jsonb().$type<Record<string, unknown>>(),
+    /**
+     * How this order changes hands, as the customer chose it:
+     * `{ method, deliveryAddress?, deliveryPostalCode?, pickupCity?, quote? }`,
+     * where `quote` is what the zone ladder answered —
+     * `{ kind, fee, areaLabel, resolvedVia, zoneId, comune }`.
+     *
+     * A jsonb rather than columns because this is the part of an order most likely
+     * to change shape next, and because a method only ever means anything together
+     * with the one detail it carries. It has already changed once, and the change
+     * was migrated rather than absorbed: `0008_retire_hotel_delivery` rewrote every
+     * stored `hotelDelivery` into a `homeDelivery` with an address, so no reader has
+     * to know a shape that no writer produces. The mapper still reads field by
+     * field, so an unexpected shape degrades to a blank line, never to an error.
+     */
+    delivery: jsonb().$type<Record<string, unknown>>(),
     notes: text(),
     placedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
@@ -92,6 +136,22 @@ export const orders = pgTable(
     index('orders_user_idx').on(t.userId),
     index('orders_status_idx').on(t.status),
     index('orders_placed_at_idx').on(t.placedAt),
+    /**
+     * A delivery block with no method names nothing — the fee, the address and
+     * the panel the operator reads all hang off it.
+     */
+    check('orders_delivery_check', sql`${t.delivery} IS NULL OR ${t.delivery} ? 'method'`),
+    /**
+     * The fiscal rule the checkout asks in words, held here so it survives any
+     * other way an order gets written. `tourist` carries neither identifier, so
+     * it is not named: the constraint only forbids the two combinations that
+     * would leave an invoice unissuable.
+     */
+    check(
+      'orders_fiscal_check',
+      sql`(${t.customerType} <> 'private' OR ${t.codiceFiscale} IS NOT NULL)
+        AND (${t.customerType} <> 'company' OR (${t.partitaIva} IS NOT NULL AND ${t.codiceFiscale} IS NOT NULL))`,
+    ),
   ],
 );
 
@@ -108,8 +168,28 @@ export const orderItems = pgTable(
     skuLabel: text().notNull(),
     sku: text().notNull(),
     quantity: integer().notNull(),
+    /**
+     * The configured rate this line was priced at — per rental unit on a rental
+     * product, one-off on a fixed one.
+     *
+     * `unitPrice × quantity` is deliberately NOT `total`: the total also carries
+     * the rental duration and the line's add-ons. `configuration` below is what
+     * explains the difference, which is why the admin renders the breakdown from
+     * it rather than leaving an operator to reconcile two numbers.
+     */
     unitPrice: numeric({ precision: 12, scale: 2 }).notNull(),
     total: numeric({ precision: 12, scale: 2 }).notNull(),
+    /**
+     * What the customer actually configured, snapshotted at the labels they saw:
+     * the rental period and its resolved duration, the package, every variant
+     * choice, every intake answer, and each add-on with its own amount.
+     *
+     * One jsonb rather than a column per concept, because a rental request has no
+     * fixed shape — a product can ask any question its category defines — and
+     * because this is a RECORD, read as a whole by an operator and never
+     * aggregated. Shape and worked examples: docs/code/orders-placement.md.
+     */
+    configuration: jsonb().$type<Record<string, unknown>>(),
   },
   (t) => [index('order_items_order_idx').on(t.orderId)],
 );

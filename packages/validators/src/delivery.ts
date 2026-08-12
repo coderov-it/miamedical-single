@@ -123,18 +123,70 @@ export const CapSchema = v.pipe(
 );
 
 /**
- * What the checkout sends.
+ * Six digits, zero-padded — `058091` is Roma. ISTAT retires a code on a merge and
+ * never reassigns it, which is why this and not a name is what a price keys on.
+ */
+export const IstatCodeSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.regex(/^\d{6}$/, 'A comune code is six digits, for example 058091.'),
+);
+
+/**
+ * What the checkout sends. Two ways to say which comune, one precise and one not.
  *
- * `comuneName` is optional and only ever breaks a tie: 18% of Italian CAPs are
- * shared by more than one comune, and when an address provider gives us a name we
- * can pick the right one instead of falling back to the province. It is never
- * fuzzy-matched — see the service.
+ * `istatCode` is what the cascading picker sends: the customer chose their comune
+ * from Italy's own ladder, so there is nothing left to infer and the CAP is only
+ * used to look for a `cap` row underneath. That matters beyond tidiness — our CAP
+ * list is GeoNames' and is missing some big-city codes (`20130` Milano among
+ * them), so a CAP we have never heard of must still price correctly at comune
+ * level. With the code present, it does.
+ *
+ * `comuneName` is the imprecise form, for an address that arrives without a pick.
+ * It only ever breaks a tie: 18% of Italian CAPs are shared by more than one
+ * comune. It is never fuzzy-matched — see the service.
  */
 export const QuoteSchema = v.strictObject({
   cap: CapSchema,
+  istatCode: v.optional(v.nullable(IstatCodeSchema)),
   comuneName: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(160)))),
+});
+
+/**
+ * What the address-suggestion endpoint accepts.
+ *
+ * Three characters minimum, because one or two match half of Italy and every call
+ * is a paid request to a provider — the shortest query that can narrow anything is
+ * the shortest one worth spending.
+ */
+export const AddressSuggestQuerySchema = v.object({
+  q: v.pipe(
+    v.string(),
+    v.trim(),
+    v.minLength(3, 'Type at least three characters.'),
+    v.maxLength(100),
+  ),
+});
+
+/**
+ * The cascading picker's two keyed tiers. Shapes rather than existence checks —
+ * an unknown-but-well-formed code answers with an empty list, which is what a
+ * picker wants: no options, no error dialog.
+ */
+export const ProvinceListQuerySchema = v.object({
+  regionCode: v.pipe(v.string(), v.trim(), v.regex(/^\d{2}$/, 'A region code is two digits.')),
+});
+
+export const ComuneListQuerySchema = v.object({
+  provinceCode: v.pipe(
+    v.string(),
+    v.trim(),
+    v.toUpperCase(),
+    v.regex(/^[A-Z]{2}$/, 'A province code is two letters.'),
+  ),
 });
 
 export type CreateZoneInput = v.InferOutput<typeof CreateZoneSchema>;
 export type UpdateZoneInput = v.InferOutput<typeof UpdateZoneSchema>;
 export type QuoteInput = v.InferOutput<typeof QuoteSchema>;
+export type AddressSuggestQuery = v.InferOutput<typeof AddressSuggestQuerySchema>;

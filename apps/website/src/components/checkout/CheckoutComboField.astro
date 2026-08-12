@@ -1,0 +1,83 @@
+---
+/**
+ * One tier of the delivery cascade: a dropdown you can type into.
+ *
+ * NOT an autocomplete. The committed value only ever comes from a row, so the
+ * hidden input beside it holds either a code the server knows or nothing at all.
+ * Typing filters the rows; it never becomes the value, and on blur the visible text
+ * is rewritten from whatever is committed — a half-typed "Lomb" cannot survive as a
+ * selection. `createCombobox` in `pages/checkout.astro` is the behaviour.
+ *
+ * A native `<select>` did this without any script, and was replaced because a
+ * province holds up to ~320 comuni: scrolling that on a desktop is the whole
+ * problem, and a native select cannot be filtered.
+ *
+ * ARIA is spelled out rather than borrowed from a library, matching the street
+ * field in the same panel: the input owns the expanded state and the active
+ * option, the `<ul>` is the popup.
+ */
+import { FIELD_INPUT, FIELD_LABEL, LISTBOX } from './styles';
+
+interface Props {
+  /**
+   * The tier's `data-field` name, English: `region`, `province`, `istatCode`. Also
+   * keys the popup's DOM id, so it must be unique on the page.
+   */
+  name: string;
+  label: string;
+  /**
+   * The hint before anything is typed. For a tier whose parent is unchosen this is
+   * what says which field to fill first, which is why the disabled state needs no
+   * separate explanation.
+   */
+  placeholder: string;
+  /** Rendered disabled when the tier above has not answered yet. */
+  disabled?: boolean;
+}
+
+const { name, label, placeholder, disabled = false } = Astro.props;
+const optionsId = `checkout-${name}-options`;
+---
+
+<label class={FIELD_LABEL}>
+  {label}
+  {
+    /*
+      The positioned box: the field, its chevron and its popup. The chevron is what
+      keeps this reading as a dropdown now that the control is an `<input>` — the
+      native one went away with the `<select>`.
+    */
+  }
+  <div class="relative">
+    <input
+      class={`${FIELD_INPUT} disabled:bg-tint disabled:text-ink-2 w-full pr-9 disabled:cursor-not-allowed`}
+      type="text"
+      autocomplete="off"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls={optionsId}
+      aria-autocomplete="list"
+      placeholder={placeholder}
+      disabled={disabled}
+      data-combo-input={name}
+    />
+    {/* The committed code. This is what gets read and sent; the field above is text. */}
+    <input type="hidden" name={name} data-field={name} />
+
+    <svg
+      class="text-ink-2 pointer-events-none absolute top-1/2 right-3.5 size-3 -translate-y-1/2"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 4.5 L6 8 L9.5 4.5" />
+    </svg>
+
+    <ul class={LISTBOX} id={optionsId} role="listbox" aria-label={label} data-combo-options={name} hidden>
+    </ul>
+  </div>
+</label>

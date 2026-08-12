@@ -11,6 +11,7 @@
     "clean": "rm -rf .turbo node_modules"
   },
   "dependencies": {
+    "@mia/pricing": "workspace:*",
     "valibot": "catalog:"
   },
   "devDependencies": {

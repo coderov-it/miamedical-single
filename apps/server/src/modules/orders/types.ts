@@ -2,6 +2,8 @@
 
 import type { cartItems, carts, orderItems, orders, orderStatusEvents } from '@mia/db/schema';
 
+import type { ResolvedLine } from './resolve.ts';
+
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type OrderStatusEventRow = typeof orderStatusEvents.$inferSelect;
@@ -67,6 +69,21 @@ export interface CartListFilters {
   q?: string | undefined;
   /** `active` still has time on the clock; `abandoned` is past `expiresAt`. */
   state?: 'active' | 'abandoned' | undefined;
+}
+
+/**
+ * What `service.place` hands back: the created order's identity, the figures the
+ * server computed, and the resolved lines it computed them from.
+ */
+export interface PlacedOrder {
+  id: string;
+  number: string;
+  placedAt: Date;
+  subtotal: string;
+  shippingTotal: string;
+  total: string;
+  currency: string;
+  items: ResolvedLine[];
 }
 
 /** Totals for the list header. Money stays a string all the way to the client. */

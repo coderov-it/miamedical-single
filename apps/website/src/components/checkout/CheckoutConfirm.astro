@@ -1,15 +1,30 @@
 ---
 /**
- * Step 3 — read it back, then hand over.
+ * Step 3 — read it back, record the order, then hand over.
  *
- * There is no orders endpoint and no online payment, so `sendOrderOnWhatsApp` is a
- * WhatsApp handover, which is what the reference design's own copy already
- * describes ("our agent will message you on WhatsApp"). It is an <a> carrying a
- * server-built message with every line item in it, so it works with no
- * JavaScript; the script only widens the message with what the customer typed
- * into steps 1 and 2 and then reveals the confirmation.
+ * Two paths, and both are complete:
+ *
+ *   no JavaScript  the CTA is the <a> it renders as — a WhatsApp handover already
+ *                  carrying every line item, which is what the reference design's
+ *                  own copy describes ("our agent will message you").
+ *   with it        the same control posts the request to `POST /api/orders` first,
+ *                  and the confirmation then leads with the order number. WhatsApp
+ *                  stays, one step down, now quoting that number.
+ *
+ * The order is recorded either way — in the second path by the API, in the first
+ * by a human reading the message. The page never claims more than happened: on a
+ * failed POST it says so and leaves the handover in place, because the message
+ * still carries the whole request.
+ *
+ * The gate takes the CTA's place entirely when the request is not confirmable.
+ * A rental with no return date has a daily rate and no total, and an order needs a
+ * total; a line missing a required choice is one the API refuses outright. Either
+ * way there is nothing to confirm yet, so the panel says what is missing and sends
+ * the customer to the page where they can fix it — rather than offering a button
+ * that is certain to fail.
  */
 import { t } from '~/lib/labels';
+import type { CheckoutBlocked, CheckoutItem } from '~/lib/checkout';
 import { routes } from '~/lib/routes';
 import { CONTACT } from '~/lib/site';
 import { EYEBROW } from './styles';
@@ -19,12 +34,41 @@ interface Props {
   whatsappHref: string;
   /** The same message as plain text, for the script to extend at click time. */
   whatsappBase: string;
+  /** Why this request cannot be placed, or `null` when it can. */
+  blocked: CheckoutBlocked;
+  /** The item that blocked it, so the notice can name the product and the gap. */
+  blockedItem: CheckoutItem | null;
+  /** Back to the product, or the cart — wherever the gap can be closed. */
+  backHref: string;
 }
 
-const { whatsappHref, whatsappBase } = Astro.props;
+const { whatsappHref, whatsappBase, blocked, blockedItem, backHref } = Astro.props;
+
+/** One notice per reason: what is missing, and the words for going to fix it. */
+const GATE =
+  blocked === 'incomplete'
+    ? {
+        title: t('configurationIncomplete'),
+        detail: t('configurationIncompleteDetail', {
+          product: blockedItem?.product.title ?? '',
+          missing: (blockedItem?.missingRequired ?? []).join(', '),
+        }),
+        cta: t('completeConfiguration'),
+      }
+    : blocked === 'openPeriod'
+      ? {
+          title: t('returnDateMissing'),
+          detail: t('returnDateMissingDetail'),
+          cta: t('pickReturnDate'),
+        }
+      : null;
 
 const REVIEW_CARD =
   'flex flex-col gap-1.5 rounded-xl border border-hair px-4.5 py-4 text-[13.5px] text-ink-2';
+const PRIMARY_CTA =
+  'hover:bg-accent-deep cursor-pointer rounded-full border-0 bg-accent p-3.75 text-center text-[15.5px] font-semibold text-white no-underline';
+const SECONDARY_CTA =
+  'border-hair-strong text-ink hover:border-accent hover:text-accent cursor-pointer rounded-full border-[1.5px] bg-white px-5.5 py-2.75 text-center text-[15px] font-semibold no-underline';
 ---
 
 <div data-confirm-pending>
@@ -71,30 +115,53 @@ const REVIEW_CARD =
       </span>
     </div>
 
-    <a
-      class="hover:bg-accent-deep cursor-pointer rounded-full border-0 bg-accent p-3.75 text-center text-[15.5px] font-semibold text-white no-underline"
-      href={whatsappHref}
-      target="_blank"
-      rel="noopener"
-      data-place-order
-      data-wa-base={whatsappBase}
-      data-analytics="whatsapp"
-    >
-      {t('sendOrderOnWhatsApp')}
-    </a>
+    {
+      GATE ? (
+        <div class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4">
+          <strong class="text-[15.5px]">{GATE.title}</strong>
+          <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{GATE.detail}</p>
+          <a class={SECONDARY_CTA} href={backHref}>
+            {GATE.cta}
+          </a>
+        </div>
+      ) : (
+        <>
+          {/*
+            An <a> rather than a <button>, and it stays one: with no JavaScript
+            this IS the handover. The script calls preventDefault, posts, and only
+            then follows the link — see the confirm section of checkout.astro.
+          */}
+          <a
+            class={PRIMARY_CTA}
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener"
+            data-place-order
+            data-wa-base={whatsappBase}
+            data-analytics="whatsapp"
+          >
+            {t('sendOrderOnWhatsApp')}
+          </a>
 
-    <div class="text-ink-2 -mt-1.5 text-center text-[12.5px]">
-      {t('termsNoticeBefore')}
-      <a class="underline" href={routes.terms}>{t('rentalTerms')}</a>.
-    </div>
+          <div class="text-ink-2 -mt-1.5 text-center text-[12.5px]">
+            {t('termsNoticeBefore')}
+            <a class="underline" href={routes.terms}>
+              {t('rentalTerms')}
+            </a>
+            .
+          </div>
+        </>
+      )
+    }
   </div>
 </div>
 
 {
   /*
-    The confirmation deliberately claims nothing we cannot do: there is no mail
-    service behind this page, so it does not say a confirmation email was sent,
-    which is what the reference design's copy does.
+    Revealed only after the API accepted the order, so everything it states is
+    true of a row that exists. It deliberately does not claim a confirmation
+    email — there is no mail service behind this page, which is what the
+    reference design's copy assumes.
   */
 }
 <div
@@ -108,6 +175,27 @@ const REVIEW_CARD =
     aria-hidden="true">✓</span
   >
   <strong class="text-[17px]">{t('requestSent')}</strong>
+
+  {
+    /*
+      The number is the reference the phone call opens with, so it is the largest
+      thing here after the confirmation itself, and it is selectable text rather
+      than an image or a pseudo-element.
+    */
+  }
+  <div
+    class="border-hair bg-tint flex flex-col gap-0.5 rounded-xl border px-5 py-3"
+    hidden
+    data-placed-number-card
+  >
+    <span class={EYEBROW}>{t('requestNumber')}</span>
+    <strong class="text-[19px] tracking-[0.01em] tabular-nums" data-placed-number>—</strong>
+    <span class="text-ink-2 text-[13px]" hidden data-placed-total-row>
+      {t('requestTotalEstimate')}
+      <span class="tabular-nums" data-placed-total>—</span>
+    </span>
+  </div>
+
   <span class="text-ink-2 max-w-105 text-[15px] leading-[1.55]">
     {
       /*
@@ -118,4 +206,31 @@ const REVIEW_CARD =
     <span data-placed-greeting data-greeting-template={t('thanksName')}>{t('thanks')}</span>
     {t('requestSentDetail')}
   </span>
+
+  <a class={SECONDARY_CTA} href={whatsappHref} target="_blank" rel="noopener" data-placed-whatsapp>
+    {t('continueOnWhatsApp')}
+  </a>
+</div>
+
+{
+  /*
+    The POST failed. The request is not lost — the WhatsApp message below still
+    carries all of it — so this offers both the retry and the path that does not
+    depend on our API being up.
+  */
+}
+<div
+  class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4"
+  data-confirm-error
+  role="alert"
+  hidden
+>
+  <strong class="text-[15.5px]">{t('requestFailed')}</strong>
+  <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{t('requestFailedDetail')}</p>
+  <div class="flex flex-wrap gap-2.5">
+    <button class={SECONDARY_CTA} type="button" data-confirm-retry>{t('retry')}</button>
+    <a class={SECONDARY_CTA} href={whatsappHref} target="_blank" rel="noopener" data-error-whatsapp>
+      {t('continueOnWhatsApp')}
+    </a>
+  </div>
 </div>

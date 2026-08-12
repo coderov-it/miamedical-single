@@ -42,6 +42,7 @@
   import { api } from '~/lib/api';
   import PageHeader from '~/lib/components/page-header.svelte';
   import HelpDialog from '~/lib/delivery-zones/help-dialog.svelte';
+  import ZoneCoverage from '~/lib/delivery-zones/zone-coverage.svelte';
   import ZoneEditor from '~/lib/delivery-zones/zone-editor.svelte';
   import ZoneTreeRow from '~/lib/delivery-zones/zone-tree-row.svelte';
   import {
@@ -431,6 +432,13 @@
           onIdentityChange={renameZone}
           onDelete={(node) => (deleting = node)}
         />
+      {/if}
+
+      <!-- Under the editor, not beside it: the editor answers "what does this row
+           cost", this answers "what does an address cost", and reading the second
+           only makes sense once the first has been set. -->
+      {#if tree.length > 0}
+        <ZoneCoverage {tree} />
       {/if}
     </div>
   {/if}

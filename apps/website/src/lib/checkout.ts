@@ -8,13 +8,13 @@
  * docs/code/storefront-checkout.md
  */
 import { durationLabel, unitLabel } from '@mia/i18n';
+import { DELIVERY_METHODS, matchSku, priceRequest, sumMoney } from '@mia/pricing';
+import type { PlaceOrderItemInput } from '@mia/validators';
 import { formatMoney } from './api.ts';
 import { t } from './labels.ts';
 import { type ProductDetail, getProductBySlug } from './catalog.ts';
 import { FIELD, type ResolvedRequest, formatDateLabel, resolveRequest } from './request-config.ts';
 import { CONTACT, LOCATIONS } from './site.ts';
-
-const DAY = 86_400_000;
 
 /**
  * `item.<n>.` in front of every field of one line item. A cart sends
@@ -52,14 +52,40 @@ export interface CheckoutItem {
   summary: string;
   facts: ItemFact[];
   lines: EstimateLine[];
-  /** Display total for this item, in `product.pricing.currency`. */
-  total: number;
+  /**
+   * This item's total as a two-decimal money string, in
+   * `product.pricing.currency` — the same figure, from the same rules, that
+   * `POST /api/orders` writes to the line it creates.
+   */
+  total: string;
   subtotal: string;
   /**
    * The rental has no end date and no package, so `total` is a PER-UNIT rate
-   * rather than a sum. An open period is normal here — see the module doc.
+   * rather than a sum. Normal on this page — a customer can arrive from a product
+   * page without having picked a return date — but an order may not be PLACED in
+   * this state: the server rejects it and the confirm step blocks it, because a
+   * rate is not a total. See `openPeriod` on `Checkout` and the return-date gate
+   * in checkout.astro.
    */
   openPeriod: boolean;
+  /**
+   * This line as `POST /api/orders` takes it — choices only, no amounts. The page
+   * ships it to the browser as a JSON island so the confirm step can post the
+   * request without rebuilding it from the DOM.
+   */
+  order: PlaceOrderItemInput;
+  /**
+   * Required choices this configuration never made, as the labels the customer
+   * would have read.
+   *
+   * The API rejects such a line, and rightly — a required option is required. This
+   * page therefore has to know BEFORE offering a confirm button, or the customer
+   * meets that rejection as a generic failure at the last step. Normally empty: the
+   * product page will not hand over a configuration that skips a required group.
+   * A hand-edited link or a cart entry saved before a group became required can
+   * still get here.
+   */
+  missingRequired: string[];
   /**
    * "/giorno", or empty. The unit `total` is expressed in when `openPeriod` is
    * set, already folded into `subtotal` — carried separately for the cart, which
@@ -69,12 +95,35 @@ export interface CheckoutItem {
   unitSuffix: string;
 }
 
+/**
+ * Why this request cannot be confirmed yet, or `null` when it can.
+ *
+ * Both reasons are things the API would refuse, checked here so the customer is
+ * told what to do about it on the page that can still send them somewhere useful.
+ */
+export type CheckoutBlocked = 'incomplete' | 'openPeriod' | null;
+
 export interface Checkout {
   items: CheckoutItem[];
-  /** Sum of the item totals. Meaningless as a total when `openPeriod` is set. */
-  itemsTotal: number;
-  /** Any item priced per unit, so the grand total cannot be a closed figure. */
+  /**
+   * Sum of the item totals, as a two-decimal money string. Meaningless as a total
+   * when `openPeriod` is set.
+   */
+  itemsTotal: string;
+  /**
+   * Any item priced per unit, so the grand total cannot be a closed figure — and
+   * the order cannot be placed until it is. The confirm step swaps its CTA for a
+   * "pick a return date" notice while this holds.
+   */
   openPeriod: boolean;
+  /**
+   * `null` when the order can be placed. Otherwise the confirm step swaps its CTA
+   * for the notice that says what is missing — never a button that is certain to
+   * fail.
+   */
+  blocked: CheckoutBlocked;
+  /** The first blocking item, so the notice can name the product and the gap. */
+  blockedItem: CheckoutItem | null;
   currency: string;
 }
 
@@ -114,13 +163,14 @@ export function splitItemParams(params: URLSearchParams): URLSearchParams[] {
 }
 
 /**
- * Prices a resolved request for display.
+ * Prices a resolved request for display, and puts Italian words on the result.
  *
- * The rules are the owner's, and the same ones the product detail page's inline
- * script applies to its live estimate: on a rental product every modifier and
- * every rental-mode add-on bills per rental unit, so one duration multiplies
- * every amount; a package is a fixed total for a fixed duration, and the
- * configured rate's excess over the base rate rides on top of it.
+ * The rules themselves are NOT here. They live in `@mia/pricing`, which is also
+ * what `POST /api/orders` prices with — so the figure a customer confirms on this
+ * page and the figure written to their order are the same arithmetic on the same
+ * inputs, not two implementations that happen to agree. This function's whole job
+ * is turning the structured rows that come back into the sentences the design asks
+ * for; the copy is the part that belongs to the storefront.
  *
  * It reads `ResolvedRequest` rather than the URL on purpose — `resolveRequest()`
  * has already dropped everything that is not a real option, and a second walk
@@ -130,105 +180,90 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
   const isRental = product.pricing.mode === 'rental';
   const unit = product.pricing.rentalUnit;
   const { currency } = product.pricing;
-  const money = (amount: number) => formatMoney(amount.toFixed(2), currency);
+  const money = (amount: string) => formatMoney(amount, currency);
 
-  const base = Number(product.pricing.price);
-  const rate = request.selections.reduce((sum, entry) => sum + entry.amount, 0) + base;
+  /* A pinned SKU can carry a price override, which no sum of modifiers would
+     find. The server matches the same way, from the same values — only the
+     sku-affecting groups take part, because the matrix has one row per
+     combination and a numeric group has no finite set of them. */
+  const skuSelection: Record<string, string[]> = {};
+  for (const group of product.variants) {
+    const values = request.variantValues[group.key];
+    if (group.affectsSku && values) skuSelection[group.key] = values;
+  }
+  const matched = matchSku(product.skus, skuSelection);
+
+  const priced = priceRequest({
+    mode: product.pricing.mode,
+    rentalUnit: unit,
+    basePrice: product.pricing.price,
+    skuPrice: matched?.price.amount ?? null,
+    modifiers: request.selections,
+    rentalPackage: request.rentalPackage,
+    startDate: request.startDate,
+    endDate: request.endDate,
+    quantity: request.quantity,
+    addons: request.addons.map((addon) => ({
+      mode: addon.pricing.mode,
+      price: addon.pricing.price,
+    })),
+  });
+
+  /* The configured rate reads as its own choices — "Grigio · Con sponde" — and
+     falls back to "Tariffa base" when nothing the customer picked costs extra. */
   const labels = request.selections
-    .filter((entry) => entry.amount !== 0)
+    .filter((entry) => entry.amount !== '0.00')
     .map((entry) => entry.value);
   const baseLabel = labels.length > 0 ? labels.join(' · ') : t('baseRate');
   const perUnitSuffix = isRental && unit ? `/${unitLabel(unit, 'it', 'one')}` : '';
-
   const pkg = request.rentalPackage;
 
-  /* Duration in the PRODUCT's unit. A date pair cannot express hours, and a
-     package in a different unit has no per-unit equivalent — both stay null. */
-  let units: number | null = null;
-  if (isRental) {
-    if (pkg) {
-      units = pkg.unit === unit ? pkg.duration : null;
-    } else if (unit === 'day' && request.startDate && request.endDate) {
-      const span = Math.round((Date.parse(request.endDate) - Date.parse(request.startDate)) / DAY);
-      if (Number.isFinite(span) && span >= 0) units = Math.max(1, span);
-    }
-  }
-
-  const lines: EstimateLine[] = [];
-  let total = 0;
-  let openPeriod = false;
-
-  if (!isRental) {
-    total = rate;
-    lines.push({ label: baseLabel, amount: money(rate) });
-  } else if (pkg) {
-    const extra = pkg.unit === unit ? (rate - base) * pkg.duration : 0;
-    total = Number(pkg.price) + extra;
-    lines.push({
-      label: `${t('packagePrefix')} ${pkg.label} · ${baseLabel}`,
-      amount: money(total),
-    });
-    if (pkg.unit === unit) {
-      const saved = rate * pkg.duration - total;
-      if (saved > 0.005) {
-        lines.push({ label: t('packageDiscountApplied'), amount: `−${money(saved)}` });
+  const lines: EstimateLine[] = priced.lines.map((line) => {
+    switch (line.kind) {
+      case 'base':
+        return {
+          label: baseLabel,
+          amount: money(line.amount) + (line.perUnit ? perUnitSuffix : ''),
+        };
+      case 'duration':
+        return {
+          label: unit ? `${baseLabel} × ${durationLabel(line.units, unit, 'it')}` : baseLabel,
+          amount: money(line.amount),
+        };
+      case 'package':
+        return {
+          label: pkg ? `${t('packagePrefix')} ${pkg.label} · ${baseLabel}` : baseLabel,
+          amount: money(line.amount),
+        };
+      case 'packageSaving':
+        return { label: t('packageDiscountApplied'), amount: `−${money(line.amount)}` };
+      case 'addon': {
+        const addon = request.addons[line.index];
+        return {
+          label: addon?.name ?? '',
+          amount: line.included
+            ? t('included')
+            : money(line.amount) +
+              (line.perUnit ? perUnitSuffix : '') +
+              (line.oneTime ? ` ${t('oneTimeSuffix')}` : ''),
+        };
       }
+      case 'quantity':
+        return { label: t('quantity'), amount: `× ${line.quantity}` };
     }
-  } else if (units !== null && unit) {
-    total = rate * units;
-    lines.push({
-      label: `${baseLabel} × ${durationLabel(units, unit, 'it')}`,
-      amount: money(total),
-    });
-  } else {
-    total = rate;
-    openPeriod = true;
-    lines.push({ label: baseLabel, amount: money(rate) + perUnitSuffix });
-  }
-
-  /* Add-ons. A rental-mode add-on follows the product's rental unit, so it
-     multiplies by the same duration as the base rate. */
-  let oneTime = 0;
-  for (const addon of request.addons) {
-    const price = Number(addon.pricing.price);
-    if (price === 0) {
-      lines.push({ label: addon.name, amount: t('included') });
-    } else if (isRental && addon.pricing.mode === 'rental') {
-      if (units !== null) {
-        total += price * units;
-        lines.push({ label: addon.name, amount: money(price * units) });
-      } else {
-        total += price;
-        lines.push({ label: addon.name, amount: money(price) + perUnitSuffix });
-      }
-    } else {
-      oneTime += price;
-      lines.push({
-        label: addon.name,
-        amount: money(price) + (isRental ? ` ${t('oneTimeSuffix')}` : ''),
-      });
-    }
-  }
-  // While the period is open the figure is a per-unit rate; folding a one-time
-  // amount into it would add two incompatible quantities.
-  if (!openPeriod) total += oneTime;
-
-  total *= request.quantity;
-  if (request.quantity > 1) {
-    lines.push({ label: t('quantity'), amount: `× ${request.quantity}` });
-  }
+  });
 
   return {
     lines,
-    total,
-    openPeriod,
-    subtotal: money(total) + (openPeriod ? perUnitSuffix : ''),
-    units,
+    total: priced.total,
+    openPeriod: priced.openPeriod,
+    subtotal: money(priced.total) + (priced.openPeriod ? perUnitSuffix : ''),
+    units: priced.units,
     /* Handed out rather than kept private because the cart re-formats this row's
        figure client-side when the stepper moves, and a per-unit RATE rendered
        without its "/giorno" reads as a total. Empty unless the period is open —
        the same condition `subtotal` above applies. */
-    unitSuffix: openPeriod ? perUnitSuffix : '',
+    unitSuffix: priced.openPeriod ? perUnitSuffix : '',
   };
 }
 
@@ -261,6 +296,49 @@ function buildFacts(
   }
 
   return facts;
+}
+
+/**
+ * The same line as `POST /api/orders` will be asked to record it.
+ *
+ * Built from the RESOLVED request, not from the raw query string, so a value the
+ * page decided not to show is not a value the order is asked to contain — the two
+ * would otherwise disagree the moment an option is retired. Every field here is a
+ * choice; not one of them is an amount. The server prices it again from the
+ * catalogue, and this page has no say in that.
+ */
+function toOrderItem(product: ProductDetail, request: ResolvedRequest): PlaceOrderItemInput {
+  return {
+    productSlug: product.slug,
+    quantity: request.quantity,
+    ...(request.startDate ? { startDate: request.startDate } : {}),
+    ...(request.endDate ? { endDate: request.endDate } : {}),
+    ...(request.rentalPackage ? { rentalPackageCode: request.rentalPackage.code } : {}),
+    // Includes the product's required add-ons, which `resolveRequest` folds in
+    // whether or not the form remembered to tick them.
+    addonIds: request.addons.map((addon) => addon.id),
+    variants: request.variantValues,
+    answers: request.answerValues,
+  };
+}
+
+/**
+ * Required groups and questions this configuration left unanswered.
+ *
+ * Read off the product, not off a list kept here, so a group the operator marks
+ * required tomorrow starts blocking today's stale links without a deploy.
+ */
+function missingRequired(product: ProductDetail, request: ResolvedRequest): string[] {
+  const missing: string[] = [];
+
+  for (const group of product.variants) {
+    if (group.isRequired && !request.variantValues[group.key]) missing.push(group.label);
+  }
+  for (const question of product.questions) {
+    if (question.isRequired && !request.answerValues[question.key]) missing.push(question.prompt);
+  }
+
+  return missing;
 }
 
 /**
@@ -298,34 +376,46 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
         subtotal: priced.subtotal,
         openPeriod: priced.openPeriod,
         unitSuffix: priced.unitSuffix,
+        order: toOrderItem(product, request),
+        missingRequired: missingRequired(product, request),
       } satisfies CheckoutItem;
     }),
   );
 
   const items = resolved.filter((item): item is CheckoutItem => item !== null);
 
+  /* Incomplete before open-period: a line missing a required choice has to be
+     reconfigured anyway, and picking its return date first would send the customer
+     back twice. */
+  const incomplete = items.find((item) => item.missingRequired.length > 0) ?? null;
+  const open = items.find((item) => item.openPeriod) ?? null;
+
   return {
     items,
-    itemsTotal: items.reduce((sum, item) => sum + item.total, 0),
-    openPeriod: items.some((item) => item.openPeriod),
+    itemsTotal: sumMoney(items.map((item) => item.total)),
+    openPeriod: open !== null,
+    blocked: incomplete ? 'incomplete' : open ? 'openPeriod' : null,
+    blockedItem: incomplete ?? open,
     currency: items[0]?.product.pricing.currency ?? 'EUR',
   };
 }
 
 /**
- * The three ways an order can change hands.
+ * The three ways an order can change hands, and what each costs.
  *
- * PLACEHOLDER FEES. The API has no delivery-pricing field yet, so these are the
- * reference design's own figures, kept because no payment is taken online and
- * the phone call settles the real amount. They are hardcoded in exactly one
- * place so replacing them with an API read is a one-line change — see the
- * "Known gaps" section of docs/code/storefront-checkout.md.
+ * The table itself lives in `@mia/pricing`, because the server writes the same fee
+ * to `orders.shipping_total` when the order is placed — a card showing €25 over an
+ * order recording €15 is the same class of bug as two pricing rules.
+ *
+ * The FEES are still placeholders from the reference design; the zone ladder
+ * behind `POST /api/delivery/quote` is what replaces them, and it needs the
+ * customer's CAP (which step 1 now collects). See the "Known gaps" section of
+ * docs/code/storefront-checkout.md.
+ *
+ * Each `id` doubles as a label key: `storePickup`, `storePickupDetail`,
+ * `storePickupShort`.
  */
-export const DELIVERY_OPTIONS = [
-  { id: 'hotelDelivery', fee: 25 },
-  { id: 'homeDelivery', fee: 15 },
-  { id: 'storePickup', fee: 0 },
-] as const;
+export const DELIVERY_OPTIONS = DELIVERY_METHODS;
 
 export type DeliveryId = (typeof DELIVERY_OPTIONS)[number]['id'];
 

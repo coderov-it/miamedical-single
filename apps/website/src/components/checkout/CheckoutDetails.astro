@@ -1,6 +1,10 @@
 ---
 /**
- * Step 1 — who the customer is and where they are.
+ * Step 1 — who the customer is. NOT where they are.
+ *
+ * There is no address here. It belongs to the delivery, in step 2, and only to the
+ * one method that has somewhere to deliver: asking for it up front made every
+ * customer type a delivery address, including the ones collecting from a branch.
  *
  * The identity chips decide which fiscal field is asked for, because Italy asks
  * a different one of each: a private customer has a codice fiscale, a company
@@ -42,18 +46,6 @@ const DEFAULT_TYPE = 'private';
     />
   </label>
 </div>
-
-<label class={FIELD_LABEL}>
-  {t('address')}
-  <input
-    class={FIELD_INPUT}
-    type="text"
-    name="address"
-    autocomplete="street-address"
-    placeholder={t('placeholderAddress')}
-    data-field="address"
-  />
-</label>
 
 <div class={FIELD_GRID}>
   <label class={FIELD_LABEL}>

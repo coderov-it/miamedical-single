@@ -92,6 +92,30 @@ export async function deleteZone(db: Database, id: string): Promise<void> {
  * Every comune a CAP could mean. 18% of Italian CAPs return more than one row, and
  * `24060` returns 45 — this is the fact the whole resolver is shaped around.
  */
+/**
+ * One comune by its ISTAT code — what the checkout's cascading picker sends.
+ *
+ * Exact, and the reason the shared-CAP tiebreak never has to run for an address
+ * the customer picked rather than typed.
+ */
+export async function findComuneByIstatCode(
+  db: Database,
+  istatCode: string,
+): Promise<ComuneRow | undefined> {
+  const [row] = await db
+    .select({
+      istatCode: istatComuni.istatCode,
+      name: istatComuni.name,
+      nameNormalised: istatComuni.nameNormalised,
+      provinceCode: istatComuni.provinceCode,
+      regionCode: istatComuni.regionCode,
+    })
+    .from(istatComuni)
+    .where(eq(istatComuni.istatCode, istatCode))
+    .limit(1);
+  return row;
+}
+
 export async function findComuniByCap(db: Database, cap: string): Promise<ComuneRow[]> {
   return db
     .select({

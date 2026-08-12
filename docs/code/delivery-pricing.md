@@ -9,11 +9,14 @@ Files: `packages/db/src/schema/delivery.ts`, `packages/db/data/`,
 
 | Endpoint | For |
 | --- | --- |
-| `POST /api/delivery/quote` | public; `{ cap, comuneName? }` → a price or a phone quote |
+| `POST /api/delivery/quote` | public; `{ cap, istatCode?, comuneName? }` → a price or a phone quote |
 | `GET /api/admin/delivery-zones` | the whole tree, nested |
 | `POST /api/admin/delivery-zones` | add an area under a parent |
 | `PATCH /api/admin/delivery-zones/:id` | rename, recode, or change the value |
 | `DELETE /api/admin/delivery-zones/:id` | removes the subtree with it |
+| `GET /api/address/regions` | public; the 20 regioni, with names |
+| `GET /api/address/provinces?regionCode=` | the province of one regione |
+| `GET /api/address/comuni?provinceCode=` | its comuni, each with its CAPs |
 
 Permissions are the `2000` block in `@mia/permissions`.
 
@@ -43,9 +46,18 @@ intent the first time someone tidied up empty rows.
 
 ## Resolving an address
 
-The customer types a CAP. Two walks — the same tree, a different answer.
+Two directions, and they are not equally good.
 
-Tree for both walks:
+```
+istatCode given   comune is KNOWN   → the CAP only looks for a `cap` row
+istatCode absent  comune is GUESSED → inferred from the CAP, which is ambiguous
+```
+
+The checkout sends the code, because it asks for the address down the ladder
+(regione → provincia → comune → CAP) rather than as free text. The CAP-only
+direction is what remains for an address that arrives without a pick.
+
+Tree for every walk below:
 
 ```
 Italia                     call
@@ -56,7 +68,26 @@ Italia                     call
   Lombardia                —          (inherits)
 ```
 
-**Normal case — a CAP that names one comune.**
+**The normal case — the comune was picked, and the CAP is one we have never heard of.**
+
+```
+1. checkout sends            { cap: '00129', istatCode: '058091' }
+2. istat_comuni              058091                 → Roma, RM, region 12
+                                                      one candidate; no tiebreak to run
+3. candidates, narrowest first:
+     cap      058091 + 00129  → no row              ← 00129 is absent from our data
+     comune   058091          → row, fee 47.00        and it does not matter
+4. answer                    { kind: 'fee', fee: '47.00', areaLabel: 'Roma',
+                               resolvedVia: 'comune', comune: 'Roma' }
+```
+
+Step 3 is the whole reason the picker exists. The CAP list comes from GeoNames and
+is short on big-city codes; with the comune already known, a missing CAP costs a
+datalist suggestion and nothing else. Sent without the code, the same address finds
+no comune at all and falls to the country row — `needs call` for an address we can
+price.
+
+**Fallback direction, single-comune CAP — the comune inferred from the CAP.**
 
 ```
 1. customer types            00121
@@ -70,7 +101,7 @@ Italia                     call
 5. answer                    { kind: 'fee', fee: '45.00', areaLabel: 'Lazio' }
 ```
 
-**Fallback case — a CAP shared by 17 comuni, and we cannot tell which.**
+**Fallback direction, shared CAP — 17 comuni, and we cannot tell which.**
 
 ```
 1. customer types            00060
@@ -88,6 +119,8 @@ Italia                     call
 
 Had the customer's address also given `Riano`, step 3 would have matched
 `name_normalised` and step 5 would never have run — the answer would be `40.00`.
+Had it given `istatCode: '058081'`, there would have been nothing to match: one
+candidate, `40.00`, no miss logged. That is the difference the picker makes.
 
 A wrong price is worse than a coarse one, so nothing is ever fuzzy-matched. The
 country row is why there is always an answer: coverage is 100%, not 99%.
@@ -186,6 +219,44 @@ The all-or-nothing clause on the parent columns exists because a composite forei
 key is `MATCH SIMPLE` — it is trivially satisfied when *either* referencing column
 is NULL, so a row could name a real parent, leave `parent_level` NULL, and never be
 checked against it.
+
+## Checking an address
+
+`zone-coverage.svelte`, under the editor. Pick regione → provincia → comune → CAP
+and it shows what that address is charged and which row decided it. **The answer is
+`POST /api/delivery/quote`** — the same call the checkout makes — so it is what a
+customer will actually pay; the ladder beneath it is display only.
+
+The picker is Italy's own hierarchy, from `istat_regions` (20), `istat_provinces`
+(107) and `istat_comuni` (7,896), served by `GET /api/address/{regions,provinces,comuni}`.
+Picking the comune settles the CAP for **7,338 of 7,896 comuni**; only 30 have more
+than five.
+
+## Will comune-level pricing lose money?
+
+It can, and the exposure is measurable:
+
+```
+7,338 comuni   exactly 1 CAP    comune-level IS CAP-level. No exposure at all.
+  526 comuni   2–5 CAPs         narrow
+   30 comuni   6+ CAPs          the whole risk — Roma 79, Genova 49, Messina 49,
+                                Milano 41, Torino 38, Trieste 35, …
+```
+
+Rome is one comune the size of a province, so a flat Roma fee charges the same to
+reach the centre and the coast. Delivery is by the owner's own van, so that gap is
+real money. The lever is a `cap` row:
+
+```
+COMUNE  Roma  058091   47,00 €     ← the whole comune, by default
+  CAP   Roma + 00121   35,00 €     ← this corner, on its own
+```
+
+Split only where the drive time differs — everything unsplit keeps the comune's
+figure. The system cannot tell you which CAPs are far: there are no coordinates and
+no drive times, by design (see "Deliberately not modelled"). What it can tell you is
+which addresses were actually asked for and resolved imprecisely, in
+`zone_resolution_misses`.
 
 ## Editing the tree
 

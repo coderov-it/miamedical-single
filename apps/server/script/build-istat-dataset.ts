@@ -2,7 +2,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { inflateRawSync } from 'node:zlib';
 
-import { istatComuneCapsCsvPath, istatComuniCsvPath } from '@mia/db/reference';
+import {
+  istatComuneCapsCsvPath,
+  istatComuniCsvPath,
+  istatProvincesCsvPath,
+  istatRegionsCsvPath,
+} from '@mia/db/reference';
 
 import { comuneNameCandidates, normaliseComuneName } from '../src/modules/delivery/name.ts';
 
@@ -208,6 +213,8 @@ const ISTAT_COLUMN = {
   officialName: 5,
   italianName: 6,
   regionName: 10,
+  /** "Denominazione dell'Unità territoriale sovracomunale" — the province's name. */
+  provinceName: 11,
   /** "Sigla automobilistica" — the two letters that appear in an address. */
   provinceCode: 14,
 } as const;
@@ -234,6 +241,11 @@ const byNameProvince = new Map<string, string>();
 const byName = new Map<string, Set<string>>();
 /** normalised region name -> ISTAT region code, for reconciling with GeoNames. */
 const regionCodeByName = new Map<string, string>();
+/* The two tiers above the comune, collected as they go past. ISTAT repeats them on
+   every comune row; there is no separate file for either, and 20 + 107 rows do not
+   justify a fourth download. */
+const regionNames = new Map<string, string>();
+const provinceNames = new Map<string, { name: string; regionCode: string }>();
 
 for (const row of parseSemicolonCsv(istatCsv.toString('latin1')).slice(1)) {
   const istatCode = cell(row, ISTAT_COLUMN.istatCode);
@@ -252,6 +264,13 @@ for (const row of parseSemicolonCsv(istatCsv.toString('latin1')).slice(1)) {
     provinceCode,
     regionCode,
   });
+
+  const regionName = cell(row, ISTAT_COLUMN.regionName);
+  if (regionName && !regionNames.has(regionCode)) regionNames.set(regionCode, regionName);
+  const provinceName = cell(row, ISTAT_COLUMN.provinceName);
+  if (provinceName && !provinceNames.has(provinceCode)) {
+    provinceNames.set(provinceCode, { name: provinceName, regionCode });
+  }
 
   for (const part of cell(row, ISTAT_COLUMN.regionName).split('/')) {
     const key = normaliseComuneName(part);
@@ -586,7 +605,20 @@ const capRows = pairList
   .sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]))
   .map(([istatCode, cap]) => [istatCode, cap]);
 
+const regionRows = [...regionNames.entries()]
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([code, name]) => [code, name]);
+
+const provinceRows = [...provinceNames.entries()]
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([code, { name, regionCode }]) => [code, name, regionCode]);
+
 mkdirSync(dirname(istatComuniCsvPath), { recursive: true });
+writeFileSync(istatRegionsCsvPath, toCsv(['region_code', 'name'], regionRows));
+writeFileSync(
+  istatProvincesCsvPath,
+  toCsv(['province_code', 'name', 'region_code'], provinceRows),
+);
 writeFileSync(
   istatComuniCsvPath,
   toCsv(['istat_code', 'name', 'name_normalised', 'province_code', 'region_code'], comuneRows),
@@ -594,6 +626,8 @@ writeFileSync(
 writeFileSync(istatComuneCapsCsvPath, toCsv(['istat_code', 'cap'], capRows));
 
 console.log(`\nWrote`);
+console.log(`  ${istatRegionsCsvPath}  (${regionRows.length} rows)`);
+console.log(`  ${istatProvincesCsvPath}  (${provinceRows.length} rows)`);
 console.log(`  ${istatComuniCsvPath}  (${comuneRows.length} rows)`);
 console.log(`  ${istatComuneCapsCsvPath}  (${capRows.length} rows)`);
 console.log(`\nCommit both. Then: pnpm --filter @mia/server seed`);

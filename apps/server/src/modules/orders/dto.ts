@@ -6,7 +6,10 @@
  * throw away exactness for no reason, and the client only ever formats it.
  */
 
+import type { CustomerType, DeliveryMethod } from '@mia/validators';
+
 import type { PageMetaDto } from '../products/dto.ts';
+import type { OrderItemConfiguration } from './resolve.ts';
 import type { OrderStatus, PaymentStatus } from './status.ts';
 
 export type { PageMetaDto };
@@ -30,8 +33,53 @@ export interface OrderItemDto {
   skuLabel: string;
   sku: string;
   quantity: number;
+  /**
+   * The configured rate — per rental unit on a rental line. Deliberately not
+   * `total / quantity`: `configuration` below carries the duration and the
+   * add-ons that make up the difference.
+   */
   unitPrice: string;
   total: string;
+  /**
+   * What the customer configured. Null on an order that predates the storefront
+   * checkout, or one an operator raised by hand — the admin renders the plain
+   * line in that case rather than an empty breakdown.
+   */
+  configuration: OrderItemConfiguration | null;
+}
+
+/**
+ * How the order changes hands. Read defensively out of `orders.delivery`, so an
+ * older shape shows fewer rows rather than breaking the page it is part of.
+ */
+export interface OrderDeliveryDto {
+  method: DeliveryMethod | string;
+  deliveryAddress: string | null;
+  deliveryPostalCode: string | null;
+  pickupCity: string | null;
+  /**
+   * Where the rental is collected from at the end.
+   *
+   * `true` means the delivery address (or the branch) — including on orders placed
+   * before the question was asked, which is what they already assumed. `false` puts
+   * the address in `returnAddress`, and that is the one the driver needs.
+   */
+  returnToSameAddress: boolean;
+  returnAddress: string | null;
+  /**
+   * What the zone ladder answered when this order was placed, kept so an operator
+   * can see WHY the shipping total is what it is — and, when it is a phone quote,
+   * that a figure is still owed. Null on a collection, and on any order placed
+   * before delivery was priced from the CAP.
+   */
+  quote: {
+    kind: 'fee' | 'call';
+    fee: string | null;
+    /** The area that answered, as the owner named it: `Lazio`, `Roma 00121`. */
+    areaLabel: string | null;
+    resolvedVia: string | null;
+    comune: string | null;
+  } | null;
 }
 
 export interface OrderEventDto {
@@ -71,6 +119,15 @@ export interface AdminOrderDetailDto {
   id: string;
   number: string;
   email: string;
+  /**
+   * The rest of the contact block, as the storefront collected it. Null as a
+   * group on an order raised any other way — the seed, or an operator taking one
+   * over the phone.
+   */
+  phone: string | null;
+  customerType: CustomerType | null;
+  codiceFiscale: string | null;
+  partitaIva: string | null;
   userId: string | null;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
@@ -78,6 +135,7 @@ export interface AdminOrderDetailDto {
   items: OrderItemDto[];
   shippingAddress: AddressDto | null;
   billingAddress: AddressDto | null;
+  delivery: OrderDeliveryDto | null;
   notes: string | null;
   /** Oldest first — a timeline is read downwards. */
   events: OrderEventDto[];
@@ -90,6 +148,23 @@ export interface AdminOrderDetailDto {
   allowedPaymentStatuses: PaymentStatus[];
   placedAt: string;
   updatedAt: string;
+}
+
+/**
+ * What the storefront gets back when an order is accepted.
+ *
+ * Deliberately narrow: a reference to quote, the state it opened in, and the
+ * figures the server itself computed — nothing the customer typed. Echoing the
+ * contact block back would make an unauthenticated endpoint into a way of reading
+ * one, and the page already has everything the customer entered.
+ */
+export interface PlacedOrderDto {
+  number: string;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  totals: OrderTotalsDto;
+  itemCount: number;
+  placedAt: string;
 }
 
 /**

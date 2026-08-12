@@ -20,10 +20,13 @@ import CheckoutConfirm from '~/components/checkout/CheckoutConfirm.astro';
 import CheckoutDelivery from '~/components/checkout/CheckoutDelivery.astro';
 import CheckoutDetails from '~/components/checkout/CheckoutDetails.astro';
 import CheckoutOverview from '~/components/checkout/CheckoutOverview.astro';
+import CheckoutReturn from '~/components/checkout/CheckoutReturn.astro';
 import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
+import { CTA } from '~/components/checkout/styles';
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { API_BASE } from '~/lib/api';
 import { resolveCheckout } from '~/lib/checkout';
 import { t } from '~/lib/labels';
 import { formatDateLabel } from '~/lib/request-config';
@@ -64,6 +67,15 @@ async function readRequestParams(): Promise<URLSearchParams> {
 const checkout = await resolveCheckout(await readRequestParams());
 const { items } = checkout;
 const single = items.length === 1;
+
+/**
+ * Whether anything here comes back — which is what makes step 2 two questions
+ * instead of one.
+ *
+ * `some`, not `every`: a mixed request with one rented item still has a collection
+ * to arrange, and a customer should not have to split the order to say where.
+ */
+const hasRental = items.some((item) => item.product.pricing.mode === 'rental');
 
 /**
  * The handover message, from resolved labels only — never from raw input.
@@ -114,13 +126,40 @@ const SCRIPT_LABELS = {
   partitaIva: t('partitaIva'),
   deliveryLine: t('msgDelivery'),
   toBeArranged: t('msgToBeArranged'),
-  venue: t('msgVenue'),
-  guest: t('msgGuest'),
   deliveryAddress: t('msgDeliveryAddress'),
+  feePendingCap: t('feePendingCap'),
+  feeNeedsCall: t('feeNeedsCall'),
+  feePendingConfirmation: t('feePendingConfirmation'),
   pickupBranch: t('msgPickupBranch'),
   notes: t('msgNotes'),
   collectedAtBranch: t('collectedAtBranch'),
+  city: t('msgCity'),
+  postalCode: t('msgPostalCode'),
+  /* The return leg's heading, reused in the review line and the handover message. */
+  returnStage: t('returnStage'),
+  /* The delivery cascade: the tiers' own placeholders, swapped as each one opens or
+     is cleared, plus the empty row a filtered-to-nothing dropdown shows. */
+  selectPlaceholder: t('selectPlaceholder'),
+  chooseRegionFirst: t('chooseRegionFirst'),
+  chooseProvinceFirst: t('chooseProvinceFirst'),
+  noMatches: t('noMatches'),
+  requestNumberPrefix: t('msgRequestNumber'),
+  /* Read by the parse-time script, which retitles the CTA before first paint:
+     with JavaScript the control records the order rather than opening WhatsApp. */
+  sendRequest: t('sendRequest'),
+  sendingRequest: t('sendingRequest'),
 } as const;
+
+/**
+ * The order body's line items, resolved and priced on the server, shipped to the
+ * browser as data.
+ *
+ * Choices only — a slug, option values, dates, a quantity. Not one amount, because
+ * the API prices them again from the catalogue and would ignore any figure sent
+ * here. That is also why it is safe for this to sit in the page: the worst a reader
+ * can do by editing it is order something else at that thing's real price.
+ */
+const ORDER_ITEMS = items.map((item) => item.order);
 
 /* The trail names where the request came from: the product itself when there is
    one, the cart when there are several. */
@@ -140,6 +179,7 @@ const originCrumb =
   <div
     class="checkout mid:px-8 mid:pb-24 mx-auto w-full max-w-310 px-5 pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
     data-checkout
+    data-api-base={API_BASE}
   >
     <Breadcrumbs items={[{ label: t('home'), href: '/' }, originCrumb, { label: t('checkout') }]} />
 
@@ -154,13 +194,35 @@ const originCrumb =
             </CheckoutStep>
 
             <CheckoutStep index={2} title={t('delivery')} bodyGap="gap-3.5">
-              <CheckoutDelivery />
+              {
+                /*
+                  Two questions, in the order they happen: where it goes, then where
+                  it comes back from. The second only exists for a rental, and the
+                  forward button sits after BOTH — a "Continua" rendered above an
+                  unanswered question invites the customer to skip it.
+                */
+              }
+              <CheckoutDelivery labelStage={hasRental} />
+              {hasRental && <CheckoutReturn />}
+              <button class={CTA} type="button" data-step-continue="2" hidden>
+                {t('continueToConfirmation')}
+              </button>
             </CheckoutStep>
 
             <CheckoutStep index={3} title={t('confirmRequest')} editable={false}>
               <CheckoutConfirm
                 whatsappHref={whatsappUrl(whatsappMessage)}
                 whatsappBase={whatsappMessage}
+                blocked={checkout.blocked}
+                blockedItem={checkout.blockedItem}
+                backHref={
+                  /* The blocking item's own page when there is one, so a
+                     multi-item cart sends the customer to the row that needs
+                     fixing rather than to the list. */
+                  checkout.blockedItem && !single
+                    ? productPath(checkout.blockedItem.product.slug)
+                    : originCrumb.href
+                }
               />
             </CheckoutStep>
           </main>
@@ -207,6 +269,13 @@ const originCrumb =
     set:html={JSON.stringify(SCRIPT_LABELS)}
   />
 
+  <script
+    type="application/json"
+    data-checkout-items
+    is:inline
+    set:html={JSON.stringify(ORDER_ITEMS)}
+  />
+
   <script is:inline>
     (function () {
       var root = document.querySelector('[data-checkout]');
@@ -217,6 +286,21 @@ const originCrumb =
       }
       var ctas = root.querySelectorAll('[data-step-continue]');
       for (var j = 0; j < ctas.length; j++) ctas[j].hidden = false;
+
+      /* The confirm CTA is server-rendered as the WhatsApp handover, because with
+         no JavaScript that is exactly what it is. Here there IS JavaScript, so it
+         records the order first — retitled at parse time, before first paint, so
+         the button never visibly changes its mind. */
+      var place = root.querySelector('[data-place-order]');
+      var labels = document.querySelector('[data-checkout-labels]');
+      if (place && labels) {
+        try {
+          var words = JSON.parse(labels.textContent || '{}');
+          if (words.sendRequest) place.textContent = words.sendRequest;
+        } catch (error) {
+          /* Leave the WhatsApp label in place — it is the honest fallback. */
+        }
+      }
     })();
   </script>
 </BaseLayout>
@@ -253,9 +337,12 @@ const originCrumb =
     const cards = [...root.querySelectorAll<HTMLElement>('[data-delivery-card]')];
     const chips = [...root.querySelectorAll<HTMLButtonElement>('[data-customer-type]')];
 
-    const FEES = new Map(
-      cards.map((card) => [card.dataset.deliveryCard ?? '', Number(card.dataset.deliveryFee ?? 0)]),
-    );
+    /* The return leg. All three are absent when nothing in the order is rented, so
+       every use is guarded — `returnSame === null` IS "this order has no return". */
+    const returnSame = root.querySelector<HTMLInputElement>('[data-field-return-same]');
+    const returnSameLabel = root.querySelector<HTMLElement>('[data-return-same-label]');
+    const returnAddressField = root.querySelector<HTMLElement>('[data-return-address-field]');
+
     const NAMES = new Map(
       cards.map((card) => [card.dataset.deliveryCard ?? '', card.dataset.deliveryName ?? '']),
     );
@@ -270,6 +357,14 @@ const originCrumb =
     const labels: Record<string, string | undefined> = JSON.parse(
       document.querySelector('[data-checkout-labels]')?.textContent ?? '{}',
     );
+
+    /* The order's line items and the API origin, both resolved on the server and
+       read off the DOM rather than imported: importing `~/lib/api` would pull the
+       whole typed Hono client into this bundle to get one string. */
+    const ORDER_ITEMS: unknown[] = JSON.parse(
+      document.querySelector('[data-checkout-items]')?.textContent ?? '[]',
+    );
+    const API_BASE = root.dataset.apiBase ?? '';
     /* A missing key is a build-time bug, not a runtime one — but an empty string
        beats "undefined" turning up in a customer's WhatsApp message. */
     const L = (key: string): string => labels[key] ?? '';
@@ -291,11 +386,30 @@ const originCrumb =
       delivery: '' as string,
       pickup: '',
       placed: false,
+      /** A request is in flight; a second click must not open a second order. */
+      sending: false,
+      /**
+       * The delivery quote for the CAP currently in the form, or null while there
+       * is no five-digit CAP to ask about.
+       *
+       * `kind: 'call'` is not a missing quote — it is the answer "we serve this
+       * area and will agree the amount in chat". Both are honest; only a made-up
+       * number would not be, which is why nothing here ever defaults to zero.
+       */
+      quote: null as { kind: 'fee' | 'call'; fee: number } | null,
+      /** The comune+CAP the quote above belongs to, so the same pair is not asked twice. */
+      quotedKey: '',
     };
 
     const field = (name: string) =>
-      root.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[data-field="${name}"]`);
+      root.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        `[data-field="${name}"]`,
+      );
     const value = (name: string) => field(name)?.value.trim() ?? '';
+
+    /** One row of a combobox popup. Shared by the tier pickers and the street field. */
+    const OPTION_CLASS =
+      'cursor-pointer rounded-lg px-3 py-2.5 text-[14.5px] leading-[1.35] aria-selected:bg-tint';
     const sections = [...root.querySelectorAll<HTMLElement>('[data-step]')];
 
     // --- steps ---------------------------------------------------------------
@@ -344,11 +458,12 @@ const originCrumb =
     /* Deliberately the same rules the reference design applies, in the same
        order: a name, an address, something that looks like an email, a phone,
        and whichever fiscal identifier the chosen identity implies. */
+    /* Who they are, and how to reach them. No address: that is step 2's, and only
+       when something is being delivered. */
     const step1Valid = () =>
       Boolean(
         value('firstName') &&
         value('lastName') &&
-        value('address') &&
         value('email').includes('@') &&
         value('phone') &&
         (state.type !== 'private' || value('codiceFiscale')) &&
@@ -357,15 +472,35 @@ const originCrumb =
 
     const step2Valid = () => {
       if (!state.delivery) return false;
-      if (state.delivery === 'hotelDelivery') {
-        return Boolean(value('hotelAddress') && value('hotelGuest'));
-      }
       if (state.delivery === 'homeDelivery') {
-        const same = (field('sameAddress') as HTMLInputElement | null)?.checked;
-        return Boolean(same || value('homeAddress'));
+        /* A street, a comune, and five digits exactly — the same shape the API's
+           `CapSchema` insists on, checked here so the customer hears about it while
+           they are still in the field rather than at the end.
+
+           The comune counts however it was established: an ISTAT code from the
+           picker, or a typed name when the ladder was unreachable. Requiring the
+           code would make a working checkout depend on an endpoint it can survive
+           without. */
+        return (
+          Boolean(
+            value('address') &&
+            (value('istatCode') || value('city')) &&
+            /^\d{5}$/.test(value('postalCode')),
+          ) && returnValid()
+        );
       }
-      return Boolean(state.pickup);
+      return Boolean(state.pickup) && returnValid();
     };
+
+    /**
+     * The return leg, which both methods have.
+     *
+     * Ticked, or absent because nothing is rented, means the delivery address and
+     * there is nothing to check. Unticked means the customer took on answering, so
+     * the answer has to be there.
+     */
+    const returnValid = () =>
+      returnSame === null || returnSame.checked || Boolean(value('returnAddress'));
 
     function paintCtas() {
       const checks: Record<string, boolean> = { 1: step1Valid(), 2: step2Valid() };
@@ -407,12 +542,24 @@ const originCrumb =
 
     function selectDelivery(id: string) {
       state.delivery = id;
+      /* Lazily, and only here: a customer collecting from a branch never needs
+         Italy's comune list, so opening this panel is what pays for it. */
+      if (id === 'homeDelivery') void ensureGeography();
       for (const card of cards) {
         const on = card.dataset.deliveryCard === id;
         card.toggleAttribute('data-selected', on);
         card.querySelector('[data-delivery-select]')?.setAttribute('aria-checked', String(on));
         const panel = card.querySelector<HTMLElement>('[data-delivery-panel]');
         if (panel) panel.hidden = !on;
+      }
+      /* The question is the same for both methods; only the noun changes. An
+         address gets collected from, a sede gets brought back to. */
+      if (returnSameLabel) {
+        const wording =
+          id === 'storePickup'
+            ? returnSameLabel.dataset.labelPickup
+            : returnSameLabel.dataset.labelHome;
+        if (wording) returnSameLabel.textContent = wording;
       }
       paintTotal();
       paintCtas();
@@ -424,12 +571,590 @@ const originCrumb =
         ?.addEventListener('click', () => selectDelivery(card.dataset.deliveryCard ?? ''));
     }
 
-    const sameAddress = field('sameAddress') as HTMLInputElement | null;
-    const homeAddressBlock = root.querySelector<HTMLElement>('[data-home-address]');
-    sameAddress?.addEventListener('change', () => {
-      if (homeAddressBlock) homeAddressBlock.hidden = sameAddress.checked;
+    // --- the return leg ------------------------------------------------------
+
+    /**
+     * Unticking is the deliberate act, so it is what reveals the field. Ticking it
+     * again CLEARS what was typed rather than remembering it: a stale address hidden
+     * behind a ticked box is a fact nobody can see and the server would have
+     * refused anyway.
+     */
+    function paintReturn() {
+      if (!returnSame) return;
+      const elsewhere = !returnSame.checked;
+      if (returnAddressField) returnAddressField.hidden = !elsewhere;
+      if (!elsewhere) {
+        const input = field('returnAddress');
+        if (input) input.value = '';
+      }
       paintCtas();
+    }
+
+    returnSame?.addEventListener('change', paintReturn);
+    field('returnAddress')?.addEventListener('input', () => paintCtas());
+
+    // --- the delivery quote --------------------------------------------------
+
+    /**
+     * What the delivery is priced from, as one cache key.
+     *
+     * The comune is in the key, not just the CAP: `00060` is shared by 17 comuni
+     * priced differently, so re-asking when only the comune changed is not a
+     * redundant request — it is the whole point of the picker.
+     */
+    function quoteKey(): string {
+      const cap = value('postalCode');
+      if (!/^\d{5}$/.test(cap)) return '';
+      return `${value('istatCode')}|${value('city')}|${cap}`;
+    }
+
+    const feeSlots = new Map(
+      [...root.querySelectorAll<HTMLElement>('[data-delivery-fee-slot]')].map((node) => [
+        node.dataset.deliveryFeeSlot ?? '',
+        node,
+      ]),
+    );
+    const quoteNote = root.querySelector<HTMLElement>('[data-delivery-quote-note]');
+
+    /**
+     * Asks the server what this CAP costs.
+     *
+     * The SAME endpoint the server prices the order from, so what the customer
+     * agrees to and what the order records cannot disagree — and the amount is
+     * never sent back in the order body. A failure leaves the slot asking for a
+     * CAP rather than inventing a figure; the phone call settles it either way.
+     */
+    async function refreshQuote(): Promise<void> {
+      const key = quoteKey();
+      if (!key) {
+        state.quote = null;
+        state.quotedKey = '';
+        paintQuote();
+        return;
+      }
+      if (key === state.quotedKey) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/delivery/quote`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            cap: value('postalCode'),
+            /* The comune the customer PICKED. With it there is nothing to infer, so
+               a CAP missing from our reference data still prices at comune level. */
+            istatCode: value('istatCode') || null,
+            /* Only read when there is no code: the name breaks the tie for a CAP
+               spanning several comuni, and it is never matched loosely — see
+               `resolveQuote`. */
+            comuneName: value('city') || null,
+          }),
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        const payload = (await response.json()) as {
+          data?: { kind?: string; fee?: string | null };
+        };
+        const kind = payload.data?.kind === 'fee' ? 'fee' : 'call';
+        state.quote = { kind, fee: kind === 'fee' ? Number(payload.data?.fee ?? 0) : 0 };
+        state.quotedKey = key;
+      } catch {
+        state.quote = null;
+        state.quotedKey = '';
+      }
+      paintQuote();
+    }
+
+    /** The fee on the card, the consent line under it, and the running total. */
+    function paintQuote() {
+      const slot = feeSlots.get('homeDelivery');
+      if (slot) {
+        slot.textContent =
+          state.quote === null
+            ? L('feePendingCap')
+            : state.quote.kind === 'call'
+              ? L('feePendingConfirmation')
+              : state.quote.fee === 0
+                ? L('free')
+                : `+${money.format(state.quote.fee)}`;
+      }
+      if (quoteNote) {
+        const asking = state.quote?.kind === 'call';
+        quoteNote.hidden = !asking;
+        quoteNote.textContent = asking ? L('feeNeedsCall') : '';
+      }
+      paintTotal();
+    }
+
+    /* Re-price whenever the CAP or a typed comune changes. `input` rather than
+       `change`: the fifth digit is the moment the answer becomes knowable. The
+       comune field is normally hidden and filled by the picker below, so this
+       listener only earns its keep on the fallback path. */
+    for (const name of ['postalCode', 'city']) {
+      field(name)?.addEventListener('input', () => {
+        paintCtas();
+        void refreshQuote();
+      });
+    }
+
+    // --- the address cascade -------------------------------------------------
+
+    /**
+     * Regione → provincia → comune → CAP, from `GET /api/address/*`.
+     *
+     * Committed ISTAT reference data, so there is no provider, no key and no
+     * network beyond our own server — the same tables `resolveQuote` prices
+     * against. Picking the comune is the point: the select's value IS the six-digit
+     * ISTAT code the fee keys on, so the server never has to work out which comune
+     * a CAP meant.
+     *
+     * Each tier clears the ones below it, and that is correctness rather than
+     * tidiness: a comune left selected under a newly chosen provincia would send a
+     * code from one place with a CAP from another, and the server prices the code.
+     */
+    /** Regioni and province are the same shape; only the comune carries CAPs. */
+    interface TierOption {
+      code: string;
+      name: string;
+    }
+    interface ComuneOption {
+      istatCode: string;
+      name: string;
+      caps: string[];
+    }
+    interface ComboRow {
+      /** What gets committed — a region code, a province code, an ISTAT code. */
+      value: string;
+      /** What the customer reads and types against. */
+      label: string;
+    }
+
+    const capOptions = root.querySelector<HTMLDataListElement>('[data-cap-options]');
+    const tierRow = root.querySelector<HTMLElement>('[data-geography-tiers]');
+    const comunePicker = root.querySelector<HTMLElement>('[data-comune-picker]');
+    const comuneTyped = root.querySelector<HTMLElement>('[data-comune-typed]');
+    /** Holds the comune's NAME — filled from a pick, typed on the fallback path. */
+    const comuneField = root.querySelector<HTMLInputElement>('input[data-field="city"]');
+
+    /** The chosen provincia's comuni, kept so the CAP list can be rebuilt from a pick. */
+    let comuneOptions: ComuneOption[] = [];
+    let geographyStarted = false;
+
+    /** Fold case and accents, so "citta" finds "Città" and "FORLI" finds "Forlì". */
+    const fold = (text: string) =>
+      text
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+    /**
+     * A dropdown you can type into. Deliberately NOT an autocomplete.
+     *
+     * The committed value only ever comes from a row, so the hidden input holds
+     * either a code the server knows or nothing. Typing filters the rows and never
+     * becomes the value, and on blur the visible text is rewritten from whatever is
+     * committed — so a half-typed "Lomb" cannot survive as a selection, and the
+     * cascade below can trust that a non-empty tier means a real place.
+     *
+     * It replaced a native `<select>`, which needed no script but could not be
+     * filtered — and a province holds up to ~320 comuni.
+     */
+    function createCombobox(name: string, onCommit: (committed: string) => void) {
+      const input = root.querySelector<HTMLInputElement>(`[data-combo-input="${name}"]`);
+      const list = root.querySelector<HTMLElement>(`[data-combo-options="${name}"]`);
+      const hidden = field(name);
+      if (!input || !list || !hidden) return null;
+
+      let rows: ComboRow[] = [];
+      let shown: ComboRow[] = [];
+      let active = -1;
+
+      const committedLabel = () => rows.find((row) => row.value === hidden.value)?.label ?? '';
+
+      function close() {
+        shown = [];
+        active = -1;
+        list!.hidden = true;
+        list!.replaceChildren();
+        input!.setAttribute('aria-expanded', 'false');
+        input!.removeAttribute('aria-activedescendant');
+      }
+
+      function paint() {
+        if (shown.length === 0) {
+          // A row, not an error: the customer is mid-word and the fix is to keep
+          // typing. Not selectable, so Enter cannot commit it.
+          const empty = document.createElement('li');
+          empty.className = `${OPTION_CLASS} text-ink-2 cursor-default`;
+          empty.textContent = L('noMatches');
+          list!.replaceChildren(empty);
+        } else {
+          list!.replaceChildren(
+            ...shown.map((row, index) => {
+              const item = document.createElement('li');
+              item.id = `checkout-${name}-option-${index}`;
+              item.setAttribute('role', 'option');
+              item.setAttribute('aria-selected', String(index === active));
+              item.className = OPTION_CLASS;
+              item.textContent = row.label;
+              /* `mousedown`, not `click`: the input blurs first on a click, and the
+                 blur handler closes the list before a click could land. */
+              item.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                commit(row);
+              });
+              return item;
+            }),
+          );
+        }
+        list!.hidden = false;
+        input!.setAttribute('aria-expanded', 'true');
+        if (active >= 0) {
+          input!.setAttribute('aria-activedescendant', `checkout-${name}-option-${active}`);
+          list!.children[active]?.scrollIntoView({ block: 'nearest' });
+        } else {
+          input!.removeAttribute('aria-activedescendant');
+        }
+      }
+
+      function commit(row: ComboRow | null) {
+        hidden!.value = row?.value ?? '';
+        input!.value = row?.label ?? '';
+        close();
+        onCommit(hidden!.value);
+      }
+
+      /**
+       * Closest first: rows whose name STARTS with what was typed, then rows that
+       * merely contain it. So "re" offers Reggio before Ancona.
+       */
+      function open(query: string) {
+        const wanted = fold(query);
+        if (!wanted) {
+          shown = rows;
+          // Opening on a committed value should land on it, not on row 0.
+          active = rows.findIndex((row) => row.value === hidden!.value);
+        } else {
+          const starts: ComboRow[] = [];
+          const contains: ComboRow[] = [];
+          for (const row of rows) {
+            const label = fold(row.label);
+            if (label.startsWith(wanted)) starts.push(row);
+            else if (label.includes(wanted)) contains.push(row);
+          }
+          shown = [...starts, ...contains];
+          // Pre-highlighted, so Enter takes the closest match without arrowing.
+          active = shown.length > 0 ? 0 : -1;
+        }
+        paint();
+      }
+
+      input.addEventListener('focus', () => open(''));
+      input.addEventListener('input', () => open(input.value));
+      input.addEventListener('blur', () => {
+        // Whatever was being typed is discarded. The value is the committed row.
+        input.value = committedLabel();
+        close();
+      });
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          input.value = committedLabel();
+          close();
+          return;
+        }
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          if (list.hidden) {
+            open(input.value);
+            return;
+          }
+          if (shown.length === 0) return;
+          const step = event.key === 'ArrowDown' ? 1 : -1;
+          active = (active + step + shown.length) % shown.length;
+          paint();
+          return;
+        }
+        if (event.key === 'Enter') {
+          // Always swallowed while open, so Enter cannot submit the step with a
+          // half-typed tier showing.
+          if (list.hidden) return;
+          event.preventDefault();
+          const picked = active >= 0 ? shown[active] : undefined;
+          if (picked) commit(picked);
+        }
+      });
+
+      return {
+        /**
+         * Replaces the tier's rows and clears it. Does not fire `onCommit` — the
+         * caller is the cascade, which is already clearing the tiers below.
+         */
+        setRows(next: ComboRow[], placeholder: string) {
+          rows = next;
+          hidden.value = '';
+          input.value = '';
+          input.disabled = next.length === 0;
+          input.placeholder = placeholder;
+          close();
+        },
+      };
+    }
+
+    async function loadTier<T>(path: string): Promise<T[]> {
+      const response = await fetch(`${API_BASE}/api/address/${path}`);
+      if (!response.ok) throw new Error(String(response.status));
+      const payload = (await response.json()) as { data?: T[] };
+      return payload.data ?? [];
+    }
+
+    /**
+     * The chosen comune's own CAPs, as the `datalist` behind the CAP field.
+     *
+     * One CAP for 7,338 of Italy's 7,896 comuni, and then it is a fact rather than
+     * a choice, so the field fills itself and the customer never touches it. Roma
+     * has 79, which is where the list is worth having.
+     */
+    function paintCaps(comune: ComuneOption | undefined) {
+      const caps = comune?.caps ?? [];
+      capOptions?.replaceChildren(...caps.map((cap) => new Option(cap, cap)));
+
+      const capField = field('postalCode');
+      if (!capField) return;
+      if (caps.length === 1) capField.value = caps[0] ?? '';
+      // Anything left over from the previous comune is wrong for this one. An
+      // unlisted CAP the customer typed for THIS comune is kept — see the markup.
+      else if (!caps.includes(capField.value)) capField.value = '';
+    }
+
+    /*
+      One combobox per tier. Each one's callback clears everything below it before
+      loading its own children, so an in-flight response can never land on a tier
+      the customer has since moved away from.
+    */
+    const regionCombo = createCombobox('region', (code) => void pickRegion(code));
+    const provinceCombo = createCombobox('province', (code) => void pickProvince(code));
+    const comuneCombo = createCombobox('istatCode', (code) => pickComune(code));
+
+    function pickComune(istatCode: string) {
+      const comune = comuneOptions.find((row) => row.istatCode === istatCode);
+      // The name is the address half; the code is the pricing half.
+      if (comuneField) comuneField.value = comune?.name ?? '';
+      paintCaps(comune);
+      paintCtas();
+      void refreshQuote();
+    }
+
+    async function pickProvince(provinceCode: string) {
+      comuneOptions = [];
+      comuneCombo?.setRows([], L('chooseProvinceFirst'));
+      pickComune('');
+      if (!provinceCode) return;
+
+      const comuni = await loadTier<ComuneOption>(
+        `comuni?provinceCode=${encodeURIComponent(provinceCode)}`,
+      );
+      // The customer moved on while this was in flight; the list is for a province
+      // they are no longer in. Cheaper and clearer than a sequence counter.
+      if (value('province') !== provinceCode) return;
+      comuneOptions = comuni;
+      comuneCombo?.setRows(
+        comuni.map((row) => ({ value: row.istatCode, label: row.name })),
+        L('selectPlaceholder'),
+      );
+    }
+
+    async function pickRegion(regionCode: string) {
+      provinceCombo?.setRows([], L('chooseRegionFirst'));
+      await pickProvince('');
+      if (!regionCode) return;
+
+      const provinces = await loadTier<TierOption>(
+        `provinces?regionCode=${encodeURIComponent(regionCode)}`,
+      );
+      if (value('region') !== regionCode) return;
+      provinceCombo?.setRows(
+        provinces.map((row) => ({ value: row.code, label: row.name })),
+        L('selectPlaceholder'),
+      );
+    }
+
+    /**
+     * The ladder disappears and the comune becomes an ordinary text input.
+     *
+     * Reached only when `/api/address/regions` cannot be answered. The quote then
+     * resolves from the CAP and the typed name, which is what it did before the
+     * picker existed: coarser for a shared CAP, never blocked.
+     */
+    function useTypedComune() {
+      if (tierRow) tierRow.hidden = true;
+      if (comunePicker) comunePicker.hidden = true;
+      if (comuneTyped) comuneTyped.hidden = false;
+    }
+
+    /** Loads the top tier once, the first time home delivery is opened. */
+    async function ensureGeography() {
+      if (geographyStarted) return;
+      geographyStarted = true;
+      try {
+        const regions = await loadTier<TierOption>('regions');
+        if (regions.length === 0) throw new Error('no regions');
+        regionCombo?.setRows(
+          regions.map((row) => ({ value: row.code, label: row.name })),
+          L('selectPlaceholder'),
+        );
+      } catch {
+        useTypedComune();
+      }
+    }
+
+    // --- address suggestions -------------------------------------------------
+
+    /**
+     * The street field completes from `GET /api/address/suggest`, which proxies
+     * HERE server-side — the key never reaches this bundle.
+     *
+     * It fills the STREET LINE only. The comune and the CAP come from the tier
+     * pickers above, where the comune is an ISTAT code rather than a provider's
+     * spelling of a name — see `applySuggestion`.
+     *
+     * Unlike those pickers this one accepts free text, because a street genuinely is
+     * free text: no key on the server, a timeout, an offline customer, or JavaScript
+     * that never ran all end the same way, with a field they type themselves.
+     */
+    interface AddressSuggestion {
+      id: string;
+      label: string;
+      street: string;
+      houseNumber: string | null;
+      postalCode: string;
+      city: string;
+    }
+
+    const addressInput = root.querySelector<HTMLInputElement>('[data-address-input]');
+    const addressOptions = root.querySelector<HTMLElement>('[data-address-options]');
+    /** Long enough that a fast typist spends one request per word, not per letter. */
+    const SUGGEST_DEBOUNCE_MS = 250;
+    const SUGGEST_MIN_CHARS = 3;
+
+    let suggestions: AddressSuggestion[] = [];
+    let activeIndex = -1;
+    let suggestTimer: ReturnType<typeof setTimeout> | undefined;
+    /** Rising id: a slow response for an older query must not replace a newer one. */
+    let suggestSeq = 0;
+
+    function closeSuggestions() {
+      suggestions = [];
+      activeIndex = -1;
+      if (addressOptions) {
+        addressOptions.hidden = true;
+        addressOptions.replaceChildren();
+      }
+      addressInput?.setAttribute('aria-expanded', 'false');
+      addressInput?.removeAttribute('aria-activedescendant');
+    }
+
+    function paintSuggestions() {
+      if (!addressOptions || !addressInput) return;
+      if (suggestions.length === 0) {
+        closeSuggestions();
+        return;
+      }
+      addressOptions.replaceChildren(
+        ...suggestions.map((suggestion, index) => {
+          const item = document.createElement('li');
+          item.id = `checkout-address-option-${index}`;
+          item.setAttribute('role', 'option');
+          item.setAttribute('aria-selected', String(index === activeIndex));
+          item.className = OPTION_CLASS;
+          item.textContent = suggestion.label;
+          /* `mousedown`, not `click`: the input blurs first on a click, and a blur
+             that closes the list would remove this node before it fired. */
+          item.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            applySuggestion(suggestion);
+          });
+          return item;
+        }),
+      );
+      addressOptions.hidden = false;
+      addressInput.setAttribute('aria-expanded', 'true');
+      if (activeIndex >= 0) {
+        addressInput.setAttribute('aria-activedescendant', `checkout-address-option-${activeIndex}`);
+      } else {
+        addressInput.removeAttribute('aria-activedescendant');
+      }
+    }
+
+    /**
+     * The street line, and only the street line.
+     *
+     * It used to fill the città and the CAP too. It must not any more: those come
+     * from the picker, where the comune is an ISTAT code rather than a provider's
+     * spelling of a name. Letting a suggestion overwrite them would put HERE in
+     * charge of which comune the delivery is priced against.
+     */
+    function applySuggestion(suggestion: AddressSuggestion) {
+      const input = field('address');
+      if (input) {
+        input.value = suggestion.houseNumber
+          ? `${suggestion.street} ${suggestion.houseNumber}`
+          : suggestion.street;
+      }
+      closeSuggestions();
+      paintCtas();
+    }
+
+    async function loadSuggestions(query: string) {
+      const seq = ++suggestSeq;
+      try {
+        const response = await fetch(
+          `${API_BASE}/api/address/suggest?q=${encodeURIComponent(query)}`,
+        );
+        if (!response.ok) throw new Error(String(response.status));
+        const payload = (await response.json()) as { data?: AddressSuggestion[] };
+        if (seq !== suggestSeq) return;
+        suggestions = payload.data ?? [];
+        activeIndex = -1;
+        paintSuggestions();
+      } catch {
+        // No suggestions is a normal state, not an error to report: the customer
+        // is already typing the address by hand.
+        if (seq === suggestSeq) closeSuggestions();
+      }
+    }
+
+    addressInput?.addEventListener('input', () => {
+      paintCtas();
+      clearTimeout(suggestTimer);
+      const query = addressInput.value.trim();
+      if (query.length < SUGGEST_MIN_CHARS) {
+        closeSuggestions();
+        return;
+      }
+      suggestTimer = setTimeout(() => void loadSuggestions(query), SUGGEST_DEBOUNCE_MS);
     });
+
+    addressInput?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeSuggestions();
+        return;
+      }
+      if (suggestions.length === 0) return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        activeIndex = (activeIndex + step + suggestions.length) % suggestions.length;
+        paintSuggestions();
+        return;
+      }
+      if (event.key === 'Enter' && activeIndex >= 0) {
+        // Only when something is highlighted, so Enter on a typed address still
+        // submits the step rather than silently picking the first row.
+        event.preventDefault();
+        const picked = suggestions[activeIndex];
+        if (picked) applySuggestion(picked);
+      }
+    });
+
+    addressInput?.addEventListener('blur', () => closeSuggestions());
 
     const pickups = [...root.querySelectorAll<HTMLElement>('[data-pickup-card]')];
     function selectPickup(city: string) {
@@ -449,15 +1174,32 @@ const originCrumb =
 
     // --- overview total -----------------------------------------------------
 
+    /**
+     * The overview's delivery row and running total.
+     *
+     * Collection is free. Home delivery is whatever the quote said — and when the
+     * quote is `call` the row says so in words instead of showing a figure,
+     * because the total genuinely is not known yet.
+     */
     function paintTotal() {
-      const fee = FEES.get(state.delivery) ?? 0;
+      const pickup = state.delivery === 'storePickup';
+      const quoted = state.delivery === 'homeDelivery' ? state.quote : null;
+      const fee = pickup ? 0 : quoted?.kind === 'fee' ? quoted.fee : 0;
+      const unknown = state.delivery === 'homeDelivery' && quoted?.kind !== 'fee';
+
       const row = overview.querySelector<HTMLElement>('[data-overview-delivery]');
       if (row) {
         row.hidden = !state.delivery;
         const label = row.querySelector('[data-overview-delivery-label]');
         const amount = row.querySelector('[data-overview-delivery-fee]');
         if (label) label.textContent = SHORT.get(state.delivery) || L('delivery');
-        if (amount) amount.textContent = fee === 0 ? L('free') : money.format(fee);
+        if (amount) {
+          amount.textContent = unknown
+            ? L('feePendingConfirmation')
+            : fee === 0
+              ? L('free')
+              : money.format(fee);
+        }
       }
       const total = overview.querySelector('[data-overview-total]');
       if (total) total.textContent = money.format(openPeriod ? itemsTotal : itemsTotal + fee);
@@ -475,15 +1217,18 @@ const originCrumb =
       const typeLabel = TYPE_LABELS.get(state.type) ?? '';
 
       const detail =
-        state.delivery === 'hotelDelivery'
-          ? [value('hotelAddress'), value('hotelGuest')].filter(Boolean).join(' · ')
-          : state.delivery === 'homeDelivery'
-            ? sameAddress?.checked
-              ? value('address')
-              : value('homeAddress')
-            : state.delivery === 'storePickup'
-              ? L('collectedAtBranch').replace('{city}', state.pickup)
-              : '';
+        state.delivery === 'homeDelivery'
+          ? [value('address'), `${value('postalCode')} ${value('city')}`.trim()]
+              .filter(Boolean)
+              .join(' · ')
+          : state.delivery === 'storePickup'
+            ? L('collectedAtBranch').replace('{city}', state.pickup)
+            : '';
+
+      /* Only when it differs. "Collected from the delivery address" is what the
+         review already says by not saying anything. */
+      const returnDetail =
+        returnSame && !returnSame.checked ? value('returnAddress') : '';
 
       const fill = (key: string, text: string) => {
         const node = root.querySelector(`[data-review="${key}"]`);
@@ -495,7 +1240,7 @@ const originCrumb =
       fill('phone', value('phone'));
       fill('type', fiscal ? `${typeLabel} · ${fiscal}` : typeLabel);
       fill('delivery', NAMES.get(state.delivery) ?? '');
-      fill('deliveryDetail', detail);
+      fill('deliveryDetail', returnDetail ? `${detail} · ${L('returnStage')}: ${returnDetail}` : detail);
     }
 
     // --- handover -----------------------------------------------------------
@@ -503,18 +1248,25 @@ const originCrumb =
     const placeOrder = root.querySelector<HTMLAnchorElement>('[data-place-order]');
     const pending = root.querySelector<HTMLElement>('[data-confirm-pending]');
     const placedPanel = root.querySelector<HTMLElement>('[data-confirm-placed]');
+    const errorPanel = root.querySelector<HTMLElement>('[data-confirm-error]');
 
-    placeOrder?.addEventListener('click', () => {
-      /* The href is rebuilt at click time, not on every keystroke: the message is
-         only ever read once, and the server-built base is already a valid link if
-         this never runs. */
-      const base = placeOrder.dataset.waBase ?? '';
-      const extra = [
+    /**
+     * The handover message: the server-built line items, then what the customer
+     * typed into steps 1 and 2, then the order number once there is one.
+     *
+     * Rebuilt at hand-over time rather than on every keystroke — it is only ever
+     * read once, and the server-built base is already a valid message if none of
+     * this runs.
+     */
+    function handoverMessage(orderNumber: string | null): string {
+      const base = placeOrder?.dataset.waBase ?? '';
+      const lines = [
+        ...(orderNumber ? [`${L('requestNumberPrefix')} ${orderNumber}`, ''] : []),
+        base,
         '',
         `${L('name')}: ${value('firstName')} ${value('lastName')}`.trim(),
         `${L('email')}: ${value('email')}`,
         `${L('phone')}: ${value('phone')}`,
-        `${L('address')}: ${value('address')}`,
         `${L('customerType')}: ${TYPE_LABELS.get(state.type) ?? ''}`,
         ...(state.type === 'private' ? [`${L('codiceFiscale')}: ${value('codiceFiscale')}`] : []),
         ...(state.type === 'company'
@@ -524,36 +1276,186 @@ const originCrumb =
             ]
           : []),
         `${L('deliveryLine')}: ${NAMES.get(state.delivery) ?? L('toBeArranged')}`,
-        /* Gated on the CHOSEN option, not merely on the field having a value:
-           a customer who fills the hotel panel and then switches to collection
-           would otherwise send both, and the agent cannot tell which is real. */
-        ...(state.delivery === 'hotelDelivery' && value('hotelAddress')
-          ? [`${L('venue')}: ${value('hotelAddress')}`]
-          : []),
-        ...(state.delivery === 'hotelDelivery' && value('hotelGuest')
-          ? [`${L('guest')}: ${value('hotelGuest')}`]
-          : []),
-        ...(state.delivery === 'homeDelivery' && !sameAddress?.checked && value('homeAddress')
-          ? [`${L('deliveryAddress')}: ${value('homeAddress')}`]
+        /* Gated on the CHOSEN option, not merely on the fields having values: a
+           customer who fills the address and then switches to collection would
+           otherwise send both, and the agent cannot tell which is real. */
+        ...(state.delivery === 'homeDelivery' && value('address')
+          ? [
+              `${L('deliveryAddress')}: ${value('address')}`,
+              `${L('city')}: ${value('city')}`,
+              `${L('postalCode')}: ${value('postalCode')}`,
+            ]
           : []),
         ...(state.delivery === 'storePickup' ? [`${L('pickupBranch')}: ${state.pickup}`] : []),
+        /* Only when it is somewhere else — otherwise the agent already knows, and a
+           line saying "the same address" is a line they have to read to learn
+           nothing. */
+        ...(returnSame && !returnSame.checked && value('returnAddress')
+          ? [`${L('returnStage')}: ${value('returnAddress')}`]
+          : []),
+        /* Says the delivery cost is still open, so the conversation starts on the
+           thing that is actually unresolved. */
+        ...(state.delivery === 'homeDelivery' && state.quote?.kind === 'call'
+          ? [`${L('deliveryLine')}: ${L('feePendingConfirmation')}`]
+          : []),
         ...(value('comments') ? [`${L('notes')}: ${value('comments')}`] : []),
-      ].join('\n');
+      ];
+      return lines.join('\n');
+    }
 
-      const url = new URL(placeOrder.href);
-      url.searchParams.set('text', `${base}\n${extra}`);
-      placeOrder.href = url.toString();
+    /** Points a `wa.me` link at the current message. */
+    function setHandover(link: HTMLAnchorElement | null, orderNumber: string | null) {
+      if (!link) return;
+      const url = new URL(link.href);
+      url.searchParams.set('text', handoverMessage(orderNumber));
+      link.href = url.toString();
+    }
 
+    /**
+     * The order body.
+     *
+     * Choices and contact details only. The line items come from the JSON island
+     * the server rendered, and only the fields belonging to the CHOSEN delivery
+     * option are sent — the same reasoning as the WhatsApp message above, and the
+     * server drops the others anyway.
+     */
+    function orderBody() {
+      const delivery: Record<string, unknown> = { method: state.delivery };
+      if (state.delivery === 'homeDelivery') {
+        // The address belongs to the delivery, and only to this one: the API
+        // refuses it on a collection, which is exactly the mix-up that used to be
+        // possible when it was asked for in step 1.
+        delivery.address = {
+          line1: value('address'),
+          city: value('city'),
+          postalCode: value('postalCode'),
+          /* The comune the customer picked, so the server resolves the fee from the
+             same thing this page was quoted on. `null` when the ladder was
+             unreachable and the comune was typed — then the server infers it from
+             the CAP, exactly as the quote above did. */
+          istatCode: value('istatCode') || null,
+        };
+      } else if (state.delivery === 'storePickup') {
+        delivery.pickupCity = state.pickup;
+      }
+      /* Sent only when the order HAS a return leg. On a purchase the fields do not
+         exist, and the API refuses a return address for something never returned. */
+      if (returnSame) {
+        delivery.returnToSameAddress = returnSame.checked;
+        if (!returnSame.checked) delivery.returnAddress = value('returnAddress');
+      }
+
+      const customer: Record<string, unknown> = {
+        firstName: value('firstName'),
+        lastName: value('lastName'),
+        email: value('email'),
+        phone: value('phone'),
+        customerType: state.type,
+      };
+      if (state.type === 'private') customer.codiceFiscale = value('codiceFiscale');
+      if (state.type === 'company') {
+        customer.partitaIva = value('partitaIva');
+        customer.codiceFiscale = value('companyCodiceFiscale');
+      }
+
+      const body: Record<string, unknown> = { items: ORDER_ITEMS, customer, delivery };
+      if (value('comments')) body.notes = value('comments');
+      return body;
+    }
+
+    interface PlacedOrder {
+      number: string;
+      totals: { total: string; currency: string };
+    }
+
+    async function submitOrder(): Promise<PlacedOrder> {
+      const response = await fetch(`${API_BASE}/api/orders`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(orderBody()),
+      });
+      if (!response.ok) throw new Error(`orders responded ${response.status}`);
+      const payload = (await response.json()) as { data: PlacedOrder };
+      return payload.data;
+    }
+
+    function showPlaced(order: PlacedOrder) {
       state.placed = true;
       if (pending) pending.hidden = true;
-      if (placedPanel) {
-        placedPanel.hidden = false;
-        const greeting = placedPanel.querySelector<HTMLElement>('[data-placed-greeting]');
-        const first = value('firstName');
-        if (greeting && first) {
-          greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
-        }
+      if (errorPanel) errorPanel.hidden = true;
+      if (!placedPanel) return;
+
+      placedPanel.hidden = false;
+
+      const card = placedPanel.querySelector<HTMLElement>('[data-placed-number-card]');
+      const number = placedPanel.querySelector<HTMLElement>('[data-placed-number]');
+      if (card) card.hidden = false;
+      if (number) number.textContent = order.number;
+
+      /* The figure the SERVER computed, not the one this page added up. They agree
+         — both run @mia/pricing over the same choices — and showing the stored one
+         means the customer reads what the order actually says. */
+      const totalRow = placedPanel.querySelector<HTMLElement>('[data-placed-total-row]');
+      const total = placedPanel.querySelector<HTMLElement>('[data-placed-total]');
+      if (totalRow && total && order.totals) {
+        total.textContent = new Intl.NumberFormat('it-IT', {
+          style: 'currency',
+          currency: order.totals.currency || 'EUR',
+        }).format(Number(order.totals.total));
+        totalRow.hidden = false;
       }
+
+      const greeting = placedPanel.querySelector<HTMLElement>('[data-placed-greeting]');
+      const first = value('firstName');
+      if (greeting && first) {
+        greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
+      }
+
+      setHandover(
+        placedPanel.querySelector<HTMLAnchorElement>('[data-placed-whatsapp]'),
+        order.number,
+      );
+    }
+
+    function showError() {
+      if (!errorPanel) return;
+      errorPanel.hidden = false;
+      // The request is not lost: the handover still carries all of it, minus a
+      // number that was never issued.
+      setHandover(errorPanel.querySelector<HTMLAnchorElement>('[data-error-whatsapp]'), null);
+      errorPanel.scrollIntoView({ block: 'nearest' });
+    }
+
+    async function place() {
+      if (state.placed || state.sending || !placeOrder) return;
+
+      state.sending = true;
+      const original = placeOrder.textContent;
+      placeOrder.textContent = L('sendingRequest');
+      placeOrder.setAttribute('aria-busy', 'true');
+
+      try {
+        showPlaced(await submitOrder());
+      } catch {
+        showError();
+      } finally {
+        state.sending = false;
+        placeOrder.removeAttribute('aria-busy');
+        placeOrder.textContent = original;
+      }
+    }
+
+    /* The CTA is an <a> so that it works with no JavaScript. With JavaScript it
+       records the order instead, and the handover moves to the panel that appears
+       afterwards — so the navigation is cancelled rather than followed. */
+    placeOrder?.addEventListener('click', (event) => {
+      event.preventDefault();
+      void place();
+    });
+
+    root.querySelector<HTMLButtonElement>('[data-confirm-retry]')?.addEventListener('click', () => {
+      if (errorPanel) errorPanel.hidden = true;
+      void place();
     });
 
     // --- line-item accordion -------------------------------------------------

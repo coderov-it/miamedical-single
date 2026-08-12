@@ -7,13 +7,14 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { addressPublicRoutes } from './modules/address/routes.ts';
 import { attributeAdminRoutes } from './modules/attributes/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { deliveryPublicRoutes, deliveryZoneAdminRoutes } from './modules/delivery/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
-import { cartAdminRoutes, orderAdminRoutes } from './modules/orders/routes.ts';
+import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
 import { withSession } from './shared/auth/session.ts';
@@ -52,6 +53,8 @@ const routes = app
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)
   .route('/api/delivery', deliveryPublicRoutes)
+  .route('/api/address', addressPublicRoutes)
+  .route('/api/orders', orderPublicRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)

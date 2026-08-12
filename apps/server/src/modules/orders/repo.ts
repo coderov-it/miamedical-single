@@ -156,6 +156,124 @@ export async function findEvents(db: Database, orderId: string): Promise<OrderSt
   }));
 }
 
+// --- placing an order ------------------------------------------------------
+
+export interface NewOrderItemData {
+  skuId: string | null;
+  productTitle: string;
+  skuLabel: string;
+  sku: string;
+  quantity: number;
+  unitPrice: string;
+  total: string;
+  configuration: Record<string, unknown>;
+}
+
+export interface NewOrderData {
+  email: string;
+  phone: string;
+  customerType: 'private' | 'company' | 'tourist';
+  codiceFiscale: string | null;
+  partitaIva: string | null;
+  currency: string;
+  subtotal: string;
+  shippingTotal: string;
+  total: string;
+  /**
+   * Null on a collection, which has no address: the checkout asks for one only
+   * when something is being delivered. Both columns are nullable jsonb, so this is
+   * the column's own shape rather than a widening.
+   */
+  shippingAddress: Record<string, unknown> | null;
+  billingAddress: Record<string, unknown> | null;
+  delivery: Record<string, unknown>;
+  notes: string | null;
+  items: NewOrderItemData[];
+}
+
+/**
+ * `MIA-2026-001042`. The counter comes from `order_number_seq`, so two customers
+ * confirming in the same second cannot read the same number — which a
+ * `MAX(number) + 1` would let them do, turning a unique-index violation into a
+ * failed checkout for whoever lost the race.
+ *
+ * The year is stamped from the clock at placement, not from the counter, so the
+ * prefix reads as "when" while the counter stays globally unique.
+ */
+async function nextOrderNumber(tx: Pick<Database, 'execute'>): Promise<string> {
+  const rows = await tx.execute<{ value: string }>(
+    sql`SELECT nextval('order_number_seq')::text AS value`,
+  );
+  const counter = rows[0]?.value ?? '0';
+  return `MIA-${new Date().getUTCFullYear()}-${counter.padStart(6, '0')}`;
+}
+
+/**
+ * The order, its lines and its opening timeline entry, or none of them.
+ *
+ * The `pending` event is written here rather than left implicit: the timeline is
+ * what the admin reads to answer "why is this order where it is", and an order
+ * whose first state has no entry reads as one that appeared out of nowhere.
+ */
+export async function insertOrder(
+  db: Database,
+  data: NewOrderData,
+): Promise<{ id: string; number: string; placedAt: Date }> {
+  return db.transaction(async (tx) => {
+    const number = await nextOrderNumber(tx);
+
+    const [order] = await tx
+      .insert(orders)
+      .values({
+        number,
+        email: data.email,
+        phone: data.phone,
+        customerType: data.customerType,
+        codiceFiscale: data.codiceFiscale,
+        partitaIva: data.partitaIva,
+        status: 'pending',
+        paymentStatus: 'unpaid',
+        currency: data.currency,
+        subtotal: data.subtotal,
+        shippingTotal: data.shippingTotal,
+        total: data.total,
+        shippingAddress: data.shippingAddress,
+        billingAddress: data.billingAddress,
+        delivery: data.delivery,
+        notes: data.notes,
+      })
+      .returning({ id: orders.id, number: orders.number, placedAt: orders.placedAt });
+
+    if (!order) throw new Error('Order insert returned no row.');
+
+    await tx.insert(orderItems).values(
+      data.items.map((item) => ({
+        orderId: order.id,
+        skuId: item.skuId,
+        productTitle: item.productTitle,
+        skuLabel: item.skuLabel,
+        sku: item.sku,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+        configuration: item.configuration,
+      })),
+    );
+
+    await tx.insert(orderStatusEvents).values({
+      orderId: order.id,
+      field: 'status',
+      // Nothing preceded it — the order did not move into `pending`, it began there.
+      fromValue: null,
+      toValue: 'pending',
+      note: 'Placed from the storefront checkout.',
+      actorUserId: null,
+    });
+
+    return { id: order.id, number: order.number, placedAt: order.placedAt };
+  });
+}
+
 export interface OrderPatch {
   notes?: string | null;
   shippingAddress?: Record<string, unknown> | null;

@@ -61,6 +61,8 @@ const STOREFRONT_LABELS = {
   firstName: { it: 'Nome' },
   lastName: { it: 'Cognome' },
   address: { it: 'Indirizzo' },
+  city: { it: 'Città' },
+  postalCode: { it: 'CAP' },
   email: { it: 'Email' },
   phoneNumber: { it: 'Numero di telefono' },
   iAmA: { it: 'Sono un' },
@@ -76,36 +78,70 @@ const STOREFRONT_LABELS = {
   // Example values, not instructions — a placeholder is a hint, never a label.
   placeholderFirstName: { it: 'Mario' },
   placeholderLastName: { it: 'Rossi' },
-  placeholderAddress: { it: 'Via e numero civico, CAP, città' },
+  /* The street line no longer carries the city and the CAP — they have their own
+     fields now, so the hint stops asking for them. */
+  placeholderStreet: { it: 'Via Roma 12' },
+  placeholderCity: { it: 'Roma' },
+  placeholderPostalCode: { it: '00184' },
   placeholderEmail: { it: 'mario.rossi@example.com' },
   placeholderPhone: { it: '+39 333 000 0000' },
   placeholderCodiceFiscale: { it: 'RSSMRA80A01H501X' },
   placeholderPartitaIva: { it: 'IT01234567890' },
   placeholderCompanyCodiceFiscale: { it: '01234567890' },
   placeholderComments: { it: 'Qualcosa che dovremmo sapere' },
-  placeholderVenue: { it: 'Hotel Duomo, Via Roma 12' },
-  placeholderGuestName: { it: 'Mario Rossi' },
 
   // -- step 2: delivery ----------------------------------------------------
+  /* Step 2 asks two questions and they are not the same one: where it GOES, and
+     where it comes back FROM. These name the two halves; they only appear when
+     there is a rental, because a purchase has no second half. */
+  deliveryStage: { it: 'Consegna' },
+  returnStage: { it: 'Riconsegna a fine noleggio' },
+  /* The default, and its wording follows the chosen method — a home delivery is
+     collected from an address, a branch collection is brought back to a sede. */
+  returnSameAddress: { it: 'Ritiriamo allo stesso indirizzo' },
+  returnSameBranch: { it: 'Riconsegna alla stessa sede' },
+  returnAddressLabel: { it: 'Indirizzo per il ritiro' },
+  placeholderReturnAddress: { it: 'Via Roma 12, 00184 Roma' },
   deliveryAndPickup: { it: 'Consegna e ritiro' },
-  hotelDelivery: { it: 'Consegna e ritiro in hotel o casa vacanze' },
-  hotelDeliveryDetail: {
-    it: 'Consegnato e ritirato alla reception dell’hotel o nel tuo alloggio',
-  },
-  hotelDeliveryShort: { it: 'Consegna in hotel' },
-  homeDelivery: { it: 'Consegna e ritiro a domicilio' },
+  /* One delivery option, and its wording says so: a hotel, una casa vacanze and a
+     home are all just addresses. There used to be a separate `hotelDelivery`. */
+  homeDelivery: { it: 'Consegna e ritiro all’indirizzo che indichi' },
   homeDeliveryDetail: {
-    it: 'Consegnato al tuo indirizzo in una fascia di due ore che scegli tu',
+    it: 'A casa, in hotel o in casa vacanze — consegniamo e ritiriamo dove ti serve',
   },
   homeDeliveryShort: { it: 'Consegna a domicilio' },
   storePickup: { it: 'Ritiro in sede' },
   storePickupDetail: { it: 'Ritiro e riconsegna in una delle nostre sedi' },
   storePickupShort: { it: 'Ritiro in sede' },
   free: { it: 'Gratis' },
-  venueNameAndAddress: { it: 'Nome e indirizzo della struttura' },
-  guestNameAtReception: { it: 'Nome dell’ospite alla reception' },
-  deliverToDetailsAddress: { it: 'Consegna all’indirizzo indicato al passo 1' },
   deliveryAddress: { it: 'Indirizzo di consegna' },
+  /* Italy's own ladder, in its own words: regione → provincia → comune → CAP. The
+     customer picks the first three, so we never have to guess which comune a CAP
+     means — see docs/code/delivery-pricing.md. */
+  region: { it: 'Regione' },
+  province: { it: 'Provincia' },
+  comune: { it: 'Comune' },
+  selectPlaceholder: { it: 'Seleziona…' },
+  /* Each tier is unusable until the one above it is chosen, and saying so is
+     kinder than a disabled control with no explanation. */
+  chooseRegionFirst: { it: 'Scegli prima la regione' },
+  chooseProvinceFirst: { it: 'Scegli prima la provincia' },
+  chooseComuneFirst: { it: 'Scegli prima il comune' },
+  /* The picker needs the server. If the ladder cannot be reached the three tiers
+     go away and the comune becomes a field the customer types — this is its hint. */
+  typeComune: { it: 'Scrivi il comune' },
+  /* Shown inside a tier's dropdown when the typed filter matches none of its rows.
+     A row, not an error: the customer is mid-word and the fix is to keep typing. */
+  noMatches: { it: 'Nessun risultato' },
+  /* The delivery fee comes from the CAP, so before there is a CAP there is no
+     figure to show — and a zero would be a lie. */
+  feePendingCap: { it: 'Inserisci il CAP' },
+  /* A `call` answer, as a question the customer can say yes to rather than a
+     notice they have to accept. Their reply in chat settles the amount. */
+  feeNeedsCall: {
+    it: 'Per questa zona non abbiamo una tariffa fissa. Possiamo definire il costo di consegna in chat. Va bene?',
+  },
+  feePendingConfirmation: { it: 'Da confermare' },
   choosePickupPoint: { it: 'Scegli dove ritirare e riconsegnare:' },
   branchIn: { it: 'Sede di {city}' },
 
@@ -115,13 +151,45 @@ const STOREFRONT_LABELS = {
   noPaymentNowDetail: {
     it: 'Ti scriviamo su WhatsApp per concordare il pagamento e per qualsiasi altra cosa ti serva.',
   },
+  /* The no-JavaScript label, still on the server-rendered <a>. The script swaps
+     both the words and the behaviour: with JavaScript the button records the
+     order first and hands over to WhatsApp after. */
   sendOrderOnWhatsApp: { it: 'Invia l’ordine su WhatsApp' },
+  sendRequest: { it: 'Invia la richiesta' },
+  sendingRequest: { it: 'Invio in corso…' },
   termsNoticeBefore: { it: 'Inviando l’ordine accetti le nostre' },
   rentalTerms: { it: 'condizioni di noleggio' },
   requestSent: { it: 'Richiesta inviata' },
   requestSentDetail: {
     it: 'Abbiamo la tua richiesta. Ti contattiamo su WhatsApp a breve per confermare la disponibilità e concordare consegna e pagamento.',
   },
+  /** The reference an operator opens the phone call with. */
+  requestNumber: { it: 'Numero richiesta' },
+  requestTotalEstimate: { it: 'Totale indicativo' },
+  continueOnWhatsApp: { it: 'Continua su WhatsApp' },
+  /* Said when the POST fails. It does not tell the customer to start again: the
+     WhatsApp message below it already carries their whole request, so the honest
+     next step is the one that still works. */
+  requestFailed: { it: 'Non siamo riusciti a registrare la richiesta' },
+  requestFailedDetail: {
+    it: 'Puoi riprovare, oppure inviarcela su WhatsApp: il messaggio è già pronto con tutti i dettagli.',
+  },
+  retry: { it: 'Riprova' },
+  /* The return-date gate. A request with no return date has a daily rate and no
+     total, and an order needs a total — so the confirm step says what is missing
+     and sends the customer back to the one page where they can pick it. */
+  returnDateMissing: { it: 'Manca la data di riconsegna' },
+  returnDateMissingDetail: {
+    it: 'Senza la data di riconsegna possiamo mostrarti solo la tariffa giornaliera, non un totale. Aggiungila e torna qui — oppure chiamaci e la fissiamo insieme.',
+  },
+  pickReturnDate: { it: 'Scegli la data di riconsegna' },
+  /* A line that never made a required choice. The API refuses it, so the page says
+     which choice is missing instead of offering a button that cannot work. */
+  configurationIncomplete: { it: 'Manca una scelta obbligatoria' },
+  configurationIncompleteDetail: {
+    it: 'Per {product} serve ancora: {missing}. Completa la scelta e torna qui — oppure chiamaci e la facciamo insieme.',
+  },
+  completeConfiguration: { it: 'Completa la scelta' },
   thanksName: { it: 'Grazie {name}!' },
   thanks: { it: 'Grazie!' },
   collectedAtBranch: { it: 'Ritiro e riconsegna presso la sede di {city}' },
@@ -217,11 +285,13 @@ const STOREFRONT_LABELS = {
   msgCustomerType: { it: 'Tipo cliente' },
   msgDelivery: { it: 'Consegna' },
   msgToBeArranged: { it: 'da concordare' },
-  msgVenue: { it: 'Struttura' },
-  msgGuest: { it: 'Ospite' },
   msgDeliveryAddress: { it: 'Indirizzo di consegna' },
   msgPickupBranch: { it: 'Sede di ritiro' },
   msgNotes: { it: 'Note' },
+  /** Prefixed to the handover message once the order has a number to quote. */
+  msgRequestNumber: { it: 'Richiesta n.' },
+  msgCity: { it: 'Città' },
+  msgPostalCode: { it: 'CAP' },
 } as const;
 
 export type StorefrontLabelKey = keyof typeof STOREFRONT_LABELS;

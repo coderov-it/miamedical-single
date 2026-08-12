@@ -76,6 +76,12 @@ after an enum member is renamed or dropped. `actorUserId` is nullable and
 `ON DELETE SET NULL`, because the event has to outlive the account that caused
 it.
 
+An order's **first** entry is written by `repo.insertOrder`, in the same
+transaction as the order and its lines: `fromValue` is `null` because the order did
+not move into `pending`, it began there, and `actorUserId` is `null` because a
+customer placed it. Without it, a storefront order would read as one that appeared
+out of nowhere. See `docs/code/orders-placement.md`.
+
 ## Every mutation returns the whole order
 
 `POST /status`, `POST /payment` and `PATCH` all respond with the full refreshed

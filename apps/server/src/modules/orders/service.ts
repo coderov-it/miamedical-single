@@ -8,11 +8,19 @@
  */
 
 import type { Database } from '@mia/db';
+import { STORE_PICKUP_FEE, addMoney } from '@mia/pricing';
+import type { PlaceOrderInput } from '@mia/validators';
 
 import type { SessionUser } from '../../shared/http/context.ts';
-import { conflict, notFound } from '../../shared/http/errors.ts';
+import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
+/* The one resolver. The storefront calls it over `POST /api/delivery/quote` to
+   show a figure; placement calls it directly to write one. */
+import { resolveQuote } from '../delivery/service.ts';
+import * as productRepo from '../products/catalog/repo.ts';
+import { toPublicDetail } from '../products/mapper.ts';
 import { multiply, sumMoney } from './mapper.ts';
 import * as repo from './repo.ts';
+import { type ResolvedLine, resolveLine, sumLines } from './resolve.ts';
 import {
   canMoveOrder,
   canMovePayment,
@@ -30,6 +38,7 @@ import type {
   OrderListFilters,
   OrderListStats,
   OrderSummaryRecord,
+  PlacedOrder,
 } from './types.ts';
 import type { AdminUpdateOrderInput } from './validators.ts';
 
@@ -159,6 +168,244 @@ export function movePaymentStatus(
   actor: SessionUser | null,
 ): Promise<OrderAggregate> {
   return transition(db, id, 'paymentStatus', to, note, actor);
+}
+
+// --- placing an order ------------------------------------------------------
+
+/**
+ * The catalogue product behind one checkout line, as the storefront saw it.
+ *
+ * The storefront is Italian-only, so the locale is a constant — but it is the
+ * SAME projection the product page was rendered from, which is what lets
+ * `resolveLine` freeze the very labels the customer read.
+ *
+ * A product that has since been unpublished is a 422 naming the line, not a 404:
+ * the request is well-formed, one thing in it can no longer be honoured, and the
+ * checkout has to be able to say which.
+ */
+async function loadProduct(db: Database, slug: string, field: string) {
+  const hit = await productRepo.findIdBySlug(db, slug);
+  const product = hit ? await productRepo.findAggregate(db, hit.productId) : undefined;
+
+  if (!product || product.status !== 'active') {
+    throw httpError(422, 'That product is no longer available.', 'unprocessable_entity', {
+      fields: { [`${field}.productSlug`]: 'That product is no longer available.' },
+    });
+  }
+
+  return toPublicDetail(product, 'it');
+}
+
+/**
+ * Composes the `AddressSchema`-shaped snapshot the order stores.
+ *
+ * The checkout asks for one street line, a city and a CAP; the name, the phone and
+ * the country come from elsewhere in the same request. Written out in full so the
+ * admin can read, edit and save an address without first having to invent the
+ * fields the form never asked about.
+ *
+ * `null` for a collection, which has no address — see `deliverySnapshot`.
+ */
+function addressSnapshot(
+  customer: PlaceOrderInput['customer'],
+  address: NonNullable<PlaceOrderInput['delivery']['address']> | null,
+): Record<string, unknown> | null {
+  if (!address) return null;
+  return {
+    fullName: `${customer.firstName} ${customer.lastName}`.trim(),
+    line1: address.line1,
+    line2: null,
+    city: address.city,
+    region: null,
+    postalCode: address.postalCode,
+    country: 'IT',
+    phone: customer.phone,
+  };
+}
+
+/**
+ * Where the order is going, and the one detail the chosen method needs.
+ *
+ * Only the fields belonging to the CHOSEN method are kept. A customer who filled
+ * the alternate-address panel and then switched to collection would otherwise
+ * leave both in the record, and an operator reading it could not tell which one is
+ * real.
+ */
+function deliverySnapshot(delivery: PlaceOrderInput['delivery']): {
+  block: Record<string, unknown>;
+  /** Where the goods go, or `null` for a branch collection. */
+  shipTo: NonNullable<PlaceOrderInput['delivery']['address']> | null;
+  /** What the fee is resolved from, or `null` when nothing is being delivered. */
+  quote: { cap: string; istatCode: string | null; comuneName: string | null } | null;
+} {
+  /*
+    Where it comes back from. Kept for both methods and recorded even when it is
+    the default, because "the customer said the same address" and "the customer was
+    never asked" are different facts and the driver's route depends on which.
+  */
+  const returnBlock = {
+    returnToSameAddress: delivery.returnToSameAddress,
+    returnAddress: delivery.returnAddress ?? null,
+  };
+
+  if (delivery.method === 'storePickup') {
+    return {
+      block: { method: delivery.method, pickupCity: delivery.pickupCity ?? null, ...returnBlock },
+      shipTo: null,
+      quote: null,
+    };
+  }
+
+  /* Home delivery, which covers every kind of address — a house, a hotel, a
+     holiday let. The schema guarantees the address is here; the fallback keeps
+     this function total rather than asserting. */
+  const address = delivery.address ?? null;
+  return {
+    block: {
+      method: delivery.method,
+      deliveryAddress: address?.line1 ?? null,
+      deliveryCity: address?.city ?? null,
+      deliveryPostalCode: address?.postalCode ?? null,
+      ...returnBlock,
+    },
+    shipTo: address,
+    quote: address
+      ? {
+          cap: address.postalCode,
+          /* The comune the customer PICKED, when the form got that far. With it the
+             fee is resolved exactly and the CAP only refines; without it the comune
+             has to be inferred from the CAP, and the town below is the tiebreak for
+             a CAP that names several. Neither is ever matched loosely — see
+             `resolveQuote`. */
+          istatCode: address.istatCode ?? null,
+          comuneName: address.city,
+        }
+      : null,
+  };
+}
+
+/**
+ * Turns a finished checkout into an order.
+ *
+ * Everything monetary is rebuilt here from the catalogue — see `resolve.ts` —
+ * so the request decides only what was ordered. The order opens `pending` /
+ * `unpaid` because nothing is charged online: the phone call settles payment, and
+ * the admin's state machine takes it from there.
+ */
+export async function place(db: Database, input: PlaceOrderInput): Promise<PlacedOrder> {
+  const lines: ResolvedLine[] = [];
+
+  /* Sequential rather than `Promise.all`: at most 20 lines, and the first
+     rejection should name the first bad line rather than whichever query lost a
+     race. */
+  for (const [index, item] of input.items.entries()) {
+    const field = `items.${index}`;
+    const product = await loadProduct(db, item.productSlug, field);
+    lines.push(resolveLine(product, item, field));
+  }
+
+  /* Single-currency shop. Reading it off the lines rather than hardcoding means a
+     mixed-currency order fails here instead of silently summing two currencies. */
+  const currencies = new Set(lines.map((line) => line.currency));
+  if (currencies.size > 1) {
+    throw httpError(
+      422,
+      'These products are priced in different currencies.',
+      'unprocessable_entity',
+    );
+  }
+  const currency = lines[0]?.currency ?? 'EUR';
+
+  const subtotal = sumLines(lines);
+
+  /* A return address only means something if something is coming back. The
+     storefront only asks when a line is rented, so a body carrying one for an
+     outright sale disagrees with the catalogue — which is a 422 here, the same as
+     any other request that does. */
+  if (input.delivery.returnToSameAddress === false) {
+    const rented = lines.some((line) => line.configuration.pricingMode === 'rental');
+    if (!rented) {
+      throw httpError(
+        422,
+        'Nothing in this order is rented, so there is nothing to collect later.',
+        'unprocessable_entity',
+        { fields: { 'delivery.returnAddress': 'This order has no return.' } },
+      );
+    }
+  }
+
+  const { block, shipTo, quote } = deliverySnapshot(input.delivery);
+
+  /*
+    The delivery fee is resolved HERE, from the CAP, and never read off the
+    request: the storefront shows the same figure by calling the same endpoint, but
+    a crafted body must not be able to name its own shipping total.
+
+    A `call` answer is not an error and not a zero fee — it is "we serve this area
+    and will agree the amount by phone". The order stores 0.00 so the total it
+    records is the part that is actually settled, and the quote block below is what
+    tells the operator a number is still owed. `docs/code/delivery-pricing.md`.
+  */
+  const resolved = quote ? await resolveQuote(db, quote) : null;
+  const shippingTotal =
+    resolved === null
+      ? STORE_PICKUP_FEE
+      : resolved.kind === 'fee'
+        ? (resolved.fee ?? STORE_PICKUP_FEE)
+        : STORE_PICKUP_FEE;
+
+  if (resolved) {
+    block.quote = {
+      kind: resolved.kind,
+      fee: resolved.kind === 'fee' ? resolved.fee : null,
+      areaLabel: resolved.areaLabel,
+      resolvedVia: resolved.resolvedVia,
+      zoneId: resolved.zoneId,
+      comune: resolved.comune?.name ?? null,
+    };
+  }
+
+  const total = addMoney(subtotal, shippingTotal);
+
+  /*
+    Both snapshots come from the delivery, and both are NULL on a collection.
+
+    The checkout asks for an address only when something is being delivered, so a
+    collected order genuinely has none — inventing one from the customer record
+    would be storing a fact nobody stated. An invoice for a company still needs a
+    registered address; that is a field the checkout does not yet ask for, and
+    guessing it from the delivery address would be worse than its absence.
+    Recorded in the known gaps of docs/code/orders-placement.md.
+  */
+  const snapshot = addressSnapshot(input.customer, shipTo);
+
+  const created = await repo.insertOrder(db, {
+    email: input.customer.email,
+    phone: input.customer.phone,
+    customerType: input.customer.customerType,
+    codiceFiscale: input.customer.codiceFiscale ?? null,
+    partitaIva: input.customer.partitaIva ?? null,
+    currency,
+    subtotal,
+    shippingTotal,
+    total,
+    shippingAddress: snapshot,
+    billingAddress: snapshot,
+    delivery: block,
+    notes: input.notes ?? null,
+    items: lines.map((line) => ({
+      skuId: line.skuId,
+      productTitle: line.productTitle,
+      skuLabel: line.skuLabel,
+      sku: line.sku,
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+      total: line.total,
+      configuration: line.configuration as unknown as Record<string, unknown>,
+    })),
+  });
+
+  return { ...created, subtotal, shippingTotal, total, currency, items: lines };
 }
 
 // --- carts -----------------------------------------------------------------
