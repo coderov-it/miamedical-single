@@ -1,7 +1,7 @@
 /**
  * Outbound email port. Feature code depends on `MailSender`; the concrete
- * transport (`SesMailSender`, `ConsoleMailSender`) is chosen once in ./index.ts
- * and imported as a singleton.
+ * transport (`PlunkMailSender`, `CloudflareMailSender`, `SesMailSender`,
+ * `ConsoleMailSender`) is chosen once in ./index.ts and imported as a singleton.
  *
  * Never feature policy — what an email says, who receives it and when it is worth
  * sending are decisions for `modules/notifications`, not for a transport.
@@ -10,7 +10,15 @@
 export interface MailMessage {
   to: string[];
   subject: string;
-  /** Both bodies are always supplied: some clients render neither the other. */
+  /**
+   * Both bodies are always supplied: some clients render neither the other.
+   *
+   * What a transport does with `text` differs, and that is the transport's
+   * business rather than the caller's. SES and Cloudflare ship it verbatim as the
+   * alternative part, the console transport prints it because the links are
+   * readable in it, and Plunk accepts only one body field and derives its own text
+   * part from the HTML — so on that provider these bytes are not the ones sent.
+   */
   html: string;
   text: string;
 }

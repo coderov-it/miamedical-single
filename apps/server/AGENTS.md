@@ -14,6 +14,8 @@ src/
   index.ts          Process entry — serve() and signal handling only
   app.ts            Hono composition, global middleware, module mounting
   config/env.ts     Parsed, validated environment (fails fast at import)
+  config/features.ts     Optional features, resolved once at boot — never per request
+  config/external-apis.ts Every third-party host, so a moved API is one edit
   infra/            Infrastructure adapters — never feature policy
     db/             Connection bridge to @mia/db (schema lives in the package)
   modules/          One folder per business capability
@@ -117,8 +119,13 @@ mounted when `NODE_ENV=production`).
 
 Infra adapters still to add: `cache/`, `swagger/`. Built: `storage/`
 (Cloudflare R2 behind the `ObjectStorage` port), `convert/` (sharp), `mail/`
-(AWS SES v2, with a console transport for local development — see
+(Plunk, Cloudflare Email Sending and AWS SES v2 behind the `MailSender` port — one is
+live, chosen by `MAIL_TRANSPORT`, with a console transport for local development; see
 docs/code/notifications-and-mail.md).
+
+Every third-party hostname the server calls lives in `config/external-apis.ts`, not
+in the adapter that calls it. Paths stay with the adapter — a path is part of the
+call's contract, a host is not.
 
 ## Dependency injection
 
