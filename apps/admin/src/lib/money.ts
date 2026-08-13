@@ -6,9 +6,9 @@
  * and formatted straight back to a string, because `15.10 + 0.20` in floats is
  * `15.299999999999999`.
  *
- * These live apart from any component because two controls need them: the
- * labelled `money-input.svelte` field, and the stepper welded into a row in
- * `delivery-zones/fee-stepper.svelte`. Same rules, different chrome.
+ * These live apart from any component so the rules stay one thing whatever chrome
+ * wraps them — today the labelled `money-input.svelte` field, used everywhere an
+ * operator types an amount.
  */
 
 interface MoneyOptions {

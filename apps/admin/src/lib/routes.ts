@@ -31,9 +31,6 @@ export const routes = {
   carts: '/carts',
   /** "I did not place this order" reports raised from an order email. */
   orderDisputes: '/order-disputes',
-  /** The delivery price tree: country → region → province → comune → comune+CAP. */
-  deliveryZones: '/delivery-zones',
-
   blog: '/blog',
   blogNew: '/blog/new',
   blogDetail: (id: string) => `/blog/${id}`,

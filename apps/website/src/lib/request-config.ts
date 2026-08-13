@@ -295,9 +295,7 @@ export function resolveRequest(
   }
 
   const requestedAddons = params.getAll(FIELD.addon);
-  const addons = product.addons.filter(
-    (addon) => addon.isRequired || requestedAddons.includes(addon.id),
-  );
+  const addons = product.addons.filter((addon) => requestedAddons.includes(addon.id));
 
   const quantity = Math.min(
     MAX_QUANTITY,

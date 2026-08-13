@@ -590,7 +590,6 @@ async function main(): Promise<void> {
           rentalUnit: chunk.pricingMode === 'rental' ? (product.rentalUnit ?? 'day') : null,
           minQuantity: chunk.minQuantity,
           maxQuantity: chunk.maxQuantity,
-          isRequired: chunk.isRequired,
           position: chunk.position,
         })
         .onConflictDoNothing();

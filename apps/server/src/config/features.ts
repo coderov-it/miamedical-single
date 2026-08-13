@@ -10,39 +10,33 @@ import { env } from './env.ts';
  * and answerable without reproducing a request.
  *
  * RESOLVED, NOT FLAGGED: where a feature needs a credential, the credential is
- * captured with it. `addressSuggestions` is either `null` or an object holding the
- * key, so there is no reachable state where the feature is on and the key is
- * missing — the type says so, rather than a comment asking callers to check first.
+ * captured with it — either `null` or an object holding the key, so there is no
+ * reachable state where a feature is on and its credential is missing. The type
+ * says so, rather than a comment asking callers to check first.
  *
  * This is not the same as failing at boot. A missing optional credential disables
- * one feature and leaves the rest of the API serving, because a shop that cannot
- * complete a street name can still take orders. What production must not start
- * without is guarded in `env.ts`, which does refuse.
+ * one feature and leaves the rest of the API serving. What production must not
+ * start without is guarded in `env.ts`, which does refuse.
+ *
+ * EMPTY, DELIBERATELY. The one entry here was `addressSuggestions`, holding a HERE
+ * key for the checkout's street autocomplete; the checkout now takes the delivery
+ * address as one free-text block and completes nothing, so the feature, its key and
+ * its endpoint are gone. This stays as the place the next optional feature is
+ * resolved — see the RULES section of AGENTS.md.
  */
-export const FEATURES = {
-  /**
-   * HERE address autocomplete, on the checkout's street field only.
-   *
-   * Off means `GET /api/address/suggest` answers 503 and the field stays free text.
-   * The regione → provincia → comune → CAP cascade above it is our own committed
-   * ISTAT data and is unaffected, which is why this is optional at all: nothing
-   * priced depends on it.
-   */
-  addressSuggestions: env.HERE_API_KEY ? ({ apiKey: env.HERE_API_KEY } as const) : null,
-} as const;
+export const FEATURES = {} as const;
 
 /**
  * Printed once at startup, next to the listening line.
  *
- * The point is that a disabled feature is otherwise silent by design — the
- * storefront treats absent suggestions as a normal state, and a swallowed order
- * email is one log line among thousands. Stating the configuration at boot means
- * "why is autocomplete dead" is answered by scrolling up, not by adding logging.
+ * The point is that a disabled feature is otherwise silent by design — a swallowed
+ * order email is one log line among thousands. Stating the configuration at boot
+ * means "why did no mail arrive" is answered by scrolling up, not by adding
+ * logging.
  */
 export function logFeatureSummary(): void {
   const rows: [string, string][] = [
     ['mail', mailState()],
-    ['address suggestions', addressSuggestionsState()],
     ['object storage', objectStorageState()],
   ];
 
@@ -87,14 +81,6 @@ function missingMailConfig(): string[] {
   }
 
   return missing;
-}
-
-function addressSuggestionsState(): string {
-  if (FEATURES.addressSuggestions === null) {
-    return 'off — set HERE_API_KEY to enable';
-  }
-
-  return 'on';
 }
 
 /*

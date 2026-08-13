@@ -110,6 +110,25 @@
      here, not the exception. 7.67:1 — do not lighten it. */
   --color-ink-2: #525358;
 
+  /* PLACEHOLDER TEXT ONLY. 3.58:1 on white — AA for large text and UI, under the
+     4.5:1 that 1.4.3 asks of body copy, and chosen deliberately.
+
+     THE NUMBER THAT MATTERS HERE IS THE OTHER ONE. A placeholder is not read
+     against the background, it is read against the answer that replaces it, and
+     that separation is 3.62:1 against `--color-ink`. The two earlier attempts both
+     failed on exactly that axis while looking fine on paper: `--color-ink-2` scores
+     a comfortable 7.67:1 on white but only 2.59:1 against body text, and so does
+     anything darker — the hint and the answer come out the same colour, and a
+     customer cannot tell a filled field from an empty one at a glance.
+
+     Both figures clear 3:1 here, which is the most muting available before the
+     white contrast drops below that floor too. Two things make the AA shortfall
+     safe rather than sloppy, and both must stay true: every field carries a
+     PERMANENTLY VISIBLE <label> (see FIELD_LABEL), and a placeholder holds an
+     example only — never a label, a unit, or anything the customer needs after they
+     start typing. Put essential wording in one and this value becomes a bug. */
+  --color-ink-placeholder: #86878d;
+
   /* Non-text, aria-hidden ONLY. Never put a readable word in this colour. */
   --color-ink-decorative: #929397;
 
@@ -300,9 +319,11 @@
   }
 
   /* A placeholder is a hint, never a label: it disappears exactly when the user
-     needs it most. Corrected tone — the prototype's #8A93A8 fails 1.4.3. */
+     needs it most — which is why it must also LOOK like a hint. Its own tier, one
+     step below the muted ink and still AA; see `--color-ink-placeholder`. The
+     prototype's #8A93A8 fails 1.4.3 and is not the answer here either. */
   ::placeholder {
-    color: var(--color-ink-2);
+    color: var(--color-ink-placeholder);
     opacity: 1; /* Firefox dims placeholders by default */
   }
 

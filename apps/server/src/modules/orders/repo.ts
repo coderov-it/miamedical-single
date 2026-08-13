@@ -482,6 +482,13 @@ export interface OrderPatch {
   billingAddress?: Record<string, unknown> | null;
   status?: OrderSummaryRecord['status'];
   paymentStatus?: OrderSummaryRecord['paymentStatus'];
+  /**
+   * Always written together, never one without the other: the total is the
+   * subtotal plus this, and the service is what re-derives it. A caller that set
+   * only the fee would leave the order's own arithmetic wrong.
+   */
+  shippingTotal?: string;
+  total?: string;
 }
 
 export async function update(db: Database, id: string, patch: OrderPatch): Promise<void> {

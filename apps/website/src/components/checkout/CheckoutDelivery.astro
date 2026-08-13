@@ -12,25 +12,35 @@
  * by attribute, so choosing an option reveals markup that already exists rather
  * than markup a script has to build.
  *
- * The address is asked for as a cascade — regione → provincia → comune → CAP →
- * via — because the fee is keyed on the comune's ISTAT code, and picking a comune
- * is exact where typing one is not.
+ * The address is ONE free-text block. It was a regione → provincia → comune → CAP
+ * cascade, which existed to key a delivery fee on the comune; nothing prices
+ * delivery now, so the structure earned nothing and cost the customer four
+ * controls.
  *
  * A delivery option's `id` doubles as its label key: `storePickup` resolves the
  * name, `storePickupDetail` the sub-line, `storePickupShort` the order-overview
  * row. No Italian word appears in this file — see src/lib/labels.ts.
  *
- * NO FEE IS RENDERED HERE any more. Home delivery is priced by
- * `POST /api/delivery/quote` from the comune the customer picked, so the figure
- * arrives once the cascade reaches a comune and the page script writes it into
- * `[data-delivery-fee-slot]`. Collection is free, which is the one amount known at
- * build time.
+ * NO FEE IS RENDERED HERE, and none is fetched either. Delivery is not priced
+ * online: the card says the amount is still to agree and the panel promises the
+ * call that will settle it. Both are static text — this file used to leave a slot
+ * for a script to fill from a quote endpoint, and there is no longer any such
+ * request, any such endpoint, or any figure for it to return. Collection is free,
+ * which remains the one amount known at build time.
+ *
+ * EVERY TEXT CONTROL HERE CARRIES `data-bwignore`. It stops Bitwarden painting its
+ * shield-and-lock button inside the field and hanging a suggestion menu off it —
+ * chrome we do not draw, cannot style, and which sat on top of the field's own
+ * right edge. Bitwarden tests only that the attribute is PRESENT; the value is
+ * never read, which is why it is written bare. It ignores `autocomplete="off"`
+ * entirely, so that is not an alternative. 1Password and LastPass use their own
+ * attributes (`data-1p-ignore`, `data-lpignore`) and are deliberately not set —
+ * this was asked for about Bitwarden.
  */
-import CheckoutComboField from './CheckoutComboField.astro';
 import { PICKUP_POINTS } from '~/lib/checkout';
 import { DELIVERY_METHODS } from '@mia/pricing';
 import { t } from '~/lib/labels';
-import { EYEBROW, FIELD_INPUT, FIELD_LABEL, LISTBOX, PANEL } from './styles';
+import { EYEBROW, FIELD_INPUT, FIELD_LABEL, PANEL } from './styles';
 
 interface Props {
   /**
@@ -119,161 +129,53 @@ const { labelStage = false } = Astro.props;
           </span>
 
         {/*
-          Collection is free and says so at build time. Home delivery's figure
-          depends on the CAP, so the slot starts as a dash and the page script
-          fills it once the quote answers — see `paintQuote` in checkout.astro.
+          Collection is free. Home delivery is not — it is unpriced, and this says
+          so in the two words that fit beside an amount. The sentence that explains
+          it sits in the panel below, where there is room for it.
         */}
-        <strong
-          class="text-[15px] whitespace-nowrap tabular-nums"
-          data-delivery-fee-slot={option.id}
-        >
-          {option.id === 'storePickup' ? t('free') : t('feePendingCap')}
+        <strong class="text-[15px] whitespace-nowrap tabular-nums">
+          {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
         </strong>
         </button>
 
         {option.id === 'homeDelivery' && (
           <div class={`${PANEL} flex flex-col gap-3.5`} data-delivery-panel={option.id} hidden>
             {/*
-              THE address, asked for down Italy's own ladder:
+              THE address, as one free-text block.
 
-                regione → provincia → comune → CAP → via
+              This was four controls — regione, provincia, comune and CAP, picked
+              down Italy's own ladder — plus a street field that completed from a
+              provider. Every bit of that structure existed to key a delivery fee on
+              the comune. Nothing prices delivery now, so it asked the customer to
+              operate four dropdowns to tell us something a single line already says.
 
-              Narrowing rather than typing, because the delivery fee is keyed on the
-              COMUNE's ISTAT code and a picked comune is exact. A typed città is not:
-              names repeat across provinces, and 18% of CAPs name more than one
-              comune, so inferring the comune from a CAP means guessing — and a
-              guessed comune is a guessed price.
-
-              It also makes an incomplete CAP list harmless. Our CAPs come from
-              GeoNames and some big-city codes are missing (`20130` Milano among
-              them); with the comune already known, an unlisted CAP simply finds no
-              `cap` row and the comune's own fee answers. See
-              docs/code/delivery-pricing.md.
+              A textarea, not an input: a real address carries an interno, a floor, a
+              buzzer name. The customer knows how to write where they live better
+              than a form does, and a human reads it at the other end.
             */}
-            <div class="grid grid-cols-2 gap-3.5" data-geography-tiers>
-              <CheckoutComboField
-                name="region"
-                label={t('region')}
-                placeholder={t('selectPlaceholder')}
-              />
-              {/*
-                Rendered disabled so it is honest before the script runs, and its
-                placeholder says which field to fill first rather than leaving a
-                dead control unexplained.
-              */}
-              <CheckoutComboField
-                name="province"
-                label={t('province')}
-                placeholder={t('chooseRegionFirst')}
-                disabled
-              />
-            </div>
-
-            <div class="grid grid-cols-[1fr_9rem] gap-3.5">
-              <div>
-                {/*
-                  The tier's committed value is the six-digit ISTAT code — what the
-                  price is resolved from. Its visible text is the comune's name.
-                */}
-                <div data-comune-picker>
-                  <CheckoutComboField
-                    name="istatCode"
-                    label={t('comune')}
-                    placeholder={t('chooseProvinceFirst')}
-                    disabled
-                  />
-                </div>
-                {/*
-                  The comune's NAME, which is a different job: part of the address a
-                  courier reads, where the code above is what the fee keys on. The
-                  script fills it from the pick, so this stays hidden.
-
-                  It is also the one fallback. If `/api/address/regions` cannot be
-                  reached the three tiers go away and this becomes an ordinary field
-                  the customer types into — the quote then resolves from the CAP and
-                  this name, which is coarser but never blocked.
-                */}
-                <label class={FIELD_LABEL} data-comune-typed hidden>
-                  {t('comune')}
-                  <input
-                    class={FIELD_INPUT}
-                    type="text"
-                    name="city"
-                    autocomplete="address-level2"
-                    placeholder={t('typeComune')}
-                    data-field="city"
-                  />
-                </label>
-              </div>
-              {/*
-                Five digits, `inputmode="numeric"`, and leading zeros are significant
-                — 00121 is not 121. Backed by a `datalist` of the chosen comune's own
-                CAPs: for 7,338 of Italy's 7,896 comuni there is exactly one and the
-                script fills it, so most customers never touch this field.
-
-                A list, not a validator. An unlisted CAP is accepted, because the gap
-                is as likely to be ours as the customer's.
-              */}
-              <label class={FIELD_LABEL}>
-                {t('postalCode')}
-                <input
-                  class={FIELD_INPUT}
-                  type="text"
-                  name="postal-code"
-                  autocomplete="off"
-                  inputmode="numeric"
-                  pattern="[0-9]{5}"
-                  maxlength="5"
-                  list="checkout-cap-options"
-                  placeholder={t('placeholderPostalCode')}
-                  data-field="postalCode"
-                />
-                <datalist id="checkout-cap-options" data-cap-options />
-              </label>
-            </div>
-
-            {/*
-              The street, last, because by now we know which comune to read it
-              against. It completes from `GET /api/address/suggest`, which proxies
-              HERE server-side — and it fills the street line ONLY. The comune and
-              the CAP belong to the picker above; letting a suggestion overwrite them
-              would put a provider's spelling in charge of the price.
-
-              A combobox, spelled out in ARIA rather than borrowed from a library:
-              the input owns the expanded state and the active option, the list is
-              the popup. Typing still works with the list ignored or unreachable.
-            */}
-            <label class={`${FIELD_LABEL} relative`}>
+            <label class={FIELD_LABEL}>
               {t('deliveryAddress')}
-              <input
-                class={FIELD_INPUT}
-                type="text"
+              <textarea
+                class={`${FIELD_INPUT} resize-none`}
                 name="delivery-address"
-                autocomplete="off"
-                role="combobox"
-                aria-expanded="false"
-                aria-controls="checkout-address-options"
-                aria-autocomplete="list"
-                placeholder={t('placeholderStreet')}
+                rows="2"
+                autocomplete="street-address"
+                placeholder={t('placeholderDeliveryAddress')}
+                data-bwignore
                 data-field="address"
-                data-address-input
-              />
-              <ul
-                class={LISTBOX}
-                id="checkout-address-options"
-                role="listbox"
-                aria-label={t('deliveryAddress')}
-                data-address-options
-                hidden
+                data-autogrow
               />
             </label>
 
             {/*
-              The quote, in the customer's own words. `fee` needs no sentence —
-              the amount is on the card. `call` does: it is a request to agree the
-              cost in chat, and the customer has to be able to say yes to it.
+              What happens about the cost, in the customer's own words.
+
+              Always shown, never toggled: there is no case where a home delivery
+              has a price at checkout, so a script that revealed this only
+              sometimes would be a branch with one outcome. It is a promise of a
+              next step rather than a warning, because that is what it is.
             */}
-            <p class="text-ink-2 text-[13.5px] leading-[1.45]" data-delivery-quote-note hidden></p>
+            <p class="text-ink-2 text-[13.5px] leading-[1.45]">{t('deliveryFeeOnRequest')}</p>
           </div>
         )}
 

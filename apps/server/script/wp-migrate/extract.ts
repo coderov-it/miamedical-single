@@ -463,7 +463,6 @@ async function main(): Promise<void> {
             price: price ?? '0.00',
             minQuantity: 0,
             maxQuantity: 1,
-            isRequired: false,
             position: index,
             needsReview: price ? [] : ['price'],
           });
@@ -1058,7 +1057,6 @@ async function extractAddons(q: Query): Promise<AddonChunk[]> {
         price,
         minQuantity: 0,
         maxQuantity: 1,
-        isRequired: false,
         position: addons.length,
         needsReview: ['productIds', ...(price === '0.00' ? ['price'] : [])],
       });

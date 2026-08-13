@@ -139,9 +139,12 @@ export const orders = pgTable(
     billingAddress: jsonb().$type<Record<string, unknown>>(),
     /**
      * How this order changes hands, as the customer chose it:
-     * `{ method, deliveryAddress?, deliveryPostalCode?, pickupCity?, quote? }`,
-     * where `quote` is what the zone ladder answered —
-     * `{ kind, fee, areaLabel, resolvedVia, zoneId, comune }`.
+     * `{ method, deliveryAddress?, deliveryCity?, deliveryPostalCode?, pickupCity?,
+     * returnToSameAddress, returnAddress }`.
+     *
+     * It once also carried a `quote` block — what the zone ladder answered for the
+     * customer's CAP. Delivery is not priced online any more, so nothing writes
+     * that key; `0003_drop_delivery_pricing_and_geography` stripped it from the stored rows.
      *
      * A jsonb rather than columns because this is the part of an order most likely
      * to change shape next, and because a method only ever means anything together

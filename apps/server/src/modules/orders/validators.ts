@@ -4,7 +4,13 @@
  * back office cannot drift apart on what an address is.
  */
 
-import { AddressSchema, OrderStatusSchema, PaginationSchema, UuidSchema } from '@mia/validators';
+import {
+  AddressSchema,
+  MoneySchema,
+  OrderStatusSchema,
+  PaginationSchema,
+  UuidSchema,
+} from '@mia/validators';
 import * as v from 'valibot';
 
 export { AddressSchema, OrderStatusSchema };
@@ -47,12 +53,18 @@ export const AdminCartQuerySchema = v.object({
  * Editable-by-hand fields only. Status is deliberately absent: it moves
  * through `/status`, which runs the state machine and writes a timeline entry.
  * Letting it ride along on a PATCH would create a second, unaudited path.
+ *
+ * `shippingTotal` is editable BECAUSE nothing computes it. Delivery is not priced
+ * online — every order is placed at 0.00 and the storefront tells the customer we
+ * will be in touch — so an operator agreeing an amount on the phone is the only
+ * source there is. Writing it re-derives the order total; see the service.
  */
 export const AdminUpdateOrderSchema = v.pipe(
   v.object({
     notes: v.optional(v.nullable(v.pipe(v.string(), v.maxLength(2000)))),
     shippingAddress: v.optional(v.nullable(AddressSchema)),
     billingAddress: v.optional(v.nullable(AddressSchema)),
+    shippingTotal: v.optional(MoneySchema),
   }),
   v.check((input) => Object.keys(input).length > 0, 'Provide at least one field to update.'),
 );

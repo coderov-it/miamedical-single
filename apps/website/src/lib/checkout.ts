@@ -401,16 +401,13 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
 }
 
 /**
- * The three ways an order can change hands, and what each costs.
+ * The two ways an order can change hands.
  *
- * The table itself lives in `@mia/pricing`, because the server writes the same fee
- * to `orders.shipping_total` when the order is placed — a card showing €25 over an
- * order recording €15 is the same class of bug as two pricing rules.
- *
- * The FEES are still placeholders from the reference design; the zone ladder
- * behind `POST /api/delivery/quote` is what replaces them, and it needs the
- * customer's CAP (which step 1 now collects). See the "Known gaps" section of
- * docs/code/storefront-checkout.md.
+ * The list lives in `@mia/pricing` so the storefront and the server cannot
+ * disagree about which methods exist. There are NO FEES on it: collection is free,
+ * and home delivery is not priced anywhere — the customer is told we will be in
+ * touch about the cost, and an operator writes the agreed amount onto the order
+ * afterwards.
  *
  * Each `id` doubles as a label key: `storePickup`, `storePickupDetail`,
  * `storePickupShort`.

@@ -291,7 +291,10 @@ function resolveAddons(
     }
   }
 
-  return product.addons.filter((addon) => addon.isRequired || requested.includes(addon.id));
+  /* What was asked for, and nothing else. Add-ons used to be able to mark
+     themselves required and fold themselves into every line unasked; an extra the
+     customer cannot decline is part of the product's price, not an extra. */
+  return product.addons.filter((addon) => requested.includes(addon.id));
 }
 
 /**

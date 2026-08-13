@@ -8,7 +8,7 @@
  */
 
 import type { Database } from '@mia/db';
-import { STORE_PICKUP_FEE, addMoney } from '@mia/pricing';
+import { NO_DELIVERY_FEE, addMoney } from '@mia/pricing';
 import type { PlaceOrderInput } from '@mia/validators';
 
 import type { SessionCustomer, SessionUser } from '../../shared/http/context.ts';
@@ -21,9 +21,6 @@ import {
   issueOrderMailTokens,
   resolveForOrder,
 } from '../customer-auth/order-account.ts';
-/* The one resolver. The storefront calls it over `POST /api/delivery/quote` to
-   show a figure; placement calls it directly to write one. */
-import { resolveQuote } from '../delivery/service.ts';
 import * as notifications from '../notifications/service.ts';
 import * as productRepo from '../products/catalog/repo.ts';
 import { toPublicDetail } from '../products/mapper.ts';
@@ -110,12 +107,27 @@ export async function update(
   id: string,
   input: AdminUpdateOrderInput,
 ): Promise<OrderAggregate> {
-  await getById(db, id);
+  const order = await getById(db, id);
 
   const patch: repo.OrderPatch = {};
   if (input.notes !== undefined) patch.notes = input.notes;
   if (input.shippingAddress !== undefined) patch.shippingAddress = input.shippingAddress;
   if (input.billingAddress !== undefined) patch.billingAddress = input.billingAddress;
+
+  /*
+    The agreed delivery fee, arriving from a phone call rather than from any
+    calculation — nothing prices delivery any more.
+
+    The total is re-derived here rather than accepted from the client, for the
+    same reason placement never read a fee off the request body: the amount owed
+    is the shop's arithmetic, not the caller's. Recomputed from the order's own
+    stored subtotal, so a stale figure in the admin cannot carry the items total
+    backwards with it.
+  */
+  if (input.shippingTotal !== undefined) {
+    patch.shippingTotal = input.shippingTotal;
+    patch.total = addMoney(order.subtotal, input.shippingTotal);
+  }
 
   await repo.update(db, id, patch);
   return getById(db, id);
@@ -228,13 +240,21 @@ function addressSnapshot(
   address: NonNullable<PlaceOrderInput['delivery']['address']> | null,
 ): Record<string, unknown> | null {
   if (!address) return null;
+  /*
+    The SHAPE of this snapshot is unchanged on purpose. `city` and `postalCode` are
+    no longer asked for — the checkout takes the delivery address as one free-text
+    block — but the keys stay and hold null, because contract generation and the
+    admin both read this record and compose "line1, postalCode city" from it. They
+    already coalesce a missing part to an empty string, so they degrade to the line
+    alone without a single change on their side.
+  */
   return {
     fullName: `${customer.firstName} ${customer.lastName}`.trim(),
     line1: address.line1,
     line2: null,
-    city: address.city,
+    city: null,
     region: null,
-    postalCode: address.postalCode,
+    postalCode: null,
     country: 'IT',
     phone: customer.phone,
   };
@@ -252,8 +272,6 @@ function deliverySnapshot(delivery: PlaceOrderInput['delivery']): {
   block: Record<string, unknown>;
   /** Where the goods go, or `null` for a branch collection. */
   shipTo: NonNullable<PlaceOrderInput['delivery']['address']> | null;
-  /** What the fee is resolved from, or `null` when nothing is being delivered. */
-  quote: { cap: string; istatCode: string | null; comuneName: string | null } | null;
 } {
   /*
     Where it comes back from. Kept for both methods and recorded even when it is
@@ -269,7 +287,6 @@ function deliverySnapshot(delivery: PlaceOrderInput['delivery']): {
     return {
       block: { method: delivery.method, pickupCity: delivery.pickupCity ?? null, ...returnBlock },
       shipTo: null,
-      quote: null,
     };
   }
 
@@ -280,24 +297,19 @@ function deliverySnapshot(delivery: PlaceOrderInput['delivery']): {
   return {
     block: {
       method: delivery.method,
+      /*
+        The whole address, as the customer wrote it, newlines and all.
+
+        This block used to carry `deliveryCity` and `deliveryPostalCode` beside it,
+        and briefly a `deliveryIstatCode` naming the comune exactly. All three came
+        from a picker that existed to key a delivery fee on the comune. Nothing
+        prices delivery, so the structure bought nothing and cost the customer four
+        controls; per-kilometre pricing will geocode this text.
+      */
       deliveryAddress: address?.line1 ?? null,
-      deliveryCity: address?.city ?? null,
-      deliveryPostalCode: address?.postalCode ?? null,
       ...returnBlock,
     },
     shipTo: address,
-    quote: address
-      ? {
-          cap: address.postalCode,
-          /* The comune the customer PICKED, when the form got that far. With it the
-             fee is resolved exactly and the CAP only refines; without it the comune
-             has to be inferred from the CAP, and the town below is the tiebreak for
-             a CAP that names several. Neither is ever matched loosely — see
-             `resolveQuote`. */
-          istatCode: address.istatCode ?? null,
-          comuneName: address.city,
-        }
-      : null,
   };
 }
 
@@ -361,37 +373,20 @@ export async function place(
     }
   }
 
-  const { block, shipTo, quote } = deliverySnapshot(input.delivery);
+  const { block, shipTo } = deliverySnapshot(input.delivery);
 
   /*
-    The delivery fee is resolved HERE, from the CAP, and never read off the
-    request: the storefront shows the same figure by calling the same endpoint, but
-    a crafted body must not be able to name its own shipping total.
+    NO DELIVERY FEE IS SET HERE, for either method, and none is read off the
+    request body either — a crafted body must not be able to name its own shipping
+    total any more than it could when a zone ladder priced this.
 
-    A `call` answer is not an error and not a zero fee — it is "we serve this area
-    and will agree the amount by phone". The order stores 0.00 so the total it
-    records is the part that is actually settled, and the quote block below is what
-    tells the operator a number is still owed. `docs/code/delivery-pricing.md`.
+    Delivery is not quoted online at all now: the storefront tells the customer we
+    will contact them about it, an operator agrees an amount on the phone, and it
+    reaches the order through `update` above. So the order is placed recording the
+    part that is actually settled — the goods — and the delivery amount joins the
+    total the moment somebody agrees one. `docs/code/orders-placement.md`.
   */
-  const resolved = quote ? await resolveQuote(db, quote) : null;
-  const shippingTotal =
-    resolved === null
-      ? STORE_PICKUP_FEE
-      : resolved.kind === 'fee'
-        ? (resolved.fee ?? STORE_PICKUP_FEE)
-        : STORE_PICKUP_FEE;
-
-  if (resolved) {
-    block.quote = {
-      kind: resolved.kind,
-      fee: resolved.kind === 'fee' ? resolved.fee : null,
-      areaLabel: resolved.areaLabel,
-      resolvedVia: resolved.resolvedVia,
-      zoneId: resolved.zoneId,
-      comune: resolved.comune?.name ?? null,
-    };
-  }
-
+  const shippingTotal = NO_DELIVERY_FEE;
   const total = addMoney(subtotal, shippingTotal);
 
   /*

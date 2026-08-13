@@ -8,7 +8,6 @@ export * from './attribute.ts';
 export * from './terms.ts';
 export * from './cart.ts';
 export * from './order.ts';
-export * from './delivery.ts';
 export * from './settings.ts';
 export * from './customer.ts';
 export * from './contract.ts';

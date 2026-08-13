@@ -7,7 +7,6 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
-import { addressPublicRoutes } from './modules/address/routes.ts';
 import { attributeAdminRoutes } from './modules/attributes/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
 import { customerAccountRoutes } from './modules/customer-account/routes.ts';
@@ -21,7 +20,6 @@ import { blogAdminRoutes, blogPublicRoutes } from './modules/blog/routes.ts';
 import { contractAdminRoutes, contractPublicRoutes } from './modules/contracts/routes.ts';
 import { settingsAdminRoutes } from './modules/settings/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
-import { deliveryPublicRoutes, deliveryZoneAdminRoutes } from './modules/delivery/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
@@ -78,8 +76,6 @@ const routes = app
   .route('/api/products', productPublicRoutes)
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)
-  .route('/api/delivery', deliveryPublicRoutes)
-  .route('/api/address', addressPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
   .route('/api/order-disputes', orderDisputePublicRoutes)
   .route('/api/customer/auth', customerAuthRoutes)
@@ -91,7 +87,6 @@ const routes = app
   .route('/api/admin/attributes', attributeAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
-  .route('/api/admin/delivery-zones', deliveryZoneAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
   .route('/api/admin/settings', settingsAdminRoutes)
   .route('/api/admin/contracts', contractAdminRoutes)

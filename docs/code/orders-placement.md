@@ -27,7 +27,7 @@ mattress, and confirms. What each step gets:
 2. the page's JSON island               data-checkout-items
      [{ productSlug: 'letto-degenza-elettrico',
         quantity: 1, startDate: '2026-08-20', endDate: '2026-08-27',
-        addonIds: ['943f31e2…', 'ea063eea…'],   ← required add-on folded in
+        addonIds: ['943f31e2…', 'ea063eea…'],   ← both ticked by the customer
         variants: { colore: ['grigio'], sponde: ['si'],
                     'altezza-materasso': ['18'] },
         answers:  { 'piano-installazione': ['3'], ascensore: ['yes'] } }]
@@ -52,13 +52,14 @@ mattress, and confirms. What each step gets:
      base         49.50 × 7                     → 346.50
      add-on       9.00 × 7  (rental mode)       → 63.00
      add-on       60.00     (fixed, one-off)    → 60.00
+       both chosen — nothing attaches itself
      line total                                 → 469.50
 
 7. server writes, in one transaction    insertOrder(...)
      nextval('order_number_seq') → 1000         → MIA-2026-001000
      orders.subtotal                            → 469.50
-     orders.shipping_total  (homeDelivery)      → 15.00
-     orders.total                               → 484.50
+     orders.shipping_total                      → 0.00
+     orders.total                               → 469.50
      order_items.unit_price / .total            → 49.50 / 469.50
      order_items.configuration                  → the snapshot below
      order_status_events                        → null → pending
@@ -66,8 +67,8 @@ mattress, and confirms. What each step gets:
 8. response                             201
      { number: 'MIA-2026-001000', status: 'pending',
        paymentStatus: 'unpaid',
-       totals: { subtotal: '469.50', shippingTotal: '15.00',
-                 total: '484.50', currency: 'EUR' } }
+       totals: { subtotal: '469.50', shippingTotal: '0.00',
+                 total: '469.50', currency: 'EUR' } }
 ```
 
 Step 1 and step 6 print the same figure because they run the same function.
@@ -202,8 +203,8 @@ server can price an order without a storefront copy catalogue.
 methods and one of them is free:
 
 ```
-homeDelivery   priced from the CAP, per order
-storePickup    STORE_PICKUP_FEE, which is '0.00'
+homeDelivery   NO_DELIVERY_FEE, which is '0.00' — unpriced, not free
+storePickup    NO_DELIVERY_FEE, which is '0.00' — genuinely free
 ```
 
 There used to be a third, `hotelDelivery`, at a flat €25 with its own two fields.
@@ -213,61 +214,65 @@ building added a branch to every layer and a way to get it wrong.
 
 ## What delivery costs, and who decides
 
-Two walks. Both hit `resolveQuote` — the storefront over `POST /api/delivery/quote`
-to show a figure, `place()` directly to write one — so the number the customer
-agrees to and the number stored cannot come from different code.
+**Nothing prices delivery.** There is no quote endpoint, no zone tree, and no fee
+in any request or response at checkout. A zone ladder used to price this from the
+customer's CAP; it was dropped in favour of a per-kilometre fee that does not exist
+yet. Until it does, every order is placed at `'0.00'` and an operator writes the
+agreed amount on afterwards.
 
-**An address the ladder prices.**
+**A home delivery — the fee arrives after the order does.**
 
 ```
-1. customer picks, step 2        Lazio → Roma (RM) → Roma → 00121
-   then types the street         Via Ostiense 44
-2. storefront POSTs              { cap: '00121', istatCode: '058091',
-                                   comuneName: 'Roma' }
-                                 ← the CODE is what answers; the name is only a
-                                   fallback tiebreak, unused here
-3. quote answers                 { kind: 'fee', fee: '35.00', areaLabel: 'Roma 00121' }
-4. card shows                    Consegna e ritiro …        +35,00 €
-5. customer confirms, POST /api/orders
+1. customer types, step 2        Via Ostiense 44, int. 3
+                                 00154 Roma (RM)
+                                 ← one free-text box, newlines and all
+2. card shows                    Consegna e ritiro …        Da concordare
+   and, in the panel             "Ti contattiamo per il costo di consegna"
+3. overview shows                Consegna a domicilio       Da concordare
+                                 Totale                     1.240,00 €
+                                 ← the goods alone; no fee is folded in
+4. customer confirms, POST /api/orders
    delivery body                 { method: 'homeDelivery',
-                                   address: { line1, city, postalCode, istatCode } }
+                                   address: { line1 } }
                                  ← an address, never an amount
-6. place() re-resolves           resolveQuote(db, { cap: '00121', istatCode: '058091',
-                                                    comuneName: 'Roma' })
-7. order records                 shipping_total 35.00
-                                 delivery.quote { kind: 'fee', fee: '35.00',
-                                                  areaLabel: 'Roma 00121',
-                                                  resolvedVia: 'cap' }
+5. order records                 shipping_total 0.00
+                                 total          1240.00
+                                 shippingAddress.line1  the text, verbatim
+                                 shippingAddress.city / .postalCode  null
+6. WhatsApp message carries      "Consegna: Da concordare"
+7. admin's Delivery card         0,00 €   To agree by phone
+8. operator rings, agrees 35,00 €, types it into that card
+   PATCH /api/admin/orders/:id   { shippingTotal: '35.00' }
+9. order now records             shipping_total 35.00
+                                 total          1275.00   ← re-derived server-side
 ```
 
-Step 6 is handed the same three values step 2 sent, so the two calls cannot diverge
-— and because `istatCode` pins one comune, neither call can be affected by a CAP our
-reference data spells differently or lacks entirely.
+Step 9 recomputes the total from the order's own stored subtotal, not from anything
+the browser sent — the same rule that has always applied to placement.
 
-**An address nothing prices — an answer, not a failure.**
+**A branch collection — free, and it says so.**
 
 ```
-1. customer picks                Lombardia → Milano → Milano → 20121
-2. quote answers                 { kind: 'call', areaLabel: 'Italia',
-                                   resolvedVia: 'country' }
-                                 ← the comune is known; nothing above it is priced
-3. card shows                    Da confermare
-   and, under it                 "Per questa zona non abbiamo una tariffa fissa.
-                                  Possiamo definire il costo di consegna in chat.
-                                  Va bene?"
-4. order records                 shipping_total 0.00
-                                 delivery.quote { kind: 'call', … }
-5. admin's Delivery card         0,00 €   To agree by phone · Italia
-6. WhatsApp message carries      "Consegna: Da confermare"
+1. customer picks                Ritiro in sede → Roma
+2. card shows                    Ritiro in sede             Gratis
+3. order records                 shipping_total 0.00
+                                 total          1240.00
+4. admin's Delivery card         0,00 €        ← no "to agree" flag
 ```
 
-`0.00` is not a claim that delivery is free — it is the part of the total that is
-settled. The quote block beside it is what says a figure is still owed, and it is
-why the admin can show that without re-deriving anything.
+Both methods store `0.00`, and the two zeros mean different things: a collection is
+free, a home delivery is UNAGREED. `delivery.method` is what tells them apart, and
+it is why the admin flags one and not the other.
 
-The fee is never read off the request. `CheckoutDeliverySchema` has no field for an
-amount, so a crafted body can change what is ordered and where it goes, never what
-it costs.
+The fee is still never read off the request. `CheckoutDeliverySchema` has no field
+for an amount, so a crafted body can change what is ordered and where it goes,
+never what it costs. Writing one requires `ORDER_UPDATE` in the admin.
+
+The address is stored as ONE string. It was three fields plus an ISTAT code naming
+the comune exactly, all of it there to key the fee on the comune; nothing prices
+delivery, so the structure was spent on nothing. `city` and `postalCode` remain as
+null keys in the snapshot because contract generation and the admin compose
+`"line1, postalCode city"` from it and coalesce the missing parts away.
 
 ## The address belongs to the delivery
 
@@ -328,11 +333,10 @@ operator has to read to learn nothing.
 
 ## The address belongs to the delivery — both halves of it
 
-The address carries both `city` and `istatCode`, which are two jobs rather than a
-duplicate: `city` is the comune's name, part of what a courier reads; `istatCode` is
-what the fee is keyed on. The form fills both from one pick, so they cannot disagree.
-`istatCode` is optional because the picker can be unreachable — then the server
-infers the comune from the CAP, exactly as it did before the picker existed.
+The address is one free-text block, written by the person who lives there. It used
+to be a street line plus a comune and a CAP picked down Italy's own ladder, with an
+ISTAT code naming the comune exactly — structure that existed to key a delivery fee
+on the comune and was dropped with the fee.
 
 ## Order numbers
 
@@ -380,16 +384,14 @@ are documented in [customer-accounts.md](./customer-accounts.md).
   eventually needs. The checkout asks for a registered address nowhere, and
   inferring one from a delivery address would be worse than its absence. Asking for
   it on the `company` chip is the fix when invoicing is built.
-- **A shared CAP can be priced coarsely.** When a CAP spans several comuni that
-  disagree on price and nothing breaks the tie, the quote widens to what they all
-  share, which can be dearer than the right answer — Riano's customer is quoted
-  Lazio's fee rather than Riano's. Step 1's town breaks the tie; an alternate
-  delivery address is one free-text line, so it cannot. Every imprecise resolution
-  lands in `zone_resolution_misses`.
-- **The delivery quote is not re-checked at hand-over.** It is resolved again by
-  `place()`, so the stored figure is always current — but a customer who leaves the
-  tab open while the owner edits a zone sees the older number on the card until they
-  touch a CAP field.
+- **Delivery is not priced at all.** Every order is placed at `0.00` and an
+  operator types the agreed amount in afterwards, so an order sitting in the queue
+  unread carries a total that is not yet what the customer will pay. The admin's
+  Delivery card flags a home delivery still at zero; nothing chases one that stays
+  there. Per-kilometre pricing is what closes this.
+- **Nothing reconciles the fee with the contract.** A contract generated before the
+  operator types the delivery amount prints `0,00 €` for it, and regenerating is the
+  only fix.
 - **No cart persistence.** The storefront cart lives in `localStorage`; the `carts`
   and `cart_items` tables are still only written by the seed, so the admin's
   abandoned-cart view shows seeded rows.

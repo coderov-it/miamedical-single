@@ -5,8 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts",
-    "./reference": "./src/reference/index.ts"
+    "./schema": "./src/schema/index.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

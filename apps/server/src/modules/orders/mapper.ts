@@ -80,32 +80,6 @@ export function toDelivery(value: Record<string, unknown> | null): OrderDelivery
        question existed has neither key, and "the same address" is what it meant. */
     returnToSameAddress: value.returnToSameAddress !== false,
     returnAddress: optional('returnAddress'),
-    quote: toDeliveryQuote(value.quote),
-  };
-}
-
-/**
- * The zone answer stored beside the method.
- *
- * Gated on `kind`, the one field that decides whether there is an answer at all,
- * so an order from before the ladder priced anything comes back `null` instead of
- * as a quote with every field empty.
- */
-function toDeliveryQuote(value: unknown): OrderDeliveryDto['quote'] {
-  if (!value || typeof value !== 'object') return null;
-  const record = value as Record<string, unknown>;
-  const kind = record.kind;
-  if (kind !== 'fee' && kind !== 'call') return null;
-
-  const text = (key: string): string | null =>
-    typeof record[key] === 'string' && record[key] !== '' ? (record[key] as string) : null;
-
-  return {
-    kind,
-    fee: kind === 'fee' ? text('fee') : null,
-    areaLabel: text('areaLabel'),
-    resolvedVia: text('resolvedVia'),
-    comune: text('comune'),
   };
 }
 
