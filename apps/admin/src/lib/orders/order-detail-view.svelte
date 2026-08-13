@@ -11,6 +11,7 @@
 <script lang="ts">
   import { P, permissionByCode } from '@mia/permissions';
   import CheckIcon from '@lucide/svelte/icons/check';
+  import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
   import LockIcon from '@lucide/svelte/icons/lock';
   import type { InferResponseType } from 'hono/client';
   import { toast } from 'svelte-sonner';
@@ -25,6 +26,7 @@
   import { api } from '~/lib/api';
   import StatusBadge from '~/lib/components/status-badge.svelte';
   import { cn } from '$lib/utils.js';
+  import { contractStatusMeta, variantLabel } from '~/lib/contracts/status';
   import {
     EM_DASH,
     formatDate,
@@ -42,6 +44,8 @@
     type PaymentStatus,
   } from '~/lib/orders/status';
   import { errorMessage, unwrap } from '~/lib/request';
+  import { Resource } from '~/lib/resource.svelte';
+  import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
 
   type OrderDetail = InferResponseType<(typeof api.api.admin.orders)[':id']['$get'], 200>['data'];
@@ -209,6 +213,39 @@
       ? `${formatDate(rental.startDate)} → ${formatDate(rental.endDate)}`
       : `from ${formatDate(rental.startDate)}`;
     return `${span} · ${rental.units} ${pluralize(rental.units, 'unit')}`;
+  }
+
+  type ContractSummary = InferResponseType<
+    (typeof api.api.admin.contracts)['by-order'][':orderId']['$get'],
+    200
+  >['data'];
+
+  const orderContract = new Resource(
+    () => order.id,
+    async (id, signal) => {
+      const res = await api.api.admin.contracts['by-order'][':orderId'].$get(
+        { param: { orderId: id } },
+        { init: { signal } },
+      );
+      const json = (await res.json()) as { data: ContractSummary };
+      return json.data;
+    },
+    { enabled: () => session.can(P.CONTRACT_READ) },
+  );
+
+  let generating = $state(false);
+
+  async function generateContract() {
+    generating = true;
+    try {
+      await api.api.admin.contracts.generate.$post({ json: { orderId: order.id } });
+      orderContract.refresh();
+      toast.success('Contract generated.');
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      generating = false;
+    }
   }
 </script>
 
@@ -528,6 +565,55 @@
           </div>
         </Card.Root>
       {/if}
+
+      <!-- Contract -->
+      <Card.Root class="gap-0 py-0">
+        <div class="border-b px-4 py-2.5 text-sm font-medium">Contract</div>
+        <div class="p-4 text-sm">
+          {#if orderContract.loading && !orderContract.data}
+            <p class="text-muted-foreground">Loading…</p>
+          {:else if orderContract.data}
+            {@const oc = orderContract.data}
+            {@const cMeta = contractStatusMeta(oc.status)}
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <Badge variant="outline" class={cMeta.tone}>
+                  <span class={cn('size-1.5 rounded-full', cMeta.dot)}></span>
+                  {cMeta.label}
+                </Badge>
+                <span class="font-mono text-xs text-muted-foreground">{oc.number}</span>
+              </div>
+              <p class="text-muted-foreground">{variantLabel(oc.variant)}</p>
+              <Button
+                href={routes.contractDetail(oc.id)}
+                variant="outline"
+                size="sm"
+                class="w-full"
+              >
+                <FileSignatureIcon class="size-4" />
+                View contract
+              </Button>
+            </div>
+          {:else}
+            <div class="space-y-2">
+              <p class="text-muted-foreground">No contract generated for this order.</p>
+              {#if session.can(P.CONTRACT_CREATE)}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  class="w-full"
+                  disabled={generating}
+                  onclick={generateContract}
+                >
+                  {#if generating}<Spinner />{/if}
+                  <FileSignatureIcon class="size-4" />
+                  Generate contract
+                </Button>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      </Card.Root>
 
       {#each addresses as entry (entry.title)}
         {@const address = entry.value}

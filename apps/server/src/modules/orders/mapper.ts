@@ -7,6 +7,7 @@ import type {
   AdminCartSummaryDto,
   AdminOrderDetailDto,
   AdminOrderSummaryDto,
+  CalendarEventDto,
   OrderDeliveryDto,
   OrderEventDto,
   OrderItemDto,
@@ -15,6 +16,7 @@ import type {
 } from './dto.ts';
 import type { OrderItemConfiguration } from './resolve.ts';
 import { nextOrderStatuses, nextPaymentStatuses } from './status.ts';
+import type { CalendarEntryRow } from './repo.ts';
 import type {
   ActorRef,
   CartAggregate,
@@ -231,6 +233,19 @@ export function toPlacedOrder(placed: PlacedOrder): PlacedOrderDto {
     },
     itemCount: placed.items.length,
     placedAt: iso(placed.placedAt),
+  };
+}
+
+// --- calendar --------------------------------------------------------------
+
+export function toCalendarEvent(row: CalendarEntryRow): CalendarEventDto {
+  return {
+    orderId: row.orderId,
+    orderNumber: row.orderNumber,
+    orderStatus: row.orderStatus as CalendarEventDto['orderStatus'],
+    type: row.type,
+    date: row.date,
+    productTitle: row.productTitle,
   };
 }
 

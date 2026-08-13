@@ -32,3 +32,5 @@ export { orderPlacedActivateReminder } from './order-placed-activate-reminder.ts
 export { orderPlacedConfirmation } from './order-placed-confirmation.ts';
 export { orderPlacedNewAccount } from './order-placed-new-account.ts';
 export { passwordReset } from './password-reset.ts';
+export { contractReady } from './contract-ready.ts';
+export { contractSigned } from './contract-signed.ts';
