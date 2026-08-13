@@ -84,7 +84,6 @@ export async function replaceAddons(
         rentalUnit: addon.rentalUnit ?? null,
         minQuantity: addon.minQuantity,
         maxQuantity: addon.maxQuantity ?? null,
-        isRequired: addon.isRequired,
         icon: iconByIndex.get(index) ?? null,
         position: addon.position,
       };

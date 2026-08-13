@@ -113,17 +113,6 @@ const EnvSchema = v.object({
   DEFAULT_CURRENCY: v.pipe(v.optional(v.string(), 'EUR'), v.length(3), v.toUpperCase()),
 
   /**
-   * HERE Geocoding & Search, for the checkout's address suggestions.
-   *
-   * Optional, like the R2 group: the server boots without it and the endpoint
-   * answers 503 naming what is missing, because a shop that cannot complete an
-   * address can still take an order — the customer types it. The key is read only
-   * here and used only server-side; it is never sent to the browser, which is the
-   * whole reason the suggestion endpoint is ours rather than a direct call.
-   */
-  HERE_API_KEY: v.optional(v.string()),
-
-  /**
    * Absolute origin of the storefront. Not optional like the credential groups
    * below: every account email carries a link back to a page, and a relative link
    * in an inbox goes nowhere. Astro reads the same variable.

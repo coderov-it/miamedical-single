@@ -146,7 +146,6 @@ export interface AddonChunk {
   price: string;
   minQuantity: number;
   maxQuantity: number | null;
-  isRequired: boolean;
   position: number;
   needsReview: string[];
 }

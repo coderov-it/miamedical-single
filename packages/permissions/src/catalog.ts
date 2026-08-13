@@ -248,33 +248,14 @@ export const PERMISSION_DEFINITIONS = {
     group: 'Attributes',
   },
 
-  // --- 2000 · delivery zones ----------------------------------------------
-  // The price tree is money the customer is charged, so writing it is separated
-  // from reading it: an operator who checks coverage need not be able to reprice.
-  DELIVERY_ZONE_READ: {
-    code: 2000,
-    key: 'delivery_zone:read',
-    label: 'View delivery zones',
-    group: 'Delivery',
-  },
-  DELIVERY_ZONE_UPDATE: {
-    code: 2001,
-    key: 'delivery_zone:update',
-    label: 'Update delivery zones',
-    group: 'Delivery',
-  },
-  DELIVERY_ZONE_CREATE: {
-    code: 2002,
-    key: 'delivery_zone:create',
-    label: 'Create delivery zones',
-    group: 'Delivery',
-  },
-  DELIVERY_ZONE_DELETE: {
-    code: 2003,
-    key: 'delivery_zone:delete',
-    label: 'Delete delivery zones',
-    group: 'Delivery',
-  },
+  // --- 2000 · delivery zones (retired) --------------------------------------
+  // 2000-2003 were DELIVERY_ZONE_READ/UPDATE/CREATE/DELETE, guarding the price
+  // tree that quoted a delivery fee from the customer's CAP. Delivery is agreed
+  // by phone now and the amount is written onto the order under ORDER_UPDATE, so
+  // the tree and its four permissions are gone. The codes stay retired rather
+  // than reused: they are persisted on role rows, and handing 2000 to something
+  // else would silently grant it to whoever held the old one.
+
   // --- 2100 · contracts -----------------------------------------------------
   CONTRACT_READ: {
     code: 2100,

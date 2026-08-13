@@ -13,6 +13,15 @@
  * default chip, so the form is already correct before the script runs.
  *
  * Nothing here is ever put in a URL — see docs/code/storefront-checkout.md.
+ *
+ * EVERY TEXT CONTROL HERE CARRIES `data-bwignore`. It stops Bitwarden painting its
+ * shield-and-lock button inside the field and hanging a suggestion menu off it —
+ * chrome we do not draw, cannot style, and which sat on top of the field's own
+ * right edge. Bitwarden tests only that the attribute is PRESENT; the value is
+ * never read, which is why it is written bare. It ignores `autocomplete="off"`
+ * entirely, so that is not an alternative. 1Password and LastPass use their own
+ * attributes (`data-1p-ignore`, `data-lpignore`) and are deliberately not set —
+ * this was asked for about Bitwarden.
  */
 import { CUSTOMER_TYPES } from '~/lib/checkout';
 import { t } from '~/lib/labels';
@@ -31,6 +40,7 @@ const DEFAULT_TYPE = 'private';
       name="first-name"
       autocomplete="given-name"
       placeholder={t('placeholderFirstName')}
+      data-bwignore
       data-field="firstName"
     />
   </label>
@@ -42,6 +52,7 @@ const DEFAULT_TYPE = 'private';
       name="last-name"
       autocomplete="family-name"
       placeholder={t('placeholderLastName')}
+      data-bwignore
       data-field="lastName"
     />
   </label>
@@ -57,6 +68,7 @@ const DEFAULT_TYPE = 'private';
       autocomplete="email"
       inputmode="email"
       placeholder={t('placeholderEmail')}
+      data-bwignore
       data-field="email"
     />
   </label>
@@ -69,6 +81,7 @@ const DEFAULT_TYPE = 'private';
       autocomplete="tel"
       inputmode="tel"
       placeholder={t('placeholderPhone')}
+      data-bwignore
       data-field="phone"
     />
   </label>
@@ -111,6 +124,7 @@ const DEFAULT_TYPE = 'private';
     autocapitalize="characters"
     spellcheck="false"
     placeholder={t('placeholderCodiceFiscale')}
+    data-bwignore
     data-field="codiceFiscale"
   />
 </label>
@@ -125,6 +139,7 @@ const DEFAULT_TYPE = 'private';
       autocapitalize="characters"
       spellcheck="false"
       placeholder={t('placeholderPartitaIva')}
+      data-bwignore
       data-field="partitaIva"
     />
   </label>
@@ -137,6 +152,7 @@ const DEFAULT_TYPE = 'private';
       autocapitalize="characters"
       spellcheck="false"
       placeholder={t('placeholderCompanyCodiceFiscale')}
+      data-bwignore
       data-field="companyCodiceFiscale"
     />
   </label>
@@ -149,6 +165,7 @@ const DEFAULT_TYPE = 'private';
     name="comments"
     rows="2"
     placeholder={t('placeholderComments')}
+    data-bwignore
     data-field="comments"></textarea>
 </label>
 

@@ -24,6 +24,7 @@
   import * as Table from '$lib/components/ui/table/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { api } from '~/lib/api';
+  import MoneyInput from '~/lib/components/money-input.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
   import { cn } from '$lib/utils.js';
   import { contractStatusMeta, variantLabel } from '~/lib/contracts/status';
@@ -166,18 +167,41 @@
   );
 
   /**
-   * How the shipping total was arrived at. Worth a line of its own because a
-   * phone quote is the case where the figure on the order is NOT the figure the
-   * customer ends up paying, and nothing else on this page would say so.
+   * Whether this order still owes a delivery figure.
+   *
+   * Nothing prices delivery — every order is placed at 0,00 € and the storefront
+   * has told the customer we will contact them about it — so a home delivery
+   * sitting at zero is not free, it is UNAGREED, and it is the one thing on this
+   * page an operator has to go and do. A collection owes nothing and says nothing.
    */
-  const deliveryQuote = $derived.by(() => {
-    const quote = delivery?.quote;
-    if (!quote) return null;
-    const area = [quote.comune, quote.areaLabel].filter(Boolean).join(' · ');
-    return quote.kind === 'call'
-      ? { tone: 'call' as const, text: area ? `To agree by phone · ${area}` : 'To agree by phone' }
-      : { tone: 'fee' as const, text: area ? `Priced from ${area}` : null };
-  });
+  const deliveryOwed = $derived(
+    delivery?.method === 'homeDelivery' && Number(order.totals.shippingTotal) === 0,
+  );
+
+  /**
+   * The amount an operator types after the phone call.
+   *
+   * A WRITABLE derived: the field owns it while it is being typed into, and any
+   * fresh order arriving from the server resets it. That is what stops a status
+   * move landing underneath this card from leaving a stale figure sitting in it.
+   */
+  let shippingDraft = $derived(order.totals.shippingTotal);
+
+  function saveShipping() {
+    void run(
+      'shipping',
+      () =>
+        api.api.admin.orders[':id'].$patch({
+          param: { id: order.id },
+          json: { shippingTotal: shippingDraft },
+        }),
+      (updated) =>
+        `Delivery on ${updated.number} is ${formatMoney(
+          updated.totals.shippingTotal,
+          updated.totals.currency,
+        )}.`,
+    );
+  }
 
   const CUSTOMER_TYPE_LABELS: Record<string, string> = {
     private: 'Private customer',
@@ -538,20 +562,43 @@
             {#if deliveryDetail}
               <p class="text-muted-foreground">{deliveryDetail}</p>
             {/if}
-            <!-- A phone quote records 0,00 €, so the amount alone would read as
-                 free. The line beside it is what says a figure is still owed. -->
+            <!-- An unagreed delivery records 0,00 €, so the amount alone would
+                 read as free. The line beside it is what says a figure is owed. -->
             <p class="flex items-center gap-2 tabular-nums">
               <span class="text-muted-foreground">
                 {formatMoney(order.totals.shippingTotal, order.totals.currency)}
               </span>
-              {#if deliveryQuote?.tone === 'call'}
+              {#if deliveryOwed}
                 <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  {deliveryQuote.text}
+                  To agree by phone
                 </span>
-              {:else if deliveryQuote?.text}
-                <span class="text-xs text-muted-foreground">{deliveryQuote.text}</span>
               {/if}
             </p>
+
+            <!-- Where the agreed amount lands. The only way a delivery fee ever
+                 reaches an order, which is why it sits on the card the operator is
+                 already reading rather than behind an edit screen. Saving
+                 re-derives the order total on the server. -->
+            {#if canUpdate}
+              <div class="flex items-end gap-2 pt-2">
+                <MoneyInput
+                  label="Delivery fee"
+                  bind:value={shippingDraft}
+                  suffix={order.totals.currency}
+                  disabled={busy !== null}
+                  dense
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  class="h-8"
+                  disabled={busy !== null || shippingDraft === order.totals.shippingTotal}
+                  onclick={saveShipping}
+                >
+                  {busy === 'shipping' ? 'Saving…' : 'Save'}
+                </Button>
+              </div>
+            {/if}
             <!-- A different collection address is a second stop on somebody's day,
                  so it is called out rather than folded into the detail line. -->
             {#if returnAddress}

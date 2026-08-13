@@ -66,20 +66,6 @@ export interface OrderDeliveryDto {
    */
   returnToSameAddress: boolean;
   returnAddress: string | null;
-  /**
-   * What the zone ladder answered when this order was placed, kept so an operator
-   * can see WHY the shipping total is what it is — and, when it is a phone quote,
-   * that a figure is still owed. Null on a collection, and on any order placed
-   * before delivery was priced from the CAP.
-   */
-  quote: {
-    kind: 'fee' | 'call';
-    fee: string | null;
-    /** The area that answered, as the owner named it: `Lazio`, `Roma 00121`. */
-    areaLabel: string | null;
-    resolvedVia: string | null;
-    comune: string | null;
-  } | null;
 }
 
 export interface OrderEventDto {

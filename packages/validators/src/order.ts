@@ -2,7 +2,6 @@ import { DELIVERY_METHOD_IDS } from '@mia/pricing';
 import * as v from 'valibot';
 
 import { EmailSchema, PaginationSchema, SlugSchema, UuidSchema } from './common.ts';
-import { CapSchema, IstatCodeSchema } from './delivery.ts';
 
 export const AddressSchema = v.object({
   fullName: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(120)),
@@ -113,27 +112,31 @@ export const PlaceOrderItemSchema = v.strictObject({
 });
 
 /**
- * The address as the checkout asks for it: one street line, a comune and a CAP.
+ * The address as the checkout asks for it: ONE free-text block, as the customer
+ * wrote it.
  *
- * Narrower than `AddressSchema` on purpose — the server composes the full snapshot
- * from this plus the customer's name and phone, so the stored address is complete
- * without the form pretending to collect a country nobody chooses.
+ * This used to be four fields — a street line plus a comune and a CAP chosen down
+ * a regione → provincia → comune → CAP ladder, and an ISTAT code identifying the
+ * comune exactly. All of it existed to key a delivery fee on the comune. Nothing
+ * prices delivery any more, so structuring the address bought nothing and cost the
+ * customer four controls. `0003_drop_delivery_pricing_and_geography` removed the
+ * ladder and the reference data behind it.
  *
- * It belongs to the DELIVERY, not to the customer. An order collected from a
- * branch has no address at all, and asking for one in the contact step meant every
- * customer typed a delivery address whether or not anything was being delivered.
+ * It belongs to the DELIVERY, not to the customer. An order collected from a branch
+ * has no address at all.
  *
- * `city` and `istatCode` are two different jobs, not a duplicate. `city` is part of
- * the address a courier reads. `istatCode` is what the fee is resolved from, and
- * the form fills both from one pick, so they cannot disagree in practice. It stays
- * optional because the form still has to work with the picker unreachable — then
- * the server infers the comune from the CAP, as it always did.
+ * Newlines are allowed and preserved: a real delivery address carries a floor, an
+ * interno, a buzzer name, and the customer knows better than we do how to write
+ * where they live. The server stores it verbatim in the address snapshot's `line1`
+ * and a human reads it.
  */
 export const CheckoutAddressSchema = v.strictObject({
-  line1: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(200)),
-  city: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(120)),
-  postalCode: CapSchema,
-  istatCode: v.optional(v.nullable(IstatCodeSchema)),
+  line1: v.pipe(
+    v.string(),
+    v.trim(),
+    v.minLength(6, 'Write the full delivery address.'),
+    v.maxLength(500),
+  ),
 });
 
 const FiscalCodeSchema = v.pipe(v.string(), v.trim(), v.toUpperCase(), v.maxLength(32));
@@ -178,7 +181,7 @@ export const CheckoutCustomerSchema = v.pipe(
  * Each method carries only the detail it needs, and the address is one of those
  * details rather than a fact about the customer:
  *
- *   homeDelivery   address  — where it goes, and what the fee is resolved from
+ *   homeDelivery   address    — where it goes, as one free-text block
  *   storePickup    pickupCity — which branch, and nothing else
  *
  * The address is REQUIRED on a home delivery and REFUSED on a collection, because
@@ -210,13 +213,7 @@ export const CheckoutDeliverySchema = v.pipe(
      * such order already assumed.
      */
     returnToSameAddress: v.optional(v.boolean(), true),
-    /**
-     * One free-text line, deliberately not the comune/CAP ladder.
-     *
-     * The ladder exists to key a PRICE, and the return prices nothing — the fee was
-     * settled by the outbound comune. What is left is an address a driver reads, so
-     * asking a customer to pick Roma a second time would buy nothing.
-     */
+    /** Free text, like the delivery address above it. A driver reads it and goes. */
     returnAddress: v.optional(v.pipe(v.string(), v.trim(), v.minLength(4), v.maxLength(300))),
   }),
   v.forward(

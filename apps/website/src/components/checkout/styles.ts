@@ -16,16 +16,6 @@ export const FIELD_LABEL = 'flex flex-col gap-1.75 text-[14.5px] font-semibold';
 export const FIELD_INPUT =
   'rounded-[10px] border border-hair-strong bg-white px-3.75 py-3.25 text-[15.5px] font-normal';
 
-/**
- * A combobox popup — the delivery cascade's three tiers and the street field.
- *
- * `max-h-64` with its own scroll because a province can hold ~320 comuni: the list
- * has to be filterable and scrollable rather than as long as the page.
- */
-export const LISTBOX =
-  'border-hair-strong shadow-pdp-card absolute top-full right-0 left-0 z-20 mt-1 max-h-64 ' +
-  'list-none overflow-y-auto rounded-[11px] border bg-white p-1';
-
 /** A conditional panel that opens under a delivery option. */
 export const PANEL = 'mt-1 border-t border-hair px-4.5 pt-4 pb-4.5';
 

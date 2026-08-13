@@ -414,7 +414,22 @@ export const productAddons = pgTable(
     rentalUnit: rentalUnit(),
     minQuantity: integer().notNull().default(0),
     maxQuantity: integer(),
-    isRequired: boolean().notNull().default(false),
+    /*
+      There is no `is_required` here, and that is a rule rather than an omission.
+      An ADD-ON IS ALWAYS OPTIONAL — it is the extra a customer chooses on top of
+      the thing they came for, so one that cannot be declined is not an add-on, it
+      is part of the price of the product and belongs in the product's own rate.
+
+      The column existed and produced exactly that confusion: a "Consegna e
+      installazione" row at 60,00 € arrived pre-ticked and disabled, so the
+      storefront showed a delivery charge nobody could remove on a product whose
+      own description said delivery was included. Dropped in
+      `0004_drop_addon_is_required`.
+
+      Variant groups and questions keep their own `is_required` and should — a bed
+      has to have a colour, and "which floor?" has to be answered. Those constrain a
+      CHOICE. This one constrained a PURCHASE.
+    */
     /** R2 key of a square WebP, up to 1024×1024. */
     icon: text(),
     position: integer().notNull().default(0),

@@ -13,10 +13,14 @@
  *
  * ⚠️ That 1244px is `--container-page`, NOT the `wide` breakpoint (1100px) the rest
  * of the site switches on, and the difference is deliberate. Measured at 1100px:
- * the row needs 1121px and the container gives 1021px, so revealing it there wrapped
+ * the row needs 1127px and the container gives 1021px, so revealing it there wrapped
  * the CTA onto a second line and doubled the header's height. The full row is shown
  * exactly when the page reaches its full measure, which is the first width where it
- * fits — with 59px to spare. Change `--container-page` and re-measure this.
+ * fits — 1127px into 1165px, 38px to spare with a scrollbar present. Change
+ * `--container-page`, or add anything to this row, and re-measure. The margin is
+ * why the phone pill shows the number alone: the "— gratis" qualifier that used to
+ * follow it cost 66px, which overflowed the row and split the header in two. It
+ * survives in the link's `aria-label`, where it costs no width.
  */
 import { CONTACT } from '~/lib/site';
 import { routes } from '~/lib/routes';
@@ -109,7 +113,7 @@ const isActive = (item: { href: string; exact: boolean }) =>
             d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
           ></path>
         </svg>
-        {CONTACT.phoneDisplay}<span class="mid:inline hidden font-normal">— gratis</span>
+        {CONTACT.phoneDisplay}
       </a>
 
       {

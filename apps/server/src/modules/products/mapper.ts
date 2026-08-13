@@ -247,7 +247,6 @@ function toPublicAddon(row: AddonRow, locale: LanguageCode): PublicAddonDto {
     },
     minQuantity: row.minQuantity,
     maxQuantity: row.maxQuantity,
-    isRequired: row.isRequired,
     icon: row.icon,
     position: row.position,
   };
@@ -609,7 +608,6 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
         currency: addon.currency,
         minQuantity: addon.minQuantity,
         maxQuantity: addon.maxQuantity,
-        isRequired: addon.isRequired,
         icon: addon.icon,
         position: addon.position,
         name: addon.name,

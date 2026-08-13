@@ -2,8 +2,8 @@
   A labelled money field. Emits a normalised `"0.00"` string, never a JS number —
   money stays a decimal string end to end, the same way it is stored and sent.
 
-  The parsing rules live in `~/lib/money.ts` because the fee stepper in
-  delivery-zones needs the same ones with different chrome.
+  The parsing rules live in `~/lib/money.ts` so any other control that has to read
+  an amount back shares them rather than restating them.
 
   `dense` and `hideLabel` are opt-in and off by default, so one screen can ask for
   a compact field without shrinking every form in the admin.

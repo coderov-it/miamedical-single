@@ -501,7 +501,10 @@ The order panel is a **display estimate only**: the page script mirrors the
 form into the total, the period badge and the line items; `/carrello/`
 re-resolves the request server-side and the phone call confirms the real price.
 Without JavaScript everything still submits — the panel simply shows the
-initial server-rendered state (defaults + required add-ons).
+initial server-rendered state, which is the product at its default variant
+choices and nothing else. Add-ons could once mark themselves required and were
+summed into that figure before the customer chose anything; every add-on is
+opt-in now, so the starting price is the product's own.
 
 Three tricks worth knowing before touching it:
 

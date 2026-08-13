@@ -61,8 +61,6 @@ const STOREFRONT_LABELS = {
   firstName: { it: 'Nome' },
   lastName: { it: 'Cognome' },
   address: { it: 'Indirizzo' },
-  city: { it: 'Città' },
-  postalCode: { it: 'CAP' },
   email: { it: 'Email' },
   phoneNumber: { it: 'Numero di telefono' },
   iAmA: { it: 'Sono un' },
@@ -78,11 +76,6 @@ const STOREFRONT_LABELS = {
   // Example values, not instructions — a placeholder is a hint, never a label.
   placeholderFirstName: { it: 'Mario' },
   placeholderLastName: { it: 'Rossi' },
-  /* The street line no longer carries the city and the CAP — they have their own
-     fields now, so the hint stops asking for them. */
-  placeholderStreet: { it: 'Via Roma 12' },
-  placeholderCity: { it: 'Roma' },
-  placeholderPostalCode: { it: '00184' },
   placeholderEmail: { it: 'mario.rossi@example.com' },
   placeholderPhone: { it: '+39 333 000 0000' },
   placeholderCodiceFiscale: { it: 'RSSMRA80A01H501X' },
@@ -115,33 +108,20 @@ const STOREFRONT_LABELS = {
   storePickupShort: { it: 'Ritiro in sede' },
   free: { it: 'Gratis' },
   deliveryAddress: { it: 'Indirizzo di consegna' },
-  /* Italy's own ladder, in its own words: regione → provincia → comune → CAP. The
-     customer picks the first three, so we never have to guess which comune a CAP
-     means — see docs/code/delivery-pricing.md. */
-  region: { it: 'Regione' },
-  province: { it: 'Provincia' },
-  comune: { it: 'Comune' },
-  selectPlaceholder: { it: 'Seleziona…' },
-  /* Each tier is unusable until the one above it is chosen, and saying so is
-     kinder than a disabled control with no explanation. */
-  chooseRegionFirst: { it: 'Scegli prima la regione' },
-  chooseProvinceFirst: { it: 'Scegli prima la provincia' },
-  chooseComuneFirst: { it: 'Scegli prima il comune' },
-  /* The picker needs the server. If the ladder cannot be reached the three tiers
-     go away and the comune becomes a field the customer types — this is its hint. */
-  typeComune: { it: 'Scrivi il comune' },
-  /* Shown inside a tier's dropdown when the typed filter matches none of its rows.
-     A row, not an error: the customer is mid-word and the fix is to keep typing. */
-  noMatches: { it: 'Nessun risultato' },
-  /* The delivery fee comes from the CAP, so before there is a CAP there is no
-     figure to show — and a zero would be a lie. */
-  feePendingCap: { it: 'Inserisci il CAP' },
-  /* A `call` answer, as a question the customer can say yes to rather than a
-     notice they have to accept. Their reply in chat settles the amount. */
-  feeNeedsCall: {
-    it: 'Per questa zona non abbiamo una tariffa fissa. Possiamo definire il costo di consegna in chat. Va bene?',
-  },
-  feePendingConfirmation: { it: 'Da confermare' },
+  /* An example, like every other placeholder here — never instructions, and never
+     the multi-line address it once was: three lines of grey text sitting in an
+     empty box read as an answer somebody had already given. One line shows the
+     shape without pretending to be content. Nothing parses what is typed. */
+  placeholderDeliveryAddress: { it: 'Via Roma 12, int. 3, 88040 Amato (CZ)' },
+  /* NOTHING PRICES DELIVERY. There is no fee to show at any point in this form, so
+     these two say so in words rather than showing a figure — a zero would read as
+     free, which is the one thing the delivery is not.
+
+     The long form goes on the delivery card, where there is room to promise the
+     next step. The short one goes in the totals column beside an amount, and it is
+     the same "da concordare" the cart and the WhatsApp handover already use. */
+  deliveryFeeOnRequest: { it: 'Ti contattiamo per il costo di consegna' },
+  deliveryPending: { it: 'Da concordare' },
   choosePickupPoint: { it: 'Scegli dove ritirare e riconsegnare:' },
   branchIn: { it: 'Sede di {city}' },
 
@@ -290,8 +270,6 @@ const STOREFRONT_LABELS = {
   msgNotes: { it: 'Note' },
   /** Prefixed to the handover message once the order has a number to quote. */
   msgRequestNumber: { it: 'Richiesta n.' },
-  msgCity: { it: 'Città' },
-  msgPostalCode: { it: 'CAP' },
 } as const;
 
 export type StorefrontLabelKey = keyof typeof STOREFRONT_LABELS;

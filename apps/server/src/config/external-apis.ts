@@ -36,10 +36,4 @@ export const EXTERNAL_APIS = {
 
   /** Cloudflare R2 over its S3-compatible API. The account id is the subdomain. */
   r2Endpoint: (accountId: string) => `https://${accountId}.r2.cloudflarestorage.com`,
-
-  /**
-   * HERE address autocomplete, called server-side only so the key never reaches a
-   * browser. HERE gives each service its own host, so this one names the service.
-   */
-  hereAutocompleteBaseUrl: 'https://autocomplete.search.hereapi.com',
 } as const;

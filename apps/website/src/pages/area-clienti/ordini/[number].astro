@@ -82,6 +82,22 @@ const { number } = Astro.params;
     storePickup: 'Ritiro in negozio',
   };
 
+  /**
+   * What to print on the delivery line.
+   *
+   * A home delivery still at zero has not been agreed yet, not been given away:
+   * nothing prices delivery, so an order is placed at 0,00 € and stays there until
+   * somebody writes the amount settled on the phone. Printing "0,00 €" would tell
+   * the customer their delivery is free. A collection genuinely is free.
+   */
+  function deliveryAmount(order: OrderDetail): string {
+    const settled = Number(order.totals.shippingTotal) > 0;
+    if (settled || order.delivery?.method !== 'homeDelivery') {
+      return formatMoney(order.totals.shippingTotal, order.totals.currency);
+    }
+    return escapeHtml('Da concordare');
+  }
+
   function row(labelText: string, value: string, strong = false): string {
     return `<div class="flex justify-between gap-4 ${strong ? 'font-medium' : 'text-neutral-600'}">
       <span>${escapeHtml(labelText)}</span><span class="tabular-nums">${value}</span></div>`;
@@ -120,7 +136,7 @@ const { number } = Astro.params;
 
       <div class="mt-5 space-y-1.5 text-[15px]">
         ${row('Subtotale', formatMoney(order.totals.subtotal, currency))}
-        ${row('Consegna', formatMoney(order.totals.shippingTotal, currency))}
+        ${row('Consegna', deliveryAmount(order))}
         ${row('Totale', formatMoney(order.totals.total, currency), true)}
       </div>
 

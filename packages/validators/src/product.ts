@@ -293,7 +293,6 @@ export const AddonInputSchema = v.pipe(
     rentalUnit: v.optional(v.nullable(RentalUnitSchema)),
     minQuantity: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)), 0),
     maxQuantity: v.optional(v.nullable(v.pipe(v.number(), v.integer(), v.minValue(1)))),
-    isRequired: v.optional(v.boolean(), false),
     icon: v.optional(v.nullable(MediaPathSchema)),
     position: PositionSchema,
   }),

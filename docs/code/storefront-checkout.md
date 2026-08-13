@@ -129,9 +129,10 @@ rate, not a sum**, so:
 
 - the qualifier under the total reads `stima · periodo da definire` instead of
   `IVA inclusa`;
-- the delivery fee is **not** folded into it. Adding a one-off delivery charge to
-  a per-day rate adds two incompatible quantities. The fee still shows on its own
-  row.
+- nothing is added to it. A delivery charge would once have been the thing that
+  could not be — a one-off amount over a per-day rate is two incompatible
+  quantities — but no fee is folded into the total for any order now, so the
+  distinction only survives in the qualifier.
 
 ## The stepper
 
@@ -183,8 +184,9 @@ under their own eyebrows with a hairline between them:
 
 ```text
 CONSEGNA                            ← CheckoutDelivery.astro
-  ◉ Consegna e ritiro all'indirizzo che indichi     +40,00 €
-      Regione / Provincia / Comune / CAP / Indirizzo
+  ◉ Consegna e ritiro all'indirizzo che indichi   Da concordare
+      Indirizzo di consegna (una casella di testo libero)
+      "Ti contattiamo per il costo di consegna"
   ○ Ritiro in sede                                  Gratis
 ────────────────────────────────────
 RICONSEGNA A FINE NOLEGGIO          ← CheckoutReturn.astro
@@ -225,85 +227,48 @@ runs, and unticking is the deliberate act. Re-ticking **clears** what was typed
 rather than remembering it — a stale address behind a ticked box is a fact nobody
 can see, and the API refuses that combination anyway.
 
-The return address is **one free-text line, deliberately not the cascade below**.
-The cascade exists to key a price; the return prices nothing, because the fee was
-settled by the outbound comune. What is left is an address a driver reads, so asking
-the customer to pick Roma a second time would buy nothing.
+The return address is free text, like the delivery address above it. A driver reads
+it and goes.
 
-## Step 2 asks for the address as a cascade
+## Step 2 asks for the address as one free-text block
 
-Regione → provincia → comune → CAP → via, in `CheckoutDelivery.astro`, driven by
-the `--- the address cascade ---` block in `checkout.astro`.
-
-Not a preference. The fee is keyed on the **comune's ISTAT code**, and a picked
-comune is exact where a typed città is not: names repeat across provinces, and 18%
-of Italian CAPs name more than one comune, so inferring the comune from a CAP means
-guessing — and a guessed comune is a guessed price.
+One `<textarea>` in `CheckoutDelivery.astro`, and no script behind it.
 
 ```text
-1. open the home-delivery panel   → GET /api/address/regions          20 rows
-2. pick  Lazio                    → GET /api/address/provinces?…12     5 rows
-3. pick  Roma (RM)                → GET /api/address/comuni?…RM      121 rows
-4. pick  Roma          value = 058091   ← the six digits the fee keys on
-                                          the comune's NAME goes into `city`
-5. its 79 CAPs become the `datalist`; type 00129
-6. POST /api/delivery/quote  { cap: '00129', istatCode: '058091' }
-                                  → 47,00 €  resolvedVia: comune
+Delivery address
+┌────────────────────────────────────┐
+│ Via Roma 12, int. 3                │
+│ 88040 Amato (CZ)                   │
+│ citofono Rossi                     │
+└────────────────────────────────────┘
+Ti contattiamo per il costo di consegna
+
+→ POST /api/orders
+  delivery.address = { line1: "Via Roma 12, int. 3\n88040 Amato (CZ)\ncitofono Rossi" }
 ```
 
-`00129` is **not in our CAP dataset** — it comes from GeoNames and some big-city
-codes are missing. Step 4 is why that costs nothing: the comune is already known,
-so an unlisted CAP finds no `cap` row and the comune's own fee answers. Before the
-picker the same address fell all the way to the country row and was quoted "da
-confermare".
+`step2Valid` checks one thing — six characters, the same floor
+`CheckoutAddressSchema` enforces. The server stores the text verbatim in the
+address snapshot's `line1`; `city` and `postalCode` stay null, and the contract and
+admin views that compose `"line1, postalCode city"` already coalesce a missing part
+away, so they print the line alone.
 
-### Each tier is a dropdown you can type into
+### What used to be here
 
-`CheckoutComboField.astro`, driven by `createCombobox` in the page script. Three
-instances — regione, provincia, comune — and the rule that defines them:
+A regione → provincia → comune → CAP cascade — three filterable comboboxes over
+~17,000 rows of committed ISTAT reference data, a CAP `datalist` per comune, and a
+street field completing from HERE — plus the endpoints, the dataset build script and
+the four tables underneath it.
 
-```text
-type "lomb"       → filters to Lombardia, pre-highlighted; Enter commits it
-type "re"         → Reggio… before Ancona (starts-with, then contains)
-type "citta"      → finds Città…          (case and accents folded)
-type "Gotham"     → "Nessun risultato", nothing selectable
-blur, or Escape   → the text reverts to the committed row's name
-```
+All of it existed for one reason: **the delivery fee was keyed on the comune**, and
+a picked comune is exact where a typed città is not. Names repeat across provinces
+and 18% of Italian CAPs name more than one comune, so a guessed comune was a guessed
+price.
 
-So the committed value is **always a code the server knows, or nothing**. Typing
-filters the rows; it never becomes the value. `Enter` is swallowed while a list is
-open, so it cannot submit the step with a half-typed tier showing.
-
-That matters more than it looks. `resolveQuote` prices whatever comune code it is
-handed, so "the tier is non-empty" has to mean "a real place" — otherwise a
-mistyped `Lomb` would need validating on the way out instead of being impossible on
-the way in.
-
-These replaced native `<select>`s, which needed no script at all. A `<select>`
-cannot be filtered, and a province holds up to ~320 comuni — scrolling that was the
-whole problem. The chevron is drawn back in because the native one went with the
-element.
-
-The CAP field is deliberately **not** one of them. Its `datalist` is a
-**suggestion, not a validator**: an unlisted CAP is accepted, because the gap is as
-likely to be ours as the customer's. The tiers are closed sets we own; the CAP list
-is one we know to be short.
-
-For 7,338 of Italy's 7,896 comuni there is exactly one CAP, and the script fills
-it — most customers never touch the field. Changing comune clears a CAP that
-belonged to the previous one, which is correctness rather than tidiness: the server
-prices the code, so a code from one place with a CAP from another would answer.
-
-**The street field no longer fills the città and the CAP.** It completes from HERE
-(`docs/code/address-autocomplete.md`) and writes the street line only — letting a
-provider's spelling of a name decide which comune is priced is exactly the
-ambiguity the picker removes.
-
-**One fallback, and only one.** If `/api/address/regions` cannot be answered the
-three tiers are hidden and the comune becomes an ordinary text field. The quote
-then resolves from the CAP plus that name, which is what it did before the picker
-existed: coarser for a shared CAP, never blocked. `step2Valid` accepts either an
-ISTAT code or a typed name, so a working checkout never depends on that endpoint.
+Nothing prices delivery now. The structure was buying an exactness no longer spent
+on anything, at the cost of four controls between the customer and a finished order,
+so it went — `0003_drop_delivery_pricing_and_geography`. A per-kilometre fee will
+geocode the free text rather than resolve a comune code.
 
 ## Deliberate deviations from the reference file
 
@@ -360,14 +325,9 @@ what matters on this page:
   figure in the overview and the figure in `orders.total` are the same arithmetic.
   This module now only puts Italian words on the structured rows that come back.
 - **Step 1 asks for no address at all.** The address belongs to the delivery and
-  lives in step 2's home-delivery panel — street, città and CAP, as three fields,
-  because the order stores a structured snapshot and the CAP is what prices the
-  delivery. Asking in step 1 meant everyone typed a delivery address, including the
-  customers collecting from a branch. A collected order stores no address.
-- **The street field is a combobox**, completing from `GET /api/address/suggest`
-  (HERE, proxied server-side). Picking a suggestion fills all three fields, so the
-  CAP that prices the order is one the customer never typed. See
-  `docs/code/address-autocomplete.md`.
+  lives in step 2's home-delivery panel, as one free-text box. Asking in step 1
+  meant everyone typed a delivery address, including the customers collecting from a
+  branch. A collected order stores no address at all.
 - **The CTA is still an `<a>` to WhatsApp** in the served HTML, because with no
   JavaScript that is the whole path. The parse-time script retitles it and the
   module script posts instead, revealing the order number and the server's own
@@ -380,18 +340,14 @@ what matters on this page:
 
 ## Known gaps
 
-- **A shared CAP can still be quoted coarsely — but only on the fallback path.**
-  With the picker the comune arrives as an ISTAT code and the tiebreak never runs.
-  Without it (`/api/address/regions` unreachable) the quote is back to the CAP plus a
-  typed name, and a name matching nothing widens the answer rather than guessing —
-  see the walks in `docs/code/orders-placement.md`.
-- **Our CAP list is incomplete for the big cities.** `20130` Milano, `00129` Roma and
-  ~12 others are absent, so they never appear in the datalist. Typing one still
-  prices correctly at comune level; the missing rows only cost the suggestion. The
-  measured accuracy of the dataset is in `packages/db/data/README.md`.
-- **The card's figure can go stale.** It refreshes when the comune or the CAP
-  changes, not on a timer, so a tab left open across an edit to the zone tree shows
-  the older number. `place()` re-resolves, so the stored total is never the stale one.
+- **The customer leaves without knowing what delivery costs.** That is the current
+  design, not an oversight — nothing prices it — but it means the total on the
+  confirmation is not the total they will pay, and the promise to call is the only
+  thing closing that gap. Per-kilometre pricing is what fixes it.
+- **The delivery address is unvalidated free text.** Six characters is the only
+  rule. A customer can leave out the town, or the CAP, or both, and the order is
+  accepted — the phone call is what catches it. Per-kilometre pricing will have to
+  geocode this text, and some of it will not geocode.
 - **The PDP's inline script still applies the pricing rules a second time**, in
   browser TypeScript, for its live estimate. This module and the server now share
   one implementation; the PDP is the remaining copy. Folding it onto

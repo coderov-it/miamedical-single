@@ -1,0 +1,1 @@
+ALTER TABLE "product_addons" DROP COLUMN "is_required";

@@ -133,7 +133,6 @@ export interface PublicAddonDto {
   pricing: PricingDto;
   minQuantity: number;
   maxQuantity: number | null;
-  isRequired: boolean;
   icon: string | null;
   position: number;
 }
@@ -347,7 +346,6 @@ export interface AdminAddonDto {
   currency: string;
   minQuantity: number;
   maxQuantity: number | null;
-  isRequired: boolean;
   icon: string | null;
   position: number;
   name: Localized;

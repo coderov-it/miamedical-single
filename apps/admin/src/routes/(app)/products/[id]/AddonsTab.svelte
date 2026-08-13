@@ -8,7 +8,6 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
-  import { Switch } from '$lib/components/ui/switch/index.js';
   import { api } from '~/lib/api';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import MoneyInput from '~/lib/components/money-input.svelte';
@@ -35,7 +34,6 @@
     rentalUnit: string;
     minQuantity: number;
     maxQuantity: string;
-    isRequired: boolean;
     icon: string | null;
   }
 
@@ -50,7 +48,6 @@
     rentalUnit: addon.rentalUnit ?? 'day',
     minQuantity: addon.minQuantity,
     maxQuantity: addon.maxQuantity?.toString() ?? '',
-    isRequired: addon.isRequired,
     icon: addon.icon,
   });
 
@@ -90,7 +87,6 @@
       rentalUnit: product.rentalUnit ?? 'day',
       minQuantity: 0,
       maxQuantity: '',
-      isRequired: false,
       icon: null,
     });
   }
@@ -116,7 +112,6 @@
             rentalUnit: addon.pricingMode === 'rental' ? (addon.rentalUnit as 'day') : null,
             minQuantity: addon.minQuantity,
             maxQuantity: addon.maxQuantity === '' ? null : Number(addon.maxQuantity),
-            isRequired: addon.isRequired,
             icon: addon.icon,
             position,
           })),
@@ -245,14 +240,6 @@
               />
             </div>
 
-            <div class="flex items-center gap-2 pb-2">
-              <Switch
-                id="addon-required-{addon.uid}"
-                checked={addon.isRequired}
-                onCheckedChange={(checked) => (addon.isRequired = checked)}
-              />
-              <Label for="addon-required-{addon.uid}" class="text-sm">Required</Label>
-            </div>
           </div>
 
           <IconPicker label="Icon" bind:value={addon.icon} profile="icon_1024" compact />

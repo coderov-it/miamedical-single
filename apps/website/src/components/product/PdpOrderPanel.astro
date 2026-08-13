@@ -58,15 +58,16 @@ const defaultRate = product.variants.reduce((sum, group) => {
   return sum + Number(chosen.priceModifier.amount);
 }, Number(product.pricing.price));
 
-const requiredAddons = product.addons.filter((addon) => addon.isRequired);
-const perUnitTotal =
-  defaultRate +
-  requiredAddons
-    .filter((addon) => addon.pricing.mode === 'rental')
-    .reduce((sum, addon) => sum + Number(addon.pricing.price), 0);
-const oneTimeTotal = requiredAddons
-  .filter((addon) => addon.pricing.mode === 'fixed')
-  .reduce((sum, addon) => sum + Number(addon.pricing.price), 0);
+/*
+  The headline figure is the PRODUCT, with its default variant choices and nothing
+  else. Add-ons used to be able to declare themselves required and were summed in
+  here before the customer had chosen anything, so the price on the panel already
+  carried an extra they had never agreed to. Every add-on is opt-in now, so the
+  starting figure is what the product costs and the estimate script adds each one
+  as it is ticked.
+*/
+const perUnitTotal = defaultRate;
+const oneTimeTotal = 0;
 
 const initialTotal = isRental ? perUnitTotal : perUnitTotal + oneTimeTotal;
 const initialNote = isRental ? `${unitLabel} · periodo da definire` : 'prezzo del prodotto';
@@ -243,17 +244,13 @@ const pkgRow =
       </span>
     </li>
     {
-      requiredAddons.map((addon) => (
-        <li class="flex justify-between gap-3">
-          <span class="text-ink-2 min-w-0">{addon.name}</span>
-          <span class="font-semibold whitespace-nowrap tabular-nums">
-            {addon.pricing.price === '0.00'
-              ? 'Incluso'
-              : money(Number(addon.pricing.price)) +
-                (addon.pricing.mode === 'rental' ? perUnitSuffix : ' una tantum')}
-          </span>
-        </li>
-      ))
+      /*
+        Only the base line is server-rendered. Add-ons used to be able to declare
+        themselves required, and those were printed here because they were charged
+        whether or not anyone touched the form. Every add-on is opt-in now, so
+        there is nothing to print before a choice is made — the estimate script
+        replaces this list from the ticked boxes.
+      */
     }
   </ul>
 
