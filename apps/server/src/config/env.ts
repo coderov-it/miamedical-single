@@ -139,23 +139,49 @@ const EnvSchema = v.object({
   ),
 
   /**
-   * Mail delivery. `console` renders the message to the log instead of sending
-   * it, which is the only way to click an activation link in local development —
-   * the link IS the feature, so a transport that swallows it makes the flow
-   * untestable. Production must be `ses`.
+   * Mail delivery. Exactly one transport is live, and this picks it.
    *
-   * The SES group is optional the same way R2 is: the server boots without it and
-   * the adapter fails on first send, naming what is missing. Omit the two keys to
-   * fall back on the AWS default credential chain, so an instance role works
-   * without putting secrets in the environment at all.
+   * `console` renders the message to the log instead of sending it, which is the
+   * only way to click an activation link in local development — the link IS the
+   * feature, so a transport that swallows it makes the flow untestable. Anything
+   * but `console` in production.
+   *
+   * `plunk`, `cloudflare` and `ses` are interchangeable to every caller; which one
+   * is live is an operational choice, not a code one. Every provider group is
+   * optional the same way R2 is: the server boots without them and the adapter
+   * fails on first send naming what is missing, so a misconfigured mail provider
+   * never keeps the rest of the API down. The guards below close the gap that
+   * leaves, by refusing to start production with the chosen provider unconfigured.
    */
-  MAIL_TRANSPORT: v.optional(v.picklist(['console', 'ses']), 'console'),
+  MAIL_TRANSPORT: v.optional(v.picklist(['console', 'plunk', 'cloudflare', 'ses']), 'console'),
   /*
+    Shared by both providers, and each of them requires the domain to be verified
+    on their side before it will send.
+
     A no-reply mailbox, and visibly one: nothing receives there, and no Reply-To is
     ever sent (see infra/mail/port.ts). Customers are given WhatsApp and the
     free-phone number in the message body instead.
   */
   MAIL_FROM_ADDRESS: v.optional(v.string()),
+
+  /** Plunk. A secret key, `sk_…`, from the project's API settings. */
+  PLUNK_API_KEY: v.optional(v.string()),
+
+  /*
+    Cloudflare Email Sending. The token needs the "Email Sending: Edit" permission
+    and the sending domain must be onboarded on this same account.
+
+    Kept separate from R2_ACCOUNT_ID even though in practice both hold the same
+    Cloudflare account: tying mail delivery to the storage config would mean one
+    could not be moved without the other.
+  */
+  CLOUDFLARE_ACCOUNT_ID: v.optional(v.string()),
+  CLOUDFLARE_EMAIL_API_TOKEN: v.optional(v.string()),
+
+  /*
+    AWS SES. Omit the two access keys to fall back on the SDK's default credential
+    chain, so an instance role works without putting secrets in the environment.
+  */
   AWS_SES_REGION: v.optional(v.string()),
   AWS_SES_ACCESS_KEY_ID: v.optional(v.string()),
   AWS_SES_SECRET_ACCESS_KEY: v.optional(v.string()),
@@ -173,17 +199,38 @@ if (!parsed.success) {
 export const env = parsed.output;
 
 /*
-  The console transport writes activation and magic links to the log instead of
-  sending them. In development that is the point; in production it would mean
-  every customer silently never receives the link that lets them in, with no
-  error anywhere to show it. Fail at boot instead.
+  Mail failures are the quietest kind. The console transport writes activation and
+  magic links to the log instead of sending them: in development that is the point,
+  in production it means every customer silently never receives the link that lets
+  them in, with no error anywhere to show it. A provider selected but left
+  unconfigured is the same failure one step later — the adapter throws on first
+  send, and order placement is built to log that and keep the order, so nothing
+  louder than a log line ever happens.
+
+  Both are cheap to catch at boot, where a refusal to start is unmissable.
 */
 if (env.NODE_ENV === 'production') {
-  if (env.MAIL_TRANSPORT !== 'ses') {
-    throw new Error('MAIL_TRANSPORT must be "ses" in production; "console" only logs the email.');
+  if (env.MAIL_TRANSPORT === 'console') {
+    throw new Error(
+      'MAIL_TRANSPORT must be "plunk", "cloudflare" or "ses" in production; "console" only logs the email.',
+    );
   }
   if (!env.MAIL_FROM_ADDRESS) {
     throw new Error('MAIL_FROM_ADDRESS is required in production.');
+  }
+  if (env.MAIL_TRANSPORT === 'plunk' && !env.PLUNK_API_KEY) {
+    throw new Error('PLUNK_API_KEY is required when MAIL_TRANSPORT is "plunk".');
+  }
+  if (
+    env.MAIL_TRANSPORT === 'cloudflare' &&
+    (!env.CLOUDFLARE_ACCOUNT_ID || !env.CLOUDFLARE_EMAIL_API_TOKEN)
+  ) {
+    throw new Error(
+      'CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_EMAIL_API_TOKEN are required when MAIL_TRANSPORT is "cloudflare".',
+    );
+  }
+  if (env.MAIL_TRANSPORT === 'ses' && !env.AWS_SES_REGION) {
+    throw new Error('AWS_SES_REGION is required when MAIL_TRANSPORT is "ses".');
   }
 }
 
