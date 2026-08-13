@@ -10,6 +10,7 @@ import { clientIp, rateLimit } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
 import { toPageMeta } from '../products/mapper.ts';
 import {
+  toCalendarEvent,
   toCartDetail,
   toCartSummary,
   toOrderDetail,
@@ -21,7 +22,9 @@ import {
   AdminCartQuerySchema,
   AdminOrderQuerySchema,
   AdminUpdateOrderSchema,
+  CalendarQuerySchema,
   CartIdParamSchema,
+  CustomerSearchQuerySchema,
   OrderIdParamSchema,
   OrderStatusTransitionSchema,
   PaymentStatusTransitionSchema,
@@ -97,6 +100,42 @@ export const orderAdminRoutes = new Hono<AppEnv>()
   .get('/stats', requirePermission(P.ORDER_READ), async (c) => {
     return c.json({ data: await service.windowStats(c.get('db'), 30) });
   })
+
+  .get(
+    '/calendar',
+    requirePermission(P.ORDER_READ),
+    validate('query', CalendarQuerySchema),
+    async (c) => {
+      const { from, to } = c.req.valid('query');
+      const entries = await service.calendarEntries(c.get('db'), from, to);
+      return c.json({ data: entries.map(toCalendarEvent) });
+    },
+  )
+
+  .get(
+    '/customers',
+    requirePermission(P.ORDER_READ),
+    validate('query', CustomerSearchQuerySchema),
+    async (c) => {
+      const rows = await service.searchCustomers(c.get('db'), c.req.valid('query').q);
+      const data = rows.map((row) => {
+        const address = row.shippingAddress;
+        const addressText = address
+          ? `${address.line1 ?? ''}, ${address.postalCode ?? ''} ${address.city ?? ''}`
+          : '';
+        return {
+          email: row.email,
+          fullName: `${row.firstName ?? ''} ${row.lastName ?? ''}`.trim(),
+          phone: row.phone,
+          customerType: row.customerType,
+          codiceFiscale: row.codiceFiscale,
+          partitaIva: row.partitaIva,
+          address: addressText,
+        };
+      });
+      return c.json({ data });
+    },
+  )
 
   .get(
     '/:id',

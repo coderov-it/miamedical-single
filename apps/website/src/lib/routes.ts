@@ -30,12 +30,28 @@ export const routes = {
   activateAccount: '/attiva-account/',
   resetPassword: '/reimposta-password/',
   reportOrder: '/segnala-ordine/',
+  signContract: '/firma-contratto/',
+  blog: '/blog/',
 } as const;
 
 export type RouteKey = keyof typeof routes;
 
 export function productPath(slug: string): string {
   return `${routes.product}${slug}/`;
+}
+
+export function blogPostPath(slug: string): string {
+  return `${routes.blog}${slug}/`;
+}
+
+export function blogPath(
+  params: { categoria?: string; page?: number } = {},
+): string {
+  const search = new URLSearchParams();
+  if (params.categoria) search.set('categoria', params.categoria);
+  if (params.page && params.page > 1) search.set('page', String(params.page));
+  const qs = search.toString();
+  return qs ? `${routes.blog}?${qs}` : routes.blog;
 }
 
 /** Catalogue URL with the browse state preserved. */
@@ -73,4 +89,5 @@ export const PRIVATE_ROUTES: RouteKey[] = [
   'activateAccount',
   'resetPassword',
   'reportOrder',
+  'signContract',
 ];

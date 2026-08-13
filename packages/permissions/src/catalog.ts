@@ -53,6 +53,8 @@ export const PERMISSION_GROUPS = [
   'Content',
   'Attributes',
   'Delivery',
+  'Contracts',
+  'Blog',
 ] as const;
 
 export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
@@ -272,6 +274,49 @@ export const PERMISSION_DEFINITIONS = {
     key: 'delivery_zone:delete',
     label: 'Delete delivery zones',
     group: 'Delivery',
+  },
+  // --- 2100 · contracts -----------------------------------------------------
+  CONTRACT_READ: {
+    code: 2100,
+    key: 'contract:read',
+    label: 'View contracts',
+    group: 'Contracts',
+  },
+  CONTRACT_UPDATE: {
+    code: 2101,
+    key: 'contract:update',
+    label: 'Update contracts',
+    group: 'Contracts',
+  },
+  CONTRACT_CREATE: {
+    code: 2102,
+    key: 'contract:create',
+    label: 'Create contracts',
+    group: 'Contracts',
+  },
+
+  // --- 2200 · blog ----------------------------------------------------------
+  BLOG_READ: { code: 2200, key: 'blog:read', label: 'View blog posts', group: 'Blog' },
+  BLOG_UPDATE: { code: 2201, key: 'blog:update', label: 'Update blog posts', group: 'Blog' },
+  BLOG_CREATE: { code: 2202, key: 'blog:create', label: 'Create blog posts', group: 'Blog' },
+  BLOG_DELETE: { code: 2203, key: 'blog:delete', label: 'Delete blog posts', group: 'Blog' },
+  BLOG_PUBLISH: {
+    code: 2210,
+    key: 'blog:publish',
+    label: 'Publish and archive blog posts',
+    group: 'Blog',
+  },
+  BLOG_CATEGORY_READ: {
+    code: 2220,
+    key: 'blog:category:read',
+    label: 'View blog categories',
+    group: 'Blog',
+  },
+  BLOG_CATEGORY_MANAGE: {
+    code: 2221,
+    key: 'blog:category:manage',
+    label: 'Manage blog categories',
+    group: 'Blog',
   },
 } as const satisfies Record<string, PermissionDefinition>;
 

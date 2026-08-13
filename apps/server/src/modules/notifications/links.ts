@@ -41,6 +41,8 @@ export const accountOrdersUrl = () => siteUrl(PATHS.accountOrders);
 
 export const loginUrl = () => siteUrl(PATHS.login);
 
+export const contractSigningUrl = (token: string) => siteUrl('/firma-contratto/', token);
+
 /** Deep link into the admin SPA for an internal alert. */
 export const adminDisputeUrl = (disputeId: string) =>
   `${env.PUBLIC_ADMIN_URL}/order-disputes/${disputeId}`;

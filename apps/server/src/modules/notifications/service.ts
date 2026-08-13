@@ -97,6 +97,46 @@ export function sendOrderPlacedConfirmation(input: OrderMailContext): Promise<vo
   );
 }
 
+export function sendContractReady(input: {
+  email: string;
+  customerName: string;
+  contractNumber: string;
+  orderNumber: string | null;
+  signingToken: string;
+  language: 'it' | 'en';
+}): Promise<void> {
+  return sendQuietly(
+    templates.contractReady({
+      to: input.email,
+      customerName: input.customerName,
+      contractNumber: input.contractNumber,
+      orderNumber: input.orderNumber,
+      signingUrl: links.contractSigningUrl(input.signingToken),
+      language: input.language,
+    }),
+    `contract ${input.contractNumber} ready`,
+  );
+}
+
+export function sendContractSigned(input: {
+  email: string;
+  customerName: string;
+  contractNumber: string;
+  orderNumber: string | null;
+  language: 'it' | 'en';
+}): Promise<void> {
+  return sendQuietly(
+    templates.contractSigned({
+      to: input.email,
+      customerName: input.customerName,
+      contractNumber: input.contractNumber,
+      orderNumber: input.orderNumber,
+      language: input.language,
+    }),
+    `contract ${input.contractNumber} signed`,
+  );
+}
+
 export function sendMagicLink(input: { email: string; token: string }): Promise<void> {
   return sendOrThrow(
     templates.magicLink({ to: input.email, url: links.magicLinkUrl(input.token) }),

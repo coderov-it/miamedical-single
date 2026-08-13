@@ -15,7 +15,9 @@ import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import TagsIcon from '@lucide/svelte/icons/tags';
 import TruckIcon from '@lucide/svelte/icons/truck';
+import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
+import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 import type { Component } from 'svelte';
 
 import { canVisit } from './route-access.ts';
@@ -50,9 +52,16 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     title: 'Sales',
     items: [
       { title: 'Orders', url: routes.orders, icon: ShoppingCartIcon },
+      { title: 'Contracts', url: routes.contracts, icon: FileSignatureIcon },
       { title: 'Carts', url: routes.carts, icon: BanknoteIcon },
       { title: 'Delivery Zones', url: routes.deliveryZones, icon: TruckIcon },
       { title: 'Disputed Orders', url: routes.orderDisputes, icon: ShieldAlertIcon },
+    ],
+  },
+  {
+    title: 'Content',
+    items: [
+      { title: 'Blog Posts', url: routes.blog, icon: NewspaperIcon },
     ],
   },
   {

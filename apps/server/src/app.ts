@@ -17,6 +17,8 @@ import {
   orderDisputeAdminRoutes,
   orderDisputePublicRoutes,
 } from './modules/order-disputes/routes.ts';
+import { blogAdminRoutes, blogPublicRoutes } from './modules/blog/routes.ts';
+import { contractAdminRoutes, contractPublicRoutes } from './modules/contracts/routes.ts';
 import { settingsAdminRoutes } from './modules/settings/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { deliveryPublicRoutes, deliveryZoneAdminRoutes } from './modules/delivery/routes.ts';
@@ -91,7 +93,11 @@ const routes = app
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/delivery-zones', deliveryZoneAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
-  .route('/api/admin/settings', settingsAdminRoutes);
+  .route('/api/admin/settings', settingsAdminRoutes)
+  .route('/api/admin/contracts', contractAdminRoutes)
+  .route('/api/admin/blog', blogAdminRoutes)
+  .route('/api/contracts', contractPublicRoutes)
+  .route('/api/blog', blogPublicRoutes);
 
 app.onError(onError);
 app.notFound(onNotFound);

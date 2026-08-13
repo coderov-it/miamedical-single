@@ -24,11 +24,20 @@ export const routes = {
   /** The queue with a detail drawer open — deep-linkable and refresh-safe. */
   ordersWithDrawer: (id: string) => `/orders?order=${id}`,
 
+  contracts: '/contracts',
+  contractNew: '/contracts/new',
+  contractDetail: (id: string) => `/contracts/${id}`,
+
   carts: '/carts',
   /** "I did not place this order" reports raised from an order email. */
   orderDisputes: '/order-disputes',
   /** The delivery price tree: country → region → province → comune → comune+CAP. */
   deliveryZones: '/delivery-zones',
+
+  blog: '/blog',
+  blogNew: '/blog/new',
+  blogDetail: (id: string) => `/blog/${id}`,
+  blogCategories: '/blog/categories',
 
   /** Operator-editable platform settings. */
   notificationSettings: '/settings/notifications',
@@ -39,4 +48,6 @@ export const routes = {
 export const routePatterns = {
   productDetail: '/products/:id',
   orderDetail: '/orders/:id',
+  contractDetail: '/contracts/:id',
+  blogDetail: '/blog/:id',
 } as const;
