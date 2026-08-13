@@ -21,3 +21,4 @@
 export * from './brand.ts';
 export * from './contact.ts';
 export * from './literal/email/index.ts';
+export * from './literal/contract/index.ts';

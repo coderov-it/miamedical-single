@@ -32,9 +32,17 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
 
   { pattern: routes.orders, requiredAny: [P.ORDER_READ] },
   { pattern: routePatterns.orderDetail, requiredAny: [P.ORDER_READ] },
+  { pattern: routes.contracts, requiredAny: [P.CONTRACT_READ] },
+  { pattern: routes.contractNew, requiredAny: [P.CONTRACT_CREATE] },
+  { pattern: routePatterns.contractDetail, requiredAny: [P.CONTRACT_READ] },
   { pattern: routes.carts, requiredAny: [P.ORDER_READ] },
   { pattern: routes.orderDisputes, requiredAny: [P.ORDER_DISPUTE_READ] },
   { pattern: routes.deliveryZones, requiredAny: [P.DELIVERY_ZONE_READ] },
+
+  { pattern: routes.blog, requiredAny: [P.BLOG_READ] },
+  { pattern: routes.blogNew, requiredAny: [P.BLOG_CREATE] },
+  { pattern: routePatterns.blogDetail, requiredAny: [P.BLOG_READ] },
+  { pattern: routes.blogCategories, requiredAny: [P.BLOG_CATEGORY_READ] },
 
   { pattern: routes.notificationSettings, requiredAny: [P.SETTING_READ] },
 ];

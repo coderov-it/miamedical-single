@@ -1,0 +1,106 @@
+---
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { mediaUrl } from '~/lib/api';
+import { getBlogPostBySlug } from '~/lib/blog';
+import { blogPostPath, routes } from '~/lib/routes';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const post = slug ? await getBlogPostBySlug(slug) : null;
+
+if (!post) {
+  return Astro.rewrite('/404');
+}
+
+const publishedAt = post.publishedAt
+  ? new Intl.DateTimeFormat('it-IT', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(post.publishedAt))
+  : null;
+
+const pageTitle = post.metaTitle || post.title;
+const pageDescription =
+  post.metaDescription || post.excerpt || `Leggi "${post.title}" sul blog di Mia Medical Italia.`;
+const canonical = new URL(blogPostPath(post.slug), Astro.site ?? Astro.url.origin).href;
+const ogImage = post.featuredImage ? mediaUrl(post.featuredImage) : undefined;
+
+const jsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  ...(post.excerpt ? { description: post.excerpt } : {}),
+  ...(post.publishedAt ? { datePublished: post.publishedAt } : {}),
+  ...(ogImage ? { image: ogImage } : {}),
+  url: canonical,
+  publisher: {
+    '@type': 'Organization',
+    name: 'Mia Medical Italia',
+    url: (Astro.site ?? Astro.url.origin).toString(),
+  },
+};
+---
+
+<BaseLayout
+  title={`${pageTitle} | Blog — Mia Medical Italia`}
+  description={pageDescription}
+  {canonical}
+  {ogImage}
+  jsonLd={[jsonLd]}
+>
+  <article class="max-w-page mid:px-8 pb-section-sm mid:pb-section mx-auto w-full px-5">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/' },
+        { label: 'Blog', href: routes.blog },
+        { label: post.title },
+      ]}
+    />
+
+    <header class="mx-auto max-w-[740px] pt-4 pb-8 text-center">
+      {
+        post.categories.length > 0 && (
+          <div class="mb-3 flex flex-wrap justify-center gap-2">
+            {post.categories.map((cat) => (
+              <a
+                class="text-accent font-display text-[13px] font-semibold uppercase tracking-wide no-underline hover:underline"
+                href={`${routes.blog}?categoria=${cat.slug}`}
+              >
+                {(cat.name as { it: string }).it}
+              </a>
+            ))}
+          </div>
+        )
+      }
+
+      <h1 class="text-[clamp(1.75rem,3.2vw,2.5rem)]/[1.18] text-balance">{post.title}</h1>
+
+      {
+        publishedAt && (
+          <p class="text-ink-2 mt-4 text-[15px]">{publishedAt}</p>
+        )
+      }
+    </header>
+
+    {
+      post.featuredImage && (
+        <figure class="mx-auto mb-10 max-w-[900px]">
+          <img
+            class="rounded-card w-full object-cover"
+            src={mediaUrl(post.featuredImage)}
+            alt=""
+            loading="eager"
+          />
+        </figure>
+      )
+    }
+
+    <div
+      class="prose mx-auto max-w-[740px]"
+      set:html={post.body}
+    />
+  </article>
+</BaseLayout>

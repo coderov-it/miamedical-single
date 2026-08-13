@@ -69,6 +69,17 @@ export const PaymentStatusTransitionSchema = v.object({
   note: NoteSchema,
 });
 
+export const CalendarQuerySchema = v.object({
+  from: DateOnlySchema,
+  to: DateOnlySchema,
+});
+
+/** Free-text lookup of past customers, for prefilling a manual contract. */
+export const CustomerSearchQuerySchema = v.object({
+  q: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(120)),
+});
+
+export type CalendarQuery = v.InferOutput<typeof CalendarQuerySchema>;
 export type AdminOrderQuery = v.InferOutput<typeof AdminOrderQuerySchema>;
 export type AdminCartQuery = v.InferOutput<typeof AdminCartQuerySchema>;
 export type AdminUpdateOrderInput = v.InferOutput<typeof AdminUpdateOrderSchema>;
