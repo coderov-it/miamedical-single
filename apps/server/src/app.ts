@@ -10,6 +10,14 @@ import { db } from './infra/db/client.ts';
 import { addressPublicRoutes } from './modules/address/routes.ts';
 import { attributeAdminRoutes } from './modules/attributes/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
+import { customerAccountRoutes } from './modules/customer-account/routes.ts';
+import { customerAuthRoutes } from './modules/customer-auth/routes.ts';
+import { emailPreviewRoutes } from './modules/email-preview/routes.ts';
+import {
+  orderDisputeAdminRoutes,
+  orderDisputePublicRoutes,
+} from './modules/order-disputes/routes.ts';
+import { settingsAdminRoutes } from './modules/settings/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { deliveryPublicRoutes, deliveryZoneAdminRoutes } from './modules/delivery/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
@@ -17,6 +25,7 @@ import { mediaRoutes } from './modules/media/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
+import { withCustomerSession } from './shared/auth/customer-session.ts';
 import { withSession } from './shared/auth/session.ts';
 import type { AppEnv } from './shared/http/context.ts';
 import { onError, onNotFound } from './shared/http/error-handler.ts';
@@ -41,6 +50,21 @@ app.use(
 );
 app.use('/api/*', csrf({ origin: env.CORS_ORIGINS }));
 app.use('/api/*', withSession);
+/* Storefront sessions resolve alongside back-office ones. Both middlewares
+   short-circuit when their cookie is absent, so an anonymous request still costs
+   no query — and a browser holding both cookies is a normal state, not a clash. */
+app.use('/api/*', withCustomerSession);
+
+/*
+  Mounted on its own, ahead of the chain and outside `/api`, for three reasons: it
+  serves HTML to a human rather than JSON to the RPC client, so it has nothing to
+  contribute to `AppType`; it needs neither CORS, CSRF nor a session; and it must not
+  exist in production, which a conditional cannot express inside a chained expression.
+*/
+if (env.NODE_ENV !== 'production') {
+  app.route('/email-preview', emailPreviewRoutes);
+  console.log('[email-preview] template gallery at /email-preview');
+}
 
 /**
  * Module mounting. Chained `.route()` calls preserve the literal route types,
@@ -55,6 +79,9 @@ const routes = app
   .route('/api/delivery', deliveryPublicRoutes)
   .route('/api/address', addressPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
+  .route('/api/order-disputes', orderDisputePublicRoutes)
+  .route('/api/customer/auth', customerAuthRoutes)
+  .route('/api/customer', customerAccountRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)
@@ -62,7 +89,9 @@ const routes = app
   .route('/api/admin/attributes', attributeAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
-  .route('/api/admin/delivery-zones', deliveryZoneAdminRoutes);
+  .route('/api/admin/delivery-zones', deliveryZoneAdminRoutes)
+  .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
+  .route('/api/admin/settings', settingsAdminRoutes);
 
 app.onError(onError);
 app.notFound(onNotFound);

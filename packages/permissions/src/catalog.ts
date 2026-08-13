@@ -69,6 +69,18 @@ export const PERMISSION_DEFINITIONS = {
   ORDER_FULFIL: { code: 1110, key: 'order:fulfil', label: 'Fulfil orders', group: 'Orders' },
   ORDER_REFUND: { code: 1111, key: 'order:refund', label: 'Refund orders', group: 'Orders' },
   ORDER_EXPORT: { code: 1112, key: 'order:export', label: 'Export orders', group: 'Orders' },
+  ORDER_DISPUTE_READ: {
+    code: 1113,
+    key: 'order:dispute:read',
+    label: 'View disputed orders',
+    group: 'Orders',
+  },
+  ORDER_DISPUTE_UPDATE: {
+    code: 1114,
+    key: 'order:dispute:update',
+    label: 'Resolve disputed orders',
+    group: 'Orders',
+  },
 
   // --- 1200 · products -----------------------------------------------------
   PRODUCT_READ: { code: 1200, key: 'product:read', label: 'View products', group: 'Products' },

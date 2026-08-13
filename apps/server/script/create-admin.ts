@@ -1,16 +1,20 @@
 /**
  * Creates or updates a back-office account.
  *
- *   pnpm --filter @mia/server admin:create -- --email you@example.com --role super_admin
+ *   pnpm --filter @mia/server admin:create -- --email you@example.com --superuser
+ *   pnpm --filter @mia/server admin:create -- --email staff@example.com --permissions 1100,1101,1200
  *
  * The password is read from `ADMIN_PASSWORD` or prompted for, never taken from
  * an argument — arguments end up in shell history and in `ps` output.
  *
- * This is the only way the first `super_admin` comes into existence: there is
+ * This is the only way the first superuser comes into existence: there is
  * deliberately no self-service registration for the admin panel.
+ *
+ * Access is attribute-based — a list of permission codes, plus `--superuser`
+ * meaning "every code". There are no roles; see `@mia/permissions`.
  */
 import { createDatabase, eq } from '@mia/db';
-import { users } from '@mia/db/schema';
+import { adminUsers } from '@mia/db/schema';
 import { normalizePermissions } from '@mia/permissions';
 import type { Interface } from 'node:readline';
 import { createInterface } from 'node:readline';
@@ -19,9 +23,6 @@ import { parseArgs } from 'node:util';
 import { env } from '../src/config/env.ts';
 import { hashPassword } from '../src/shared/auth/password.ts';
 
-const ROLES = ['staff', 'admin', 'super_admin'] as const;
-type Role = (typeof ROLES)[number];
-
 // `pnpm run … -- --email x` forwards the `--` itself, which parseArgs would
 // treat as an argument terminator and reject everything after it.
 const { values } = parseArgs({
@@ -29,7 +30,7 @@ const { values } = parseArgs({
   options: {
     email: { type: 'string' },
     name: { type: 'string' },
-    role: { type: 'string', default: 'super_admin' },
+    superuser: { type: 'boolean', default: false },
     permissions: { type: 'string' },
   },
 });
@@ -37,16 +38,18 @@ const { values } = parseArgs({
 const email = values.email?.trim().toLowerCase();
 if (!email) fail('Missing --email.');
 
-const role = values.role as Role;
-if (!ROLES.includes(role)) fail(`--role must be one of: ${ROLES.join(', ')}`);
+const isSuperuser = values.superuser === true;
 
-/** A super admin passes every check, so storing codes against one is noise. */
-const permissions =
-  role === 'super_admin'
-    ? []
-    : normalizePermissions(
-        (values.permissions ?? '').split(',').map(Number).filter(Number.isFinite),
-      );
+/** A superuser passes every check, so storing codes against one is noise. */
+const permissions = isSuperuser
+  ? []
+  : normalizePermissions((values.permissions ?? '').split(',').map(Number).filter(Number.isFinite));
+
+// An account with neither is real but can reach nothing, which is almost always
+// a forgotten flag rather than an intention.
+if (!isSuperuser && permissions.length === 0) {
+  fail('Give --superuser or --permissions; an account with neither can open nothing.');
+}
 
 const password = process.env.ADMIN_PASSWORD ?? (await prompt('Password: '));
 if (password.length < 12) fail('Password must be at least 12 characters.');
@@ -54,32 +57,37 @@ if (password.length < 12) fail('Password must be at least 12 characters.');
 const db = createDatabase({ url: env.DATABASE_URL, logger: false });
 const passwordHash = await hashPassword(password);
 
-const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+const [existing] = await db
+  .select({ id: adminUsers.id })
+  .from(adminUsers)
+  .where(eq(adminUsers.email, email));
+
+const access = isSuperuser ? 'superuser' : `${permissions.length} permissions`;
 
 if (existing) {
   await db
-    .update(users)
+    .update(adminUsers)
     .set({
       passwordHash,
-      role,
+      isSuperuser,
       permissions,
       isActive: true,
       ...(values.name ? { fullName: values.name } : {}),
     })
-    .where(eq(users.id, existing.id));
+    .where(eq(adminUsers.id, existing.id));
 
-  console.log(`Updated ${email} (${role}).`);
+  console.log(`Updated ${email} (${access}).`);
 } else {
-  await db.insert(users).values({
+  await db.insert(adminUsers).values({
     email,
     fullName: values.name ?? null,
     passwordHash,
-    role,
+    isSuperuser,
     permissions,
     emailVerifiedAt: new Date(),
   });
 
-  console.log(`Created ${email} (${role}).`);
+  console.log(`Created ${email} (${access}).`);
 }
 
 process.exit(0);

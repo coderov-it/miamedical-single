@@ -11,11 +11,20 @@ import type { Database } from '@mia/db';
 import { STORE_PICKUP_FEE, addMoney } from '@mia/pricing';
 import type { PlaceOrderInput } from '@mia/validators';
 
-import type { SessionUser } from '../../shared/http/context.ts';
+import type { SessionCustomer, SessionUser } from '../../shared/http/context.ts';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
+/* Identity is customer-auth's decision, not this module's. The dependency runs one
+   way — customer-auth knows nothing about orders — which is why the helper lives
+   in its own file there rather than in that module's service. */
+import {
+  type ResolvedOrderAccount,
+  issueOrderMailTokens,
+  resolveForOrder,
+} from '../customer-auth/order-account.ts';
 /* The one resolver. The storefront calls it over `POST /api/delivery/quote` to
    show a figure; placement calls it directly to write one. */
 import { resolveQuote } from '../delivery/service.ts';
+import * as notifications from '../notifications/service.ts';
 import * as productRepo from '../products/catalog/repo.ts';
 import { toPublicDetail } from '../products/mapper.ts';
 import { multiply, sumMoney } from './mapper.ts';
@@ -144,7 +153,7 @@ async function transition(
     fromValue: from,
     toValue: to,
     note: note ?? null,
-    actorUserId: actor?.id ?? null,
+    actorAdminUserId: actor?.id ?? null,
   });
 
   return getById(db, id);
@@ -292,7 +301,17 @@ function deliverySnapshot(delivery: PlaceOrderInput['delivery']): {
  * `unpaid` because nothing is charged online: the phone call settles payment, and
  * the admin's state machine takes it from there.
  */
-export async function place(db: Database, input: PlaceOrderInput): Promise<PlacedOrder> {
+export interface PlacementContext {
+  /** Present when the order was placed from inside a signed-in storefront session. */
+  session: SessionCustomer | null;
+  ipAddress: string | null;
+}
+
+export async function place(
+  db: Database,
+  input: PlaceOrderInput,
+  context: PlacementContext,
+): Promise<PlacedOrder> {
   const lines: ResolvedLine[] = [];
 
   /* Sequential rather than `Promise.all`: at most 20 lines, and the first
@@ -379,7 +398,34 @@ export async function place(db: Database, input: PlaceOrderInput): Promise<Place
   */
   const snapshot = addressSnapshot(input.customer, shipTo);
 
+  /*
+    Who this order belongs to. Decided before the insert so the order is never
+    written unattached and then patched — a half-linked order is a state no reader
+    should have to allow for. The branches, and why an unverified link is the
+    honest default, are in modules/customer-auth/order-account.ts.
+  */
+  const account = await resolveForOrder(
+    db,
+    {
+      email: input.customer.email,
+      firstName: input.customer.firstName,
+      lastName: input.customer.lastName,
+      phone: input.customer.phone,
+    },
+    context.session,
+    context.ipAddress,
+  );
+
   const created = await repo.insertOrder(db, {
+    customerAccountId: account.customerAccountId,
+    customerLinkStatus: account.customerLinkStatus,
+    /*
+      The name as its own columns, not only inside the address snapshot. A store
+      pickup has no address, so snapshotting the name into a null address lost it
+      outright — see the two `storePickup` rows that predate this.
+    */
+    firstName: input.customer.firstName,
+    lastName: input.customer.lastName,
     email: input.customer.email,
     phone: input.customer.phone,
     customerType: input.customer.customerType,
@@ -405,7 +451,88 @@ export async function place(db: Database, input: PlaceOrderInput): Promise<Place
     })),
   });
 
+  /*
+    Mail goes out only after the transaction has committed, and a failure to send
+    is logged rather than thrown. The order is a recorded fact the moment it
+    commits; letting an SES outage propagate from here would turn a delivery
+    problem into a lost order, and the customer already has their number on screen.
+
+    `notifications` swallows transport errors itself — the try/catch is for the two
+    database writes above it (the report token, and reading the account back).
+  */
+  try {
+    await sendPlacementMail(db, {
+      account,
+      orderId: created.id,
+      order: { number: created.number, total, currency },
+      ipAddress: context.ipAddress,
+    });
+  } catch (error) {
+    console.error(`[orders] order ${created.number} placed but its email failed:`, error);
+  }
+
   return { ...created, subtotal, shippingTotal, total, currency, items: lines };
+}
+
+/**
+ * The one email an order sends, in whichever of its three forms applies.
+ *
+ * Every form carries a fresh `order_report` token, so "I did not place this order"
+ * is reachable from any of them — an already-activated account is exactly the case
+ * where somebody else ordering under that address matters most.
+ */
+async function sendPlacementMail(
+  db: Database,
+  input: {
+    account: ResolvedOrderAccount;
+    orderId: string;
+    order: { number: string; total: string; currency: string };
+    ipAddress: string | null;
+  },
+): Promise<void> {
+  const { account, order } = input;
+  if (account.mailPlan === 'none') return;
+
+  const needsActivation =
+    account.mailPlan === 'newAccount' || account.mailPlan === 'activateReminder';
+
+  /*
+    Both tokens reference this order. That is what lets the activation link double
+    as the confirmation of the account link: following it proves the customer reads
+    the inbox the order was placed under, which is exactly the claim `unverified`
+    was recording.
+  */
+  const { activationToken, reportToken } = await issueOrderMailTokens(db, {
+    customerAccountId: account.customerAccountId,
+    orderId: input.orderId,
+    ipAddress: input.ipAddress,
+    withActivation: needsActivation,
+  });
+
+  const common = {
+    email: account.email,
+    firstName: account.firstName,
+    lastName: account.lastName,
+    order,
+    reportToken,
+  };
+
+  switch (account.mailPlan) {
+    case 'newAccount':
+      // `needsActivation` guarantees the token; the check keeps the type honest.
+      if (activationToken) {
+        await notifications.sendOrderPlacedNewAccount({ ...common, activationToken });
+      }
+      return;
+    case 'activateReminder':
+      if (activationToken) {
+        await notifications.sendOrderPlacedActivateReminder({ ...common, activationToken });
+      }
+      return;
+    case 'confirmation':
+      await notifications.sendOrderPlacedConfirmation(common);
+      return;
+  }
 }
 
 // --- carts -----------------------------------------------------------------

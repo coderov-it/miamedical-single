@@ -7,12 +7,11 @@ export interface SessionUserDto {
   id: string;
   email: string;
   fullName: string | null;
-  role: 'customer' | 'staff' | 'admin' | 'super_admin';
   /**
-   * Effective permission codes. A super admin is expanded to the full catalog
-   * here so the UI can run the same `can(code)` check for everyone.
+   * Effective permission codes. A superuser is expanded to the full catalog here
+   * so the UI can run the same `can(code)` check for everyone.
    */
   permissions: number[];
-  /** Set when the role bypasses permission checks entirely. */
-  isSuperAdmin: boolean;
+  /** Holds every code, including ones added to the catalog later. */
+  isSuperuser: boolean;
 }

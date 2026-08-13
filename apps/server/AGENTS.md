@@ -102,16 +102,23 @@ Split by capability, not by layer — a sub-folder owns a slice end to end.
 
 ## Modules not yet built
 
-`access`, `cart`, `notifications`, `orders`, `payments`, `settings`, `users`,
-`webhooks`. Follow the anatomy above when adding one, and mount it in `app.ts`
-with a chained `.route()` so RPC types stay inferred.
+`access`, `cart`, `customers` (a back-office view of accounts), `payments`,
+`users`, `webhooks`. Follow the anatomy above when adding one, and mount it in
+`app.ts` with a chained `.route()` so RPC types stay inferred.
 
 Built: `products` (capability sub-folders: catalog, variants, specs, addons,
 faqs, questions, terms-links, media), `categories`, `media` (upload + staging
-deletion only — no DB), `terms`, `attributes`.
+deletion only — no DB), `terms`, `attributes`, `orders`, `delivery`, `address`,
+`auth`, `customer-auth`, `customer-account`, `order-disputes`, `notifications`
+(not routed — a service other modules call; the email markup itself lives in
+`@mia/templates`, so a preview page can render it without a transport), `settings`,
+`email-preview` (development only — a gallery of every email at `/email-preview`, not
+mounted when `NODE_ENV=production`).
 
-Infra adapters still to add: `cache/`, `mail/`, `swagger/`. Built:
-`storage/` (Cloudflare R2 behind the `ObjectStorage` port).
+Infra adapters still to add: `cache/`, `swagger/`. Built: `storage/`
+(Cloudflare R2 behind the `ObjectStorage` port), `convert/` (sharp), `mail/`
+(AWS SES v2, with a console transport for local development — see
+docs/code/notifications-and-mail.md).
 
 ## Dependency injection
 

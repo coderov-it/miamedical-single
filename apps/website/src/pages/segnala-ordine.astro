@@ -1,0 +1,130 @@
+---
+/**
+ * "I did not place this order."
+ *
+ * Reached only from the button in an order email. The emailed token is the entire
+ * authorisation — no account, no sign-in, no order number in the URL — because the
+ * person filling this in may be exactly the person who does NOT own the account the
+ * order was attached to.
+ *
+ * For the same reason the page shows nothing about the order. Confirming what was
+ * ordered, or by whom, to whoever holds the link would be the leak this form exists
+ * to report.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { CONTACT } from '~/lib/site';
+
+export const prerender = false;
+
+const field =
+  'w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-[15px] outline-none focus:border-neutral-900';
+const label = 'mb-1.5 block text-sm font-medium';
+---
+
+<BaseLayout
+  title="Segnala un ordine | Mia Medical Italia"
+  description="Segnalaci un ordine che non hai effettuato."
+  noindex
+  bare
+>
+  <div class="mx-auto w-full max-w-md px-5 py-12">
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">Non hai effettuato tu questo ordine?</h1>
+
+    <div
+      data-error
+      hidden
+      class="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm"
+    >
+    </div>
+
+    <div data-form-wrap>
+      <p class="mt-3 text-[15px] text-neutral-600">
+        Scrivici cosa è accaduto. Ti contatteremo su WhatsApp per verificare, e nel frattempo non
+        addebiteremo nulla.
+      </p>
+
+      <form data-form class="mt-6 space-y-4" novalidate>
+        <div>
+          <label class={label} for="phone">Il tuo numero WhatsApp</label>
+          <input class={field} id="phone" name="phone" type="tel" autocomplete="tel" required />
+          <p class="mt-1.5 text-xs text-neutral-500">
+            Ti chiediamo di nuovo il numero: quello sull’ordine potrebbe non essere il tuo.
+          </p>
+        </div>
+        <div>
+          <label class={label} for="message">Cosa è accaduto?</label>
+          <textarea class={field} id="message" name="message" rows="4" required></textarea>
+        </div>
+        <button
+          class="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
+          type="submit"
+          data-submit
+        >
+          Invia la segnalazione
+        </button>
+      </form>
+    </div>
+
+    <div data-done hidden class="mt-6 rounded-xl border border-neutral-200 px-4 py-5">
+      <p class="text-[15px] font-medium">Grazie, abbiamo ricevuto la tua segnalazione.</p>
+      <p class="mt-1.5 text-[15px] text-neutral-600">
+        Ti contatteremo su WhatsApp al più presto. Se preferisci, puoi chiamarci al {
+          CONTACT.phoneDisplay
+        }.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { ApiError, reportOrder, tokenFromQuery } from '~/lib/customer-session';
+
+  const formWrap = document.querySelector<HTMLElement>('[data-form-wrap]');
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+  const errorBox = document.querySelector<HTMLElement>('[data-error]');
+  const done = document.querySelector<HTMLElement>('[data-done]');
+  const submit = document.querySelector<HTMLButtonElement>('[data-submit]');
+
+  const token = tokenFromQuery();
+
+  function fail(message: string) {
+    if (!errorBox) return;
+    errorBox.hidden = false;
+    errorBox.textContent = message;
+  }
+
+  if (!token) {
+    if (formWrap) formWrap.hidden = true;
+    fail('Questo link non è completo. Apri di nuovo il collegamento ricevuto via email.');
+  }
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!token) return;
+
+    const phone = document.querySelector<HTMLInputElement>('#phone')?.value.trim() ?? '';
+    const message = document.querySelector<HTMLTextAreaElement>('#message')?.value.trim() ?? '';
+
+    if (phone.length < 5) return fail('Inserisci un numero di telefono valido.');
+    if (message.length === 0) return fail('Raccontaci cosa è accaduto.');
+    if (errorBox) errorBox.hidden = true;
+
+    void (async () => {
+      if (submit) submit.disabled = true;
+      try {
+        await reportOrder({ token, reportedPhone: phone, message });
+        if (formWrap) formWrap.hidden = true;
+        if (done) done.hidden = false;
+      } catch (error) {
+        // The token is single-use, so the most likely failure here is a second
+        // submit of a report that already went through.
+        fail(
+          error instanceof ApiError
+            ? error.message
+            : 'Non è stato possibile inviare la segnalazione. Riprova.',
+        );
+        if (submit) submit.disabled = false;
+      }
+    })();
+  });
+</script>

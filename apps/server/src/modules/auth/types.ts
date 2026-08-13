@@ -1,7 +1,13 @@
-import type { users } from '@mia/db/schema';
+import type { adminUsers } from '@mia/db/schema';
 
-/** Plain database records. Repo returns these; nothing outside the module sees them. */
-export type UserRow = typeof users.$inferSelect;
+/**
+ * Plain database records. Repo returns these; nothing outside the module sees them.
+ *
+ * This module is the BACK-OFFICE side of authentication. Customers sign in through
+ * `modules/customer-auth` against `customer_accounts`, with their own session
+ * table and their own cookie — the two never share a row or a credential.
+ */
+export type AdminUserRow = typeof adminUsers.$inferSelect;
 
 /** Request-derived audit fields recorded against a session at login. */
 export interface SessionMeta {
@@ -14,7 +20,7 @@ export interface SessionMeta {
  * exists server-side — the database stores its SHA-256 and nothing else.
  */
 export interface IssuedSession {
-  user: UserRow;
+  user: AdminUserRow;
   token: string;
   expiresAt: Date;
 }

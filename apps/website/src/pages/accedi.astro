@@ -1,0 +1,209 @@
+---
+/**
+ * Sign in. On demand and noindex — it carries a `next` parameter and there is
+ * nothing here for a search engine.
+ *
+ * **The emailed link is the primary path and is deliberately first.** Every account
+ * here is created by checkout, so the common arrival has no password at all —
+ * leading with a password form would put the dead end above the way in. The
+ * password block sits below it for the minority who set one.
+ *
+ * One `<form>`, not two, so the browser sees the address and the password as a
+ * matched pair and can offer to save the credential. That makes the two Enter keys
+ * ambiguous, which the script resolves explicitly — see the keydown handler.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const field =
+  'w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-[15px] outline-none focus:border-neutral-900';
+const label = 'mb-1.5 block text-sm font-medium';
+const primary =
+  'w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50';
+const secondary =
+  'w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-[15px] font-medium transition hover:border-neutral-900 disabled:opacity-50';
+---
+
+<BaseLayout
+  title="Accedi | Mia Medical Italia"
+  description="Accedi alla tua area clienti per seguire i tuoi ordini."
+  noindex
+  bare
+>
+  <div class="mx-auto w-full max-w-md px-5 py-12">
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">Accedi</h1>
+    <p class="mt-2 text-[15px] text-neutral-600">
+      Entra nella tua area clienti per seguire i tuoi ordini.
+    </p>
+
+    <div
+      data-feedback
+      hidden
+      class="mt-6 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm"
+    >
+    </div>
+
+    <form data-form class="mt-6" novalidate>
+      <div>
+        <label class={label} for="email">Email</label>
+        <input
+          class={field}
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          required
+        />
+      </div>
+
+      <!-- The primary action: submitting the form sends the link. -->
+      <button class={`${primary} mt-4`} type="submit" data-magic-submit>
+        Inviami un link di accesso
+      </button>
+      <p class="mt-2 text-sm text-neutral-600">
+        Ti arriva un link via email e sei dentro. Nessuna password da ricordare.
+      </p>
+
+      <div class="my-7 flex items-center gap-3 text-xs text-neutral-500">
+        <span class="h-px flex-1 bg-neutral-200"></span>
+        oppure
+        <span class="h-px flex-1 bg-neutral-200"></span>
+      </div>
+
+      <div>
+        <label class={label} for="password">Password</label>
+        <input
+          class={field}
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+        />
+        <p class="mt-2 text-sm text-neutral-600">Solo se ne hai impostata una.</p>
+      </div>
+      <button class={`${secondary} mt-4`} type="button" data-password-submit>
+        Accedi con la password
+      </button>
+    </form>
+
+    <p class="mt-6 text-sm">
+      <button class="text-neutral-600 underline" type="button" data-reset>
+        Ho dimenticato la password
+      </button>
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  import {
+    ApiError,
+    login,
+    requestMagicLink,
+    requestPasswordReset,
+    safeNext,
+  } from '~/lib/customer-session';
+  import { routes } from '~/lib/routes';
+
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+  const passwordButton = document.querySelector<HTMLButtonElement>('[data-password-submit]');
+  const magicButton = document.querySelector<HTMLButtonElement>('[data-magic-submit]');
+  const resetButton = document.querySelector<HTMLButtonElement>('[data-reset]');
+  const feedback = document.querySelector<HTMLElement>('[data-feedback]');
+  const emailInput = document.querySelector<HTMLInputElement>('#email');
+  const passwordInput = document.querySelector<HTMLInputElement>('#password');
+
+  const next = safeNext(new URLSearchParams(window.location.search).get('next'), routes.account);
+
+  function say(message: string, tone: 'info' | 'error' = 'info') {
+    if (!feedback) return;
+    feedback.hidden = false;
+    feedback.textContent = message;
+    feedback.classList.toggle('border-red-300', tone === 'error');
+    feedback.classList.toggle('bg-red-50', tone === 'error');
+  }
+
+  /**
+   * The address is needed by all three actions and `novalidate` is set, so it is
+   * checked here rather than submitting an empty string the server would reject.
+   */
+  function email(): string | null {
+    const value = emailInput?.value.trim() ?? '';
+    if (!value.includes('@')) {
+      say('Inserisci il tuo indirizzo email.', 'error');
+      emailInput?.focus();
+      return null;
+    }
+    return value;
+  }
+
+  async function guard(button: HTMLButtonElement | null, work: () => Promise<void>) {
+    if (button) button.disabled = true;
+    try {
+      await work();
+    } catch (error) {
+      say(
+        error instanceof ApiError ? error.message : 'Qualcosa è andato storto. Riprova.',
+        'error',
+      );
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  function sendMagicLink() {
+    const address = email();
+    if (!address) return;
+
+    void guard(magicButton, async () => {
+      const { message } = await requestMagicLink(address);
+      say(message);
+    });
+  }
+
+  function signInWithPassword() {
+    const address = email();
+    const password = passwordInput?.value ?? '';
+    if (!address) return;
+    if (!password) {
+      say('Inserisci la tua password.', 'error');
+      passwordInput?.focus();
+      return;
+    }
+
+    void guard(passwordButton, async () => {
+      await login(address, password);
+      window.location.assign(next);
+    });
+  }
+
+  /* Submitting the form is the primary action — the emailed link. */
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    sendMagicLink();
+  });
+
+  passwordButton?.addEventListener('click', signInWithPassword);
+
+  /*
+   * Enter inside the password field means "sign in with this password", not "mail
+   * me a link" — which is what the form's own submit would do. Both keys now do the
+   * obvious thing, which is the cost of keeping one form for credential saving.
+   */
+  passwordInput?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    signInWithPassword();
+  });
+
+  resetButton?.addEventListener('click', () => {
+    const address = email();
+    if (!address) return;
+
+    void guard(resetButton, async () => {
+      const { message } = await requestPasswordReset(address);
+      say(message);
+    });
+  });
+</script>

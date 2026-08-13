@@ -32,6 +32,9 @@ packages/
   pricing/      Exact money arithmetic + the rental pricing rules, one copy
                 see docs/code/orders-placement.md
   i18n/         Enum labels and the label-catalog helper
+  templates/    Email markup as plain string functions, zero dependencies —
+                importable by the server to send and by a page to preview
+                see docs/code/notifications-and-mail.md
   tsconfig/     Shared TypeScript bases
 ```
 

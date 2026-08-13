@@ -182,6 +182,24 @@
   };
 
   /**
+   * Checkout takes whatever email it is given, so matching an existing account is
+   * a claim until the customer confirms it from their own session. These labels
+   * exist so the panel never presents an unconfirmed match as an identity.
+   */
+  /** `customerLink` joined `status` and `paymentStatus` on the one timeline. */
+  const EVENT_FIELD_LABELS: Record<string, string> = {
+    status: 'Status',
+    paymentStatus: 'Payment',
+    customerLink: 'Account link',
+  };
+
+  const CUSTOMER_LINK_LABELS: Record<string, string> = {
+    unverified: 'Account matched by email · unconfirmed',
+    confirmed: 'Account confirmed by the customer',
+    rejected: 'Account link rejected by the customer',
+  };
+
+  /**
    * `unitPrice × quantity` is not the line total — the rental duration and the
    * add-ons make up the rest. Rather than leave an operator to reconcile two
    * numbers, the configuration row spells out where the difference comes from.
@@ -410,7 +428,7 @@
                   <div class="pb-4">
                     <p class="text-sm">
                       <span class="text-muted-foreground">
-                        {event.field === 'status' ? 'Status' : 'Payment'}
+                        {EVENT_FIELD_LABELS[event.field] ?? event.field}
                       </span>
                       {orDash(event.fromValue)}
                       <span class="text-muted-foreground">→</span>
@@ -419,8 +437,13 @@
                     {#if event.note}
                       <p class="mt-0.5 text-sm text-muted-foreground">{event.note}</p>
                     {/if}
+                    <!-- The actor's side is spelled out: "Confirmed" by an
+                         operator and by the customer are different facts, and
+                         a bare name reads as staff. -->
                     <p class="mt-0.5 text-xs text-muted-foreground">
-                      {event.actorName ?? 'System'} · {formatDateTime(event.createdAt)}
+                      {event.actorName ?? 'System'}{event.actorKind === 'customer'
+                        ? ' (customer)'
+                        : ''} · {formatDateTime(event.createdAt)}
                     </p>
                   </div>
                 </li>
@@ -455,8 +478,16 @@
               Codice fiscale <span class="font-mono">{order.codiceFiscale}</span>
             </p>
           {/if}
+          <!-- An order is attached to an account on an email match alone, so the
+               status beside it is what says whether anyone has vouched for that
+               match. Never show "Registered account" on its own: unconfirmed and
+               confirmed look identical, and only one of them is evidence. -->
           <p class="text-muted-foreground">
-            {order.userId ? 'Registered account' : 'Guest checkout'}
+            {order.customerAccountId
+              ? CUSTOMER_LINK_LABELS[order.customerLinkStatus]
+              : order.customerLinkStatus === 'rejected'
+                ? 'Account link rejected by the customer'
+                : 'Guest checkout'}
           </p>
           <p class="text-muted-foreground">Placed {relativeTime(order.placedAt)}</p>
         </div>

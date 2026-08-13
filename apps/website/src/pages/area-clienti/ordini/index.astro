@@ -1,0 +1,162 @@
+---
+/**
+ * The customer's orders. The reason the whole account exists: before this, an order
+ * number lived only on the confirmation page you were standing on.
+ *
+ * Rendered client-side from `/api/customer/orders` rather than server-side, because
+ * the session is a cookie on the API's origin and this app is a different host —
+ * the same pattern carrello and checkout already use.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { routes } from '~/lib/routes';
+
+export const prerender = false;
+---
+
+<BaseLayout title="I miei ordini | Mia Medical Italia" description="Segui i tuoi ordini." noindex>
+  <div class="mx-auto w-full max-w-3xl px-5 py-10">
+    <nav class="mb-6 text-sm text-neutral-500">
+      <a class="underline" href={routes.account}>Area clienti</a>
+      <span class="mx-1.5">/</span>
+      <span>Ordini</span>
+    </nav>
+
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">I miei ordini</h1>
+
+    <p data-loading class="mt-6 text-[15px] text-neutral-600">Caricamento…</p>
+
+    <div data-empty hidden class="mt-8 rounded-xl border border-neutral-200 px-5 py-8 text-center">
+      <p class="text-[15px] text-neutral-600">Non hai ancora ordini collegati a questo account.</p>
+      <a class="mt-4 inline-block text-[15px] underline" href={routes.catalog}>
+        Sfoglia il catalogo
+      </a>
+    </div>
+
+    <ul data-list hidden class="mt-6 space-y-3"></ul>
+  </div>
+</BaseLayout>
+
+<script>
+  import {
+    ApiError,
+    ORDER_STATUS_LABELS,
+    confirmOrder,
+    formatDate,
+    formatMoney,
+    listOrders,
+    loadCustomer,
+    rejectOrder,
+    type CustomerOrderSummary,
+  } from '~/lib/customer-session';
+  import { accountOrderPath, routes } from '~/lib/routes';
+
+  const loading = document.querySelector<HTMLElement>('[data-loading]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  const list = document.querySelector<HTMLUListElement>('[data-list]');
+
+  function escapeHtml(value: string): string {
+    return value.replace(/[&<>"]/g, (c) =>
+      c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&quot;',
+    );
+  }
+
+  /**
+   * An unverified order is one the account was matched to by email alone. It gets a
+   * prompt rather than being shown as settled — presenting a claim as a fact is the
+   * whole thing this state exists to avoid.
+   */
+  function card(order: CustomerOrderSummary): string {
+    const number = escapeHtml(order.number);
+    const unverified = order.linkStatus === 'unverified';
+
+    return `
+      <li class="rounded-xl border border-neutral-200 p-4" data-order="${number}">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <a class="font-medium underline" href="${accountOrderPath(order.number)}">${number}</a>
+          <span class="tabular-nums">${formatMoney(order.total, order.currency)}</span>
+        </div>
+        <p class="mt-1 text-sm text-neutral-600">
+          ${escapeHtml(ORDER_STATUS_LABELS[order.status] ?? order.status)}
+          · ${order.itemCount} ${order.itemCount === 1 ? 'articolo' : 'articoli'}
+          · ${formatDate(order.placedAt)}
+        </p>
+        ${
+          unverified
+            ? `<div class="mt-3 rounded-lg bg-neutral-50 px-3 py-3" data-prompt>
+                 <p class="text-sm">Questo ordine è stato collegato al tuo indirizzo email. Lo hai effettuato tu?</p>
+                 <div class="mt-2.5 flex flex-wrap gap-2">
+                   <button class="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" data-confirm>Sì, confermo</button>
+                   <button class="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium" data-reject>No, non è mio</button>
+                 </div>
+                 <p class="mt-2 text-xs text-neutral-500" data-prompt-note hidden></p>
+               </div>`
+            : ''
+        }
+      </li>`;
+  }
+
+  async function render() {
+    const orders = await listOrders();
+
+    if (loading) loading.hidden = true;
+
+    if (orders.length === 0) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+
+    if (!list) return;
+    list.hidden = false;
+    list.innerHTML = orders.map(card).join('');
+
+    list.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const item = target.closest<HTMLElement>('[data-order]');
+      const number = item?.dataset.order;
+      if (!item || !number) return;
+
+      const isConfirm = target.closest('[data-confirm]') !== null;
+      const isReject = target.closest('[data-reject]') !== null;
+      if (!isConfirm && !isReject) return;
+
+      const prompt = item.querySelector<HTMLElement>('[data-prompt]');
+      const note = item.querySelector<HTMLElement>('[data-prompt-note]');
+
+      void (async () => {
+        item.querySelectorAll('button').forEach((b) => (b.disabled = true));
+        try {
+          if (isConfirm) {
+            await confirmOrder(number);
+            prompt?.remove();
+          } else {
+            await rejectOrder(number);
+            // Rejecting unlinks it, so it is no longer one of their orders. Drop
+            // the row rather than leaving a card that a reload would not show.
+            item.remove();
+            if (list.children.length === 0) {
+              list.hidden = true;
+              if (empty) empty.hidden = false;
+            }
+          }
+        } catch (error) {
+          if (note) {
+            note.hidden = false;
+            note.textContent =
+              error instanceof ApiError ? error.message : 'Riprova tra un momento.';
+          }
+          item.querySelectorAll('button').forEach((b) => (b.disabled = false));
+        }
+      })();
+    });
+  }
+
+  /* Signed out is the expected first state for anyone arriving from an email that
+     has already been used, so send them to sign in rather than showing an error. */
+  const customer = await loadCustomer();
+  if (!customer) {
+    const next = encodeURIComponent(window.location.pathname);
+    window.location.replace(`${routes.login}?next=${next}`);
+  } else {
+    await render();
+  }
+</script>

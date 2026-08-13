@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 
 import { requirePermission } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
-import { rateLimit } from '../../shared/http/rate-limit.ts';
+import { clientIp, rateLimit } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
 import { toPageMeta } from '../products/mapper.ts';
 import {
@@ -53,7 +53,16 @@ export const orderPublicRoutes = new Hono<AppEnv>().post(
   placementRateLimit,
   validate('json', PlaceOrderSchema),
   async (c) => {
-    const placed = await service.place(c.get('db'), c.req.valid('json'));
+    /*
+      `withCustomerSession` has already run on /api/*, so a signed-in customer is
+      simply available here. When one is present the order links to their account
+      as `confirmed`; otherwise placement resolves an account from the email and
+      marks the link `unverified`.
+    */
+    const placed = await service.place(c.get('db'), c.req.valid('json'), {
+      session: c.get('customer'),
+      ipAddress: clientIp(c),
+    });
     return c.json({ data: toPlacedOrder(placed) }, 201);
   },
 );

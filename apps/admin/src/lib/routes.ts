@@ -25,8 +25,13 @@ export const routes = {
   ordersWithDrawer: (id: string) => `/orders?order=${id}`,
 
   carts: '/carts',
+  /** "I did not place this order" reports raised from an order email. */
+  orderDisputes: '/order-disputes',
   /** The delivery price tree: country → region → province → comune → comune+CAP. */
   deliveryZones: '/delivery-zones',
+
+  /** Operator-editable platform settings. */
+  notificationSettings: '/settings/notifications',
 
   login: '/login',
 } as const;
