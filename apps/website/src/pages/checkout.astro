@@ -194,14 +194,12 @@ const originCrumb =
             </CheckoutStep>
 
             <CheckoutStep index={2} title={t('delivery')} bodyGap="gap-3.5">
-              {
-                /*
+              {/*
                   Two questions, in the order they happen: where it goes, then where
                   it comes back from. The second only exists for a rental, and the
                   forward button sits after BOTH — a "Continua" rendered above an
                   unanswered question invites the customer to skip it.
-                */
-              }
+                */}
               <CheckoutDelivery labelStage={hasRental} />
               {hasRental && <CheckoutReturn />}
               <button class={CTA} type="button" data-step-continue="2" hidden>
@@ -1077,7 +1075,10 @@ const originCrumb =
       addressOptions.hidden = false;
       addressInput.setAttribute('aria-expanded', 'true');
       if (activeIndex >= 0) {
-        addressInput.setAttribute('aria-activedescendant', `checkout-address-option-${activeIndex}`);
+        addressInput.setAttribute(
+          'aria-activedescendant',
+          `checkout-address-option-${activeIndex}`,
+        );
       } else {
         addressInput.removeAttribute('aria-activedescendant');
       }
@@ -1227,8 +1228,7 @@ const originCrumb =
 
       /* Only when it differs. "Collected from the delivery address" is what the
          review already says by not saying anything. */
-      const returnDetail =
-        returnSame && !returnSame.checked ? value('returnAddress') : '';
+      const returnDetail = returnSame && !returnSame.checked ? value('returnAddress') : '';
 
       const fill = (key: string, text: string) => {
         const node = root.querySelector(`[data-review="${key}"]`);
@@ -1240,7 +1240,10 @@ const originCrumb =
       fill('phone', value('phone'));
       fill('type', fiscal ? `${typeLabel} · ${fiscal}` : typeLabel);
       fill('delivery', NAMES.get(state.delivery) ?? '');
-      fill('deliveryDetail', returnDetail ? `${detail} · ${L('returnStage')}: ${returnDetail}` : detail);
+      fill(
+        'deliveryDetail',
+        returnDetail ? `${detail} · ${L('returnStage')}: ${returnDetail}` : detail,
+      );
     }
 
     // --- handover -----------------------------------------------------------
@@ -1372,6 +1375,11 @@ const originCrumb =
       const response = await fetch(`${API_BASE}/api/orders`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
+        // The API is a different origin, so without this the customer session
+        // cookie never arrives and a signed-in order links as `unverified` — the
+        // one thing being signed in is supposed to settle. Checkout stays usable
+        // without a session; this only matters when there is one.
+        credentials: 'include',
         body: JSON.stringify(orderBody()),
       });
       if (!response.ok) throw new Error(`orders responded ${response.status}`);

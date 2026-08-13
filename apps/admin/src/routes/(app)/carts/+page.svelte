@@ -137,7 +137,7 @@
             <Table.Row>
               <Table.Cell class="font-mono text-xs">{cart.token}</Table.Cell>
               <Table.Cell class="text-muted-foreground">
-                {cart.userEmail ?? 'Guest'}
+                {cart.customerEmail ?? 'Guest'}
               </Table.Cell>
               <Table.Cell class="text-right tabular-nums">{cart.itemCount}</Table.Cell>
               <Table.Cell>
@@ -146,7 +146,10 @@
                     Abandoned
                   </Badge>
                 {:else}
-                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">
+                  <Badge
+                    variant="outline"
+                    class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                  >
                     Active
                   </Badge>
                 {/if}

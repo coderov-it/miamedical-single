@@ -9,6 +9,7 @@ import {
 } from '@aws-sdk/client-s3';
 
 import { env } from '../../config/env.ts';
+import { EXTERNAL_APIS } from '../../config/external-apis.ts';
 import type { FileUploader, ImageDimensions, ObjectStat, StoredObject } from './port.ts';
 
 /**
@@ -32,7 +33,7 @@ export class R2FileUploader implements FileUploader {
       }
       this.client = new S3Client({
         region: 'auto',
-        endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        endpoint: EXTERNAL_APIS.r2Endpoint(R2_ACCOUNT_ID),
         credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
       });
       this.bucket = R2_BUCKET;

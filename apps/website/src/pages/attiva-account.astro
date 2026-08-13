@@ -1,0 +1,164 @@
+---
+/**
+ * Where every emailed sign-in link lands: activation, magic link, and — via
+ * reimposta-password.astro, which reuses this script — password reset.
+ *
+ * One page rather than three because the server treats them as one operation:
+ * redeem a token, get a session. What differs is only the copy, so the page reads
+ * its wording from a prop instead of existing three times.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+interface Props {
+  heading?: string;
+  intro?: string;
+  /** Reset must set a password; activation may skip and stay magic-link only. */
+  passwordRequired?: boolean;
+}
+
+const {
+  heading = 'Attiva il tuo account',
+  intro = 'Scegli una password per accedere più rapidamente la prossima volta. Puoi anche saltare questo passaggio e usare sempre il link via email.',
+  passwordRequired = false,
+} = Astro.props;
+
+const field =
+  'w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-[15px] outline-none focus:border-neutral-900';
+const primary =
+  'w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50';
+---
+
+<BaseLayout
+  title={`${heading} | Mia Medical Italia`}
+  description="Attiva la tua area clienti."
+  noindex
+  bare
+>
+  <div
+    class="mx-auto w-full max-w-md px-5 py-12"
+    data-page
+    data-password-required={String(passwordRequired)}
+  >
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">{heading}</h1>
+
+    <!-- Shown while the token is being redeemed. The redemption happens on load,
+         not on submit: the link itself is the credential, so waiting for a form
+         would leave someone who closes the tab still unactivated. -->
+    <p data-checking class="mt-3 text-[15px] text-neutral-600">Un momento…</p>
+
+    <div
+      data-error
+      hidden
+      class="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm"
+    >
+    </div>
+
+    <div data-ready hidden>
+      <p class="mt-2 text-[15px] text-neutral-600">{intro}</p>
+
+      <form data-form class="mt-6 space-y-4" novalidate>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium" for="password"> Nuova password </label>
+          <input
+            class={field}
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            minlength="12"
+          />
+          <p class="mt-1.5 text-xs text-neutral-500">Almeno 12 caratteri.</p>
+        </div>
+        <button class={primary} type="submit" data-submit>Salva e continua</button>
+      </form>
+
+      <p class="mt-4 text-sm" data-skip-wrap>
+        <button class="text-neutral-600 underline" type="button" data-skip>
+          Salta, userò il link via email
+        </button>
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { ApiError, redeemToken, setPassword, tokenFromQuery } from '~/lib/customer-session';
+  import { routes } from '~/lib/routes';
+
+  const page = document.querySelector<HTMLElement>('[data-page]');
+  const passwordRequired = page?.dataset.passwordRequired === 'true';
+
+  const checking = document.querySelector<HTMLElement>('[data-checking]');
+  const errorBox = document.querySelector<HTMLElement>('[data-error]');
+  const ready = document.querySelector<HTMLElement>('[data-ready]');
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+  const submit = document.querySelector<HTMLButtonElement>('[data-submit]');
+  const skip = document.querySelector<HTMLButtonElement>('[data-skip]');
+  const skipWrap = document.querySelector<HTMLElement>('[data-skip-wrap]');
+  const passwordInput = document.querySelector<HTMLInputElement>('#password');
+
+  function fail(message: string) {
+    if (checking) checking.hidden = true;
+    if (ready) ready.hidden = true;
+    if (!errorBox) return;
+    errorBox.hidden = false;
+    errorBox.innerHTML = `${message} <a class="underline" href="${routes.login}">Richiedi un nuovo link</a>.`;
+  }
+
+  /*
+    Redeem on load. The token is single-use, so this page can only ever work once —
+    which is also why the password step below uses the session it just established
+    rather than the token again.
+  */
+  const token = tokenFromQuery();
+
+  if (!token) {
+    fail('Questo link non è completo.');
+  } else {
+    try {
+      await redeemToken(token);
+      if (checking) checking.hidden = true;
+      if (ready) ready.hidden = false;
+      // Reset flows must end with a password; activation may legitimately not.
+      if (passwordRequired && skipWrap) skipWrap.hidden = true;
+      passwordInput?.focus();
+    } catch (error) {
+      fail(
+        error instanceof ApiError ? error.message : 'Non è stato possibile verificare questo link.',
+      );
+    }
+  }
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const value = passwordInput?.value ?? '';
+
+    if (value.length < 12) {
+      fail('La password deve avere almeno 12 caratteri.');
+      if (errorBox) errorBox.textContent = 'La password deve avere almeno 12 caratteri.';
+      if (ready) ready.hidden = false;
+      return;
+    }
+
+    void (async () => {
+      if (submit) submit.disabled = true;
+      try {
+        await setPassword({ newPassword: value });
+        window.location.assign(routes.accountOrders);
+      } catch (error) {
+        if (errorBox) {
+          errorBox.hidden = false;
+          errorBox.textContent =
+            error instanceof ApiError ? error.message : 'Qualcosa è andato storto.';
+        }
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    })();
+  });
+
+  // Already signed in by the redemption above, so skipping just moves on.
+  skip?.addEventListener('click', () => window.location.assign(routes.accountOrders));
+</script>

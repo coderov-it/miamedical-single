@@ -10,8 +10,15 @@ export type OrderStatusEventRow = typeof orderStatusEvents.$inferSelect;
 export type CartRow = typeof carts.$inferSelect;
 export type CartItemRow = typeof cartItems.$inferSelect;
 
-/** Just enough of the actor to render a timeline line. */
+/**
+ * Just enough of the actor to render a timeline line.
+ *
+ * `kind` says which table the id came from — an operator in `admin_users` or a
+ * customer in `customer_accounts`. Both can now write events, and the two mean
+ * different things, so the timeline has to be able to tell them apart.
+ */
 export interface ActorRef {
+  kind: 'admin' | 'customer';
   id: string;
   email: string;
   fullName: string | null;
@@ -45,7 +52,7 @@ export interface CartSummaryRecord extends CartRow {
   itemCount: number;
   /** Sum of `unitPrice * quantity`, as a two-decimal string. */
   subtotal: string;
-  userEmail: string | null;
+  customerEmail: string | null;
 }
 
 export interface CartAggregate extends CartSummaryRecord {

@@ -13,13 +13,16 @@
  * docs/code/delivery-pricing.md. This endpoint fills in a form, nothing more.
  */
 
-import { env } from '../../config/env.ts';
+import { EXTERNAL_APIS } from '../../config/external-apis.ts';
+import { FEATURES } from '../../config/features.ts';
 import { httpError } from '../../shared/http/errors.ts';
 import type { AddressSuggestionDto } from './dto.ts';
 import { toSuggestion } from './mapper.ts';
 import type { HereAutocompleteResponse } from './types.ts';
 
-const ENDPOINT = 'https://autocomplete.search.hereapi.com/v1/autocomplete';
+/* The host lives in config/external-apis.ts with every other third-party host; the
+   path stays here, because it is part of this call's contract. */
+const ENDPOINT = `${EXTERNAL_APIS.hereAutocompleteBaseUrl}/v1/autocomplete`;
 
 /**
  * ISO-3, which is what HERE's `in=countryCode` takes — not the ISO-2 `IT` used
@@ -37,21 +40,40 @@ const RETURN_LIMIT = 6;
  */
 const TIMEOUT_MS = 2500;
 
-export async function suggestAddresses(query: string): Promise<AddressSuggestionDto[]> {
-  if (!env.HERE_API_KEY) {
-    throw httpError(
-      503,
-      'Address suggestions are not configured. Set HERE_API_KEY on the server.',
-      'service_unavailable',
-    );
+/**
+ * Bound once at boot from `FEATURES.addressSuggestions`, not chosen per request.
+ *
+ * With no key the export IS the refusal, so there is no branch on the hot path and
+ * no code path that could reach HERE without a key: the enabled build cannot answer
+ * 503 and the disabled build cannot call out. The endpoint stays mounted either
+ * way — an optional feature must not change the shape of `AppType`, which is what
+ * types the frontends' RPC client.
+ */
+function resolveSuggestAddresses(): (query: string) => Promise<AddressSuggestionDto[]> {
+  const feature = FEATURES.addressSuggestions;
+
+  if (feature === null) {
+    return async () => {
+      throw httpError(
+        503,
+        'Address suggestions are not configured. Set HERE_API_KEY on the server and restart.',
+        'service_unavailable',
+      );
+    };
   }
 
+  return (query) => fetchSuggestions(query, feature.apiKey);
+}
+
+export const suggestAddresses = resolveSuggestAddresses();
+
+async function fetchSuggestions(query: string, apiKey: string): Promise<AddressSuggestionDto[]> {
   const url = new URL(ENDPOINT);
   url.searchParams.set('q', query);
   url.searchParams.set('in', `countryCode:${COUNTRY}`);
   url.searchParams.set('limit', String(FETCH_LIMIT));
   url.searchParams.set('lang', 'it');
-  url.searchParams.set('apiKey', env.HERE_API_KEY);
+  url.searchParams.set('apiKey', apiKey);
 
   let response: Response;
   try {

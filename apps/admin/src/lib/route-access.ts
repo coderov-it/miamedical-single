@@ -33,7 +33,10 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { pattern: routes.orders, requiredAny: [P.ORDER_READ] },
   { pattern: routePatterns.orderDetail, requiredAny: [P.ORDER_READ] },
   { pattern: routes.carts, requiredAny: [P.ORDER_READ] },
+  { pattern: routes.orderDisputes, requiredAny: [P.ORDER_DISPUTE_READ] },
   { pattern: routes.deliveryZones, requiredAny: [P.DELIVERY_ZONE_READ] },
+
+  { pattern: routes.notificationSettings, requiredAny: [P.SETTING_READ] },
 ];
 
 /**
