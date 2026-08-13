@@ -11,3 +11,5 @@ export * from './order.ts';
 export * from './delivery.ts';
 export * from './settings.ts';
 export * from './customer.ts';
+export * from './contract.ts';
+export * from './blog.ts';

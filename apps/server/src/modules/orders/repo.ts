@@ -192,6 +192,158 @@ function resolveActor(row: {
   return null;
 }
 
+// --- calendar --------------------------------------------------------------
+
+export interface CalendarEntryRow {
+  orderId: string;
+  orderNumber: string;
+  orderStatus: string;
+  type: 'order-placed' | 'rental-start' | 'rental-end';
+  date: string;
+  productTitle: string | null;
+}
+
+export async function findCalendarEntries(
+  db: Database,
+  from: string,
+  to: string,
+): Promise<CalendarEntryRow[]> {
+  const fromDate = new Date(`${from}T00:00:00.000Z`);
+  const toDate = nextDay(to);
+
+  const startDate = sql<string>`${orderItems.configuration}->'rental'->>'startDate'`;
+  const endDate = sql<string>`${orderItems.configuration}->'rental'->>'endDate'`;
+
+  /* The rental dates are compared as Postgres `date`s against the validated
+     YYYY-MM-DD strings, never as JS Date params: a Date embedded in a raw sql
+     fragment is stringified with toString() ("Mon Jul 27 2026 … (Central
+     European Summer Time)"), which Postgres rejects — the bug that blanked
+     the dashboard calendar. */
+  const rentalRows = await db
+    .select({
+      orderId: orders.id,
+      orderNumber: orders.number,
+      orderStatus: orders.status,
+      productTitle: orderItems.productTitle,
+      startDate,
+      endDate,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(
+      and(
+        sql`${orderItems.configuration}->'rental' IS NOT NULL`,
+        sql`${startDate} IS NOT NULL`,
+        or(
+          sql`(${startDate})::date BETWEEN ${from}::date AND ${to}::date`,
+          and(
+            sql`${endDate} IS NOT NULL`,
+            sql`(${endDate})::date BETWEEN ${from}::date AND ${to}::date`,
+          ),
+        ),
+      ),
+    );
+
+  const placedRows = await db
+    .select({
+      id: orders.id,
+      number: orders.number,
+      status: orders.status,
+      placedAt: orders.placedAt,
+    })
+    .from(orders)
+    .where(and(gte(orders.placedAt, fromDate), lt(orders.placedAt, toDate)));
+
+  const entries: CalendarEntryRow[] = [];
+
+  for (const row of placedRows) {
+    entries.push({
+      orderId: row.id,
+      orderNumber: row.number,
+      orderStatus: row.status,
+      type: 'order-placed',
+      date: row.placedAt.toISOString().slice(0, 10),
+      productTitle: null,
+    });
+  }
+
+  for (const row of rentalRows) {
+    if (row.startDate) {
+      const d = row.startDate.slice(0, 10);
+      if (d >= from && d <= to) {
+        entries.push({
+          orderId: row.orderId,
+          orderNumber: row.orderNumber,
+          orderStatus: row.orderStatus,
+          type: 'rental-start',
+          date: d,
+          productTitle: row.productTitle,
+        });
+      }
+    }
+    if (row.endDate) {
+      const d = row.endDate.slice(0, 10);
+      if (d >= from && d <= to) {
+        entries.push({
+          orderId: row.orderId,
+          orderNumber: row.orderNumber,
+          orderStatus: row.orderStatus,
+          type: 'rental-end',
+          date: d,
+          productTitle: row.productTitle,
+        });
+      }
+    }
+  }
+
+  return entries;
+}
+
+// --- customer lookup ---------------------------------------------------------
+
+export interface CustomerMatchRow {
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  customerType: string;
+  codiceFiscale: string | null;
+  partitaIva: string | null;
+  shippingAddress: Record<string, unknown> | null;
+}
+
+/**
+ * Past customers by name, email or phone — one row per email, newest order
+ * wins, so a prefilled manual contract starts from what the customer last
+ * told us.
+ */
+export async function findCustomers(db: Database, q: string): Promise<CustomerMatchRow[]> {
+  const term = `%${q}%`;
+  const rows = await db
+    .selectDistinctOn([orders.email], {
+      email: orders.email,
+      firstName: orders.firstName,
+      lastName: orders.lastName,
+      phone: orders.phone,
+      customerType: orders.customerType,
+      codiceFiscale: orders.codiceFiscale,
+      partitaIva: orders.partitaIva,
+      shippingAddress: orders.shippingAddress,
+    })
+    .from(orders)
+    .where(
+      or(
+        ilike(orders.email, term),
+        ilike(orders.phone, term),
+        sql`(${orders.firstName} || ' ' || ${orders.lastName}) ILIKE ${term}`,
+      ),
+    )
+    .orderBy(orders.email, desc(orders.placedAt))
+    .limit(10);
+
+  return rows as CustomerMatchRow[];
+}
+
 // --- placing an order ------------------------------------------------------
 
 export interface NewOrderItemData {

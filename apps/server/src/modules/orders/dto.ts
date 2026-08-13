@@ -205,6 +205,15 @@ export interface OrderWindowStatsDto {
   revenueBasis: string;
 }
 
+export interface CalendarEventDto {
+  orderId: string;
+  orderNumber: string;
+  orderStatus: OrderStatus;
+  type: 'order-placed' | 'rental-start' | 'rental-end';
+  date: string;
+  productTitle: string | null;
+}
+
 export interface AdminCartSummaryDto {
   id: string;
   token: string;

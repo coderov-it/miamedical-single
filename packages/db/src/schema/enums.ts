@@ -104,6 +104,24 @@ export const questionValueType = pgEnum('question_value_type', [
 
 export const termsStatus = pgEnum('terms_status', ['draft', 'published', 'archived']);
 
+export const contractStatus = pgEnum('contract_status', [
+  'draft',
+  'generated',
+  'sent',
+  'viewed',
+  'signed',
+  'voided',
+]);
+
+export const contractVariant = pgEnum('contract_variant', [
+  'carrozzina_italian',
+  'carrozzina_tourist',
+  'scooter_italian',
+  'scooter_tourist',
+]);
+
+export const blogPostStatus = pgEnum('blog_post_status', ['draft', 'published', 'archived']);
+
 /**
  * Tiers of the delivery-pricing tree, widest first.
  *

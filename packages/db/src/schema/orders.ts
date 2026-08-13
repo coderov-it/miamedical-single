@@ -17,6 +17,7 @@ import {
 import { adminUsers } from './admin-users.ts';
 import { productSkus } from './catalog.ts';
 import { customerAccounts } from './customers.ts';
+import { contracts } from './contracts.ts';
 import {
   customerType,
   orderCustomerLink,
@@ -331,6 +332,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   items: many(orderItems),
   events: many(orderStatusEvents),
   disputes: many(orderDisputes),
+  contracts: many(contracts),
 }));
 
 export const orderStatusEventsRelations = relations(orderStatusEvents, ({ one }) => ({

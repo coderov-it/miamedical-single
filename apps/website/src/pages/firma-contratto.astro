@@ -1,0 +1,319 @@
+---
+/**
+ * Customer contract signing page.
+ *
+ * Reached from the signing link in the contract-ready email. The token in the
+ * query string is the entire authorisation — no account sign-in needed. The page
+ * renders the full contract, a canvas-based signature pad, and submits the drawn
+ * signature as a data URL.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { CONTACT } from '~/lib/site';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Firma il contratto | Mia Medical Italia"
+  description="Firma il contratto di noleggio."
+  noindex
+  bare
+>
+  <div class="mx-auto w-full max-w-3xl px-5 py-8 md:py-12">
+    <!-- Error state -->
+    <div
+      data-error
+      hidden
+      class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+    >
+    </div>
+
+    <!-- Loading state -->
+    <div data-loading class="space-y-4 py-16 text-center">
+      <div class="mx-auto size-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900"></div>
+      <p class="text-neutral-600">Caricamento del contratto…</p>
+    </div>
+
+    <!-- Main content (hidden until loaded) -->
+    <div data-content hidden>
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-[clamp(1.4rem,2.2vw,1.75rem)]/[1.2] font-semibold">Firma il contratto</h1>
+          <p class="mt-1 text-sm text-neutral-600">
+            Contratto <span data-contract-number class="font-mono font-medium"></span>
+            <span data-order-line>· Ordine <span data-order-number class="font-mono"></span></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Contract HTML preview -->
+      <div
+        data-contract-body
+        class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
+      >
+      </div>
+
+      <!-- Signature section -->
+      <div data-signature-section id="signature-section" class="mt-8 scroll-mt-24">
+        <h2 class="text-lg font-semibold">Firma / Signature</h2>
+        <p class="mt-1 text-sm text-neutral-500">
+          Disegna la tua firma nell'area qui sotto. / Draw your signature in the area below.
+        </p>
+
+        <div class="relative mt-4">
+          <canvas
+            data-signature-canvas
+            class="h-48 w-full cursor-crosshair rounded-xl border-2 border-dashed border-neutral-300 bg-white touch-none"
+            width="700"
+            height="200"
+          ></canvas>
+          <button
+            data-clear-signature
+            type="button"
+            class="absolute right-2 top-2 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium text-neutral-600 shadow-sm transition hover:bg-neutral-100"
+          >
+            Cancella / Clear
+          </button>
+        </div>
+
+        <label class="mt-4 flex items-start gap-3 text-sm">
+          <input
+            data-consent
+            type="checkbox"
+            class="mt-0.5 size-4 shrink-0 accent-neutral-900"
+          />
+          <span class="text-neutral-600">
+            Confermo di aver letto e accettato i termini del contratto. /
+            I confirm that I have read and accepted the terms of the contract.
+          </span>
+        </label>
+
+        <button
+          data-submit
+          type="button"
+          disabled
+          class="mt-6 w-full rounded-xl bg-neutral-900 px-6 py-3 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Firma il contratto / Sign the contract
+        </button>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div data-done hidden class="py-16 text-center">
+      <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100">
+        <svg class="size-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 class="mt-4 text-xl font-semibold">Contratto firmato con successo!</h2>
+      <p class="mt-2 text-neutral-600">
+        Una copia del contratto firmato è stata inviata al tuo indirizzo email.
+      </p>
+      <p class="mt-1 text-neutral-600">
+        A signed copy of the contract has been sent to your email address.
+      </p>
+      <p class="mt-4 text-sm text-neutral-500">
+        Per qualsiasi domanda contattaci al {CONTACT.phoneDisplay}
+      </p>
+    </div>
+
+    <!-- Floating "Go to signature" button -->
+    <button
+      data-scroll-to-sign
+      hidden
+      type="button"
+      class="fixed bottom-6 right-6 z-50 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:bg-neutral-800 md:bottom-8 md:right-8 max-sm:left-6 max-sm:right-6 max-sm:text-center"
+    >
+      Vai alla firma ↓
+    </button>
+  </div>
+</BaseLayout>
+
+<script>
+  import { API_BASE } from '~/lib/api';
+
+  const loading = document.querySelector<HTMLElement>('[data-loading]')!;
+  const content = document.querySelector<HTMLElement>('[data-content]')!;
+  const errorBox = document.querySelector<HTMLElement>('[data-error]')!;
+  const done = document.querySelector<HTMLElement>('[data-done]')!;
+  const contractBody = document.querySelector<HTMLElement>('[data-contract-body]')!;
+  const contractNumber = document.querySelector<HTMLElement>('[data-contract-number]')!;
+  const orderNumber = document.querySelector<HTMLElement>('[data-order-number]')!;
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-signature-canvas]')!;
+  const clearBtn = document.querySelector<HTMLElement>('[data-clear-signature]')!;
+  const consentBox = document.querySelector<HTMLInputElement>('[data-consent]')!;
+  const submitBtn = document.querySelector<HTMLButtonElement>('[data-submit]')!;
+  const scrollToSign = document.querySelector<HTMLElement>('[data-scroll-to-sign]')!;
+  const signatureSection = document.getElementById('signature-section')!;
+
+  const token = new URLSearchParams(window.location.search).get('token');
+
+  function fail(message: string) {
+    loading.hidden = true;
+    content.hidden = true;
+    errorBox.hidden = false;
+    errorBox.textContent = message;
+  }
+
+  if (!token) {
+    fail('Questo link non è completo. Apri di nuovo il collegamento ricevuto via email.');
+  }
+
+  // --- Signature pad ---
+  const ctx = canvas.getContext('2d')!;
+  let drawing = false;
+  let hasSigned = false;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#000';
+  }
+
+  function getPosition(e: MouseEvent | Touch): { x: number; y: number } {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function startDrawing(e: MouseEvent | TouchEvent) {
+    drawing = true;
+    const pos = getPosition('touches' in e ? e.touches[0]! : e as MouseEvent);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e: MouseEvent | TouchEvent) {
+    if (!drawing) return;
+    e.preventDefault();
+    const pos = getPosition('touches' in e ? e.touches[0]! : e as MouseEvent);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    hasSigned = true;
+    updateSubmitState();
+  }
+
+  function stopDrawing() {
+    drawing = false;
+  }
+
+  canvas.addEventListener('mousedown', startDrawing);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDrawing);
+  canvas.addEventListener('mouseleave', stopDrawing);
+  canvas.addEventListener('touchstart', startDrawing, { passive: false });
+  canvas.addEventListener('touchmove', draw, { passive: false });
+  canvas.addEventListener('touchend', stopDrawing);
+
+  clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasSigned = false;
+    updateSubmitState();
+  });
+
+  consentBox.addEventListener('change', updateSubmitState);
+
+  function updateSubmitState() {
+    submitBtn.disabled = !hasSigned || !consentBox.checked;
+  }
+
+  // --- Floating button visibility ---
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      scrollToSign.hidden = entry.isIntersecting;
+    },
+    { threshold: 0.1 },
+  );
+
+  scrollToSign.addEventListener('click', () => {
+    signatureSection.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // --- Load contract ---
+  async function loadContract() {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/contracts/sign?token=${encodeURIComponent(token)}`, {
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
+        throw new Error(body?.error?.message ?? 'Non è stato possibile caricare il contratto.');
+      }
+
+      const { data } = await res.json() as {
+        data: {
+          contract: { number: string; orderNumber: string | null };
+          html: string;
+        };
+      };
+
+      contractNumber.textContent = data.contract.number;
+      // Manual contracts have no order behind them — hide the whole line
+      // rather than showing a dangling "Ordine" label.
+      if (data.contract.orderNumber) {
+        orderNumber.textContent = data.contract.orderNumber;
+      } else {
+        orderNumber.closest<HTMLElement>('[data-order-line]')!.hidden = true;
+      }
+
+      const shadow = contractBody.attachShadow({ mode: 'open' });
+      shadow.innerHTML = data.html;
+
+      loading.hidden = true;
+      content.hidden = false;
+
+      resizeCanvas();
+      observer.observe(signatureSection);
+      scrollToSign.hidden = false;
+    } catch (err) {
+      fail(err instanceof Error ? err.message : 'Errore nel caricamento del contratto.');
+    }
+  }
+
+  // --- Submit signature ---
+  submitBtn.addEventListener('click', () => {
+    if (!token || !hasSigned || !consentBox.checked) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Invio in corso…';
+
+    const signatureDataUrl = canvas.toDataURL('image/png');
+
+    void (async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/contracts/sign?token=${encodeURIComponent(token)}`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ signatureDataUrl }),
+          },
+        );
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
+          throw new Error(body?.error?.message ?? 'Errore nella firma del contratto.');
+        }
+
+        content.hidden = true;
+        scrollToSign.hidden = true;
+        done.hidden = false;
+      } catch (err) {
+        fail(err instanceof Error ? err.message : 'Errore nella firma del contratto.');
+      }
+    })();
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+  void loadContract();
+</script>

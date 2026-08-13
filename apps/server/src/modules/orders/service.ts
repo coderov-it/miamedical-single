@@ -73,6 +73,14 @@ export async function list(
   };
 }
 
+export async function calendarEntries(db: Database, from: string, to: string) {
+  return repo.findCalendarEntries(db, from, to);
+}
+
+export async function searchCustomers(db: Database, q: string) {
+  return repo.findCustomers(db, q);
+}
+
 /** Dashboard tiles. One round trip per figure, both indexed on `placed_at`. */
 export async function windowStats(db: Database, windowDays: number) {
   const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
@@ -469,6 +477,43 @@ export async function place(
     });
   } catch (error) {
     console.error(`[orders] order ${created.number} placed but its email failed:`, error);
+  }
+
+  try {
+    const { generateForOrder } = await import('../contracts/service.ts');
+
+    const address = snapshot
+      ? `${(snapshot as Record<string, string>).line1 ?? ''}, ${(snapshot as Record<string, string>).postalCode ?? ''} ${(snapshot as Record<string, string>).city ?? ''}`
+      : '';
+
+    await generateForOrder(db, {
+      orderId: created.id,
+      orderNumber: created.number,
+      customerType: input.customer.customerType,
+      customerName: `${input.customer.firstName} ${input.customer.lastName}`,
+      email: input.customer.email,
+      phone: input.customer.phone,
+      address,
+      codiceFiscale: input.customer.codiceFiscale ?? null,
+      partitaIva: input.customer.partitaIva ?? null,
+      items: lines.map((line) => ({
+        productTitle: line.productTitle,
+        sku: line.sku,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        total: line.total,
+        startDate: line.configuration?.rental?.startDate ?? '',
+        endDate: line.configuration?.rental?.endDate ?? null,
+        rentalDays: line.configuration?.rental?.units ?? 1,
+      })),
+      subtotal,
+      shippingTotal,
+      total,
+      currency,
+      hasDepositProduct: false,
+    });
+  } catch (error) {
+    console.error(`[orders] order ${created.number} placed but contract generation failed:`, error);
   }
 
   return { ...created, subtotal, shippingTotal, total, currency, items: lines };
