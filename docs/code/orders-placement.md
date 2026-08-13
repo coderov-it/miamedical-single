@@ -355,7 +355,24 @@ reset per year; it starts at 1000, which leaves the seed's `MIA-2026-000001…6`
 - On failure it says so and leaves the handover in place, because the message still
   carries the whole request. It does not tell the customer to start again.
 
-The panel never claims a confirmation email: there is no mail service behind it.
+The panel points at the inbox rather than repeating the order details: placement now
+sends a confirmation email. What it says depends on whether the address already has
+an account — see [customer-accounts.md](./customer-accounts.md).
+
+## What placement writes about the customer
+
+`orders` snapshots the contact block as columns: `email`, `phone`, `first_name`,
+`last_name`, `customer_type`, `codice_fiscale`, `partita_iva`.
+
+The two name columns exist because the name used to live **only** inside
+`shipping_address.fullName`, and a store pickup has no address — so every collected
+order silently lost the customer's name. Two such orders predate the fix and cannot
+be recovered.
+
+`customer_account_id` and `customer_link_status` are resolved before the insert, so
+an order is never written unattached and patched afterwards. The branches, and why
+`unverified` is the honest default for a checkout that takes any email it is given,
+are documented in [customer-accounts.md](./customer-accounts.md).
 
 ## Known gaps
 
@@ -376,10 +393,6 @@ The panel never claims a confirmation email: there is no mail service behind it.
 - **No cart persistence.** The storefront cart lives in `localStorage`; the `carts`
   and `cart_items` tables are still only written by the seed, so the admin's
   abandoned-cart view shows seeded rows.
-- **No order confirmation email**, and nothing tells the customer their order
-  number except the page they are standing on.
-- **`orders.user_id` is always null.** Placement never links an order to an account,
-  because the checkout never asks anyone to sign in.
 - The product page's inline estimate script is still its own implementation of the
   pricing rules — a third copy, in browser TypeScript. Folding it onto
   `@mia/pricing` is the remaining half of that job.

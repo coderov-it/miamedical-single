@@ -7,6 +7,8 @@
  */
 
 import BanknoteIcon from '@lucide/svelte/icons/banknote';
+import BellIcon from '@lucide/svelte/icons/bell';
+import ShieldAlertIcon from '@lucide/svelte/icons/shield-alert';
 import GaugeIcon from '@lucide/svelte/icons/gauge';
 import PackageIcon from '@lucide/svelte/icons/package';
 import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
@@ -50,7 +52,12 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { title: 'Orders', url: routes.orders, icon: ShoppingCartIcon },
       { title: 'Carts', url: routes.carts, icon: BanknoteIcon },
       { title: 'Delivery Zones', url: routes.deliveryZones, icon: TruckIcon },
+      { title: 'Disputed Orders', url: routes.orderDisputes, icon: ShieldAlertIcon },
     ],
+  },
+  {
+    title: 'Settings',
+    items: [{ title: 'Notifications', url: routes.notificationSettings, icon: BellIcon }],
   },
 ];
 

@@ -151,6 +151,7 @@ export function toOrderEvent(row: OrderStatusEventRecord): OrderEventDto {
     toValue: row.toValue,
     note: row.note,
     actorName: actorName(row.actor),
+    actorKind: row.actor?.kind ?? null,
     createdAt: iso(row.createdAt),
   };
 }
@@ -186,11 +187,14 @@ export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
     id: row.id,
     number: row.number,
     email: row.email,
+    firstName: row.firstName,
+    lastName: row.lastName,
     phone: row.phone,
     customerType: row.customerType,
     codiceFiscale: row.codiceFiscale,
     partitaIva: row.partitaIva,
-    userId: row.userId,
+    customerAccountId: row.customerAccountId,
+    customerLinkStatus: row.customerLinkStatus,
     status: row.status,
     paymentStatus: row.paymentStatus,
     totals: toTotals(row),
@@ -240,7 +244,7 @@ export function toCartSummary(row: CartSummaryRecord, now = new Date()): AdminCa
   return {
     id: row.id,
     token: row.token,
-    userEmail: row.userEmail,
+    customerEmail: row.customerEmail,
     itemCount: row.itemCount,
     subtotal: row.subtotal,
     currency: row.currency,

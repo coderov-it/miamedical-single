@@ -5,71 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1786014524990,
+      "when": 1786556150758,
       "tag": "0000_init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1786022518651,
-      "tag": "0001_auth_permissions",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1786048993464,
-      "tag": "0002_catalog_domain",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1786095759446,
-      "tag": "0003_order_status_events",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1786187204659,
-      "tag": "0004_young_gwen_stacy",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1786355928376,
-      "tag": "0005_product_chips",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1786460016690,
-      "tag": "0006_thankful_carnage",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1786473631340,
-      "tag": "0007_clean_jimmy_woo",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1786479964129,
-      "tag": "0008_retire_hotel_delivery",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1786504923986,
-      "tag": "0009_skinny_fixer",
       "breakpoints": true
     }
   ]

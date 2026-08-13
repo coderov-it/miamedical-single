@@ -251,13 +251,22 @@ export const productSpecValueOptions = pgTable(
     specId: uuid()
       .notNull()
       .references(() => categorySpecs.id, { onDelete: 'cascade' }),
-    optionId: uuid()
-      .notNull()
-      .references(() => categorySpecOptions.id, { onDelete: 'cascade' }),
+    /**
+     * FK named explicitly below. The derived name would be 64 bytes, and
+     * PostgreSQL truncates identifiers at 63 — so the constraint landed in the
+     * database one character short of what drizzle expected, and every `push`
+     * saw it as missing and tried to add it again.
+     */
+    optionId: uuid().notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.productId, t.specId, t.optionId] }),
     index('product_spec_value_options_option_idx').on(t.optionId),
+    foreignKey({
+      columns: [t.optionId],
+      foreignColumns: [categorySpecOptions.id],
+      name: 'product_spec_value_options_option_fk',
+    }).onDelete('cascade'),
   ],
 );
 

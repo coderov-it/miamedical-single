@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import {
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -13,9 +14,16 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+import { adminUsers } from './admin-users.ts';
 import { productSkus } from './catalog.ts';
-import { customerType, orderStatus, paymentStatus } from './enums.ts';
-import { users } from './users.ts';
+import { customerAccounts } from './customers.ts';
+import {
+  customerType,
+  orderCustomerLink,
+  orderDisputeStatus,
+  orderStatus,
+  paymentStatus,
+} from './enums.ts';
 
 /**
  * Money is `numeric(12, 2)` throughout — never integer cents, never a JS float —
@@ -42,7 +50,7 @@ export const carts = pgTable(
   {
     id: uuid().primaryKey().defaultRandom(),
     /** Null for guest carts, which are keyed by `token` instead. */
-    userId: uuid().references(() => users.id, { onDelete: 'cascade' }),
+    customerAccountId: uuid().references(() => customerAccounts.id, { onDelete: 'cascade' }),
     token: text().notNull(),
     currency: text().notNull().default('EUR'),
     expiresAt: timestamp({ withTimezone: true }),
@@ -52,7 +60,10 @@ export const carts = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [uniqueIndex('carts_token_key').on(t.token), index('carts_user_idx').on(t.userId)],
+  (t) => [
+    uniqueIndex('carts_token_key').on(t.token),
+    index('carts_customer_account_idx').on(t.customerAccountId),
+  ],
 );
 
 export const cartItems = pgTable(
@@ -82,13 +93,29 @@ export const orders = pgTable(
     id: uuid().primaryKey().defaultRandom(),
     /** Human-facing sequential-ish reference, e.g. MIA-2026-000123. */
     number: text().notNull(),
-    userId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    /**
+     * The account this order belongs to, or null for one nobody has claimed.
+     * `set null` rather than cascade: deleting an account must never delete its
+     * order history, which is a fiscal record.
+     */
+    customerAccountId: uuid().references(() => customerAccounts.id, { onDelete: 'set null' }),
+    /**
+     * How much the link above is worth. Checkout takes whatever email it is given,
+     * so matching an existing account is a claim until the customer confirms it.
+     */
+    customerLinkStatus: orderCustomerLink().notNull().default('unverified'),
     email: text().notNull(),
     /**
      * The rest of the contact block. Nullable as a group: these are facts the
      * storefront checkout collects, and an order raised any other way — the seed,
      * an operator taking it over the phone — legitimately has none of them.
+     *
+     * The name is here as columns rather than only inside `shippingAddress`
+     * because a store-pickup order has no address at all, and snapshotting the
+     * name into a NULL address lost it entirely.
      */
+    firstName: text(),
+    lastName: text(),
     phone: text(),
     customerType: customerType(),
     /**
@@ -133,9 +160,17 @@ export const orders = pgTable(
   },
   (t) => [
     uniqueIndex('orders_number_key').on(t.number),
-    index('orders_user_idx').on(t.userId),
+    index('orders_customer_account_idx').on(t.customerAccountId),
     index('orders_status_idx').on(t.status),
     index('orders_placed_at_idx').on(t.placedAt),
+    /**
+     * Rejecting a link clears the account id, so the two columns can never
+     * disagree about whether this order still belongs to somebody.
+     */
+    check(
+      'orders_customer_link_check',
+      sql`${t.customerLinkStatus} <> 'rejected' OR ${t.customerAccountId} IS NULL`,
+    ),
     /**
      * A delivery block with no method names nothing — the fee, the address and
      * the panel the operator reads all hang off it.
@@ -199,12 +234,16 @@ export const orderItems = pgTable(
  * an order is where it is rather than only where it is. Nothing updates or
  * deletes a row here.
  *
- * `field` is `status` or `paymentStatus` — one table rather than two keeps the
- * timeline a single ordered read. Values are text, not the enums: an event
- * written today must stay readable after an enum member is renamed or dropped.
+ * `field` is `status`, `paymentStatus` or `customerLink` — one table rather than
+ * three keeps the timeline a single ordered read. Values are text, not the enums:
+ * an event written today must stay readable after an enum member is renamed or
+ * dropped, which is also what let `customerLink` be added without a type change.
  *
- * `actorUserId` is nullable and `set null` on delete: the event outlives the
- * account that caused it, and losing the actor must never lose the event.
+ * Two actor columns because the two kinds of actor live in different tables and
+ * exactly one of them acts on any given event: an operator moving a status, or a
+ * customer confirming or rejecting a link. Both are nullable and `set null` on
+ * delete — the event outlives the account that caused it, and losing the actor
+ * must never lose the event.
  */
 export const orderStatusEvents = pgTable(
   'order_status_events',
@@ -217,15 +256,65 @@ export const orderStatusEvents = pgTable(
     fromValue: text(),
     toValue: text().notNull(),
     note: text(),
-    actorUserId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    actorAdminUserId: uuid().references(() => adminUsers.id, { onDelete: 'set null' }),
+    /**
+     * FK declared below with an explicit name: the derived one is 69 bytes and
+     * PostgreSQL truncates identifiers at 63.
+     */
+    actorCustomerAccountId: uuid(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   // Named explicitly, and kept well under the 63-byte identifier limit.
-  (t) => [index('order_status_events_order_idx').on(t.orderId, t.createdAt)],
+  (t) => [
+    index('order_status_events_order_idx').on(t.orderId, t.createdAt),
+    foreignKey({
+      columns: [t.actorCustomerAccountId],
+      foreignColumns: [customerAccounts.id],
+      name: 'order_status_events_actor_customer_fk',
+    }).onDelete('set null'),
+  ],
+);
+
+/**
+ * "I did not place this order" reports, raised from the button in every order
+ * email. The emailed `order_report` token is what authorises the write, so the
+ * reporter needs no account and no order id is ever exposed in a URL.
+ *
+ * `reportedPhone` is collected again on the form rather than read off the order:
+ * the whole point is to reach the real person, and the number on a fraudulent
+ * order is the fraudster's.
+ */
+export const orderDisputes = pgTable(
+  'order_disputes',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    orderId: uuid()
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    /** Set only when the report came from inside a signed-in session. */
+    customerAccountId: uuid().references(() => customerAccounts.id, { onDelete: 'set null' }),
+    reportedPhone: text().notNull(),
+    message: text().notNull(),
+    status: orderDisputeStatus().notNull().default('open'),
+    adminNotes: text(),
+    resolvedByAdminUserId: uuid().references(() => adminUsers.id, { onDelete: 'set null' }),
+    resolvedAt: timestamp({ withTimezone: true }),
+    ipAddress: text(),
+    userAgent: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('order_disputes_order_idx').on(t.orderId),
+    index('order_disputes_status_idx').on(t.status),
+    index('order_disputes_created_idx').on(t.createdAt),
+  ],
 );
 
 export const cartsRelations = relations(carts, ({ one, many }) => ({
-  user: one(users, { fields: [carts.userId], references: [users.id] }),
+  customerAccount: one(customerAccounts, {
+    fields: [carts.customerAccountId],
+    references: [customerAccounts.id],
+  }),
   items: many(cartItems),
 }));
 
@@ -235,14 +324,37 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
-  user: one(users, { fields: [orders.userId], references: [users.id] }),
+  customerAccount: one(customerAccounts, {
+    fields: [orders.customerAccountId],
+    references: [customerAccounts.id],
+  }),
   items: many(orderItems),
   events: many(orderStatusEvents),
+  disputes: many(orderDisputes),
 }));
 
 export const orderStatusEventsRelations = relations(orderStatusEvents, ({ one }) => ({
   order: one(orders, { fields: [orderStatusEvents.orderId], references: [orders.id] }),
-  actor: one(users, { fields: [orderStatusEvents.actorUserId], references: [users.id] }),
+  actorAdminUser: one(adminUsers, {
+    fields: [orderStatusEvents.actorAdminUserId],
+    references: [adminUsers.id],
+  }),
+  actorCustomerAccount: one(customerAccounts, {
+    fields: [orderStatusEvents.actorCustomerAccountId],
+    references: [customerAccounts.id],
+  }),
+}));
+
+export const orderDisputesRelations = relations(orderDisputes, ({ one }) => ({
+  order: one(orders, { fields: [orderDisputes.orderId], references: [orders.id] }),
+  customerAccount: one(customerAccounts, {
+    fields: [orderDisputes.customerAccountId],
+    references: [customerAccounts.id],
+  }),
+  resolvedByAdminUser: one(adminUsers, {
+    fields: [orderDisputes.resolvedByAdminUserId],
+    references: [adminUsers.id],
+  }),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

@@ -1,16 +1,49 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
-/**
- * Back-office roles only — the storefront takes orders without accounts, so
- * `customer` exists purely for orders that get linked to a person later.
- *
- * `super_admin` bypasses every permission check (see `@mia/permissions`);
- * every other role is granted capabilities through `users.permissions`.
- *
- * New values are appended, never inserted: PostgreSQL enum ordering is part of
- * the type, and appending keeps the migration a single `ADD VALUE`.
+/*
+ * There is deliberately no role enum. Back-office access is attribute-based:
+ * `admin_users.permissions` holds integer codes from `@mia/permissions`, and
+ * `admin_users.is_superuser` is the one attribute meaning "every code, including
+ * ones added later". A role here would reintroduce a second, competing way to
+ * answer "may they?" — see packages/permissions/src/check.ts.
  */
-export const userRole = pgEnum('user_role', ['customer', 'staff', 'admin', 'super_admin']);
+
+/**
+ * What an emailed one-shot link lets someone do. One enum, one table
+ * (`customer_auth_tokens`): every purpose has the same lifecycle — issue, mail,
+ * redeem once, expire — so they share a row shape and an expiry sweep.
+ *
+ * TTLs are policy, not schema, and live in the customer-auth service.
+ */
+export const customerAuthPurpose = pgEnum('customer_auth_purpose', [
+  'activation',
+  'magic_link',
+  'password_reset',
+  'order_report',
+]);
+
+/**
+ * How much we trust that the account on an order really placed it.
+ *
+ * Checkout asks for an email and takes what it is given, so a match against an
+ * existing account is a claim, not proof. `unverified` is that claim; the
+ * customer either confirms it or rejects it from their own account. Rejecting
+ * clears `orders.customer_account_id` and never touches the order itself —
+ * `orders_customer_link_check` enforces that pairing.
+ */
+export const orderCustomerLink = pgEnum('order_customer_link', [
+  'unverified',
+  'confirmed',
+  'rejected',
+]);
+
+/** Where an "I did not place this order" report has got to. */
+export const orderDisputeStatus = pgEnum('order_dispute_status', [
+  'open',
+  'contacted',
+  'resolved',
+  'confirmed_fraud',
+]);
 
 export const productStatus = pgEnum('product_status', ['draft', 'active', 'archived']);
 

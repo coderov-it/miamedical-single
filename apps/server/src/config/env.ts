@@ -32,7 +32,38 @@ const EnvSchema = v.object({
     v.minValue(1),
     v.maxValue(365),
   ),
-  /** Set when the admin is served from a different subdomain than the API. */
+  /**
+   * How long a customer stays signed in, and how stale a session may get before
+   * an authenticated request pushes its expiry back out.
+   *
+   * Longer than the back office and sliding, unlike it: an operator asked to sign
+   * in weekly is fine, a customer who rents twice a year and meets a login form
+   * instead of their order history is a support call. The refresh threshold is
+   * what keeps the slide to one UPDATE per customer per day rather than one per
+   * request.
+   */
+  CUSTOMER_SESSION_TTL_DAYS: v.pipe(
+    v.optional(v.string(), '30'),
+    v.transform(Number),
+    v.number(),
+    v.integer(),
+    v.minValue(1),
+    v.maxValue(365),
+  ),
+  CUSTOMER_SESSION_REFRESH_HOURS: v.pipe(
+    v.optional(v.string(), '24'),
+    v.transform(Number),
+    v.number(),
+    v.integer(),
+    v.minValue(1),
+    v.maxValue(8760),
+  ),
+  /**
+   * Set when the admin is served from a different subdomain than the API. Shared
+   * by both session cookies — `.example.it` makes `example.it` and
+   * `api.example.it` same-site, which is what keeps `AUTH_COOKIE_SAMESITE=lax`
+   * workable for the storefront too.
+   */
   AUTH_COOKIE_DOMAIN: v.optional(v.string()),
   /**
    * `lax` is right when the admin and the API share a site. Cross-site setups
@@ -91,6 +122,43 @@ const EnvSchema = v.object({
    * whole reason the suggestion endpoint is ours rather than a direct call.
    */
   HERE_API_KEY: v.optional(v.string()),
+
+  /**
+   * Absolute origin of the storefront. Not optional like the credential groups
+   * below: every account email carries a link back to a page, and a relative link
+   * in an inbox goes nowhere. Astro reads the same variable.
+   */
+  PUBLIC_SITE_URL: v.pipe(
+    v.optional(v.string(), 'http://localhost:4321'),
+    v.transform((value) => value.replace(/\/+$/, '')),
+  ),
+  /** Origin of the admin SPA, so internal alert emails can deep-link into it. */
+  PUBLIC_ADMIN_URL: v.pipe(
+    v.optional(v.string(), 'http://localhost:5173'),
+    v.transform((value) => value.replace(/\/+$/, '')),
+  ),
+
+  /**
+   * Mail delivery. `console` renders the message to the log instead of sending
+   * it, which is the only way to click an activation link in local development —
+   * the link IS the feature, so a transport that swallows it makes the flow
+   * untestable. Production must be `ses`.
+   *
+   * The SES group is optional the same way R2 is: the server boots without it and
+   * the adapter fails on first send, naming what is missing. Omit the two keys to
+   * fall back on the AWS default credential chain, so an instance role works
+   * without putting secrets in the environment at all.
+   */
+  MAIL_TRANSPORT: v.optional(v.picklist(['console', 'ses']), 'console'),
+  /*
+    A no-reply mailbox, and visibly one: nothing receives there, and no Reply-To is
+    ever sent (see infra/mail/port.ts). Customers are given WhatsApp and the
+    free-phone number in the message body instead.
+  */
+  MAIL_FROM_ADDRESS: v.optional(v.string()),
+  AWS_SES_REGION: v.optional(v.string()),
+  AWS_SES_ACCESS_KEY_ID: v.optional(v.string()),
+  AWS_SES_SECRET_ACCESS_KEY: v.optional(v.string()),
 });
 
 const parsed = v.safeParse(EnvSchema, process.env);
@@ -103,4 +171,20 @@ if (!parsed.success) {
 }
 
 export const env = parsed.output;
+
+/*
+  The console transport writes activation and magic links to the log instead of
+  sending them. In development that is the point; in production it would mean
+  every customer silently never receives the link that lets them in, with no
+  error anywhere to show it. Fail at boot instead.
+*/
+if (env.NODE_ENV === 'production') {
+  if (env.MAIL_TRANSPORT !== 'ses') {
+    throw new Error('MAIL_TRANSPORT must be "ses" in production; "console" only logs the email.');
+  }
+  if (!env.MAIL_FROM_ADDRESS) {
+    throw new Error('MAIL_FROM_ADDRESS is required in production.');
+  }
+}
+
 export type Env = typeof env;

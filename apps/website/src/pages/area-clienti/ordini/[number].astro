@@ -1,0 +1,176 @@
+---
+/**
+ * One order, as the customer sees it: the lines they configured, where it is going,
+ * and what it costs. Deliberately not the admin view — no status timeline, no
+ * operator notes, no fiscal identifiers.
+ *
+ * `prerender = false` with a dynamic segment: there is no set of paths to build, and
+ * the number is only meaningful to whoever holds it.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { routes } from '~/lib/routes';
+
+export const prerender = false;
+
+const { number } = Astro.params;
+---
+
+<BaseLayout title={`Ordine ${number} | Mia Medical Italia`} description="Il tuo ordine." noindex>
+  <div class="mx-auto w-full max-w-2xl px-5 py-10" data-order-number={number}>
+    <nav class="mb-6 text-sm text-neutral-500">
+      <a class="underline" href={routes.accountOrders}>I miei ordini</a>
+      <span class="mx-1.5">/</span>
+      <span>{number}</span>
+    </nav>
+
+    <p data-loading class="text-[15px] text-neutral-600">Caricamento…</p>
+
+    <div data-error hidden class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm">
+    </div>
+
+    <article data-detail hidden></article>
+  </div>
+</BaseLayout>
+
+<script>
+  import { API_BASE } from '~/lib/api';
+  import {
+    ORDER_STATUS_LABELS,
+    formatDate,
+    formatMoney,
+    loadCustomer,
+  } from '~/lib/customer-session';
+  import { routes } from '~/lib/routes';
+
+  const root = document.querySelector<HTMLElement>('[data-order-number]');
+  const number = root?.dataset.orderNumber ?? '';
+  const loading = document.querySelector<HTMLElement>('[data-loading]');
+  const errorBox = document.querySelector<HTMLElement>('[data-error]');
+  const detail = document.querySelector<HTMLElement>('[data-detail]');
+
+  function escapeHtml(value: string): string {
+    return value.replace(/[&<>"]/g, (c) =>
+      c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&quot;',
+    );
+  }
+
+  interface OrderItem {
+    productTitle: string;
+    skuLabel: string;
+    quantity: number;
+    total: string;
+  }
+
+  interface OrderDetail {
+    number: string;
+    status: string;
+    totals: { subtotal: string; shippingTotal: string; total: string; currency: string };
+    items: OrderItem[];
+    shippingAddress: {
+      fullName?: string;
+      line1?: string;
+      city?: string;
+      postalCode?: string;
+    } | null;
+    delivery: { method?: string } | null;
+    notes: string | null;
+    placedAt: string;
+  }
+
+  const DELIVERY_LABELS: Record<string, string> = {
+    homeDelivery: 'Consegna a domicilio',
+    storePickup: 'Ritiro in negozio',
+  };
+
+  function row(labelText: string, value: string, strong = false): string {
+    return `<div class="flex justify-between gap-4 ${strong ? 'font-medium' : 'text-neutral-600'}">
+      <span>${escapeHtml(labelText)}</span><span class="tabular-nums">${value}</span></div>`;
+  }
+
+  function render(order: OrderDetail) {
+    const currency = order.totals.currency;
+    const address = order.shippingAddress;
+
+    const lines = order.items
+      .map(
+        (
+          item,
+        ) => `<li class="flex justify-between gap-4 border-b border-neutral-100 py-3 last:border-0">
+          <div>
+            <p class="font-medium">${escapeHtml(item.productTitle)}</p>
+            <p class="text-sm text-neutral-600">${escapeHtml(item.skuLabel)} · ${item.quantity} pz</p>
+          </div>
+          <span class="tabular-nums">${formatMoney(item.total, currency)}</span>
+        </li>`,
+      )
+      .join('');
+
+    if (!detail) return;
+    detail.hidden = false;
+    detail.innerHTML = `
+      <header class="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 class="text-[clamp(1.5rem,2.2vw,1.9rem)]/[1.2]">Ordine ${escapeHtml(order.number)}</h1>
+        <span class="rounded-full bg-neutral-100 px-3 py-1 text-sm">
+          ${escapeHtml(ORDER_STATUS_LABELS[order.status] ?? order.status)}
+        </span>
+      </header>
+      <p class="mt-1 text-sm text-neutral-600">Effettuato il ${formatDate(order.placedAt)}</p>
+
+      <ul class="mt-7">${lines}</ul>
+
+      <div class="mt-5 space-y-1.5 text-[15px]">
+        ${row('Subtotale', formatMoney(order.totals.subtotal, currency))}
+        ${row('Consegna', formatMoney(order.totals.shippingTotal, currency))}
+        ${row('Totale', formatMoney(order.totals.total, currency), true)}
+      </div>
+
+      ${
+        order.delivery?.method
+          ? `<section class="mt-7 rounded-xl border border-neutral-200 p-4">
+               <h2 class="text-sm font-medium">Consegna</h2>
+               <p class="mt-1 text-[15px] text-neutral-600">
+                 ${escapeHtml(DELIVERY_LABELS[order.delivery.method] ?? order.delivery.method)}
+               </p>
+               ${
+                 address?.line1
+                   ? `<p class="mt-1 text-[15px] text-neutral-600">
+                        ${escapeHtml([address.line1, address.postalCode, address.city].filter(Boolean).join(', '))}
+                      </p>`
+                   : ''
+               }
+             </section>`
+          : ''
+      }
+
+      ${
+        order.notes
+          ? `<section class="mt-4 rounded-xl border border-neutral-200 p-4">
+               <h2 class="text-sm font-medium">Le tue note</h2>
+               <p class="mt-1 text-[15px] whitespace-pre-line text-neutral-600">${escapeHtml(order.notes)}</p>
+             </section>`
+          : ''
+      }`;
+  }
+
+  const customer = await loadCustomer();
+
+  if (!customer) {
+    window.location.replace(`${routes.login}?next=${encodeURIComponent(window.location.pathname)}`);
+  } else {
+    const response = await fetch(`${API_BASE}/api/customer/orders/${encodeURIComponent(number)}`, {
+      credentials: 'include',
+    });
+
+    if (loading) loading.hidden = true;
+
+    if (response.ok) {
+      const payload = (await response.json()) as { data: OrderDetail };
+      render(payload.data);
+    } else if (errorBox) {
+      // A number that is not theirs 404s rather than 403s, so "not found" is the
+      // only thing this page can honestly say about either case.
+      errorBox.hidden = false;
+      errorBox.innerHTML = `Questo ordine non è disponibile. <a class="underline" href="${routes.accountOrders}">Torna ai tuoi ordini</a>.`;
+    }
+  }
+</script>
