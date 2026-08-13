@@ -6,10 +6,17 @@
  * tinted pill rather than a green one: the design keeps a single accent family,
  * and green is reserved for availability and "incluso".
  *
- * Below the wide breakpoint the inline navigation collapses into a native
- * `<details>` disclosure; on phones the persistent bottom navigation takes over
- * instead. Both are CSS and markup — the header's one script does nothing but
- * paint the cart badge, and every link here works without it.
+ * The inline navigation collapses into a native `<details>` disclosure below
+ * 1244px; on phones the persistent bottom navigation takes over instead. Both are
+ * CSS and markup — the header's one script does nothing but paint the cart badge,
+ * and every link here works without it.
+ *
+ * ⚠️ That 1244px is `--container-page`, NOT the `wide` breakpoint (1100px) the rest
+ * of the site switches on, and the difference is deliberate. Measured at 1100px:
+ * the row needs 1121px and the container gives 1021px, so revealing it there wrapped
+ * the CTA onto a second line and doubled the header's height. The full row is shown
+ * exactly when the page reaches its full measure, which is the first width where it
+ * fits — with 59px to spare. Change `--container-page` and re-measure this.
  */
 import { CONTACT } from '~/lib/site';
 import { routes } from '~/lib/routes';
@@ -21,8 +28,15 @@ const nav = [
   { href: routes.support, label: 'Assistenza', exact: false },
 ];
 
+/* The account entry is an icon on desktop, not a fifth pill: a fifth pill made the
+   inline row wider than the container, which pushed "Noleggia ora" onto a second
+   line and doubled the header's height. In the disclosure menu, where items are
+   stacked, it is a text row like the rest. */
+const account = { href: routes.account, label: 'Area clienti', exact: false };
+const disclosureNav = [...nav, account];
+
 const path = Astro.url.pathname;
-const isActive = (item: (typeof nav)[number]) =>
+const isActive = (item: { href: string; exact: boolean }) =>
   item.exact ? path === item.href : path.startsWith(item.href);
 ---
 
@@ -50,7 +64,7 @@ const isActive = (item: (typeof nav)[number]) =>
       />
     </a>
 
-    <nav class="wide:flex mr-auto hidden gap-1.5" aria-label="Navigazione principale">
+    <nav class="mr-auto hidden gap-1.5 min-[1244px]:flex" aria-label="Navigazione principale">
       {
         nav.map((item) => (
           <a
@@ -67,30 +81,38 @@ const isActive = (item: (typeof nav)[number]) =>
       }
     </nav>
 
-    <a
-      class="border-hair bg-tint font-display text-ui-strong hover:border-hair-strong hover:bg-tint-2 wide:ml-0 wide:px-5 ml-auto inline-flex min-h-13 flex-none items-center gap-2.5 rounded-full border px-4 font-semibold whitespace-nowrap no-underline"
-      href={`tel:${CONTACT.phoneE164}`}
-      aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
-      data-analytics="phone-call"
-    >
-      <svg
-        class="text-ink-2 size-4.5 flex-none"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.1"
-        stroke-linecap="round"
-        aria-hidden="true"
-      >
-        <path
-          d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
-        ></path>
-      </svg>
-      {CONTACT.phoneDisplay}<span class="mid:inline hidden font-normal">— gratis</span>
-    </a>
-
     {
       /*
+      The right-hand cluster is one group with its own tighter gap, so the phone
+      pill, the two icons and the CTA travel together. It still wraps internally
+      rather than overflowing, which is what keeps 200% zoom readable.
+    */
+    }
+    <div class="ml-auto flex flex-wrap items-center justify-end gap-x-2.5 gap-y-3">
+      <a
+        class="border-hair bg-tint font-display text-ui-strong hover:border-hair-strong hover:bg-tint-2 inline-flex min-h-13 flex-none items-center gap-2.5 rounded-full border px-4 font-semibold whitespace-nowrap no-underline min-[1244px]:px-5"
+        href={`tel:${CONTACT.phoneE164}`}
+        aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
+        data-analytics="phone-call"
+      >
+        <svg
+          class="text-ink-2 size-4.5 flex-none"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.1"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+          ></path>
+        </svg>
+        {CONTACT.phoneDisplay}<span class="mid:inline hidden font-normal">— gratis</span>
+      </a>
+
+      {
+        /*
         Cart. A link, not a button: it navigates.
 
         The count used to be deliberately absent, because on a PRERENDERED page a
@@ -101,82 +123,116 @@ const isActive = (item: (typeof nav)[number]) =>
         same store the cart page reads — so a cached page cannot carry a wrong
         number, only no number, and only for as long as the script takes to run.
       */
-    }
-    <a
-      class="border-hair bg-tint hover:border-hair-strong hover:bg-tint-2 relative grid size-13 flex-none place-items-center rounded-full border"
-      href={routes.cart}
-      aria-label="Apri la tua richiesta di noleggio"
-      data-cart-link
-    >
-      <svg
-        class="size-5.25"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.9"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
+      }
+      <a
+        class="border-hair bg-tint hover:border-hair-strong hover:bg-tint-2 relative grid size-13 flex-none place-items-center rounded-full border"
+        href={routes.cart}
+        aria-label="Apri la tua richiesta di noleggio"
+        data-cart-link
       >
-        <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4"></path>
-        <circle cx="10.5" cy="20" r="1.4"></circle>
-        <circle cx="17.5" cy="20" r="1.4"></circle>
-      </svg>
+        <svg
+          class="size-5.25"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4"></path>
+          <circle cx="10.5" cy="20" r="1.4"></circle>
+          <circle cx="17.5" cy="20" r="1.4"></circle>
+        </svg>
 
-      {
-        /*
+        {
+          /*
           `aria-hidden`, because the link's own `aria-label` is rewritten with the
           count by the script. Two announcements of the same number — one from the
           label, one from a badge in the accessibility tree — is worse than one.
         */
+        }
+        <span
+          class="absolute -top-0.5 -right-0.5 grid min-w-5.5 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-bold text-white tabular-nums"
+          data-cart-count
+          aria-hidden="true"
+          hidden
+        >
+        </span>
+      </a>
+
+      {
+        /*
+        Account, desktop only — the disclosure menu below carries it as a text row
+        for every narrower width. No session lookup: it always points at
+        /area-clienti/, which redirects anonymous visitors to /accedi/ itself, so a
+        session-dependent icon would cost a request on every page to render the
+        same glyph.
+      */
       }
-      <span
-        class="absolute -top-0.5 -right-0.5 grid min-w-5.5 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-bold text-white tabular-nums"
-        data-cart-count
-        aria-hidden="true"
-        hidden
-      >
-      </span>
-    </a>
-
-    <a class="btn btn-primary wide:inline-flex hidden flex-none" href={routes.catalog}>
-      Noleggia ora
-    </a>
-
-    <details class="wide:hidden flex-none">
-      <summary
-        class="border-hair bg-tint grid size-13 cursor-pointer list-none place-items-center rounded-full border [&::-webkit-details-marker]:hidden"
-        aria-label="Apri il menu"
+      <a
+        class:list={[
+          'border-hair hover:border-hair-strong hover:bg-tint-2 hidden size-13 flex-none place-items-center rounded-full border min-[1244px]:grid',
+          isActive(account) ? 'bg-tint-2 border-hair-strong' : 'bg-tint',
+        ]}
+        href={account.href}
+        aria-label={account.label}
+        aria-current={isActive(account) ? 'page' : undefined}
       >
         <svg
-          class="size-6"
+          class="size-5.25"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.2"
+          stroke-width="1.9"
           stroke-linecap="round"
+          stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="M4 7h16M4 12h16M4 17h16"></path>
+          <circle cx="12" cy="8" r="3.6"></circle>
+          <path d="M4.6 20a7.4 7.4 0 0 1 14.8 0"></path>
         </svg>
-      </summary>
-      <nav
-        class="border-hair mid:px-8 absolute inset-x-0 grid border-b bg-white px-5 pt-2 pb-4"
-        aria-label="Navigazione principale"
-      >
-        {
-          nav.map((item) => (
-            <a
-              class="border-hair font-display text-ui-strong text-ink flex min-h-12 items-center border-b font-semibold no-underline last:border-b-0"
-              href={item.href}
-              aria-current={isActive(item) ? 'page' : undefined}
-            >
-              {item.label}
-            </a>
-          ))
-        }
-      </nav>
-    </details>
+      </a>
+
+      <a class="btn btn-primary hidden flex-none min-[1244px]:inline-flex" href={routes.catalog}>
+        Noleggia ora
+      </a>
+
+      <details class="flex-none min-[1244px]:hidden">
+        <summary
+          class="border-hair bg-tint grid size-13 cursor-pointer list-none place-items-center rounded-full border [&::-webkit-details-marker]:hidden"
+          aria-label="Apri il menu"
+        >
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16"></path>
+          </svg>
+        </summary>
+        <nav
+          class="border-hair mid:px-8 absolute inset-x-0 grid border-b bg-white px-5 pt-2 pb-4"
+          aria-label="Navigazione principale"
+        >
+          {
+            disclosureNav.map((item) => (
+              <a
+                class="border-hair font-display text-ui-strong text-ink flex min-h-12 items-center border-b font-semibold no-underline last:border-b-0"
+                href={item.href}
+                aria-current={isActive(item) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </details>
+    </div>
   </div>
 </header>
 

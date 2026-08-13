@@ -3,19 +3,21 @@
 import type { Database } from '@mia/db';
 import { and, asc, count, desc, eq, gte, ilike, inArray, lt, lte, or, sql } from '@mia/db';
 import {
+  adminUsers,
   cartItems,
   carts,
+  customerAccounts,
   orderItems,
   orders,
   orderStatusEvents,
   products,
   productSkus,
   productTranslations,
-  users,
 } from '@mia/db/schema';
 
 import { multiply, sumMoney } from './mapper.ts';
 import type {
+  ActorRef,
   CartAggregate,
   CartItemRecord,
   CartListFilters,
@@ -136,12 +138,19 @@ export async function findEvents(db: Database, orderId: string): Promise<OrderSt
   const rows = await db
     .select({
       event: orderStatusEvents,
-      actorId: users.id,
-      actorEmail: users.email,
-      actorName: users.fullName,
+      adminId: adminUsers.id,
+      adminEmail: adminUsers.email,
+      adminName: adminUsers.fullName,
+      customerId: customerAccounts.id,
+      customerEmail: customerAccounts.email,
+      customerFirstName: customerAccounts.firstName,
+      customerLastName: customerAccounts.lastName,
     })
     .from(orderStatusEvents)
-    .leftJoin(users, eq(orderStatusEvents.actorUserId, users.id))
+    // Two actor tables, at most one of which matches: an operator moved a status,
+    // or a customer confirmed or rejected the account link.
+    .leftJoin(adminUsers, eq(orderStatusEvents.actorAdminUserId, adminUsers.id))
+    .leftJoin(customerAccounts, eq(orderStatusEvents.actorCustomerAccountId, customerAccounts.id))
     .where(eq(orderStatusEvents.orderId, orderId))
     // Oldest first: a timeline is read downwards. `id` breaks ties so two
     // events written in the same transaction keep a stable order.
@@ -149,11 +158,38 @@ export async function findEvents(db: Database, orderId: string): Promise<OrderSt
 
   return rows.map((row) => ({
     ...row.event,
-    actor:
-      row.actorId && row.actorEmail
-        ? { id: row.actorId, email: row.actorEmail, fullName: row.actorName }
-        : null,
+    actor: resolveActor(row),
   }));
+}
+
+/**
+ * Collapses the two actor joins into one reference. `kind` matters to the reader:
+ * "Confermato" from an operator and from the customer are different facts, and
+ * without it the timeline would present them identically.
+ */
+function resolveActor(row: {
+  adminId: string | null;
+  adminEmail: string | null;
+  adminName: string | null;
+  customerId: string | null;
+  customerEmail: string | null;
+  customerFirstName: string | null;
+  customerLastName: string | null;
+}): ActorRef | null {
+  if (row.adminId && row.adminEmail) {
+    return { kind: 'admin', id: row.adminId, email: row.adminEmail, fullName: row.adminName };
+  }
+
+  if (row.customerId && row.customerEmail) {
+    return {
+      kind: 'customer',
+      id: row.customerId,
+      email: row.customerEmail,
+      fullName: `${row.customerFirstName ?? ''} ${row.customerLastName ?? ''}`.trim() || null,
+    };
+  }
+
+  return null;
 }
 
 // --- placing an order ------------------------------------------------------
@@ -170,6 +206,15 @@ export interface NewOrderItemData {
 }
 
 export interface NewOrderData {
+  /**
+   * The account this order is attached to, and how much that attachment is worth.
+   * Null when checkout could not resolve one at all; `confirmed` only when the
+   * order was placed from inside a signed-in session.
+   */
+  customerAccountId: string | null;
+  customerLinkStatus: 'unverified' | 'confirmed' | 'rejected';
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   customerType: 'private' | 'company' | 'tourist';
@@ -226,6 +271,10 @@ export async function insertOrder(
       .insert(orders)
       .values({
         number,
+        customerAccountId: data.customerAccountId,
+        customerLinkStatus: data.customerLinkStatus,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         phone: data.phone,
         customerType: data.customerType,
@@ -267,7 +316,8 @@ export async function insertOrder(
       fromValue: null,
       toValue: 'pending',
       note: 'Placed from the storefront checkout.',
-      actorUserId: null,
+      actorAdminUserId: null,
+      actorCustomerAccountId: null,
     });
 
     return { id: order.id, number: order.number, placedAt: order.placedAt };
@@ -292,7 +342,7 @@ export interface StatusEventData {
   fromValue: string;
   toValue: string;
   note: string | null;
-  actorUserId: string | null;
+  actorAdminUserId: string | null;
 }
 
 /**
@@ -354,13 +404,13 @@ export async function findCarts(
         cart: carts,
         itemCount: count(cartItems.id),
         subtotal,
-        userEmail: users.email,
+        customerEmail: customerAccounts.email,
       })
       .from(carts)
-      .leftJoin(users, eq(carts.userId, users.id))
+      .leftJoin(customerAccounts, eq(carts.customerAccountId, customerAccounts.id))
       .leftJoin(cartItems, eq(cartItems.cartId, carts.id))
       .where(where)
-      .groupBy(carts.id, users.id)
+      .groupBy(carts.id, customerAccounts.id)
       .orderBy(desc(carts.updatedAt))
       .limit(filters.perPage)
       .offset((filters.page - 1) * filters.perPage),
@@ -372,7 +422,7 @@ export async function findCarts(
       ...row.cart,
       itemCount: row.itemCount,
       subtotal: row.subtotal,
-      userEmail: row.userEmail,
+      customerEmail: row.customerEmail,
     })),
     total: totals[0]?.value ?? 0,
   };
@@ -382,9 +432,9 @@ export async function findCartById(db: Database, id: string): Promise<CartAggreg
   const cart = await db.query.carts.findFirst({ where: eq(carts.id, id) });
   if (!cart) return undefined;
 
-  const owner = cart.userId
-    ? await db.query.users.findFirst({
-        where: eq(users.id, cart.userId),
+  const owner = cart.customerAccountId
+    ? await db.query.customerAccounts.findFirst({
+        where: eq(customerAccounts.id, cart.customerAccountId),
         columns: { email: true },
       })
     : undefined;
@@ -426,6 +476,6 @@ export async function findCartById(db: Database, id: string): Promise<CartAggreg
     items,
     itemCount: items.length,
     subtotal: sumMoney(items.map((item) => multiply(item.unitPrice, item.quantity))),
-    userEmail: owner?.email ?? null,
+    customerEmail: owner?.email ?? null,
   };
 }

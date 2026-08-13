@@ -42,7 +42,7 @@ import {
   searchVectorFor,
   termsDocumentTranslations,
   termsDocuments,
-  users,
+  adminUsers,
 } from '@mia/db/schema';
 
 import { env } from '../src/config/env.ts';
@@ -1073,9 +1073,9 @@ if (!env.R2_BUCKET) {
   const provinceRows = parseReferenceCsv(readFileSync(istatProvincesCsvPath, 'utf8'));
   await db.delete(istatProvinces);
   await db.delete(istatRegions);
-  await db.insert(istatRegions).values(
-    regionRows.map(([regionCode, name]) => ({ regionCode: regionCode!, name: name! })),
-  );
+  await db
+    .insert(istatRegions)
+    .values(regionRows.map(([regionCode, name]) => ({ regionCode: regionCode!, name: name! })));
   await db.insert(istatProvinces).values(
     provinceRows.map(([provinceCode, name, regionCode]) => ({
       provinceCode: provinceCode!,
@@ -1100,19 +1100,25 @@ if (!env.R2_BUCKET) {
     const CHUNK = 1000;
     for (let i = 0; i < comuneRows.length; i += CHUNK) {
       await db.insert(istatComuni).values(
-        comuneRows.slice(i, i + CHUNK).map(([istatCode, name, nameNormalised, provinceCode, regionCode]) => ({
-          istatCode: istatCode!,
-          name: name!,
-          nameNormalised: nameNormalised!,
-          provinceCode: provinceCode!,
-          regionCode: regionCode!,
-        })),
+        comuneRows
+          .slice(i, i + CHUNK)
+          .map(([istatCode, name, nameNormalised, provinceCode, regionCode]) => ({
+            istatCode: istatCode!,
+            name: name!,
+            nameNormalised: nameNormalised!,
+            provinceCode: provinceCode!,
+            regionCode: regionCode!,
+          })),
       );
     }
     for (let i = 0; i < capRows.length; i += CHUNK) {
-      await db.insert(istatComuneCaps).values(
-        capRows.slice(i, i + CHUNK).map(([istatCode, cap]) => ({ istatCode: istatCode!, cap: cap! })),
-      );
+      await db
+        .insert(istatComuneCaps)
+        .values(
+          capRows
+            .slice(i, i + CHUNK)
+            .map(([istatCode, cap]) => ({ istatCode: istatCode!, cap: cap! })),
+        );
     }
     console.log(`  ✓ ${comuneRows.length} comuni and ${capRows.length} comune↔CAP pairs`);
   }
@@ -1172,7 +1178,12 @@ const DEMO_ZONES: ZoneSeed[] = [
             name: 'Roma',
             value: { kind: 'fee', fee: '25.00' },
             children: [
-              { level: 'cap', code: '00121', name: 'Roma 00121', value: { kind: 'fee', fee: '35.00' } },
+              {
+                level: 'cap',
+                code: '00121',
+                name: 'Roma 00121',
+                value: { kind: 'fee', fee: '35.00' },
+              },
             ],
           },
           { level: 'comune', code: '058081', name: 'Riano', value: { kind: 'fee', fee: '40.00' } },
@@ -1190,7 +1201,10 @@ const DEMO_ZONES: ZoneSeed[] = [
   if (existingZone) {
     console.log('  · delivery zones already exist, skipping');
   } else {
-    const insertZone = async (node: ZoneSeed, parent: { id: string; level: string } | null): Promise<void> => {
+    const insertZone = async (
+      node: ZoneSeed,
+      parent: { id: string; level: string } | null,
+    ): Promise<void> => {
       const [row] = await db
         .insert(deliveryZones)
         .values({
@@ -1211,10 +1225,7 @@ const DEMO_ZONES: ZoneSeed[] = [
     };
 
     const isProduction = env.NODE_ENV === 'production';
-    await insertZone(
-      { ...COUNTRY_ROW, children: isProduction ? [] : DEMO_ZONES },
-      null,
-    );
+    await insertZone({ ...COUNTRY_ROW, children: isProduction ? [] : DEMO_ZONES }, null);
 
     if (isProduction) {
       console.log('  ✓ the Italia country row (no demo tree, NODE_ENV=production)');
@@ -1234,17 +1245,20 @@ if (env.NODE_ENV === 'production') {
   const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@miamedical.local';
   const passwordHash = await hashPassword(process.env.SEED_ADMIN_PASSWORD ?? 'localdev-password');
 
-  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+  const [existing] = await db
+    .select({ id: adminUsers.id })
+    .from(adminUsers)
+    .where(eq(adminUsers.email, email));
   if (existing) {
     await db
-      .update(users)
-      .set({ passwordHash, role: 'super_admin', isActive: true })
-      .where(eq(users.id, existing.id));
+      .update(adminUsers)
+      .set({ passwordHash, isSuperuser: true, isActive: true })
+      .where(eq(adminUsers.id, existing.id));
   } else {
-    await db.insert(users).values({
+    await db.insert(adminUsers).values({
       email,
       fullName: 'Super Admin',
-      role: 'super_admin',
+      isSuperuser: true,
       passwordHash,
       emailVerifiedAt: new Date(),
     });

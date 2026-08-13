@@ -52,7 +52,7 @@ apps/server/
     ├── infra/                    Infrastructure adapters — never feature policy
     │   ├── cache/                 (pending)
     │   ├── db/client.ts          Connection bridge to @mia/db
-    │   ├── mail/                  (pending)
+    │   ├── mail/                  SES v2 + a console transport for local dev
     │   ├── media/                 (pending)
     │   ├── storage/               (pending)
     │   └── swagger/               (pending)
@@ -73,7 +73,7 @@ apps/server/
         ├── auth/
         │   ├── session.ts        withSession, cookie helpers, hashToken
         │   ├── password.ts       Argon2id hash / verify / needsRehash
-        │   └── guards.ts         requireAuth, requireRole, requirePermission
+        │   └── guards.ts         requireAuth, requirePermission, requireCustomer
         └── http/
             ├── context.ts        AppEnv, SessionUser
             ├── errors.ts         httpError + named constructors
@@ -242,7 +242,7 @@ Owns visibility rules, invariants and cross-repo orchestration. Throws domain
 errors from `shared/http/errors.ts`:
 
 ```ts
-const canSeeHidden = (user: SessionUser | null) => user?.role === 'admin' || user?.role === 'staff';
+const canSeeHidden = (user: SessionUser | null) => can(user, P.PRODUCT_READ);
 
 export async function getBySlug(db: Database, slug: string, user: SessionUser | null) {
   const product = await repo.findBySlug(db, slug);
@@ -343,9 +343,23 @@ which re-exports the shared ones so routes have a single import source.
 
 ### 6.3 Auth
 
-The storefront is **anonymous** — orders are placed without an account. Every
-`users` row is a back-office account, and `modules/auth` exists only to sign
-those people in.
+There are **two** authentication systems, deliberately separate all the way down:
+different tables, different session tables, different cookies, different modules.
+Nothing crosses between them.
+
+|              | Back office                       | Storefront              |
+| ------------ | --------------------------------- | ----------------------- |
+| Table        | `admin_users`                     | `customer_accounts`     |
+| Sessions     | `admin_sessions`                  | `customer_sessions`     |
+| Cookie       | `mia_session`                     | `mia_customer_session`  |
+| Module       | `modules/auth`                    | `modules/customer-auth` |
+| Access model | permission codes + `is_superuser` | "their own rows" only   |
+| Expiry       | fixed                             | sliding                 |
+
+Storefront accounts are created by checkout, never by a signup form, and claimed
+afterwards from an emailed link. The whole flow is documented in
+[customer-accounts.md](./code/customer-accounts.md); what follows is the shared
+machinery.
 
 - `shared/auth/session.ts` — `withSession` resolves the user onto the context
   and **never rejects**. Also owns the cookie: `setSessionCookie`,
@@ -353,11 +367,20 @@ those people in.
 - `shared/auth/password.ts` — Argon2id via `@node-rs/argon2` (prebuilt binary,
   nothing to compile). Hashes are PHC strings, so the cost parameters travel
   with the value and `needsRehash` upgrades old ones at next login.
-- `shared/auth/guards.ts` — `requireAuth`, `requireRole(...roles)`,
-  `requirePermission(...codes)`, `requireAnyPermission(...codes)`, and
-  `currentUser(c)` for handlers behind `requireAuth`.
+- `shared/auth/customer-session.ts` — the storefront mirror. Imports
+  `hashToken`/`createSessionToken` from `session.ts` so there is one definition of
+  how a session token is made. Adds sliding expiry, throttled by
+  `CUSTOMER_SESSION_REFRESH_HOURS` so an active customer costs at most one write
+  per day rather than one per request.
+- `shared/auth/guards.ts` — `requireAuth`, `requirePermission(...codes)`,
+  `requireAnyPermission(...codes)`, `currentUser(c)`, plus `requireCustomer` and
+  `currentCustomer(c)` for the storefront.
 
-Session tokens are stored **hashed**: `sessions.id` holds a SHA-256 of the
+There is deliberately **no `requireRole`**: codes are the only unit of access, so a
+guard asking about anything else would be answering a question the system does not
+model.
+
+Session tokens are stored **hashed**: the session row's `id` holds a SHA-256 of the
 token; the raw value exists only in the client cookie (`httpOnly`, `SameSite`
 from `AUTH_COOKIE_SAMESITE`, `Secure` in production).
 
@@ -367,13 +390,24 @@ itself out. Move the counter to `infra/cache/` before running more than one
 instance.
 
 Authorisation decisions belong in `service.ts`, not in route guards, whenever
-the answer depends on the resource rather than the role alone.
+the answer depends on the resource rather than the capability alone. Everything on
+the customer side is of that kind, which is why `requireCustomer` takes no codes and
+every query in `modules/customer-account/repo.ts` is scoped by account id in its
+`WHERE` clause.
+
+Emailed one-shot links (activation, magic link, password reset, dispute report) live
+in `customer_auth_tokens`, hashed the same way and redeemed by a single atomic
+`UPDATE … WHERE consumed_at IS NULL` so two clicks cannot both win.
 
 ### 6.3.1 Permissions
 
 `@mia/permissions` is the single catalog, shared by the server and the admin UI.
 
-**A permission is a number.** `users.permissions` is an unindexed `int[]`, and
+**There are no roles.** Access is attribute-based and always has been; the old
+`user_role` enum only ever carried a blanket bypass, which is now
+`admin_users.is_superuser`.
+
+**A permission is a number.** `admin_users.permissions` is an unindexed `int[]`, and
 every check is an integer comparison — the `order:update` string exists so a
 human can read and assign it, and is never decoded at runtime or in SQL.
 
@@ -383,8 +417,11 @@ import { P } from '@mia/permissions';
 .post('/', requirePermission(P.PRODUCT_CREATE), …)   // compiles to 1202
 ```
 
-`super_admin` bypasses every check and ignores its `permissions` column; there
-must always be at least one, or nobody can grant permissions again.
+`is_superuser` is the one attribute that is not a code. It means "every code,
+including ones added to the catalog later" — which is why it exists rather than
+writing the whole catalog into the array: adding a permission tomorrow must not
+silently strip an all-access operator of the new area. There must always be at least
+one superuser, or nobody can grant access again.
 
 Codes are laid out in blocks of 100 per capability area (`1100` orders, `1200`
 products, …), with `+0` read, `+1` update, `+2` create, `+3` delete and `+10…`
@@ -393,9 +430,9 @@ reuse a retired one — existing rows already hold the old number. Retiring one
 means deleting the entry; `normalizePermissions` drops codes that no longer
 exist, so no migration is needed.
 
-The first `super_admin` is created with
-`pnpm --filter @mia/server admin:create`. There is deliberately no self-service
-registration.
+The first superuser is created with
+`pnpm --filter @mia/server admin:create -- --email you@example.com --superuser`.
+There is deliberately no self-service registration for the admin panel.
 
 ### 6.4 Money
 
@@ -558,12 +595,13 @@ Creating the first back-office account:
 
 ```bash
 ADMIN_PASSWORD='…' pnpm --filter @mia/server admin:create -- \
-  --email ops@miamedical.com --name 'Ops' --role super_admin
+  --email ops@miamedical.com --name 'Ops' --superuser
 ```
 
 Omit `ADMIN_PASSWORD` to be prompted without echo. The password is never passed
 as an argument — arguments land in shell history and in `ps` output. Non-super
-roles take `--permissions 1100,1101` (codes, comma separated).
+Everyone else takes `--permissions 1100,1101` (codes, comma separated); an account
+with neither flag is refused, since it could open nothing.
 
 ---
 
@@ -645,7 +683,7 @@ Cloudflare R2 port — is built.)
   editing their permission arrays from the UI — is not built yet. Until it is,
   accounts are provisioned with `script/create-admin.ts`. The permission catalog,
   storage and guards are already in place, so this is CRUD over
-  `users.permissions` plus a picker built from `permissionsByGroup()`.
+  `admin_users.permissions` plus a picker built from `permissionsByGroup()`.
 - **Rate-limit storage.** The login limiter is per-process (§6.3). Multiple
   instances divide the effective limit; move it to `infra/cache/` when scaling
   horizontally.

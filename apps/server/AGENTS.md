@@ -14,6 +14,8 @@ src/
   index.ts          Process entry — serve() and signal handling only
   app.ts            Hono composition, global middleware, module mounting
   config/env.ts     Parsed, validated environment (fails fast at import)
+  config/features.ts     Optional features, resolved once at boot — never per request
+  config/external-apis.ts Every third-party host, so a moved API is one edit
   infra/            Infrastructure adapters — never feature policy
     db/             Connection bridge to @mia/db (schema lives in the package)
   modules/          One folder per business capability
@@ -102,16 +104,28 @@ Split by capability, not by layer — a sub-folder owns a slice end to end.
 
 ## Modules not yet built
 
-`access`, `cart`, `notifications`, `orders`, `payments`, `settings`, `users`,
-`webhooks`. Follow the anatomy above when adding one, and mount it in `app.ts`
-with a chained `.route()` so RPC types stay inferred.
+`access`, `cart`, `customers` (a back-office view of accounts), `payments`,
+`users`, `webhooks`. Follow the anatomy above when adding one, and mount it in
+`app.ts` with a chained `.route()` so RPC types stay inferred.
 
 Built: `products` (capability sub-folders: catalog, variants, specs, addons,
 faqs, questions, terms-links, media), `categories`, `media` (upload + staging
-deletion only — no DB), `terms`, `attributes`.
+deletion only — no DB), `terms`, `attributes`, `orders`, `delivery`, `address`,
+`auth`, `customer-auth`, `customer-account`, `order-disputes`, `notifications`
+(not routed — a service other modules call; the email markup itself lives in
+`@mia/templates`, so a preview page can render it without a transport), `settings`,
+`email-preview` (development only — a gallery of every email at `/email-preview`, not
+mounted when `NODE_ENV=production`).
 
-Infra adapters still to add: `cache/`, `mail/`, `swagger/`. Built:
-`storage/` (Cloudflare R2 behind the `ObjectStorage` port).
+Infra adapters still to add: `cache/`, `swagger/`. Built: `storage/`
+(Cloudflare R2 behind the `ObjectStorage` port), `convert/` (sharp), `mail/`
+(Plunk, Cloudflare Email Sending and AWS SES v2 behind the `MailSender` port — one is
+live, chosen by `MAIL_TRANSPORT`, with a console transport for local development; see
+docs/code/notifications-and-mail.md).
+
+Every third-party hostname the server calls lives in `config/external-apis.ts`, not
+in the adapter that calls it. Paths stay with the adapter — a path is part of the
+call's contract, a host is not.
 
 ## Dependency injection
 

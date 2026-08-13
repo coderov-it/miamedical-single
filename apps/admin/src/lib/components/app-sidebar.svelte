@@ -22,7 +22,18 @@
   const sections = $derived(visibleNavigation((code) => session.can(code)));
 
   const identity = $derived(session.user?.fullName ?? session.user?.email ?? '');
-  const role = $derived(session.user?.isSuperAdmin ? 'Super admin' : (session.user?.role ?? ''));
+  /**
+   * There are no roles to show. A superuser is worth naming because it means
+   * unrestricted access; everyone else is described by how much they can reach,
+   * which is the only thing access is made of.
+   */
+  const access = $derived(
+    session.user?.isSuperuser
+      ? 'Superuser'
+      : session.user
+        ? `${session.user.permissions.length} permissions`
+        : '',
+  );
   const initials = $derived(
     (session.user?.fullName ?? session.user?.email ?? '?').slice(0, 2).toUpperCase(),
   );
@@ -89,7 +100,7 @@
           </span>
           <div class="grid flex-1 leading-tight group-data-[collapsible=icon]:hidden">
             <span class="truncate text-xs font-medium">{identity}</span>
-            <span class="truncate text-xs text-muted-foreground">{role}</span>
+            <span class="truncate text-xs text-muted-foreground">{access}</span>
           </div>
 
           <AlertDialog.Root>

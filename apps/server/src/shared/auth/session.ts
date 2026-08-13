@@ -1,5 +1,5 @@
 import { eq } from '@mia/db';
-import { sessions, users } from '@mia/db/schema';
+import { adminSessions, adminUsers } from '@mia/db/schema';
 import type { Context } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { createMiddleware } from 'hono/factory';
@@ -9,8 +9,18 @@ import { randomBytes } from 'node:crypto';
 import { env } from '../../config/env.ts';
 import type { AppEnv, SessionUser } from '../http/context.ts';
 
+/**
+ * Back-office session cookie. Customers get a separate one
+ * (`mia_customer_session`, see ./customer-session.ts) so that signing into the
+ * panel and browsing the storefront cannot clobber each other.
+ */
 export const SESSION_COOKIE = 'mia_session';
 
+/**
+ * Fixed, not sliding: a back-office session ends this long after sign-in whatever
+ * the operator does in between. `customer-session.ts` slides instead, and says
+ * there why the two differ.
+ */
 export const SESSION_TTL_MS = env.SESSION_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 /** SHA-256 of the raw token — the DB only ever stores the hash. */
@@ -68,17 +78,17 @@ export const withSession = createMiddleware<AppEnv>(async (c, next) => {
     const [row] = await c
       .get('db')
       .select({
-        id: users.id,
-        email: users.email,
-        fullName: users.fullName,
-        role: users.role,
-        permissions: users.permissions,
-        expiresAt: sessions.expiresAt,
-        isActive: users.isActive,
+        id: adminUsers.id,
+        email: adminUsers.email,
+        fullName: adminUsers.fullName,
+        isSuperuser: adminUsers.isSuperuser,
+        permissions: adminUsers.permissions,
+        expiresAt: adminSessions.expiresAt,
+        isActive: adminUsers.isActive,
       })
-      .from(sessions)
-      .innerJoin(users, eq(users.id, sessions.userId))
-      .where(eq(sessions.id, await hashToken(token)))
+      .from(adminSessions)
+      .innerJoin(adminUsers, eq(adminUsers.id, adminSessions.adminUserId))
+      .where(eq(adminSessions.id, await hashToken(token)))
       .limit(1);
 
     if (row && row.isActive && row.expiresAt > new Date()) {
@@ -86,7 +96,7 @@ export const withSession = createMiddleware<AppEnv>(async (c, next) => {
         id: row.id,
         email: row.email,
         fullName: row.fullName,
-        role: row.role,
+        isSuperuser: row.isSuperuser,
         permissions: row.permissions,
       } satisfies SessionUser);
     }

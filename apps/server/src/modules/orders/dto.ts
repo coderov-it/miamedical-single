@@ -84,12 +84,17 @@ export interface OrderDeliveryDto {
 
 export interface OrderEventDto {
   id: string;
-  field: 'status' | 'paymentStatus';
+  field: 'status' | 'paymentStatus' | 'customerLink';
   fromValue: string | null;
   toValue: string;
   note: string | null;
   /** Null for system events, and for actors whose account has been deleted. */
   actorName: string | null;
+  /**
+   * Which side acted. Null whenever `actorName` is. The UI needs it because
+   * "confirmed" by an operator and by the customer are different facts.
+   */
+  actorKind: 'admin' | 'customer' | null;
   createdAt: string;
 }
 
@@ -124,11 +129,19 @@ export interface AdminOrderDetailDto {
    * group on an order raised any other way — the seed, or an operator taking one
    * over the phone.
    */
+  firstName: string | null;
+  lastName: string | null;
   phone: string | null;
   customerType: CustomerType | null;
   codiceFiscale: string | null;
   partitaIva: string | null;
-  userId: string | null;
+  /**
+   * The account this order is attached to, and how much that attachment is worth.
+   * `unverified` means the email matched an account but nobody has confirmed it;
+   * `rejected` orders always carry a null id.
+   */
+  customerAccountId: string | null;
+  customerLinkStatus: 'unverified' | 'confirmed' | 'rejected';
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totals: OrderTotalsDto;
@@ -195,7 +208,7 @@ export interface OrderWindowStatsDto {
 export interface AdminCartSummaryDto {
   id: string;
   token: string;
-  userEmail: string | null;
+  customerEmail: string | null;
   itemCount: number;
   subtotal: string;
   currency: string;

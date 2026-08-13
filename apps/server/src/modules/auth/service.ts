@@ -10,15 +10,16 @@ import {
 import { SESSION_TTL_MS, createSessionToken, hashToken } from '../../shared/auth/session.ts';
 import { httpError } from '../../shared/http/errors.ts';
 import * as repo from './repo.ts';
-import type { IssuedSession, SessionMeta, UserRow } from './types.ts';
+import type { AdminUserRow, IssuedSession, SessionMeta } from './types.ts';
 
 /**
- * Authentication policy. The storefront is anonymous by design — these accounts
- * exist only for the back office, so anything without a back-office role is
- * refused here even if the password is correct.
+ * Back-office authentication policy.
+ *
+ * There is no role check here any more, and none is needed: `admin_users` holds
+ * only back-office accounts, so being a row in it IS the eligibility. Customers
+ * are a different table, a different module (`modules/customer-auth`) and a
+ * different cookie, with no path from one to the other.
  */
-
-const BACK_OFFICE_ROLES = new Set<UserRow['role']>(['staff', 'admin', 'super_admin']);
 
 /**
  * One message for every failure mode — wrong password, unknown email, disabled
@@ -43,7 +44,7 @@ export async function login(
   }
 
   const passwordOk = await verifyPassword(input.password, user.passwordHash);
-  if (!passwordOk || !user.isActive || !BACK_OFFICE_ROLES.has(user.role)) {
+  if (!passwordOk || !user.isActive) {
     throw invalidCredentials();
   }
 
@@ -57,7 +58,7 @@ export async function login(
   await repo.deleteExpiredSessions(db, user.id);
   await repo.createSession(db, {
     tokenHash: await hashToken(token),
-    userId: user.id,
+    adminUserId: user.id,
     expiresAt,
     meta,
   });
