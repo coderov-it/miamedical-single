@@ -38,12 +38,21 @@ export interface SkuCombination {
   codes: string[];
 }
 
-/** Cartesian product of the SKU-affecting groups' options. */
+/**
+ * Cartesian product of the SKU-affecting groups' options.
+ *
+ * With no such groups the product is still ONE stock-keeping unit — a bed with
+ * no colour choice is a thing on a shelf that can run out. It gets the base
+ * combination: no options, an empty `comboKey`, and a SKU string of just the
+ * base and its suffix. That is what gives every product exactly one place to
+ * hold stock, and what lets an order line carry a real `skuId` rather than
+ * falling back to the base SKU as a bare string.
+ */
 export function generateCombinations(groups: VariantGroupWithOptions[]): SkuCombination[] {
   const skuGroups = groups
     .filter((group) => group.affectsSku && group.options.length > 0)
     .sort((a, b) => a.position - b.position);
-  if (skuGroups.length === 0) return [];
+  if (skuGroups.length === 0) return [{ optionIds: [], comboKey: comboKeyOf([]), codes: [] }];
 
   let combos: VariantOptionRow[][] = [[]];
   for (const group of skuGroups) {

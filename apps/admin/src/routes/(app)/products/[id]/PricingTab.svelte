@@ -10,6 +10,7 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
   import { api } from '~/lib/api';
+  import InfoHint from '~/lib/components/info-hint.svelte';
   import MoneyInput from '~/lib/components/money-input.svelte';
   import SortableList from '~/lib/components/sortable-list.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
@@ -52,7 +53,8 @@
   });
 
   const snapshot = (source: AdminProduct) => ({
-    basePrice: source.basePrice,
+    basePrice: source.basePrice ?? '0.00',
+    marketingRate: source.marketingRate ?? '',
     rentalUnit: (source.rentalUnit ?? 'day') as RentalUnit,
   });
 
@@ -82,8 +84,9 @@
 
   const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
 
-  /** Matches `RentalPackagesSchema` — the server rejects a 16th. */
+  /** Matches `RentalPackagesSchema` — the server rejects a 16th, and a zeroth. */
   const MAX_PACKAGES = 15;
+  const MIN_PACKAGES = 1;
   const unitOptions = $derived(rentalUnitOptions(uiLang.current));
   const perUnit = $derived(unitLabel(form.rentalUnit, uiLang.current));
 
@@ -123,9 +126,12 @@
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
           json: {
-            basePrice: form.basePrice,
+            /* Each mode sends only its own figure. The other is rejected by the
+               service and by a CHECK — a rental has no rate, and a fixed product
+               has nothing to advertise a rate for. */
             ...(isRental
               ? {
+                  marketingRate: form.marketingRate.trim() ? form.marketingRate : null,
                   rentalUnit: form.rentalUnit,
                   rentalPackages: packages.map((item) => ({
                     code: item.code,
@@ -143,7 +149,7 @@
                     unit: item.unit,
                   })),
                 }
-              : {}),
+              : { basePrice: form.basePrice }),
           },
         }),
       );
@@ -165,7 +171,6 @@
 
 <TabPanel
   title="Pricing"
-  description="The base figure everything else is computed from."
   dirty={isDirty}
   {saving}
   {error}
@@ -183,63 +188,85 @@
       -->
       <div>
         <Label class="mb-1.5" for="pricing-mode">Pricing mode</Label>
-        <Input
-          id="pricing-mode"
-          value={isRental
-            ? `Rental, billed per ${unitLabel(form.rentalUnit, uiLang.current)}`
-            : 'Fixed price'}
-          disabled
-        />
+        <Input id="pricing-mode" value={isRental ? 'Rental' : 'Fixed price'} disabled />
         <p class="mt-1 text-xs text-muted-foreground">
-          Chosen at creation and permanent: modifiers, SKUs and addons are all priced against it.
+          Chosen at creation and permanent. A rental is priced by its packages; a fixed product by
+          its base price, its SKUs and their modifiers.
         </p>
       </div>
 
       {#if isRental}
+        <!--
+          The unit is part of the marketing rate, not a billing choice: nothing
+          is billed per day any more — the package the customer picks carries
+          its own duration and unit. This still seeds the unit of a NEW package
+          row and labels the storefront headline, which is why it stays a field
+          rather than becoming a constant.
+        -->
         <div>
-          <Label class="mb-1.5">Billed per</Label>
-          <Select.Root type="single" bind:value={form.rentalUnit}>
-            <Select.Trigger class="w-40">{perUnit}</Select.Trigger>
-            <Select.Content>
-              {#each unitOptions as option (option.value)}
-                <Select.Item value={option.value}>{option.label}</Select.Item>
-              {/each}
-            </Select.Content>
-          </Select.Root>
+          <div class="mb-1.5 flex items-center gap-2">
+            <Label for="marketing-rate">Marketing rate</Label>
+            <InfoHint label="About the marketing rate">
+              <p class="font-medium text-foreground">Display copy, never charged.</p>
+              <p>
+                Shown as “from €X per {perUnit}” under the product title. The packages below are
+                what a customer actually pays; the two need not agree. Empty shows the cheapest
+                package instead.
+              </p>
+            </InfoHint>
+          </div>
+          <div class="flex items-center gap-2">
+            <MoneyInput
+              id="marketing-rate"
+              label="Marketing rate"
+              hideLabel
+              bind:value={form.marketingRate}
+              error={fields.marketingRate}
+              suffix={product.currency}
+            />
+            <span class="text-sm text-muted-foreground">per</span>
+            <Select.Root type="single" bind:value={form.rentalUnit}>
+              <Select.Trigger class="w-28" aria-label="Marketing rate unit">
+                {unitLabel(form.rentalUnit, uiLang.current, 'one')}
+              </Select.Trigger>
+              <Select.Content>
+                {#each unitOptions as option (option.value)}
+                  <Select.Item value={option.value}>{option.label}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
+          </div>
           {#if fields.rentalUnit}
             <p class="mt-1 text-xs text-destructive" role="alert">{fields.rentalUnit}</p>
           {/if}
         </div>
+      {:else}
+        <MoneyInput
+          label="Base price"
+          bind:value={form.basePrice}
+          error={fields.basePrice}
+          suffix={product.currency}
+        />
       {/if}
-
-      <MoneyInput
-        label={isRental ? `Base price per ${perUnit}` : 'Base price'}
-        bind:value={form.basePrice}
-        error={fields.basePrice}
-        suffix={product.currency}
-      />
-
-      <p class="text-xs text-muted-foreground">
-        Variant modifiers inherit this mode — on a rental product an option's “+ €4,00” means per {isRental
-          ? perUnit
-          : 'unit'}. A SKU's price override replaces the whole computed price.
-      </p>
     </div>
 
     <!--
-      Packages are not part of the SKU matrix and nothing derives them from the
-      base price: each is a duration sold at a total the operator typed. The
-      base rate above stays sellable for any duration a customer asks for.
+      Packages are not part of the SKU matrix and nothing derives them from
+      anything: each is a duration sold at a total the operator typed. They are
+      the ONLY way this product is priced, so the last one cannot be removed.
     -->
     {#if isRental}
       <div class="space-y-3 border-t pt-6">
         <div class="flex items-center justify-between gap-3">
-          <div>
+          <div class="flex items-center gap-2">
             <h3 class="text-sm font-medium">Rental packages</h3>
-            <p class="text-xs text-muted-foreground">
-              Fixed durations at a fixed total, offered beside the base rate. Customers can still
-              rent for any duration at €{form.basePrice} per {perUnit}.
-            </p>
+            <InfoHint label="About rental packages">
+              <p class="font-medium text-foreground">These are the price. At least one.</p>
+              <p>
+                The duration sets the return date: 3 days from 10 August ends 13 August. Variant
+                modifiers are added once on top, not per day.
+              </p>
+            </InfoHint>
           </div>
           <Button
             variant="outline"
@@ -257,8 +284,10 @@
         {/if}
 
         {#if packages.length === 0}
-          <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            No packages yet — this product rents by {perUnit} only.
+          <p
+            class="rounded-lg border border-dashed border-destructive p-6 text-center text-sm text-destructive"
+          >
+            This product cannot be sold without a package — add one.
           </p>
         {/if}
 
@@ -267,7 +296,13 @@
           label="Package"
           key={(item) => item.uid}
           describe={(item) => item.name.it || 'this package'}
-          onRemove={(index) => packages.splice(index, 1)}
+          onRemove={(index) => {
+            if (packages.length <= MIN_PACKAGES) {
+              toast.error('A rental product needs at least one package.');
+              return;
+            }
+            packages.splice(index, 1);
+          }}
         >
           {#snippet row(item)}
             <div class="grid flex-1 gap-3 sm:grid-cols-[1fr_auto_auto_auto]">

@@ -10,6 +10,7 @@
 -->
 <script lang="ts">
   import { P, permissionByCode } from '@mia/permissions';
+  import type { RentalPeriod } from '@mia/pricing';
   import CheckIcon from '@lucide/svelte/icons/check';
   import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
   import LockIcon from '@lucide/svelte/icons/lock';
@@ -228,15 +229,19 @@
   };
 
   /**
-   * `unitPrice × quantity` is not the line total — the rental duration and the
-   * add-ons make up the rest. Rather than leave an operator to reconcile two
-   * numbers, the configuration row spells out where the difference comes from.
+   * `unitPrice × quantity` is not the line total — the add-ons make up the rest.
+   * Rather than leave an operator to reconcile two numbers, the configuration
+   * row spells out where the difference comes from.
+   *
+   * Both ends are stamped on the order: the customer picked a start and the
+   * package decided the return, so this reads the record rather than recomputing
+   * a span the order already settled. The time shows only on an hour package.
    */
-  function periodLabel(rental: { startDate: string; endDate: string | null; units: number }) {
-    const span = rental.endDate
-      ? `${formatDate(rental.startDate)} → ${formatDate(rental.endDate)}`
-      : `from ${formatDate(rental.startDate)}`;
-    return `${span} · ${rental.units} ${pluralize(rental.units, 'unit')}`;
+  function periodLabel(rental: RentalPeriod) {
+    const at = (date: string, time: string | null) =>
+      time ? `${formatDate(date)} ${time}` : formatDate(date);
+    const span = `${at(rental.startDate, rental.startTime)} → ${at(rental.endDate, rental.endTime)}`;
+    return `${span} · ${rental.duration} ${pluralize(rental.duration, rental.unit)}`;
   }
 
   type ContractSummary = InferResponseType<
@@ -436,11 +441,14 @@
                               <span>
                                 <span class="text-muted-foreground">Extra</span>
                                 <span class="ml-1">{addon.name}</span>
-                                {#if addon.mode === 'rental'}
-                                  <span class="ml-1 text-muted-foreground">
-                                    ({formatMoney(addon.unitPrice, order.totals.currency)} per unit)
-                                  </span>
-                                {/if}
+                                <span class="ml-1 text-muted-foreground">
+                                  ({formatMoney(
+                                    addon.unitPrice,
+                                    order.totals.currency,
+                                  )}{addon.mode === 'rental' ? ' per unit' : ''}{addon.quantity > 1
+                                    ? ` × ${addon.quantity}`
+                                    : ''})
+                                </span>
                               </span>
                               <span class="tabular-nums">
                                 {formatMoney(addon.total, order.totals.currency)}

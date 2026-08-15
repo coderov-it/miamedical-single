@@ -1,4 +1,4 @@
-import { DELIVERY_METHOD_IDS } from '@mia/pricing';
+import { DELIVERY_METHOD_IDS, MAX_ADDON_QUANTITY } from '@mia/pricing';
 import * as v from 'valibot';
 
 import { EmailSchema, PaginationSchema, SlugSchema, UuidSchema } from './common.ts';
@@ -77,11 +77,21 @@ export const MAX_ITEM_QUANTITY = 10;
 export const CustomerTypeSchema = v.picklist(['private', 'company', 'tourist']);
 export const DeliveryMethodSchema = v.picklist(DELIVERY_METHOD_IDS);
 
-/** ISO `YYYY-MM-DD`. A rental period is whole days, never a timestamp. */
+/** ISO `YYYY-MM-DD`. A rental start is a whole day, never a timestamp. */
 const DateOnlySchema = v.pipe(
   v.string(),
   v.trim(),
   v.regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.'),
+);
+
+/**
+ * `HH:MM` local to the shop. Asked for only when the chosen package is quoted in
+ * hours — a day package starts on a date and nothing finer.
+ */
+const TimeOnlySchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM.'),
 );
 
 /**
@@ -102,11 +112,36 @@ export const PlaceOrderItemSchema = v.strictObject({
     v.minValue(1),
     v.maxValue(MAX_ITEM_QUANTITY),
   ),
-  /** Required on a rental product; the server enforces that, since only it knows. */
+  /**
+   * Required together on a rental product; the server enforces that, since only
+   * it knows the mode. There is no end date on the wire — the package's duration
+   * decides it, and a customer-supplied one would be a second opinion about a
+   * figure the catalogue already settles.
+   */
   startDate: v.optional(DateOnlySchema),
-  endDate: v.optional(DateOnlySchema),
+  /** Required when the chosen package is quoted in hours, ignored otherwise. */
+  startTime: v.optional(TimeOnlySchema),
   rentalPackageCode: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(64))),
-  addonIds: v.optional(v.pipe(v.array(UuidSchema), v.maxLength(20)), []),
+  /**
+   * `{ id, quantity }` rather than a list of ids: an add-on the back office
+   * marked multiple-selectable can be taken more than once. The quantity is
+   * clamped to that add-on's own bounds by the server.
+   */
+  addons: v.optional(
+    v.pipe(
+      v.array(
+        v.strictObject({
+          id: UuidSchema,
+          quantity: v.optional(
+            v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(MAX_ADDON_QUANTITY)),
+            1,
+          ),
+        }),
+      ),
+      v.maxLength(20),
+    ),
+    [],
+  ),
   variants: v.optional(SelectionMapSchema, {}),
   answers: v.optional(SelectionMapSchema, {}),
 });

@@ -32,7 +32,12 @@ export interface Pricing {
   mode: string;
   rentalUnit: 'hour' | 'day' | null;
   currency: string;
-  price: string;
+  /** What a fixed product costs. `null` on a rental — its packages are the price. */
+  price: string | null;
+  /** A rental's headline rate. Copy, never priced. `null` on a fixed product. */
+  marketingRate: string | null;
+  /** The lowest real figure: the price, or the cheapest package. */
+  fromPrice: string | null;
 }
 
 /**
@@ -43,27 +48,58 @@ export interface Pricing {
  */
 const LOCALE: LanguageCode = 'it';
 
-/** "35,00 € al giorno" or "35,00 €" — the flat pricing envelope, rendered. */
-export function formatPricing(pricing: Pricing, locale = 'it-IT'): string {
-  const amount = formatMoney(pricing.price, pricing.currency, locale);
-  if (pricing.mode !== 'rental') return amount;
-  const unit = perUnitLabel(pricing.rentalUnit, LOCALE);
-  return unit ? `${amount} ${unit}` : amount;
+/**
+ * "9,00 € al giorno" or "60,00 €" — an amount with the unit it is quoted in.
+ *
+ * `rentalUnit` is `null` for anything charged once, which is what makes this
+ * usable for both a product's headline rate and an add-on's price.
+ */
+export function formatRate(
+  amount: string,
+  currency: string,
+  rentalUnit: 'hour' | 'day' | null,
+  locale = 'it-IT',
+): string {
+  const money = formatMoney(amount, currency, locale);
+  if (!rentalUnit) return money;
+  const unit = perUnitLabel(rentalUnit, LOCALE);
+  return unit ? `${money} ${unit}` : money;
+}
+
+/**
+ * The product's price line — "35,00 € al giorno" or "289,00 €".
+ *
+ * On a rental the figure is `marketingRate`, which is COPY: the back office typed
+ * it and no total is computed from it. That is exactly why it can sit under a
+ * title where no package has been chosen — it advertises, it does not quote.
+ * `null` when a rental advertises no rate; callers fall back to `fromPrice`.
+ */
+export function formatPricing(pricing: Pricing, locale = 'it-IT'): string | null {
+  if (pricing.mode !== 'rental') {
+    return pricing.price === null ? null : formatMoney(pricing.price, pricing.currency, locale);
+  }
+  if (pricing.marketingRate === null) return null;
+  return formatRate(pricing.marketingRate, pricing.currency, pricing.rentalUnit, locale);
 }
 
 /**
  * The price line for a card or a hero badge.
  *
- * Rentals read "da 35,00 € al giorno" — the amount is a starting rate, because
- * variants and add-ons can raise it. A fixed-price product shows its price with
- * no qualifier, where "da" would be wrong.
+ * Rentals read "da 35,00 € al giorno" — the rate is a starting point, and on a
+ * rental it is the marketing rate rather than anything the customer will be
+ * charged. A fixed-price product shows its price with no qualifier, where "da"
+ * would be wrong.
+ *
+ * With no rate typed it falls back to `fromPrice`, the cheapest package: "da
+ * 89,00 €" still tells the customer where the product sits, and a listing that
+ * shows no price at all tells them nothing.
  */
 export function cardPrice(pricing: Pricing): { prefix: string; text: string } | null {
-  if (!pricing?.price) return null;
-  return {
-    prefix: pricing.mode === 'rental' ? 'da' : '',
-    text: formatPricing(pricing),
-  };
+  const prefix = pricing.mode === 'rental' ? 'da' : '';
+  const text = formatPricing(pricing);
+  if (text) return { prefix, text };
+  if (pricing.fromPrice === null) return null;
+  return { prefix, text: formatMoney(pricing.fromPrice, pricing.currency) };
 }
 
 /** Major-unit decimal string for schema.org `Offer.price`, always dot-separated. */

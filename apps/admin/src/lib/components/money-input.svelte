@@ -9,6 +9,8 @@
   a compact field without shrinking every form in the admin.
 -->
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { parseMoney, toMoneyText } from '~/lib/money.ts';
@@ -30,6 +32,12 @@
     dense?: boolean;
     /** Opt-in: keep the label for screen readers only, where context supplies it. */
     hideLabel?: boolean;
+    /**
+     * Rendered beside the label — an `InfoHint` for a field whose NAME does not
+     * explain it. Prefer it over `hint` for anything the editor needs once:
+     * `hint` sits under the field forever and is read on every visit.
+     */
+    labelSuffix?: Snippet;
   }
 
   let {
@@ -43,6 +51,7 @@
     id,
     dense = false,
     hideLabel = false,
+    labelSuffix,
   }: Props = $props();
 
   const generatedId = $props.id();
@@ -80,7 +89,14 @@
 </script>
 
 <div>
-  <Label class={hideLabel ? 'sr-only' : 'mb-1.5'} for={fieldId}>{label}</Label>
+  {#if labelSuffix && !hideLabel}
+    <div class="mb-1.5 flex items-center gap-2">
+      <Label for={fieldId}>{label}</Label>
+      {@render labelSuffix()}
+    </div>
+  {:else}
+    <Label class={hideLabel ? 'sr-only' : 'mb-1.5'} for={fieldId}>{label}</Label>
+  {/if}
   <div class="flex items-center gap-2">
     <Input
       id={fieldId}

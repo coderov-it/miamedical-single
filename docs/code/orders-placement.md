@@ -16,20 +16,21 @@ mattress, and confirms. What each step gets:
 ```
 1. checkout page renders          resolveCheckout(params)
      item.0.product=letto-degenza-elettrico
-     item.0.from=2026-08-20  item.0.to=2026-08-27
+     item.0.package=7-day    item.0.from=2026-09-10
      item.0.variant.colore=grigio
      item.0.variant.sponde=si
-     item.0.variant.altezza-materasso=18
      item.0.question.piano-installazione=3
      item.0.question.ascensore=yes
-     item.0.addon=943f31e2…                     → shows "469,50 €"
+     item.0.addon=943f31e2…
+     item.0.addon.943f31e2…=2                   → shows "376,00 €"
 
 2. the page's JSON island               data-checkout-items
      [{ productSlug: 'letto-degenza-elettrico',
-        quantity: 1, startDate: '2026-08-20', endDate: '2026-08-27',
-        addonIds: ['943f31e2…', 'ea063eea…'],   ← both ticked by the customer
-        variants: { colore: ['grigio'], sponde: ['si'],
-                    'altezza-materasso': ['18'] },
+        quantity: 1, startDate: '2026-09-10',
+        rentalPackageCode: '7-day',             ← no end date: it is DERIVED
+        addons: [{ id: '943f31e2…', quantity: 2 },
+                 { id: 'ea063eea…', quantity: 1 }],
+        variants: { colore: ['grigio'], sponde: ['si'] },
         answers:  { 'piano-installazione': ['3'], ascensore: ['yes'] } }]
                                                 → choices only, no amounts
 
@@ -39,66 +40,91 @@ mattress, and confirms. What each step gets:
      status must be 'active'                    → PublicProductDetailDto (it)
 
 5. server re-resolves every choice      resolveLine(product, item)
+     package=7-day                              → "7 giorni"        180.00
      colore=grigio                              → "Grigio"           +4.00
      sponde=si                                  → "Con sponde"       +6.00
-     altezza-materasso=18                       → "18 cm"            +4.50
-       (18 × 0.25 per cm, via mulMoney)
      ascensore=yes                              → "Sì"
      matchSku({colore:'grigio', sponde:'si'})   → MIA-LTE-GRI-CS-5VC6
+       identity only — a rental SKU carries no price
 
-6. server prices it                     priceRequest(...) in @mia/pricing
-     unit rate    35.00 + 4.00 + 6.00 + 4.50    → 49.50 per day
-     duration     2026-08-20 → 2026-08-27       → 7 days
-     base         49.50 × 7                     → 346.50
-     add-on       9.00 × 7  (rental mode)       → 63.00
-     add-on       60.00     (fixed, one-off)    → 60.00
+6. server places the period             resolvePeriod('2026-09-10', null, pkg)
+     7 days from 2026-09-10                     → ends 2026-09-17
+
+7. server prices it                     priceRequest(...) in @mia/pricing
+     package      7 giorni                      → 180.00
+     variants     4.00 + 6.00, FLAT             → +10.00
+       not × 7: the package already carries the days
+     unit rate                                  → 190.00
+     add-on       9.00 × qty 2 × 7 days         → 126.00
+     add-on       60.00 (fixed, one-off)        → 60.00
        both chosen — nothing attaches itself
-     line total                                 → 469.50
+     line total                                 → 376.00
 
-7. server writes, in one transaction    insertOrder(...)
+8. server writes, in one transaction    insertOrder(...)
      nextval('order_number_seq') → 1000         → MIA-2026-001000
-     orders.subtotal                            → 469.50
+     orders.subtotal                            → 376.00
      orders.shipping_total                      → 0.00
-     orders.total                               → 469.50
-     order_items.unit_price / .total            → 49.50 / 469.50
+     orders.total                               → 376.00
+     order_items.unit_price / .total            → 190.00 / 376.00
      order_items.configuration                  → the snapshot below
      order_status_events                        → null → pending
 
-8. response                             201
+9. response                             201
      { number: 'MIA-2026-001000', status: 'pending',
        paymentStatus: 'unpaid',
-       totals: { subtotal: '469.50', shippingTotal: '0.00',
-                 total: '469.50', currency: 'EUR' } }
+       totals: { subtotal: '376.00', shippingTotal: '0.00',
+                 total: '376.00', currency: 'EUR' } }
 ```
 
-Step 1 and step 6 print the same figure because they run the same function.
+Step 1 and step 7 print the same figure because they run the same function.
 
-## The fallback walk — a rental with no return date
+## An hour package
+
+Only the period differs — the same pricing walk, and the customer is asked for a
+time of day because a 4-hour rental starting "on the 10th" says nothing:
 
 ```
-1. checkout page renders          ?product=letto-degenza-elettrico&from=2026-09-01
-                                         (no `to`, no package)
+     package=4-hour  from=2026-09-10  time=22:00
 
-2. priceRequest(...)              units    → null
-                                  total    → 45.00
-                                  openPeriod → true
-                                         → the page shows "45,00 €/giorno"
-                                           and the qualifier "periodo da definire"
+     resolvePeriod('2026-09-10', '22:00', pkg)  → ends 2026-09-11 02:00
+     package      4 ore                         → 15.00
+     variants     flat                          → +10.00
+     add-on       9.00 per DAY on a 4-hour package:
+                  convertDuration(4, 'hour', 'day') → 1
+                  9.00 × qty 2 × 1                  → 18.00
+     add-on       60.00 (fixed)                 → 60.00
+     line total                                 → 103.00
+```
 
-3. checkout.blocked               'openPeriod'
+Half a day of insurance is still a day of insurance, so the conversion rounds up.
+
+## The fallback walk — a rental with no package
+
+```
+1. checkout page renders          ?product=letto-degenza-elettrico&from=2026-09-10
+                                         (no `package`)
+
+2. priceRequest(...)              units      → null
+                                  total      → 0.00
+                                  incomplete → true
+                                         → the page shows no figure at all and
+                                           the qualifier "scegli un pacchetto"
+
+3. checkout.blocked               'noPackage'
                                          → the confirm CTA is REPLACED by a notice
                                            and a link back to the product page.
                                            No POST is offered.
 
 4. if one is forced anyway         POST /api/orders
-   assertPeriod(...)                     → 422
-     { fields: { 'items.0.endDate': 'A rental needs a return date.' } }
+   resolveRental(...)                    → 422
+     { fields: { 'items.0.rentalPackageCode':
+                 'A rental needs a package — that is what sets its price.' } }
 ```
 
-An order may never be open-period: `orders.total` is `NOT NULL`, and a per-unit rate
-stored there would be a rate wearing a total's clothes. A **package** satisfies the
-duration on its own (`7-giorni` → 7 days), so a packaged rental needs a start date
-but no explicit return date.
+A rental IS its package. There is no per-unit rate to fall back to and no
+open-ended period, so a line without one has no total — and `orders.total` is
+`NOT NULL` for a reason. An hour package additionally needs `startTime`, refused
+the same way.
 
 The same gate covers a line that never made a required choice
 (`checkout.blocked === 'incomplete'`), because `resolveLine` refuses that too.
@@ -144,13 +170,26 @@ One jsonb per line, holding what the customer configured at the labels they read
   "productSlug": "letto-degenza-elettrico",
   "pricingMode": "rental",
   "rentalUnit": "day",
-  "rental": { "startDate": "2026-08-20", "endDate": "2026-08-27", "units": 7 },
-  "rentalPackage": null,
-  "unitRate": "49.50",
+  "rental": {
+    "startDate": "2026-09-10",
+    "startTime": null,
+    "endDate": "2026-09-17",
+    "endTime": null,
+    "duration": 7,
+    "unit": "day"
+  },
+  "rentalPackage": {
+    "code": "7-day",
+    "name": "7 giorni",
+    "label": "7 giorni",
+    "price": "180.00",
+    "duration": 7,
+    "unit": "day"
+  },
+  "unitRate": "190.00",
   "selections": [
     { "key": "colore", "label": "Colore", "value": "Grigio", "amount": "4.00" },
-    { "key": "sponde", "label": "Sponde laterali", "value": "Con sponde", "amount": "6.00" },
-    { "key": "altezza-materasso", "label": "Altezza materasso", "value": "18 cm", "amount": "4.50" }
+    { "key": "sponde", "label": "Sponde laterali", "value": "Con sponde", "amount": "6.00" }
   ],
   "answers": [
     { "key": "piano-installazione", "label": "A che piano…?", "value": "3" },
@@ -162,13 +201,15 @@ One jsonb per line, holding what the customer configured at the labels they read
       "name": "Materasso antidecubito",
       "mode": "rental",
       "unitPrice": "9.00",
-      "total": "63.00"
+      "quantity": 2,
+      "total": "126.00"
     },
     {
       "id": "ea063eea-…",
       "name": "Consegna e installazione",
       "mode": "fixed",
       "unitPrice": "60.00",
+      "quantity": 1,
       "total": "60.00"
     }
   ]
@@ -180,7 +221,7 @@ Labels are **frozen**, not read live through the SKU — for the same reason
 the operator renames an option.
 
 `unit_price × quantity` is deliberately **not** `total`: the total also carries the
-duration and the add-ons, and this blob is what explains the difference. The admin
+add-ons, and this blob is what explains the difference. The admin
 renders the breakdown from it rather than leaving an operator to reconcile two
 numbers. `addons[].total` is each add-on's contribution **before** the line quantity.
 

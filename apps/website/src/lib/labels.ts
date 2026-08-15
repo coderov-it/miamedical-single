@@ -155,14 +155,14 @@ const STOREFRONT_LABELS = {
     it: 'Puoi riprovare, oppure inviarcela su WhatsApp: il messaggio è già pronto con tutti i dettagli.',
   },
   retry: { it: 'Riprova' },
-  /* The return-date gate. A request with no return date has a daily rate and no
-     total, and an order needs a total — so the confirm step says what is missing
-     and sends the customer back to the one page where they can pick it. */
-  returnDateMissing: { it: 'Manca la data di riconsegna' },
-  returnDateMissingDetail: {
-    it: 'Senza la data di riconsegna possiamo mostrarti solo la tariffa giornaliera, non un totale. Aggiungila e torna qui — oppure chiamaci e la fissiamo insieme.',
+  /* The package gate. A rental IS its package, so a line without one has no price
+     at all — the confirm step says so and sends the customer back to the one page
+     where they can pick it. */
+  packageMissing: { it: 'Manca il pacchetto di noleggio' },
+  packageMissingDetail: {
+    it: 'Il prezzo del noleggio dipende dal pacchetto: senza sceglierne uno non possiamo calcolare un totale. Scegli la durata e torna qui — oppure chiamaci e la scegliamo insieme.',
   },
-  pickReturnDate: { it: 'Scegli la data di riconsegna' },
+  pickPackage: { it: 'Scegli il pacchetto' },
   /* A line that never made a required choice. The API refuses it, so the page says
      which choice is missing instead of offering a button that cannot work. */
   configurationIncomplete: { it: 'Manca una scelta obbligatoria' },
@@ -183,15 +183,12 @@ const STOREFRONT_LABELS = {
   toBeConfirmed: { it: 'da definire' },
   total: { it: 'Totale' },
   vatIncluded: { it: 'IVA inclusa' },
-  estimateOpenPeriod: { it: 'stima · periodo da definire' },
+  estimateNoPackage: { it: 'stima · scegli un pacchetto' },
   noPaymentFootnote: {
     it: 'Nessun pagamento adesso — ti contattiamo su WhatsApp per concordarlo.',
   },
   baseRate: { it: 'Tariffa base' },
   included: { it: 'Incluso' },
-  oneTimeSuffix: { it: 'una tantum' },
-  packageDiscountApplied: { it: 'Sconto pacchetto già applicato' },
-  packagePrefix: { it: 'Pacchetto' },
 
   // -- cart ----------------------------------------------------------------
   cart: { it: 'La tua richiesta' },

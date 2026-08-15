@@ -1,5 +1,5 @@
 /**
- * The owner's rental pricing rules, as one function.
+ * The owner's pricing rules, as one function.
  *
  * This is the only implementation. The storefront calls it to show the customer
  * an estimate; the server calls it to price the order it stores. Two copies of a
@@ -8,30 +8,35 @@
  *
  * The rules, in the owner's words:
  *
- *   - On a rental product every modifier and every rental-mode add-on bills PER
- *     RENTAL UNIT, so one duration multiplies every amount.
- *   - A package is a fixed total for a fixed duration, and the configured rate's
- *     excess over the base rate rides on top of it.
- *   - With no return date there is no duration, so the figure is a per-unit RATE,
- *     not a total. One-time amounts are not folded into it — they are a different
- *     quantity and adding them would produce a number that means nothing.
+ *   - A rental IS its package. The package price is the price of the rental for
+ *     the package's duration — not a discount off a daily rate, because there is
+ *     no daily rate. Nothing here derives an amount the back office did not type.
+ *   - Variants add FLAT. The package is the base and a modifier goes on top of it
+ *     once, never multiplied by the duration. A matched SKU's price override is a
+ *     fixed-mode idea and is ignored on a rental.
+ *   - An add-on is priced on its own terms: its quantity times, for a rental-mode
+ *     add-on, the package duration read in the add-on's unit. A 3,00 €/giorno
+ *     add-on on a 9-day package is 27,00 €.
+ *   - No package means no price. There is no open-ended rental and no per-unit
+ *     fallback, so a rental request without one is refused rather than quoted.
  *
  * Labels are deliberately absent. `lines` describes WHAT each row is; the Italian
  * words for it live with the page that renders them, so this package holds no
  * copy and the server needs no storefront catalogue to price an order.
  */
 
-import { ZERO, addMoney, isZero, mulMoney, subMoney, sumMoney, toHundredths } from './money.ts';
-
-const DAY_MS = 86_400_000;
+import { convertDuration } from './period.ts';
+import { ZERO, addMoney, isZero, mulMoney, sumMoney } from './money.ts';
 
 export type PricingMode = 'fixed' | 'rental';
 export type RentalUnit = 'hour' | 'day';
 
+/** How many of one add-on a single line may carry when the back office set no cap. */
+export const MAX_ADDON_QUANTITY = 10;
+
 /**
- * One resolved variant-group choice's price effect. On a rental product this is
- * a per-rental-unit amount, per the rule above. May be negative — "cheaper
- * without the headboard".
+ * One resolved variant-group choice's price effect. A flat amount in both modes.
+ * May be negative — "cheaper without the headboard".
  */
 export interface PriceModifier {
   amount: string;
@@ -39,14 +44,19 @@ export interface PriceModifier {
    * The group is part of the SKU matrix, so a matched SKU's own price already
    * carries this amount and it must not be added a second time. Numeric groups
    * (value × per-unit modifier) never join the matrix and are always `false`.
+   * Only consulted in `fixed` mode, where a SKU price exists to collide with.
    */
   affectsSku: boolean;
 }
 
 export interface PriceAddon {
-  /** A `rental` add-on follows the product's rental unit; a `fixed` one is one-off. */
+  /** A `rental` add-on multiplies by the package duration; a `fixed` one does not. */
   mode: PricingMode;
   price: string;
+  /** The unit `price` is quoted in. Set exactly when `mode` is `rental`. */
+  rentalUnit?: RentalUnit | null;
+  /** How many the customer asked for. Already clamped to the add-on's own bounds. */
+  quantity: number;
 }
 
 export interface PricePackage {
@@ -57,184 +67,139 @@ export interface PricePackage {
 
 export interface PriceRequestInput {
   mode: PricingMode;
-  rentalUnit: RentalUnit | null;
-  basePrice: string;
+  /** What a fixed product costs. `null` on a rental, which has no rate. */
+  basePrice: string | null;
   /**
    * The matched SKU's own price, when the selection pinned one. It already
    * carries every sku-affecting modifier — and any override the operator typed,
-   * which is precisely why it wins over recomputing base + modifiers.
+   * which is precisely why it wins over recomputing base + modifiers. Fixed
+   * mode only: a rental's price is its package, so there is nothing to override.
    */
   skuPrice?: string | null;
   modifiers?: readonly PriceModifier[];
+  /** Required on a rental. Its absence is what `incomplete` reports. */
   rentalPackage?: PricePackage | null;
-  /** ISO `YYYY-MM-DD`, or `''` when unset. */
-  startDate?: string;
-  endDate?: string;
   quantity: number;
   addons?: readonly PriceAddon[];
 }
 
-/**
- * A row of the estimate, as a fact rather than a sentence.
- *
- * `perUnit` marks an amount that is a rate per rental unit, not a total — the
- * renderer has to say so ("/giorno") or the number reads as something it is not.
- */
+/** A row of the estimate, as a fact rather than a sentence. */
 export type PriceLine =
-  | { kind: 'base'; amount: string; perUnit: boolean }
-  | { kind: 'duration'; amount: string; units: number }
-  | { kind: 'package'; amount: string }
-  | { kind: 'packageSaving'; amount: string }
+  | { kind: 'base'; amount: string }
+  | { kind: 'package'; amount: string; units: number; unit: RentalUnit }
+  /** Every variant modifier, summed. Omitted when the choices cost nothing. */
+  | { kind: 'variants'; amount: string }
   | {
       kind: 'addon';
       index: number;
       amount: string;
-      perUnit: boolean;
+      quantity: number;
+      /** Rental-mode add-ons only: the package duration in the add-on's unit. */
+      units: number | null;
       /** Free with the rental — shown as "incluso", never as "0,00 €". */
       included: boolean;
-      /** A fixed-mode add-on on a rental product: charged once, not per unit. */
-      oneTime: boolean;
     }
   | { kind: 'quantity'; quantity: number };
 
 export interface PricedRequest {
-  /** Per rental unit on a rental product; the one-off price on a fixed one. */
+  /**
+   * What one of this line costs before add-ons: the fixed price, or the chosen
+   * package plus its flat modifiers.
+   */
   unitRate: string;
-  /** Rental units the dates or the package resolve to. `null` = no duration. */
+  /** The chosen package's duration. `null` on a fixed product. */
   units: number | null;
   /**
-   * No duration could be established, so `total` is a per-unit rate. An order
-   * may not be placed in this state — the server rejects it — but the storefront
-   * still has to price a product whose return date nobody has picked yet.
+   * A rental with no package picked. `total` is `0.00` and means nothing — the
+   * server refuses such a line, and the storefront shows the packages instead of
+   * a price. This is the only unpriceable state left.
    */
-  openPeriod: boolean;
+  incomplete: boolean;
   lines: PriceLine[];
   /** Everything folded in, quantity applied. */
   total: string;
 }
 
 /**
- * The configured per-unit rate.
+ * What one of this line costs before add-ons.
  *
  * Exported because the caller stores it on the order line: `unitPrice` is this
- * rate, while the line total also carries the duration and the add-ons, so the
- * two are deliberately not `total / quantity`.
+ * figure, while the line total also carries the add-ons, so the two are
+ * deliberately not `total / quantity`.
  */
 export function resolveUnitRate(input: PriceRequestInput): string {
   const modifiers = input.modifiers ?? [];
+
+  if (input.mode === 'rental') {
+    const pkg = input.rentalPackage ?? null;
+    if (!pkg) return ZERO;
+    // Every modifier, flat and once. No SKU price to collide with, so
+    // `affectsSku` has nothing to say here.
+    return addMoney(pkg.price, ...modifiers.map((entry) => entry.amount));
+  }
 
   if (input.skuPrice != null) {
     const outside = modifiers.filter((entry) => !entry.affectsSku).map((entry) => entry.amount);
     return addMoney(input.skuPrice, ...outside);
   }
 
-  return addMoney(input.basePrice, ...modifiers.map((entry) => entry.amount));
-}
-
-/**
- * How many rental units this request covers, or `null` when nothing establishes
- * a duration.
- *
- * A date pair cannot express hours, and a package quoted in a different unit
- * than the product has no per-unit equivalent — both are `null` rather than a
- * guess.
- */
-export function resolveUnits(input: PriceRequestInput): number | null {
-  if (input.mode !== 'rental') return null;
-
-  const pkg = input.rentalPackage ?? null;
-  if (pkg) return pkg.unit === input.rentalUnit ? pkg.duration : null;
-
-  if (input.rentalUnit !== 'day' || !input.startDate || !input.endDate) return null;
-
-  const span = Math.round((Date.parse(input.endDate) - Date.parse(input.startDate)) / DAY_MS);
-  return Number.isFinite(span) && span >= 0 ? Math.max(1, span) : null;
+  return addMoney(input.basePrice ?? ZERO, ...modifiers.map((entry) => entry.amount));
 }
 
 export function priceRequest(input: PriceRequestInput): PricedRequest {
-  const rate = resolveUnitRate(input);
-  const units = resolveUnits(input);
-  const pkg = input.rentalPackage ?? null;
   const isRental = input.mode === 'rental';
+  const pkg = isRental ? (input.rentalPackage ?? null) : null;
+  const incomplete = isRental && pkg === null;
+  const units = pkg ? pkg.duration : null;
 
-  const lines: PriceLine[] = [];
-  let total = ZERO;
-  let openPeriod = false;
-
-  if (!isRental) {
-    total = rate;
-    lines.push({ kind: 'base', amount: rate, perUnit: false });
-  } else if (pkg) {
-    // The package price buys the base rate for its duration; anything the
-    // customer configured on top of the base rate is still billed per unit.
-    const excess =
-      pkg.unit === input.rentalUnit
-        ? mulMoney(subMoney(rate, input.basePrice), pkg.duration)
-        : ZERO;
-    total = addMoney(pkg.price, excess);
-    lines.push({ kind: 'package', amount: total });
-
-    if (pkg.unit === input.rentalUnit) {
-      const saved = subMoney(mulMoney(rate, pkg.duration), total);
-      if (toHundredths(saved) > 0n) lines.push({ kind: 'packageSaving', amount: saved });
-    }
-  } else if (units !== null) {
-    total = mulMoney(rate, units);
-    lines.push({ kind: 'duration', amount: total, units });
-  } else {
-    total = rate;
-    openPeriod = true;
-    lines.push({ kind: 'base', amount: rate, perUnit: true });
+  if (incomplete) {
+    return { unitRate: ZERO, units: null, incomplete: true, lines: [], total: ZERO };
   }
 
-  const oneTime: string[] = [];
+  const rate = resolveUnitRate(input);
+  const lines: PriceLine[] = [];
+  let total = rate;
+
+  if (pkg) {
+    lines.push({ kind: 'package', amount: pkg.price, units: pkg.duration, unit: pkg.unit });
+    const variants = sumMoney((input.modifiers ?? []).map((entry) => entry.amount));
+    if (!isZero(variants)) lines.push({ kind: 'variants', amount: variants });
+  } else {
+    lines.push({ kind: 'base', amount: rate });
+  }
 
   for (const [index, addon] of (input.addons ?? []).entries()) {
+    const billed =
+      addon.mode === 'rental' && pkg
+        ? convertDuration(pkg.duration, pkg.unit, addon.rentalUnit ?? pkg.unit)
+        : null;
+
     if (isZero(addon.price)) {
       lines.push({
         kind: 'addon',
         index,
         amount: ZERO,
-        perUnit: false,
+        quantity: addon.quantity,
+        units: billed,
         included: true,
-        oneTime: false,
       });
       continue;
     }
 
-    if (isRental && addon.mode === 'rental') {
-      const amount = units !== null ? mulMoney(addon.price, units) : addon.price;
-      total = addMoney(total, amount);
-      lines.push({
-        kind: 'addon',
-        index,
-        amount,
-        // With no duration the add-on is quoted at its per-unit rate, exactly
-        // like the base rate above it.
-        perUnit: units === null,
-        included: false,
-        oneTime: false,
-      });
-      continue;
-    }
-
-    oneTime.push(addon.price);
+    const amount = mulMoney(addon.price, addon.quantity * (billed ?? 1));
+    total = addMoney(total, amount);
     lines.push({
       kind: 'addon',
       index,
-      amount: addon.price,
-      perUnit: false,
+      amount,
+      quantity: addon.quantity,
+      units: billed,
       included: false,
-      oneTime: isRental,
     });
   }
-
-  // While the period is open the figure above is a per-unit rate; folding a
-  // one-time amount into it would add two incompatible quantities.
-  if (!openPeriod && oneTime.length > 0) total = addMoney(total, sumMoney(oneTime));
 
   total = mulMoney(total, input.quantity);
   if (input.quantity > 1) lines.push({ kind: 'quantity', quantity: input.quantity });
 
-  return { unitRate: rate, units, openPeriod, lines, total };
+  return { unitRate: rate, units, incomplete: false, lines, total };
 }

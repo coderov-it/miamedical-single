@@ -10,6 +10,7 @@ import { conflict, httpError, notFound } from '../../../shared/http/errors.ts';
 import { pick } from '../i18n.ts';
 import type { FacetDto } from '../dto.ts';
 import { commitProductMedia, deleteAllMedia } from '../media/service.ts';
+import { generateSkus } from '../variants/service.ts';
 import type {
   ProductAggregate,
   ProductListFilters,
@@ -195,13 +196,25 @@ export async function create(db: Database, input: CreateProductInput): Promise<P
     status: input.status,
     brand: input.brand ?? null,
     pricingMode: input.pricingMode,
-    basePrice: input.basePrice,
+    basePrice: input.basePrice ?? null,
+    marketingRate: input.marketingRate ?? null,
     currency: input.currency,
     rentalUnit: input.rentalUnit ?? null,
+    /* Unlike every other pricing detail, packages cannot wait for the edit
+       screen: they ARE the rental's price, and the CHECK refuses the INSERT
+       without one. `CreateProductSchema` has already paired them with the mode. */
+    rentalPackages: input.rentalPackages ?? [],
     isFeatured: input.isFeatured,
     chips: input.chips,
     translations: normalizeTranslations(input.translations),
   });
+
+  /* Every product is at least one stock-keeping unit, so the base SKU exists
+     from creation rather than waiting for someone to press Generate. Without
+     it a product with no variants has nowhere to hold stock and reads as
+     permanently available — see `generateCombinations`. */
+  await generateSkus(db, id);
+
   return getAggregate(db, id);
 }
 
@@ -235,20 +248,24 @@ export async function update(
   const existing = await repo.findRow(db, id);
   if (!existing) throw notFound('Product');
 
+  /* Every one of these has a CHECK saying the same thing one layer down. They
+     are restated here to answer with the field that is wrong rather than a
+     constraint name the admin form cannot place. */
   if (input.rentalUnit !== undefined && existing.pricingMode !== 'rental') {
     throw httpError(422, 'A fixed-price product has no rental unit.', 'validation_failed');
   }
-  /**
-   * `[]` is allowed either way, so a client that always sends the field can
-   * still save a fixed product. Only a non-empty list is a contradiction —
-   * and the database CHECK says the same thing one layer down.
-   */
-  if (
-    input.rentalPackages !== undefined &&
-    input.rentalPackages.length > 0 &&
-    existing.pricingMode !== 'rental'
-  ) {
+  if (input.rentalPackages !== undefined && existing.pricingMode !== 'rental') {
     throw httpError(422, 'A fixed-price product cannot have rental packages.', 'validation_failed');
+  }
+  if (input.basePrice !== undefined && existing.pricingMode !== 'fixed') {
+    throw httpError(
+      422,
+      'A rental product has no base price — its packages are its price.',
+      'validation_failed',
+    );
+  }
+  if (input.marketingRate !== undefined && existing.pricingMode !== 'rental') {
+    throw httpError(422, 'Only a rental product carries a marketing rate.', 'validation_failed');
   }
   if (input.baseSku && (await repo.existsByBaseSku(db, input.baseSku, id))) {
     throw conflict(`A product with base SKU "${input.baseSku}" already exists.`);
@@ -261,6 +278,7 @@ export async function update(
   if (input.status !== undefined) data.status = input.status;
   if (input.brand !== undefined) data.brand = input.brand;
   if (input.basePrice !== undefined) data.basePrice = input.basePrice;
+  if (input.marketingRate !== undefined) data.marketingRate = input.marketingRate;
   if (input.currency !== undefined) data.currency = input.currency;
   if (input.rentalUnit !== undefined) data.rentalUnit = input.rentalUnit;
   if (input.rentalPackages !== undefined) data.rentalPackages = input.rentalPackages;

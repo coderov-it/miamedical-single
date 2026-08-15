@@ -142,15 +142,20 @@ async function main(): Promise<void> {
         brand: chunk.brand,
         pricingMode: chunk.pricingMode,
         basePrice: chunk.basePrice,
+        marketingRate: chunk.marketingRate,
         currency: chunk.currency,
         rentalUnit: chunk.rentalUnit,
+        rentalPackages: chunk.pricingMode === 'rental' ? chunk.rentalPackages : undefined,
         isFeatured: chunk.isFeatured,
         translations: { it: chunk.translation },
       },
       where,
     );
-    check(RentalPackagesSchema, chunk.rentalPackages, `${where} packages`);
-    if (chunk.pricingMode === 'fixed' && chunk.rentalPackages.length > 0) {
+    /* `RentalPackagesSchema` requires at least one, which is only true of a
+       rental — a fixed product's list is legitimately empty. */
+    if (chunk.pricingMode === 'rental') {
+      check(RentalPackagesSchema, chunk.rentalPackages, `${where} packages`);
+    } else if (chunk.rentalPackages.length > 0) {
       fail(where, 'fixed product carries rental packages — the database CHECK will reject it');
     }
   }
@@ -368,6 +373,7 @@ async function main(): Promise<void> {
         brand: chunk.brand,
         pricingMode: chunk.pricingMode,
         basePrice: chunk.basePrice,
+        marketingRate: chunk.marketingRate,
         currency: chunk.currency,
         rentalUnit: chunk.rentalUnit,
         rentalPackages: chunk.rentalPackages,
@@ -384,6 +390,7 @@ async function main(): Promise<void> {
           categoryId: chunk.categoryId,
           brand: chunk.brand,
           basePrice: chunk.basePrice,
+          marketingRate: chunk.marketingRate,
           currency: chunk.currency,
           rentalUnit: chunk.rentalUnit,
           rentalPackages: chunk.rentalPackages,

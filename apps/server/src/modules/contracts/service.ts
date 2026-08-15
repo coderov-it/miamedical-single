@@ -47,7 +47,10 @@ export async function getById(db: Database, id: string): Promise<ContractDetailR
   return row;
 }
 
-export async function getByOrderId(db: Database, orderId: string): Promise<ContractSummaryRow | undefined> {
+export async function getByOrderId(
+  db: Database,
+  orderId: string,
+): Promise<ContractSummaryRow | undefined> {
   return repo.findByOrderId(db, orderId);
 }
 
@@ -117,7 +120,8 @@ export async function createManual(
     total: item.total,
     startDate: item.startDate,
     endDate: item.endDate ?? null,
-    rentalDays: item.rentalDays,
+    duration: item.duration,
+    durationUnit: item.durationUnit,
   }));
 
   const subtotalCents = input.items.reduce((sum, item) => sum + toCents(item.total), 0);

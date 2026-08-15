@@ -16,6 +16,7 @@
 -->
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import { resolvePeriod } from '@mia/pricing';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import SearchIcon from '@lucide/svelte/icons/search';
@@ -31,6 +32,7 @@
   import { Checkbox } from '$lib/components/ui/checkbox/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import * as Select from '$lib/components/ui/select/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
@@ -48,10 +50,7 @@
     (typeof api.api.admin.contracts)[':id']['$get'],
     200
   >['data'];
-  type CustomerMatches = InferResponseType<
-    typeof api.api.admin.orders.customers.$get,
-    200
-  >['data'];
+  type CustomerMatches = InferResponseType<typeof api.api.admin.orders.customers.$get, 200>['data'];
   type ProductList = InferResponseType<typeof api.api.admin.products.$get, 200>['data'];
 
   type CustomerType = 'private' | 'company' | 'tourist';
@@ -73,7 +72,8 @@
       quantity: number;
       unitPrice: string;
       total: string;
-      rentalDays: number;
+      duration: number;
+      durationUnit: 'hour' | 'day';
     }[];
     shippingTotal: string;
     requiresDeposit: boolean;
@@ -91,15 +91,23 @@
   let codiceUnivoco = $state('');
   let hasDepositProduct = $state(false);
 
+  /**
+   * A hand-typed contract line. Deliberately NOT catalogue pricing: this is a
+   * walk-in whose price was agreed on the phone, so the operator types every
+   * figure and nothing here consults a package. It shares the storefront's
+   * vocabulary — a duration in a unit, and an end date derived from the start —
+   * so both kinds of contract read alike once printed.
+   */
   interface ItemDraft {
     productTitle: string;
     sku: string;
     quantity: number;
-    rentalDays: number;
+    duration: number;
+    durationUnit: 'hour' | 'day';
     unitPrice: string;
     total: string;
     startDate: string;
-    endDate: string;
+    startTime: string;
   }
 
   function blankItem(): ItemDraft {
@@ -107,13 +115,23 @@
       productTitle: '',
       sku: '',
       quantity: 1,
-      rentalDays: 1,
+      duration: 1,
+      durationUnit: 'day',
       unitPrice: '0.00',
       total: '0.00',
       startDate: '',
-      endDate: '',
+      startTime: '',
     };
   }
+
+  /** The end this line's start and duration place, or `null` while incomplete. */
+  const endOf = (item: ItemDraft) =>
+    item.startDate
+      ? resolvePeriod(item.startDate, item.startTime || null, {
+          unit: item.durationUnit,
+          duration: item.duration,
+        })
+      : null;
 
   let items = $state<ItemDraft[]>([blankItem()]);
   let shippingTotal = $state('0.00');
@@ -173,11 +191,12 @@
         productTitle: item.productTitle,
         sku: item.sku ?? '',
         quantity: item.quantity,
-        rentalDays: item.rentalDays,
+        duration: item.duration,
+        durationUnit: item.durationUnit,
         unitPrice: item.unitPrice,
         total: item.total,
         startDate: '',
-        endDate: '',
+        startTime: '',
       }));
       toast.success(`Copied from ${source.number}. Set the new rental dates.`);
     } catch (err) {
@@ -196,10 +215,7 @@
     () => customerQuery.trim(),
     async (q, signal) => {
       if (q.length < 2) return [] as CustomerMatches;
-      const res = await api.api.admin.orders.customers.$get(
-        { query: { q } },
-        { init: { signal } },
-      );
+      const res = await api.api.admin.orders.customers.$get({ query: { q } }, { init: { signal } });
       const json = (await res.json()) as { data: CustomerMatches };
       return json.data;
     },
@@ -250,7 +266,9 @@
     if (!item) return;
     item.productTitle = product.title;
     item.sku = product.baseSku;
-    item.unitPrice = product.basePrice;
+    /* A starting point for the operator to edit, not a price: a rental has no
+       rate of its own, so its marketing headline stands in. */
+    item.unitPrice = product.basePrice ?? product.marketingRate ?? '0.00';
     recomputeLineTotal(index);
     productSearchIndex = null;
     productQuery = '';
@@ -275,7 +293,7 @@
   function recomputeLineTotal(index: number) {
     const item = items[index];
     if (!item) return;
-    item.total = fromCents(toCents(item.unitPrice) * item.quantity * item.rentalDays);
+    item.total = fromCents(toCents(item.unitPrice) * item.quantity * item.duration);
   }
 
   function addItem() {
@@ -333,11 +351,12 @@
             productTitle: item.productTitle.trim(),
             ...(item.sku ? { sku: item.sku } : {}),
             quantity: item.quantity,
-            rentalDays: item.rentalDays,
+            duration: item.duration,
+            durationUnit: item.durationUnit,
             unitPrice: item.unitPrice,
             total: item.total,
             startDate: item.startDate,
-            endDate: item.endDate ? item.endDate : null,
+            endDate: endOf(item)?.endDate ?? null,
           })),
           shippingTotal,
         },
@@ -376,8 +395,8 @@
         <div class="border-b px-4 py-2.5">
           <p class="text-sm font-medium">Start from an earlier contract</p>
           <p class="text-xs text-muted-foreground">
-            Search by contract number, customer name, email or phone. Copies the customer and
-            items — you set the new rental dates.
+            Search by contract number, customer name, email or phone. Copies the customer and items
+            — you set the new rental dates.
           </p>
         </div>
         <div class="p-4">
@@ -592,9 +611,10 @@
                     autocomplete="off"
                     oninput={(event) => onProductInput(index, event.currentTarget.value)}
                     onfocus={() => onProductInput(index, item.productTitle)}
-                    onblur={() => setTimeout(() => {
-                      if (productSearchIndex === index) productSearchIndex = null;
-                    }, 150)}
+                    onblur={() =>
+                      setTimeout(() => {
+                        if (productSearchIndex === index) productSearchIndex = null;
+                      }, 150)}
                   />
                   {#if productSearchIndex === index && productQuery.trim().length >= 2}
                     <div
@@ -650,25 +670,52 @@
                   />
                 </div>
                 <div>
-                  <Label class="mb-1.5" for={`item-days-${index}`}>Rental days</Label>
-                  <Input
-                    id={`item-days-${index}`}
-                    type="number"
-                    min="1"
-                    bind:value={item.rentalDays}
-                    onchange={() => recomputeLineTotal(index)}
-                  />
+                  <Label class="mb-1.5" for={`item-duration-${index}`}>Duration</Label>
+                  <div class="flex gap-2">
+                    <Input
+                      id={`item-duration-${index}`}
+                      type="number"
+                      min="1"
+                      bind:value={item.duration}
+                      onchange={() => recomputeLineTotal(index)}
+                    />
+                    <Select.Root type="single" bind:value={item.durationUnit}>
+                      <Select.Trigger class="w-28">
+                        {item.durationUnit === 'hour' ? 'hours' : 'days'}
+                      </Select.Trigger>
+                      <Select.Content>
+                        <Select.Item value="day">days</Select.Item>
+                        <Select.Item value="hour">hours</Select.Item>
+                      </Select.Content>
+                    </Select.Root>
+                  </div>
                 </div>
                 <div onfocusout={() => recomputeLineTotal(index)}>
-                  <MoneyInput label="Unit price / day" bind:value={item.unitPrice} suffix="EUR" />
+                  <MoneyInput
+                    label="Unit price / {item.durationUnit}"
+                    bind:value={item.unitPrice}
+                    suffix="EUR"
+                  />
                 </div>
                 <div>
                   <Label class="mb-1.5" for={`item-start-${index}`}>Start date *</Label>
                   <Input id={`item-start-${index}`} type="date" bind:value={item.startDate} />
                 </div>
+                {#if item.durationUnit === 'hour'}
+                  <div>
+                    <Label class="mb-1.5" for={`item-time-${index}`}>Start time *</Label>
+                    <Input id={`item-time-${index}`} type="time" bind:value={item.startTime} />
+                  </div>
+                {/if}
                 <div>
-                  <Label class="mb-1.5" for={`item-end-${index}`}>End date</Label>
-                  <Input id={`item-end-${index}`} type="date" bind:value={item.endDate} />
+                  <!-- Derived, as on the storefront: the duration decides the end. -->
+                  <Label class="mb-1.5">End</Label>
+                  <p
+                    class="flex h-9 items-center rounded-md border border-dashed px-3 text-sm tabular-nums"
+                  >
+                    {endOf(item)?.endDate ?? '—'}
+                    {endOf(item)?.endTime ?? ''}
+                  </p>
                 </div>
                 <MoneyInput label="Line total" bind:value={item.total} suffix="EUR" />
               </div>
@@ -688,8 +735,8 @@
             <span class="text-sm">
               Scooter, electric wheelchair or similar
               <span class="block text-xs text-muted-foreground">
-                Requires a 300 EUR deposit. Leave off for manual wheelchairs, walkers and
-                other aids.
+                Requires a 300 EUR deposit. Leave off for manual wheelchairs, walkers and other
+                aids.
               </span>
             </span>
           </label>
@@ -729,8 +776,7 @@
             Create contract & send signing link
           </Button>
           <p class="text-xs text-muted-foreground">
-            The customer receives the signing link by email immediately, in the contract's
-            language.
+            The customer receives the signing link by email immediately, in the contract's language.
           </p>
         </div>
       </Card.Root>

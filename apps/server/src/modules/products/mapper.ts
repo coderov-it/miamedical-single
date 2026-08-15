@@ -7,7 +7,7 @@ import type {
   RentalPackage,
 } from '@mia/db/schema';
 import { durationLabel } from '@mia/i18n';
-import { asMoney } from '@mia/pricing';
+import { asMoney, toHundredths } from '@mia/pricing';
 
 import type {
   AdminProductDetailDto,
@@ -45,6 +45,27 @@ import type {
 /** Record → DTO. Pure functions, no IO. */
 
 const money = (amount: string, currency: string): MoneyDto => ({ amount, currency });
+
+/**
+ * The lowest real figure a product can be had for — see `PricingDto.fromPrice`.
+ * Compared in bigint hundredths through `toHundredths`, never as JS numbers.
+ */
+const toFromPrice = (
+  basePrice: string | null,
+  packages: readonly RentalPackage[],
+): string | null => {
+  if (basePrice !== null) return basePrice;
+  let cheapest: string | null = null;
+  for (const pkg of packages) {
+    const price = asMoney(pkg.price);
+    if (cheapest === null || toHundredths(price) < toHundredths(cheapest)) cheapest = price;
+  }
+  return cheapest;
+};
+
+/** A SKU price, or `null` on a rental product — see `resolveSkuPrice`. */
+const toSkuPrice = (amount: string | null, currency: string): MoneyDto | null =>
+  amount === null ? null : money(amount, currency);
 
 /** "90.0000" → 90, "16.5000" → 16.5 — spec quantities, never money. */
 const num = (value: string | null): number | null => (value === null ? null : Number(value));
@@ -276,6 +297,8 @@ export function toPublicDetail(
     rentalUnit: row.rentalUnit,
     currency: row.currency,
     price: row.basePrice,
+    marketingRate: row.marketingRate,
+    fromPrice: toFromPrice(row.basePrice, row.rentalPackages),
   };
 
   const categoryTranslation = pickTranslation(row.category.translations, locale);
@@ -362,7 +385,7 @@ export function toPublicDetail(
         stock: sku.stock,
         inStock: sku.stock > 0,
         isActive: sku.isActive,
-        price: money(resolveSkuPrice(row.basePrice, sku, row.variantGroups), row.currency),
+        price: toSkuPrice(resolveSkuPrice(row.basePrice, sku, row.variantGroups), row.currency),
       })),
     specifications: toPublicSpecs(row.specs, row.specValues, row.specValueOptions, locale),
     addons: row.addons.sort((a, b) => a.position - b.position).map((a) => toPublicAddon(a, locale)),
@@ -471,6 +494,8 @@ export function toPublicSummary(
       rentalUnit: row.rentalUnit,
       currency: row.currency,
       price: row.basePrice,
+      marketingRate: row.marketingRate,
+      fromPrice: toFromPrice(row.basePrice, row.rentalPackages),
     },
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
     chips: row.chips.length > 0 ? toChips(row.chips, locale) : toCardSpecTags(row, locale),
@@ -557,6 +582,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     pricingModeLocked: true,
     rentalUnit: row.rentalUnit,
     basePrice: row.basePrice,
+    marketingRate: row.marketingRate,
     currency: row.currency,
     rentalPackages: row.rentalPackages,
     chips: row.chips,
@@ -672,6 +698,7 @@ export function toAdminSummary(
     pricingMode: row.pricingMode,
     rentalUnit: row.rentalUnit,
     basePrice: row.basePrice,
+    marketingRate: row.marketingRate,
     currency: row.currency,
     title: localized?.title || italian?.title || '',
     slug: italian?.slug ?? '',

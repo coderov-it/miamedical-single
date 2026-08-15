@@ -32,7 +32,7 @@ import PdpOrderPanel from '~/components/product/PdpOrderPanel.astro';
 import PdpQuestions from '~/components/product/PdpQuestions.astro';
 import PdpSpecs from '~/components/product/PdpSpecs.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { formatPricing, mediaUrl, offerPrice } from '~/lib/api';
+import { cardPrice, mediaUrl, offerPrice } from '~/lib/api';
 import { getProductBySlug } from '~/lib/catalog';
 import { FIELD } from '~/lib/request-config';
 import { productPath, routes } from '~/lib/routes';
@@ -49,17 +49,14 @@ if (!product) {
 const isRental = product.pricing.mode === 'rental';
 const inStock = product.skus.length === 0 || product.skus.some((sku) => sku.inStock);
 
+/* The mobile bar carries the same line as the hero: on a rental that is the
+   marketing rate, which advertises rather than quotes. */
+const barPrice = cardPrice(product.pricing);
+
 const hero = product.media.cleanPng ?? product.media.thumbnail ?? product.media.gallery[0] ?? null;
 const images = hero
   ? [hero, ...product.media.gallery.filter((item) => item.path !== hero.path)]
   : product.media.gallery;
-
-/** The Italian words the panel builds its period strings from. */
-const UNIT_WORDS = {
-  day: { label: 'al giorno', noun: 'giorno', plural: 'giorni' },
-  hour: { label: "all'ora", noun: 'ora', plural: 'ore' },
-} as const;
-const unitWords = product.pricing.rentalUnit ? UNIT_WORDS[product.pricing.rentalUnit] : null;
 
 const jsonLd: Record<string, unknown>[] = [
   {
@@ -73,7 +70,10 @@ const jsonLd: Record<string, unknown>[] = [
     category: product.category.name,
     offers: {
       '@type': 'Offer',
-      price: offerPrice(product.pricing.price),
+      /* The lowest real figure: a fixed product's price, or the cheapest
+         package. Never the marketing rate — that is copy, and Google reads this
+         as an amount someone can be charged. */
+      ...(product.pricing.fromPrice ? { price: offerPrice(product.pricing.fromPrice) } : {}),
       priceCurrency: product.pricing.currency,
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       url: new URL(productPath(product.slug), Astro.site ?? Astro.url.origin).href,
@@ -128,25 +128,15 @@ if (product.faqs.length > 0) {
           method="get"
           action={routes.checkout}
           class="flex flex-wrap items-start gap-x-12 gap-y-10 pt-3"
-          data-est-base={product.pricing.price}
+          data-est-base={product.pricing.price ?? ''}
           data-est-mode={product.pricing.mode}
-          data-est-unit={product.pricing.rentalUnit ?? ''}
-          data-est-unit-label={unitWords?.label ?? ''}
-          data-est-unit-noun={unitWords?.noun ?? ''}
-          data-est-unit-plural={unitWords?.plural ?? ''}
           data-est-currency={product.pricing.currency}
         >
           <input type="hidden" name={FIELD.product} value={product.slug} />
 
           <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-13">
-            <PdpHero {product} {images} unitLabel={unitWords?.label ?? ''} />
-            {product.variants.length > 0 && (
-              <PdpConfigure
-                variants={product.variants}
-                {isRental}
-                unitNoun={unitWords?.noun ?? ''}
-              />
-            )}
+            <PdpHero {product} {images} />
+            {product.variants.length > 0 && <PdpConfigure variants={product.variants} />}
             {product.addons.length > 0 && <PdpAddons addons={product.addons} />}
             {product.questions.length > 0 && <PdpQuestions questions={product.questions} />}
             {product.specifications.length > 0 && (
@@ -155,16 +145,12 @@ if (product.faqs.length > 0) {
             <PdpInfoTabs {product} />
           </main>
 
-          <PdpOrderPanel
-            {product}
-            unitLabel={unitWords?.label ?? ''}
-            unitNoun={unitWords?.noun ?? ''}
-          />
+          <PdpOrderPanel {product} />
         </form>
       ) : (
         <div class="flex flex-wrap items-start gap-x-12 gap-y-10 pt-3">
           <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-13">
-            <PdpHero {product} {images} unitLabel={unitWords?.label ?? ''} />
+            <PdpHero {product} {images} />
             {product.specifications.length > 0 && (
               <PdpSpecs specifications={product.specifications} />
             )}
@@ -198,8 +184,8 @@ if (product.faqs.length > 0) {
   >
     <div class="mx-auto flex max-w-310 items-center justify-between gap-4">
       <p class="m-0 flex items-baseline gap-2 text-white">
-        {isRental && <span class="text-[14px] opacity-70">da</span>}
-        <span class="text-[18px] font-bold tabular-nums">{formatPricing(product.pricing)}</span>
+        {barPrice?.prefix && <span class="text-[14px] opacity-70">{barPrice.prefix}</span>}
+        <span class="text-[18px] font-bold tabular-nums">{barPrice?.text ?? ''}</span>
       </p>
       <a class="btn btn-primary min-h-12 px-6" href="#order">
         {inStock ? (isRental ? 'Noleggia ora' : 'Richiedi') : 'Contattaci'}
@@ -229,8 +215,6 @@ if (product.faqs.length > 0) {
     readCartLines,
     writeCartLines,
   } from '~/lib/cart-store';
-
-  const DAY = 86_400_000;
 
   // --- gallery ---------------------------------------------------------------
   const mainImg = document.querySelector<HTMLImageElement>('[data-pdp-main-img]');
@@ -275,153 +259,192 @@ if (product.faqs.length > 0) {
     const cfg = form.dataset;
     const base = Number(cfg.estBase ?? '0');
     const rental = cfg.estMode === 'rental';
-    const unit = cfg.estUnit ?? '';
     const fmt = new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: cfg.estCurrency || 'EUR',
     });
-    const perUnitSuffix = rental ? `/${cfg.estUnitNoun}` : '';
-    const unitWord = (n: number) => (n === 1 ? cfg.estUnitNoun : cfg.estUnitPlural);
+    const unitWord = (n: number, unit: string) =>
+      unit === 'hour' ? (n === 1 ? 'ora' : 'ore') : n === 1 ? 'giorno' : 'giorni';
 
     const $total = document.querySelector('[data-est-total]');
     const $note = document.querySelector('[data-est-note]');
     const $lines = document.querySelector('[data-est-lines]');
     const $duration = document.querySelector('[data-est-duration]');
+    const $endDisplay = document.querySelector('[data-est-end-display]');
     const $start = form.querySelector<HTMLInputElement>('[data-est-start]');
-    const $end = form.querySelector<HTMLInputElement>('[data-est-end]');
+    const $time = form.querySelector<HTMLInputElement>('[data-est-time]');
+    const $timeRow = form.querySelector<HTMLElement>('[data-time-row]');
     const $qty = form.querySelector<HTMLInputElement>('[data-est-qty]');
-    const $pkgTitle = document.querySelector('[data-pkg-title]');
-    const $pkgDetail = document.querySelector('[data-pkg-detail]');
-    const $pkgTrigger = document.querySelector<HTMLElement>('[data-pkg-trigger]');
-    const $pkgToggle = document.querySelector<HTMLInputElement>('[data-pkg-toggle]');
-    const pkgDetailDefault = $pkgDetail?.textContent?.trim() ?? '';
+    const $submit = form.querySelector<HTMLButtonElement>('[data-est-submit]');
 
     const checkedPackage = () =>
       form.querySelector<HTMLInputElement>('[data-est-kind="package"]:checked');
 
-    const isoAfter = (isoDate: string, days: number) =>
-      new Date(Date.parse(isoDate) + days * DAY).toISOString().slice(0, 10);
+    /*
+     * The derived return, and the ONE reason this duplicates `resolvePeriod`
+     * from `@mia/pricing`: the module is server-side and this runs in the
+     * browser. Keep the two arithmetics identical — UTC epoch milliseconds, so
+     * a rental that crosses a DST boundary is still exactly N days.
+     */
+    const HOUR = 3_600_000;
+    const DAY = 86_400_000;
 
+    function derivePeriod(startDate: string, startTime: string, unit: string, duration: number) {
+      if (!startDate || !duration) return null;
+      const [y, m, d] = startDate.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      const day = Date.UTC(y, m - 1, d);
+
+      if (unit !== 'hour') {
+        return {
+          endDate: new Date(day + duration * DAY).toISOString().slice(0, 10),
+          endTime: '',
+          duration,
+          unit,
+        };
+      }
+
+      if (!startTime) return null;
+      const [hh, mm] = startTime.split(':').map(Number);
+      if (hh === undefined || mm === undefined) return null;
+      const iso = new Date(day + hh * HOUR + mm * 60_000 + duration * HOUR).toISOString();
+      return { endDate: iso.slice(0, 10), endTime: iso.slice(11, 16), duration, unit };
+    }
+
+    /** A package duration read in another unit, rounded up — mirrors `convertDuration`. */
+    const convert = (duration: number, from: string, to: string) => {
+      if (from === to) return duration;
+      if (from === 'hour') return Math.ceil(duration / 24);
+      return duration * 24;
+    };
+
+    const dayFmt = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit' });
+    const showDate = (iso: string, time: string) => {
+      const [y, m, d] = iso.split('-').map(Number);
+      const text = dayFmt.format(new Date(y!, (m ?? 1) - 1, d ?? 1));
+      return time ? `${text} ${time}` : text;
+    };
+
+    /**
+     * The display estimate, mirroring `priceRequest` in `@mia/pricing`.
+     *
+     * A rental IS its package: the package price is the base, variant modifiers
+     * are added FLAT on top of it, and a rental-mode add-on multiplies by the
+     * package's duration read in the add-on's own unit. With no package there is
+     * nothing to price, so the panel shows a dash rather than a number.
+     */
     function update() {
-      // Rate: base + checked option modifiers + numeric inputs × per-unit price.
-      let rate = base;
+      let modifiers = 0;
       const labels: string[] = [];
       for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="variant"]')) {
         if (!input.checked) continue;
-        rate += Number(input.dataset.estPrice ?? '0');
+        modifiers += Number(input.dataset.estPrice ?? '0');
         if (input.dataset.estLabel) labels.push(input.dataset.estLabel);
       }
       for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="number"]')) {
         const value = Number(input.value);
         if (input.value !== '' && Number.isFinite(value)) {
-          rate += value * Number(input.dataset.estPerUnit ?? '0');
+          modifiers += value * Number(input.dataset.estPerUnit ?? '0');
         }
       }
 
       const pkgInput = checkedPackage();
-      const pkg =
-        pkgInput && pkgInput.value
-          ? {
-              label: pkgInput.dataset.estLabel ?? '',
-              detail: pkgInput.dataset.estDetail ?? '',
-              price: Number(pkgInput.dataset.estPrice ?? '0'),
-              duration: Number(pkgInput.dataset.estDuration ?? '0'),
-              unit: pkgInput.dataset.estUnit ?? '',
-            }
-          : null;
+      const pkg = pkgInput
+        ? {
+            label: pkgInput.dataset.estLabel ?? '',
+            detail: pkgInput.dataset.estDetail ?? '',
+            price: Number(pkgInput.dataset.estPrice ?? '0'),
+            duration: Number(pkgInput.dataset.estDuration ?? '0'),
+            unit: pkgInput.dataset.estUnit ?? 'day',
+          }
+        : null;
 
-      // Duration in the PRODUCT's unit. A date pair cannot express hours, and a
-      // package in a different unit has no per-unit equivalent — both stay null.
-      let units: number | null = null;
-      if (rental) {
-        if (pkg) {
-          units = pkg.unit === unit ? pkg.duration : null;
-        } else if (unit === 'day' && $start?.value && $end?.value) {
-          const span = Math.round((Date.parse($end.value) - Date.parse($start.value)) / DAY);
-          if (Number.isFinite(span) && span >= 0) units = Math.max(1, span);
-        }
-      }
+      // An hour package is the only case that needs a time of day.
+      if ($timeRow) $timeRow.hidden = !pkg || pkg.unit !== 'hour';
+
+      const period = pkg
+        ? derivePeriod($start?.value ?? '', $time?.value ?? '', pkg.unit, pkg.duration)
+        : null;
 
       const qty = Math.max(1, Math.min(Number($qty?.value) || 1, Number($qty?.max) || 10));
       const baseLabel = labels.length > 0 ? labels.join(' · ') : 'Tariffa base';
       const lines: { label: string; amount: string }[] = [];
+      const incomplete = rental && !pkg;
       let total = 0;
-      let openPeriod = false; // the big number is still a per-unit figure
 
-      if (!rental) {
-        total = rate;
-        lines.push({ label: baseLabel, amount: fmt.format(rate) });
-      } else if (pkg) {
-        const extra = pkg.unit === unit ? (rate - base) * pkg.duration : 0;
-        total = pkg.price + extra;
-        lines.push({ label: `Pacchetto ${pkg.label} · ${baseLabel}`, amount: fmt.format(total) });
-        if (pkg.unit === unit) {
-          const saved = rate * pkg.duration - total;
-          if (saved > 0.005) {
-            lines.push({
-              label: 'Sconto pacchetto già applicato',
-              amount: `−${fmt.format(saved)}`,
-            });
-          }
-        }
-      } else if (units !== null) {
-        total = rate * units;
-        lines.push({
-          label: `${baseLabel} × ${units} ${unitWord(units)}`,
-          amount: fmt.format(total),
-        });
-      } else {
-        total = rate;
-        openPeriod = true;
-        lines.push({ label: baseLabel, amount: fmt.format(rate) + perUnitSuffix });
-      }
+      if (!incomplete) {
+        total = rental ? pkg!.price + modifiers : base + modifiers;
 
-      // Add-ons. Rental-mode add-ons follow the product's rental unit (owner's
-      // rule), so they multiply by the same duration as the base rate.
-      let oneTime = 0;
-      for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="addon"]')) {
-        if (!input.checked) continue;
-        const price = Number(input.dataset.estPrice ?? '0');
-        const label = input.dataset.estLabel ?? 'Extra';
-        if (price === 0) {
-          lines.push({ label, amount: 'Incluso' });
-        } else if (rental && input.dataset.estMode === 'rental') {
-          if (units !== null) {
-            total += price * units;
-            lines.push({ label, amount: fmt.format(price * units) });
-          } else {
-            total += price;
-            lines.push({ label, amount: fmt.format(price) + perUnitSuffix });
+        if (pkg) {
+          lines.push({ label: pkg.detail, amount: fmt.format(pkg.price) });
+          if (Math.abs(modifiers) > 0.005) {
+            lines.push({ label: baseLabel, amount: fmt.format(modifiers) });
           }
         } else {
-          oneTime += price;
-          lines.push({ label, amount: fmt.format(price) + (rental ? ' una tantum' : '') });
+          lines.push({ label: baseLabel, amount: fmt.format(total) });
         }
+
+        for (const input of form!.querySelectorAll<HTMLInputElement>('[data-est-kind="addon"]')) {
+          const row = form!.querySelector<HTMLElement>(
+            `[data-addon-qty-row="${input.dataset.addonId}"]`,
+          );
+          const qtyInput = form!.querySelector<HTMLInputElement>(
+            `[data-est-addon-qty="${input.dataset.addonId}"]`,
+          );
+          if (row) row.hidden = !input.checked;
+          /* `hidden` still submits — only `disabled` suppresses a field — and the
+             cart stores this query string, so an untouched extra would leave a
+             stray quantity in storage for as long as the line lives. */
+          if (qtyInput) qtyInput.disabled = !input.checked;
+          if (!input.checked) continue;
+
+          const price = Number(input.dataset.estPrice ?? '0');
+          const label = input.dataset.estLabel ?? 'Extra';
+          const addonQty = Math.max(1, Number(qtyInput?.value) || 1);
+
+          if (price === 0) {
+            lines.push({ label, amount: 'Incluso' });
+            continue;
+          }
+
+          const billed =
+            pkg && input.dataset.estMode === 'rental'
+              ? convert(pkg.duration, pkg.unit, input.dataset.estUnit || pkg.unit)
+              : 1;
+          const amount = price * addonQty * billed;
+          total += amount;
+
+          const parts = [label];
+          if (addonQty > 1) parts.push(`× ${addonQty}`);
+          if (pkg && input.dataset.estMode === 'rental') {
+            const addonUnit = input.dataset.estUnit || pkg.unit;
+            parts.push(`× ${billed} ${unitWord(billed, addonUnit)}`);
+          }
+          lines.push({ label: parts.join(' '), amount: fmt.format(amount) });
+        }
+
+        total *= qty;
+        if (qty > 1) lines.push({ label: 'Quantità', amount: `× ${qty}` });
       }
-      // While the period is open the big number is a per-unit rate; folding a
-      // one-time amount into it would mix incompatible quantities.
-      if (!openPeriod) total += oneTime;
 
-      total *= qty;
-      if (qty > 1) lines.push({ label: 'Quantità', amount: `× ${qty}` });
-
-      if ($total) $total.textContent = fmt.format(total);
+      if ($total) $total.textContent = incomplete ? '—' : fmt.format(total);
       if ($note) {
         $note.textContent = !rental
           ? 'prezzo del prodotto'
           : pkg
             ? `pacchetto ${pkg.label}`
-            : units !== null
-              ? `stima per ${units} ${unitWord(units)}`
-              : `${cfg.estUnitLabel} · periodo da definire`;
+            : 'scegli un pacchetto';
       }
       if ($duration) {
-        $duration.textContent = pkg
-          ? pkg.detail
-          : units !== null
-            ? `${units} ${unitWord(units)}`
-            : 'da definire';
+        $duration.textContent = pkg ? pkg.detail : 'scegli un pacchetto';
       }
+      if ($endDisplay) {
+        $endDisplay.textContent = period ? showDate(period.endDate, period.endTime) : '—';
+      }
+      // The server refuses a rental with no package or no start, so the CTA says
+      // so here rather than letting the customer meet that as a failure later.
+      if ($submit) $submit.disabled = rental && (!pkg || !$start?.value);
+
       if ($lines) {
         $lines.replaceChildren(
           ...lines.map((line) => {
@@ -438,58 +461,21 @@ if (product.faqs.length > 0) {
           }),
         );
       }
-      if ($pkgTitle) {
-        $pkgTitle.textContent = pkg ? `Pacchetto ${pkg.label}` : 'Nessun pacchetto scelto';
-      }
-      if ($pkgDetail) {
-        $pkgDetail.textContent = pkg ? `${pkg.detail} · prezzo bloccato` : pkgDetailDefault;
-      }
-      if ($pkgTrigger) {
-        if (pkg) $pkgTrigger.dataset.active = '';
-        else delete $pkgTrigger.dataset.active;
-      }
     }
 
-    form.addEventListener('change', (event) => {
-      const target = event.target as HTMLInputElement;
-
-      if (target.dataset.estKind === 'package') {
-        if ($pkgToggle) $pkgToggle.checked = false;
-        if (target.value && target.dataset.estUnit === 'day' && $start?.value && $end) {
-          $end.value = isoAfter($start.value, Number(target.dataset.estDuration ?? '0'));
-        }
-      }
-
-      if (target === $start && $start) {
-        if ($end) $end.min = $start.value || $end.min;
-        const pkg = checkedPackage();
-        if (pkg?.value && pkg.dataset.estUnit === 'day' && $start.value && $end) {
-          $end.value = isoAfter($start.value, Number(pkg.dataset.estDuration ?? '0'));
-        }
-      }
-
-      // Editing the return date by hand means the fixed-duration package no
-      // longer describes the period — quietly fall back to the standard rate.
-      if (target === $end) {
-        const pkg = checkedPackage();
-        if (pkg?.value) {
-          const none = form.querySelector<HTMLInputElement>('[data-est-kind="package"][value=""]');
-          if (none) none.checked = true;
-        }
-      }
-
-      update();
-    });
+    form.addEventListener('change', update);
     form.addEventListener('input', update);
 
     // --- calendar ----------------------------------------------------------
     /*
-     * The reference design's period control. It never owns the value: it
-     * writes through the two native date inputs and dispatches `change`, so
-     * the estimate, the package auto-fill and the "hand-edited return date
-     * unpicks the package" rule above all keep working unmodified.
+     * The reference design's start-date control. It never owns the value: it
+     * writes through the native date input and dispatches `change`, so the
+     * estimate and the derived return above keep working unmodified.
      *
-     * It only replaces the native row once it has actually mounted, which is
+     * There is one date to pick now, which is why there is no range state left
+     * here — the package decides the end, and the calendar only highlights it.
+     *
+     * It replaces the native row only once it has actually mounted, which is
      * what keeps the no-JavaScript path whole.
      */
     const block = document.querySelector<HTMLElement>('[data-date-block]');
@@ -498,14 +484,13 @@ if (product.faqs.length > 0) {
     const pop = block?.querySelector<HTMLElement>('[data-cal-pop]');
     const grid = block?.querySelector<HTMLElement>('[data-cal-grid]');
 
-    if (block && native && trigger && pop && grid && $start && $end) {
+    if (block && native && trigger && pop && grid && $start) {
       const cellClass =
         block.querySelector<HTMLElement>('[data-cal-cell-class]')?.dataset.calCellClass ?? '';
       const $calTitle = block.querySelector('[data-cal-title]');
       const $calStart = block.querySelector('[data-cal-start]');
       const $calEnd = block.querySelector('[data-cal-end]');
       const $calDuration = block.querySelector('[data-cal-duration]');
-      const $calHint = block.querySelector('[data-cal-hint]');
 
       const longFmt = new Intl.DateTimeFormat('it-IT', {
         weekday: 'short',
@@ -526,13 +511,25 @@ if (product.faqs.length > 0) {
       };
 
       const floor = $start.min || toIso(new Date());
-      let picking: 'start' | 'end' = 'start';
       let cursor = fromIso($start.value || floor);
       cursor.setDate(1);
 
+      /** The end the current package derives, so the grid can shade the span. */
+      function derivedEnd(): string {
+        const pkg = checkedPackage();
+        if (!pkg || !$start!.value) return '';
+        const period = derivePeriod(
+          $start!.value,
+          $time?.value ?? '',
+          pkg.dataset.estUnit ?? 'day',
+          Number(pkg.dataset.estDuration ?? '0'),
+        );
+        return period?.endDate ?? '';
+      }
+
       function paint() {
         const start = $start!.value;
-        const end = $end!.value;
+        const end = derivedEnd();
 
         if ($calTitle) {
           const title = monthFmt.format(cursor);
@@ -540,14 +537,8 @@ if (product.faqs.length > 0) {
         }
         if ($calStart)
           $calStart.textContent = start ? longFmt.format(fromIso(start)) : 'Da scegliere';
-        if ($calEnd) $calEnd.textContent = end ? longFmt.format(fromIso(end)) : 'Da definire';
-        if ($calDuration) $calDuration.textContent = $duration?.textContent ?? 'da definire';
-        if ($calHint) {
-          $calHint.textContent =
-            picking === 'start'
-              ? 'Scegli il giorno di inizio.'
-              : 'Ora scegli la riconsegna, oppure lasciala vuota e la definiamo insieme.';
-        }
+        if ($calEnd) $calEnd.textContent = end ? longFmt.format(fromIso(end)) : '—';
+        if ($calDuration) $calDuration.textContent = $duration?.textContent ?? '';
 
         // Monday-first: JS getDay() is Sunday-first, so rotate by 6 mod 7.
         const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
@@ -576,19 +567,10 @@ if (product.faqs.length > 0) {
         grid!.replaceChildren(...cells);
       }
 
+      // One date to pick, so a click always sets the start.
       function choose(iso: string) {
-        // Picking a start before the current return, or re-picking a start at
-        // all, must never leave an inverted range on screen.
-        if (picking === 'start' || iso <= $start!.value || !$start!.value) {
-          $start!.value = iso;
-          if ($end!.value && $end!.value <= iso) $end!.value = '';
-          picking = 'end';
-          $start!.dispatchEvent(new Event('change', { bubbles: true }));
-        } else {
-          $end!.value = iso;
-          picking = 'start';
-          $end!.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        $start!.value = iso;
+        $start!.dispatchEvent(new Event('change', { bubbles: true }));
         paint();
       }
 
@@ -625,26 +607,14 @@ if (product.faqs.length > 0) {
         }
       });
 
-      // A package fills the return date behind the calendar's back; repaint so
-      // the highlighted range agrees with the panel.
+      // Picking a package moves the derived end; repaint so the shaded span and
+      // the panel agree.
       form.addEventListener('change', paint);
 
       // Only now is the enhanced control real — swap it in.
       native.hidden = true;
       trigger.hidden = false;
       paint();
-    }
-
-    // The package popover is a CSS disclosure; close it on outside click/Escape.
-    if ($pkgToggle) {
-      const wrapper = $pkgToggle.closest('div');
-      document.addEventListener('click', (event) => {
-        if (!$pkgToggle.checked) return;
-        if (wrapper && !wrapper.contains(event.target as Node)) $pkgToggle.checked = false;
-      });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') $pkgToggle.checked = false;
-      });
     }
 
     update();

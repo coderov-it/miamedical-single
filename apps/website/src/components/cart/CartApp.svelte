@@ -526,7 +526,7 @@
               {money(optimisticTotal)}
             </strong>
             <span class="text-ink-2 text-[12px]">
-              {view.openPeriod ? copy.openPeriodNote : copy.vatIncluded}
+              {view.noPackage ? copy.noPackageNote : copy.vatIncluded}
             </span>
           </span>
         </div>

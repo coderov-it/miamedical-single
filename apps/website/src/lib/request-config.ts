@@ -5,7 +5,7 @@
  *
  * Format and rationale: docs/code/storefront-design-system.md
  */
-import { mulMoney } from '@mia/pricing';
+import { MAX_ADDON_QUANTITY, type RentalPeriod, mulMoney, resolvePeriod } from '@mia/pricing';
 
 import type { ProductDetail } from './catalog.ts';
 import { t } from './labels.ts';
@@ -20,12 +20,23 @@ import { t } from './labels.ts';
 export const VARIANT_PREFIX = 'variant.';
 /** `question.<questionKey>` — one intake answer. Repeats for multi-select. */
 export const QUESTION_PREFIX = 'question.';
+/**
+ * `addon.<addonId>` — how many of that add-on, when it may be taken more than
+ * once. The tick itself stays `addon=<addonId>`, so an add-on with no stepper
+ * needs no second key.
+ */
+export const ADDON_QUANTITY_PREFIX = 'addon.';
 
+/**
+ * There is no return-date field. The chosen package carries the duration and
+ * `resolvePeriod` derives the end from it, so a return date on the wire would be
+ * a second opinion about a figure the catalogue already settles.
+ */
 export const FIELD = {
   product: 'product',
   quantity: 'qty',
   startDate: 'from',
-  endDate: 'to',
+  startTime: 'time',
   rentalPackage: 'package',
   addon: 'addon',
 } as const;
@@ -67,10 +78,16 @@ export interface ResolvedEntry {
   affectsSku: boolean;
 }
 
+/** One ticked add-on, with how many of it the customer asked for. */
+export interface ResolvedAddon {
+  addon: ProductDetail['addons'][number];
+  quantity: number;
+}
+
 export interface ResolvedRequest {
   selections: ResolvedEntry[];
   answers: ResolvedEntry[];
-  addons: ProductDetail['addons'];
+  addons: ResolvedAddon[];
   /**
    * The choices in the catalogue's OWN values rather than the labels — only the
    * ones that really matched an option.
@@ -85,10 +102,16 @@ export interface ResolvedRequest {
   quantity: number;
   /** ISO `YYYY-MM-DD`, or `''`. */
   startDate: string;
-  /** ISO `YYYY-MM-DD`, or `''` — open-ended rentals leave the return date unset. */
-  endDate: string;
-  /** The duration bundle, resolved by `code`. An unknown code is dropped, never echoed. */
+  /** `HH:MM`, or `''` — asked for only when the chosen package is quoted in hours. */
+  startTime: string;
+  /**
+   * The package, resolved by `code`, and the whole price of a rental. An unknown
+   * code is dropped, never echoed; `null` on a rental means nothing can be quoted
+   * yet, which is what the buy box's package list is for.
+   */
   rentalPackage: ProductDetail['rentalPackages'][number] | null;
+  /** The period the package and start place, or `null` while either is missing. */
+  period: RentalPeriod | null;
 }
 
 /**
@@ -108,6 +131,11 @@ function cleanFreeText(raw: string): string {
 /** `YYYY-MM-DD` only. Anything else is discarded rather than echoed. */
 function cleanDate(raw: string): string {
   return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : '';
+}
+
+/** `HH:MM` only, on a 24-hour clock. */
+function cleanTime(raw: string): string {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(raw) ? raw : '';
 }
 
 function cleanNumber(raw: string, min: number | null, max: number | null): string | null {
@@ -295,7 +323,9 @@ export function resolveRequest(
   }
 
   const requestedAddons = params.getAll(FIELD.addon);
-  const addons = product.addons.filter((addon) => requestedAddons.includes(addon.id));
+  const addons: ResolvedAddon[] = product.addons
+    .filter((addon) => requestedAddons.includes(addon.id))
+    .map((addon) => ({ addon, quantity: addonQuantity(params, addon) }));
 
   const quantity = Math.min(
     MAX_QUANTITY,
@@ -303,14 +333,17 @@ export function resolveRequest(
   );
 
   const startDate = cleanDate(params.get(FIELD.startDate)?.trim() ?? '');
-  let endDate = cleanDate(params.get(FIELD.endDate)?.trim() ?? '');
-  // ISO dates compare lexicographically. A return before the start is nonsense,
-  // so it is dropped rather than shown as if the customer had picked it.
-  if (endDate && startDate && endDate < startDate) endDate = '';
+  const startTime = cleanTime(params.get(FIELD.startTime)?.trim() ?? '');
 
   const packageCode = params.get(FIELD.rentalPackage)?.trim() ?? '';
   const rentalPackage =
     product.rentalPackages.find((candidate) => candidate.code === packageCode) ?? null;
+
+  /* The return date is DERIVED, never read: the package says how long, the start
+     says from when, and `resolvePeriod` is the one place that turns the pair into
+     an end — the same function the server writes onto the order. */
+  const period =
+    rentalPackage && startDate ? resolvePeriod(startDate, startTime || null, rentalPackage) : null;
 
   return {
     selections,
@@ -320,9 +353,24 @@ export function resolveRequest(
     answerValues,
     quantity,
     startDate,
-    endDate,
+    startTime,
     rentalPackage,
+    period,
   };
+}
+
+/**
+ * How many of one add-on the URL asks for, held to that add-on's own ceiling.
+ *
+ * Clamped rather than rejected, unlike the server: this resolver's job is to
+ * render what a customer can still act on, and a quantity out of range means the
+ * stepper's maximum, not a blank page. The server sees the clamped figure.
+ */
+function addonQuantity(params: URLSearchParams, addon: ProductDetail['addons'][number]): number {
+  const ceiling = addon.maxQuantity ?? MAX_ADDON_QUANTITY;
+  const raw = Math.trunc(Number(params.get(`${ADDON_QUANTITY_PREFIX}${addon.id}`) ?? '1'));
+  if (!Number.isFinite(raw) || raw < 1) return 1;
+  return Math.min(ceiling, raw);
 }
 
 /** `2026-09-01` → `01/09/2026`, the Italian reading order. */

@@ -96,9 +96,14 @@ const whatsappBase = items
     ...(item.request.startDate
       ? [`  ${t('msgFrom')}: ${formatDateLabel(item.request.startDate)}`]
       : []),
-    ...(item.request.endDate ? [`  ${t('msgTo')}: ${formatDateLabel(item.request.endDate)}`] : []),
+    ...(item.request.period
+      ? [`  ${t('msgTo')}: ${formatDateLabel(item.request.period.endDate)}`]
+      : []),
     ...(item.request.quantity > 1 ? [`  ${t('quantity')}: ${item.request.quantity}`] : []),
-    ...item.request.addons.map((addon) => `  ${t('msgExtra')}: ${addon.name}`),
+    ...item.request.addons.map(
+      (entry) =>
+        `  ${t('msgExtra')}: ${entry.addon.name}${entry.quantity > 1 ? ` × ${entry.quantity}` : ''}`,
+    ),
     ...item.request.answers.map((entry) => `  ${entry.label} ${entry.value}`),
     `  ${t('msgEstimate')}: ${item.subtotal}`,
   ])
@@ -630,7 +635,11 @@ const originCrumb =
       const detail =
         state.delivery === 'homeDelivery'
           ? /* Newlines become separators: the review line is one line. */
-            value('address').split('\n').map((part) => part.trim()).filter(Boolean).join(' · ')
+            value('address')
+              .split('\n')
+              .map((part) => part.trim())
+              .filter(Boolean)
+              .join(' · ')
           : state.delivery === 'storePickup'
             ? L('collectedAtBranch').replace('{city}', state.pickup)
             : '';

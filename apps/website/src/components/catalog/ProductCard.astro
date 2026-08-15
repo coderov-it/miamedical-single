@@ -33,10 +33,16 @@ const image = product.thumbnail;
 const out = !product.inStock;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 
-// Big amount + small unit on one baseline — no "da" prefix, per the locked design.
-const amount = formatMoney(product.pricing.price, product.pricing.currency);
+/* Big amount + small unit on one baseline — no "da" prefix, per the locked
+   design. On a rental the amount is the MARKETING rate, which is copy the back
+   office typed; with none set it falls back to the cheapest package's total, so
+   a card never renders with no price. */
+const amount = product.pricing.marketingRate ?? product.pricing.fromPrice;
 const unit =
-  product.pricing.mode === 'rental' ? perUnitLabel(product.pricing.rentalUnit, 'it') : null;
+  product.pricing.mode === 'rental' && product.pricing.marketingRate !== null
+    ? perUnitLabel(product.pricing.rentalUnit, 'it')
+    : null;
+const priceLabel = amount === null ? null : formatMoney(amount, product.pricing.currency);
 const ctaLabel = product.pricing.mode === 'rental' ? 'Noleggia' : 'Acquista';
 
 const btnBase =
@@ -140,7 +146,7 @@ const btnBase =
         <>
           <span class="text-ink-2 flex items-baseline gap-1.5 text-[14px] whitespace-nowrap">
             <b class="text-ink text-[24px]/[1.1] font-bold tracking-[-0.01em] lining-nums tabular-nums">
-              {amount}
+              {priceLabel}
             </b>
             {unit}
           </span>

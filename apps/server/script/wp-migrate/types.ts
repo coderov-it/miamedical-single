@@ -71,7 +71,10 @@ export interface ProductChunk {
   categoryCode: string;
   brand: string | null;
   pricingMode: 'fixed' | 'rental';
-  basePrice: string;
+  /** Fixed products only. NULL on a rental, whose packages are its price. */
+  basePrice: string | null;
+  /** Rental products only: the rate the old site advertised. Display copy. */
+  marketingRate: string | null;
   currency: string;
   rentalUnit: 'hour' | 'day' | null;
   isFeatured: boolean;

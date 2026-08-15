@@ -418,8 +418,10 @@ no error anywhere.
   &variant.<groupKey>=<optionValue>   // repeats for multi_select
   &question.<questionKey>=<answer>    // repeats for multi_select; boolean is yes|no
   &addon=<addonId>                    // repeats
-  &package=<packageCode>              // optional fixed-duration bundle, by stable code
-  &from=YYYY-MM-DD&to=YYYY-MM-DD      // return date optional: open-ended rentals are normal
+  &addon.<addonId>=<n>                // how many, only when that addon allows more than one
+  &package=<packageCode>              // REQUIRED on a rental: it is the price
+  &from=YYYY-MM-DD                    // start only — the end is derived from the package
+  &time=HH:MM                         // only when the chosen package is quoted in hours
   &qty=<1..10>
 ```
 
@@ -439,10 +441,15 @@ no `default` fallthrough.
 Unknown group keys, option values and package codes are **dropped, never
 echoed**: the resolved text is rendered on the page and pushed into a `wa.me`
 link, so a value that does not correspond to a real option has no business
-appearing as if it did. A return date before the start date is dropped the same
-way. Free text survives, but stripped of control characters and capped. Required
-add-ons are re-added from the product rather than trusted from the URL, because
-a disabled checkbox is not submitted.
+appearing as if it did. Free text survives, but stripped of control characters
+and capped. An add-on quantity above what that add-on allows is clamped rather
+than rejected — this resolver renders what a customer can still act on, and the
+server sees the clamped figure.
+
+There is **no return-date key**. `resolveRequest()` derives the period with
+`resolvePeriod()` from `@mia/pricing` — the same function the server writes onto
+the order — so the start date and the package's duration are the only inputs and
+the two sides cannot disagree about when the thing comes back.
 
 `ResolvedEntry` carries the price effect twice: `note` is the formatted string a
 page renders, `amount` the same effect as a number, already multiplied out. The
@@ -488,14 +495,15 @@ consegna` (intake questions) → `04 Scheda tecnica` (icon tiles with
 initial-letter fallback) → information tabs → one sticky order panel, the only
 elevated card on the page. One native GET form wraps both columns.
 
-Pricing semantics, per the owner's rule: **on a rental product, every modifier
-is per rental unit** — variant option modifiers, per-unit number modifiers and
-rental-mode add-ons all bill in the product's `rentalUnit`, so one duration
-multiplies every amount. The addon service enforces the unit
-(`invalid_addon_rental_unit`). Rental packages are a fixed total for a fixed
-duration; the estimate adds `(configured rate − base rate) × duration` on top
-and shows the strikethrough/savings claim only when the package unit equals the
-product unit.
+Pricing semantics, per the owner's rule: **a rental IS its package**. The
+package the customer picks is the price for its duration; variant modifiers are
+added FLAT on top of it, never multiplied by the duration the package already
+carries. A rental-mode add-on is the exception that does multiply — `price ×
+quantity ×` the package duration read in the add-on's own unit, rounded up to a
+whole unit, because half a day of insurance is still a day of it. The figure
+under the product title is the `marketingRate`, which is COPY: the back office
+typed it, no total reads it, and it sits there precisely because nothing has
+been chosen yet.
 
 The order panel is a **display estimate only**: the page script mirrors the
 form into the total, the period badge and the line items; `/carrello/`
@@ -510,31 +518,37 @@ Three tricks worth knowing before touching it:
 
 - **The calendar is an enhancement, never the source of truth.**
   `PdpDatePicker.astro` renders the reference design's summary card and
-  range-highlighting calendar popover **and** the two plain
-  `<input type="date">` fields. The native row is what the server sends; the
-  card and popover ship with the `hidden` attribute, and the page script swaps
-  them only once it has mounted, so the no-JavaScript path is a complete
-  control rather than a degraded one. The calendar never holds state: it
-  writes through those same inputs and dispatches `change`, which is why the
-  estimate, the package auto-fill and the unpick rule below all keep working
+  calendar popover **and** one plain `<input type="date">`. The native row is
+  what the server sends; the card and popover ship with the `hidden` attribute,
+  and the page script swaps them only once it has mounted, so the
+  no-JavaScript path is a complete control rather than a degraded one. The
+  calendar never holds state: it writes through that same input and dispatches
+  `change`, which is why the estimate and the derived return keep working
   without knowing it exists. A `display:none` input still submits — only
-  `disabled` suppresses it — so `dal`/`al` reach `/carrello/` in both modes.
+  `disabled` suppresses it — so `from` reaches `/carrello/` in both modes. The
+  start-TIME row sits outside both blocks, because it is needed in both: an
+  hour package cannot be ordered without one and the calendar has no cell for
+  it.
   Visibility is the `hidden` **attribute** alone: Tailwind's preflight makes
   `[hidden]` `display:none !important`, so a `hidden` utility class on the
   popover would survive the attribute being removed and silently keep it
   collapsed. The popover is deliberately wider than the panel column
   (7 × 48px targets + gaps + padding = 368px) and breaks out symmetrically,
   because seven 48px cells do not fit inside it.
-- **The detached-form escape.** The info-tab radios and the package-popover
-  checkbox carry `form="pdp-detached"`, an id that exists nowhere. A control
-  whose `form` attribute matches no element has no form owner, which keeps
-  purely-presentational inputs out of the GET submission while they sit inside
-  the form element. The package **radios** deliberately do NOT carry it — they
-  are real fields (`pacchetto`).
-- **The return date is optional by design.** Medical rentals often end "when
-  recovery ends"; an empty `al` renders the per-unit rate with "periodo da
-  definire" and the call settles it. Picking a package auto-fills the return
-  date; hand-editing the return date unpicks the package.
+- **The detached-form escape.** The info-tab radios carry `form="pdp-detached"`,
+  an id that exists nowhere. A control whose `form` attribute matches no element
+  has no form owner, which keeps purely-presentational inputs out of the GET
+  submission while they sit inside the form element. The package **radios**
+  deliberately do NOT carry it — they are real fields (`package`), and required
+  ones.
+- **The return date is calculated, not picked.** The package carries the
+  duration, so the panel shows the end rather than asking for it, and there is
+  no way to put the two in disagreement. The CTA stays disabled until a rental
+  has both a package and a start date, because the API refuses that line — the
+  page that can still fix it should say so.
+- **An unticked add-on's quantity input is `disabled`, not merely hidden.**
+  `hidden` still submits, and the cart stores this query string, so an untouched
+  extra would leave a stray quantity in storage for as long as the line lives.
 
 The panel closes on the reference's aggregate review line, which reads from the
 same `REVIEW_AGGREGATE` adapter as the home band so the storefront can never

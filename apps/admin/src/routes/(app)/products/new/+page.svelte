@@ -3,10 +3,13 @@
   Everything else belongs in the full editor this redirects into — a
   twelve-section form before the product exists is how drafts never get made.
 
-  The pricing mode is the exception, and it is why this page exists at all:
-  it is permanent, and this is the only place it can ever be chosen.
+  Two exceptions, both because they cannot be deferred. The pricing mode is
+  permanent, and this is the only place it can ever be chosen. And a rental's
+  first PACKAGE is its price — a rental with none has none, and the CHECK on
+  `products` refuses the row — so one is collected here and the rest later.
 -->
 <script lang="ts">
+  import { durationLabel } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
   import type { InferResponseType } from 'hono/client';
@@ -22,6 +25,7 @@
   import * as Select from '$lib/components/ui/select/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
+  import InfoHint from '~/lib/components/info-hint.svelte';
   import MoneyInput from '~/lib/components/money-input.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
@@ -39,6 +43,16 @@
   let pricingMode = $state('fixed');
   let rentalUnit = $state('day');
   let basePrice = $state('0.00');
+  let marketingRate = $state('');
+
+  /**
+   * A rental IS its packages, so the first one is collected HERE rather than on
+   * the edit screen: without one the product has no price, and the CHECK on
+   * `products` refuses the INSERT. More can be added afterwards on the pricing
+   * tab, which is also where this one is renamed or re-priced.
+   */
+  let packageDuration = $state(1);
+  let packagePrice = $state('0.00');
 
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -84,8 +98,22 @@
             baseSku,
             categoryId,
             pricingMode: pricingMode as 'fixed',
-            basePrice,
-            ...(pricingMode === 'rental' ? { rentalUnit: rentalUnit as 'day' } : {}),
+            ...(pricingMode === 'rental'
+              ? {
+                  rentalUnit: rentalUnit as 'day',
+                  ...(marketingRate.trim() ? { marketingRate } : {}),
+                  rentalPackages: [
+                    {
+                      // Same shape the pricing tab derives: duration + unit.
+                      code: `${packageDuration}-${rentalUnit}`,
+                      name: { it: durationLabel(packageDuration, rentalUnit as 'day', 'it') },
+                      price: packagePrice,
+                      duration: packageDuration,
+                      unit: rentalUnit as 'day',
+                    },
+                  ],
+                }
+              : { basePrice }),
             translations: { it: { title, slug } },
           },
         }),
@@ -200,8 +228,8 @@
           </div>
         </RadioGroup.Root>
 
-        <div class="flex flex-wrap items-end gap-4">
-          {#if pricingMode === 'rental'}
+        {#if pricingMode === 'rental'}
+          <div class="flex flex-wrap items-end gap-4">
             <div>
               <Label class="mb-1.5">Billed per</Label>
               <Select.Root type="single" bind:value={rentalUnit}>
@@ -214,15 +242,49 @@
                 </Select.Content>
               </Select.Root>
             </div>
-          {/if}
 
-          <MoneyInput
-            label={pricingMode === 'rental' ? `Price per ${rentalUnit}` : 'Price'}
-            bind:value={basePrice}
-            error={fields.basePrice}
-            suffix="EUR"
-          />
-        </div>
+            <MoneyInput
+              label="Marketing rate per {rentalUnit} (optional)"
+              bind:value={marketingRate}
+              error={fields.marketingRate}
+              suffix="EUR"
+            />
+          </div>
+
+          <div class="space-y-2 rounded-lg border border-dashed p-4">
+            <div class="flex items-center gap-2">
+              <Label class="text-sm font-medium">First package</Label>
+              <InfoHint label="Why a package is required here">
+                <p class="font-medium text-foreground">A rental has no price without one.</p>
+                <p>Add the rest on the pricing tab after saving.</p>
+              </InfoHint>
+            </div>
+            <div class="flex flex-wrap items-end gap-4">
+              <div>
+                <Label class="mb-1.5" for="pkg-duration">Duration</Label>
+                <Input
+                  id="pkg-duration"
+                  type="number"
+                  min="1"
+                  max="3650"
+                  class="w-28"
+                  bind:value={packageDuration}
+                />
+              </div>
+              <span class="pb-2 text-sm text-muted-foreground">
+                {packageDuration === 1 ? rentalUnit : `${rentalUnit}s`}
+              </span>
+              <MoneyInput
+                label="Total price"
+                bind:value={packagePrice}
+                error={fields.rentalPackages}
+                suffix="EUR"
+              />
+            </div>
+          </div>
+        {:else}
+          <MoneyInput label="Price" bind:value={basePrice} error={fields.basePrice} suffix="EUR" />
+        {/if}
       </div>
 
       {#if error}
