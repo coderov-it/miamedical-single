@@ -110,29 +110,34 @@ same reason.
 
 Same status as the PDP's order panel, and the same rules — the owner's:
 
-- On a rental product **every modifier is per rental unit**: variant option
-  modifiers, per-unit number modifiers and rental-mode add-ons all bill in the
-  product's `rentalUnit`, so one duration multiplies every amount.
-- A package is a fixed total for a fixed duration; `(configured rate − base
-rate) × duration` rides on top, and the savings line only appears when the
-  package unit equals the product unit.
-- Required add-ons come from the product, never from the URL.
+- A rental **is its package**. The package price is the price for that duration,
+  and a rental with no package picked has no price at all.
+- Variant modifiers are **flat** — added once on top of the package, never
+  multiplied by its duration, which the package already carries.
+- A rental-mode add-on is priced on its own terms: `price × quantity ×` the
+  package duration read in the add-on's unit, rounded up to a whole unit. A
+  fixed-mode add-on is charged once.
+- Add-ons come only from the URL, and only up to the quantity the back office
+  allowed on each.
 
 `estimate()` in `src/lib/checkout.ts` reads a **`ResolvedRequest`**, not the URL.
 That is why `ResolvedEntry` grew an `amount: number` field: `resolveRequest()` has
 already dropped everything that is not a real option, and a second walk over the
 product to recover the numbers would be a second chance to disagree with it.
 
-**An open-ended rental is normal here** — medical rentals often end "when
-recovery ends". With no return date and no package the figure is a **per-unit
-rate, not a sum**, so:
+**A rental with no package cannot be priced**, and that is the only unpriceable
+state left:
 
-- the qualifier under the total reads `stima · periodo da definire` instead of
+- the qualifier under the total reads `stima · scegli un pacchetto` instead of
   `IVA inclusa`;
-- nothing is added to it. A delivery charge would once have been the thing that
-  could not be — a one-off amount over a per-day rate is two incompatible
-  quantities — but no fee is folded into the total for any order now, so the
-  distinction only survives in the qualifier.
+- the figure shown is `0,00 €` and means nothing, so the confirm CTA is replaced
+  by a notice pointing back at the product page.
+
+The **return date is derived**, never sent: `resolvePeriod()` in `@mia/pricing`
+turns the start and the package's duration into the end, and the server writes
+that same computation onto the order. A start of 10 September on a 3-day package
+returns on 13 September. An hour package additionally asks for a start time and
+can roll past midnight.
 
 ## The stepper
 

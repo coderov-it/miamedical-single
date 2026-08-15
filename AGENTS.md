@@ -28,12 +28,17 @@
   // NO — two closures to parse before you learn which one runs
   export const suggestAddresses = API_KEY
     ? (query) => fetchSuggestions(query, API_KEY)
-    : async () => { throw httpError(503, '…'); };
+    : async () => {
+        throw httpError(503, '…');
+      };
 
   // YES
   function resolveSuggestAddresses() {
     const feature = FEATURES.addressSuggestions;
-    if (feature === null) return async () => { throw httpError(503, '…'); };
+    if (feature === null)
+      return async () => {
+        throw httpError(503, '…');
+      };
     return (query) => fetchSuggestions(query, feature.apiKey);
   }
   ```
@@ -55,3 +60,7 @@
   what the walk left out. No option tables, no trade-offs, no alternatives I did not
   ask for. Short enough to read once. Close by asking whether that was the part I
   meant; don't pre-empt it with extra sections.
+
+- **Tooling for Code Exploration** use `ripgrep` or `rg` instead of grep, and for finding any chunk of code in codebase use `ast-grep`. if system doesn't have these tools installed then immidiately stop, and tell me to install this tools with guideline of that OS.
+
+- **Avoid Sloppy Texts** don't add to many texts for user helps, first jusitfy if user actually needed it, reused places doesn't need help texts, but if UI or functionality is too tricky then add over all help with a semi-wide help modal for that section otherwise add (i) information button attach some texting texts. but it steps are understanable by one shot then don't add it.

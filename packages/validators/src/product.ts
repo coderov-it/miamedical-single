@@ -55,10 +55,10 @@ const PositionSchema = v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))
 // --- rental packages -------------------------------------------------------
 
 /**
- * A fixed-duration bundle sold beside the per-unit rate. The price is a total
- * the back office typed — nothing here derives it from `basePrice`, and no
- * check demands it be cheaper: whether a package is a good deal is a business
- * decision, not a validation rule.
+ * A fixed-duration offer, and the only way a rental is priced. The price is a
+ * total the back office typed — nothing here derives it from anything, and no
+ * check compares it to `marketingRate`: the headline is copy and the package is
+ * money, and the shop means both numbers even when they disagree.
  */
 export const RentalPackageSchema = v.strictObject({
   code: KeySchema,
@@ -70,11 +70,16 @@ export const RentalPackageSchema = v.strictObject({
 });
 
 /**
- * Cardinality lives here rather than in a database CHECK, matching how
+ * The upper bound lives here rather than in a database CHECK, matching how
  * `ProductMediaSchema` caps `gallery`. 15 is the client's stated ceiling.
+ *
+ * The LOWER bound is a CHECK as well as a rule here, because it is an integrity
+ * claim rather than a presentation one: a rental product with no packages has no
+ * price, and no path may leave one in the table.
  */
 export const RentalPackagesSchema = v.pipe(
   v.array(RentalPackageSchema),
+  v.minLength(1, 'A rental product needs at least one package.'),
   v.maxLength(15, 'A product can have at most 15 rental packages.'),
   v.check(
     (packages) => new Set(packages.map((item) => item.code)).size === packages.length,
@@ -132,9 +137,18 @@ export const CreateProductSchema = v.pipe(
     brand: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(120)))),
     /** Write-once. `UpdateProductSchema` deliberately omits it. */
     pricingMode: PricingModeSchema,
-    basePrice: MoneySchema,
+    /** Fixed products only — a rental is priced by its packages. */
+    basePrice: v.optional(v.nullable(MoneySchema)),
+    /** Rental products only, and display copy even there. */
+    marketingRate: v.optional(v.nullable(MoneySchema)),
     currency: v.optional(CurrencySchema, 'EUR'),
     rentalUnit: v.optional(v.nullable(RentalUnitSchema)),
+    /**
+     * Required at creation on a rental, unlike every other pricing detail that
+     * can be filled in later: without one the product has no price at all, and
+     * the CHECK on `products` would refuse the INSERT anyway.
+     */
+    rentalPackages: v.optional(RentalPackagesSchema),
     isFeatured: v.optional(v.boolean(), false),
     chips: v.optional(ProductChipsSchema, []),
     translations: ProductTranslationsSchema,
@@ -146,6 +160,30 @@ export const CreateProductSchema = v.pipe(
       'Rental products need a rental unit; fixed-price ones must not have one.',
     ),
     ['rentalUnit'],
+  ),
+  v.forward(
+    v.partialCheck(
+      [['pricingMode'], ['basePrice']],
+      (input) => (input.pricingMode === 'fixed') === (input.basePrice != null),
+      'Fixed-price products need a base price; rental ones are priced by their packages.',
+    ),
+    ['basePrice'],
+  ),
+  v.forward(
+    v.partialCheck(
+      [['pricingMode'], ['marketingRate']],
+      (input) => input.marketingRate == null || input.pricingMode === 'rental',
+      'Only rental products carry a marketing rate.',
+    ),
+    ['marketingRate'],
+  ),
+  v.forward(
+    v.partialCheck(
+      [['pricingMode'], ['rentalPackages']],
+      (input) => (input.pricingMode === 'rental') === (input.rentalPackages != null),
+      'Rental products need at least one package; fixed-price ones must not have any.',
+    ),
+    ['rentalPackages'],
   ),
 );
 
@@ -160,7 +198,10 @@ export const UpdateProductSchema = v.pipe(
       categoryId: UuidSchema,
       status: ProductStatusSchema,
       brand: v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(120))),
+      /** Rejected on a rental product by the service, which has no rate to set. */
       basePrice: MoneySchema,
+      /** Rejected on a fixed product by the service. Display copy, never priced. */
+      marketingRate: v.nullable(MoneySchema),
       currency: CurrencySchema,
       /** hour ↔ day is legal on a rental product; the service rejects it on fixed. */
       rentalUnit: RentalUnitSchema,
@@ -169,7 +210,10 @@ export const UpdateProductSchema = v.pipe(
       chips: ProductChipsSchema,
       translations: ProductTranslationsSchema,
       media: ProductMediaSchema,
-      /** Rejected on a fixed product by the service, as `rentalUnit` is. */
+      /**
+       * Replaces the whole list and may never empty it: `RentalPackagesSchema`
+       * requires one. Rejected on a fixed product by the service, as `rentalUnit` is.
+       */
       rentalPackages: RentalPackagesSchema,
     }),
   ),

@@ -22,7 +22,7 @@ interface Props {
 }
 
 const { checkout } = Astro.props;
-const { items, itemsTotal, openPeriod, currency } = checkout;
+const { items, itemsTotal, noPackage, currency } = checkout;
 const single = items.length === 1;
 
 /*
@@ -191,7 +191,7 @@ const THUMB_FALLBACK = 'bg-tint';
         */
       }
       <span class="text-ink-2 text-[12px]" data-overview-note>
-        {openPeriod ? t('estimateOpenPeriod') : t('vatIncluded')}
+        {noPackage ? t('estimateNoPackage') : t('vatIncluded')}
       </span>
     </span>
   </div>

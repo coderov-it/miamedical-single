@@ -7,7 +7,7 @@
  * and the deliberate deviations from the reference design:
  * docs/code/storefront-checkout.md
  */
-import { durationLabel, unitLabel } from '@mia/i18n';
+import { durationLabel } from '@mia/i18n';
 import { DELIVERY_METHODS, matchSku, priceRequest, sumMoney } from '@mia/pricing';
 import type { PlaceOrderItemInput } from '@mia/validators';
 import { formatMoney } from './api.ts';
@@ -60,14 +60,13 @@ export interface CheckoutItem {
   total: string;
   subtotal: string;
   /**
-   * The rental has no end date and no package, so `total` is a PER-UNIT rate
-   * rather than a sum. Normal on this page — a customer can arrive from a product
-   * page without having picked a return date — but an order may not be PLACED in
-   * this state: the server rejects it and the confirm step blocks it, because a
-   * rate is not a total. See `openPeriod` on `Checkout` and the return-date gate
-   * in checkout.astro.
+   * The rental has no package picked, so there is nothing to price — `total` is
+   * `0,00` and means nothing. Normal on this page, since a customer can arrive
+   * from a hand-edited link, but an order may not be PLACED in this state: the
+   * server rejects it and the confirm step blocks it. See `noPackage` on
+   * `Checkout` and the gate in checkout.astro.
    */
-  openPeriod: boolean;
+  noPackage: boolean;
   /**
    * This line as `POST /api/orders` takes it — choices only, no amounts. The page
    * ships it to the browser as a JSON island so the confirm step can post the
@@ -87,10 +86,9 @@ export interface CheckoutItem {
    */
   missingRequired: string[];
   /**
-   * "/giorno", or empty. The unit `total` is expressed in when `openPeriod` is
-   * set, already folded into `subtotal` — carried separately for the cart, which
-   * re-formats this figure client-side when the stepper moves and would otherwise
-   * render a daily rate as though it were a total.
+   * Always empty now that every rental total is a closed figure. Kept so the
+   * cart's client-side re-format has one shape to read for both modes rather
+   * than a field that appears only sometimes.
    */
   unitSuffix: string;
 }
@@ -101,21 +99,21 @@ export interface CheckoutItem {
  * Both reasons are things the API would refuse, checked here so the customer is
  * told what to do about it on the page that can still send them somewhere useful.
  */
-export type CheckoutBlocked = 'incomplete' | 'openPeriod' | null;
+export type CheckoutBlocked = 'incomplete' | 'noPackage' | null;
 
 export interface Checkout {
   items: CheckoutItem[];
   /**
    * Sum of the item totals, as a two-decimal money string. Meaningless as a total
-   * when `openPeriod` is set.
+   * while any item is still missing its package.
    */
   itemsTotal: string;
   /**
-   * Any item priced per unit, so the grand total cannot be a closed figure — and
-   * the order cannot be placed until it is. The confirm step swaps its CTA for a
-   * "pick a return date" notice while this holds.
+   * A rental item with no package picked, so it has no price and the order cannot
+   * be placed. The confirm step swaps its CTA for a "pick a package" notice while
+   * this holds.
    */
-  openPeriod: boolean;
+  noPackage: boolean;
   /**
    * `null` when the order can be placed. Otherwise the confirm step swaps its CTA
    * for the notice that says what is missing — never a button that is certain to
@@ -177,7 +175,6 @@ export function splitItemParams(params: URLSearchParams): URLSearchParams[] {
  * over the product would be a second chance to disagree with it.
  */
 function estimate(product: ProductDetail, request: ResolvedRequest) {
-  const isRental = product.pricing.mode === 'rental';
   const unit = product.pricing.rentalUnit;
   const { currency } = product.pricing;
   const money = (amount: string) => formatMoney(amount, currency);
@@ -195,57 +192,48 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
 
   const priced = priceRequest({
     mode: product.pricing.mode,
-    rentalUnit: unit,
     basePrice: product.pricing.price,
-    skuPrice: matched?.price.amount ?? null,
+    skuPrice: matched?.price?.amount ?? null,
     modifiers: request.selections,
     rentalPackage: request.rentalPackage,
-    startDate: request.startDate,
-    endDate: request.endDate,
     quantity: request.quantity,
-    addons: request.addons.map((addon) => ({
-      mode: addon.pricing.mode,
-      price: addon.pricing.price,
+    addons: request.addons.map((entry) => ({
+      mode: entry.addon.pricing.mode,
+      price: entry.addon.pricing.price,
+      rentalUnit: entry.addon.pricing.rentalUnit,
+      quantity: entry.quantity,
     })),
   });
 
-  /* The configured rate reads as its own choices — "Grigio · Con sponde" — and
-     falls back to "Tariffa base" when nothing the customer picked costs extra. */
+  /* The configured choices read as themselves — "Grigio · Con sponde" — and fall
+     back to "Tariffa base" when nothing the customer picked costs extra. */
   const labels = request.selections
     .filter((entry) => entry.amount !== '0.00')
     .map((entry) => entry.value);
   const baseLabel = labels.length > 0 ? labels.join(' · ') : t('baseRate');
-  const perUnitSuffix = isRental && unit ? `/${unitLabel(unit, 'it', 'one')}` : '';
   const pkg = request.rentalPackage;
 
   const lines: EstimateLine[] = priced.lines.map((line) => {
     switch (line.kind) {
       case 'base':
-        return {
-          label: baseLabel,
-          amount: money(line.amount) + (line.perUnit ? perUnitSuffix : ''),
-        };
-      case 'duration':
-        return {
-          label: unit ? `${baseLabel} × ${durationLabel(line.units, unit, 'it')}` : baseLabel,
-          amount: money(line.amount),
-        };
+        return { label: baseLabel, amount: money(line.amount) };
       case 'package':
         return {
-          label: pkg ? `${t('packagePrefix')} ${pkg.label} · ${baseLabel}` : baseLabel,
+          label: pkg?.label ?? durationLabel(line.units, line.unit, 'it'),
           amount: money(line.amount),
         };
-      case 'packageSaving':
-        return { label: t('packageDiscountApplied'), amount: `−${money(line.amount)}` };
+      case 'variants':
+        return { label: baseLabel, amount: money(line.amount) };
       case 'addon': {
-        const addon = request.addons[line.index];
+        const entry = request.addons[line.index];
+        /* "Materasso × 2 × 7 giorni" — the two multipliers are different things,
+           and collapsing them into one number hides which is which. */
+        const parts = [entry?.addon.name ?? ''];
+        if (line.quantity > 1) parts.push(`× ${line.quantity}`);
+        if (line.units !== null && unit) parts.push(`× ${durationLabel(line.units, unit, 'it')}`);
         return {
-          label: addon?.name ?? '',
-          amount: line.included
-            ? t('included')
-            : money(line.amount) +
-              (line.perUnit ? perUnitSuffix : '') +
-              (line.oneTime ? ` ${t('oneTimeSuffix')}` : ''),
+          label: parts.join(' '),
+          amount: line.included ? t('included') : money(line.amount),
         };
       }
       case 'quantity':
@@ -256,38 +244,44 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
   return {
     lines,
     total: priced.total,
-    openPeriod: priced.openPeriod,
-    subtotal: money(priced.total) + (priced.openPeriod ? perUnitSuffix : ''),
+    noPackage: priced.incomplete,
+    subtotal: money(priced.total),
     units: priced.units,
-    /* Handed out rather than kept private because the cart re-formats this row's
-       figure client-side when the stepper moves, and a per-unit RATE rendered
-       without its "/giorno" reads as a total. Empty unless the period is open —
-       the same condition `subtotal` above applies. */
-    unitSuffix: priced.openPeriod ? perUnitSuffix : '',
+    /* Every total is closed now that a package is required, so there is no rate
+       for the cart to mislabel. Kept as a field so both modes read one shape. */
+    unitSuffix: '',
   };
 }
 
-/** The design's three-row summary well, filled with what this project has. */
-function buildFacts(
-  product: ProductDetail,
-  request: ResolvedRequest,
-  units: number | null,
-): ItemFact[] {
+/**
+ * The design's three-row summary well, filled with what this project has.
+ *
+ * The return row reads off the DERIVED period rather than anything the customer
+ * typed — they pick a package and a start, and the return is what those two
+ * mean. The time is shown only on an hour package, where it is the difference
+ * between a 4-hour rental and a whole day of one.
+ */
+function buildFacts(product: ProductDetail, request: ResolvedRequest): ItemFact[] {
   const facts: ItemFact[] = [];
-  const unit = product.pricing.rentalUnit;
+  const { period } = request;
 
   if (product.pricing.mode === 'rental') {
+    const stamp = (date: string, time: string | null): string =>
+      time ? `${formatDateLabel(date)} ${time}` : formatDateLabel(date);
+
     facts.push({
       label: t('pickupDate'),
-      value: formatDateLabel(request.startDate) || t('toBeConfirmed'),
+      value: request.startDate
+        ? stamp(request.startDate, period?.startTime ?? null)
+        : t('toBeConfirmed'),
     });
     facts.push({
       label: t('returnDate'),
-      value: formatDateLabel(request.endDate) || t('toBeConfirmed'),
+      value: period ? stamp(period.endDate, period.endTime) : t('toBeConfirmed'),
     });
     facts.push({
       label: t('duration'),
-      value: units !== null && unit ? durationLabel(units, unit, 'it') : t('toBeConfirmed'),
+      value: period ? durationLabel(period.duration, period.unit, 'it') : t('toBeConfirmed'),
     });
   }
 
@@ -312,11 +306,9 @@ function toOrderItem(product: ProductDetail, request: ResolvedRequest): PlaceOrd
     productSlug: product.slug,
     quantity: request.quantity,
     ...(request.startDate ? { startDate: request.startDate } : {}),
-    ...(request.endDate ? { endDate: request.endDate } : {}),
+    ...(request.startTime ? { startTime: request.startTime } : {}),
     ...(request.rentalPackage ? { rentalPackageCode: request.rentalPackage.code } : {}),
-    // Includes the product's required add-ons, which `resolveRequest` folds in
-    // whether or not the form remembered to tick them.
-    addonIds: request.addons.map((addon) => addon.id),
+    addons: request.addons.map((entry) => ({ id: entry.addon.id, quantity: entry.quantity })),
     variants: request.variantValues,
     answers: request.answerValues,
   };
@@ -362,19 +354,19 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
       const priced = estimate(product, request);
 
       const summaryParts = [
+        ...(request.rentalPackage ? [request.rentalPackage.label] : []),
         ...request.selections.map((entry) => entry.value),
-        ...(request.rentalPackage ? [request.rentalPackage.name] : []),
       ];
 
       return {
         product,
         request,
         summary: summaryParts.join(' · '),
-        facts: buildFacts(product, request, priced.units),
+        facts: buildFacts(product, request),
         lines: priced.lines,
         total: priced.total,
         subtotal: priced.subtotal,
-        openPeriod: priced.openPeriod,
+        noPackage: priced.noPackage,
         unitSuffix: priced.unitSuffix,
         order: toOrderItem(product, request),
         missingRequired: missingRequired(product, request),
@@ -384,18 +376,18 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
 
   const items = resolved.filter((item): item is CheckoutItem => item !== null);
 
-  /* Incomplete before open-period: a line missing a required choice has to be
-     reconfigured anyway, and picking its return date first would send the customer
+  /* Incomplete before no-package: a line missing a required choice has to be
+     reconfigured anyway, and picking its package first would send the customer
      back twice. */
   const incomplete = items.find((item) => item.missingRequired.length > 0) ?? null;
-  const open = items.find((item) => item.openPeriod) ?? null;
+  const unpriced = items.find((item) => item.noPackage) ?? null;
 
   return {
     items,
     itemsTotal: sumMoney(items.map((item) => item.total)),
-    openPeriod: open !== null,
-    blocked: incomplete ? 'incomplete' : open ? 'openPeriod' : null,
-    blockedItem: incomplete ?? open,
+    noPackage: unpriced !== null,
+    blocked: incomplete ? 'incomplete' : unpriced ? 'noPackage' : null,
+    blockedItem: incomplete ?? unpriced,
     currency: items[0]?.product.pricing.currency ?? 'EUR',
   };
 }

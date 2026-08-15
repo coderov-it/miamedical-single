@@ -144,14 +144,24 @@ export const products = pgTable(
     brand: text(),
     /** Write-once: set at creation, never listed in an UPDATE. */
     pricingMode: pricingMode().notNull(),
-    /** One column for both modes — `pricingMode` decides what it means. */
-    basePrice: numeric({ precision: 12, scale: 2 }).notNull(),
+    /**
+     * What a fixed product costs. NULL exactly when `pricingMode` is `rental`
+     * (CHECK below): a rental has no rate of its own, only packages.
+     */
+    basePrice: numeric({ precision: 12, scale: 2 }),
+    /**
+     * Copy, not money. The headline under a rental product's title — "da 1,10 €
+     * al giorno" — typed by the back office and never derived from a package,
+     * because a 3-day package at 25,00 is not three times any daily figure. No
+     * total anywhere reads this column; `rentalPackages` is the whole price.
+     */
+    marketingRate: numeric({ precision: 12, scale: 2 }),
     currency: text().notNull().default('EUR'),
     /** NULL exactly when `pricingMode` is `fixed` (CHECK below). */
     rentalUnit: rentalUnit(),
     /**
-     * Fixed-duration bundles sold beside the per-unit rate — see rental-types.ts.
-     * Always `[]` on a fixed product (CHECK below).
+     * THE price of a rental product — see rental-types.ts. At least one on a
+     * rental product, always `[]` on a fixed one (CHECK below).
      */
     rentalPackages: jsonb().$type<RentalPackage[]>().notNull().default(EMPTY_RENTAL_PACKAGES),
     isFeatured: boolean().notNull().default(false),
@@ -181,10 +191,26 @@ export const products = pgTable(
       'products_rental_unit_check',
       sql`(${t.pricingMode} = 'rental') = (${t.rentalUnit} IS NOT NULL)`,
     ),
-    /** A duration bundle on something you buy outright means nothing. */
+    /** A rate belongs to the mode that bills one. A rental bills packages. */
+    check(
+      'products_base_price_check',
+      sql`(${t.pricingMode} = 'fixed') = (${t.basePrice} IS NOT NULL)`,
+    ),
+    /** Nothing to advertise a rate for on something you buy outright. */
+    check(
+      'products_marketing_rate_check',
+      sql`${t.marketingRate} IS NULL OR ${t.pricingMode} = 'rental'`,
+    ),
+    /**
+     * Packages ARE the rental price, so a rental product has at least one — a
+     * rental with none could not be ordered, and a duration bundle on something
+     * you buy outright means nothing.
+     */
     check(
       'products_rental_packages_check',
-      sql`${t.pricingMode} = 'rental' OR ${t.rentalPackages} = '[]'::jsonb`,
+      sql`CASE WHEN ${t.pricingMode} = 'rental'
+                 THEN jsonb_array_length(${t.rentalPackages}) >= 1
+                 ELSE ${t.rentalPackages} = '[]'::jsonb END`,
     ),
   ],
 );
@@ -293,9 +319,9 @@ export const productVariantGroups = pgTable(
     maxValue: numeric({ precision: 14, scale: 4 }),
     stepValue: numeric({ precision: 14, scale: 4 }),
     /**
-     * How numeric variants price: modifier = entered value × this rate. The
-     * rate inherits the product's mode — one-off for fixed, per rental unit
-     * for rental.
+     * How numeric variants price: modifier = entered value × this rate. "Per
+     * unit" is this group's own unit (per metre, per kg), never the rental
+     * unit — the resulting modifier is charged once either way.
      */
     priceModifierPerUnit: numeric({ precision: 12, scale: 2 }),
     /** R2 key of a 256×256 WebP. Copied from the preset when seeded. */
@@ -326,8 +352,9 @@ export const productVariantOptions = pgTable(
     /** Segment used in composed SKU strings, e.g. `GRY`. */
     skuCode: text(),
     /**
-     * No unit of its own — a one-off amount on a fixed product, an amount per
-     * rental unit on a rental one.
+     * A flat amount in both modes: added to a fixed product's price, and added
+     * once on top of the chosen package on a rental one. Never multiplied by a
+     * duration — the package already carries the duration.
      */
     priceModifier: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
     isDefault: boolean().notNull().default(false),
@@ -353,7 +380,11 @@ export const productSkus = pgTable(
     suffix: text().notNull(),
     /** Canonical sorted option-id key — what makes a combination unique. */
     comboKey: text().notNull(),
-    /** Replaces the whole computed price when set. */
+    /**
+     * Replaces the whole computed price when set — fixed products only. A
+     * rental has no computed price to replace: the chosen package sets the
+     * total, so pricing ignores this and the admin does not offer it.
+     */
     priceOverride: numeric({ precision: 12, scale: 2 }),
     stock: integer().notNull().default(0),
     /** Regeneration never deletes — vanished combinations are deactivated. */
@@ -409,10 +440,21 @@ export const productAddons = pgTable(
      * the composite FK below. Safe because the parent column is write-once.
      */
     productPricingMode: pricingMode().notNull(),
+    /** One-off in `fixed` mode; per `rentalUnit` in `rental` mode. */
     price: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: text().notNull().default('EUR'),
+    /**
+     * The unit a `rental` add-on's price is quoted in. It is the add-on's own,
+     * not the package's: a 3,00 €/giorno add-on on a 12-hour package bills one
+     * day, because a part-day of insurance is still a day of insurance.
+     */
     rentalUnit: rentalUnit(),
     minQuantity: integer().notNull().default(0),
+    /**
+     * How many of this add-on one line may carry. `1` is the back office
+     * saying "not multiple selectable" — the storefront then offers a tick and
+     * no stepper. NULL means the shared `MAX_ADDON_QUANTITY` ceiling.
+     */
     maxQuantity: integer(),
     /*
       There is no `is_required` here, and that is a rule rather than an omission.

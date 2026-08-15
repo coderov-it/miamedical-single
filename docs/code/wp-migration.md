@@ -104,11 +104,16 @@ Only the **duration** is parsed from the label. The price comes from the variati
 formatted (`"100€"`, `"100 €"`, `"- 100 €"`).
 
 Nothing derives a discount. A package price is a total the shop set; whether it beats the
-per-day rate is a business fact, not a computation.
+advertised daily rate is a business fact, not a computation — and since packages became the
+ONLY way a rental is priced, there is no per-day rate for it to be measured against.
 
-`basePrice` for a rental is the ACF `prodotto_prezzo_a_partire_da` (`"1,11€ al giorno"` →
-`1.11`), which is the rate the old site advertised. Results: 58 products with packages,
-3–7 packages each, 278 in total, none over the 15 cap.
+`marketingRate` for a rental is the ACF `prodotto_prezzo_a_partire_da` (`"1,11€ al giorno"`
+→ `1.11`), which is the rate the old site advertised. It stays display copy: a rental's
+`basePrice` is NULL and its packages are its price. Results: 58 products with packages,
+3–7 packages each, 278 in total, none over the 15 cap — and, checked against the extract,
+all 58 rentals have at least one, which `products_rental_packages_check` now requires. A
+future extract that produced a package-less rental would fail loudly at
+`check(RentalPackagesSchema, …)` in the loader rather than reaching the database.
 
 ### Duration vs. a real product option
 

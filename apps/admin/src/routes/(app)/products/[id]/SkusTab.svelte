@@ -17,6 +17,7 @@
 
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
+  import NumberStepper from '~/lib/components/number-stepper.svelte';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import { cn } from '$lib/utils.js';
@@ -36,7 +37,7 @@
     id: string;
     sku: string;
     optionIds: string[];
-    resolvedPrice: string;
+    resolvedPrice: string | null;
     stock: number;
     priceOverride: string;
     isActive: boolean;
@@ -80,6 +81,7 @@
   $effect(() => dirty.set(SECTION, isDirty));
 
   const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+  const isRental = $derived(product.pricingMode === 'rental');
 
   let saving = $state(false);
   let generating = $state(false);
@@ -206,9 +208,19 @@
     <div class="flex flex-wrap items-start justify-between gap-3 rounded-lg border bg-muted/30 p-4">
       <div class="min-w-0 text-sm">
         {#if affectingGroups.length === 0}
-          <p class="text-muted-foreground">
-            No variant group joins the SKU matrix. Mark a single-select or yes/no group as “affects
-            SKU” on the Variants tab first.
+          <!--
+            Not an error state. A product with no variant axes is still ONE
+            stock-keeping unit, and this is where its stock lives — telling the
+            operator to go invent a variant group just to get a stock field was
+            the old advice and it was wrong.
+          -->
+          <p>
+            No variant axes, so this product is <strong>one</strong> SKU — the row below is where its
+            stock lives.
+          </p>
+          <p class="mt-1 text-xs text-muted-foreground">
+            Add a single-select or yes/no group marked “affects SKU” on the Variants tab to split it
+            into several, each counted separately.
           </p>
         {:else}
           <p>
@@ -231,13 +243,15 @@
         {/if}
       </div>
 
-      <Button
-        variant="secondary"
-        onclick={generate}
-        disabled={generating || affectingGroups.length === 0 || !canUpdate}
-      >
+      <!--
+        Never disabled for want of variant groups: with none, generating is how
+        the single base SKU comes into being. It is idempotent — existing
+        combinations are kept — so pressing it on an up-to-date product is a
+        no-op rather than a risk.
+      -->
+      <Button variant="secondary" onclick={generate} disabled={generating || !canUpdate}>
         <WandSparklesIcon />
-        {generating ? 'Generating…' : 'Generate matrix'}
+        {generating ? 'Generating…' : affectingGroups.length === 0 ? 'Generate SKU' : 'Generate matrix'}
       </Button>
     </div>
 
@@ -249,8 +263,10 @@
             <Table.Head>SKU</Table.Head>
             <Table.Head>Combination</Table.Head>
             <Table.Head class="w-24">Stock</Table.Head>
-            <Table.Head class="w-32">Override</Table.Head>
-            <Table.Head class="w-28 text-right">Resolved</Table.Head>
+            {#if !isRental}
+              <Table.Head class="w-32">Override</Table.Head>
+              <Table.Head class="w-28 text-right">Resolved</Table.Head>
+            {/if}
             <Table.Head class="w-20">Active</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -265,27 +281,35 @@
                 {row.optionIds.map((id) => optionLabel.get(id) ?? '?').join(' · ')}
               </Table.Cell>
               <Table.Cell>
-                <Input
-                  type="number"
-                  min="0"
+                <NumberStepper
                   bind:value={row.stock}
+                  min={0}
                   disabled={!canUpdate}
-                  aria-label="Stock for {row.sku}"
-                  class="h-7 w-20 text-right text-xs tabular-nums"
+                  label="Stock for {row.sku}"
                 />
               </Table.Cell>
-              <Table.Cell>
-                <Input
-                  bind:value={row.priceOverride}
-                  placeholder="—"
-                  disabled={!canUpdate}
-                  aria-label="Price override for {row.sku}"
-                  class="h-7 w-28 text-right text-xs tabular-nums"
-                />
-              </Table.Cell>
-              <Table.Cell class="text-right text-xs tabular-nums">
-                {formatMoney(row.resolvedPrice, product.currency)}
-              </Table.Cell>
+              <!--
+                A rental has no per-combination price to set or to show: the
+                package the customer picks is the price, and the variant
+                modifiers are added flat on top of it. A SKU here identifies the
+                combination for the warehouse and nothing more.
+              -->
+              {#if !isRental}
+                <Table.Cell>
+                  <Input
+                    bind:value={row.priceOverride}
+                    placeholder="—"
+                    disabled={!canUpdate}
+                    aria-label="Price override for {row.sku}"
+                    class="h-7 w-28 text-right text-xs tabular-nums"
+                  />
+                </Table.Cell>
+                <Table.Cell class="text-right text-xs tabular-nums">
+                  {row.resolvedPrice === null
+                    ? '—'
+                    : formatMoney(row.resolvedPrice, product.currency)}
+                </Table.Cell>
+              {/if}
               <Table.Cell>
                 <Switch
                   checked={row.isActive}
@@ -297,8 +321,8 @@
             </Table.Row>
           {:else}
             <Table.Row>
-              <Table.Cell colspan={7} class="py-8 text-center text-muted-foreground">
-                No SKUs yet — generate the matrix.
+              <Table.Cell colspan={isRental ? 5 : 7} class="py-8 text-center text-muted-foreground">
+                No SKU yet — generate it to get a stock row.
               </Table.Cell>
             </Table.Row>
           {/each}
@@ -306,9 +330,12 @@
       </Table.Root>
     </div>
 
-    <p class="text-xs text-muted-foreground">
-      The resolved price updates after saving — it is computed on the server from the base price,
-      the variant modifiers and any override.
-    </p>
+    <!-- A rental has no resolved price and no override column to explain. -->
+    {#if !isRental}
+      <p class="text-xs text-muted-foreground">
+        The resolved price updates after saving — it is computed on the server from the base price,
+        the variant modifiers and any override.
+      </p>
+    {/if}
   </div>
 </TabPanel>

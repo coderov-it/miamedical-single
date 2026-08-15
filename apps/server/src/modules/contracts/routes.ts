@@ -9,6 +9,7 @@ import {
   UuidSchema,
   VoidContractSchema,
 } from '@mia/validators';
+import type { RentalPeriod } from '@mia/pricing';
 import * as v from 'valibot';
 import { Hono } from 'hono';
 
@@ -120,7 +121,7 @@ export const contractAdminRoutes = new Hono<AppEnv>()
 
       const items = order.items.map((item) => {
         const config = item.configuration as Record<string, unknown> | null;
-        const rental = config?.rental as { startDate: string; endDate: string | null; units: number } | null;
+        const rental = config?.rental as RentalPeriod | null;
         return {
           productTitle: item.productTitle,
           sku: item.sku,
@@ -129,7 +130,8 @@ export const contractAdminRoutes = new Hono<AppEnv>()
           total: item.total,
           startDate: rental?.startDate ?? '',
           endDate: rental?.endDate ?? null,
-          rentalDays: rental?.units ?? 1,
+          duration: rental?.duration ?? 1,
+          durationUnit: rental?.unit ?? 'day',
         };
       });
 
@@ -173,15 +175,20 @@ export const contractPublicRoutes = new Hono<AppEnv>()
     });
   })
 
-  .post('/sign', validate('query', SigningTokenQuerySchema), validate('json', SignContractSchema), async (c) => {
-    const { token } = c.req.valid('query');
-    const { signatureDataUrl } = c.req.valid('json');
-    const contract = await service.sign(
-      c.get('db'),
-      token,
-      signatureDataUrl,
-      clientIp(c) ?? 'unknown',
-      c.req.header('user-agent') ?? 'unknown',
-    );
-    return c.json({ data: toContractDetail(contract) });
-  });
+  .post(
+    '/sign',
+    validate('query', SigningTokenQuerySchema),
+    validate('json', SignContractSchema),
+    async (c) => {
+      const { token } = c.req.valid('query');
+      const { signatureDataUrl } = c.req.valid('json');
+      const contract = await service.sign(
+        c.get('db'),
+        token,
+        signatureDataUrl,
+        clientIp(c) ?? 'unknown',
+        c.req.header('user-agent') ?? 'unknown',
+      );
+      return c.json({ data: toContractDetail(contract) });
+    },
+  );

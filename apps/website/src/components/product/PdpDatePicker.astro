@@ -1,36 +1,47 @@
 ---
 /**
- * The rental period control of the order panel, per the owner's reference
- * design: a summary card that opens a custom calendar popover with a
- * highlighted range, rather than two bare date fields.
+ * The rental start control of the order panel, per the owner's reference
+ * design: a summary card that opens a custom calendar popover, rather than a
+ * bare date field.
  *
- * PROGRESSIVE ENHANCEMENT, and this is the whole point of the shape below.
- * A calendar grid cannot exist without JavaScript, but the request form must.
- * So this renders BOTH:
+ * There is ONE date here, and that is the whole change. The customer picks a
+ * package, the package carries a duration, and the return date follows from the
+ * two — so a return field would be a second opinion about a figure the
+ * catalogue already settles. The card shows the derived return; it is never an
+ * input.
  *
- *   - `[data-date-native]` — two real `<input type="date">`, visible by
- *     default. Without JavaScript this is the entire control and it works.
+ * PROGRESSIVE ENHANCEMENT, and this is the point of the shape below. A calendar
+ * grid cannot exist without JavaScript, but the request form must. So this
+ * renders BOTH:
+ *
+ *   - `[data-date-native]` — a real `<input type="date">`, visible by default.
+ *     Without JavaScript this is the entire control and it works.
  *   - `[data-cal-trigger]` + `[data-cal-pop]` — the reference design's summary
  *     card and calendar, `hidden` by default.
  *
  * The page script swaps them on load: it unhides the card, hides the native
- * row, and drives the SAME two inputs. A `display:none` input still submits
- * (only `disabled` suppresses it), so `dal`/`al` reach /carrello/ either way,
- * and every existing listener — the estimate, the package auto-fill, the
- * package unpick on a hand-edited return date — keeps working untouched
- * because the calendar writes through the inputs and dispatches `change`.
+ * row, and drives the SAME input. A `display:none` input still submits (only
+ * `disabled` suppresses it), so `from` reaches /carrello/ either way, and every
+ * listener keeps working untouched because the calendar writes through the
+ * input and dispatches `change`.
  *
- * The return date stays optional in both modes: medical rentals often end
- * "when recovery ends", and the phone call settles it.
+ * The start-TIME row sits outside both, because it is needed in both: an hour
+ * package cannot be ordered without one, and the calendar has no cell for it.
  */
 import { FIELD } from '~/lib/request-config';
 
 interface Props {
-  /** Today in Europe/Rome, ISO `YYYY-MM-DD`. The floor for both fields. */
+  /** Today in Europe/Rome, ISO `YYYY-MM-DD`. The floor for the start date. */
   today: string;
+  /**
+   * The product offers at least one package quoted in hours, so a time of day
+   * has to be askable. The row stays hidden until such a package is picked —
+   * a day rental starts on a date and nothing finer.
+   */
+  hasHourPackage: boolean;
 }
 
-const { today } = Astro.props;
+const { today, hasHourPackage } = Astro.props;
 
 const dateField =
   'min-h-11 w-full rounded-lg border border-hair-strong bg-white px-2.5 py-1.5 text-[13.5px] font-semibold tabular-nums';
@@ -56,7 +67,7 @@ const navButton =
   <div class="bg-tint flex flex-col gap-2.5 rounded-[11px] px-3.5 py-3" data-date-native>
     <div class="border-hair-strong flex items-baseline justify-between gap-2 border-b pb-2">
       <span class="text-ink-2 text-[12.5px]">Periodo di noleggio</span>
-      <strong class="text-[12.5px] text-accent" data-est-duration>da definire</strong>
+      <strong class="text-[12.5px] text-accent" data-est-duration>scegli un pacchetto</strong>
     </div>
     <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2.5">
       <label class="flex min-w-0 flex-col gap-1">
@@ -64,12 +75,36 @@ const navButton =
         <input class={dateField} type="date" name={FIELD.startDate} min={today} data-est-start />
       </label>
       <span class="pb-2.5 text-[15px] text-accent" aria-hidden="true">→</span>
-      <label class="flex min-w-0 flex-col gap-1">
+      <span class="flex min-w-0 flex-col gap-1">
         <span class={kicker}>Riconsegna</span>
-        <input class={dateField} type="date" name={FIELD.endDate} min={today} data-est-end />
-      </label>
+        {
+          /* Calculated, never typed: the package's duration decides it. Rendered
+            as text rather than a readonly input so nobody tries to focus it. */
+        }
+        <strong
+          class="border-hair-strong flex min-h-11 items-center rounded-lg border border-dashed px-2.5 text-[13.5px] tabular-nums"
+          data-est-end-display
+        >
+          —
+        </strong>
+      </span>
     </div>
   </div>
+
+  {
+    /* OUTSIDE `[data-date-native]` on purpose. The script hides that block once
+      the calendar mounts, and the time is needed in BOTH modes — an hour package
+      cannot be ordered without one, so nesting it there would make the enhanced
+      path unable to express what the plain one can. */
+  }
+  {
+    hasHourPackage && (
+      <label class="bg-tint flex flex-col gap-1 rounded-[11px] px-3.5 py-3" data-time-row hidden>
+        <span class={kicker}>Ora di inizio</span>
+        <input class={dateField} type="time" name={FIELD.startTime} step="900" data-est-time />
+      </label>
+    )
+  }
 
   {/* ---- enhanced control: summary card + calendar popover ---- */}
   <button
@@ -83,7 +118,7 @@ const navButton =
       class="border-hair-strong col-span-3 flex items-baseline justify-between gap-2 border-b pb-2"
     >
       <span class="text-ink-2 text-[12.5px]">
-        Periodo · <span data-cal-duration>da definire</span>
+        Periodo · <span data-cal-duration>scegli un pacchetto</span>
       </span>
       <span class="text-[12px] font-semibold text-accent">Modifica</span>
     </span>
@@ -94,7 +129,7 @@ const navButton =
     <span class="text-[15px] text-accent" aria-hidden="true">→</span>
     <span class="flex min-w-0 flex-col gap-0.5">
       <span class={kicker}>Riconsegna</span>
-      <strong class="text-[13.5px]" data-cal-end>Da definire</strong>
+      <strong class="text-[13.5px]" data-cal-end>—</strong>
     </span>
   </button>
 

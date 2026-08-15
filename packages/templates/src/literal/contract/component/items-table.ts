@@ -1,21 +1,30 @@
 import { escapeHtml } from './escape.ts';
 import type { ContractRentalItem } from './types.ts';
 
-export function itemsTableIt(items: ContractRentalItem[], subtotal: string, shippingTotal: string, total: string): string {
-  const rows = items.map((item) => `<tr>
+export function itemsTableIt(
+  items: ContractRentalItem[],
+  subtotal: string,
+  shippingTotal: string,
+  total: string,
+): string {
+  const rows = items
+    .map(
+      (item) => `<tr>
   <td>${escapeHtml(item.productTitle)}</td>
   <td>${escapeHtml(item.sku)}</td>
   <td class="num">${item.quantity}</td>
   <td>${escapeHtml(item.startDate)}${item.endDate ? ` – ${escapeHtml(item.endDate)}` : ''}</td>
-  <td class="num">${item.rentalDays}g</td>
+  <td class="num">${item.duration}${item.durationUnit === 'hour' ? 'h' : 'g'}</td>
   <td class="num">€${escapeHtml(item.unitPrice)}</td>
   <td class="num">€${escapeHtml(item.total)}</td>
-</tr>`).join('\n');
+</tr>`,
+    )
+    .join('\n');
 
   return `<h2>Articoli Noleggiati</h2>
 <table class="items">
   <thead><tr>
-    <th>Prodotto</th><th>SKU</th><th>Qtà</th><th>Periodo</th><th>Giorni</th><th>Prezzo/u</th><th>Totale</th>
+    <th>Prodotto</th><th>SKU</th><th>Qtà</th><th>Periodo</th><th>Durata</th><th>Prezzo/u</th><th>Totale</th>
   </tr></thead>
   <tbody>${rows}</tbody>
   <tfoot>
@@ -26,21 +35,30 @@ export function itemsTableIt(items: ContractRentalItem[], subtotal: string, ship
 </table>`;
 }
 
-export function itemsTableEn(items: ContractRentalItem[], subtotal: string, shippingTotal: string, total: string): string {
-  const rows = items.map((item) => `<tr>
+export function itemsTableEn(
+  items: ContractRentalItem[],
+  subtotal: string,
+  shippingTotal: string,
+  total: string,
+): string {
+  const rows = items
+    .map(
+      (item) => `<tr>
   <td>${escapeHtml(item.productTitle)}</td>
   <td>${escapeHtml(item.sku)}</td>
   <td class="num">${item.quantity}</td>
   <td>${escapeHtml(item.startDate)}${item.endDate ? ` – ${escapeHtml(item.endDate)}` : ''}</td>
-  <td class="num">${item.rentalDays}d</td>
+  <td class="num">${item.duration}${item.durationUnit === 'hour' ? 'h' : 'd'}</td>
   <td class="num">€${escapeHtml(item.unitPrice)}</td>
   <td class="num">€${escapeHtml(item.total)}</td>
-</tr>`).join('\n');
+</tr>`,
+    )
+    .join('\n');
 
   return `<h2>Rented Items</h2>
 <table class="items">
   <thead><tr>
-    <th>Product</th><th>SKU</th><th>Qty</th><th>Period</th><th>Days</th><th>Unit Price</th><th>Total</th>
+    <th>Product</th><th>SKU</th><th>Qty</th><th>Period</th><th>Duration</th><th>Unit Price</th><th>Total</th>
   </tr></thead>
   <tbody>${rows}</tbody>
   <tfoot>

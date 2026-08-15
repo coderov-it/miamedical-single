@@ -18,7 +18,13 @@ export interface ContractRentalItem {
   total: string;
   startDate: string;
   endDate: string | null;
-  rentalDays: number;
+  /**
+   * The rented period, in `durationUnit`. It comes from the package the customer
+   * chose, so it is a figure the contract can be held to rather than a span
+   * recomputed from the two dates above.
+   */
+  duration: number;
+  durationUnit: 'hour' | 'day';
 }
 
 export interface ContractDamageItem {

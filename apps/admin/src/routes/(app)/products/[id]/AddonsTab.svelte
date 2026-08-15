@@ -5,6 +5,7 @@
   import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
+  import { Checkbox } from '$lib/components/ui/checkbox/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
@@ -85,8 +86,11 @@
       pricingMode: allowedModes[0] ?? 'fixed',
       price: '0.00',
       rentalUnit: product.rentalUnit ?? 'day',
+      /* Always 0 — an add-on the customer cannot decline is part of the
+         product's price, which is why `is_required` was dropped. */
       minQuantity: 0,
-      maxQuantity: '',
+      /* Single by default: multiple is something the back office opts into. */
+      maxQuantity: '1',
       icon: null,
     });
   }
@@ -218,28 +222,35 @@
               suffix={addon.pricingMode === 'rental' ? `€ / ${addon.rentalUnit}` : '€'}
             />
 
+            <!--
+              "Multiple selectable" IS the max quantity: `1` means the storefront
+              offers a bare tick, anything higher reveals a stepper. One control
+              rather than a flag beside a number that could disagree with it.
+            -->
             <div>
-              <Label class="mb-1.5" for="addon-min-{addon.uid}">Min qty</Label>
-              <Input
-                id="addon-min-{addon.uid}"
-                type="number"
-                min="0"
-                bind:value={addon.minQuantity}
-                class="w-20"
-              />
+              <Label class="mb-1.5" for="addon-multi-{addon.uid}">Selectable</Label>
+              <div class="flex h-9 items-center gap-2">
+                <Checkbox
+                  id="addon-multi-{addon.uid}"
+                  checked={addon.maxQuantity !== '1'}
+                  onCheckedChange={(checked) => (addon.maxQuantity = checked ? '' : '1')}
+                />
+                <Label for="addon-multi-{addon.uid}" class="font-normal">Multiple</Label>
+              </div>
             </div>
-            <div>
-              <Label class="mb-1.5" for="addon-max-{addon.uid}">Max qty</Label>
-              <Input
-                id="addon-max-{addon.uid}"
-                type="number"
-                min="1"
-                bind:value={addon.maxQuantity}
-                placeholder="∞"
-                class="w-20"
-              />
-            </div>
-
+            {#if addon.maxQuantity !== '1'}
+              <div>
+                <Label class="mb-1.5" for="addon-max-{addon.uid}">Max qty</Label>
+                <Input
+                  id="addon-max-{addon.uid}"
+                  type="number"
+                  min="2"
+                  bind:value={addon.maxQuantity}
+                  placeholder="∞"
+                  class="w-20"
+                />
+              </div>
+            {/if}
           </div>
 
           <IconPicker label="Icon" bind:value={addon.icon} profile="icon_1024" compact />

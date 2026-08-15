@@ -1,13 +1,22 @@
 ---
 /**
  * Section 02 — optional extras as one-line checkbox cards: box · icon · name
- * with a one-line description · price. A required add-on renders checked and
- * disabled; the summary page re-adds required add-ons from the product itself
- * rather than trusting the URL, so the unsubmitted disabled control is fine.
+ * with a one-line description · price, and a quantity stepper on the ones the
+ * back office allowed more than one of.
+ *
+ * `maxQuantity` is what says whether an extra is multiple-selectable: `1` means
+ * a bare tick, anything higher reveals the stepper. The stepper is hidden until
+ * the box is ticked — a quantity for something nobody asked for is noise.
+ *
+ * A rental-mode extra is priced per its OWN unit and multiplied by the chosen
+ * package's duration, so a "3,00 € al giorno" extra at quantity 2 on a 9-day
+ * package is 54,00 €. Nothing here computes that; the label states the rate and
+ * the estimate does the arithmetic.
  */
-import { formatPricing, mediaUrl } from '~/lib/api';
+import { MAX_ADDON_QUANTITY } from '@mia/pricing';
+import { formatRate, mediaUrl } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
-import { FIELD } from '~/lib/request-config';
+import { ADDON_QUANTITY_PREFIX, FIELD } from '~/lib/request-config';
 import PdpSectionHead from './PdpSectionHead.astro';
 
 interface Props {
@@ -16,8 +25,20 @@ interface Props {
 
 const { addons } = Astro.props;
 
+/** More than one allowed — see `maxQuantity` above. `null` means no cap set. */
+const allowsMultiple = (addon: Props['addons'][number]) =>
+  addon.maxQuantity === null || addon.maxQuantity > 1;
+
+/* A rental-mode add-on is quoted per its own unit and multiplied by the chosen
+   package's duration at pricing time, so the label has to carry the unit. */
 const priceLabel = (addon: Props['addons'][number]) =>
-  addon.pricing.price === '0.00' ? 'Incluso' : formatPricing(addon.pricing);
+  addon.pricing.price === '0.00'
+    ? 'Incluso'
+    : formatRate(
+        addon.pricing.price,
+        addon.pricing.currency,
+        addon.pricing.mode === 'rental' ? addon.pricing.rentalUnit : null,
+      );
 
 const card =
   'flex h-full cursor-pointer items-center gap-3.5 rounded-field border-[1.5px] border-hair bg-white px-4 py-3.5 shadow-pdp-card ' +
@@ -44,7 +65,9 @@ const card =
             data-est-kind="addon"
             data-est-price={addon.pricing.price}
             data-est-mode={addon.pricing.mode}
+            data-est-unit={addon.pricing.rentalUnit ?? ''}
             data-est-label={addon.name}
+            data-addon-id={addon.id}
           />
           <label class={card} for={`addon-${addon.id}`}>
             <span
@@ -83,6 +106,47 @@ const card =
               {priceLabel(addon)}
             </span>
           </label>
+
+          {allowsMultiple(addon) && (
+            <span
+              class="mt-1.5 flex items-center justify-end gap-2.5 text-[13px]"
+              data-qty-row
+              data-addon-qty-row={addon.id}
+              hidden
+            >
+              <span class="text-ink-2">Quantità</span>
+              <span class="border-hair-strong flex items-center overflow-clip rounded-[10px] border">
+                <button
+                  type="button"
+                  class="hover:bg-tint grid size-9 cursor-pointer place-items-center border-0 bg-white text-lg font-bold"
+                  data-qty-dec
+                  aria-label={`Riduci quantità di ${addon.name}`}
+                >
+                  −
+                </button>
+                <input
+                  class="border-hair-strong h-9 w-10 appearance-none border-x bg-white text-center text-[14px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  type="number"
+                  name={`${ADDON_QUANTITY_PREFIX}${addon.id}`}
+                  value="1"
+                  min="1"
+                  max={addon.maxQuantity ?? MAX_ADDON_QUANTITY}
+                  inputmode="numeric"
+                  aria-label={`Quantità di ${addon.name}`}
+                  data-qty-input
+                  data-est-addon-qty={addon.id}
+                />
+                <button
+                  type="button"
+                  class="hover:bg-tint grid size-9 cursor-pointer place-items-center border-0 bg-white text-lg font-bold"
+                  data-qty-inc
+                  aria-label={`Aumenta quantità di ${addon.name}`}
+                >
+                  +
+                </button>
+              </span>
+            </span>
+          )}
         </span>
       ))
     }

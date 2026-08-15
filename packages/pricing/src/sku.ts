@@ -26,13 +26,18 @@ export interface SkuCandidate {
  * optional group nobody filled in — pins nothing and returns `null`, which
  * prices the line from the base rate plus modifiers instead of guessing at a
  * SKU the customer never chose.
+ *
+ * An EMPTY selection is not the same thing. A product with no sku-affecting
+ * groups has exactly one SKU, carrying no options, and choosing nothing is
+ * precisely how you pick it — the equal-length test below matches it without a
+ * special case. A product that does have such groups has no zero-option row,
+ * so an empty selection still pins nothing there.
  */
 export function matchSku<T extends SkuCandidate>(
   skus: readonly T[],
   selected: Record<string, readonly string[]>,
 ): T | null {
   const groupCount = Object.keys(selected).length;
-  if (groupCount === 0) return null;
 
   const matches = skus.filter((sku) => {
     const entries = Object.entries(sku.options);

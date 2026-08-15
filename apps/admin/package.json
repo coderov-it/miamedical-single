@@ -17,6 +17,7 @@
   "dependencies": {
     "@mia/i18n": "workspace:*",
     "@mia/permissions": "workspace:*",
+    "@mia/pricing": "workspace:*",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",
     "@tiptap/core": "^3.29.2",

@@ -480,9 +480,36 @@ if (letti) {
       categoryId: letti.id,
       brand: 'MiaMedical',
       pricingMode: 'rental',
-      basePrice: '35.00',
+      /* No base price: a rental IS its packages. `marketingRate` is the headline
+         under the title, and the packages below are what anything costs — note
+         that 3 × 35,00 is not 89,00, which is the whole point of typing both. */
+      basePrice: null,
+      marketingRate: '35.00',
       currency: 'EUR',
       rentalUnit: 'day',
+      rentalPackages: [
+        {
+          code: '3-day',
+          name: { it: '3 giorni', en: '3 days' },
+          price: '89.00',
+          duration: 3,
+          unit: 'day',
+        },
+        {
+          code: '7-day',
+          name: { it: '7 giorni', en: '7 days' },
+          price: '180.00',
+          duration: 7,
+          unit: 'day',
+        },
+        {
+          code: '30-day',
+          name: { it: '30 giorni', en: '30 days' },
+          price: '600.00',
+          duration: 30,
+          unit: 'day',
+        },
+      ],
       isFeatured: true,
       /** Three claims, ≤20 characters each — what the chip rule looks like applied. */
       chips: [
@@ -617,7 +644,9 @@ if (letti) {
         price: '9.00',
         rentalUnit: 'day',
         minQuantity: 0,
-        maxQuantity: 1,
+        /* Above 1, so the storefront offers a stepper rather than a bare tick —
+           the "multiple selectable" case. The delivery add-on below is the other. */
+        maxQuantity: 3,
         position: 0,
       },
       {
@@ -904,6 +933,7 @@ if (!env.R2_BUCKET) {
         sku: productSkus.sku,
         productId: productSkus.productId,
         basePrice: products.basePrice,
+        rentalPackages: products.rentalPackages,
       })
       .from(productSkus)
       .innerJoin(products, eq(productSkus.productId, products.id))
@@ -945,10 +975,20 @@ if (!env.R2_BUCKET) {
       const cents = (value: string) => Math.round(Number(value) * 100);
       const money = (value: number) => (value / 100).toFixed(2);
 
+      /* What one of this line costs. A fixed product has its own rate; a rental
+         has no rate at all, so its cheapest package stands in — the same figure
+         the storefront would quote for the shortest stay. */
+      const linePrice = (row: (typeof skuRows)[number]): string =>
+        row.basePrice ??
+        row.rentalPackages.reduce(
+          (cheapest, pkg) => (cents(pkg.price) < cents(cheapest) ? pkg.price : cheapest),
+          row.rentalPackages[0]?.price ?? '0.00',
+        );
+
       for (const [index, plan] of PLAN.entries()) {
         const line = skuRows[index % skuRows.length]!;
         const quantity = (index % 3) + 1;
-        const unitCents = cents(line.basePrice);
+        const unitCents = cents(linePrice(line));
         const subtotalCents = unitCents * quantity;
         const shippingCents = plan.status === 'cancelled' ? 0 : 990;
         const totalCents = subtotalCents + shippingCents;
@@ -1032,7 +1072,7 @@ if (!env.R2_BUCKET) {
           cartId: cart.id,
           skuId: line.id,
           quantity: index + 1,
-          unitPrice: line.basePrice,
+          unitPrice: linePrice(line),
         });
       }
 

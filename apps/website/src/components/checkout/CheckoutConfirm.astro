@@ -55,11 +55,11 @@ const GATE =
         }),
         cta: t('completeConfiguration'),
       }
-    : blocked === 'openPeriod'
+    : blocked === 'noPackage'
       ? {
-          title: t('returnDateMissing'),
-          detail: t('returnDateMissingDetail'),
-          cta: t('pickReturnDate'),
+          title: t('packageMissing'),
+          detail: t('packageMissingDetail'),
+          cta: t('pickPackage'),
         }
       : null;
 

@@ -11,19 +11,24 @@
  * catalog still reads as finished. The two render alike: written chips are one
  * phrase, derived ones a label with the value in bold.
  */
-import { formatMoney, mediaUrl } from '~/lib/api';
+import { cardPrice, mediaUrl } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
 
 interface Props {
   product: ProductDetail;
   /** Deduped media list, hero first. Empty when the product has no images. */
   images: { path: string; alt: string | null }[];
-  /** "al giorno" / "all'ora", already localised. Empty on fixed pricing. */
-  unitLabel: string;
 }
 
-const { product, images, unitLabel } = Astro.props;
+const { product, images } = Astro.props;
 
+/**
+ * The line under the title. On a rental this is the MARKETING rate — "da 35,00 €
+ * al giorno" — which is copy the back office typed and not what anything will
+ * cost: the packages in the buy box are the price. It sits here precisely
+ * because nothing has been chosen yet and there is no total to show.
+ */
+const price = cardPrice(product.pricing);
 const isRental = product.pricing.mode === 'rental';
 const main = images[0];
 const chipClass =
@@ -95,14 +100,17 @@ const hasChips = product.chips.length > 0 || specChips.length > 0;
       {product.title}
     </h1>
 
-    <p class="m-0 flex flex-wrap items-baseline gap-2">
-      <span class="text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
-        {formatMoney(product.pricing.price, product.pricing.currency)}
-      </span>
-      <span class="text-ink-2 text-[14px]">
-        {isRental && unitLabel && `${unitLabel} · `}IVA inclusa
-      </span>
-    </p>
+    {
+      price && (
+        <p class="m-0 flex flex-wrap items-baseline gap-2">
+          {price.prefix && <span class="text-ink-2 text-[14px]">{price.prefix}</span>}
+          <span class="text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
+            {price.text}
+          </span>
+          <span class="text-ink-2 text-[14px]">IVA inclusa</span>
+        </p>
+      )
+    }
 
     {
       hasChips && (

@@ -221,16 +221,20 @@ export async function generateSkus(db: Database, productId: string): Promise<Gen
             })
             .returning({ id: productSkus.id });
           if (!inserted) throw new Error('SKU insert returned no row.');
-          const optionGroup = new Map(
-            groups.flatMap((group) => group.options.map((option) => [option.id, group.id])),
-          );
-          await tx.insert(productSkuOptions).values(
-            combo.optionIds.map((optionId) => ({
-              skuId: inserted.id,
-              optionId,
-              groupId: optionGroup.get(optionId)!,
-            })),
-          );
+          // The base combination has no options at all, and drizzle refuses an
+          // empty VALUES list — there is simply nothing to link.
+          if (combo.optionIds.length > 0) {
+            const optionGroup = new Map(
+              groups.flatMap((group) => group.options.map((option) => [option.id, group.id])),
+            );
+            await tx.insert(productSkuOptions).values(
+              combo.optionIds.map((optionId) => ({
+                skuId: inserted.id,
+                optionId,
+                groupId: optionGroup.get(optionId)!,
+              })),
+            );
+          }
           created++;
           break;
         } catch (error) {

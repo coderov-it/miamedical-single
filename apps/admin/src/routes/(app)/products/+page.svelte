@@ -264,11 +264,17 @@
 
               <Table.Cell>
                 {#if product.translationStatus.en === 'complete'}
-                  <Badge variant="outline" class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">
+                  <Badge
+                    variant="outline"
+                    class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                  >
                     complete
                   </Badge>
                 {:else if product.translationStatus.en === 'partial'}
-                  <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
+                  <Badge
+                    variant="outline"
+                    class="border-amber-500/40 text-amber-600 dark:text-amber-400"
+                  >
                     partial
                   </Badge>
                 {:else}
@@ -280,10 +286,22 @@
                 {relativeTime(product.updatedAt)}
               </Table.Cell>
 
+              <!--
+                A rental has no price of its own — its packages are the price —
+                so the column shows the marketing rate it advertises, and a dash
+                when it advertises none. The packages themselves live on the
+                pricing tab; a list column cannot say fifteen figures.
+              -->
               <Table.Cell class="text-right tabular-nums">
-                {formatMoney(product.basePrice, product.currency)}
                 {#if product.pricingMode === 'rental'}
-                  <span class="text-muted-foreground">/{product.rentalUnit}</span>
+                  {#if product.marketingRate}
+                    {formatMoney(product.marketingRate, product.currency)}
+                    <span class="text-muted-foreground">/{product.rentalUnit}</span>
+                  {:else}
+                    <span class="text-muted-foreground">—</span>
+                  {/if}
+                {:else}
+                  {formatMoney(product.basePrice ?? '0.00', product.currency)}
                 {/if}
               </Table.Cell>
 

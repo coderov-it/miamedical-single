@@ -50,7 +50,9 @@ export const ManualContractItemSchema = v.strictObject({
   total: MoneySchema,
   startDate: DateOnlySchema,
   endDate: v.nullish(DateOnlySchema),
-  rentalDays: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3650)),
+  /** The package's own duration, read in `durationUnit`. */
+  duration: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3650)),
+  durationUnit: v.optional(v.picklist(['hour', 'day']), 'day'),
 });
 
 const FISCAL_MESSAGE = 'This customer type needs its fiscal identifier.';

@@ -384,23 +384,28 @@ async function main(): Promise<void> {
     }
 
     // --- base price
-    let basePrice: string | null;
+    let basePrice: string | null = null;
+    let marketingRate: string | null = null;
     let rentalUnit: 'hour' | 'day' | null = null;
 
     if (mode === 'rental') {
       rentalUnit = packages[0]?.unit ?? 'day';
-      basePrice = parseDailyRate(metaOf(postId, 'prodotto_prezzo_a_partire_da'));
-      if (!basePrice) {
-        basePrice = '0.00';
-        needsReview.push('basePrice');
+      /* A rental has no rate of its own — its packages above are its price. The
+         old site's "a partire da" figure is advertising, so it lands on
+         `marketingRate`, where nothing computes a total from it. An unparseable
+         one is simply left unset: the card falls back to the cheapest package,
+         which is a real figure rather than a placeholder 0,00. */
+      marketingRate = parseDailyRate(metaOf(postId, 'prodotto_prezzo_a_partire_da'));
+      if (!marketingRate) {
+        needsReview.push('marketingRate');
         const raw = metaOf(postId, 'prodotto_prezzo_a_partire_da');
         note(
           'price',
           postId,
           title,
           raw
-            ? `per-${rentalUnit} rate unparseable from "${raw}" — set 0.00, FILL IN`
-            : `no per-${rentalUnit} rate on the product — set 0.00, FILL IN`,
+            ? `per-${rentalUnit} headline unparseable from "${raw}" — left unset, card shows the cheapest package`
+            : `no per-${rentalUnit} headline on the product — left unset, card shows the cheapest package`,
         );
       }
     } else {
@@ -519,6 +524,7 @@ async function main(): Promise<void> {
       brand: null,
       pricingMode: mode,
       basePrice,
+      marketingRate,
       currency: DEFAULT_CURRENCY,
       rentalUnit,
       isFeatured: false,

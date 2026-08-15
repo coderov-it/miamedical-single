@@ -18,13 +18,23 @@
  */
 
 import type { PlaceOrderItemInput } from '@mia/validators';
-import { type PriceModifier, addMoney, matchSku, mulMoney, priceRequest } from '@mia/pricing';
+import {
+  MAX_ADDON_QUANTITY,
+  type PriceModifier,
+  type RentalPeriod,
+  addMoney,
+  matchSku,
+  mulMoney,
+  priceRequest,
+  resolvePeriod,
+} from '@mia/pricing';
 
 import { httpError } from '../../shared/http/errors.ts';
 import type {
   PublicAddonDto,
   PublicProductDetailDto,
   PublicQuestionDto,
+  PublicRentalPackageDto,
   PublicVariantGroupDto,
 } from '../products/dto.ts';
 import { booleanLabel } from '../products/mapper.ts';
@@ -32,7 +42,7 @@ import { booleanLabel } from '../products/mapper.ts';
 /** The wire values of a `boolean` intake answer, as the buy box writes them. */
 const BOOLEAN_VALUES = new Set(['yes', 'no']);
 
-/** How far out of today a rental period may sit. Loose on purpose — see `assertPeriod`. */
+/** How far out of today a rental may start. Loose on purpose — see `resolveRental`. */
 const MAX_PAST_DAYS = 1;
 const MAX_FUTURE_DAYS = 730;
 const DAY_MS = 86_400_000;
@@ -41,7 +51,7 @@ export interface ResolvedSelection {
   key: string;
   label: string;
   value: string;
-  /** The choice's price effect, per rental unit on a rental product. */
+  /** The choice's price effect: a flat amount, in either mode. */
   amount: string;
 }
 
@@ -56,6 +66,7 @@ export interface ResolvedAddon {
   name: string;
   mode: 'fixed' | 'rental';
   unitPrice: string;
+  quantity: number;
   /** This add-on's contribution to the line, before the line quantity. */
   total: string;
 }
@@ -73,8 +84,14 @@ export interface OrderItemConfiguration {
   productSlug: string;
   pricingMode: 'fixed' | 'rental';
   rentalUnit: 'hour' | 'day' | null;
-  /** `units` is what the line was priced on — days for a `day` product. */
-  rental: { startDate: string; endDate: string | null; units: number } | null;
+  /**
+   * The period as the package placed it. The end is derived, never sent — see
+   * `resolvePeriod`. `startTime`/`endTime` are set only on an hour package.
+   *
+   * `startDate` and `endDate` keep their names because the admin rental calendar
+   * reads them straight out of this jsonb (`repo.ts:findCalendarEntries`).
+   */
+  rental: RentalPeriod | null;
   rentalPackage: {
     code: string;
     name: string;
@@ -83,7 +100,7 @@ export interface OrderItemConfiguration {
     duration: number;
     unit: 'hour' | 'day';
   } | null;
-  /** The configured rate, per rental unit. Mirrors `order_items.unit_price`. */
+  /** The package plus its flat modifiers. Mirrors `order_items.unit_price`. */
   unitRate: string;
   selections: ResolvedSelection[];
   answers: ResolvedAnswer[];
@@ -109,29 +126,30 @@ function reject(message: string, field: string): never {
 }
 
 /**
- * A rental period has to establish a DURATION, or the line has no total — only a
- * per-unit rate. A package supplies one on its own; otherwise both dates are
- * required. This is the rule that keeps `orders.total` a figure someone can be
- * held to, rather than a rate wearing a total's clothes.
+ * The period this line runs for, or `null` on a product that is sold rather than
+ * rented.
+ *
+ * A rental is its package, so the package is what has to be here: it carries the
+ * duration, and the duration is what turns a start date into a return date and a
+ * price into a total. Everything this refuses is a request that could not have
+ * come from the buy box.
  */
-function assertPeriod(
+function resolveRental(
   input: PlaceOrderItemInput,
   product: PublicProductDetailDto,
-  hasPackage: boolean,
+  pkg: PublicRentalPackageDto | null,
   field: string,
-): void {
-  if (product.pricing.mode !== 'rental') return;
+): RentalPeriod | null {
+  if (product.pricing.mode !== 'rental') return null;
 
+  if (!pkg) {
+    reject('A rental needs a package — that is what sets its price.', `${field}.rentalPackageCode`);
+  }
   if (!input.startDate) {
     reject('A rental needs a start date.', `${field}.startDate`);
   }
-
-  if (!hasPackage && !input.endDate) {
-    reject('A rental needs a return date.', `${field}.endDate`);
-  }
-
-  if (input.endDate && input.endDate < input.startDate) {
-    reject('The return date cannot come before the start date.', `${field}.endDate`);
+  if (pkg.unit === 'hour' && !input.startTime) {
+    reject('A rental quoted in hours needs a start time.', `${field}.startTime`);
   }
 
   /* A loose sanity window, not a booking calendar: availability is settled on the
@@ -145,6 +163,12 @@ function assertPeriod(
   if (start > today + MAX_FUTURE_DAYS * DAY_MS) {
     reject('That start date is too far ahead to take online.', `${field}.startDate`);
   }
+
+  const period = resolvePeriod(input.startDate, input.startTime ?? null, pkg);
+  if (!period) {
+    reject('That start does not make a rental period.', `${field}.startDate`);
+  }
+  return period;
 }
 
 /**
@@ -275,26 +299,47 @@ function resolveQuestion(
   return [{ key: question.key, label: question.prompt, value: first }];
 }
 
+/** One requested add-on, matched to the catalogue and held to its own quantity bounds. */
+interface RequestedAddon {
+  addon: PublicAddonDto;
+  quantity: number;
+}
+
 /**
- * The add-ons on this line: everything the customer asked for, plus every add-on
- * the product marks required — those are part of the rental whether or not the
- * form remembered to send them.
+ * The add-ons on this line: what the customer asked for, and nothing else.
+ *
+ * Add-ons used to be able to mark themselves required and fold themselves into
+ * every line unasked; an extra the customer cannot decline is part of the
+ * product's price, not an extra.
+ *
+ * A quantity above the add-on's own ceiling is REJECTED rather than clamped —
+ * silently charging for two of something the customer asked for three of is the
+ * kind of quiet disagreement this whole module exists to prevent.
  */
 function resolveAddons(
   product: PublicProductDetailDto,
-  requested: readonly string[],
+  requested: readonly { id: string; quantity: number }[],
   field: string,
-): PublicAddonDto[] {
-  for (const id of requested) {
-    if (!product.addons.some((addon) => addon.id === id)) {
-      reject('That extra is not offered with this product.', `${field}.addonIds`);
-    }
-  }
+): RequestedAddon[] {
+  const seen = new Set<string>();
 
-  /* What was asked for, and nothing else. Add-ons used to be able to mark
-     themselves required and fold themselves into every line unasked; an extra the
-     customer cannot decline is part of the product's price, not an extra. */
-  return product.addons.filter((addon) => requested.includes(addon.id));
+  return requested.map((entry) => {
+    const addon = product.addons.find((candidate) => candidate.id === entry.id);
+    if (!addon) {
+      reject('That extra is not offered with this product.', `${field}.addons`);
+    }
+    if (seen.has(entry.id)) {
+      reject('That extra was asked for twice.', `${field}.addons`);
+    }
+    seen.add(entry.id);
+
+    const ceiling = addon.maxQuantity ?? MAX_ADDON_QUANTITY;
+    if (entry.quantity > ceiling) {
+      reject(`"${addon.name}" can be taken at most ${ceiling} times.`, `${field}.addons`);
+    }
+
+    return { addon, quantity: entry.quantity };
+  });
 }
 
 /**
@@ -350,7 +395,7 @@ export function resolveLine(
     );
   }
 
-  const addons = resolveAddons(product, input.addonIds, field);
+  const addons = resolveAddons(product, input.addons, field);
 
   const rentalPackage =
     input.rentalPackageCode === undefined || input.rentalPackageCode === ''
@@ -362,39 +407,55 @@ export function resolveLine(
     reject('This product is not rented, so it has no packages.', `${field}.rentalPackageCode`);
   }
 
-  assertPeriod(input, product, rentalPackage !== null, field);
+  const rental = resolveRental(input, product, rentalPackage, field);
 
   const matched = matchSku(product.skus, skuSelection);
 
+  /* Every product materialises at least one SKU, so an empty selection on a
+     product with no variant axes still pins a row and still has a stock figure
+     to answer for. `matched` is null only for a PARTIAL selection, which
+     identifies nothing to check.
+
+     This is a point-in-time check, not a reservation: nothing decrements stock
+     and nothing knows which dates a unit is already out on. It refuses an order
+     for something the shelf says is gone, which is what a stale tab produces —
+     the phone call still settles real availability. */
+  if (matched && !matched.inStock) {
+    reject(`"${product.title}" is out of stock in that configuration.`, `${field}.variants`);
+  }
+
   const priced = priceRequest({
     mode: product.pricing.mode,
-    rentalUnit: product.pricing.rentalUnit,
     basePrice: product.pricing.price,
-    skuPrice: matched?.price.amount ?? null,
+    skuPrice: matched?.price?.amount ?? null,
     modifiers,
     rentalPackage,
-    startDate: input.startDate ?? '',
-    endDate: input.endDate ?? '',
     quantity: input.quantity,
-    addons: addons.map((addon) => ({ mode: addon.pricing.mode, price: addon.pricing.price })),
+    addons: addons.map((entry) => ({
+      mode: entry.addon.pricing.mode,
+      price: entry.addon.pricing.price,
+      rentalUnit: entry.addon.pricing.rentalUnit,
+      quantity: entry.quantity,
+    })),
   });
 
-  /* Unreachable via the checkout — `assertPeriod` has already insisted on a
-     duration — but asserted rather than assumed, because it is the invariant the
-     whole "no open-period orders" decision rests on. */
-  if (priced.openPeriod) {
-    reject('This rental has no duration, so it has no total.', `${field}.endDate`);
+  /* Unreachable via the checkout — `resolveRental` has already insisted on a
+     package — but asserted rather than assumed, because it is the invariant the
+     whole "a rental is its package" decision rests on. */
+  if (priced.incomplete) {
+    reject('This rental has no package, so it has no total.', `${field}.rentalPackageCode`);
   }
 
   /* The add-on amounts as priced, read back off the lines so this snapshot and
      the line total cannot disagree about what an extra cost. */
-  const resolvedAddons: ResolvedAddon[] = addons.map((addon, index) => {
-    const line = priced.lines.find((entry) => entry.kind === 'addon' && entry.index === index);
+  const resolvedAddons: ResolvedAddon[] = addons.map((entry, index) => {
+    const line = priced.lines.find((row) => row.kind === 'addon' && row.index === index);
     return {
-      id: addon.id,
-      name: addon.name,
-      mode: addon.pricing.mode,
-      unitPrice: addon.pricing.price,
+      id: entry.addon.id,
+      name: entry.addon.name,
+      mode: entry.addon.pricing.mode,
+      unitPrice: entry.addon.pricing.price,
+      quantity: entry.quantity,
       total: line?.kind === 'addon' ? line.amount : '0.00',
     };
   });
@@ -418,14 +479,7 @@ export function resolveLine(
       productSlug: product.slug,
       pricingMode: product.pricing.mode,
       rentalUnit: product.pricing.rentalUnit,
-      rental:
-        product.pricing.mode === 'rental' && input.startDate
-          ? {
-              startDate: input.startDate,
-              endDate: input.endDate ?? null,
-              units: priced.units ?? 0,
-            }
-          : null,
+      rental,
       rentalPackage,
       unitRate: priced.unitRate,
       selections,

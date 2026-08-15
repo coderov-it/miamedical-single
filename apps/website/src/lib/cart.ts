@@ -89,8 +89,8 @@ export interface CartLineView {
    */
   unitTotal: number;
   total: number;
-  /** The rental has no closed period, so `total` is a per-unit rate, not a sum. */
-  openPeriod: boolean;
+  /** The rental has no package picked, so there is nothing to price. */
+  noPackage: boolean;
   /** "/giorno", or empty. Appended to the figure the island formats itself. */
   unitSuffix: string;
 }
@@ -100,7 +100,7 @@ export interface CartView {
   itemsTotal: number;
   /** Formatted `itemsTotal`, so the server-rendered total needs no client Intl. */
   itemsTotalLabel: string;
-  openPeriod: boolean;
+  noPackage: boolean;
   currency: string;
   /**
    * Lines whose product no longer resolves — unpublished, deleted, or a slug
@@ -195,7 +195,7 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
        `estimate()` — so this is display arithmetic on a settled figure. */
     unitTotal: Number(item.total) / Math.max(1, line.quantity),
     total: Number(item.total),
-    openPeriod: item.openPeriod,
+    noPackage: item.noPackage,
     unitSuffix: item.unitSuffix,
   };
 }
@@ -238,7 +238,7 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
     lines: views,
     itemsTotal,
     itemsTotalLabel: formatMoney(itemsTotal.toFixed(2), currency),
-    openPeriod: views.some((view) => view.openPeriod),
+    noPackage: views.some((view) => view.noPackage),
     currency,
     droppedIds,
   };
@@ -269,7 +269,7 @@ export interface CartCopy {
   deliveryPending: string;
   total: string;
   vatIncluded: string;
-  openPeriodNote: string;
+  noPackageNote: string;
   goToCheckout: string;
   noChargeYet: string;
   continueBrowsing: string;
@@ -301,7 +301,7 @@ export function cartCopy(): CartCopy {
     deliveryPending: t('cartDeliveryPending'),
     total: t('total'),
     vatIncluded: t('vatIncluded'),
-    openPeriodNote: t('estimateOpenPeriod'),
+    noPackageNote: t('estimateNoPackage'),
     goToCheckout: t('goToCheckout'),
     noChargeYet: t('cartNoChargeYet'),
     continueBrowsing: t('continueBrowsing'),

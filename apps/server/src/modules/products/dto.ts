@@ -23,13 +23,41 @@ export interface PricingDto {
   mode: 'fixed' | 'rental';
   rentalUnit: 'hour' | 'day' | null;
   currency: string;
+  /** What a fixed product costs. `null` on a rental — its packages are the price. */
+  price: string | null;
+  /**
+   * A rental's headline rate, for the line under the title: "da 1,10 € al
+   * giorno". Copy the back office typed, quoted in `rentalUnit`, and never part
+   * of any total — the packages are. `null` on a fixed product, and on a rental
+   * that advertises no rate.
+   */
+  marketingRate: string | null;
+  /**
+   * The lowest figure this product can actually be had for: its own price when
+   * fixed, its cheapest package when rental. A real total, unlike
+   * `marketingRate` — it is what a card falls back to when no rate is typed, so
+   * a listing never shows a rental with no price at all.
+   */
+  fromPrice: string | null;
+}
+
+/**
+ * An add-on's price. Its own shape rather than `PricingDto`, because the two
+ * differ on both counts: an add-on always has a price, and it never advertises
+ * a headline rate — only a product does.
+ */
+export interface AddonPricingDto {
+  mode: 'fixed' | 'rental';
+  /** Set exactly when `mode` is `rental`: the unit `price` is quoted in. */
+  rentalUnit: 'hour' | 'day' | null;
+  currency: string;
   price: string;
 }
 
 /**
  * A rental package as the storefront renders it: `name` already collapsed to
- * the requested locale, `label` the ready-made "7 giorni" string. `price` is
- * the whole cost of the package, not a modifier on `pricing.price`.
+ * the requested locale, `label` the ready-made "7 giorni" string. `price` is the
+ * whole cost of the rental for `duration` — the price, not a modifier on one.
  */
 export interface PublicRentalPackageDto {
   code: string;
@@ -106,7 +134,8 @@ export interface PublicSkuDto {
   stock: number;
   inStock: boolean;
   isActive: boolean;
-  price: MoneyDto;
+  /** `null` on a rental product, whose price is the chosen package. */
+  price: MoneyDto | null;
 }
 
 export interface PublicSpecDto {
@@ -130,7 +159,7 @@ export interface PublicAddonDto {
   name: string;
   description: string | null;
   sku: string | null;
-  pricing: PricingDto;
+  pricing: AddonPricingDto;
   minQuantity: number;
   maxQuantity: number | null;
   icon: string | null;
@@ -193,7 +222,7 @@ export interface PublicProductDetailDto {
   chips: string[];
   category: PublicCategoryRefDto;
   pricing: PricingDto;
-  /** Empty on a fixed product. Sold beside `pricing.price`, never instead of it. */
+  /** Empty on a fixed product, and never empty on a rental one — it IS the price. */
   rentalPackages: PublicRentalPackageDto[];
   media: PublicProductMediaDto;
   variants: PublicVariantGroupDto[];
@@ -319,7 +348,8 @@ export interface AdminSkuDto {
   comboKey: string;
   optionIds: string[];
   priceOverride: string | null;
-  resolvedPrice: string;
+  /** `null` on a rental product — see `resolveSkuPrice`. */
+  resolvedPrice: string | null;
   stock: number;
   isActive: boolean;
   position: number;
@@ -384,7 +414,10 @@ export interface AdminProductDetailDto {
   /** Always true on an existing product — renders the disabled control. */
   pricingModeLocked: true;
   rentalUnit: 'hour' | 'day' | null;
-  basePrice: string;
+  /** Fixed products only. `null` on a rental, which is priced by its packages. */
+  basePrice: string | null;
+  /** Rental products only, and display copy even there. */
+  marketingRate: string | null;
   currency: string;
   /** Raw `{ it, en }` names, like every other admin field — nothing collapsed. */
   rentalPackages: RentalPackage[];
@@ -420,7 +453,10 @@ export interface AdminProductSummaryDto {
   isFeatured: boolean;
   pricingMode: 'fixed' | 'rental';
   rentalUnit: 'hour' | 'day' | null;
-  basePrice: string;
+  /** Fixed products only; a rental's price is its cheapest package. */
+  basePrice: string | null;
+  /** Rental products only, and display copy even there. */
+  marketingRate: string | null;
   currency: string;
   title: string;
   slug: string;

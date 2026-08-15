@@ -44,9 +44,12 @@ export interface CreateProductData {
   status: 'draft' | 'active' | 'archived';
   brand: string | null;
   pricingMode: 'fixed' | 'rental';
-  basePrice: string;
+  basePrice: string | null;
+  marketingRate: string | null;
   currency: string;
   rentalUnit: 'hour' | 'day' | null;
+  /** Non-empty on a rental product; `[]` on a fixed one. Enforced by CHECK. */
+  rentalPackages: RentalPackage[];
   isFeatured: boolean;
   chips: ProductChip[];
   translations: Partial<Record<LanguageCode, TranslationData>>;
@@ -57,10 +60,13 @@ export interface UpdateProductData {
   categoryId?: string;
   status?: 'draft' | 'active' | 'archived';
   brand?: string | null;
+  /** Fixed products only — the service rejects it on a rental. */
   basePrice?: string;
+  /** Rental products only — the service rejects it on a fixed one. */
+  marketingRate?: string | null;
   currency?: string;
   rentalUnit?: 'hour' | 'day';
-  /** Replaces the whole list — the service rejects a non-empty one on `fixed`. */
+  /** Replaces the whole list, and never with an empty one — see the CHECK. */
   rentalPackages?: RentalPackage[];
   isFeatured?: boolean;
   /** Replaces the whole list — `[]` clears the product's chips. */
@@ -204,12 +210,23 @@ function baseWhere(filters: ProductListFilters) {
   return clauses;
 }
 
+/**
+ * What "price" means for sorting, across both modes: a fixed product's own rate,
+ * or a rental's cheapest package. `base_price` alone would sort every rental as
+ * NULL, and a catalogue that mixes the two has to rank them against each other.
+ */
+const sortablePrice = sql`COALESCE(
+  ${products.basePrice},
+  (SELECT MIN((entry->>'price')::numeric)
+     FROM jsonb_array_elements(${products.rentalPackages}) AS entry)
+)`;
+
 function orderBy(filters: ProductListFilters) {
   switch (filters.sort) {
     case 'price_asc':
-      return asc(products.basePrice);
+      return asc(sortablePrice);
     case 'price_desc':
-      return desc(products.basePrice);
+      return desc(sortablePrice);
     case 'title':
       return sql`(
         SELECT pt.title FROM ${productTranslations} pt
@@ -385,8 +402,10 @@ export async function create(db: Database, data: CreateProductData): Promise<str
         brand: data.brand,
         pricingMode: data.pricingMode,
         basePrice: data.basePrice,
+        marketingRate: data.marketingRate,
         currency: data.currency,
         rentalUnit: data.rentalUnit,
+        rentalPackages: data.rentalPackages,
         isFeatured: data.isFeatured,
         chips: data.chips,
       })

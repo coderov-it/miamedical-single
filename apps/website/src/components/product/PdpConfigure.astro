@@ -4,10 +4,11 @@
  * options. Real radios/checkboxes styled through `peer`, so the whole page
  * stays a native GET form.
  *
- * Price semantics (owner's rule): on a rental product every modifier is per
- * rental unit — a "+4,00 €" option raises the daily/hourly rate, it is not a
- * one-time charge. On a fixed product the modifier is one-time. The estimate
- * script reads the `data-est-*` attributes; the server never trusts them.
+ * Price semantics (owner's rule): a modifier is a FLAT amount in both modes. On
+ * a rental it is added once on top of the chosen package — the package already
+ * carries the duration, so multiplying a modifier by it would charge for the
+ * days twice. The estimate script reads the `data-est-*` attributes; the server
+ * never trusts them.
  */
 import { formatMoney, mediaUrl } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
@@ -16,17 +17,12 @@ import PdpSectionHead from './PdpSectionHead.astro';
 
 interface Props {
   variants: ProductDetail['variants'];
-  isRental: boolean;
-  /** "giorno" / "ora" — suffix for per-unit deltas. Empty on fixed pricing. */
-  unitNoun: string;
 }
 
-const { variants, isRental, unitNoun } = Astro.props;
+const { variants } = Astro.props;
 
 const signed = (amount: string, currency: string) =>
   `${Number(amount) > 0 ? '+' : ''}${formatMoney(amount, currency)}`;
-
-const deltaSuffix = isRental && unitNoun ? `/${unitNoun}` : '';
 
 const pill =
   'flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-hair-strong bg-white px-4 text-[14px]/[1] ' +
@@ -94,8 +90,7 @@ const inlineInput =
                       <span class="text-ink-2 text-[13px]" data-delta>
                         {option.priceModifier.amount === '0.00'
                           ? 'incluso'
-                          : signed(option.priceModifier.amount, option.priceModifier.currency) +
-                            deltaSuffix}
+                          : signed(option.priceModifier.amount, option.priceModifier.currency)}
                       </span>
                     </label>
                   </span>
@@ -132,8 +127,7 @@ const inlineInput =
               </span>
               {group.priceModifierPerUnit && (
                 <span class="text-ink-2 text-[13px]">
-                  {signed(group.priceModifierPerUnit.amount, group.priceModifierPerUnit.currency) +
-                    deltaSuffix}{' '}
+                  {signed(group.priceModifierPerUnit.amount, group.priceModifierPerUnit.currency)}{' '}
                   per {group.unit ?? 'unità'}
                 </span>
               )}
