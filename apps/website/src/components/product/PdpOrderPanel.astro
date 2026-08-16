@@ -14,9 +14,12 @@
  * CTA is disabled. A variant modifier is added flat on top of the package; a
  * rental-mode add-on multiplies by the package's duration.
  *
- * The packages are a plain radio LIST rather than the old popover: they are the
- * first decision now, not an optional upgrade hidden behind a disclosure.
+ * The package and the start date are the same control twice — a label over a
+ * filled field, see `pdp-chooser.ts`. Each field holds one line, the answer;
+ * what follows from the answer (the return date, the price) belongs to the
+ * overview below the rule.
  */
+import { PDP_FIELD, PDP_LABEL } from '~/components/product/pdp-chooser.ts';
 import PdpDatePicker from '~/components/product/PdpDatePicker.astro';
 import { formatMoney } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
@@ -27,9 +30,19 @@ import { whatsappUrl } from '~/lib/site';
 
 interface Props {
   product: ProductDetail;
+  /** Today in Europe/Rome, ISO. The floor for the start date. */
+  today: string;
+  /**
+   * The delivery city the customer chose in the home search, carried here by
+   * the browse links. Null when they came straight to the catalogue, or chose
+   * "Altra zona" — either way there is nothing to print and the call settles it.
+   */
+  deliveryCity?: string | null;
+  /** A start date carried from the home search, already checked as orderable. */
+  startDate?: string;
 }
 
-const { product } = Astro.props;
+const { product, today, deliveryCity = null, startDate = '' } = Astro.props;
 
 const isRental = product.pricing.mode === 'rental';
 const { currency } = product.pricing;
@@ -54,7 +67,10 @@ const defaultModifiers = product.variants.reduce((sum, group) => {
 /*
   On a rental there is nothing to show until a package is picked: no rate exists,
   and printing the variant modifiers alone would put a number on the panel that
-  is not the price of anything. A fixed product has its price from the start.
+  is not the price of anything. Nothing is preselected for the same reason the
+  card says "Scegli un pacchetto" — the choice is the customer's, and a default
+  would quote them a price they never asked for. A fixed product has its price
+  from the start.
 */
 const initialTotal = isRental ? null : Number(product.pricing.price ?? '0') + defaultModifiers;
 const initialNote = isRental ? 'scegli un pacchetto' : 'prezzo del prodotto';
@@ -63,216 +79,260 @@ const baseLineLabel = defaultLabels.length > 0 ? defaultLabels.join(' · ') : 'T
 const packages = product.rentalPackages;
 const hasHourPackage = packages.some((pkg) => pkg.unit === 'hour');
 
-const today = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Europe/Rome',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-}).format(new Date());
-
-/* A package is a required choice, so its rows read as selectable cards rather
-   than menu lines: a visible border in every state, filled when chosen. */
 const pkgRow =
-  'flex cursor-pointer items-center gap-3 rounded-[11px] border-[1.5px] border-hair bg-white px-3.5 py-3 hover:border-hair-strong ' +
-  'peer-checked:border-accent peer-checked:bg-tint peer-checked:[&_[data-pkg-name]]:text-accent ' +
+  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-tint ' +
+  'peer-checked:bg-tint peer-checked:[&_[data-pkg-name]]:text-accent ' +
   'peer-focus-visible:outline-3 peer-focus-visible:-outline-offset-3 peer-focus-visible:outline-white ' +
   'peer-focus-visible:shadow-[inset_0_0_0_3px_var(--color-ink)]';
 ---
 
+{
+  /*
+    The `aside` is the COLUMN, not the card. Only what the customer has to
+    decide belongs inside the white panel; the help line below it is outside on
+    purpose — see the note by it.
+  */
+}
 <aside
   id="order"
-  class="border-hair wide:sticky wide:top-6 shadow-pdp-panel flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-6 rounded-2xl border bg-white px-7 py-[30px]"
+  class="wide:sticky wide:top-6 flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-4"
 >
-  <div>
-    <div class="text-ink-2 text-[11.5px] font-bold tracking-[0.1em] uppercase">Totale stimato</div>
-    <div class="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
-      <span class="text-[32px] font-bold tracking-[-0.02em] tabular-nums" data-est-total>
-        {initialTotal === null ? '—' : money(initialTotal)}
-      </span>
-      <span class="text-ink-2 text-[13.5px]" data-est-note>{initialNote}</span>
-    </div>
-  </div>
-
-  {
-    isRental && (
-      <div class="flex flex-col gap-4">
-        {/* The price of the rental, so it comes before the date it starts on. */}
-        <fieldset class="m-0 flex flex-col gap-1.5 border-0 p-0" data-pkg-list>
-          <legend class="text-ink-2 mb-1 p-0 text-[11.5px] font-bold tracking-[0.1em] uppercase">
-            Pacchetto
-          </legend>
-          {packages.map((pkg) => (
-            <span class="relative block">
-              <input
-                class="peer sr-only"
-                type="radio"
-                name={FIELD.rentalPackage}
-                id={`pdp-pkg-${pkg.code}`}
-                value={pkg.code}
-                required
-                data-est-kind="package"
-                data-est-price={pkg.price}
-                data-est-duration={pkg.duration}
-                data-est-unit={pkg.unit}
-                data-est-label={pkg.name}
-                data-est-detail={pkg.label}
-              />
-              <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
-                <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
-                  <strong class="text-[14px]" data-pkg-name>
-                    {pkg.name}
-                  </strong>
-                  {/* Only when the back office named it something else — an
-                      unnamed package falls back to its own duration label, and
-                      printing "3 giorni" twice says nothing. */}
-                  {pkg.name !== pkg.label && (
-                    <span class="text-ink-2 text-[13px]">{pkg.label}</span>
-                  )}
-                </span>
-                <strong class="text-[14px] whitespace-nowrap tabular-nums">
-                  {formatMoney(pkg.price, currency)}
-                </strong>
-              </label>
-            </span>
-          ))}
-        </fieldset>
-
-        <PdpDatePicker {today} {hasHourPackage} />
-      </div>
-    )
-  }
-
-  <ul
-    class="border-hair m-0 flex list-none flex-col gap-2.5 border-t p-0 pt-5 text-[13.5px]"
-    data-est-lines
+  <div
+    class="border-hair shadow-pdp-panel flex flex-col gap-6 rounded-2xl border bg-white px-7 py-[30px]"
   >
+    <div>
+      <div class="text-ink-2 text-[11.5px] font-bold tracking-[0.1em] uppercase">
+        Totale stimato
+      </div>
+      <div class="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+        <span class="text-[32px] font-bold tracking-[-0.02em] tabular-nums" data-est-total>
+          {initialTotal === null ? '—' : money(initialTotal)}
+        </span>
+        <span class="text-ink-2 text-[13.5px]" data-est-note>{initialNote}</span>
+      </div>
+    </div>
+
     {
-      initialTotal !== null && (
-        <li class="flex justify-between gap-3">
-          <span class="text-ink-2 min-w-0">{baseLineLabel}</span>
-          <span class="font-semibold whitespace-nowrap tabular-nums">{money(initialTotal)}</span>
-        </li>
+      isRental && (
+        <div class="flex flex-col gap-4">
+          {/*
+          The reference design's disclosure, unchanged in shape. The one thing
+          the new pricing model moves is what it opens onto: there is no
+          "Nessun pacchetto" row any more, because a rental has no rate to fall
+          back to — every row is a real price and one of them must be chosen.
+
+          The checkbox carries `form="pdp-detached"` (an id that exists nowhere)
+          so the disclosure state never joins the GET submission; the radios
+          inside DO belong to the form.
+        */}
+          <div class="relative flex flex-col gap-1.5">
+            <label class={PDP_LABEL} for="pdp-pkg-open">
+              Scegli il pacchetto
+            </label>
+            <input
+              class="peer sr-only"
+              type="checkbox"
+              id="pdp-pkg-open"
+              form="pdp-detached"
+              data-pkg-toggle
+            />
+            <label
+              class={`${PDP_FIELD} cursor-pointer select-none peer-checked:border-accent peer-focus-visible:border-accent peer-checked:[&_[data-chev]]:rotate-180`}
+              for="pdp-pkg-open"
+              data-pkg-trigger
+            >
+              <span class="min-w-0 flex-1 truncate" data-pkg-title>
+                Scegli un pacchetto
+              </span>
+              <span
+                class="text-ink-2 text-[11px] transition-transform duration-150"
+                data-chev
+                aria-hidden="true"
+              >
+                ▼
+              </span>
+            </label>
+
+            <div class="border-hair rounded-field shadow-pdp-pop absolute inset-x-0 top-[calc(100%+6px)] z-20 hidden max-h-75 flex-col gap-0.5 overflow-x-clip overflow-y-auto border bg-white p-1.5 peer-checked:flex">
+              {packages.map((pkg) => (
+                <span>
+                  <input
+                    class="peer sr-only"
+                    type="radio"
+                    name={FIELD.rentalPackage}
+                    id={`pdp-pkg-${pkg.code}`}
+                    value={pkg.code}
+                    data-est-kind="package"
+                    data-est-price={pkg.price}
+                    data-est-duration={pkg.duration}
+                    data-est-unit={pkg.unit}
+                    data-est-label={pkg.name}
+                    data-est-detail={pkg.label}
+                  />
+                  <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
+                    <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+                      <strong class="text-[14px]" data-pkg-name>
+                        {pkg.name}
+                      </strong>
+                      {/* An unnamed package falls back to its own duration label,
+                        and printing "3 giorni" twice says nothing. */}
+                      {pkg.name !== pkg.label && (
+                        <span class="text-ink-2 text-[13px]">{pkg.label}</span>
+                      )}
+                    </span>
+                    <strong class="text-[14px] whitespace-nowrap tabular-nums">
+                      {formatMoney(pkg.price, currency)}
+                    </strong>
+                  </label>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <PdpDatePicker {today} {hasHourPackage} {deliveryCity} {startDate} />
+        </div>
       )
     }
+
     {
       /*
+      The overview. The return date leads it because it is the one thing the
+      customer did not enter and cannot see anywhere else — the package decides
+      it. It stays out of the date field for exactly that reason: a field holds
+      what you typed, not what was derived from it.
+    */
+    }
+    <div class="border-hair flex flex-col gap-2.5 border-t pt-5 text-[13.5px]">
+      {
+        isRental && (
+          <div class="flex justify-between gap-3" data-period-row hidden>
+            <span class="text-ink-2 min-w-0">Riconsegna</span>
+            <span class="font-semibold whitespace-nowrap" data-cal-end />
+          </div>
+        )
+      }
+
+      <ul class="m-0 flex list-none flex-col gap-2.5 p-0" data-est-lines>
+        {
+          initialTotal !== null && (
+            <li class="flex justify-between gap-3">
+              <span class="text-ink-2 min-w-0">{baseLineLabel}</span>
+              <span class="font-semibold whitespace-nowrap tabular-nums">
+                {money(initialTotal)}
+              </span>
+            </li>
+          )
+        }
+        {
+          /*
         Only the base line is server-rendered. Add-ons used to be able to declare
         themselves required, and those were printed here because they were charged
         whether or not anyone touched the form. Every add-on is opt-in now, so
         there is nothing to print before a choice is made — the estimate script
         replaces this list from the ticked boxes.
       */
-    }
-  </ul>
-
-  <div class="flex items-center justify-between gap-4" data-qty-row>
-    <label class="text-[14px] font-semibold" for={`qta-${product.id}`}>Quantità</label>
-    <div class="border-hair-strong flex items-center overflow-clip rounded-[10px] border">
-      <button
-        type="button"
-        class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
-        data-qty-dec
-        aria-label="Riduci quantità"
-      >
-        −
-      </button>
-      <input
-        id={`qta-${product.id}`}
-        class="border-hair-strong h-11 w-11 appearance-none border-x bg-white text-center text-[15px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        type="number"
-        name={FIELD.quantity}
-        value="1"
-        min="1"
-        max={MAX_QUANTITY}
-        inputmode="numeric"
-        data-qty-input
-        data-est-qty
-      />
-      <button
-        type="button"
-        class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
-        data-qty-inc
-        aria-label="Aumenta quantità"
-      >
-        +
-      </button>
+        }
+      </ul>
     </div>
-  </div>
 
-  {
-    /*
+    <div class="flex items-center justify-between gap-4" data-qty-row>
+      <label class="text-[14px] font-semibold" for={`qta-${product.id}`}>Quantità</label>
+      <div class="border-hair-strong flex items-center overflow-clip rounded-[10px] border">
+        <button
+          type="button"
+          class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
+          data-qty-dec
+          aria-label="Riduci quantità"
+        >
+          −
+        </button>
+        <input
+          id={`qta-${product.id}`}
+          class="border-hair-strong h-11 w-11 appearance-none border-x bg-white text-center text-[15px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          type="number"
+          name={FIELD.quantity}
+          value="1"
+          min="1"
+          max={MAX_QUANTITY}
+          inputmode="numeric"
+          data-qty-input
+          data-est-qty
+        />
+        <button
+          type="button"
+          class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
+          data-qty-inc
+          aria-label="Aumenta quantità"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
+    {
+      /*
       Three actions, in three weights, because they are three different sizes of
       commitment: go and confirm this one now, put it aside and keep looking, or
       ask a human. Solid → accent outline → neutral outline, so the hierarchy is
       readable without reading the words.
 
-      Both of the first two are `type="submit"` on the SAME form, which is what
-      makes the second one work without JavaScript: `formaction` overrides the
-      form's `/checkout/` target, so "aggiungi" degrades to a plain GET of this
-      configuration to `/carrello/` — the cart renders it server-side and folds it
-      into the store on mount. The script below only upgrades that to "stay on the
-      page"; it never becomes the only way to add something.
+      Both are `type="submit"` on the SAME form, which is what makes the second
+      one work without JavaScript: `formaction` overrides the form's `/checkout/`
+      target, so "aggiungi" degrades to a plain GET of this configuration to
+      `/carrello/` — the cart renders it server-side and folds it into the store
+      on mount. The script below only upgrades that to "stay on the page"; it
+      never becomes the only way to add something.
     */
-  }
-  <div class="flex flex-col gap-2.5">
-    {
-      /*
+    }
+    <div class="flex flex-col gap-2.5">
+      {
+        /*
         Disabled by the script until a rental has both a package and a start
         date, because the API refuses that line — better to say so on the page
         that can still fix it than to fail at the last step. It ships ENABLED so
         the no-JavaScript path still submits and gets the server's own message.
       */
-    }
-    <button
-      class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[15.5px] font-semibold text-white focus-visible:shadow-[0_0_0_6px_var(--color-ink)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-45"
-      type="submit"
-      data-est-submit
-    >
-      {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
-    </button>
+      }
+      <button
+        class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[15.5px] font-semibold text-white focus-visible:shadow-[0_0_0_6px_var(--color-ink)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-45"
+        type="submit"
+        data-est-submit
+      >
+        {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
+      </button>
 
-    <button
-      class="hover:bg-tint flex min-h-12 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-accent bg-white px-5 text-[14.5px] font-semibold text-accent"
-      type="submit"
-      formaction={routes.cart}
-      formmethod="get"
-      data-add-to-cart
-      data-product-title={product.title}
-    >
-      Aggiungi alla richiesta
-    </button>
+      <button
+        class="hover:bg-tint flex min-h-12 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-accent bg-white px-5 text-[14.5px] font-semibold text-accent"
+        type="submit"
+        formaction={routes.cart}
+        formmethod="get"
+        data-add-to-cart
+        data-product-title={product.title}
+      >
+        Aggiungi alla richiesta
+      </button>
+    </div>
 
-    <a
-      class="border-hair-strong text-ink flex min-h-12 items-center justify-center rounded-full border-[1.5px] bg-transparent px-5 text-[14.5px] font-semibold no-underline hover:border-accent hover:text-accent"
-      href={whatsappUrl(`Domanda su: ${product.title}`)}
-      target="_blank"
-      rel="noopener"
-      data-analytics="whatsapp"
-    >
-      Fai una domanda
-    </a>
-  </div>
-
-  {
-    /*
+    {
+      /*
       The confirmation, revealed by the script after a successful add. Ships with
       the `hidden` attribute rather than a `hidden:` utility, for the reason the
       calendar popover and the checkout's step bodies both do: preflight makes
       `[hidden]` `display: none !important`, so the attribute is the ONE thing
       that decides visibility and a utility class cannot fight it.
     */
-  }
-  <div
-    class="border-ok/30 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 border bg-white px-4 py-3 text-[13.5px]"
-    data-cart-added
-    hidden
-  >
-    <span class="text-ok font-semibold">Aggiunto alla richiesta</span>
-    <a class="font-semibold text-accent underline" href={routes.cart}>Vai alla richiesta</a>
-  </div>
+    }
+    <div
+      class="border-ok/30 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 border bg-white px-4 py-3 text-[13.5px]"
+      data-cart-added
+      hidden
+    >
+      <span class="text-ok font-semibold">Aggiunto alla richiesta</span>
+      <a class="font-semibold text-accent underline" href={routes.cart}>Vai alla richiesta</a>
+    </div>
 
-  {
-    /*
+    {
+      /*
       The spoken half of that confirmation, and a separate element on purpose.
       Revealing a `role="status"` region announces it once; adding a second time
       changes nothing in the DOM, so a screen-reader user would hear nothing at
@@ -283,34 +343,60 @@ const pkgRow =
       The template is a value, not an identifier, so Italian belongs in it. The
       island's own live region is built the same way.
     */
-  }
-  <p
-    class="sr-only"
-    role="status"
-    aria-live="polite"
-    data-cart-announce
-    data-message-template="Aggiunto alla richiesta. Ora contiene {count}."
-    data-count-one="1 ausilio"
-    data-count-many="{count} ausili"
-  >
-  </p>
+    }
+    <p
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+      data-cart-announce
+      data-message-template="Aggiunto alla richiesta. Ora contiene {count}."
+      data-count-one="1 ausilio"
+      data-count-many="{count} ausili"
+    >
+    </p>
 
-  {
-    /*
+    {
+      /*
       The aggregate review line of the reference design. It reuses the SAME
       governed-content adapter as the home page, so the storefront never shows
       two different ratings — and, for the same reason as the home band, it is
       deliberately NOT emitted as AggregateRating structured data: the figure
       has no governed source yet, and a stale one is a Google policy problem.
     */
+    }
+    <a
+      class="border-hair text-ink flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3.5 text-[13px] no-underline"
+      href={`${routes.home}#recensioni`}
+      aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, basata su ${REVIEW_AGGREGATE.countLabel}`}
+    >
+      <span class="text-star tracking-[0.12em]" aria-hidden="true">★★★★★</span>
+      <strong class="tabular-nums">{REVIEW_AGGREGATE.rating}</strong>
+      <span class="text-ink-2">· {REVIEW_AGGREGATE.countLabel}</span>
+    </a>
+  </div>
+
+  {
+    /*
+      Asking a human is NOT a third way to order, so it is not a third button
+      competing with the two that are. It sits outside the panel, in text, at
+      the weight of an offer of help — which is what it is.
+    */
   }
-  <a
-    class="border-hair text-ink flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3.5 text-[13px] no-underline"
-    href={`${routes.home}#recensioni`}
-    aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, basata su ${REVIEW_AGGREGATE.countLabel}`}
-  >
-    <span class="text-star tracking-[0.12em]" aria-hidden="true">★★★★★</span>
-    <strong class="tabular-nums">{REVIEW_AGGREGATE.rating}</strong>
-    <span class="text-ink-2">· {REVIEW_AGGREGATE.countLabel}</span>
-  </a>
+  <p class="text-ink-2 m-0 text-center text-[13px]">
+    Serve aiuto?{' '}
+    <a
+      class="text-ok inline-flex items-center gap-1.5 font-semibold underline"
+      href={whatsappUrl(`Domanda su: ${product.title}`)}
+      target="_blank"
+      rel="noopener"
+      data-analytics="whatsapp"
+    >
+      <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path
+          d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.85 9.85 0 0 0 12.04 2Zm5.8 14.16c-.24.68-1.42 1.31-1.96 1.36-.5.05-.98.24-3.3-.7-2.78-1.13-4.55-3.98-4.69-4.16-.14-.19-1.12-1.5-1.12-2.86s.71-2.03.96-2.31c.25-.28.55-.35.73-.35s.37 0 .53.01c.17.01.4-.06.62.48.24.55.8 1.92.87 2.06.07.14.12.3.02.49-.1.19-.15.3-.29.47-.15.17-.31.38-.44.51-.15.14-.3.3-.13.59.17.28.75 1.24 1.62 2.01 1.11.99 2.05 1.3 2.34 1.44.29.14.46.12.63-.07.17-.19.72-.85.92-1.14.19-.28.38-.24.64-.14.26.09 1.64.78 1.92.92.28.14.47.21.54.33.07.11.07.66-.17 1.34Z"
+        ></path>
+      </svg>
+      Scrivici su WhatsApp
+    </a>
+  </p>
 </aside>

@@ -1,14 +1,13 @@
 ---
 /**
- * The rental start control of the order panel, per the owner's reference
- * design: a summary card that opens a custom calendar popover, rather than a
- * bare date field.
+ * The rental start control of the order panel: a label over a single filled
+ * field, matching the package field above it (`pdp-chooser.ts`), which opens a
+ * custom calendar popover rather than the browser's.
  *
- * There is ONE date here, and that is the whole change. The customer picks a
- * package, the package carries a duration, and the return date follows from the
- * two — so a return field would be a second opinion about a figure the
- * catalogue already settles. The card shows the derived return; it is never an
- * input.
+ * ONE date, and one field for it. The customer picks a package, the package
+ * carries a duration, and the return follows from the two — so the return is
+ * printed in the OVERVIEW below, never here. A field shows what was entered;
+ * putting the derived return inside it would read as a second thing to set.
  *
  * PROGRESSIVE ENHANCEMENT, and this is the point of the shape below. A calendar
  * grid cannot exist without JavaScript, but the request form must. So this
@@ -16,8 +15,8 @@
  *
  *   - `[data-date-native]` — a real `<input type="date">`, visible by default.
  *     Without JavaScript this is the entire control and it works.
- *   - `[data-cal-trigger]` + `[data-cal-pop]` — the reference design's summary
- *     card and calendar, `hidden` by default.
+ *   - `[data-cal-block]` + `[data-cal-pop]` — the same field driving a custom
+ *     calendar, `hidden` by default.
  *
  * The page script swaps them on load: it unhides the card, hides the native
  * row, and drives the SAME input. A `display:none` input still submits (only
@@ -28,6 +27,7 @@
  * The start-TIME row sits outside both, because it is needed in both: an hour
  * package cannot be ordered without one, and the calendar has no cell for it.
  */
+import { PDP_FIELD, PDP_LABEL } from '~/components/product/pdp-chooser.ts';
 import { FIELD } from '~/lib/request-config';
 
 interface Props {
@@ -39,13 +39,23 @@ interface Props {
    * a day rental starts on a date and nothing finer.
    */
   hasHourPackage: boolean;
+  /**
+   * The delivery city carried from the home search, printed under the date as
+   * a fact already settled. Null when the customer came straight to the
+   * catalogue — then nothing is shown and the confirmation call establishes the
+   * zone, which is why this is a quiet line and not a field.
+   */
+  deliveryCity?: string | null;
+  /** A start date carried from the home search, already checked as orderable. */
+  startDate?: string;
 }
 
-const { today, hasHourPackage } = Astro.props;
+const { today, hasHourPackage, deliveryCity = null, startDate = '' } = Astro.props;
 
-const dateField =
-  'min-h-11 w-full rounded-lg border border-hair-strong bg-white px-2.5 py-1.5 text-[13.5px] font-semibold tabular-nums';
-const kicker = 'text-[11px] font-bold tracking-[0.08em] uppercase text-ink-2';
+/* The native inputs wear the shared field directly — a date input draws its own
+   calendar affordance at the right edge, which is what the enhanced trigger
+   below has to imitate with an icon. */
+const nativeField = `${PDP_FIELD} tabular-nums focus-visible:border-accent`;
 
 /* The calendar is 7 columns of a 48×48 target — the project floor — plus the
    gaps and the popover padding: 7·48 + 6·2 + 2·10 = 368px. The popover is
@@ -64,74 +74,98 @@ const navButton =
 
 <div class="relative flex flex-col gap-2.5" data-date-block>
   {/* ---- no-JavaScript control, and the source of truth in both modes ---- */}
-  <div class="bg-tint flex flex-col gap-2.5 rounded-[11px] px-3.5 py-3" data-date-native>
-    <div class="border-hair-strong flex items-baseline justify-between gap-2 border-b pb-2">
-      <span class="text-ink-2 text-[12.5px]">Periodo di noleggio</span>
-      <strong class="text-[12.5px] text-accent" data-est-duration>scegli un pacchetto</strong>
-    </div>
-    <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2.5">
-      <label class="flex min-w-0 flex-col gap-1">
-        <span class={kicker}>Inizio</span>
-        <input class={dateField} type="date" name={FIELD.startDate} min={today} data-est-start />
-      </label>
-      <span class="pb-2.5 text-[15px] text-accent" aria-hidden="true">→</span>
-      <span class="flex min-w-0 flex-col gap-1">
-        <span class={kicker}>Riconsegna</span>
-        {
-          /* Calculated, never typed: the package's duration decides it. Rendered
-            as text rather than a readonly input so nobody tries to focus it. */
-        }
-        <strong
-          class="border-hair-strong flex min-h-11 items-center rounded-lg border border-dashed px-2.5 text-[13.5px] tabular-nums"
-          data-est-end-display
-        >
-          —
-        </strong>
-      </span>
-    </div>
+  <div class="flex flex-col gap-1.5" data-date-native>
+    <label class={PDP_LABEL} for="pdp-start-date">Scegli la data di inizio</label>
+    <input
+      class={nativeField}
+      id="pdp-start-date"
+      type="date"
+      name={FIELD.startDate}
+      min={today}
+      value={startDate}
+      data-est-start
+    />
   </div>
 
   {
-    /* OUTSIDE `[data-date-native]` on purpose. The script hides that block once
-      the calendar mounts, and the time is needed in BOTH modes — an hour package
-      cannot be ordered without one, so nesting it there would make the enhanced
-      path unable to express what the plain one can. */
+    /* ---- enhanced control: one date, one line ----
+      ONE field, because there is one date to pick. The return is a consequence
+      of the package, so it belongs to the overview, not to this field. */
+  }
+  <div class="flex flex-col gap-1.5" hidden data-cal-block>
+    <span class={PDP_LABEL} id="pdp-cal-label">Scegli la data di inizio</span>
+    <button
+      class={`${PDP_FIELD} cursor-pointer aria-expanded:border-accent focus-visible:border-accent`}
+      type="button"
+      aria-expanded="false"
+      aria-labelledby="pdp-cal-label pdp-cal-value"
+      data-cal-trigger
+    >
+      <span class="min-w-0 flex-1 truncate" id="pdp-cal-value" data-cal-start>Scegli la data</span>
+      {/* The affordance the native date input draws for itself. */}
+      <svg
+        class="text-ink-2 size-4.5 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <rect x="3" y="5" width="18" height="16" rx="2.5"></rect>
+        <path d="M3 10h18M8 3v4M16 3v4"></path>
+      </svg>
+    </button>
+  </div>
+
+  {
+    /* AFTER both date blocks, because it is needed in both and belongs below
+      whichever one is showing: the script hides the native row once the calendar
+      mounts, and an hour package cannot be ordered without a time, so nesting
+      this inside either block would leave one path unable to express it. */
   }
   {
     hasHourPackage && (
-      <label class="bg-tint flex flex-col gap-1 rounded-[11px] px-3.5 py-3" data-time-row hidden>
-        <span class={kicker}>Ora di inizio</span>
-        <input class={dateField} type="time" name={FIELD.startTime} step="900" data-est-time />
-      </label>
+      <div class="flex flex-col gap-1.5" data-time-row hidden>
+        <label class={PDP_LABEL} for="pdp-start-time">
+          Scegli l'ora di inizio
+        </label>
+        <input
+          class={nativeField}
+          id="pdp-start-time"
+          type="time"
+          name={FIELD.startTime}
+          step="900"
+          data-est-time
+        />
+      </div>
     )
   }
 
-  {/* ---- enhanced control: summary card + calendar popover ---- */}
-  <button
-    class="bg-tint grid w-full cursor-pointer grid-cols-[1fr_auto_1fr] items-center gap-x-2.5 gap-y-2 rounded-[11px] border-[1.5px] border-transparent px-3.5 py-3 text-left aria-expanded:border-accent"
-    type="button"
-    hidden
-    aria-expanded="false"
-    data-cal-trigger
-  >
-    <span
-      class="border-hair-strong col-span-3 flex items-baseline justify-between gap-2 border-b pb-2"
-    >
-      <span class="text-ink-2 text-[12.5px]">
-        Periodo · <span data-cal-duration>scegli un pacchetto</span>
-      </span>
-      <span class="text-[12px] font-semibold text-accent">Modifica</span>
-    </span>
-    <span class="flex min-w-0 flex-col gap-0.5">
-      <span class={kicker}>Inizio</span>
-      <strong class="text-[13.5px]" data-cal-start>Da scegliere</strong>
-    </span>
-    <span class="text-[15px] text-accent" aria-hidden="true">→</span>
-    <span class="flex min-w-0 flex-col gap-0.5">
-      <span class={kicker}>Riconsegna</span>
-      <strong class="text-[13.5px]" data-cal-end>—</strong>
-    </span>
-  </button>
+  {
+    /* The city the customer already chose, stated rather than asked. It is not
+      a field: this page cannot change it — the home search set it and the
+      confirmation call settles the street — so making it look editable would
+      promise something the panel does not do. */
+  }
+  {
+    deliveryCity && (
+      <p class="text-ink-2 m-0 flex items-center gap-1.5 text-[13px]">
+        <svg
+          class="size-4 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" />
+          <circle cx="12" cy="10" r="2.5" />
+        </svg>
+        Consegna a {deliveryCity}
+      </p>
+    )
+  }
 
   {
     /* Visibility is the `hidden` ATTRIBUTE alone — Tailwind's preflight makes

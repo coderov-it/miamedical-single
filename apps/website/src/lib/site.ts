@@ -31,12 +31,26 @@ export const COMPANY = {
   vat: '16028971006',
 } as const;
 
-/** Delivery areas offered by the home search selector. */
+/**
+ * Delivery areas offered by the home search selector.
+ *
+ * `label` is what the selector and the catalogue's "la tua richiesta" line say;
+ * `city` is the short form the product page prints beside a pin, where the
+ * column is narrow and "e provincia" earns nothing. "Altra zona" has no city
+ * because the customer told us they are somewhere we do not name — that one is
+ * settled on the confirmation call, so the product page shows nothing at all.
+ */
 export const SERVICE_AREAS = [
-  { value: 'rm', label: 'Roma e provincia' },
-  { value: 'fi', label: 'Firenze e provincia' },
-  { value: 'other', label: 'Altra zona' },
+  { value: 'rm', label: 'Roma e provincia', city: 'Roma' },
+  { value: 'fi', label: 'Firenze e provincia', city: 'Firenze' },
+  { value: 'other', label: 'Altra zona', city: null },
 ] as const;
+
+/** The city to print for a carried `area`, or null when there is none to print. */
+export function serviceAreaCity(value: string | null | undefined): string | null {
+  if (!value) return null;
+  return SERVICE_AREAS.find((area) => area.value === value)?.city ?? null;
+}
 
 export function whatsappUrl(message?: string): string {
   const base = `https://wa.me/${CONTACT.whatsappE164.replace('+', '')}`;
