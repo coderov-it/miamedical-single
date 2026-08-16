@@ -37,10 +37,13 @@ const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
 
 // Carried over from the home search. Not filters yet — the API matches on text,
 // category and price only — but they are what the confirmation call needs, so
-// they are echoed back rather than silently dropped.
+// they are echoed back rather than silently dropped. Every link out of this
+// page carries them on: a chip, a page or a product card that dropped them
+// would make the customer answer the home search's questions twice.
 const area = params.get('area')?.trim() ?? '';
 const fromDate = params.get('from')?.trim() ?? '';
 const duration = params.get('duration')?.trim() ?? '';
+const browseContext = { area, from: fromDate, duration };
 const areaLabel = SERVICE_AREAS.find((candidate) => candidate.value === area)?.label ?? '';
 const durationLabel =
   duration && duration !== '0'
@@ -76,9 +79,12 @@ const isFirstPage = meta.page <= 1;
 const isFiltered = Boolean(q || category);
 const activeCategory = categories.find((candidate) => candidate.code === category);
 
-const prevUrl = meta.page > 1 ? catalogPath({ q, category, sort, page: meta.page - 1 }) : null;
+const prevUrl =
+  meta.page > 1 ? catalogPath({ q, category, sort, page: meta.page - 1, ...browseContext }) : null;
 const nextUrl =
-  meta.page < meta.pageCount ? catalogPath({ q, category, sort, page: meta.page + 1 }) : null;
+  meta.page < meta.pageCount
+    ? catalogPath({ q, category, sort, page: meta.page + 1, ...browseContext })
+    : null;
 
 const heading = activeCategory ? activeCategory.name : 'Catalogo noleggio';
 const title = isFirstPage
@@ -212,7 +218,7 @@ const chipClass =
                     ? 'bg-tint border-accent text-accent'
                     : 'border-hair-strong text-ink hover:bg-tint bg-white',
                 ]}
-                href={catalogPath({ q, sort })}
+                href={catalogPath({ q, sort, ...browseContext })}
                 aria-current={!category ? 'true' : undefined}
               >
                 Tutte
@@ -230,7 +236,7 @@ const chipClass =
                       ? 'bg-tint border-accent text-accent'
                       : 'border-hair-strong text-ink hover:bg-tint bg-white',
                   ]}
-                  href={catalogPath({ q, category: candidate.code, sort })}
+                  href={catalogPath({ q, category: candidate.code, sort, ...browseContext })}
                   aria-current={candidate.code === category ? 'true' : undefined}
                 >
                   {candidate.name}
@@ -262,6 +268,7 @@ const chipClass =
                   product={product}
                   priority={isFirstPage && index === 0}
                   headingLevel={3}
+                  context={browseContext}
                 />
               </li>
             ))}

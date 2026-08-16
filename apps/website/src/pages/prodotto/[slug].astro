@@ -36,6 +36,7 @@ import { cardPrice, mediaUrl, offerPrice } from '~/lib/api';
 import { getProductBySlug } from '~/lib/catalog';
 import { FIELD } from '~/lib/request-config';
 import { productPath, routes } from '~/lib/routes';
+import { serviceAreaCity } from '~/lib/site';
 
 export const prerender = false;
 
@@ -48,6 +49,31 @@ if (!product) {
 
 const isRental = product.pricing.mode === 'rental';
 const inStock = product.skus.length === 0 || product.skus.some((sku) => sku.inStock);
+
+/*
+ * What the customer already told the home search, handed on by every link
+ * between there and here (see `BrowseContext` in lib/routes.ts).
+ *
+ * Arriving straight at the catalogue is the normal other path, and it is not a
+ * lesser one: with no area carried, the panel simply asks for nothing more than
+ * a package and a date, and the delivery zone is settled on the confirmation
+ * call. So `deliveryCity` is null far more often than not, and null renders
+ * nothing rather than a placeholder.
+ *
+ * The date is prefilled only if it is still orderable. A link shared in March
+ * and opened in June carries a start date in the past, which the field's own
+ * `min` would reject — better to show it empty than pre-filled and invalid.
+ */
+const deliveryCity = serviceAreaCity(Astro.url.searchParams.get('area'));
+const carriedStart = Astro.url.searchParams.get('from')?.trim() ?? '';
+const today = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Rome',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(new Date());
+const startDate =
+  /^\d{4}-\d{2}-\d{2}$/.test(carriedStart) && carriedStart >= today ? carriedStart : '';
 
 /* The mobile bar carries the same line as the hero: on a rental that is the
    marketing rate, which advertises rather than quotes. */
@@ -145,7 +171,7 @@ if (product.faqs.length > 0) {
             <PdpInfoTabs {product} />
           </main>
 
-          <PdpOrderPanel {product} />
+          <PdpOrderPanel {product} {deliveryCity} {startDate} {today} />
         </form>
       ) : (
         <div class="flex flex-wrap items-start gap-x-12 gap-y-10 pt-3">
@@ -269,13 +295,23 @@ if (product.faqs.length > 0) {
     const $total = document.querySelector('[data-est-total]');
     const $note = document.querySelector('[data-est-note]');
     const $lines = document.querySelector('[data-est-lines]');
-    const $duration = document.querySelector('[data-est-duration]');
-    const $endDisplay = document.querySelector('[data-est-end-display]');
     const $start = form.querySelector<HTMLInputElement>('[data-est-start]');
     const $time = form.querySelector<HTMLInputElement>('[data-est-time]');
     const $timeRow = form.querySelector<HTMLElement>('[data-time-row]');
     const $qty = form.querySelector<HTMLInputElement>('[data-est-qty]');
     const $submit = form.querySelector<HTMLButtonElement>('[data-est-submit]');
+    const $pkgTitle = document.querySelector('[data-pkg-title]');
+    const $pkgToggle = document.querySelector<HTMLInputElement>('[data-pkg-toggle]');
+    const $periodRow = document.querySelector<HTMLElement>('[data-period-row]');
+    const $periodEnd = document.querySelector('[data-cal-end]');
+
+    /* Shared with the calendar below, which prints the same dates in its own
+       trigger — two formats for one date would read as two dates. */
+    const dateFmt = new Intl.DateTimeFormat('it-IT', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
 
     const checkedPackage = () =>
       form.querySelector<HTMLInputElement>('[data-est-kind="package"]:checked');
@@ -318,13 +354,6 @@ if (product.faqs.length > 0) {
       return duration * 24;
     };
 
-    const dayFmt = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit' });
-    const showDate = (iso: string, time: string) => {
-      const [y, m, d] = iso.split('-').map(Number);
-      const text = dayFmt.format(new Date(y!, (m ?? 1) - 1, d ?? 1));
-      return time ? `${text} ${time}` : text;
-    };
-
     /**
      * The display estimate, mirroring `priceRequest` in `@mia/pricing`.
      *
@@ -361,10 +390,6 @@ if (product.faqs.length > 0) {
 
       // An hour package is the only case that needs a time of day.
       if ($timeRow) $timeRow.hidden = !pkg || pkg.unit !== 'hour';
-
-      const period = pkg
-        ? derivePeriod($start?.value ?? '', $time?.value ?? '', pkg.unit, pkg.duration)
-        : null;
 
       const qty = Math.max(1, Math.min(Number($qty?.value) || 1, Number($qty?.max) || 10));
       const baseLabel = labels.length > 0 ? labels.join(' · ') : 'Tariffa base';
@@ -435,12 +460,22 @@ if (product.faqs.length > 0) {
             ? `pacchetto ${pkg.label}`
             : 'scegli un pacchetto';
       }
-      if ($duration) {
-        $duration.textContent = pkg ? pkg.detail : 'scegli un pacchetto';
+      // The disclosure is collapsed most of the time, so the field has to say
+      // what is chosen.
+      if ($pkgTitle) $pkgTitle.textContent = pkg ? pkg.label : 'Scegli un pacchetto';
+
+      /* The return date is the overview's first row, not a sub-line of the date
+         field: the customer did not enter it, the package derived it. The row
+         is absent until both halves of that derivation exist. */
+      if ($periodRow && $periodEnd) {
+        const period =
+          pkg && $start?.value
+            ? derivePeriod($start.value, $time?.value ?? '', pkg.unit, pkg.duration)
+            : null;
+        $periodRow.hidden = period === null;
+        $periodEnd.textContent = period ? dateFmt.format(new Date(`${period.endDate}T12:00`)) : '';
       }
-      if ($endDisplay) {
-        $endDisplay.textContent = period ? showDate(period.endDate, period.endTime) : '—';
-      }
+
       // The server refuses a rental with no package or no start, so the CTA says
       // so here rather than letting the customer meet that as a failure later.
       if ($submit) $submit.disabled = rental && (!pkg || !$start?.value);
@@ -463,8 +498,26 @@ if (product.faqs.length > 0) {
       }
     }
 
-    form.addEventListener('change', update);
+    // Choosing a package closes the disclosure — the choice is made, and leaving
+    // it open hides the panel underneath it.
+    form.addEventListener('change', (event) => {
+      const target = event.target as HTMLElement;
+      if (target.dataset?.estKind === 'package' && $pkgToggle) $pkgToggle.checked = false;
+      update();
+    });
     form.addEventListener('input', update);
+
+    // A CSS disclosure has no dismiss of its own.
+    if ($pkgToggle) {
+      const wrapper = $pkgToggle.closest('div');
+      document.addEventListener('click', (event) => {
+        if (!$pkgToggle.checked) return;
+        if (wrapper && !wrapper.contains(event.target as Node)) $pkgToggle.checked = false;
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') $pkgToggle.checked = false;
+      });
+    }
 
     // --- calendar ----------------------------------------------------------
     /*
@@ -480,23 +533,18 @@ if (product.faqs.length > 0) {
      */
     const block = document.querySelector<HTMLElement>('[data-date-block]');
     const native = block?.querySelector<HTMLElement>('[data-date-native]');
+    const calBlock = block?.querySelector<HTMLElement>('[data-cal-block]');
     const trigger = block?.querySelector<HTMLButtonElement>('[data-cal-trigger]');
     const pop = block?.querySelector<HTMLElement>('[data-cal-pop]');
     const grid = block?.querySelector<HTMLElement>('[data-cal-grid]');
 
-    if (block && native && trigger && pop && grid && $start) {
+    if (block && native && calBlock && trigger && pop && grid && $start) {
       const cellClass =
         block.querySelector<HTMLElement>('[data-cal-cell-class]')?.dataset.calCellClass ?? '';
       const $calTitle = block.querySelector('[data-cal-title]');
       const $calStart = block.querySelector('[data-cal-start]');
-      const $calEnd = block.querySelector('[data-cal-end]');
-      const $calDuration = block.querySelector('[data-cal-duration]');
 
-      const longFmt = new Intl.DateTimeFormat('it-IT', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-      });
+      const longFmt = dateFmt;
       const monthFmt = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
       const fullFmt = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full' });
 
@@ -536,9 +584,7 @@ if (product.faqs.length > 0) {
           $calTitle.textContent = title.charAt(0).toUpperCase() + title.slice(1);
         }
         if ($calStart)
-          $calStart.textContent = start ? longFmt.format(fromIso(start)) : 'Da scegliere';
-        if ($calEnd) $calEnd.textContent = end ? longFmt.format(fromIso(end)) : '—';
-        if ($calDuration) $calDuration.textContent = $duration?.textContent ?? '';
+          $calStart.textContent = start ? longFmt.format(fromIso(start)) : 'Scegli la data';
 
         // Monday-first: JS getDay() is Sunday-first, so rotate by 6 mod 7.
         const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
@@ -613,7 +659,7 @@ if (product.faqs.length > 0) {
 
       // Only now is the enhanced control real — swap it in.
       native.hidden = true;
-      trigger.hidden = false;
+      calBlock.hidden = false;
       paint();
     }
 

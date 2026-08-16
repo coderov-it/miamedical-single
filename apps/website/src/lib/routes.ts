@@ -36,17 +36,47 @@ export const routes = {
 
 export type RouteKey = keyof typeof routes;
 
-export function productPath(slug: string): string {
-  return `${routes.product}${slug}/`;
+/**
+ * The home search's two answers — where, and from when — carried through
+ * browsing. They are NOT filters: the catalogue echoes them back and the
+ * product page prints the city and prefills its start date from them. They ride
+ * the query string because the storefront is server-rendered and has no session
+ * to keep them in, and every browse link has to hand them on or the funnel
+ * forgets what the customer already told it.
+ *
+ * `duration` rides along for the catalogue's sentence only. It cannot reach the
+ * product page: a rental is priced by a package now, and "30 giorni" from the
+ * home selector is not one of this product's packages.
+ */
+export interface BrowseContext {
+  area?: string;
+  from?: string;
+  duration?: string;
+}
+
+function appendContext(search: URLSearchParams, context: BrowseContext): void {
+  if (context.area) search.set('area', context.area);
+  if (context.from) search.set('from', context.from);
+  if (context.duration) search.set('duration', context.duration);
+}
+
+/**
+ * A product's page. The context is for BROWSE links only — the canonical URL
+ * and the JSON-LD `url` must stay bare, or every carried area mints a duplicate
+ * of the same product in the index.
+ */
+export function productPath(slug: string, context: BrowseContext = {}): string {
+  const search = new URLSearchParams();
+  appendContext(search, context);
+  const qs = search.toString();
+  return qs ? `${routes.product}${slug}/?${qs}` : `${routes.product}${slug}/`;
 }
 
 export function blogPostPath(slug: string): string {
   return `${routes.blog}${slug}/`;
 }
 
-export function blogPath(
-  params: { categoria?: string; page?: number } = {},
-): string {
+export function blogPath(params: { categoria?: string; page?: number } = {}): string {
   const search = new URLSearchParams();
   if (params.categoria) search.set('categoria', params.categoria);
   if (params.page && params.page > 1) search.set('page', String(params.page));
@@ -56,13 +86,14 @@ export function blogPath(
 
 /** Catalogue URL with the browse state preserved. */
 export function catalogPath(
-  params: { q?: string; category?: string; sort?: string; page?: number } = {},
+  params: { q?: string; category?: string; sort?: string; page?: number } & BrowseContext = {},
 ): string {
   const search = new URLSearchParams();
   if (params.q) search.set('q', params.q);
   if (params.category) search.set('category', params.category);
   if (params.sort) search.set('sort', params.sort);
   if (params.page && params.page > 1) search.set('page', String(params.page));
+  appendContext(search, params);
   const qs = search.toString();
   return qs ? `${routes.catalog}?${qs}` : routes.catalog;
 }

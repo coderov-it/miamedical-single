@@ -14,7 +14,7 @@
 import { perUnitLabel } from '@mia/i18n';
 import { formatMoney, mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
-import { productPath } from '~/lib/routes';
+import { type BrowseContext, productPath } from '~/lib/routes';
 
 interface Props {
   product: ProductSummary;
@@ -24,11 +24,13 @@ interface Props {
   headingLevel?: 2 | 3;
   /** Optional shorter label for constrained promotional rails. */
   displayTitle?: string;
+  /** Where and when, from the home search — handed on so the funnel remembers. */
+  context?: BrowseContext;
 }
 
-const { product, priority = false, headingLevel = 3, displayTitle } = Astro.props;
+const { product, priority = false, headingLevel = 3, displayTitle, context = {} } = Astro.props;
 
-const href = productPath(product.slug);
+const href = productPath(product.slug, context);
 const image = product.thumbnail;
 const out = !product.inStock;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
