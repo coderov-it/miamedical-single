@@ -6,7 +6,7 @@ packages:
 # Reference from any package.json with "catalog:".
 catalog:
   # --- build / tooling ---
-  turbo: ^2.10.8
+  turbo: ^2.10.11
   typescript: ^6.0.3
   vite: ^8.2.0
   '@types/node': ^26.1.2
@@ -85,13 +85,19 @@ catalog:
   '@aws-sdk/client-sesv2': ^3.700.0
   sharp: ^0.35.3
 
-
 minimumReleaseAgeExclude:
   - '@astrojs/node@11.1.0'
   - astro@7.2.0
   - tsx@4.23.9
   - '@lucide/svelte@1.29.0'
   - eslint@10.8.1
+  - '@turbo/darwin-64@2.10.11'
+  - '@turbo/darwin-arm64@2.10.11'
+  - '@turbo/linux-64@2.10.11'
+  - '@turbo/linux-arm64@2.10.11'
+  - '@turbo/windows-64@2.10.11'
+  - '@turbo/windows-arm64@2.10.11'
+  - turbo@2.10.11
 
 # Postinstall scripts are blocked by default; approve them explicitly here.
 allowBuilds:
