@@ -58,4 +58,9 @@ export default defineConfig({
      */
     plugins: [tailwindcss()],
   },
+
+  server: {
+    port: parseInt((process.env.WEB_PORT as string) || '4321'),
+    host: (process.env.WEB_HOST as string) || '0.0.0.0',
+  },
 });
