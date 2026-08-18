@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — blueprint · M.i.a. Medical Italia</title>
+    <!--
+      LIVING BLUEPRINT of the NEW homepage, one section per session.
+      Skin (owner brief, 2026-08-17): premium editorial minimalism — Inter,
+      navy ink on white, pale blue-gray surfaces, near-invisible borders, one
+      whisper of a shadow, accent only on primary actions.
+      Content layout (owner wireframe, rewound 2026-08-17): two-column hero —
+      copy + one button left, featured-product showcase right (dots on the
+      image, arrows at its sides, price + CTA row) — then the booking bar
+      under its own arrowed heading.
+      Next sections land above the #next-sections marker. Photos come from
+      the live site; the font loads only when the repo is served over http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        /* palette from the owner's brief — restrained, cool, navy-led */
+        --color-ink: #0b1220; /* 17.9:1 on white */
+        --color-ink-soft: #5e6878; /* 5.9:1 on white, 5.4:1 on the surface */
+        --color-surface: #f0f2fa; /* the pale blue-gray stage */
+        --color-surface-2: #f5f6fb; /* quieter step, hovers */
+        --color-line: #e7e9ef; /* barely-there border */
+        --color-accent: #3846b1; /* the one indigo — CTAs and active states */
+        --color-accent-deep: #262d97;
+        --color-live: #12924f; /* availability dots */
+        --color-phone-tint: #e1f3e8; /* the phone pill — green means "someone answers" */
+        --color-phone-ink: #0b5c39; /* 6.2:1 on the tint */
+
+        --radius-stage: 32px;
+        --radius-bar: 24px;
+        --radius-control: 16px;
+
+        /* one whisper of a shadow, used once — the search bar */
+        --shadow-whisper: 0 18px 44px rgb(11 18 32 / 0.06);
+
+        --container: 1280px;
+        --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      }
+
+      /* ============ base ============ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--color-ink);
+        font-family: var(--font-ui);
+        font-size: 1.0625rem; /* 17px */
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      a {
+        color: inherit;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      .container {
+        max-width: var(--container);
+        margin-inline: auto;
+        width: 100%;
+        padding-inline: 24px;
+      }
+      @media (min-width: 760px) {
+        .container {
+          padding-inline: 56px;
+        }
+      }
+
+      .btn-accent {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 54px;
+        padding-inline: 32px;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .btn-accent:hover {
+        background: var(--color-accent-deep);
+      }
+
+      /* ============ header — quiet, typographic ============ */
+      .site-head {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #fff;
+        border-bottom: 1px solid var(--color-line);
+      }
+      .head-row {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        min-height: 76px;
+      }
+      .brand {
+        flex: none;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+      .head-nav {
+        display: none;
+        align-items: center;
+        gap: 34px;
+        margin-inline: 36px auto;
+      }
+      .head-nav a {
+        font-size: 0.9688rem;
+        font-weight: 550;
+        color: var(--color-ink-soft);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .head-nav a:hover {
+        color: var(--color-ink);
+      }
+      .head-nav a[aria-current='page'] {
+        color: var(--color-ink);
+        font-weight: 700;
+      }
+      .head-tools {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        margin-left: auto;
+      }
+      .phone-quiet {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 44px;
+        padding-inline: 15px;
+        border-radius: 12px;
+        background: var(--color-phone-tint);
+        color: var(--color-phone-ink);
+        font-size: 1rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .phone-quiet:hover {
+        background: #d3ecdd;
+      }
+      .phone-glyph {
+        flex: none;
+      }
+      .head-icon {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        color: var(--color-ink);
+      }
+      .head-icon:hover {
+        color: var(--color-accent);
+      }
+      .cart-count {
+        position: absolute;
+        top: 0;
+        right: -3px;
+        display: grid;
+        place-items: center;
+        min-width: 18px;
+        height: 18px;
+        padding-inline: 4px;
+        border-radius: 999px;
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 0.6563rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      @media (min-width: 1100px) {
+        .head-nav {
+          display: flex;
+        }
+      }
+      @media (max-width: 559px) {
+        .phone-quiet span {
+          display: none;
+        }
+        .phone-quiet {
+          width: 44px;
+          justify-content: center;
+          padding-inline: 0;
+        }
+      }
+
+      /* ============ hero — copy left, showcase right ============ */
+      .hero {
+        padding-top: 56px;
+      }
+      .hero-grid {
+        display: grid;
+        align-items: center;
+        gap: 44px;
+      }
+      .hero-kicker {
+        margin-bottom: 18px;
+        font-size: 0.8125rem;
+        font-weight: 650;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--color-ink-soft);
+      }
+      .hero-display {
+        font-size: clamp(2.5rem, 4.6vw, 3.875rem);
+        line-height: 1.04;
+        font-weight: 550;
+        letter-spacing: -0.032em;
+      }
+      .hero-display strong {
+        font-weight: 760;
+      }
+      .hero-sub {
+        max-width: 54ch;
+        margin-top: 22px;
+        font-size: 1.0625rem;
+        line-height: 1.65;
+        color: var(--color-ink-soft);
+      }
+      .hero-cta {
+        margin-top: 32px;
+      }
+      @media (min-width: 1100px) {
+        .hero {
+          padding-top: 72px;
+        }
+        .hero-grid {
+          grid-template-columns: minmax(0, 1fr) minmax(440px, 0.95fr);
+          column-gap: 72px;
+        }
+      }
+
+      /* ============ the showcase — one pale surface, no box-in-box ============ */
+      .spot {
+        position: relative;
+        padding: 22px 22px 26px;
+        border-radius: var(--radius-stage);
+        background: var(--color-surface);
+      }
+      .spot-stage {
+        position: relative;
+      }
+      .spot-window {
+        overflow: hidden;
+        border-radius: 20px;
+      }
+      .spot-track {
+        display: flex;
+        aspect-ratio: 4 / 3;
+        transition: transform 0.35s ease-out;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spot-track {
+          transition: none;
+        }
+      }
+      .spot-track li {
+        min-width: 100%;
+        display: grid;
+        place-items: center;
+        visibility: hidden;
+        /* the sliding transform isolates blending, so each slide carries the
+           surface color itself — multiply then melts the photo's white into it */
+        background: var(--color-surface);
+      }
+      .spot-track img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 10px 18px 34px; /* the dots live in the bottom lane */
+        mix-blend-mode: multiply;
+      }
+      .arrow-pair {
+        position: absolute;
+        inset: 0;
+        display: none;
+        pointer-events: none;
+      }
+      .arrow-pair label {
+        pointer-events: auto;
+        position: absolute;
+        top: 50%;
+        translate: 0 -50%;
+        display: grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--color-ink);
+        cursor: pointer;
+      }
+      .arrow-pair label:hover {
+        border-color: var(--color-ink-soft);
+      }
+      .arrow-pair [data-direction='previous'] {
+        left: -6px;
+      }
+      .arrow-pair [data-direction='next'] {
+        right: -6px;
+      }
+      .spot-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        translate: -50% 0;
+        display: flex;
+        gap: 8px;
+      }
+      .spot-dots label {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgb(11 18 32 / 0.18);
+        cursor: pointer;
+        transition: width 0.2s ease-out;
+      }
+
+      .meta-deck {
+        display: grid;
+        margin-top: 20px;
+      }
+      .meta-deck > div {
+        grid-area: 1 / 1;
+        visibility: hidden;
+        padding-inline: 6px;
+      }
+      .spot-name {
+        display: block;
+        font-size: 1.1875rem;
+        line-height: 1.35;
+        font-weight: 650;
+        text-decoration: none;
+      }
+      .spot-name:hover {
+        color: var(--color-accent);
+      }
+      .spot-offer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 16px;
+        margin-top: 14px;
+      }
+      .spot-price {
+        font-size: 1rem;
+        color: var(--color-ink-soft);
+      }
+      .spot-price strong {
+        margin-right: 5px;
+        font-size: 2.125rem;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-ink);
+      }
+
+      /* radio state → track, slide, meta, arrows, dots, focus */
+      #spot-1:checked ~ .spot-stage .spot-track {
+        transform: translateX(0);
+      }
+      #spot-2:checked ~ .spot-stage .spot-track {
+        transform: translateX(-100%);
+      }
+      #spot-3:checked ~ .spot-stage .spot-track {
+        transform: translateX(-200%);
+      }
+      #spot-1:checked ~ .spot-stage .spot-track li:nth-child(1),
+      #spot-2:checked ~ .spot-stage .spot-track li:nth-child(2),
+      #spot-3:checked ~ .spot-stage .spot-track li:nth-child(3) {
+        visibility: visible;
+      }
+      #spot-1:checked ~ .meta-deck > div:nth-child(1),
+      #spot-2:checked ~ .meta-deck > div:nth-child(2),
+      #spot-3:checked ~ .meta-deck > div:nth-child(3) {
+        visibility: visible;
+      }
+      #spot-1:checked ~ .spot-stage .arrow-pair[data-for='1'],
+      #spot-2:checked ~ .spot-stage .arrow-pair[data-for='2'],
+      #spot-3:checked ~ .spot-stage .arrow-pair[data-for='3'] {
+        display: block;
+      }
+      #spot-1:checked ~ .spot-stage .spot-dots label[for='spot-1'],
+      #spot-2:checked ~ .spot-stage .spot-dots label[for='spot-2'],
+      #spot-3:checked ~ .spot-stage .spot-dots label[for='spot-3'] {
+        width: 22px;
+        background: var(--color-accent);
+      }
+      .spot input:focus-visible ~ .spot-stage .spot-window {
+        outline: 3px solid var(--color-accent);
+        outline-offset: 3px;
+      }
+
+      /* the page's section heading — a sentence with a long arrow */
+      .section-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        font-size: clamp(1.5rem, 2.4vw, 1.875rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .section-title svg {
+        flex: none;
+        margin-top: 3px;
+      }
+
+      /* ============ booking — arrowed heading, one segmented bar ============ */
+      .booking {
+        padding-block: 88px 96px;
+      }
+      .search-bar {
+        display: grid;
+        margin-top: 24px;
+        padding: 8px;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-bar);
+        background: #fff;
+        box-shadow: var(--shadow-whisper);
+        text-align: left;
+      }
+      .bar-cell {
+        display: grid;
+        align-content: center;
+        gap: 3px;
+        padding: 10px 20px;
+      }
+      .bar-label {
+        font-size: 0.75rem;
+        font-weight: 650;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--color-ink-soft);
+      }
+      .bar-cell input,
+      .bar-cell select {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bar-cell :focus-visible {
+        outline: none; /* the bar itself rings on focus */
+      }
+      .search-bar:focus-within {
+        border-color: var(--color-accent);
+      }
+      .bar-cell input::placeholder {
+        color: var(--color-ink-soft);
+        font-weight: 500;
+        opacity: 1;
+      }
+      .bar-cell select {
+        appearance: none;
+        padding-right: 24px;
+      }
+      .bar-cell select:invalid {
+        color: var(--color-ink-soft);
+        font-weight: 500;
+      }
+      .select-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .select-wrap svg {
+        position: absolute;
+        right: 2px;
+        pointer-events: none;
+        color: var(--color-ink-soft);
+      }
+      .bar-submit {
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        padding-inline: 40px;
+        min-height: 58px;
+      }
+      .bar-submit:hover {
+        background: var(--color-accent-deep);
+      }
+      @media (min-width: 1020px) {
+        .search-bar {
+          grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+        }
+        .bar-cell + .bar-cell {
+          border-left: 1px solid var(--color-line);
+        }
+      }
+      @media (max-width: 1019px) {
+        .bar-cell + .bar-cell {
+          border-top: 1px solid var(--color-line);
+        }
+        .bar-submit {
+          margin-top: 8px;
+        }
+      }
+
+      /* ============ categories — white section, one hairline, bounded cards ============ */
+      .categories {
+        padding-block: 72px 84px;
+        border-top: 1px solid var(--color-line); /* the clear seam under the hero block */
+      }
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 30px;
+      }
+      @media (min-width: 1020px) {
+        .categories {
+          padding-block: 84px 96px;
+        }
+        .category-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+      /* each category is its own quiet card: one hairline, white body */
+      .category-tile {
+        display: block;
+        padding: 12px 12px 18px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        background: #fff;
+        text-decoration: none;
+      }
+      .category-tile:hover {
+        border-color: #ccd2e2;
+      }
+      .cat-media {
+        /* a block, not a grid: the img's percentage height needs a definite
+           base, and a lone auto grid row is indefinite */
+        display: block;
+        height: 136px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--color-surface-2); /* the pale well the photo sits in */
+        margin-bottom: 14px;
+      }
+      .cat-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply; /* melts the photo's white into the well */
+      }
+      .cat-name {
+        padding-inline: 8px;
+        font-size: 1.0625rem;
+        line-height: 1.35;
+        font-weight: 650;
+      }
+      .category-tile:hover .cat-name {
+        color: var(--color-accent);
+      }
+      .cat-count {
+        margin-top: 3px;
+        padding-inline: 8px;
+        font-size: 0.875rem;
+        color: var(--color-ink-soft);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ============ trending — a whisper-gray band, white cards on top ============ */
+      .trending {
+        padding-block: 72px 96px;
+        border-top: 1px solid var(--color-line);
+        /* neutral gray, one step off white — tells this section apart from
+           the categories without becoming a colored band */
+        background: #f6f7f9;
+      }
+      .section-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px 32px;
+      }
+      .section-link {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: var(--color-ink);
+        text-decoration: none;
+        border-bottom: 1px solid var(--color-line);
+        padding-bottom: 2px;
+        white-space: nowrap;
+      }
+      .section-link:hover {
+        color: var(--color-accent);
+        border-color: currentColor;
+      }
+      .product-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 30px;
+      }
+      @media (min-width: 640px) {
+        .product-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (min-width: 1100px) {
+        .product-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+      .product-card {
+        display: flex;
+        flex-direction: column;
+        padding: 12px 12px 16px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        background: #fff;
+      }
+      .product-card:hover {
+        border-color: #ccd2e2;
+      }
+      .pc-top {
+        display: block;
+        text-decoration: none;
+      }
+      .pc-media {
+        /* a block, not a grid — same percentage-height lesson as .cat-media */
+        display: block;
+        height: 178px;
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--color-surface-2);
+        margin-bottom: 16px;
+      }
+      .pc-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+      }
+      .pc-name {
+        padding-inline: 8px;
+        font-size: 1.0625rem;
+        line-height: 1.35;
+        font-weight: 650;
+      }
+      .pc-top:hover .pc-name {
+        color: var(--color-accent);
+      }
+      .pc-availability {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 7px;
+        padding-inline: 8px;
+        font-size: 0.875rem;
+        color: var(--color-ink-soft);
+      }
+      .pc-availability::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        flex: none;
+        border-radius: 999px;
+        background: var(--color-live);
+      }
+      .pc-price {
+        margin-block: 12px 16px;
+        padding-inline: 8px;
+        font-size: 0.9375rem;
+        color: var(--color-ink-soft);
+      }
+      .pc-price strong {
+        margin-right: 5px;
+        font-size: 1.375rem;
+        font-weight: 750;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-ink);
+      }
+      /* the card's action: a soft accent tint at rest, the full theme on hover */
+      .btn-quiet {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        margin-top: auto; /* bottom-aligns the action across unequal names */
+        border: 0;
+        border-radius: 12px;
+        background: #eef0fb; /* the accent's palest step — 7:1 with the text */
+        color: var(--color-accent);
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .btn-quiet:hover {
+        background: var(--color-accent);
+        color: #fff;
+      }
+
+      /* ============ blueprint end marker ============ */
+      .next-sections {
+        padding-block: 130px;
+        text-align: center;
+      }
+      .next-sections p {
+        font-size: 0.8125rem;
+        font-weight: 650;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-ink-soft);
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="site-head">
+      <div class="container head-row">
+        <a class="brand" href="/">MIA-MEDICAL</a>
+
+        <nav class="head-nav" aria-label="Navigazione principale">
+          <a href="/" aria-current="page">Home</a>
+          <a href="/catalogo-noleggio/">Catalogo noleggio</a>
+          <a href="/cerca/">Sfoglia</a>
+          <a href="/blog/">Blog</a>
+          <a href="/assistenza/">Contatti</a>
+        </nav>
+
+        <div class="head-tools">
+          <a
+            class="phone-quiet"
+            href="tel:+39800031962"
+            aria-label="Chiama il numero verde 800 031962, gratuito"
+          >
+            <svg
+              class="phone-glyph"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+              ></path>
+            </svg>
+            <span>800 031962</span>
+          </a>
+
+          <a class="head-icon" href="/carrello/" aria-label="Apri il carrello — più di 9 ausili">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4"></path>
+              <circle cx="10.5" cy="20" r="1.4"></circle>
+              <circle cx="17.5" cy="20" r="1.4"></circle>
+            </svg>
+            <span class="cart-count" aria-hidden="true">9+</span>
+          </a>
+
+          <a class="head-icon" href="/area-clienti/" aria-label="Area clienti">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="3.6"></circle>
+              <path d="M4.6 20a7.4 7.4 0 0 1 14.8 0"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="home-title">
+        <div class="container hero-grid">
+          <div>
+            <p class="hero-kicker">Noleggio medicale · Roma e Firenze</p>
+
+            <h1 class="hero-display" id="home-title">
+              Noleggia<br />
+              l’ausilio giusto,<br />
+              <strong>senza pensieri.</strong>
+            </h1>
+
+            <p class="hero-sub">
+              Carrozzine, letti ortopedici, scooter e molto altro: scegli quando iniziare e al
+              resto pensiamo noi. Consegna a domicilio in 24–48 ore, prodotti sanificati e
+              assistenza con persone vere.
+            </p>
+
+            <p class="hero-cta">
+              <a class="btn-accent" href="/catalogo-noleggio/">Scopri il catalogo</a>
+            </p>
+          </div>
+
+          <section class="spot" aria-labelledby="spot-label">
+            <h2 class="visually-hidden" id="spot-label">Prodotti in evidenza</h2>
+            <p class="visually-hidden" id="spot-instructions">
+              Usa i tasti freccia destra e sinistra per cambiare prodotto.
+            </p>
+
+            <input
+              type="radio"
+              name="featured-product"
+              id="spot-1"
+              class="visually-hidden"
+              checked
+              aria-label="Mostra Carrozzina pieghevole ad autospinta, prodotto 1 di 3"
+              aria-describedby="spot-instructions"
+            />
+            <input
+              type="radio"
+              name="featured-product"
+              id="spot-2"
+              class="visually-hidden"
+              aria-label="Mostra Letto ortopedico elettrico, prodotto 2 di 3"
+              aria-describedby="spot-instructions"
+            />
+            <input
+              type="radio"
+              name="featured-product"
+              id="spot-3"
+              class="visually-hidden"
+              aria-label="Mostra Scooter elettrico per anziani, prodotto 3 di 3"
+              aria-describedby="spot-instructions"
+            />
+
+            <div class="spot-stage">
+              <div class="spot-window">
+                <ul class="spot-track">
+                  <li>
+                    <img
+                      src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                      alt="Carrozzina pieghevole ad autospinta"
+                      loading="eager"
+                      fetchpriority="high"
+                    />
+                  </li>
+                  <li>
+                    <img
+                      src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                      alt="Letto ortopedico elettrico"
+                      loading="lazy"
+                    />
+                  </li>
+                  <li>
+                    <img
+                      src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png"
+                      alt="Scooter elettrico per anziani"
+                      loading="lazy"
+                    />
+                  </li>
+                </ul>
+              </div>
+
+              <div class="arrow-pair" data-for="1">
+                <label for="spot-3" data-direction="previous" aria-label="Prodotto precedente">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>
+                </label>
+                <label for="spot-2" data-direction="next" aria-label="Prodotto successivo">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg>
+                </label>
+              </div>
+              <div class="arrow-pair" data-for="2">
+                <label for="spot-1" data-direction="previous" aria-label="Prodotto precedente">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>
+                </label>
+                <label for="spot-3" data-direction="next" aria-label="Prodotto successivo">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg>
+                </label>
+              </div>
+              <div class="arrow-pair" data-for="3">
+                <label for="spot-2" data-direction="previous" aria-label="Prodotto precedente">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>
+                </label>
+                <label for="spot-1" data-direction="next" aria-label="Prodotto successivo">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg>
+                </label>
+              </div>
+
+              <div class="spot-dots" aria-hidden="true">
+                <label for="spot-1"></label>
+                <label for="spot-2"></label>
+                <label for="spot-3"></label>
+              </div>
+            </div>
+
+            <div class="meta-deck">
+              <div>
+                <a class="spot-name" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                  Carrozzina pieghevole ad autospinta
+                </a>
+                <div class="spot-offer">
+                  <p class="spot-price"><strong>4,90 €</strong> al giorno</p>
+                  <a class="btn-accent" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                    Noleggia ora
+                  </a>
+                </div>
+              </div>
+              <div>
+                <a class="spot-name" href="/prodotto/letto-ortopedico-elettrico/">
+                  Letto ortopedico elettrico
+                </a>
+                <div class="spot-offer">
+                  <p class="spot-price"><strong>8,90 €</strong> al giorno</p>
+                  <a class="btn-accent" href="/prodotto/letto-ortopedico-elettrico/">
+                    Noleggia ora
+                  </a>
+                </div>
+              </div>
+              <div>
+                <a class="spot-name" href="/prodotto/scooter-elettrico-tommy/">
+                  Scooter elettrico per anziani
+                </a>
+                <div class="spot-offer">
+                  <p class="spot-price"><strong>12,90 €</strong> al giorno</p>
+                  <a class="btn-accent" href="/prodotto/scooter-elettrico-tommy/">
+                    Noleggia ora
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="booking" aria-labelledby="booking-title">
+        <div class="container">
+          <h2 class="section-title" id="booking-title">
+            Prenota un ausilio.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+
+          <form
+            class="search-bar"
+            method="get"
+            action="/catalogo-noleggio/"
+            role="search"
+            aria-label="Cerca disponibilità per un ausilio a noleggio"
+          >
+            <div class="bar-cell">
+              <label class="bar-label" for="booking-product">Cerca per nome</label>
+              <input
+                id="booking-product"
+                name="q"
+                type="search"
+                autocomplete="off"
+                placeholder="es. Carrozzina"
+              />
+            </div>
+
+            <div class="bar-cell">
+              <label class="bar-label" for="booking-area">Zona</label>
+              <div class="select-wrap">
+                <select id="booking-area" name="area" required>
+                  <option value="" selected disabled>Scegli la zona</option>
+                  <option value="rm">Roma e provincia</option>
+                  <option value="fi">Firenze e provincia</option>
+                  <option value="other">Altra zona</option>
+                </select>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m7 9.5 5 5 5-5"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="bar-cell">
+              <label class="bar-label" for="booking-start">Data di prenotazione</label>
+              <input id="booking-start" name="from" type="date" autocomplete="off" />
+            </div>
+
+            <button class="bar-submit" type="submit">Prenota ora</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="categories" aria-labelledby="categories-title">
+        <div class="container">
+          <h2 class="section-title" id="categories-title">
+            Esplora per categoria.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+
+          <ul class="category-grid">
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=carrozzine">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Carrozzine</h3>
+                <p class="cat-count">14 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=letti-ortopedici">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Letti ortopedici</h3>
+                <p class="cat-count">9 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=scooter-elettrici">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Scooter elettrici</h3>
+                <p class="cat-count">7 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=deambulatori">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Deambulatori e rollator</h3>
+                <p class="cat-count">11 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=materassi-antidecubito">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/Materasso-antidecubito-Polyplot-Wimed.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Materassi antidecubito</h3>
+                <p class="cat-count">6 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=ausili-bagno">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/comoda-vermeiren.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Ausili da bagno</h3>
+                <p class="cat-count">8 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=sollevatori">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELETTRICO-.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Sollevatori</h3>
+                <p class="cat-count">5 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=montascale">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/montascale-elettrico-2-Piccola.jpeg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Montascale</h3>
+                <p class="cat-count">4 prodotti</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="trending" aria-labelledby="trending-title">
+        <div class="container">
+          <div class="section-head">
+            <h2 class="section-title" id="trending-title">
+              I più noleggiati.
+              <svg
+                width="44"
+                height="16"
+                viewBox="0 0 44 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+              </svg>
+            </h2>
+            <a class="section-link" href="/catalogo-noleggio/">Vedi tutto il catalogo →</a>
+          </div>
+
+          <ul class="product-grid">
+            <li class="product-card">
+              <a class="pc-top" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                <span class="pc-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                    alt="Carrozzina pieghevole ad autospinta"
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="pc-name">Carrozzina pieghevole ad autospinta</h3>
+              </a>
+              <p class="pc-availability">Disponibile · 24–48 ore</p>
+              <p class="pc-price"><strong>4,90 €</strong> al giorno</p>
+              <a class="btn-quiet" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                Noleggia
+              </a>
+            </li>
+            <li class="product-card">
+              <a class="pc-top" href="/prodotto/letto-ortopedico-elettrico/">
+                <span class="pc-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                    alt="Letto ortopedico elettrico"
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="pc-name">Letto ortopedico elettrico</h3>
+              </a>
+              <p class="pc-availability">Disponibile · 24–48 ore</p>
+              <p class="pc-price"><strong>8,90 €</strong> al giorno</p>
+              <a class="btn-quiet" href="/prodotto/letto-ortopedico-elettrico/">Noleggia</a>
+            </li>
+            <li class="product-card">
+              <a class="pc-top" href="/prodotto/scooter-elettrico-tommy/">
+                <span class="pc-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png"
+                    alt="Scooter elettrico per anziani"
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="pc-name">Scooter elettrico per anziani</h3>
+              </a>
+              <p class="pc-availability">Disponibile · 24–48 ore</p>
+              <p class="pc-price"><strong>12,90 €</strong> al giorno</p>
+              <a class="btn-quiet" href="/prodotto/scooter-elettrico-tommy/">Noleggia</a>
+            </li>
+            <li class="product-card">
+              <a class="pc-top" href="/prodotto/deambulatore-rollator/">
+                <span class="pc-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg"
+                    alt="Deambulatore rollator pieghevole"
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="pc-name">Deambulatore rollator pieghevole</h3>
+              </a>
+              <p class="pc-availability">Disponibile · 24–48 ore</p>
+              <p class="pc-price"><strong>3,90 €</strong> al giorno</p>
+              <a class="btn-quiet" href="/prodotto/deambulatore-rollator/">Noleggia</a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- BLUEPRINT: append the next home section ABOVE this marker. -->
+      <section class="next-sections">
+        <p>Altre sezioni in arrivo</p>
+      </section>
+    </main>
+
+    <script>
+      // A rental cannot start in the past: floor the date field at today.
+      document.getElementById('booking-start').min = new Date().toLocaleDateString('sv');
+    </script>
+  </body>
+</html>

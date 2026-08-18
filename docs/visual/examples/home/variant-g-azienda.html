@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Variante G · Azienda — la home di un’azienda seria</title>
+    <!--
+      VARIANT G — "AZIENDA". Answer to the owner's verdict on variant F
+      ("toy website"): this is a professional company site, not a minimal
+      landing.
+
+      What changed, point by point:
+      - COLOUR SYSTEM, not one flat blue: a ramp derived from the brand
+        accent — navy footer (#191e63), deep band (#262d97), primary
+        (#3846b1), washes (#f2f4fb / #e9edf8) and blue-tinted hairlines —
+        so backgrounds, borders and surfaces blend with the brand instead
+        of sitting next to it in flat grey.
+      - NAVBAR WITH REAL CONTENTS: slim utility topbar (zones, hours,
+        phone, WhatsApp) + main bar with logo, section links, Area clienti,
+        cart and one CTA.
+      - BOOKING FORM IN THE HERO: the real search form (Ausilio / Zona /
+        Da quando / Per quanto) as a white card beside the pitch — the
+        classic professional-services hero.
+      - ORGANIZATION AND RHYTHM: white and washed bands alternate; every
+        section is head + content with the same 84px cadence; the company
+        facts (sedi, orari, zone servite) get their own block.
+
+      Copy is the storefront's real copy; photos are the live site's.
+      Type floor 16px. Fonts load over http (serve the repo root).
+    -->
+    <style>
+      @font-face {
+        font-family: 'Instrument Sans';
+        font-style: normal;
+        font-weight: 400 700;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/instrument-sans-variable-latin.woff2')
+          format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400 800;
+        font-display: swap;
+        src: url('../../../../apps/website/public/fonts/inter-variable-latin.woff2')
+          format('woff2');
+      }
+
+      :root {
+        --ink: #26272e;
+        --ink-2: #4f5159;
+        --ink-soft: #82848d;
+
+        /* Brand ramp — every neutral leans toward the brand hue. */
+        --navy: #191e63; /* footer */
+        --deep: #262d97; /* closing band, icon accents */
+        --primary: #3846b1; /* actions, links */
+        --primary-hover: #2f3c9e;
+        --wash: #f2f4fb; /* section bands */
+        --wash-2: #e9edf8; /* wells inside bands, hero gradient start */
+        --hair: #e2e5f0; /* tinted hairline */
+        --hair-strong: #ccd1e4;
+
+        --ok: #0e6b41;
+        --star: #d99a2b;
+
+        --shadow-card: 0 1px 2px rgb(25 30 99 / 0.06);
+        --shadow-form: 0 2px 6px rgb(25 30 99 / 0.06), 0 22px 54px rgb(25 30 99 / 0.12);
+
+        --radius: 14px;
+
+        --font: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      img,
+      svg {
+        display: block;
+        max-width: 100%;
+      }
+      ul,
+      ol {
+        list-style: none;
+      }
+
+      body {
+        font-family: var(--font);
+        font-size: 1rem;
+        line-height: 1.55;
+        color: var(--ink);
+        background: #fff;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      a:focus-visible,
+      button:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: 2px;
+        border-radius: 8px;
+      }
+      strong {
+        font-weight: 600;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      /* Longhand on purpose: a `padding:` shorthand here would silently zero
+         every section's padding-top (class beats element selector). */
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding-left: 28px;
+        padding-right: 28px;
+      }
+
+      /* ------------------------------------------------------------ navbar -- */
+
+      .nav {
+        border-bottom: 1px solid var(--hair);
+        background: #fff;
+      }
+      .nav .wrap {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        min-height: 74px;
+      }
+      .logo {
+        font-weight: 700;
+        font-size: 1.375rem;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+      }
+      .logo em {
+        font-style: normal;
+        color: var(--primary);
+      }
+      .nav-links {
+        display: flex;
+        gap: 4px;
+      }
+      .nav-links a {
+        color: var(--ink-2);
+        font-weight: 500;
+        padding: 10px 14px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+        background: var(--wash);
+      }
+      .nav-links a[aria-current='page'] {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .nav-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .nav-right .phone-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 650;
+        padding: 10px 14px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .nav-right .phone-link:hover {
+        background: var(--wash);
+      }
+      .nav-right .phone-link .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--ok);
+      }
+      .icon-btn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 999px;
+      }
+      .icon-btn:hover {
+        background: var(--wash);
+      }
+      .icon-btn .badge {
+        position: absolute;
+        top: 4px;
+        right: 3px;
+        min-width: 19px;
+        height: 19px;
+        display: grid;
+        place-items: center;
+        padding: 0 5px;
+        background: var(--primary);
+        color: #fff;
+        font-size: 0.8125rem; /* decorative duplicate of the cart count */
+        font-weight: 600;
+        border-radius: 999px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 50px;
+        padding: 0 26px;
+        border: 0;
+        border-radius: 999px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn-cta {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-cta:hover {
+        background: var(--primary-hover);
+      }
+      .btn-ghost {
+        background: #fff;
+        border: 1px solid var(--hair-strong);
+      }
+      .btn-ghost:hover {
+        background: var(--wash);
+      }
+      .nav-right .btn-cta {
+        margin-left: 8px;
+        color: #fff;
+      }
+
+      /* -------------------------------------------------------------- hero -- */
+
+      .hero {
+        background: linear-gradient(180deg, var(--wash-2) 0%, #fff 100%);
+        border-bottom: 1px solid var(--hair);
+      }
+      .hero .wrap {
+        padding-top: 56px;
+        padding-bottom: 64px;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+        gap: 40px 76px;
+        align-items: center;
+      }
+      /* Product photo — the thing that converts. */
+      .hero-media {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 360px;
+      }
+      .hero-media img {
+        max-height: 400px;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+      }
+      .price-tag {
+        position: absolute;
+        right: 8px;
+        bottom: 12px;
+        display: grid;
+        gap: 1px;
+        background: #fff;
+        border-radius: 13px;
+        box-shadow: var(--shadow-form);
+        padding: 12px 18px;
+      }
+      .price-tag small {
+        font-size: 1rem;
+        color: var(--ink-2);
+      }
+      .price-tag .value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .price-tag .value span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--deep);
+        font-weight: 600;
+      }
+      .kicker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--primary);
+      }
+      h1 {
+        margin-top: 16px;
+        font-size: clamp(2.125rem, 3.3vw, 2.8125rem);
+        line-height: 1.1;
+        letter-spacing: -0.032em;
+        font-weight: 650;
+        max-width: 19ch;
+      }
+      .hero-lede {
+        margin-top: 18px;
+        color: var(--ink-2);
+        font-size: 1.0625rem;
+        line-height: 1.6;
+        max-width: 48ch;
+      }
+      .hero-checks {
+        margin-top: 26px;
+        display: grid;
+        gap: 12px;
+      }
+      .hero-checks li {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+      }
+      .hero-checks .tick {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        margin-top: 1px;
+        border-radius: 999px;
+        background: #fff;
+        color: var(--ok);
+        box-shadow: var(--shadow-card);
+      }
+      .hero-proof {
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink-2);
+      }
+      .hero-proof .stars {
+        color: var(--star);
+        letter-spacing: 2px;
+      }
+      .hero-proof strong {
+        color: var(--ink);
+      }
+
+      /* The booking BAR — one horizontal row, rental-site style. */
+      .bar {
+        margin-top: 46px;
+        background: #fff;
+        border: 1px solid var(--hair);
+        border-radius: 16px;
+        box-shadow: var(--shadow-form);
+        padding: 10px;
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 0.9fr 0.9fr auto;
+        gap: 8px;
+      }
+      .bar-field {
+        display: grid;
+        gap: 1px;
+        padding: 8px 16px;
+        border: 1px solid var(--hair);
+        border-radius: 11px;
+        background: #fff;
+      }
+      .bar-field:hover {
+        border-color: var(--hair-strong);
+      }
+      .bar-field:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--wash-2);
+      }
+      .bar-field label {
+        color: var(--ink-2);
+        line-height: 1.3;
+      }
+      .bar-field input,
+      .bar-field select {
+        width: 100%;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-weight: 600;
+        color: var(--ink);
+        outline: none;
+      }
+      .bar-field input::placeholder {
+        color: var(--ink-soft);
+        font-weight: 400;
+      }
+      .bar .btn {
+        height: auto;
+        min-height: 52px;
+        align-self: stretch;
+        padding: 0 32px;
+      }
+
+      /* ---------------------------------------------------- section header -- */
+
+      section {
+        padding-top: 84px;
+      }
+      .band {
+        margin-top: 84px;
+        background: var(--wash);
+        padding: 72px 0 80px;
+      }
+      .band section {
+        padding-top: 0;
+      }
+      .sec-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px 28px;
+        margin-bottom: 34px;
+      }
+      .sec-head hgroup {
+        display: grid;
+        gap: 7px;
+      }
+      h2 {
+        font-size: clamp(1.5rem, 2.3vw, 1.875rem);
+        line-height: 1.15;
+        letter-spacing: -0.025em;
+        font-weight: 650;
+      }
+      .sec-head p {
+        color: var(--ink-2);
+      }
+      .sec-link {
+        color: var(--primary);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .sec-link:hover {
+        text-decoration: underline;
+        text-underline-offset: 5px;
+      }
+
+      /* -------------------------------------------------------- categories -- */
+
+      .cat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .cat {
+        display: grid;
+        grid-template-rows: 132px auto;
+        gap: 15px;
+        background: var(--wash);
+        border-radius: var(--radius);
+        padding: 20px;
+        transition: background 0.15s ease;
+      }
+      .cat:hover {
+        background: var(--wash-2);
+      }
+      .cat-media {
+        display: grid;
+        place-items: center;
+        overflow: clip;
+      }
+      .cat-media img {
+        max-height: 100%;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+        transition: transform 0.18s ease;
+      }
+      .cat:hover .cat-media img {
+        transform: scale(1.05);
+      }
+      .cat-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .cat h3 {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .cat p {
+        color: var(--ink-2);
+        margin-top: 1px;
+      }
+      .cat .go {
+        color: var(--ink-soft);
+      }
+      .cat:hover .go {
+        color: var(--primary);
+      }
+
+      /* -------------------------------------------------------------- rail -- */
+
+      .rail {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .prod {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border: 1px solid var(--hair);
+        border-radius: var(--radius);
+        overflow: clip;
+        transition: box-shadow 0.15s ease;
+      }
+      .prod:hover {
+        box-shadow: var(--shadow-form);
+      }
+      .prod-media {
+        position: relative;
+        flex: none;
+        height: 248px; /* fixed, so the three bodies always align */
+        background: var(--wash);
+        display: grid;
+        place-items: center;
+        overflow: clip;
+      }
+      .prod-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+        padding: 28px;
+        transition: transform 0.2s ease;
+      }
+      .prod:hover .prod-media img {
+        transform: scale(1.04);
+      }
+      .prod-flag {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        background: #fff;
+        border-radius: 999px;
+        padding: 6px 13px;
+        font-weight: 500;
+        color: var(--ink-2);
+        box-shadow: var(--shadow-card);
+      }
+      .prod-body {
+        display: grid;
+        gap: 4px;
+        padding: 18px 20px 20px;
+      }
+      .prod h3 {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.35;
+      }
+      .prod .meta {
+        color: var(--ink-2);
+      }
+      .prod .meta .ok {
+        color: var(--ok);
+        font-weight: 500;
+      }
+      .prod-row {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .prod .price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .prod .price span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .prod-go {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 46px;
+        padding: 0 22px;
+        border-radius: 999px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        flex: none;
+        white-space: nowrap;
+      }
+      .prod-go:hover {
+        background: var(--primary-hover);
+      }
+
+      /* ------------------------------------------------------ how it works -- */
+
+      .how-track {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .step {
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        padding: 26px 28px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 16px;
+        align-items: start;
+      }
+      .step-n {
+        grid-row: 1 / 3;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        background: var(--deep);
+        color: #fff;
+        font-weight: 700;
+      }
+      .step h3 {
+        font-size: 1.0625rem;
+        font-weight: 650;
+        padding-top: 8px;
+      }
+      .step p {
+        color: var(--ink-2);
+      }
+      .how-note {
+        margin-top: 24px;
+        display: flex;
+        align-items: baseline;
+        gap: 9px;
+        color: var(--ink-2);
+      }
+      .how-note strong {
+        color: var(--ok);
+        white-space: nowrap;
+      }
+
+      /* --------------------------------------------- delivery & locations -- */
+
+      .service {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 48px;
+        align-items: start;
+      }
+      .feat-list {
+        display: grid;
+        gap: 4px;
+      }
+      .feat {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 16px;
+        padding: 18px;
+        border-radius: var(--radius);
+      }
+      .feat:hover {
+        background: var(--wash);
+      }
+      .feat-ico {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 999px;
+        background: var(--wash-2);
+        color: var(--deep);
+      }
+      .feat h3 {
+        font-size: 1.0625rem;
+        font-weight: 600;
+      }
+      .feat p {
+        color: var(--ink-2);
+        margin-top: 3px;
+        max-width: 52ch;
+      }
+      .feat-zone {
+        margin-top: 14px;
+        padding: 0 18px;
+        color: var(--ink-2);
+      }
+      .feat-zone a {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .feat-zone a:hover {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .sedi {
+        background: var(--navy);
+        color: #c6c9e8;
+        border-radius: 18px;
+        padding: 30px;
+        display: grid;
+        gap: 22px;
+      }
+      .sedi h3 {
+        color: #fff;
+        font-size: 1.125rem;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .sedi .row {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 13px;
+        align-items: start;
+      }
+      .sedi .row svg {
+        flex: none;
+        margin-top: 3px;
+        color: #8f94d6;
+      }
+      .sedi .row b {
+        color: #fff;
+        font-weight: 600;
+        display: block;
+      }
+      .sedi .call {
+        margin-top: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #fff;
+        color: var(--navy);
+        border-radius: 999px;
+        height: 50px;
+        font-weight: 650;
+      }
+      .sedi .call:hover {
+        background: var(--wash-2);
+      }
+
+      /* ----------------------------------------------------------- reviews -- */
+
+      .rev-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .rev {
+        display: grid;
+        align-content: start;
+        gap: 15px;
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        padding: 26px 28px;
+      }
+      .rev .stars {
+        color: var(--star);
+        letter-spacing: 2px;
+      }
+      .rev p {
+        line-height: 1.6;
+      }
+      .rev footer {
+        color: var(--ink-2);
+      }
+      .rev footer strong {
+        color: var(--ink);
+      }
+
+      /* --------------------------------------------------------------- faq -- */
+
+      /* One column: a two-column accordion goes ragged when an item opens. */
+      .faq-cols {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        max-width: 880px;
+      }
+      .faq {
+        border: 1px solid var(--hair);
+        border-radius: var(--radius);
+        background: #fff;
+      }
+      .faq[open] {
+        background: var(--wash);
+        border-color: var(--wash);
+      }
+      .faq summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 19px 24px;
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary::after {
+        content: '+';
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        background: var(--wash);
+        font-weight: 500;
+        font-size: 1.125rem;
+        color: var(--ink-2);
+      }
+      .faq[open] summary::after {
+        content: '−';
+        background: #fff;
+      }
+      .faq .a {
+        padding: 0 24px 22px;
+        color: var(--ink-2);
+      }
+
+      /* ----------------------------------------------------------- CTA band -- */
+
+      .cta-band {
+        margin-top: 84px;
+        background: linear-gradient(135deg, var(--deep) 0%, var(--navy) 100%);
+        color: #fff;
+        padding: 60px 0;
+      }
+      .cta-inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 26px 40px;
+      }
+      .cta-inner hgroup {
+        display: grid;
+        gap: 9px;
+      }
+      .cta-inner h2 {
+        color: #fff;
+      }
+      .cta-inner p {
+        color: #c6c9e8;
+        max-width: 46ch;
+      }
+      .cta-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .btn-light {
+        background: #fff;
+        color: var(--navy);
+      }
+      .btn-light:hover {
+        background: var(--wash-2);
+      }
+      .btn-line {
+        background: none;
+        border: 1px solid rgb(255 255 255 / 0.38);
+        color: #fff;
+      }
+      .btn-line:hover {
+        border-color: rgb(255 255 255 / 0.7);
+      }
+
+      /* ------------------------------------------------------------- footer -- */
+
+      .footer {
+        background: var(--navy);
+        color: #b9bde2;
+        padding: 56px 0 60px;
+        margin-top: 0;
+      }
+      .footer .wrap {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr 1.1fr;
+        gap: 40px;
+      }
+      .footer .logo {
+        color: #fff;
+      }
+      .footer .logo em {
+        color: #9aa0e2;
+      }
+      .footer h3 {
+        font-size: 1rem;
+        font-weight: 650;
+        color: #fff;
+        margin-bottom: 13px;
+      }
+      .footer ul {
+        display: grid;
+        gap: 9px;
+      }
+      .footer a:hover {
+        color: #fff;
+      }
+      .footer .brand p {
+        margin-top: 12px;
+        max-width: 34ch;
+      }
+      .footer .legal {
+        grid-column: 1 / -1;
+        padding-top: 26px;
+        border-top: 1px solid rgb(255 255 255 / 0.14);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 28px;
+        justify-content: space-between;
+        color: #9296cf;
+      }
+      .footer .legal a:hover {
+        color: #fff;
+      }
+
+      /* --------------------------------------------------------- responsive -- */
+
+      @media (max-width: 1100px) {
+        .nav-links,
+        .nav-right .account {
+          display: none;
+        }
+        .hero .wrap {
+          padding-top: 44px;
+          padding-bottom: 52px;
+        }
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero-media {
+          min-height: 0;
+        }
+        .hero-media img {
+          max-height: 320px;
+        }
+        .bar {
+          grid-template-columns: 1fr 1fr;
+        }
+        .bar .btn {
+          grid-column: 1 / -1;
+        }
+        .cat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .rail,
+        .rev-cards,
+        .how-track {
+          grid-template-columns: 1fr;
+        }
+        .rail {
+          grid-template-columns: 1fr 1fr;
+        }
+        .service {
+          grid-template-columns: 1fr;
+        }
+        .faq-cols {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .wrap {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+        .topbar .wrap {
+          justify-content: center;
+          text-align: center;
+        }
+        .topbar .right {
+          justify-content: center;
+        }
+        section {
+          padding-top: 60px;
+        }
+        .band {
+          margin-top: 60px;
+          padding: 52px 0 58px;
+        }
+        .bar {
+          grid-template-columns: 1fr;
+          margin-top: 32px;
+        }
+        .cat-grid,
+        .rail {
+          grid-template-columns: 1fr;
+        }
+        .cta-band {
+          margin-top: 60px;
+        }
+        .footer .wrap {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ================================================================ navbar -->
+    <header class="nav">
+      <div class="wrap">
+        <a class="logo" href="#">MIA<em>·</em>Medical</a>
+
+        <nav class="nav-links" aria-label="Principale">
+          <a href="#" aria-current="page">Home</a>
+          <a href="#">Catalogo noleggio</a>
+          <a href="#">Come funziona</a>
+          <a href="#">Assistenza</a>
+          <a href="#">Contatti</a>
+        </nav>
+
+        <div class="nav-right">
+          <a class="icon-btn" href="#" aria-label="Cerca nel catalogo">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </a>
+          <a class="phone-link num" href="tel:+39800031962">
+            <span class="dot" aria-hidden="true"></span>
+            800 031962
+          </a>
+          <a class="icon-btn" href="#" aria-label="Area clienti">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+            </svg>
+          </a>
+          <a class="icon-btn" href="#" aria-label="Carrello, 2 articoli">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 7h12l1.2 12.2a1.5 1.5 0 0 1-1.5 1.8H6.3a1.5 1.5 0 0 1-1.5-1.8Z" />
+              <path d="M9 10V6a3 3 0 0 1 6 0v4" />
+            </svg>
+            <span class="badge num" aria-hidden="true">2</span>
+          </a>
+          <a class="btn btn-cta" href="#">Noleggia ora</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ================================================================ hero -->
+      <div class="hero">
+        <div class="wrap">
+          <div class="hero-grid">
+          <div>
+            <p class="kicker">
+              <span class="dot" aria-hidden="true"></span>
+              Noleggio ausili medicali a Roma e Firenze
+            </p>
+            <h1>Noleggio carrozzine e ausili medicali, consegnati a casa tua.</h1>
+            <p class="hero-lede">
+              Scegli il prodotto e le date: pensiamo a tutto noi, dalla consegna al
+              ritiro. Assistenza al telefono con persone vere.
+            </p>
+
+            <ul class="hero-checks">
+              <li>
+                <span class="tick" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <span><strong>Consegna in 24–48 ore</strong> — anche in appartamento, al piano</span>
+              </li>
+              <li>
+                <span class="tick" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <span><strong>Oggi non paghi nulla</strong> — paghi dopo la nostra telefonata di conferma</span>
+              </li>
+              <li>
+                <span class="tick" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <span><strong>Sanificato e certificato</strong> — dopo ogni noleggio, sempre</span>
+              </li>
+            </ul>
+
+            <p class="hero-proof num">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span><strong>4,9 su 5</strong> · oltre 600 recensioni su Google Maps, Trustpilot e Facebook</span>
+            </p>
+          </div>
+
+          <!-- Product photo with the price in view. -->
+          <div class="hero-media">
+            <img
+              src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+              alt="Carrozzina pieghevole superleggera a noleggio"
+              width="900"
+              height="700"
+              fetchpriority="high"
+            />
+            <span class="price-tag num">
+              <small>Carrozzina pieghevole · da</small>
+              <span class="value">4,90 € <span>/ giorno</span></span>
+            </span>
+          </div>
+          </div>
+
+          <!-- The booking bar. -->
+          <form class="bar" aria-labelledby="bar-title">
+            <h2 class="sr-only" id="bar-title">Dove e quando ti serve l’ausilio?</h2>
+            <div class="bar-field">
+              <label for="q">Ausilio</label>
+              <input id="q" type="text" placeholder="Es. carrozzina, letto…" />
+            </div>
+            <div class="bar-field">
+              <label for="area">Zona</label>
+              <select id="area">
+                <option>Roma e provincia</option>
+                <option>Firenze e provincia</option>
+                <option>Altra zona</option>
+              </select>
+            </div>
+            <div class="bar-field">
+              <label for="from">Da quando</label>
+              <input class="num" id="from" type="text" value="08/12/2026" />
+            </div>
+            <div class="bar-field">
+              <label for="len">Per quanto</label>
+              <select id="len">
+                <option>1 settimana</option>
+                <option>15 giorni</option>
+                <option>1 mese</option>
+                <option>2 mesi o più</option>
+                <option>Non lo so ancora</option>
+              </select>
+            </div>
+            <button class="btn btn-cta" type="button">Cerca disponibilità</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ========================================================== categories -->
+      <section class="wrap" aria-labelledby="cat-title">
+        <div class="sec-head">
+          <hgroup>
+            <h2 id="cat-title">Categorie</h2>
+            <p>Tutte a noleggio, con consegna a domicilio.</p>
+          </hgroup>
+          <a class="sec-link" href="#">Vedi tutto il catalogo →</a>
+        </div>
+
+        <div class="cat-grid">
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Carrozzine</h3><p class="num">14 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Letti da degenza</h3><p class="num">9 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Deambulatori</h3><p class="num">11 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/Materasso-antidecubito-Polyplot-Wimed.jpg" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Antidecubito</h3><p class="num">8 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELETTRICO-.png" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Sollevatori</h3><p class="num">6 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/montascale-elettrico-2-Piccola.jpeg" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Montascale</h3><p class="num">4 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Scooter elettrici</h3><p class="num">5 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+          <a class="cat" href="#">
+            <span class="cat-media">
+              <img src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/comoda-vermeiren.jpg" alt="" loading="lazy" />
+            </span>
+            <span class="cat-row">
+              <span><h3>Bagno e igiene</h3><p class="num">7 ausili</p></span>
+              <svg class="go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ================================================================ rail -->
+      <div class="band">
+        <section class="wrap" aria-labelledby="rail-title">
+          <div class="sec-head">
+            <hgroup>
+              <h2 id="rail-title">I più noleggiati</h2>
+              <p>Prezzi chiari, tutto incluso.</p>
+            </hgroup>
+            <a class="sec-link" href="#">Vedi tutto il catalogo →</a>
+          </div>
+
+          <div class="rail">
+            <article class="prod">
+              <div class="prod-media">
+                <span class="prod-flag">Sanificato e certificato</span>
+                <img
+                  src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                  alt="Carrozzina pieghevole superleggera"
+                  loading="lazy"
+                />
+              </div>
+              <div class="prod-body">
+                <h3>Carrozzina pieghevole superleggera</h3>
+                <p class="meta"><span class="ok">●</span> Disponibile · consegna in 24–48 ore</p>
+                <div class="prod-row">
+                  <p class="price num">da 4,90 € <span>/ giorno</span></p>
+                  <a class="prod-go" href="#" aria-label="Vai alla carrozzina pieghevole superleggera">Noleggia</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="prod">
+              <div class="prod-media">
+                <span class="prod-flag">Montaggio incluso</span>
+                <img
+                  src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                  alt="Letto da degenza elettrico a 3 snodi"
+                  loading="lazy"
+                />
+              </div>
+              <div class="prod-body">
+                <h3>Letto da degenza elettrico a 3 snodi</h3>
+                <p class="meta"><span class="ok">●</span> Disponibile · montaggio in camera</p>
+                <div class="prod-row">
+                  <p class="price num">da 3,50 € <span>/ giorno</span></p>
+                  <a class="prod-go" href="#" aria-label="Vai al letto da degenza elettrico">Noleggia</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="prod">
+              <div class="prod-media">
+                <span class="prod-flag">Consegna in 24–48 ore</span>
+                <img
+                  src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg"
+                  alt="Deambulatore con ruote e seduta"
+                  loading="lazy"
+                />
+              </div>
+              <div class="prod-body">
+                <h3>Deambulatore con ruote e seduta</h3>
+                <p class="meta"><span class="ok">●</span> Disponibile · consegna in 24–48 ore</p>
+                <div class="prod-row">
+                  <p class="price num">da 2,50 € <span>/ giorno</span></p>
+                  <a class="prod-go" href="#" aria-label="Vai al deambulatore con ruote e seduta">Noleggia</a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- ======================================================== how it works -->
+      <section class="wrap" aria-labelledby="how-title">
+        <div class="sec-head">
+          <hgroup>
+            <h2 id="how-title">Come funziona</h2>
+            <p>Tre passaggi, senza pagare nulla online.</p>
+          </hgroup>
+        </div>
+
+        <div class="how-track">
+          <div class="step">
+            <span class="step-n num" aria-hidden="true">1</span>
+            <h3>Scegli il prodotto</h3>
+            <p>Dal catalogo, oppure chiamaci: ti consigliamo noi quello giusto.</p>
+          </div>
+          <div class="step">
+            <span class="step-n num" aria-hidden="true">2</span>
+            <h3>Seleziona le date</h3>
+            <p>Indichi quando ti serve e per quanto tempo. Puoi sempre prolungare.</p>
+          </div>
+          <div class="step">
+            <span class="step-n num" aria-hidden="true">3</span>
+            <h3>Lo ricevi a domicilio</h3>
+            <p>Ti chiamiamo per confermare, consegniamo e montiamo. A fine noleggio ritiriamo noi.</p>
+          </div>
+        </div>
+
+        <p class="how-note">
+          <strong>✓ Oggi non paghi nulla.</strong>
+          <span>Paghi solo dopo la nostra telefonata di conferma, con un link di pagamento sicuro via SMS o email.</span>
+        </p>
+      </section>
+
+      <!-- ============================================== delivery & locations -->
+      <section class="wrap" aria-labelledby="del-title">
+        <div class="sec-head">
+          <hgroup>
+            <h2 id="del-title">Consegna e ritiro</h2>
+            <p>Pensiamo a tutto noi, dall’inizio alla fine.</p>
+          </hgroup>
+        </div>
+
+        <div class="service">
+          <div>
+            <div class="feat-list">
+              <div class="feat">
+                <span class="feat-ico" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h13v9H1zM14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+                </span>
+                <span>
+                  <h3>Consegna in 24–48 ore</h3>
+                  <p>A Roma, Firenze e provincia. Anche in appartamento, al piano.</p>
+                </span>
+              </div>
+              <div class="feat">
+                <span class="feat-ico" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0 5.6 5.6L17 15.2a4.5 4.5 0 0 1-6.4 0l-4.8-4.8a4.5 4.5 0 0 1 0-6.4z"/></svg>
+                </span>
+                <span>
+                  <h3>Montaggio incluso</h3>
+                  <p>Installiamo letti e ausili e ti mostriamo come si usano, con calma.</p>
+                </span>
+              </div>
+              <div class="feat">
+                <span class="feat-ico" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+                </span>
+                <span>
+                  <h3>Ritiro a fine noleggio</h3>
+                  <p>Fissiamo insieme il giorno: non devi riconsegnare nulla.</p>
+                </span>
+              </div>
+            </div>
+            <p class="feat-zone">
+              <strong>Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in
+              un’altra zona? <a href="tel:+39800031962">Chiamaci</a> — spesso riusciamo a
+              organizzare la consegna.
+            </p>
+          </div>
+
+          <aside class="sedi" aria-label="Sedi e contatti">
+            <h3>Sedi e contatti</h3>
+            <div class="row">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <p><b>Roma</b> Via Gian Pietro Talamini 44</p>
+            </div>
+            <div class="row">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <p><b>Firenze</b> Viale Guidoni 129</p>
+            </div>
+            <div class="row">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <p><b class="num">Lun–Sab, 9:00–19:00</b> assistenza telefonica gratuita</p>
+            </div>
+            <a class="call num" href="tel:+39800031962">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
+              800 031962 — gratis
+            </a>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============================================================= reviews -->
+      <div class="band">
+        <section class="wrap" aria-labelledby="rev-title">
+          <div class="sec-head">
+            <hgroup>
+              <h2 id="rev-title">Chi ci ha scelto</h2>
+              <p class="num">
+                <span style="color: var(--star); letter-spacing: 2px" aria-hidden="true">★★★★★</span>
+                <strong>4,9 su 5</strong> · oltre 600 recensioni su Google Maps, Trustpilot e Facebook
+              </p>
+            </hgroup>
+          </div>
+
+          <div class="rev-cards">
+            <article class="rev">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <p>«Cortesia, efficienza e puntualità nella consegna. Personale molto gentile e disponibile.»</p>
+              <footer><strong>Marina C.</strong> — Roma</footer>
+            </article>
+            <article class="rev">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <p>«Servizio eccellente: ordinato il letto per mio padre, consegnato e montato il giorno dopo.»</p>
+              <footer><strong>Daniele G.</strong> — Firenze</footer>
+            </article>
+            <article class="rev">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <p>«I miei complimenti per l’organizzazione e per la qualità dei prodotti offerti.»</p>
+              <footer><strong>Marcello P.</strong> — Roma</footer>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================================================================= faq -->
+      <section class="wrap" aria-labelledby="faq-title">
+        <div class="sec-head">
+          <hgroup>
+            <h2 id="faq-title">Domande frequenti</h2>
+            <p>Prima di ordinare, di solito ci chiedono.</p>
+          </hgroup>
+        </div>
+
+        <div class="faq-cols">
+          <details class="faq" open>
+            <summary>Quando e come si paga?</summary>
+            <p class="a">Non paghi nulla sul sito. Invii la richiesta, ti chiamiamo per confermare disponibilità e consegna, poi ricevi un link di pagamento sicuro via SMS o email. Il pagamento avviene solo dopo la nostra telefonata.</p>
+          </details>
+          <details class="faq">
+            <summary>Serve una cauzione?</summary>
+            <p class="a">Per la maggior parte degli ausili no. Solo per alcuni prodotti di valore (per esempio le carrozzine elettriche) è prevista una cauzione, indicata chiaramente sulla scheda prodotto e restituita per intero a fine noleggio.</p>
+          </details>
+          <details class="faq">
+            <summary>Quanto costa la consegna?</summary>
+            <p class="a">Dipende dalla zona e dal prodotto: te la confermiamo al telefono prima del pagamento, senza sorprese. Per molti prodotti è gratuita per i noleggi da 30 giorni, e per i letti il montaggio in camera è sempre incluso.</p>
+          </details>
+          <details class="faq">
+            <summary>I prodotti sono igienizzati?</summary>
+            <p class="a">Sì. Ogni ausilio viene sanificato, controllato e certificato dopo ogni noleggio. Lo ricevi igienizzato e pronto all’uso.</p>
+          </details>
+          <details class="faq">
+            <summary>Posso prolungare il noleggio?</summary>
+            <p class="a">Sì, basta una telefonata: prolunghi quando vuoi e paghi solo i giorni in più.</p>
+          </details>
+          <details class="faq">
+            <summary>E se il prodotto non va bene?</summary>
+            <p class="a">Chiamaci: lo sostituiamo con uno più adatto o lo ritiriamo. Ti aiutiamo anche a scegliere prima di ordinare.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- ============================================================ CTA band -->
+      <div class="cta-band">
+        <div class="wrap cta-inner">
+          <hgroup>
+            <h2>Preferisci parlare con una persona?</h2>
+            <p>Ti aiutiamo a scegliere e possiamo fare l’ordine per te, al telefono. Lun–Sab, 9:00–19:00.</p>
+          </hgroup>
+          <div class="cta-actions">
+            <a class="btn btn-light num" href="tel:+39800031962">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
+              800 031962 — gratis
+            </a>
+            <a class="btn btn-line" href="#">WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================================================================ footer -->
+    <footer class="footer">
+      <div class="wrap">
+        <div class="brand">
+          <a class="logo" href="#">MIA<em>·</em>Medical</a>
+          <p>Noleggio di carrozzine, letti ortopedici e ausili medicali con consegna a domicilio a Roma e Firenze.</p>
+        </div>
+        <div>
+          <h3>Catalogo</h3>
+          <ul>
+            <li><a href="#">Carrozzine</a></li>
+            <li><a href="#">Letti da degenza</a></li>
+            <li><a href="#">Deambulatori</a></li>
+            <li><a href="#">Tutte le categorie</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Assistenza</h3>
+          <ul>
+            <li><a href="#">Come funziona</a></li>
+            <li><a href="#">Consegna e ritiro</a></li>
+            <li><a href="#">Domande frequenti</a></li>
+            <li><a href="#">Contatti</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Contatti</h3>
+          <ul>
+            <li>Roma — Via Gian Pietro Talamini 44</li>
+            <li>Firenze — Viale Guidoni 129</li>
+            <li class="num">Numero verde 800 031962</li>
+            <li class="num">Lun–Sab, 9:00–19:00</li>
+          </ul>
+        </div>
+        <div class="legal num">
+          <span>© 2026 Mia Medical Italia S.r.l. — P. IVA 16028971006</span>
+          <span><a href="#">Privacy</a> · <a href="#">Termini di noleggio</a> · <a href="#">Cookie</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
