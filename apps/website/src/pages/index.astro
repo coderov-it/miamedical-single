@@ -1,17 +1,18 @@
 ---
 /**
- * Storefront home page. Prerendered — it ships no framework JavaScript.
+ * Storefront home page, in the 2026-08 editorial design — ported 1:1 from the
+ * approved blueprint at docs/blueprint/home.html. Section order is the
+ * blueprint's: hero → booking → categories → trending → how → delivery →
+ * testimonials → faq. The only framework-free JavaScript on the page is the
+ * two Embla carousels, the booking date floor and the header's cart badge.
  *
- * The page coordinates data and SEO; every visual section is a focused,
- * zero-JavaScript component, which keeps the section ordering explicit and
- * readable instead of one monolithic template.
- *
- * Reads go through `safely()`: a marketing page must still build when the API
- * or the database is unavailable. Sections that need data hide themselves when
- * the list comes back empty.
+ * The page coordinates data and SEO; every visual section is a focused
+ * component. Reads go through `safely()`: a marketing page must still build
+ * when the API or the database is unavailable, so sections that need data hide
+ * themselves when the list comes back empty.
  */
+import HomeBooking from '~/components/home/HomeBooking.astro';
 import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
-import HomeContactBand from '~/components/home/HomeContactBand.astro';
 import HomeDelivery from '~/components/home/HomeDelivery.astro';
 import HomeFaq from '~/components/home/HomeFaq.astro';
 import HomeHero from '~/components/home/HomeHero.astro';
@@ -27,7 +28,13 @@ const [products, categories] = await Promise.all([
   safely(() => listCategories(), [], 'listCategories'),
 ]);
 
-const featured = selectHomeFeatured(products.items);
+const spotlight = selectHomeFeatured(products.items, 3);
+/* The carousel's cards have no out-of-stock state by design — a dead card in a
+   promotional rail sells nothing — so the selection considers stock. */
+const trending = selectHomeFeatured(
+  products.items.filter((product) => product.inStock),
+  8,
+);
 const categoryCards = buildHomeCategories(categories, products.items);
 
 const jsonLd = [
@@ -48,20 +55,12 @@ const jsonLd = [
   description="Noleggio carrozzine, letti ortopedici e ausili medicali con consegna a domicilio a Roma e Firenze in 24–48 ore. Prodotti sanificati e certificati, assistenza telefonica gratuita."
   jsonLd={jsonLd}
 >
-  {
-    /*
-      The approved order: browse first, reassure after. Hero and search, then
-      what we have, then how it works and the rest. The white sections and the
-      tinted bands alternate — HomeProductRail and HomeReviews own their band,
-      every other section sits on white.
-    */
-  }
-  <HomeHero products={featured} suggestions={products.items} />
+  <HomeHero products={spotlight} />
+  <HomeBooking />
   <HomeCategoryGrid categories={categoryCards} />
-  <HomeProductRail products={featured} />
+  <HomeProductRail products={trending} total={products.total} />
   <HomeHowItWorks />
   <HomeDelivery />
   <HomeReviews />
   <HomeFaq />
-  <HomeContactBand />
 </BaseLayout>

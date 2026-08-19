@@ -1,50 +1,202 @@
 ---
 /**
- * The "I più noleggiati" rail, on a tinted band.
+ * "I più noleggiati" — white cards on the whisper-gray band, ported 1:1 from
+ * docs/blueprint/home.html (styles in styles/editorial.css).
  *
- * Same figure/ground game as the category tiles, but inverted: here the band is
- * tinted and the card is the white object on top of it. The rule holds across
- * the whole site — on white the fills are tinted, on tint they are white.
+ * An Embla core carousel (the project-wide engine): the slides are plain
+ * server-rendered HTML and the script below only attaches scrolling behavior,
+ * so nothing here blocks SSR. The last slide is never a product — it is the
+ * invitation into the full catalogue.
  *
  * The API has no popularity signal yet, so the parent supplies the selection
- * from `home-content.ts` — editorially featured products first. Cards are the
- * shared `ProductCard`, so the rail and the catalogue can never drift apart.
+ * from `home-content.ts` — editorially featured products first.
  */
-import ProductCard from '~/components/catalog/ProductCard.astro';
-import SectionHeading from '~/components/primitives/SectionHeading.astro';
+import { mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
-import { routes } from '~/lib/routes';
+import { productOffer } from '~/lib/home-content';
+import { productPath, routes } from '~/lib/routes';
 
 interface Props {
   products: ProductSummary[];
+  /** Whole-catalogue size, for the browse tile's count line. */
+  total: number;
 }
 
-const { products } = Astro.props;
+const { products, total } = Astro.props;
+
+/* "Oltre 60 ausili a noleggio" — rounded DOWN so the claim is never a lie.
+   Below ten products a rounded figure would read as zero, so the tile says
+   the exact count instead. */
+const roundedTotal = Math.floor(total / 10) * 10;
+const browseCount =
+  total > 10
+    ? `Oltre ${roundedTotal} ausili a noleggio`
+    : `${total} ${total === 1 ? 'ausilio' : 'ausili'} a noleggio`;
 ---
 
 {
   products.length > 0 && (
-    <section
-      class="mt-section-sm bg-tint py-section-sm mid:mt-section mid:py-section"
-      aria-labelledby="home-products-title"
-    >
-      <div class="max-w-page mid:px-8 mx-auto w-full px-5">
-        <SectionHeading
-          id="home-products"
-          heading="I più noleggiati"
-          lede="Prezzi chiari, tutto incluso."
-          linkHref={routes.catalog}
-          linkLabel="Vedi tutto il catalogo →"
-        />
+    <section class="trending" aria-labelledby="trending-title">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="section-title" id="trending-title">
+            I più noleggiati.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+          <div class="section-tools">
+            <a class="section-link" href={routes.catalog}>
+              Vedi tutto il catalogo →
+            </a>
+            <div class="carousel-nav">
+              <button
+                class="carousel-arrow"
+                type="button"
+                data-carousel-prev="trending"
+                aria-label="Prodotti precedenti"
+                disabled
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m14 6-6 6 6 6" />
+                </svg>
+              </button>
+              <button
+                class="carousel-arrow"
+                type="button"
+                data-carousel-next="trending"
+                aria-label="Prodotti successivi"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m10 6 6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <ul class="mid:grid-cols-2 wide:grid-cols-3 grid gap-6">
-          {products.map((product) => (
-            <li class="flex">
-              <ProductCard product={product} headingLevel={3} />
-            </li>
-          ))}
-        </ul>
+        <div class="trend-carousel" data-carousel="trending">
+          <div class="trend-viewport">
+            <ul class="product-track">
+              {products.map((product) => {
+                const offer = productOffer(product);
+                const href = productPath(product.slug);
+                return (
+                  <li class="carousel-slide">
+                    <article class="product-card">
+                      <a class="pc-top" href={href}>
+                        <span class="pc-media">
+                          {product.thumbnail && (
+                            <img src={mediaUrl(product.thumbnail.path)} alt="" loading="lazy" />
+                          )}
+                        </span>
+                        <h3 class="pc-name">{product.title}</h3>
+                      </a>
+                      {offer && (
+                        <p class="pc-price">
+                          <strong>{offer.money}</strong>
+                          {offer.unit}
+                        </p>
+                      )}
+                      <a class="btn-quiet" href={href}>
+                        {product.pricing.mode === 'rental' ? 'Noleggia' : 'Acquista'}
+                      </a>
+                    </article>
+                  </li>
+                );
+              })}
+              <li class="carousel-slide">
+                <a class="browse-card" href={routes.catalog}>
+                  <span class="browse-arrow">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 12h16" />
+                      <path d="m14 6 6 6-6 6" />
+                    </svg>
+                  </span>
+                  <span>
+                    <span class="browse-title">Sfoglia tutto il catalogo</span>
+                    <span class="browse-count">{browseCount}</span>
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
   )
 }
+
+<script>
+  // Embla core — the slides are server-rendered above; this only attaches
+  // scrolling behavior. Guarded: the section does not render when the
+  // catalogue read failed.
+  import EmblaCarousel from 'embla-carousel';
+
+  const trendingRoot = document.querySelector<HTMLElement>('[data-carousel="trending"]');
+  const viewport = trendingRoot?.querySelector<HTMLElement>('.trend-viewport');
+  const prevButton = document.querySelector<HTMLButtonElement>('[data-carousel-prev="trending"]');
+  const nextButton = document.querySelector<HTMLButtonElement>('[data-carousel-next="trending"]');
+
+  if (viewport && prevButton && nextButton) {
+    const embla = EmblaCarousel(viewport, {
+      align: 'start',
+      containScroll: 'trimSnaps',
+    });
+
+    const syncArrows = () => {
+      prevButton.toggleAttribute('disabled', !embla.canScrollPrev());
+      nextButton.toggleAttribute('disabled', !embla.canScrollNext());
+    };
+
+    prevButton.addEventListener('click', () => embla.scrollPrev());
+    nextButton.addEventListener('click', () => embla.scrollNext());
+    embla.on('select', syncArrows);
+    embla.on('reInit', syncArrows);
+    // On a window resize embla re-inits itself but emits only 'resize' — not
+    // 'reInit' — and emits it BEFORE the internal re-init: sync a frame later
+    // or the arrows go stale when the breakpoint changes.
+    embla.on('resize', () => requestAnimationFrame(syncArrows));
+    syncArrows();
+  }
+</script>

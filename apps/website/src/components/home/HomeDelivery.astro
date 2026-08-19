@@ -1,129 +1,104 @@
 ---
 /**
- * Delivery and collection promises.
- *
- * Not a second grid of text but a strip: three guarantees side by side, icon
- * beside the heading rather than above it, divided by vertical hairlines. The
- * areas served close the strip as a row of their own.
- *
- * The block's ground is tinted, so the objects inside it are white — the same
- * figure/ground rule as everywhere else.
+ * "Consegna e ritiro" — the mirror of the how-panel: gray cells in one
+ * bordered panel, white note strip attached below, ported 1:1 from
+ * docs/blueprint/home.html (styles in styles/editorial.css).
  */
-import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import { CONTACT } from '~/lib/site';
-
-const promises = [
-  {
-    title: 'Consegna in 24–48 ore',
-    body: 'A Roma, Firenze e provincia. Anche in appartamento, al piano.',
-    icon: 'truck',
-  },
-  {
-    title: 'Montaggio incluso',
-    body: 'Installiamo letti e ausili e ti mostriamo come si usano, con calma.',
-    icon: 'tool',
-  },
-  {
-    title: 'Ritiro a fine noleggio',
-    body: 'Fissiamo insieme il giorno: non devi riconsegnare nulla.',
-    icon: 'return',
-  },
-] as const;
 ---
 
-<section
-  id="consegna-e-ritiro"
-  class="pt-section-sm mid:pt-section"
-  aria-labelledby="consegna-e-ritiro-title"
->
-  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
-    <SectionHeading
-      id="consegna-e-ritiro"
-      heading="Consegna e ritiro"
-      lede="Pensiamo a tutto noi, dall'inizio alla fine."
-    />
+<section class="delivery" aria-labelledby="delivery-title">
+  <div class="container">
+    <h2 class="section-title" id="delivery-title">
+      Consegna e ritiro.
+      <svg
+        width="44"
+        height="16"
+        viewBox="0 0 44 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
+      </svg>
+    </h2>
+    <p class="section-lead">Pensiamo a tutto noi, dall'inizio alla fine.</p>
 
-    <div class="rounded-card border-hair-strong bg-tint overflow-hidden border">
-      <ul class="wide:grid-cols-3 grid">
-        {
-          promises.map((promise, index) => (
-            <li
-              class:list={[
-                'mid:px-7 flex items-start gap-4 px-5 pt-6.5 pb-7',
-                /*
-                  An inset box-shadow, not a border: it draws the divider without
-                  adding a pixel to the cell, so the three columns stay equal.
-                  It flips from a left edge to a top edge when they stack.
-                */
-                index > 0 &&
-                  'wide:shadow-[inset_1px_0_0_var(--color-hair-strong)] shadow-[inset_0_1px_0_var(--color-hair-strong)]',
-              ]}
+    <div class="delivery-panel">
+      <ul class="delivery-grid">
+        <li class="delivery-cell">
+          <span class="delivery-icon" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <span class="rounded-field border-hair grid size-11.5 flex-none place-items-center border bg-white">
-                {promise.icon === 'truck' && (
-                  <svg
-                    class="size-6 text-accent"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M1 7h13v9H1z" />
-                    <path d="M14 10h4l3 3v3h-7" />
-                    <circle cx="5.5" cy="18.5" r="1.8" />
-                    <circle cx="17.5" cy="18.5" r="1.8" />
-                  </svg>
-                )}
-                {promise.icon === 'tool' && (
-                  <svg
-                    class="size-6 text-accent"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14.7 6.3a4.5 4.5 0 0 0 5.6 5.6L17 15.2a4.5 4.5 0 0 1-6.4 0l-4.8-4.8a4.5 4.5 0 0 1 0-6.4z"
-                      transform="rotate(90 12 12)"
-                    />
-                    <path d="m3.5 20.5 5-5" />
-                  </svg>
-                )}
-                {promise.icon === 'return' && (
-                  <svg
-                    class="size-6 text-accent"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 12a9 9 0 1 0 3-6.7" />
-                    <path d="M3 3v5h5" />
-                  </svg>
-                )}
-              </span>
-              <div>
-                <h3 class="text-body/[1.3]">{promise.title}</h3>
-                <p class="text-ui text-ink-2 mt-1.75">{promise.body}</p>
-              </div>
-            </li>
-          ))
-        }
+              <path
+                d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+              ></path>
+            </svg>
+          </span>
+          <h3 class="delivery-name">Consegna in 24–48 ore</h3>
+          <p class="delivery-text">A Roma, Firenze e provincia. Anche in appartamento, al piano.</p>
+        </li>
+        <li class="delivery-cell">
+          <span class="delivery-icon" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"
+              ></path>
+            </svg>
+          </span>
+          <h3 class="delivery-name">Montaggio incluso</h3>
+          <p class="delivery-text">
+            Installiamo letti e ausili e ti mostriamo come si usano, con calma.
+          </p>
+        </li>
+        <li class="delivery-cell">
+          <span class="delivery-icon" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              ></path>
+            </svg>
+          </span>
+          <h3 class="delivery-name">Ritiro a fine noleggio</h3>
+          <p class="delivery-text">Fissiamo insieme il giorno: non devi riconsegnare nulla.</p>
+        </li>
       </ul>
 
-      <p class="border-hair-strong text-ui text-ink-2 mid:px-7 border-t bg-white px-5 py-4.5">
-        <strong class="text-ink">Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in
-        un'altra zona? <a class="text-accent" href={`tel:${CONTACT.phoneE164}`}>Chiamaci</a>: spesso
-        riusciamo a organizzare la consegna.
+      <p class="note-bar">
+        <span>
+          <strong>Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in un'altra
+          zona? <a href={`tel:${CONTACT.phoneE164}`}>Chiamaci</a>: spesso riusciamo a organizzare
+          la consegna.
+        </span>
       </p>
     </div>
   </div>

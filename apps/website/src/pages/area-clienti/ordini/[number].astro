@@ -111,7 +111,7 @@ const { number } = Astro.params;
       .map(
         (
           item,
-        ) => `<li class="flex justify-between gap-4 border-b border-neutral-100 py-3 last:border-0">
+        ) => `<li class="flex justify-between gap-4 border-hair border-b py-3 last:border-0">
           <div>
             <p class="font-medium">${escapeHtml(item.productTitle)}</p>
             <p class="text-sm text-neutral-600">${escapeHtml(item.skuLabel)} · ${item.quantity} pz</p>
@@ -126,7 +126,7 @@ const { number } = Astro.params;
     detail.innerHTML = `
       <header class="flex flex-wrap items-baseline justify-between gap-2">
         <h1 class="text-[clamp(1.5rem,2.2vw,1.9rem)]/[1.2]">Ordine ${escapeHtml(order.number)}</h1>
-        <span class="rounded-full bg-neutral-100 px-3 py-1 text-sm">
+        <span class="bg-tint rounded-full px-3 py-1 text-sm">
           ${escapeHtml(ORDER_STATUS_LABELS[order.status] ?? order.status)}
         </span>
       </header>
@@ -142,7 +142,7 @@ const { number } = Astro.params;
 
       ${
         order.delivery?.method
-          ? `<section class="mt-7 rounded-xl border border-neutral-200 p-4">
+          ? `<section class="border-hair mt-7 rounded-xl border p-4">
                <h2 class="text-sm font-medium">Consegna</h2>
                <p class="mt-1 text-[15px] text-neutral-600">
                  ${escapeHtml(DELIVERY_LABELS[order.delivery.method] ?? order.delivery.method)}
@@ -160,7 +160,7 @@ const { number } = Astro.params;
 
       ${
         order.notes
-          ? `<section class="mt-4 rounded-xl border border-neutral-200 p-4">
+          ? `<section class="border-hair mt-4 rounded-xl border p-4">
                <h2 class="text-sm font-medium">Le tue note</h2>
                <p class="mt-1 text-[15px] whitespace-pre-line text-neutral-600">${escapeHtml(order.notes)}</p>
              </section>`

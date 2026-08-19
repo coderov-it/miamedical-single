@@ -1,205 +1,192 @@
 ---
 /**
- * Home hero: headline and actions on the left, the featured-product spotlight
- * on the right, and the rental search panel across the full width below.
+ * Home hero — copy and one accent CTA on the left, the featured-product
+ * showcase on the right, ported 1:1 from docs/blueprint/home.html (styles in
+ * styles/editorial.css).
  *
- * The spotlight is not a floating pane of glass: it is a block in tint with the
- * image inside it. No blur, no shadow — just the hairline. The one shadow on
- * the page belongs to the search panel underneath.
- *
- * The carousel is driven by native radio state and transforms, so the controls
- * stay keyboard-operable without fragment navigation (which would scroll the
- * whole page) and without a line of client JavaScript. Off-screen slides are
- * `invisible`, not merely clipped, so their links are not focusable.
+ * The showcase is an Embla core carousel (the project-wide engine): the slides,
+ * dots and meta deck are all server-rendered HTML, and the script below only
+ * attaches scrolling behavior — nothing here blocks SSR. Embla owns the track
+ * transform, so the track carries no CSS transition, ever; the meta deck and
+ * the dots follow the selected snap by class toggling.
  */
-import { cardPrice, mediaUrl } from '~/lib/api';
+import { mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
+import { productOffer } from '~/lib/home-content';
 import { productPath, routes } from '~/lib/routes';
-import { CONTACT } from '~/lib/site';
-import HomeSearch from './HomeSearch.astro';
 
 interface Props {
   products: ProductSummary[];
-  suggestions: ProductSummary[];
 }
 
-const { products, suggestions } = Astro.props;
-
-// The transform and visibility rules below are written for at most four slides.
-const slides = products.slice(0, 4);
-
-/**
- * Two peer names per radio, on purpose.
- *
- * `spot` is shared, so focusing ANY slide radio rings the track — the control
- * itself is visually hidden, so without it a keyboard user gets no focus
- * indicator at all (SC 2.4.7). `sN` is per-slide and drives the transform and
- * the visibility of that one slide.
- */
-const PEERS = ['peer/s1', 'peer/s2', 'peer/s3', 'peer/s4'] as const;
+const { products } = Astro.props;
+const slides = products.slice(0, 3);
 ---
 
-<section class="mid:pt-18 pt-11" aria-labelledby="home-title">
-  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
-    <div
-      class="wide:grid-cols-[minmax(0,1fr)_minmax(420px,0.92fr)] wide:gap-x-16 grid items-center gap-y-9.5"
-    >
-      <div>
-        <p class="text-ui-strong text-ink-2 mb-5.5 inline-flex items-center gap-2.5">
-          <span class="size-2 flex-none rounded-full bg-accent" aria-hidden="true"></span>
-          Roma e Firenze · consegna a domicilio in 24–48 ore
-        </p>
+<section class="hero" aria-labelledby="home-title">
+  <div class="container hero-grid">
+    <div>
+      <p class="hero-kicker">Noleggio medicale · Roma e Firenze</p>
 
-        {/* The column, not a max-width in ch, decides where this wraps. */}
-        <h1 id="home-title" class="text-[clamp(2.375rem,3.7vw,3rem)]/[1.1] tracking-[-0.033em]">
-          Noleggio carrozzine e ausili medicali, consegnati a casa tua.
-        </h1>
+      <h1 class="hero-display" id="home-title">
+        Noleggia<br />
+        l’ausilio giusto,<br />
+        <strong>senza pensieri.</strong>
+      </h1>
 
-        <p class="text-lead text-ink-2 mt-6 max-w-132">
-          Scegli il prodotto e le date: pensiamo a tutto noi, dalla consegna al ritiro. Prodotti
-          sanificati e certificati, assistenza al telefono con persone vere.
-        </p>
+      <p class="hero-sub">
+        Carrozzine, letti ortopedici, scooter e molto altro: scegli quando iniziare e al resto
+        pensiamo noi. Consegna a domicilio in 24–48 ore, prodotti sanificati e assistenza con
+        persone vere.
+      </p>
 
-        <div class="mt-8.5 flex flex-wrap gap-3">
-          <a class="btn btn-primary" href={routes.catalog}>Vedi il catalogo</a>
-          <a class="btn btn-soft" href={`tel:${CONTACT.phoneE164}`} data-analytics="phone-call">
-            Parla con noi
-          </a>
-        </div>
-      </div>
+      <p class="hero-cta">
+        <a class="btn-accent" href={routes.catalog}>Scopri il catalogo</a>
+      </p>
+    </div>
 
-      {
-        slides.length > 0 && (
-          <div
-            class="rounded-spot border-hair bg-tint border p-5.5"
-            aria-labelledby="spotlight-label"
-          >
-            <h2 id="spotlight-label" class="sr-only">
-              Prodotti in evidenza
-            </h2>
-            <p id="spotlight-instructions" class="sr-only">
-              Usa i tasti freccia destra e sinistra per cambiare prodotto.
-            </p>
+    {
+      slides.length > 0 && (
+        <section class="spot" data-carousel="spot" aria-labelledby="spot-label">
+          <h2 class="visually-hidden" id="spot-label">
+            Prodotti in evidenza
+          </h2>
 
-            {slides.map((product, index) => (
-              <input
-                id={`spotlight-state-${index + 1}`}
-                class:list={['peer/spot sr-only', PEERS[index]]}
-                type="radio"
-                name="home-featured-product"
-                value={index + 1}
-                checked={index === 0}
-                aria-label={`Mostra ${product.title}, prodotto ${index + 1} di ${slides.length}`}
-                aria-describedby="spotlight-instructions"
-              />
-            ))}
-
-            {/*
-                Every state class lives on THIS element and reaches the track
-                through `[&>ul]`. A `peer-*` variant compiles to
-                `.peer:checked ~ .target`, so the target has to be a SIBLING of
-                the radios — put them on the <ul> and nothing ever matches,
-                because the wrapper sits in between.
-              */}
-            <div class="rounded-card overflow-hidden peer-focus-visible/spot:shadow-[inset_0_0_0_6px_var(--color-ink)] peer-focus-visible/spot:outline-3 peer-focus-visible/spot:outline-offset-[-5px] peer-focus-visible/spot:outline-white peer-checked/s1:[&>ul]:translate-x-0 peer-checked/s2:[&>ul]:-translate-x-full peer-checked/s3:[&>ul]:translate-x-[-200%] peer-checked/s4:[&>ul]:translate-x-[-300%] [&>ul>li]:invisible peer-checked/s1:[&>ul>li:nth-child(1)]:visible peer-checked/s2:[&>ul>li:nth-child(2)]:visible peer-checked/s3:[&>ul>li:nth-child(3)]:visible peer-checked/s4:[&>ul>li:nth-child(4)]:visible">
-              <ul class="flex transition-transform duration-300 ease-out">
-                {slides.map((product, index) => {
-                  const price = cardPrice(product.pricing);
-                  const image = product.thumbnail;
-                  return (
-                    <li class="min-w-full">
-                      {/* The site-wide 4:3 media well, carrying nothing but the
-                          product — the price sits under the title, never on the image. */}
-                      <div class="rounded-card border-hair relative grid aspect-4/3 place-items-center border bg-white">
-                        {image && (
-                          <img
-                            class="absolute inset-0 size-full object-contain p-7 mix-blend-multiply"
-                            src={mediaUrl(image.path)}
-                            alt={`${image.alt || product.title}, a noleggio con consegna a domicilio`}
-                            loading={index === 0 ? 'eager' : 'lazy'}
-                            fetchpriority={index === 0 ? 'high' : 'auto'}
-                            decoding={index === 0 ? 'sync' : 'async'}
-                          />
-                        )}
-                      </div>
-
-                      <div class="flex items-center justify-between gap-4 px-1 pt-4.5 pb-0.5">
-                        <div class="min-w-0">
-                          <a
-                            class="font-display text-body font-semibold no-underline hover:underline hover:underline-offset-[5px]"
-                            href={productPath(product.slug)}
-                          >
-                            {product.title}
-                          </a>
-                          {price && (
-                            <p class="text-ui text-ink-2 mt-0.5 tabular-nums">{price.text}</p>
-                          )}
-                        </div>
-
-                        {slides.length > 1 && (
-                          <div class="flex flex-none items-center gap-2">
-                            <label
-                              class="border-hair hover:border-hair-strong hover:bg-tint-2 grid size-12 cursor-pointer place-items-center rounded-full border bg-white"
-                              for={`spotlight-state-${((index - 1 + slides.length) % slides.length) + 1}`}
-                              aria-label="Prodotto in evidenza precedente"
-                            >
-                              <svg
-                                class="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                              >
-                                <path d="m14 6-6 6 6 6" />
-                              </svg>
-                            </label>
-                            <label
-                              class="border-hair hover:border-hair-strong hover:bg-tint-2 grid size-12 cursor-pointer place-items-center rounded-full border bg-white"
-                              for={`spotlight-state-${((index + 1) % slides.length) + 1}`}
-                              aria-label="Prodotto in evidenza successivo"
-                            >
-                              <svg
-                                class="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                              >
-                                <path d="m10 6 6 6-6 6" />
-                              </svg>
-                            </label>
-                          </div>
-                        )}
-                      </div>
-
-                      <div class="flex justify-center gap-1.75 pt-3.5" aria-hidden="true">
-                        {slides.map((_, dotIndex) => (
-                          <span
-                            class:list={[
-                              'h-1.75 rounded-full',
-                              dotIndex === index ? 'w-5.5 bg-accent' : 'bg-ink/20 w-1.75',
-                            ]}
-                          />
-                        ))}
-                      </div>
-                    </li>
-                  );
-                })}
+          <div class="spot-stage">
+            <div class="spot-window" data-spot-viewport>
+              <ul class="spot-track">
+                {slides.map((product, index) => (
+                  <li>
+                    {product.thumbnail && (
+                      <img
+                        src={mediaUrl(product.thumbnail.path)}
+                        alt={product.thumbnail.alt || product.title}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        fetchpriority={index === 0 ? 'high' : 'auto'}
+                      />
+                    )}
+                  </li>
+                ))}
               </ul>
             </div>
-          </div>
-        )
-      }
-    </div>
 
-    <div class="mt-14">
-      <HomeSearch suggestions={suggestions} />
-    </div>
+            {slides.length > 1 && (
+              <>
+                <button
+                  class="spot-arrow"
+                  type="button"
+                  data-spot-prev
+                  aria-label="Prodotto precedente"
+                >
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m14 6-6 6 6 6" />
+                  </svg>
+                </button>
+                <button
+                  class="spot-arrow"
+                  type="button"
+                  data-spot-next
+                  aria-label="Prodotto successivo"
+                >
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m10 6 6 6-6 6" />
+                  </svg>
+                </button>
+
+                <div class="spot-dots" data-spot-dots>
+                  {slides.map((_, index) => (
+                    <button
+                      type="button"
+                      class:list={[index === 0 && 'is-active']}
+                      aria-label={`Mostra il prodotto ${index + 1} di ${slides.length}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div class="meta-deck" data-spot-meta>
+            {slides.map((product, index) => {
+              const offer = productOffer(product);
+              const href = productPath(product.slug);
+              const cta = product.pricing.mode === 'rental' ? 'Noleggia ora' : 'Acquista ora';
+              return (
+                <div class:list={[index === 0 && 'is-active']}>
+                  <a class="spot-name" href={href}>
+                    {product.title}
+                  </a>
+                  <div class="spot-offer">
+                    {offer && (
+                      <p class="spot-price">
+                        <strong>{offer.money}</strong>
+                        {offer.unit}
+                      </p>
+                    )}
+                    <a class="btn-accent" href={href}>
+                      {cta}
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )
+    }
   </div>
 </section>
+
+<script>
+  // Embla core — same engine as the trending rail, loop on. Guarded: the spot
+  // section does not render at all when the catalogue read failed.
+  import EmblaCarousel from 'embla-carousel';
+
+  const spotRoot = document.querySelector<HTMLElement>('[data-carousel="spot"]');
+  const viewport = spotRoot?.querySelector<HTMLElement>('[data-spot-viewport]');
+
+  if (spotRoot && viewport && viewport.querySelectorAll('li').length > 1) {
+    const spot = EmblaCarousel(viewport, { loop: true });
+    // Jump instead of glide for people who asked the OS for less motion.
+    const jump = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const dots = [...spotRoot.querySelectorAll<HTMLButtonElement>('[data-spot-dots] button')];
+    const metas = [...spotRoot.querySelectorAll<HTMLElement>('[data-spot-meta] > div')];
+
+    const syncSpot = () => {
+      const selected = spot.selectedScrollSnap();
+      dots.forEach((dot, index) => dot.classList.toggle('is-active', index === selected));
+      metas.forEach((meta, index) => meta.classList.toggle('is-active', index === selected));
+    };
+
+    spotRoot
+      .querySelector('[data-spot-prev]')
+      ?.addEventListener('click', () => spot.scrollPrev(jump));
+    spotRoot
+      .querySelector('[data-spot-next]')
+      ?.addEventListener('click', () => spot.scrollNext(jump));
+    dots.forEach((dot, index) => dot.addEventListener('click', () => spot.scrollTo(index, jump)));
+    spot.on('select', syncSpot);
+    syncSpot();
+  }
+</script>

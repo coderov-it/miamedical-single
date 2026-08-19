@@ -72,6 +72,9 @@ catalogs:
     drizzle-orm:
       specifier: ^0.45.2
       version: 0.45.2
+    embla-carousel:
+      specifier: ^8.6.0
+      version: 8.6.0
     eslint:
       specifier: ^10.8.1
       version: 10.8.1
@@ -400,6 +403,9 @@ importers:
       astro:
         specifier: 'catalog:'
         version: 7.2.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.2)(jiti@2.7.0)(tsx@4.23.9)(yaml@2.9.0)
+      embla-carousel:
+        specifier: 'catalog:'
+        version: 8.6.0
       hono:
         specifier: 'catalog:'
         version: 4.13.0
@@ -2632,6 +2638,9 @@ packages:
 
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
+
+  embla-carousel@8.6.0:
+    resolution: {integrity: sha512-SjWyZBHJPbqxHOzckOfo8lHisEaJWmwd23XppYFYVh10bU66/Pn5tkVkbkCMZVdbUE5eTCI2nD8OyIP4Z+uwkA==}
 
   emmet@2.4.11:
     resolution: {integrity: sha512-23QPJB3moh/U9sT4rQzGgeyyGIrcM+GH5uVYg2C6wZIxAIJq7Ng3QLT79tl8FUwDXhyq9SusfknOrofAKqvgyQ==}
@@ -6145,6 +6154,8 @@ snapshots:
   dset@3.1.4: {}
 
   ee-first@1.1.1: {}
+
+  embla-carousel@8.6.0: {}
 
   emmet@2.4.11:
     dependencies:

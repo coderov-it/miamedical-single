@@ -1,157 +1,176 @@
 ---
 /**
- * Global footer — the darkest step of the closing descent: the "parla con noi"
- * band sits on --accent-deep, this sits on --footer. Two steps of the same
- * brand blue, not two different blues.
+ * Global footer — the page closes on the design system's deep navy, ported 1:1
+ * from docs/blueprint/home.html (styles in styles/editorial.css).
  *
- * The rental headings are editorial labels, not category records: the footer
- * renders on every page, including on-demand ones, and fetching the category
- * tree here would add an API round trip to every request for four link labels.
- * They point at a catalogue search, which is a real destination that cannot
- * become a dead URL if a category is renamed.
+ * The rental links are editorial labels, not category records: the footer
+ * renders on every page, and fetching the category tree here would add an API
+ * round trip to every request for four link labels. They point at a catalogue
+ * search, which is a real destination that cannot become a dead URL if a
+ * category is renamed.
  */
 import { catalogPath, routes } from '~/lib/routes';
-import { COMPANY, CONTACT, LOCATIONS, whatsappUrl } from '~/lib/site';
+import { COMPANY, CONTACT } from '~/lib/site';
 
 const year = new Date().getFullYear();
 
-const rentalCategories = [
-  'Carrozzine',
-  'Carrozzine elettriche e scooter',
-  'Letti ortopedici',
-  'Deambulatori e rollatori',
-  'Montascale',
-  'Materassi antidecubito',
+const rentalLinks = [
+  { href: routes.catalog, label: 'Catalogo completo' },
+  { href: catalogPath({ q: 'Carrozzine' }), label: 'Carrozzine' },
+  { href: catalogPath({ q: 'Letti ortopedici' }), label: 'Letti ortopedici' },
+  { href: catalogPath({ q: 'Scooter elettrici' }), label: 'Scooter elettrici' },
+  { href: catalogPath({ q: 'Deambulatori' }), label: 'Deambulatori' },
 ];
 
-const help = [
-  { href: `${routes.home}#come-funziona`, label: 'Come funziona' },
-  { href: `${routes.home}#domande-frequenti`, label: 'Domande frequenti' },
-  { href: routes.support, label: 'Assistenza' },
-  { href: routes.catalog, label: 'Catalogo noleggio' },
+const supportLinks = [
+  { href: routes.support, label: 'Contatti' },
+  { href: routes.search, label: 'Cerca un ausilio' },
+  { href: routes.account, label: 'Area clienti' },
+  { href: routes.cart, label: 'Il tuo carrello' },
+];
+
+const informationLinks = [
   { href: routes.blog, label: 'Blog' },
-];
-
-const information = [
   { href: routes.terms, label: 'Termini e condizioni' },
   { href: routes.privacy, label: 'Privacy policy' },
   { href: routes.cookies, label: 'Cookie policy' },
 ];
+
+/* Placeholder profiles — swap for the real ones when marketing hands them over. */
+const socials = [
+  {
+    href: 'https://www.facebook.com/miamedicalitalia',
+    label: 'Seguici su Facebook',
+    icon: 'facebook',
+  },
+  {
+    href: 'https://www.instagram.com/miamedicalitalia',
+    label: 'Seguici su Instagram',
+    icon: 'instagram',
+  },
+  { href: 'https://x.com/miamedicalitalia', label: 'Seguici su X', icon: 'x' },
+  {
+    href: 'https://maps.google.com/?q=M.i.a.+Medical+Italia',
+    label: 'La nostra sede su Google Maps',
+    icon: 'maps',
+  },
+] as const;
 ---
 
-<footer class="bg-footer text-white">
-  <div class="max-w-page mid:px-8 mid:pt-16 mx-auto w-full px-5 pt-12">
-    <div class="mid:grid-cols-2 wide:grid-cols-[1.4fr_repeat(3,1fr)] grid gap-10 pb-12">
-      <section aria-label="Mia Medical Italia">
-        {
-          /*
-            The mark is brand blue on transparent and would disappear on the
-            dark footer. Production wants a dedicated white file; until then it
-            is knocked out here.
-          */
-        }
-        <img
-          class="mb-4.5 h-10 w-auto brightness-0 invert"
-          src="/img/logo.svg"
-          alt="M.i.a. Medical Italia — moving in autonomy"
-          width="71"
-          height="38"
-        />
-        <p class="text-ui text-on-dark">
-          Noleggio e vendita di ausili sanitari a domicilio, per brevi e lunghi periodi. Consegna a
-          Roma e Firenze in 24–48 ore.
+<footer class="site-foot">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href={routes.home}>MIA-MEDICAL</a>
+        <p class="foot-tagline">Moving in autonomy</p>
+        <p class="foot-about">
+          Noleggio di ausili medicali con consegna a domicilio a Roma e Firenze. Prodotti
+          sanificati e certificati, assistenza con persone vere.
         </p>
-        <address class="text-ui text-on-dark mt-4 not-italic">
-          Numero verde: <a class="text-white" href={`tel:${CONTACT.phoneE164}`}
-            >{CONTACT.phoneDisplay}</a
-          ><br />
-          WhatsApp: <a class="text-white" href={whatsappUrl()} target="_blank" rel="noopener">
-            {CONTACT.whatsappDisplay}
-          </a><br />
-          Email: <a class="text-white" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-        </address>
-      </section>
+        <a
+          class="foot-phone"
+          href={`tel:${CONTACT.phoneE164}`}
+          aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
+          data-analytics="phone-call"
+        >
+          <svg
+            width="19"
+            height="19"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+            ></path>
+          </svg>
+          {CONTACT.phoneDisplay}
+        </a>
+        <p class="foot-hours">Numero verde gratuito · {CONTACT.hours.it}</p>
 
-      <nav aria-labelledby="footer-rental-title">
-        <h2 id="footer-rental-title" class="text-ui-strong mb-3 text-white">Noleggio</h2>
-        <ul>
+        <div class="foot-socials">
           {
-            rentalCategories.map((category) => (
-              <li>
-                <a
-                  class="text-ui-strong text-on-dark inline-flex min-h-10.5 items-center no-underline hover:text-white hover:underline"
-                  href={catalogPath({ q: category })}
-                >
-                  {category}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-
-      <nav aria-labelledby="footer-help-title">
-        <h2 id="footer-help-title" class="text-ui-strong mb-3 text-white">Aiuto</h2>
-        <ul>
-          {
-            help.map((item) => (
-              <li>
-                <a
-                  class="text-ui-strong text-on-dark inline-flex min-h-10.5 items-center no-underline hover:text-white hover:underline"
-                  href={item.href}
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-
-      <div>
-        <nav aria-labelledby="footer-info-title">
-          <h2 id="footer-info-title" class="text-ui-strong mb-3 text-white">Legale</h2>
-          <ul>
-            {
-              information.map((item) => (
-                <li>
-                  <a
-                    class="text-ui-strong text-on-dark inline-flex min-h-10.5 items-center no-underline hover:text-white hover:underline"
-                    href={item.href}
+            socials.map((social) => (
+              <a href={social.href} target="_blank" rel="noopener" aria-label={social.label}>
+                {social.icon === 'facebook' && (
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M13.5 21.5v-7.4h2.5l.4-2.9h-2.9V9.3c0-.85.23-1.43 1.45-1.43l1.55-.01V5.27c-.27-.04-1.19-.12-2.26-.12-2.24 0-3.77 1.37-3.77 3.88v2.16H8v2.9h2.47v7.4Z" />
+                  </svg>
+                )}
+                {social.icon === 'instagram' && (
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
                   >
-                    {item.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </nav>
-
-        <h2 class="text-ui-strong mt-6 mb-3 text-white">Le nostre sedi</h2>
-        <ul class="text-ui text-on-dark grid gap-1">
-          {
-            LOCATIONS.map((location) => (
-              <li>
-                <strong class="text-white">{location.city}</strong> — {location.street}
-              </li>
+                    <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" />
+                    <circle cx="12" cy="12" r="4.1" />
+                    <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none" />
+                  </svg>
+                )}
+                {social.icon === 'x' && (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.3l-4.9-6.4L5.2 21H2.1l7.3-8.3L2 3h6.4l4.4 5.9L17.8 3Zm-1.1 16.1h1.7L7.4 4.8H5.6l11.1 14.3Z" />
+                  </svg>
+                )}
+                {social.icon === 'maps' && (
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                  </svg>
+                )}
+              </a>
             ))
           }
-        </ul>
+        </div>
       </div>
+
+      <nav aria-labelledby="foot-catalog-heading">
+        <h2 class="foot-heading" id="foot-catalog-heading">Noleggio</h2>
+        <div class="foot-links">
+          {rentalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+        </div>
+      </nav>
+
+      <nav aria-labelledby="foot-support-heading">
+        <h2 class="foot-heading" id="foot-support-heading">Assistenza</h2>
+        <div class="foot-links">
+          {supportLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+        </div>
+      </nav>
+
+      <nav aria-labelledby="foot-info-heading">
+        <h2 class="foot-heading" id="foot-info-heading">Informazioni</h2>
+        <div class="foot-links">
+          {informationLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+        </div>
+      </nav>
     </div>
 
-    {
-      /*
-        One expression, not three adjacent ones: the formatter breaks adjacent
-        expressions onto separate lines and the whitespace between them is
-        dropped at compile time, gluing the year to the company name.
-      */
-    }
-    <div
-      class="text-ui text-on-dark flex flex-wrap justify-between gap-x-8 gap-y-2.5 pt-6 pb-11 shadow-[inset_0_1px_0_rgb(255_255_255/0.14)]"
-    >
-      <span>{`© ${year} ${COMPANY.legalName} — P.IVA ${COMPANY.vat}`}</span>
-      <span>Consegna a domicilio a Roma e Firenze</span>
+    <div class="foot-bottom">
+      <p>{`© ${year} ${COMPANY.legalName} · P.IVA ${COMPANY.vat}`}</p>
+      <p>
+        <a href={routes.privacy}>Privacy</a> · <a href={routes.cookies}>Cookie</a>
+      </p>
     </div>
   </div>
 </footer>

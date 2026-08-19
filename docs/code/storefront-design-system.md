@@ -261,6 +261,17 @@ value over a correction without resolving it with the designer first.
 `prefers-reduced-motion` is also handled in `@layer base`; the prototypes declare
 it nowhere.
 
+**The one exemption from the 48px floor is `.target-48`**, and only inside
+`.checkout` / `.cart`: the control keeps the paint the design asks for and gets a
+centred, invisible 48×48 hit area back on top. As of **2026-08-20 the selector
+enforces that deal**. It used to read `:is(.checkout, .cart) :is(button, [type=
+checkbox], [type=radio])`, which un-layered `min-height: 0` onto every button in
+both scopes and silently beat each one's `min-h-*` utility — the cart's "Vai alla
+conferma" asked for 52px and painted 24. Two consequences to keep in mind: a button
+in those scopes that asks for a height now gets it, and a control that DOES wear
+`.target-48` must express its paint as `h-*`, because its `min-height` is zeroed by
+design.
+
 ## The product card (locked)
 
 `src/components/catalog/ProductCard.astro`, built 1:1 from the approved

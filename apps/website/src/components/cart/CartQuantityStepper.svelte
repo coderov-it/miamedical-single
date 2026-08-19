@@ -1,0 +1,66 @@
+<!--
+  How many of one line. One tint group, transparent keys inside it — the product
+  page's stepper, down to the 44px keys.
+
+  It sits ABOVE the card's toggle overlay (`relative z-1`), because the reference
+  design nests its stepper inside the clickable row and stops propagation, which in
+  HTML would be a button inside a button.
+-->
+<script lang="ts">
+  import { MAX_CART_QUANTITY } from '~/lib/cart-store';
+
+  interface Props {
+    quantity: number;
+    /** Spoken labels, already carrying the product's name. */
+    decreaseLabel: string;
+    increaseLabel: string;
+    valueLabel: string;
+    /** Receives the requested quantity; the state clamps it. */
+    onChange: (quantity: number) => void;
+  }
+
+  const { quantity, decreaseLabel, increaseLabel, valueLabel, onChange }: Props = $props();
+
+  /* Both keys, so the pair cannot drift: 44px painted, 48px to the finger.
+     `.target-48` is what zeroes `min-height` — that is the deal that earns a
+     sub-48 paint — so the size is stated with `size-*`, never `min-h-*`. */
+  const KEY =
+    'target-48 text-ink hover:bg-tint-2 disabled:text-ink-placeholder grid size-11 cursor-pointer ' +
+    'place-items-center border-0 bg-transparent text-xl font-bold disabled:cursor-not-allowed ' +
+    'disabled:hover:bg-transparent';
+</script>
+
+<div class="bg-tint relative z-1 flex flex-none items-center overflow-hidden rounded-[10px]">
+  <button
+    class={KEY}
+    type="button"
+    aria-label={decreaseLabel}
+    onclick={() => onChange(quantity - 1)}
+    disabled={quantity <= 1}
+  >
+    −
+  </button>
+
+  <!-- No `name`: the fields the checkout reads are hidden inputs the container
+       renders, and a name here would collide with them. -->
+  <input
+    class="h-11 w-11 appearance-none border-0 bg-transparent text-center text-[16px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+    type="number"
+    min="1"
+    max={MAX_CART_QUANTITY}
+    inputmode="numeric"
+    aria-label={valueLabel}
+    value={quantity}
+    onchange={(event) => onChange(Number(event.currentTarget.value))}
+  />
+
+  <button
+    class={KEY}
+    type="button"
+    aria-label={increaseLabel}
+    onclick={() => onChange(quantity + 1)}
+    disabled={quantity >= MAX_CART_QUANTITY}
+  >
+    +
+  </button>
+</div>

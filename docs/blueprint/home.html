@@ -1,0 +1,2626 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — blueprint · M.i.a. Medical Italia</title>
+    <!--
+      LIVING BLUEPRINT of the NEW homepage, one section per session.
+      Skin (owner brief, 2026-08-17): premium editorial minimalism — Inter,
+      navy ink on white, pale blue-gray surfaces, near-invisible borders, one
+      whisper of a shadow, accent only on primary actions.
+      Content layout (owner wireframe, rewound 2026-08-17): two-column hero —
+      copy + one button left, featured-product showcase right (dots on the
+      image, arrows at its sides, price + CTA row) — then the booking bar
+      under its own arrowed heading, categories, trending, footer.
+      Next sections land above the #next-sections marker; the footer stays
+      last. Photos come from the live site; the font loads only when the repo
+      is served over http.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('../../apps/website/public/fonts/inter-variable-latin.woff2') format('woff2');
+      }
+
+      :root {
+        /* palette from the owner's brief — restrained, cool, navy-led */
+        --color-ink: #0b1220; /* 17.9:1 on white */
+        --color-ink-soft: #5e6878; /* 5.9:1 on white, 5.4:1 on the surface */
+        --color-surface: #f0f2fa; /* the pale blue-gray stage */
+        --color-surface-2: #f5f6fb; /* quieter step, hovers */
+        --color-line: #e7e9ef; /* barely-there border */
+        --color-accent: #3846b1; /* the one indigo — CTAs and active states */
+        --color-accent-deep: #262d97;
+        --color-live: #12924f; /* availability dots */
+        --color-phone-tint: #e1f3e8; /* the phone pill — green means "someone answers" */
+        --color-phone-ink: #0b5c39; /* 6.2:1 on the tint */
+
+        --radius-stage: 32px;
+        --radius-bar: 24px;
+        --radius-control: 16px;
+
+        /* one whisper of a shadow, used once — the search bar */
+        --shadow-whisper: 0 18px 44px rgb(11 18 32 / 0.06);
+
+        --container: 1280px;
+        --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      }
+
+      /* ============ base ============ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--color-ink);
+        font-family: var(--font-ui);
+        font-size: 1.0625rem; /* 17px */
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      a {
+        color: inherit;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      .container {
+        max-width: var(--container);
+        margin-inline: auto;
+        width: 100%;
+        padding-inline: 24px;
+      }
+      @media (min-width: 760px) {
+        .container {
+          padding-inline: 56px;
+        }
+      }
+
+      .btn-accent {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 54px;
+        padding-inline: 32px;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .btn-accent:hover {
+        background: var(--color-accent-deep);
+      }
+
+      /* ============ header — quiet, typographic ============ */
+      .site-head {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #fff;
+        border-bottom: 1px solid var(--color-line);
+      }
+      .head-row {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        min-height: 76px;
+      }
+      .brand {
+        flex: none;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+      .head-nav {
+        display: none;
+        align-items: center;
+        gap: 34px;
+        margin-inline: 36px auto;
+      }
+      .head-nav a {
+        font-size: 0.9688rem;
+        font-weight: 550;
+        color: var(--color-ink-soft);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .head-nav a:hover {
+        color: var(--color-ink);
+      }
+      .head-nav a[aria-current='page'] {
+        color: var(--color-ink);
+        font-weight: 700;
+      }
+      .head-tools {
+        display: flex;
+        align-items: center;
+        /* the footer socials' rhythm: filled tiles sit close, like one toolbar */
+        gap: 8px;
+        margin-left: auto;
+      }
+      .phone-quiet {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 44px;
+        padding-inline: 15px;
+        border-radius: 12px;
+        background: var(--color-phone-tint);
+        color: var(--color-phone-ink);
+        font-size: 1rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .phone-quiet:hover {
+        background: #d3ecdd;
+      }
+      .phone-glyph {
+        flex: none;
+      }
+      /* the footer's social tile, translated to the light header: same rounded
+         square, the fill is a whisper of ink instead of translucent white */
+      .head-icon {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgb(11 18 32 / 0.05);
+        color: var(--color-ink);
+      }
+      .head-icon:hover {
+        background: rgb(11 18 32 / 0.09);
+        color: var(--color-accent);
+      }
+      .cart-count {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        display: grid;
+        place-items: center;
+        min-width: 18px;
+        height: 18px;
+        padding-inline: 4px;
+        border-radius: 999px;
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 0.6563rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      @media (min-width: 1100px) {
+        .head-nav {
+          display: flex;
+        }
+      }
+      @media (max-width: 559px) {
+        .phone-quiet span {
+          display: none;
+        }
+        .phone-quiet {
+          width: 44px;
+          justify-content: center;
+          padding-inline: 0;
+        }
+      }
+
+      /* ============ hero — copy left, showcase right ============ */
+      .hero {
+        padding-top: 56px;
+      }
+      .hero-grid {
+        display: grid;
+        align-items: center;
+        gap: 44px;
+      }
+      .hero-kicker {
+        margin-bottom: 18px;
+        font-size: 0.8125rem;
+        font-weight: 650;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--color-ink-soft);
+      }
+      .hero-display {
+        font-size: clamp(2.5rem, 4.6vw, 3.875rem);
+        line-height: 1.04;
+        font-weight: 550;
+        letter-spacing: -0.032em;
+      }
+      .hero-display strong {
+        font-weight: 760;
+      }
+      .hero-sub {
+        max-width: 54ch;
+        margin-top: 22px;
+        font-size: 1.0625rem;
+        line-height: 1.65;
+        color: var(--color-ink-soft);
+      }
+      .hero-cta {
+        margin-top: 32px;
+      }
+      @media (min-width: 1100px) {
+        .hero {
+          padding-top: 72px;
+        }
+        .hero-grid {
+          grid-template-columns: minmax(0, 1fr) minmax(440px, 0.95fr);
+          column-gap: 72px;
+        }
+      }
+
+      /* ============ the showcase — one pale surface, no box-in-box ============ */
+      .spot {
+        position: relative;
+        padding: 22px 22px 26px;
+        border-radius: var(--radius-stage);
+        background: var(--color-surface);
+      }
+      .spot-stage {
+        position: relative;
+      }
+      .spot-window {
+        overflow: hidden;
+        border-radius: 20px;
+      }
+      .spot-track {
+        /* embla core drives the transform — no CSS transition on it, ever */
+        display: flex;
+        aspect-ratio: 4 / 3;
+        touch-action: pan-y pinch-zoom;
+      }
+      .spot-track li {
+        min-width: 100%;
+        display: grid;
+        place-items: center;
+        /* the sliding transform isolates blending, so each slide carries the
+           surface color itself — multiply then melts the photo's white into it */
+        background: var(--color-surface);
+      }
+      .spot-track img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 10px 18px 34px; /* the dots live in the bottom lane */
+        mix-blend-mode: multiply;
+      }
+      .spot-arrow {
+        position: absolute;
+        top: 50%;
+        translate: 0 -50%;
+        display: grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--color-ink);
+        cursor: pointer;
+      }
+      .spot-arrow:hover {
+        border-color: var(--color-ink-soft);
+      }
+      .spot-arrow[data-spot-prev] {
+        left: -6px;
+      }
+      .spot-arrow[data-spot-next] {
+        right: -6px;
+      }
+      .spot-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        translate: -50% 0;
+        display: flex;
+        gap: 8px;
+      }
+      .spot-dots button {
+        width: 8px;
+        height: 8px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: rgb(11 18 32 / 0.18);
+        cursor: pointer;
+        transition: width 0.2s ease-out;
+      }
+      .spot-dots button.is-active {
+        width: 22px;
+        background: var(--color-accent);
+      }
+
+      .meta-deck {
+        display: grid;
+        margin-top: 20px;
+      }
+      .meta-deck > div {
+        grid-area: 1 / 1;
+        visibility: hidden;
+        padding-inline: 6px;
+      }
+      .meta-deck > div.is-active {
+        visibility: visible;
+      }
+      .spot-name {
+        display: block;
+        font-size: 1.1875rem;
+        line-height: 1.35;
+        font-weight: 650;
+        text-decoration: none;
+      }
+      .spot-name:hover {
+        color: var(--color-accent);
+      }
+      .spot-offer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 16px;
+        margin-top: 14px;
+      }
+      .spot-price {
+        font-size: 1rem;
+        color: var(--color-ink-soft);
+      }
+      .spot-price strong {
+        margin-right: 5px;
+        font-size: 2.125rem;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-ink);
+      }
+
+      .spot-arrow:focus-visible,
+      .spot-dots button:focus-visible {
+        outline: 3px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      /* the page's section heading — a sentence with a long arrow */
+      .section-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        font-size: clamp(1.5rem, 2.4vw, 1.875rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .section-title svg {
+        flex: none;
+        margin-top: 3px;
+      }
+
+      /* ============ booking — arrowed heading, one segmented bar ============ */
+      .booking {
+        padding-block: 88px 96px;
+      }
+      .search-bar {
+        display: grid;
+        margin-top: 24px;
+        padding: 8px;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-bar);
+        background: #fff;
+        box-shadow: var(--shadow-whisper);
+        text-align: left;
+      }
+      .bar-cell {
+        display: grid;
+        align-content: center;
+        gap: 3px;
+        padding: 10px 20px;
+        cursor: text;
+      }
+      /* each cell is a <label>: its gutters and micro-label focus the field */
+      .bar-cell:has(:is(select, [type='date'])) {
+        cursor: default;
+      }
+      .bar-label {
+        font-size: 0.75rem;
+        font-weight: 650;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--color-ink-soft);
+      }
+      .bar-cell input,
+      .bar-cell select {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bar-cell :focus-visible {
+        outline: none; /* the bar itself rings on focus */
+      }
+      .search-bar:focus-within {
+        border-color: var(--color-accent);
+      }
+      .bar-cell input::placeholder {
+        color: var(--color-ink-soft);
+        font-weight: 500;
+        opacity: 1;
+      }
+      .bar-cell select {
+        appearance: none;
+        padding-right: 24px;
+      }
+      .bar-cell select:invalid {
+        color: var(--color-ink-soft);
+        font-weight: 500;
+      }
+      .select-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .select-wrap svg {
+        position: absolute;
+        right: 2px;
+        pointer-events: none;
+        color: var(--color-ink-soft);
+      }
+      .bar-submit {
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        padding-inline: 40px;
+        min-height: 58px;
+      }
+      .bar-submit:hover {
+        background: var(--color-accent-deep);
+      }
+      @media (min-width: 1020px) {
+        .search-bar {
+          grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+        }
+        .bar-cell + .bar-cell {
+          border-left: 1px solid var(--color-line);
+        }
+      }
+      @media (max-width: 1019px) {
+        .bar-cell + .bar-cell {
+          border-top: 1px solid var(--color-line);
+        }
+        .bar-submit {
+          margin-top: 8px;
+        }
+      }
+
+      /* ============ categories — white section, one hairline, bounded cards ============ */
+      .categories {
+        padding-block: 72px 84px;
+        border-top: 1px solid var(--color-line); /* the clear seam under the hero block */
+      }
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 30px;
+      }
+      @media (min-width: 1020px) {
+        .categories {
+          padding-block: 84px 96px;
+        }
+        .category-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+      /* each category is its own quiet card: one hairline, white body */
+      .category-tile {
+        display: block;
+        padding: 12px 12px 18px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        background: #fff;
+        text-decoration: none;
+      }
+      .category-tile:hover {
+        border-color: #ccd2e2;
+      }
+      .cat-media {
+        /* a block, not a grid: the img's percentage height needs a definite
+           base, and a lone auto grid row is indefinite */
+        display: block;
+        height: 136px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--color-surface-2); /* the pale well the photo sits in */
+        margin-bottom: 14px;
+      }
+      .cat-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply; /* melts the photo's white into the well */
+      }
+      .cat-name {
+        padding-inline: 8px;
+        font-size: 1.0625rem;
+        line-height: 1.35;
+        font-weight: 650;
+      }
+      .category-tile:hover .cat-name {
+        color: var(--color-accent);
+      }
+      .cat-count {
+        margin-top: 3px;
+        padding-inline: 8px;
+        font-size: 0.875rem;
+        color: var(--color-ink-soft);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ============ trending — a whisper-gray band, white cards on top ============ */
+      .trending {
+        padding-block: 72px 96px;
+        border-top: 1px solid var(--color-line);
+        /* neutral gray, one step off white — tells this section apart from
+           the categories without becoming a colored band */
+        background: #f6f7f9;
+      }
+      .section-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 32px;
+      }
+      .section-tools {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .section-link {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: var(--color-ink);
+        text-decoration: none;
+        border-bottom: 1px solid var(--color-line);
+        padding-bottom: 2px;
+        white-space: nowrap;
+      }
+      .section-link:hover {
+        color: var(--color-accent);
+        border-color: currentColor;
+      }
+      /* Embla core carousel (the project-wide carousel engine). The markup is
+         plain server-renderable HTML; the script at the bottom only attaches
+         behavior. Slide width and gap live in the two custom properties. */
+      .trend-carousel {
+        --slide-size: 78%;
+        --slide-spacing: 14px;
+        margin-top: 30px;
+      }
+      @media (min-width: 640px) {
+        .trend-carousel {
+          --slide-size: 50%;
+        }
+      }
+      @media (min-width: 1100px) {
+        .trend-carousel {
+          --slide-size: 25%;
+        }
+      }
+      .trend-viewport {
+        overflow: hidden;
+      }
+      .product-track {
+        display: flex;
+        touch-action: pan-y pinch-zoom;
+        /* cancels the first slide's gap padding — embla's slide-gap technique */
+        margin-left: calc(var(--slide-spacing) * -1);
+      }
+      .carousel-slide {
+        display: flex;
+        flex: 0 0 var(--slide-size);
+        min-width: 0;
+        padding-left: var(--slide-spacing);
+      }
+      .carousel-nav {
+        display: flex;
+        gap: 8px;
+      }
+      .carousel-arrow {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--color-line);
+        border-radius: 50%;
+        background: #fff;
+        color: var(--color-ink);
+        cursor: pointer;
+      }
+      .carousel-arrow:hover:not(:disabled) {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+      }
+      .carousel-arrow:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .product-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: 12px 12px 16px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        background: #fff;
+      }
+      /* the carousel's last slide: not a product, an invitation to the catalog */
+      .browse-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        width: 100%;
+        padding: 24px;
+        /* two steps deeper than any page surface, so the invite reads as its
+           own thing next to the white product cards — but never white itself */
+        border: 1px solid #d5dcf0;
+        border-radius: 20px;
+        background: #e7ebf8;
+        text-align: center;
+        text-decoration: none;
+        color: var(--color-ink);
+      }
+      .browse-card:hover {
+        border-color: #b9c3e4;
+      }
+      .browse-arrow {
+        display: grid;
+        place-items: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid #d5dcf0;
+        color: var(--color-ink);
+      }
+      .browse-card:hover .browse-arrow {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+        color: #fff;
+      }
+      .browse-title {
+        display: block;
+        font-size: 1.0625rem;
+        line-height: 1.35;
+        font-weight: 650;
+      }
+      .browse-count {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.9375rem;
+        color: var(--color-ink-soft);
+      }
+
+      /* ============ how it works — three steps, nothing paid online ============ */
+      .how {
+        padding-block: 72px 84px;
+        border-top: 1px solid var(--color-line);
+        background: #fff;
+      }
+      .section-lead {
+        margin-top: 14px;
+        font-size: 1.0625rem;
+        line-height: 1.65;
+        color: var(--color-ink-soft);
+      }
+      /* one bordered panel: white body with the steps, gray strip attached below */
+      .how-panel {
+        margin-top: 40px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 34px;
+        padding: 30px 28px 36px;
+        list-style: none;
+      }
+      @media (min-width: 900px) {
+        .steps {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 40px;
+        }
+      }
+      .step-badge-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .step-badge {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 1.0625rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      /* the thread that ties the three badges into one path */
+      .step-badge-row::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--color-line);
+      }
+      .step:last-child .step-badge-row::after {
+        display: none;
+      }
+      .step-name {
+        margin-top: 18px;
+        font-size: 1.0625rem;
+        font-weight: 650;
+      }
+      .step-text {
+        margin-top: 8px;
+        font-size: 0.9688rem;
+        line-height: 1.6;
+        color: var(--color-ink-soft);
+      }
+      /* the note is an attached footer strip inside its panel, never a floating pill */
+      .note-bar {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 28px;
+        border-top: 1px solid var(--color-line);
+        background: #f6f7f9;
+        font-size: 0.9688rem;
+        line-height: 1.6;
+        color: var(--color-ink-soft);
+      }
+      .note-bar svg {
+        flex: none;
+        margin-top: 2px;
+      }
+      .note-bar strong {
+        color: var(--color-ink);
+        font-weight: 650;
+      }
+      .note-bar a {
+        color: var(--color-accent);
+        font-weight: 650;
+        text-decoration: none;
+      }
+      .note-bar a:hover {
+        text-decoration: underline;
+      }
+      .note-check {
+        color: var(--color-live);
+      }
+
+      /* ============ delivery & collection — one panel, three promises ============ */
+      .delivery {
+        padding-block: 8px 96px;
+        background: #fff;
+      }
+      /* the mirror of .how-panel: gray cells above, white strip attached below */
+      .delivery-panel {
+        margin-top: 40px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      .delivery-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        list-style: none;
+      }
+      .delivery-cell {
+        padding: 26px 28px;
+        background: #f6f7f9;
+      }
+      @media (min-width: 900px) {
+        .delivery-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .delivery-cell + .delivery-cell {
+          border-left: 1px solid var(--color-line);
+        }
+      }
+      @media (max-width: 899px) {
+        .delivery-cell + .delivery-cell {
+          border-top: 1px solid var(--color-line);
+        }
+      }
+      .delivery-icon {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid var(--color-line);
+        color: var(--color-ink);
+      }
+      .delivery-name {
+        margin-top: 16px;
+        font-size: 1.0625rem;
+        font-weight: 650;
+      }
+      .delivery-text {
+        margin-top: 8px;
+        font-size: 0.9688rem;
+        line-height: 1.6;
+        color: var(--color-ink-soft);
+      }
+      .delivery .note-bar {
+        background: #fff;
+      }
+
+      /* ============ testimonials — white band, staggered quote cards ============ */
+      .testimonials {
+        /* the extra bottom padding absorbs the middle column's stagger */
+        padding-block: 72px 116px;
+        border-top: 1px solid var(--color-line);
+        /* the brand's pale lavender, so the trust band reads warmer than the
+           neutral gray of the trending section */
+        background: var(--color-surface-2);
+      }
+      /* the hero's display voice, one size down — the section the owner wants
+         to feel as loud as the opening statement */
+      .testimonial-display {
+        font-size: clamp(2.125rem, 3.6vw, 3rem);
+        line-height: 1.08;
+        font-weight: 550;
+        letter-spacing: -0.032em;
+      }
+      .testimonial-display strong {
+        font-weight: 760;
+      }
+      /* the kicker carries the review sources as overlapping round chips */
+      .kicker-sources {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .source-stack {
+        display: inline-flex;
+      }
+      .source-chip {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid var(--color-line);
+      }
+      .source-chip + .source-chip {
+        margin-left: -9px;
+      }
+      /* the numeral IS the message — display-sized, stars beneath, one caption */
+      .rating-hero {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+        text-align: right;
+      }
+      .rating-score {
+        font-size: 3.5rem;
+        line-height: 0.9;
+        font-weight: 780;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+      .stars-lg svg {
+        width: 21px;
+        height: 21px;
+      }
+      .rating-note {
+        font-size: 0.9375rem;
+        color: var(--color-ink-soft);
+      }
+      .stars {
+        display: inline-flex;
+        gap: 3px;
+        /* one saturated gold — pale amber reads cheap at small sizes */
+        color: #f5a623;
+      }
+      /* heading and rating close on the same bottom line */
+      .testimonials .section-head {
+        align-items: flex-end;
+      }
+      .testimonial-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 46px;
+      }
+      @media (min-width: 640px) {
+        .testimonial-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (min-width: 1100px) {
+        .testimonial-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        /* the middle column sits a step lower — a stagger, not a strict grid */
+        .testimonial-grid > :nth-child(3n-1) {
+          translate: 0 26px;
+        }
+      }
+      .testimonial-card {
+        display: flex;
+        flex-direction: column;
+        padding: 24px 24px 22px;
+        border: 1px solid var(--color-line);
+        border-radius: 20px;
+        background: #fff;
+      }
+      .tc-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .tc-meta {
+        display: flex;
+        align-items: center;
+        margin-top: 14px;
+      }
+      .tc-date {
+        flex: none;
+        font-size: 0.8125rem;
+        color: var(--color-ink-soft);
+      }
+      .tc-text {
+        margin-top: 12px;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        color: var(--color-ink-soft);
+      }
+      .tc-person {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .tc-source {
+        display: grid;
+        place-items: center;
+        align-self: flex-end;
+        margin-top: auto;
+        padding-top: 14px;
+      }
+      .tc-avatar {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: var(--color-surface);
+        font-size: 0.8125rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .tc-name {
+        font-size: 0.9375rem;
+        font-weight: 650;
+      }
+
+      /* ============ FAQ — no cards, just questions on hairlines ============ */
+      .faq {
+        padding-block: 72px 96px;
+        border-top: 1px solid var(--color-line);
+        background: #fff;
+      }
+      .faq-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      @media (min-width: 1100px) {
+        .faq-grid {
+          grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+          gap: 88px;
+        }
+      }
+      .faq-lead {
+        margin-top: 16px;
+        font-size: 1.0625rem;
+        line-height: 1.65;
+        color: var(--color-ink-soft);
+        max-width: 34ch;
+      }
+      .faq-contact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+      }
+      /* link buttons in the section's own gray — quiet doors, not CTAs */
+      .link-quiet {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 48px;
+        padding-inline: 18px;
+        border-radius: 14px;
+        background: #f4f5f7;
+        color: var(--color-ink);
+        font-size: 0.9688rem;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .link-quiet:hover {
+        background: #eceef1;
+        color: var(--color-accent);
+      }
+      .link-quiet svg {
+        flex: none;
+        color: var(--color-ink-soft);
+      }
+      .link-quiet:hover svg {
+        color: currentColor;
+      }
+      .faq-item + .faq-item {
+        margin-top: 10px;
+      }
+      /* the TRIGGER carries the layering: a quiet gray bar. The answer below
+         is plain text, so what you press and what you read never blur. */
+      .faq-item summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        min-height: 62px;
+        padding: 16px 20px;
+        border-radius: 14px;
+        background: #f4f5f7;
+        font-size: 1.0625rem;
+        font-weight: 650;
+        cursor: pointer;
+        list-style: none;
+      }
+      .faq-item summary:hover,
+      .faq-item[open] summary {
+        background: #eceef1;
+      }
+      .faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq-icon {
+        flex: none;
+        color: var(--color-ink-soft);
+        transition: rotate 0.2s ease-out;
+      }
+      /* the plus turns into an X — open state without a second glyph */
+      .faq-item[open] .faq-icon {
+        rotate: 45deg;
+      }
+      .faq-answer {
+        padding: 16px 20px 10px;
+        max-width: 62ch;
+        font-size: 0.9688rem;
+        line-height: 1.65;
+        color: var(--color-ink-soft);
+      }
+      .product-card:hover {
+        border-color: #ccd2e2;
+      }
+      .pc-top {
+        display: block;
+        text-decoration: none;
+      }
+      .pc-media {
+        /* a block, not a grid — same percentage-height lesson as .cat-media */
+        display: block;
+        height: 178px;
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--color-surface-2);
+        margin-bottom: 16px;
+      }
+      .pc-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+      }
+      .pc-name {
+        /* always reserve two lines and clip past them, so the price row sits
+           at the same height in every card no matter the title length */
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        min-height: calc(2 * 1.35em);
+        padding-inline: 8px;
+        font-size: 1.0625rem;
+        line-height: 1.35;
+        font-weight: 650;
+      }
+      .pc-top:hover .pc-name {
+        color: var(--color-accent);
+      }
+      .pc-price {
+        margin-block: 12px 16px;
+        padding-inline: 8px;
+        font-size: 0.9375rem;
+        color: var(--color-ink-soft);
+      }
+      .pc-price strong {
+        margin-right: 5px;
+        font-size: 1.375rem;
+        font-weight: 750;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-ink);
+      }
+      /* the card's action: a soft accent tint at rest, the full theme on hover */
+      .btn-quiet {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        margin-top: auto; /* bottom-aligns the action across unequal names */
+        border: 0;
+        border-radius: 12px;
+        background: #eef0fb; /* the accent's palest step — 7:1 with the text */
+        color: var(--color-accent);
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .btn-quiet:hover {
+        background: var(--color-accent);
+        color: #fff;
+      }
+
+      /* ============ blueprint end marker ============ */
+      .next-sections {
+        padding-block: 130px;
+        text-align: center;
+      }
+      .next-sections p {
+        font-size: 0.8125rem;
+        font-weight: 650;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-ink-soft);
+      }
+
+      /* ============ footer — the page closes on the deep navy ============ */
+      .site-foot {
+        background: var(--color-ink);
+        color: #c7cdd9; /* 11.2:1 on the navy */
+        padding-block: 72px 36px;
+      }
+      .foot-grid {
+        display: grid;
+        gap: 44px;
+      }
+      @media (min-width: 760px) {
+        .foot-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (min-width: 1100px) {
+        /* [ brand ] ← flexible space → [ links · links · links ]
+           the link columns keep a STATIC distance; the leftover lives
+           between the brand and the group */
+        .foot-grid {
+          display: flex;
+          align-items: flex-start;
+          gap: 88px;
+        }
+        .foot-brand {
+          max-width: 400px;
+          margin-right: auto;
+        }
+      }
+      .foot-brand .brand {
+        color: #fff;
+      }
+      .foot-tagline {
+        margin-top: 6px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: #8b94a8; /* 5.6:1 — small caps and meta only, never body text */
+      }
+      .foot-about {
+        max-width: 34ch;
+        margin-top: 18px;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+      .foot-phone {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 22px;
+        color: #fff;
+        font-size: 1.1875rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        text-decoration: none;
+      }
+      .foot-phone svg {
+        flex: none;
+        color: #4ec98d; /* the same "someone answers" green, tuned for dark */
+      }
+      .foot-phone:hover {
+        text-decoration: underline;
+        text-underline-offset: 5px;
+      }
+      .foot-hours {
+        margin-top: 8px;
+        font-size: 0.9375rem;
+        color: #8b94a8;
+      }
+      .foot-socials {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .foot-socials a {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: rgb(255 255 255 / 0.07);
+        color: #c7cdd9;
+      }
+      .foot-socials a:hover {
+        background: rgb(255 255 255 / 0.14);
+        color: #fff;
+      }
+      .foot-heading {
+        font-size: 0.8125rem;
+        font-weight: 650;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #8b94a8;
+      }
+      .foot-links {
+        display: grid;
+        gap: 2px;
+        margin-top: 18px;
+      }
+      .foot-links a {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        min-height: 38px; /* touch target without visual bulk */
+        font-size: 1rem;
+        font-weight: 500;
+        color: #c7cdd9;
+        text-decoration: none;
+      }
+      .foot-links a:hover {
+        color: #fff;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      .foot-bottom {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px 32px;
+        margin-top: 40px;
+        padding-top: 24px;
+        border-top: 1px solid rgb(255 255 255 / 0.12);
+        font-size: 0.9375rem;
+        color: #8b94a8;
+      }
+      .foot-bottom a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .foot-bottom a:hover {
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="site-head">
+      <div class="container head-row">
+        <a class="brand" href="/">MIA-MEDICAL</a>
+
+        <nav class="head-nav" aria-label="Navigazione principale">
+          <a href="/" aria-current="page">Home</a>
+          <a href="/catalogo-noleggio/">Catalogo noleggio</a>
+          <a href="/cerca/">Sfoglia</a>
+          <a href="/blog/">Blog</a>
+          <a href="/assistenza/">Contatti</a>
+        </nav>
+
+        <div class="head-tools">
+          <a
+            class="phone-quiet"
+            href="tel:+39800031962"
+            aria-label="Chiama il numero verde 800 031962, gratuito"
+          >
+            <svg
+              class="phone-glyph"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.9"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+              ></path>
+            </svg>
+            <span>800 031962</span>
+          </a>
+
+          <a class="head-icon" href="/carrello/" aria-label="Apri il carrello — più di 9 ausili">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4"></path>
+              <circle cx="10.5" cy="20" r="1.4"></circle>
+              <circle cx="17.5" cy="20" r="1.4"></circle>
+            </svg>
+            <span class="cart-count" aria-hidden="true">9+</span>
+          </a>
+
+          <a class="head-icon" href="/area-clienti/" aria-label="Area clienti">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="3.6"></circle>
+              <path d="M4.6 20a7.4 7.4 0 0 1 14.8 0"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="home-title">
+        <div class="container hero-grid">
+          <div>
+            <p class="hero-kicker">Noleggio medicale · Roma e Firenze</p>
+
+            <h1 class="hero-display" id="home-title">
+              Noleggia<br />
+              l’ausilio giusto,<br />
+              <strong>senza pensieri.</strong>
+            </h1>
+
+            <p class="hero-sub">
+              Carrozzine, letti ortopedici, scooter e molto altro: scegli quando iniziare e al
+              resto pensiamo noi. Consegna a domicilio in 24–48 ore, prodotti sanificati e
+              assistenza con persone vere.
+            </p>
+
+            <p class="hero-cta">
+              <a class="btn-accent" href="/catalogo-noleggio/">Scopri il catalogo</a>
+            </p>
+          </div>
+
+          <section class="spot" data-carousel="spot" aria-labelledby="spot-label">
+            <h2 class="visually-hidden" id="spot-label">Prodotti in evidenza</h2>
+
+            <div class="spot-stage">
+              <div class="spot-window" data-spot-viewport>
+                <ul class="spot-track">
+                  <li>
+                    <img
+                      src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                      alt="Carrozzina pieghevole ad autospinta"
+                      loading="eager"
+                      fetchpriority="high"
+                    />
+                  </li>
+                  <li>
+                    <img
+                      src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                      alt="Letto ortopedico elettrico"
+                      loading="lazy"
+                    />
+                  </li>
+                  <li>
+                    <img
+                      src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png"
+                      alt="Scooter elettrico per anziani"
+                      loading="lazy"
+                    />
+                  </li>
+                </ul>
+              </div>
+
+              <button class="spot-arrow" type="button" data-spot-prev aria-label="Prodotto precedente">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>
+              </button>
+              <button class="spot-arrow" type="button" data-spot-next aria-label="Prodotto successivo">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg>
+              </button>
+
+              <div class="spot-dots" data-spot-dots>
+                <button type="button" class="is-active" aria-label="Mostra il prodotto 1 di 3"></button>
+                <button type="button" aria-label="Mostra il prodotto 2 di 3"></button>
+                <button type="button" aria-label="Mostra il prodotto 3 di 3"></button>
+              </div>
+            </div>
+
+            <div class="meta-deck" data-spot-meta>
+              <div class="is-active">
+                <a class="spot-name" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                  Carrozzina pieghevole ad autospinta
+                </a>
+                <div class="spot-offer">
+                  <p class="spot-price"><strong>4,90 €</strong> al giorno</p>
+                  <a class="btn-accent" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                    Noleggia ora
+                  </a>
+                </div>
+              </div>
+              <div>
+                <a class="spot-name" href="/prodotto/letto-ortopedico-elettrico/">
+                  Letto ortopedico elettrico
+                </a>
+                <div class="spot-offer">
+                  <p class="spot-price"><strong>8,90 €</strong> al giorno</p>
+                  <a class="btn-accent" href="/prodotto/letto-ortopedico-elettrico/">
+                    Noleggia ora
+                  </a>
+                </div>
+              </div>
+              <div>
+                <a class="spot-name" href="/prodotto/scooter-elettrico-tommy/">
+                  Scooter elettrico per anziani
+                </a>
+                <div class="spot-offer">
+                  <p class="spot-price"><strong>12,90 €</strong> al giorno</p>
+                  <a class="btn-accent" href="/prodotto/scooter-elettrico-tommy/">
+                    Noleggia ora
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="booking" aria-labelledby="booking-title">
+        <div class="container">
+          <h2 class="section-title" id="booking-title">
+            Prenota un ausilio.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+
+          <form
+            class="search-bar"
+            method="get"
+            action="/catalogo-noleggio/"
+            role="search"
+            aria-label="Cerca disponibilità per un ausilio a noleggio"
+          >
+            <label class="bar-cell" for="booking-product">
+              <span class="bar-label">Cerca per nome</span>
+              <input
+                id="booking-product"
+                name="q"
+                type="search"
+                autocomplete="off"
+                placeholder="es. Carrozzina"
+              />
+            </label>
+
+            <label class="bar-cell" for="booking-area">
+              <span class="bar-label">Zona</span>
+              <div class="select-wrap">
+                <select id="booking-area" name="area" required>
+                  <option value="" selected disabled>Scegli la zona</option>
+                  <option value="rm">Roma e provincia</option>
+                  <option value="fi">Firenze e provincia</option>
+                  <option value="other">Altra zona</option>
+                </select>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m7 9.5 5 5 5-5"></path>
+                </svg>
+              </div>
+            </label>
+
+            <label class="bar-cell" for="booking-start">
+              <span class="bar-label">Data di prenotazione</span>
+              <input id="booking-start" name="from" type="date" autocomplete="off" />
+            </label>
+
+            <button class="bar-submit" type="submit">Prenota ora</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="categories" aria-labelledby="categories-title">
+        <div class="container">
+          <h2 class="section-title" id="categories-title">
+            Esplora per categoria.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+
+          <ul class="category-grid">
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=carrozzine">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Carrozzine</h3>
+                <p class="cat-count">14 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=letti-ortopedici">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Letti ortopedici</h3>
+                <p class="cat-count">9 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=scooter-elettrici">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Scooter elettrici</h3>
+                <p class="cat-count">7 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=deambulatori">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Deambulatori e rollator</h3>
+                <p class="cat-count">11 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=materassi-antidecubito">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/Materasso-antidecubito-Polyplot-Wimed.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Materassi antidecubito</h3>
+                <p class="cat-count">6 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=ausili-bagno">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/comoda-vermeiren.jpg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Ausili da bagno</h3>
+                <p class="cat-count">8 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=sollevatori">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELETTRICO-.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Sollevatori</h3>
+                <p class="cat-count">5 prodotti</p>
+              </a>
+            </li>
+            <li>
+              <a class="category-tile" href="/catalogo-noleggio/?category=montascale">
+                <span class="cat-media">
+                  <img
+                    src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/montascale-elettrico-2-Piccola.jpeg"
+                    alt=""
+                    loading="lazy"
+                  />
+                </span>
+                <h3 class="cat-name">Montascale</h3>
+                <p class="cat-count">4 prodotti</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="trending" aria-labelledby="trending-title">
+        <div class="container">
+          <div class="section-head">
+            <h2 class="section-title" id="trending-title">
+              I più noleggiati.
+              <svg
+                width="44"
+                height="16"
+                viewBox="0 0 44 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+              </svg>
+            </h2>
+            <div class="section-tools">
+              <a class="section-link" href="/catalogo-noleggio/">Vedi tutto il catalogo →</a>
+              <div class="carousel-nav">
+                <button
+                  class="carousel-arrow"
+                  type="button"
+                  data-carousel-prev="trending"
+                  aria-label="Prodotti precedenti"
+                  disabled
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m14 6-6 6 6 6" />
+                  </svg>
+                </button>
+                <button
+                  class="carousel-arrow"
+                  type="button"
+                  data-carousel-next="trending"
+                  aria-label="Prodotti successivi"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m10 6 6 6-6 6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="trend-carousel" data-carousel="trending">
+            <div class="trend-viewport">
+              <ul class="product-track">
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-.jpg"
+                          alt="Carrozzina pieghevole ad autospinta"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Carrozzina pieghevole ad autospinta</h3>
+                    </a>
+                    <p class="pc-price"><strong>4,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/carrozzina-ad-autospinta-pieghevole/">
+                      Noleggia
+                    </a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/letto-ortopedico-elettrico/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/10/letto-ortopedico-elettrica.jpg"
+                          alt="Letto ortopedico elettrico"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Letto ortopedico elettrico</h3>
+                    </a>
+                    <p class="pc-price"><strong>8,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/letto-ortopedico-elettrico/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/scooter-elettrico-tommy/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Scooter-tommy.png"
+                          alt="Scooter elettrico per anziani"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Scooter elettrico per anziani</h3>
+                    </a>
+                    <p class="pc-price"><strong>12,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/scooter-elettrico-tommy/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/deambulatore-rollator/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg"
+                          alt="Deambulatore rollator pieghevole"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Deambulatore rollator pieghevole</h3>
+                    </a>
+                    <p class="pc-price"><strong>3,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/deambulatore-rollator/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/materasso-antidecubito/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/Materasso-antidecubito-Polyplot-Wimed.jpg"
+                          alt="Materasso antidecubito a bolle"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Materasso antidecubito a bolle</h3>
+                    </a>
+                    <p class="pc-price"><strong>2,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/materasso-antidecubito/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/sedia-comoda/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/11/comoda-vermeiren.jpg"
+                          alt="Sedia comoda 4 funzioni"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Sedia comoda 4 funzioni</h3>
+                    </a>
+                    <p class="pc-price"><strong>3,50 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/sedia-comoda/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/sollevatore-elettrico/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELETTRICO-.png"
+                          alt="Sollevatore elettrico per pazienti"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Sollevatore elettrico per pazienti</h3>
+                    </a>
+                    <p class="pc-price"><strong>9,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/sollevatore-elettrico/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <article class="product-card">
+                    <a class="pc-top" href="/prodotto/montascale-a-cingoli/">
+                      <span class="pc-media">
+                        <img
+                          src="https://www.miamedicalitalia.it/wp-content/uploads/2022/12/montascale-elettrico-2-Piccola.jpeg"
+                          alt="Montascale a cingoli"
+                          loading="lazy"
+                        />
+                      </span>
+                      <h3 class="pc-name">Montascale a cingoli</h3>
+                    </a>
+                    <p class="pc-price"><strong>15,90 €</strong> al giorno</p>
+                    <a class="btn-quiet" href="/prodotto/montascale-a-cingoli/">Noleggia</a>
+                  </article>
+                </li>
+                <li class="carousel-slide">
+                  <a class="browse-card" href="/catalogo-noleggio/">
+                    <span class="browse-arrow">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M4 12h16" />
+                        <path d="m14 6 6 6-6 6" />
+                      </svg>
+                    </span>
+                    <span>
+                      <span class="browse-title">Sfoglia tutto il catalogo</span>
+                      <span class="browse-count">Oltre 60 ausili a noleggio</span>
+                    </span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="how" aria-labelledby="how-title">
+        <div class="container">
+          <h2 class="section-title" id="how-title">
+            Come funziona.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+          <p class="section-lead">Tre passaggi, senza pagare nulla online.</p>
+
+          <div class="how-panel">
+            <ol class="steps">
+            <li class="step">
+              <p class="step-badge-row"><span class="step-badge" aria-hidden="true">1</span></p>
+              <h3 class="step-name">Scegli il prodotto</h3>
+              <p class="step-text">
+                Dal catalogo, oppure chiamaci: ti consigliamo noi quello giusto.
+              </p>
+            </li>
+            <li class="step">
+              <p class="step-badge-row"><span class="step-badge" aria-hidden="true">2</span></p>
+              <h3 class="step-name">Seleziona le date</h3>
+              <p class="step-text">
+                Indichi quando ti serve e per quanto tempo. Puoi sempre prolungare.
+              </p>
+            </li>
+            <li class="step">
+              <p class="step-badge-row"><span class="step-badge" aria-hidden="true">3</span></p>
+              <h3 class="step-name">Lo ricevi a domicilio</h3>
+              <p class="step-text">
+                Ti chiamiamo per confermare, consegniamo e montiamo. A fine noleggio ritiriamo
+                noi.
+              </p>
+            </li>
+            </ol>
+
+            <p class="note-bar">
+              <svg class="note-check" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              <span>
+                <strong>Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata di
+                conferma, con un link di pagamento sicuro via SMS o email.
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="delivery" aria-labelledby="delivery-title">
+        <div class="container">
+          <h2 class="section-title" id="delivery-title">
+            Consegna e ritiro.
+            <svg
+              width="44"
+              height="16"
+              viewBox="0 0 44 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+            </svg>
+          </h2>
+          <p class="section-lead">Pensiamo a tutto noi, dall'inizio alla fine.</p>
+
+          <div class="delivery-panel">
+            <ul class="delivery-grid">
+            <li class="delivery-cell">
+              <span class="delivery-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>
+              </span>
+              <h3 class="delivery-name">Consegna in 24–48 ore</h3>
+              <p class="delivery-text">A Roma, Firenze e provincia. Anche in appartamento, al piano.</p>
+            </li>
+            <li class="delivery-cell">
+              <span class="delivery-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"/></svg>
+              </span>
+              <h3 class="delivery-name">Montaggio incluso</h3>
+              <p class="delivery-text">Installiamo letti e ausili e ti mostriamo come si usano, con calma.</p>
+            </li>
+            <li class="delivery-cell">
+              <span class="delivery-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              </span>
+              <h3 class="delivery-name">Ritiro a fine noleggio</h3>
+              <p class="delivery-text">Fissiamo insieme il giorno: non devi riconsegnare nulla.</p>
+            </li>
+            </ul>
+
+            <p class="note-bar">
+              <span>
+                <strong>Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in
+                un'altra zona? <a href="tel:800031962">Chiamaci</a>: spesso riusciamo a
+                organizzare la consegna.
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="testimonials" aria-labelledby="testimonials-title">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <p class="hero-kicker kicker-sources">
+                <span class="source-stack" aria-hidden="true">
+                  <span class="source-chip"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.7-.2-2.5H12v4.8h6.5c-.3 1.6-1.2 2.9-2.5 3.8v3.1h4c2.3-2.2 3.5-5.4 3.5-9.2z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-4-3.1c-1.1.7-2.4 1.2-3.9 1.2-3 0-5.6-2-6.5-4.8H1.3v3.2C3.3 21.5 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.5 14.4c-.5-1.5-.5-3.2 0-4.7V6.5H1.3c-1.7 3.4-1.7 7.5 0 10.9l4.2-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.5-3.5C17.9 1.1 15.2 0 12 0 7.3 0 3.3 2.5 1.3 6.5l4.2 3.2c.9-2.9 3.5-4.9 6.5-4.9z"/></svg></span>
+                  <span class="source-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="#00B67A" aria-hidden="true"><path d="m12 1.6 2.9 7 7.5.1-5.9 4.7 2.2 7.2L12 16.3l-6.7 4.3 2.2-7.2L1.6 8.7l7.5-.1z"/></svg></span>
+                  <span class="source-chip"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path fill="#fff" d="M15.9 15.2l.5-3.2h-3.1V9.9c0-.9.4-1.7 1.8-1.7h1.4V5.4s-1.3-.2-2.5-.2c-2.5 0-4.2 1.5-4.2 4.3V12H7v3.2h2.8V23a11.2 11.2 0 0 0 3.5 0v-7.8h2.6z"/></svg></span>
+                </span>
+                Recensioni verificate
+              </p>
+              <h2 class="testimonial-display" id="testimonials-title">
+                La fiducia<br />di <strong>centinaia di famiglie.</strong>
+              </h2>
+            </div>
+            <div class="rating-hero">
+              <p class="rating-score" aria-label="Valutazione media 4,9 su 5">4,9</p>
+              <span class="stars stars-lg" role="img" aria-label="4,9 stelle su 5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              <p class="rating-note">214 recensioni verificate</p>
+            </div>
+          </div>
+
+          <ul class="testimonial-grid">
+            <li class="testimonial-card">
+              <p class="tc-head">
+                <span class="tc-person">
+                  <span class="tc-avatar" aria-hidden="true">GR</span>
+                  <span class="tc-name">Giulia R.</span>
+                </span>
+                <span class="tc-date">Giugno 2026</span>
+              </p>
+              <p class="tc-meta">
+                <span class="stars" role="img" aria-label="5 stelle su 5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              </p>
+              <p class="tc-text">
+                L'ho ordinato una sera per mia madre e il pomeriggio seguente era già in camera,
+                montato e regolato. Prima di andare via mi hanno spiegato ogni comando con calma.
+              </p>
+              <span class="tc-source" role="img" aria-label="Recensione pubblicata su Google">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.7-.2-2.5H12v4.8h6.5c-.3 1.6-1.2 2.9-2.5 3.8v3.1h4c2.3-2.2 3.5-5.4 3.5-9.2z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-4-3.1c-1.1.7-2.4 1.2-3.9 1.2-3 0-5.6-2-6.5-4.8H1.3v3.2C3.3 21.5 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.5 14.4c-.5-1.5-.5-3.2 0-4.7V6.5H1.3c-1.7 3.4-1.7 7.5 0 10.9l4.2-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.5-3.5C17.9 1.1 15.2 0 12 0 7.3 0 3.3 2.5 1.3 6.5l4.2 3.2c.9-2.9 3.5-4.9 6.5-4.9z"/></svg>
+              </span>
+            </li>
+            <li class="testimonial-card">
+              <p class="tc-head">
+                <span class="tc-person">
+                  <span class="tc-avatar" aria-hidden="true">FM</span>
+                  <span class="tc-name">Franco M.</span>
+                </span>
+                <span class="tc-date">Luglio 2026</span>
+              </p>
+              <p class="tc-meta">
+                <span class="stars" role="img" aria-label="5 stelle su 5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              </p>
+              <p class="tc-text">
+                Ho spostato due volte le date del ritiro e non è mai stato un problema: stessa
+                voce, stessa pazienza. Quando assisti un genitore anziano, questo vale più di
+                qualsiasi sconto.
+              </p>
+              <span class="tc-source" role="img" aria-label="Recensione pubblicata su Google">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.7-.2-2.5H12v4.8h6.5c-.3 1.6-1.2 2.9-2.5 3.8v3.1h4c2.3-2.2 3.5-5.4 3.5-9.2z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-4-3.1c-1.1.7-2.4 1.2-3.9 1.2-3 0-5.6-2-6.5-4.8H1.3v3.2C3.3 21.5 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.5 14.4c-.5-1.5-.5-3.2 0-4.7V6.5H1.3c-1.7 3.4-1.7 7.5 0 10.9l4.2-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.5-3.5C17.9 1.1 15.2 0 12 0 7.3 0 3.3 2.5 1.3 6.5l4.2 3.2c.9-2.9 3.5-4.9 6.5-4.9z"/></svg>
+              </span>
+            </li>
+            <li class="testimonial-card">
+              <p class="tc-head">
+                <span class="tc-person">
+                  <span class="tc-avatar" aria-hidden="true">ST</span>
+                  <span class="tc-name">Sara T.</span>
+                </span>
+                <span class="tc-date">Luglio 2026</span>
+              </p>
+              <p class="tc-meta">
+                <span class="stars" role="img" aria-label="5 stelle su 5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              </p>
+              <p class="tc-text">
+                Cinque minuti dal telefono, senza registrazioni complicate. Il rollator è arrivato
+                a Firenze il giorno dopo, già regolato per l'altezza di mio padre.
+              </p>
+              <span class="tc-source" role="img" aria-label="Recensione pubblicata su Trustpilot">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#00B67A" aria-hidden="true"><path d="m12 1.6 2.9 7 7.5.1-5.9 4.7 2.2 7.2L12 16.3l-6.7 4.3 2.2-7.2L1.6 8.7l7.5-.1z"/></svg>
+              </span>
+            </li>
+            <li class="testimonial-card">
+              <p class="tc-head">
+                <span class="tc-person">
+                  <span class="tc-avatar" aria-hidden="true">AB</span>
+                  <span class="tc-name">Alessandro B.</span>
+                </span>
+                <span class="tc-date">Maggio 2026</span>
+              </p>
+              <p class="tc-meta">
+                <span class="stars" role="img" aria-label="5 stelle su 5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              </p>
+              <p class="tc-text">
+                Ho confrontato tre servizi prima di scegliere: qui la tariffa è al giorno, con
+                consegna e ritiro compresi, e alla fine non è spuntato nessun costo a sorpresa.
+              </p>
+              <span class="tc-source" role="img" aria-label="Recensione pubblicata su Google">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.7-.2-2.5H12v4.8h6.5c-.3 1.6-1.2 2.9-2.5 3.8v3.1h4c2.3-2.2 3.5-5.4 3.5-9.2z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-4-3.1c-1.1.7-2.4 1.2-3.9 1.2-3 0-5.6-2-6.5-4.8H1.3v3.2C3.3 21.5 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.5 14.4c-.5-1.5-.5-3.2 0-4.7V6.5H1.3c-1.7 3.4-1.7 7.5 0 10.9l4.2-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.5-3.5C17.9 1.1 15.2 0 12 0 7.3 0 3.3 2.5 1.3 6.5l4.2 3.2c.9-2.9 3.5-4.9 6.5-4.9z"/></svg>
+              </span>
+            </li>
+            <li class="testimonial-card">
+              <p class="tc-head">
+                <span class="tc-person">
+                  <span class="tc-avatar" aria-hidden="true">MC</span>
+                  <span class="tc-name">Marta C.</span>
+                </span>
+                <span class="tc-date">Aprile 2026</span>
+              </p>
+              <p class="tc-meta">
+                <span class="stars" role="img" aria-label="5 stelle su 5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              </p>
+              <p class="tc-text">
+                La carrozzina è arrivata igienizzata, con le gomme gonfie e i freni registrati:
+                sembrava appena uscita dal negozio. Al ritiro sono stati puntuali al minuto.
+              </p>
+              <span class="tc-source" role="img" aria-label="Recensione pubblicata su Facebook">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path fill="#fff" d="M15.9 15.2l.5-3.2h-3.1V9.9c0-.9.4-1.7 1.8-1.7h1.4V5.4s-1.3-.2-2.5-.2c-2.5 0-4.2 1.5-4.2 4.3V12H7v3.2h2.8V23a11.2 11.2 0 0 0 3.5 0v-7.8h2.6z"/></svg>
+              </span>
+            </li>
+            <li class="testimonial-card">
+              <p class="tc-head">
+                <span class="tc-person">
+                  <span class="tc-avatar" aria-hidden="true">PV</span>
+                  <span class="tc-name">Paolo V.</span>
+                </span>
+                <span class="tc-date">Febbraio 2026</span>
+              </p>
+              <p class="tc-meta">
+                <span class="stars" role="img" aria-label="5 stelle su 5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>
+                </span>
+              </p>
+              <p class="tc-text">
+                Dopo l'operazione mi serviva un letto elettrico solo per sei settimane. Consegna,
+                montaggio e ritiro compresi: finito il noleggio se lo sono portati via, ed è
+                finita lì.
+              </p>
+              <span class="tc-source" role="img" aria-label="Recensione pubblicata su Trustpilot">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#00B67A" aria-hidden="true"><path d="m12 1.6 2.9 7 7.5.1-5.9 4.7 2.2 7.2L12 16.3l-6.7 4.3 2.2-7.2L1.6 8.7l7.5-.1z"/></svg>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="faq" aria-labelledby="faq-title">
+        <div class="container">
+          <div class="faq-grid">
+            <div>
+              <h2 class="section-title" id="faq-title">
+                Domande frequenti.
+                <svg
+                  width="44"
+                  height="16"
+                  viewBox="0 0 44 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+                </svg>
+              </h2>
+              <p class="faq-lead">
+                Le risposte alle cose che ci chiedono più spesso. Per tutto il resto c'è il
+                numero verde: risponde una persona, non un menu.
+              </p>
+              <div class="faq-contact">
+                <a class="link-quiet" href="/chi-siamo/">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125V21m7.5-10.5h1.875c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                  Chi siamo
+                </a>
+                <a class="link-quiet" href="/contatti/">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/></svg>
+                  Contattaci
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <details class="faq-item" open>
+                <summary>
+                  Come funziona la consegna a domicilio?
+                  <svg class="faq-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </summary>
+                <p class="faq-answer">
+                  Consegniamo e montiamo noi, a Roma e Firenze, di solito entro 24–48 ore
+                  dall'ordine. Alla fine del noleggio veniamo a ritirare l'ausilio: consegna e
+                  ritiro sono già compresi nella tariffa.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>
+                  Qual è la durata minima del noleggio?
+                  <svg class="faq-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </summary>
+                <p class="faq-answer">
+                  Si parte da una settimana. Se ti serve più a lungo basta una telefonata: la
+                  proroga si attiva subito, senza firmare nulla di nuovo.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>
+                  Gli ausili sono sanificati?
+                  <svg class="faq-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </summary>
+                <p class="faq-answer">
+                  Sì. Ogni ausilio viene igienizzato, controllato e regolato prima di ogni
+                  consegna. Sono tutti dispositivi certificati CE con manutenzione documentata.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>
+                  Serve la prescrizione del medico?
+                  <svg class="faq-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </summary>
+                <p class="faq-answer">
+                  No, per noleggiare non serve alcuna prescrizione. Se hai una pratica ASL in
+                  corso ti aiutiamo noi a capire cosa spetta e come muoverti.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>
+                  Come si paga?
+                  <svg class="faq-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </summary>
+                <p class="faq-answer">
+                  Online con carta oppure alla consegna. La tariffa è al giorno e comprende
+                  tutto: nessun deposito nascosto, nessun costo che spunta dopo.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>
+                  Posso restituire l'ausilio prima del previsto?
+                  <svg class="faq-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </summary>
+                <p class="faq-answer">
+                  Sì: chiamaci e organizziamo il ritiro anticipato. Paghi solo i giorni di
+                  noleggio effettivi previsti dal piano scelto.
+                </p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLUEPRINT: append the next home section ABOVE this marker. -->
+      <section class="next-sections">
+        <p>Altre sezioni in arrivo</p>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <div class="container">
+        <div class="foot-grid">
+          <div class="foot-brand">
+            <a class="brand" href="/">MIA-MEDICAL</a>
+            <p class="foot-tagline">Moving in autonomy</p>
+            <p class="foot-about">
+              Noleggio di ausili medicali con consegna a domicilio a Roma e Firenze. Prodotti
+              sanificati e certificati, assistenza con persone vere.
+            </p>
+            <a
+              class="foot-phone"
+              href="tel:+39800031962"
+              aria-label="Chiama il numero verde 800 031962, gratuito"
+            >
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.9"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+                ></path>
+              </svg>
+              800 031962
+            </a>
+            <p class="foot-hours">Numero verde gratuito · Lun–Ven 9:00–18:00</p>
+
+            <div class="foot-socials">
+              <a
+                href="https://www.facebook.com/miamedicalitalia"
+                target="_blank"
+                rel="noopener"
+                aria-label="Seguici su Facebook"
+              >
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M13.5 21.5v-7.4h2.5l.4-2.9h-2.9V9.3c0-.85.23-1.43 1.45-1.43l1.55-.01V5.27c-.27-.04-1.19-.12-2.26-.12-2.24 0-3.77 1.37-3.77 3.88v2.16H8v2.9h2.47v7.4Z" />
+                </svg>
+              </a>
+              <a
+                href="https://www.instagram.com/miamedicalitalia"
+                target="_blank"
+                rel="noopener"
+                aria-label="Seguici su Instagram"
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4.1"></circle>
+                  <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"></circle>
+                </svg>
+              </a>
+              <a
+                href="https://x.com/miamedicalitalia"
+                target="_blank"
+                rel="noopener"
+                aria-label="Seguici su X"
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.3l-4.9-6.4L5.2 21H2.1l7.3-8.3L2 3h6.4l4.4 5.9L17.8 3Zm-1.1 16.1h1.7L7.4 4.8H5.6l11.1 14.3Z" />
+                </svg>
+              </a>
+              <a
+                href="https://maps.google.com/?q=M.i.a.+Medical+Italia"
+                target="_blank"
+                rel="noopener"
+                aria-label="La nostra sede su Google Maps"
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"></path>
+                  <circle cx="12" cy="10" r="2.5"></circle>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <nav aria-labelledby="foot-catalog-heading">
+            <h2 class="foot-heading" id="foot-catalog-heading">Noleggio</h2>
+            <div class="foot-links">
+              <a href="/catalogo-noleggio/">Catalogo completo</a>
+              <a href="/catalogo-noleggio/?category=carrozzine">Carrozzine</a>
+              <a href="/catalogo-noleggio/?category=letti-ortopedici">Letti ortopedici</a>
+              <a href="/catalogo-noleggio/?category=scooter-elettrici">Scooter elettrici</a>
+              <a href="/catalogo-noleggio/?category=deambulatori">Deambulatori</a>
+            </div>
+          </nav>
+
+          <nav aria-labelledby="foot-support-heading">
+            <h2 class="foot-heading" id="foot-support-heading">Assistenza</h2>
+            <div class="foot-links">
+              <a href="/assistenza/">Contatti</a>
+              <a href="/cerca/">Cerca un ausilio</a>
+              <a href="/area-clienti/">Area clienti</a>
+              <a href="/carrello/">Il tuo carrello</a>
+            </div>
+          </nav>
+
+          <nav aria-labelledby="foot-info-heading">
+            <h2 class="foot-heading" id="foot-info-heading">Informazioni</h2>
+            <div class="foot-links">
+              <a href="/blog/">Blog</a>
+              <a href="/termini-e-condizioni/">Termini e condizioni</a>
+              <a href="/privacy-policy/">Privacy policy</a>
+              <a href="/cookie-policy/">Cookie policy</a>
+            </div>
+          </nav>
+        </div>
+
+        <div class="foot-bottom">
+          <p>© 2026 M.i.a. Medical Italia · P.IVA 01234567890</p>
+          <p>
+            <a href="/privacy-policy/">Privacy</a> · <a href="/cookie-policy/">Cookie</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // A rental cannot start in the past: floor the date field at today.
+      document.getElementById('booking-start').min = new Date().toLocaleDateString('sv');
+    </script>
+
+    <!-- Embla core, pinned to v8 stable — the project-wide carousel engine.
+         In the real app this comes from npm; the CDN build is blueprint-only. -->
+    <script src="https://unpkg.com/embla-carousel@8/embla-carousel.umd.js"></script>
+    <script>
+      // Trending carousel. The slides are plain server-rendered HTML above;
+      // Embla only attaches scrolling behavior, so nothing here blocks SSR.
+      const trendingRoot = document.querySelector('[data-carousel="trending"]');
+      if (trendingRoot && window.EmblaCarousel) {
+        const embla = window.EmblaCarousel(trendingRoot.querySelector('.trend-viewport'), {
+          align: 'start',
+          containScroll: 'trimSnaps',
+        });
+        window.emblaTrending = embla; // blueprint-only: lets devtools poke the instance
+
+        const prevButton = document.querySelector('[data-carousel-prev="trending"]');
+        const nextButton = document.querySelector('[data-carousel-next="trending"]');
+
+        const syncArrows = () => {
+          prevButton.toggleAttribute('disabled', !embla.canScrollPrev());
+          nextButton.toggleAttribute('disabled', !embla.canScrollNext());
+        };
+
+        prevButton.addEventListener('click', () => embla.scrollPrev());
+        nextButton.addEventListener('click', () => embla.scrollNext());
+        embla.on('select', syncArrows);
+        embla.on('reInit', syncArrows); // capital I — lowercase 'reinit' never fires
+        // On a window resize embla re-inits itself but emits only 'resize',
+        // and emits it BEFORE the internal re-init — sync a frame later or
+        // the arrows go stale when the breakpoint changes.
+        embla.on('resize', () => requestAnimationFrame(syncArrows));
+        syncArrows();
+      }
+
+      // Hero showcase — same engine, loop on. Embla animates the image track;
+      // the meta deck and the dots follow the selected snap.
+      const spotRoot = document.querySelector('[data-carousel="spot"]');
+      if (spotRoot && window.EmblaCarousel) {
+        const spot = window.EmblaCarousel(spotRoot.querySelector('[data-spot-viewport]'), {
+          loop: true,
+        });
+        // Jump instead of glide for people who asked the OS for less motion.
+        const jump = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const dots = [...spotRoot.querySelectorAll('[data-spot-dots] button')];
+        const metas = [...spotRoot.querySelectorAll('[data-spot-meta] > div')];
+
+        const syncSpot = () => {
+          const selected = spot.selectedScrollSnap();
+          dots.forEach((dot, index) => dot.classList.toggle('is-active', index === selected));
+          metas.forEach((meta, index) => meta.classList.toggle('is-active', index === selected));
+        };
+
+        spotRoot
+          .querySelector('[data-spot-prev]')
+          .addEventListener('click', () => spot.scrollPrev(jump));
+        spotRoot
+          .querySelector('[data-spot-next]')
+          .addEventListener('click', () => spot.scrollNext(jump));
+        dots.forEach((dot, index) => dot.addEventListener('click', () => spot.scrollTo(index, jump)));
+        spot.on('select', syncSpot);
+        syncSpot();
+      }
+    </script>
+  </body>
+</html>

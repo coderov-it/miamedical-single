@@ -1,15 +1,19 @@
 /**
- * Editorial copy for the home page, transcribed from the approved design.
+ * Editorial copy for the home page, transcribed from the approved blueprint
+ * (docs/blueprint/home.html).
  *
  * TEMPORARY — this belongs in the back office as page sections plus a governed
  * reviews source. See the "Known gaps" section of
  * docs/code/storefront-design-system.md.
  */
+import { perUnitLabel } from '@mia/i18n';
+
+import { formatMoney } from './api.ts';
 import type { Category, ProductSummary } from './catalog.ts';
 
 /**
- * The four products shown in the hero spotlight and the "I più noleggiati"
- * rail, in a stable order.
+ * The products shown in the hero showcase (3) and the "I più noleggiati"
+ * carousel (8), in a stable order.
  *
  * Editorially featured rentals come first — that flag is the back office's
  * only way to say "show this on the home page". Remaining slots are filled
@@ -22,6 +26,30 @@ export function selectHomeFeatured(products: ProductSummary[], limit = 3): Produ
   // Rentals first, editorially featured ones ahead of the rest, then sale items
   // to top up — a rail of one card on a young catalogue reads as broken.
   return [...products].sort((a, b) => rank(a) - rank(b)).slice(0, limit);
+}
+
+export interface ProductOffer {
+  /** "4,90 €" — already formatted for it-IT. */
+  money: string;
+  /** "al giorno", or null when the figure is a total rather than a rate. */
+  unit: string | null;
+}
+
+/**
+ * The home page's price line: big rate, small unit ("4,90 € al giorno").
+ *
+ * On a rental the rate is the back office's MARKETING copy; with none typed it
+ * falls back to the cheapest package's total, which is a total, not a rate —
+ * so it carries no unit. `null` only when the product has no figure at all.
+ */
+export function productOffer(product: ProductSummary): ProductOffer | null {
+  const amount = product.pricing.marketingRate ?? product.pricing.fromPrice;
+  if (amount === null) return null;
+  const isRate = product.pricing.mode === 'rental' && product.pricing.marketingRate !== null;
+  return {
+    money: formatMoney(amount, product.pricing.currency),
+    unit: isRate ? perUnitLabel(product.pricing.rentalUnit, 'it') : null,
+  };
 }
 
 export interface HomeCategoryCard {
@@ -67,7 +95,7 @@ export function buildHomeCategories(
         key: category.id,
         code: category.code,
         title: category.name,
-        detail: `${count} ${count === 1 ? 'ausilio' : 'ausili'}`,
+        detail: `${count} ${count === 1 ? 'prodotto' : 'prodotti'}`,
         imagePath: category.icon ?? firstImage.get(category.slug) ?? null,
       };
     });
@@ -78,7 +106,42 @@ export interface FaqItem {
   answer: string;
 }
 
+/** The home page's six questions, from the approved blueprint. */
 export const HOME_FAQ: FaqItem[] = [
+  {
+    question: 'Come funziona la consegna a domicilio?',
+    answer:
+      "Consegniamo e montiamo noi, a Roma e Firenze, di solito entro 24–48 ore dall'ordine. Alla fine del noleggio veniamo a ritirare l'ausilio: consegna e ritiro sono già compresi nella tariffa.",
+  },
+  {
+    question: 'Qual è la durata minima del noleggio?',
+    answer:
+      'Si parte da una settimana. Se ti serve più a lungo basta una telefonata: la proroga si attiva subito, senza firmare nulla di nuovo.',
+  },
+  {
+    question: 'Gli ausili sono sanificati?',
+    answer:
+      'Sì. Ogni ausilio viene igienizzato, controllato e regolato prima di ogni consegna. Sono tutti dispositivi certificati CE con manutenzione documentata.',
+  },
+  {
+    question: 'Serve la prescrizione del medico?',
+    answer:
+      'No, per noleggiare non serve alcuna prescrizione. Se hai una pratica ASL in corso ti aiutiamo noi a capire cosa spetta e come muoverti.',
+  },
+  {
+    question: 'Come si paga?',
+    answer:
+      'Online con carta oppure alla consegna. La tariffa è al giorno e comprende tutto: nessun deposito nascosto, nessun costo che spunta dopo.',
+  },
+  {
+    question: "Posso restituire l'ausilio prima del previsto?",
+    answer:
+      'Sì: chiamaci e organizziamo il ritiro anticipato. Paghi solo i giorni di noleggio effettivi previsti dal piano scelto.',
+  },
+];
+
+/** The support page's FAQ — a longer, more operational list than the home one. */
+export const SUPPORT_FAQ: FaqItem[] = [
   {
     question: 'Quando e come si paga?',
     answer:
@@ -110,26 +173,16 @@ export const HOME_FAQ: FaqItem[] = [
   },
 ];
 
-export interface Review {
-  /** Display name plus city, as shown in the design. */
-  name: string;
-  text: string;
-  rating: number;
-}
-
 /**
- * Aggregate rating, shown beside the home heading and in the PDP order panel.
+ * Aggregate rating, shown in the PDP order panel.
  *
  * The reviews are NOT a single platform's: they are collected from the social
  * profiles below and aggregated by hand, so the label must stay source-neutral.
- * Calling them "recensioni Google" — as this did — claims a Google-verified
- * figure the business does not have, which is a misrepresentation before it is
- * a styling problem. Name the platforms in `sources` when you need to show
- * provenance; never fold one of them into the count.
- *
- * This still needs a governed source before launch, which is why it is
- * deliberately absent from the page's JSON-LD: a stale aggregate rating in
- * structured data is a Google policy problem, not just an inaccuracy.
+ * Calling them "recensioni Google" would claim a Google-verified figure the
+ * business does not have. This still needs a governed source before launch,
+ * which is why it is deliberately absent from the pages' JSON-LD: a stale
+ * aggregate rating in structured data is a Google policy problem, not just an
+ * inaccuracy.
  */
 export const REVIEW_AGGREGATE = {
   rating: '4,9',
@@ -137,20 +190,68 @@ export const REVIEW_AGGREGATE = {
   sources: ['Google Maps', 'Trustpilot', 'Facebook'],
 } as const;
 
-export const HOME_REVIEWS: Review[] = [
-  {
-    name: 'Marina C. — Roma',
-    text: 'Cortesia, efficienza e puntualità nella consegna. Personale molto gentile e disponibile.',
-    rating: 5,
-  },
-  {
-    name: 'Daniele G. — Firenze',
-    text: 'Servizio eccellente: ordinato il letto per mio padre, consegnato e montato il giorno dopo.',
-    rating: 5,
-  },
-  {
-    name: 'Marcello P. — Roma',
-    text: 'I miei complimenti per l’organizzazione e per la qualità dei prodotti offerti.',
-    rating: 5,
-  },
-];
+export type TestimonialSource = 'google' | 'trustpilot' | 'facebook';
+
+export interface Testimonial {
+  name: string;
+  /** Two letters for the avatar disc. */
+  initials: string;
+  /** Month and year, never a relative date — "Giugno 2026". */
+  date: string;
+  text: string;
+  source: TestimonialSource;
+}
+
+/**
+ * The home testimonial band, from the approved blueprint. PLACEHOLDER people
+ * and figures: swap for the governed reviews source before launch, and keep
+ * the count in step with `REVIEW_AGGREGATE` when either becomes real.
+ */
+export const HOME_TESTIMONIALS = {
+  rating: '4,9',
+  countLabel: '214 recensioni verificate',
+  entries: [
+    {
+      name: 'Giulia R.',
+      initials: 'GR',
+      date: 'Giugno 2026',
+      text: "L'ho ordinato una sera per mia madre e il pomeriggio seguente era già in camera, montato e regolato. Prima di andare via mi hanno spiegato ogni comando con calma.",
+      source: 'google',
+    },
+    {
+      name: 'Franco M.',
+      initials: 'FM',
+      date: 'Luglio 2026',
+      text: 'Ho spostato due volte le date del ritiro e non è mai stato un problema: stessa voce, stessa pazienza. Quando assisti un genitore anziano, questo vale più di qualsiasi sconto.',
+      source: 'google',
+    },
+    {
+      name: 'Sara T.',
+      initials: 'ST',
+      date: 'Luglio 2026',
+      text: "Cinque minuti dal telefono, senza registrazioni complicate. Il rollator è arrivato a Firenze il giorno dopo, già regolato per l'altezza di mio padre.",
+      source: 'trustpilot',
+    },
+    {
+      name: 'Alessandro B.',
+      initials: 'AB',
+      date: 'Maggio 2026',
+      text: 'Ho confrontato tre servizi prima di scegliere: qui la tariffa è al giorno, con consegna e ritiro compresi, e alla fine non è spuntato nessun costo a sorpresa.',
+      source: 'google',
+    },
+    {
+      name: 'Marta C.',
+      initials: 'MC',
+      date: 'Aprile 2026',
+      text: 'La carrozzina è arrivata igienizzata, con le gomme gonfie e i freni registrati: sembrava appena uscita dal negozio. Al ritiro sono stati puntuali al minuto.',
+      source: 'facebook',
+    },
+    {
+      name: 'Paolo V.',
+      initials: 'PV',
+      date: 'Febbraio 2026',
+      text: "Dopo l'operazione mi serviva un letto elettrico solo per sei settimane. Consegna, montaggio e ritiro compresi: finito il noleggio se lo sono portati via, ed è finita lì.",
+      source: 'trustpilot',
+    },
+  ] satisfies Testimonial[],
+} as const;

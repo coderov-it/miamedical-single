@@ -1,51 +1,107 @@
 ---
 /**
- * Home-page frequently asked questions.
+ * "Domande frequenti" — intro and quiet gray link-buttons on the left, native
+ * `<details>` items on the right, ported 1:1 from docs/blueprint/home.html
+ * (styles in styles/editorial.css).
  *
- * Tinted rows, spaced apart: the spacing does most of the work and the hairline
- * only finishes the edge. Native details/summary disclosures give keyboard and
- * screen-reader behaviour without shipping a client-side island.
+ * The TRIGGER carries the layering (a gray bar); the answer is plain text, so
+ * what you press and what you read never blur. First item ships open so the
+ * pattern explains itself. Zero JavaScript.
  */
-import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import { HOME_FAQ } from '~/lib/home-content';
+import { routes } from '~/lib/routes';
 ---
 
-<section
-  id="domande-frequenti"
-  class="pt-section-sm mid:pt-section"
-  aria-labelledby="domande-frequenti-title"
->
-  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
-    <SectionHeading id="domande-frequenti" heading="Domande frequenti" />
-
-    <ul class="grid gap-2.5">
-      {
-        HOME_FAQ.map((item, index) => (
-          <li>
-            <details
-              class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
-              open={index === 0}
+<section class="faq" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="faq-grid">
+      <div>
+        <h2 class="section-title" id="faq-title">
+          Domande frequenti.
+          <svg
+            width="44"
+            height="16"
+            viewBox="0 0 44 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
+          </svg>
+        </h2>
+        <p class="faq-lead">
+          Le risposte alle cose che ci chiedono più spesso. Per tutto il resto c'è il numero
+          verde: risponde una persona, non un menu.
+        </p>
+        <div class="faq-contact">
+          {/* /chi-siamo/ does not exist yet — flagged as a pending route. */}
+          <a class="link-quiet" href="/chi-siamo/">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
             >
-              <summary class="font-display text-h4 flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-semibold [&::-webkit-details-marker]:hidden">
+              <path
+                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125V21m7.5-10.5h1.875c.621 0 1.125.504 1.125 1.125V21"
+              ></path>
+            </svg>
+            Chi siamo
+          </a>
+          <a class="link-quiet" href={routes.support}>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+              ></path>
+            </svg>
+            Contattaci
+          </a>
+        </div>
+      </div>
+
+      <div>
+        {
+          HOME_FAQ.map((item, index) => (
+            <details class="faq-item" open={index === 0}>
+              <summary>
                 {item.question}
                 <svg
-                  class="text-ink-2 size-5.5 flex-none transition-transform duration-200 group-open:rotate-180"
+                  class="faq-icon"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2.4"
+                  stroke-width="2.2"
                   stroke-linecap="round"
-                  stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="m6 9 6 6 6-6" />
+                  <path d="M12 5v14M5 12h14" />
                 </svg>
               </summary>
-              <p class="text-ui-strong text-ink-2 max-w-[68ch] pb-5.5">{item.answer}</p>
+              <p class="faq-answer">{item.answer}</p>
             </details>
-          </li>
-        ))
-      }
-    </ul>
+          ))
+        }
+      </div>
+    </div>
   </div>
 </section>

@@ -30,7 +30,7 @@ export const prerender = false;
 
     <!-- Loading state -->
     <div data-loading class="space-y-4 py-16 text-center">
-      <div class="mx-auto size-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900"></div>
+      <div class="border-hair-strong border-t-accent mx-auto size-8 animate-spin rounded-full border-2"></div>
       <p class="text-neutral-600">Caricamento del contratto…</p>
     </div>
 
@@ -49,7 +49,7 @@ export const prerender = false;
       <!-- Contract HTML preview -->
       <div
         data-contract-body
-        class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
+        class="border-hair overflow-hidden rounded-xl border bg-white shadow-sm"
       >
       </div>
 
@@ -63,14 +63,14 @@ export const prerender = false;
         <div class="relative mt-4">
           <canvas
             data-signature-canvas
-            class="h-48 w-full cursor-crosshair rounded-xl border-2 border-dashed border-neutral-300 bg-white touch-none"
+            class="bg-tint h-48 w-full cursor-crosshair rounded-xl touch-none"
             width="700"
             height="200"
           ></canvas>
           <button
             data-clear-signature
             type="button"
-            class="absolute right-2 top-2 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium text-neutral-600 shadow-sm transition hover:bg-neutral-100"
+            class="text-ink-2 absolute top-2 right-2 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm transition hover:bg-white"
           >
             Cancella / Clear
           </button>
@@ -92,7 +92,7 @@ export const prerender = false;
           data-submit
           type="button"
           disabled
-          class="mt-6 w-full rounded-xl bg-neutral-900 px-6 py-3 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-accent hover:bg-accent-deep mt-6 w-full rounded-xl px-6 py-3 text-[15px] font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
         >
           Firma il contratto / Sign the contract
         </button>
@@ -123,7 +123,7 @@ export const prerender = false;
       data-scroll-to-sign
       hidden
       type="button"
-      class="fixed bottom-6 right-6 z-50 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white shadow-lg transition hover:bg-neutral-800 md:bottom-8 md:right-8 max-sm:left-6 max-sm:right-6 max-sm:text-center"
+      class="bg-accent hover:bg-accent-deep fixed right-6 bottom-6 z-50 rounded-full px-6 py-3 text-sm font-medium text-white shadow-lg transition md:right-8 md:bottom-8 max-sm:right-6 max-sm:left-6 max-sm:text-center"
     >
       Vai alla firma ↓
     </button>

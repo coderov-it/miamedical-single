@@ -1,93 +1,81 @@
 ---
 /**
- * Home-page process summary.
- *
- * One closed object, not three columns of text hanging off the white: the three
- * steps, and welded underneath them the reassurance about payment. A rail runs
- * through the numbered discs and ties them into a sequence.
- *
- * Static Astro markup only. The ordered list carries the sequence for assistive
- * technology; the numbered discs are visual reinforcement.
+ * "Come funziona" — three steps in one bordered panel with the payment note as
+ * an attached gray footer strip, ported 1:1 from docs/blueprint/home.html
+ * (styles in styles/editorial.css). Static by design: this copy is the offer,
+ * not data.
  */
-import SectionHeading from '~/components/primitives/SectionHeading.astro';
-
 const steps = [
   {
-    title: 'Scegli il prodotto',
-    body: 'Dal catalogo, oppure chiamaci: ti consigliamo noi quello giusto.',
+    name: 'Scegli il prodotto',
+    text: 'Dal catalogo, oppure chiamaci: ti consigliamo noi quello giusto.',
   },
   {
-    title: 'Seleziona le date',
-    body: 'Indichi quando ti serve e per quanto tempo. Puoi sempre prolungare.',
+    name: 'Seleziona le date',
+    text: 'Indichi quando ti serve e per quanto tempo. Puoi sempre prolungare.',
   },
   {
-    title: 'Lo ricevi a domicilio',
-    body: 'Ti chiamiamo per confermare, consegniamo e montiamo. A fine noleggio ritiriamo noi.',
+    name: 'Lo ricevi a domicilio',
+    text: 'Ti chiamiamo per confermare, consegniamo e montiamo. A fine noleggio ritiriamo noi.',
   },
 ];
 ---
 
-<section
-  id="come-funziona"
-  class="pt-section-sm mid:pt-section"
-  aria-labelledby="come-funziona-title"
->
-  <div class="max-w-page mid:px-8 mx-auto w-full px-5">
-    <SectionHeading
-      id="come-funziona"
-      heading="Come funziona"
-      lede="Tre passaggi, senza pagare nulla online."
-    />
+<section class="how" aria-labelledby="how-title">
+  <div class="container">
+    <h2 class="section-title" id="how-title">
+      Come funziona.
+      <svg
+        width="44"
+        height="16"
+        viewBox="0 0 44 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
+      </svg>
+    </h2>
+    <p class="section-lead">Tre passaggi, senza pagare nulla online.</p>
 
-    <div class="rounded-card border-hair overflow-hidden border bg-white">
-      <ol class="mid:px-9 mid:pt-10 mid:pb-10.5 wide:grid-cols-3 grid px-5 pt-8 pb-9">
+    <div class="how-panel">
+      <ol class="steps">
         {
           steps.map((step, index) => (
-            <li
-              class:list={[
-                'wide:pr-8.5 relative',
-                index > 0 && 'wide:mt-0 mt-7.5',
-                /*
-                  The rail: a 2px line that runs out of each disc into the next
-                  one. It is dropped below the wide breakpoint, where the steps
-                  stack and a horizontal rail would point at nothing.
-                */
-                index < steps.length - 1 &&
-                  'wide:before:absolute wide:before:top-6 wide:before:right-[-12px] wide:before:left-6 wide:before:h-0.5 wide:before:bg-tint-2 wide:before:content-[""]',
-              ]}
-            >
-              <span
-                class="font-display relative z-1 mb-5 grid size-12 place-items-center rounded-full bg-accent text-[21px] font-bold text-white"
-                aria-hidden="true"
-              >
-                {index + 1}
-              </span>
-              <h3 class="text-lead">{step.title}</h3>
-              <p class="text-ui-strong text-ink-2 mt-2">{step.body}</p>
+            <li class="step">
+              <p class="step-badge-row">
+                <span class="step-badge" aria-hidden="true">
+                  {index + 1}
+                </span>
+              </p>
+              <h3 class="step-name">{step.name}</h3>
+              <p class="step-text">{step.text}</p>
             </li>
           ))
         }
       </ol>
 
-      <p
-        class="border-hair bg-tint text-ui-strong text-ink-2 mid:px-9 flex items-start gap-3.5 border-t px-5 pt-5 pb-5.5"
-      >
+      <p class="note-bar">
         <svg
-          class="text-ok mt-px size-6.25 flex-none"
+          class="note-check"
+          width="19"
+          height="19"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.2"
+          stroke-width="1.8"
           stroke-linecap="round"
           stroke-linejoin="round"
           aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="9"></circle>
-          <path d="m8.5 12.5 2.5 2.5 5-5.5"></path>
+          <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
         </svg>
         <span>
-          <strong class="text-ink">Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata
-          di conferma, con un link di pagamento sicuro via SMS o email.
+          <strong>Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata di conferma,
+          con un link di pagamento sicuro via SMS o email.
         </span>
       </p>
     </div>

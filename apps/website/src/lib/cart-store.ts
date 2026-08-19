@@ -102,7 +102,9 @@ export function parseCartLines(raw: string | null): CartLine[] {
 
   for (const entry of parsed) {
     if (typeof entry !== 'object' || entry === null) continue;
+
     const { id, config, quantity } = entry as Record<string, unknown>;
+
     if (typeof id !== 'string' || !id || seen.has(id)) continue;
     if (typeof config !== 'string' || !config || config.length > MAX_CONFIG_LENGTH) continue;
     // A line with no product is not a line; it would resolve to nothing anyway.

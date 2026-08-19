@@ -14,7 +14,7 @@ export const FIELD_GRID = 'grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1f
 export const FIELD_LABEL = 'flex flex-col gap-1.75 text-[14.5px] font-semibold';
 
 export const FIELD_INPUT =
-  'rounded-[10px] border border-hair-strong bg-white px-3.75 py-3.25 text-[15.5px] font-normal';
+  'rounded-[10px] border border-transparent bg-tint px-3.75 py-3.25 text-[15.5px] font-normal';
 
 /** A conditional panel that opens under a delivery option. */
 export const PANEL = 'mt-1 border-t border-hair px-4.5 pt-4 pb-4.5';
@@ -30,8 +30,8 @@ export const CTA =
 
 /** One of the three identity chips. Selection is the only thing accent marks. */
 export const CHIP =
-  'target-48 cursor-pointer rounded-full border-[1.5px] border-hair-strong bg-white px-5.5 py-2.75 text-[15.5px] font-semibold text-ink-2 ' +
-  'aria-pressed:border-accent aria-pressed:bg-tint aria-pressed:text-accent';
+  'target-48 cursor-pointer rounded-full bg-tint px-5.5 py-2.75 text-[15.5px] font-semibold text-ink-2 hover:bg-tint-2 ' +
+  'aria-pressed:bg-accent-tint aria-pressed:text-accent aria-pressed:hover:bg-accent-tint';
 
 /** The uppercase micro-label above a review block and the overview. */
 export const EYEBROW = 'text-[11.5px] font-bold tracking-[0.1em] text-ink-2 uppercase';

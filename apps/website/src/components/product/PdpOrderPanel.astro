@@ -237,10 +237,10 @@ const pkgRow =
 
     <div class="flex items-center justify-between gap-4" data-qty-row>
       <label class="text-[14px] font-semibold" for={`qta-${product.id}`}>Quantità</label>
-      <div class="border-hair-strong flex items-center overflow-clip rounded-[10px] border">
+      <div class="bg-tint flex items-center overflow-clip rounded-[10px]">
         <button
           type="button"
-          class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
+          class="hover:bg-tint-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-xl font-bold"
           data-qty-dec
           aria-label="Riduci quantità"
         >
@@ -248,7 +248,7 @@ const pkgRow =
         </button>
         <input
           id={`qta-${product.id}`}
-          class="border-hair-strong h-11 w-11 appearance-none border-x bg-white text-center text-[15px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          class="h-11 w-11 appearance-none border-0 bg-transparent text-center text-[15px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           type="number"
           name={FIELD.quantity}
           value="1"
@@ -260,7 +260,7 @@ const pkgRow =
         />
         <button
           type="button"
-          class="hover:bg-tint grid size-11 cursor-pointer place-items-center border-0 bg-white text-xl font-bold"
+          class="hover:bg-tint-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-xl font-bold"
           data-qty-inc
           aria-label="Aumenta quantità"
         >
@@ -302,7 +302,7 @@ const pkgRow =
       </button>
 
       <button
-        class="hover:bg-tint flex min-h-12 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-accent bg-white px-5 text-[14.5px] font-semibold text-accent"
+        class="bg-accent-tint hover:bg-accent flex min-h-12 cursor-pointer items-center justify-center rounded-full px-5 text-[14.5px] font-semibold text-accent hover:text-white"
         type="submit"
         formaction={routes.cart}
         formmethod="get"
@@ -323,7 +323,7 @@ const pkgRow =
     */
     }
     <div
-      class="border-ok/30 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 border bg-white px-4 py-3 text-[13.5px]"
+      class="bg-ok/8 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-[13.5px]"
       data-cart-added
       hidden
     >

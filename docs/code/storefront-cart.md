@@ -29,7 +29,7 @@ PRODUCT PAGE                       localStorage "mia.cart.v1"
   ├─ "Richiedi il noleggio"                    │
   │    submit → /checkout/                     │ read on mount
   └─ "Aggiungi alla richiesta"                 ▼
-       formaction → /carrello/          CART  (CartApp.svelte)
+       formaction → /carrello/          CART  (CartContainer.svelte)
        (script intercepts and              │
         writes the store instead)          │ POST /api/cart/resolve
                                            ▼
@@ -60,10 +60,11 @@ about what a line is.
 
 ### Two modules, and why
 
-| Module          | Runs   | Imports                              |
-| --------------- | ------ | ------------------------------------ |
-| `cart-store.ts` | both   | **nothing, ever**                    |
-| `cart.ts`       | server | `api.ts`, `checkout.ts`, `labels.ts` |
+| Module                  | Runs   | Imports                                    |
+| ----------------------- | ------ | ------------------------------------------ |
+| `cart-store.ts`         | both   | **nothing, ever**                          |
+| `cart-state.svelte.ts`  | client | `cart-store.ts` — and `cart.ts` for TYPES  |
+| `cart.ts`               | server | `api.ts`, `checkout.ts`, `labels.ts`       |
 
 `cart-store.ts` importing nothing is load-bearing, not tidiness. It is the only cart
 code the browser downloads; one runtime import from `cart.ts` would drag the Hono
@@ -94,9 +95,44 @@ listed under Known gaps.
 POST rather than GET because a 20-line cart outgrows a URL, and because none of a
 customer's configuration belongs in a proxy log or in browser history.
 
+## How the island is split (2026-08-20)
+
+It was one 660-line `CartApp.svelte`. State and view scale differently, so they were
+separated — the owner's call, and the reason the tree reads as the state machine the
+page is:
+
+```
+lib/cart-state.svelte.ts   the CartState class — what the cart contains
+components/cart/
+  CartContainer.svelte     the island root: <form>, the two columns, state wiring
+  ├── CartLoadingCard      the first paint, until storage has been read
+  ├── CartEmptyState       nothing in the cart
+  ├── CartCard × n         one line: head always, panel on request
+  │   └── CartQuantityStepper
+  └── CartOverview         the totals and the way to the checkout
+```
+
+Two rules keep it from drifting back into a monolith:
+
+- **The components format nothing and interpolate nothing.** Amounts arrive
+  formatted (`rowAmount`, `rowUnitPrice`, `money`), spoken labels arrive
+  interpolated (`rowLabels`). A card is a view: it reads props and draws.
+- **No shared style or icon modules.** Class strings and SVG paths live in the
+  component that draws them (owner, 2026-08-20: extracting Tailwind strings into
+  their own file is separation for its own sake). A string repeated inside ONE
+  component becomes a `const` at the top of that component — `KEY` in the stepper,
+  `LABEL`/`VALUE` in the card — and stops there.
+
+`CartState` is a rune class in a `.svelte.ts` module, the pattern the admin app
+already uses (`lib/*.svelte.ts`). One wrinkle worth knowing: a `$derived` whose
+expression reads a `#private` field must be written `$derived.by(() => …)`. The rune
+evaluates lazily, so the field IS assigned by the time it runs, but a bare
+`$derived(...)` is a field initializer and TypeScript reads it as use-before-init.
+
 ## The island owns three things
 
-Which lines exist, how many of each, and which rows are open. That is all.
+Which lines exist, how many of each, and which rows are open. That is all — and
+`CartState` owns all three; no component holds cart state of its own.
 
 **The one piece of client arithmetic is `unitTotal × quantity`**, to repaint a
 stepper press before the response lands. A plain multiply is not a pricing rule —
@@ -153,9 +189,12 @@ identically, because `splitItemParams()` already accepts both.
   row. The cart cannot: this is the page where the customer can still act, and a row
   that vanishes with no explanation reads as the site losing their choice. Hence
   `CartView.droppedIds` and the notice above the list.
-- **Several rows may be open at once.** The reference defaults to a single-open
-  accordion. Comparing two configurations is the whole reason a cart has more than
-  one row.
+- **Every row starts CLOSED, and several may be open at once.** The reference
+  defaults to a single-open accordion with the first row expanded. Neither holds
+  here: comparing two configurations is the whole reason a cart has more than one
+  row, and a row's head already states the package, its unit price and the amount —
+  so nothing has to be expanded to read the cart (owner, 2026-08-20). The panel is
+  for the dates.
 - **The disclosure is one real `<button>`, not a clickable `<div>`.** The reference
   nests its stepper inside the clickable row and stops propagation, which in HTML
   would be a button inside a button. The stepper is a sibling lifted above the
@@ -164,9 +203,48 @@ identically, because `splitItemParams()` already accepts both.
 - **The phone card is outside the island.** A phone call is a successful conversion,
   not a fallback for a cart that failed, so the number is server-rendered and
   present whether or not the island ever mounts.
-- **Stepper buttons are 32px painted, 48px to the finger** (`.target-48`). The
-  project's 48px target rule is not dropped to match a mock — see the design-system
-  doc.
+- **Stepper keys are 44px painted, 48px to the finger** (`.target-48`), and so are
+  the two row actions. The project's 48px target rule is not dropped to match a mock
+  — see the design-system doc. Note the shape of that deal: `.target-48` is what
+  zeroes `min-height`, so a control wearing it asks for its paint with `h-*`, never
+  `min-h-*`.
+
+## The 2026-08-20 pass: skin, controls, and a first paint that promises nothing
+
+The layout is still the reference's. Three things about it are not:
+
+- **Type is the site's scale.** The reference's 12.5/13/13.5px asides are gone; the
+  page floors at 16px, row titles are 17, a row's amount is 20 and the summary total
+  28. The one sub-16 use left is the two 14px notes under the total.
+- **Controls are fills at honest sizes.** "Modifica la scelta" and "Rimuovi" were
+  13px text links; they are 44px pills now — quiet accent and grey — each with its
+  Heroicons glyph, right-aligned under the amounts they act on. The disclosure
+  chevron is a 48px round key rather than a floating 24px glyph, and the CTA is the
+  site's own `.btn .btn-primary` pill.
+- **The page title is not painted.** The breadcrumb directly above already reads
+  "Home › La tua richiesta". The `<h1>` and the line count are `sr-only`: still in
+  the outline, still announced, not printed twice.
+
+A booking used to read as one run-on sentence of middot-joined dates. Same words,
+now a `<dl>` strip — label above value, `auto-fit` columns that stack on a phone —
+ruled off from the amounts below it.
+
+**And the first paint no longer guesses.** The lines live in `localStorage`, so the
+server cannot know whether the cart has rows; it used to render the empty state and
+get corrected on hydration, which is a content flash on every visit. The island now
+starts in a `booting` state and shows one loading plate — no rows, no summary — until
+storage has been read AND the first `/api/cart/resolve` response has landed.
+
+`booting` starts **false** when the URL carried lines: those are the truth for that
+request, they are already rendered, and re-pricing them must not blank the page.
+That is the hand-off path below, unchanged.
+
+The no-JavaScript case is handled where a stylesheet cannot reach: the plate carries
+`data-cart-boot`, and the page puts `<noscript><style>[data-cart-boot]{display:none}
+</style></noscript>` in the head via `BaseLayout`'s head slot, plus a `<noscript>`
+paragraph saying why the cart cannot be read. Both only when the URL carried no line
+— on the hand-off path the page works without a byte of JavaScript and neither
+should appear.
 
 ## Where the accessibility work is
 

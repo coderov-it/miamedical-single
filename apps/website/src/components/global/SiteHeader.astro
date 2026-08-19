@@ -1,111 +1,64 @@
 ---
 /**
- * Sticky site header, in the approved "Sereno" style.
+ * Sticky site header — the editorial design system's quiet, typographic bar,
+ * ported 1:1 from docs/blueprint/home.html (styles in styles/editorial.css).
  *
- * White bar on one hairline, pill navigation, and the free-phone number as a
- * tinted pill rather than a green one: the design keeps a single accent family,
- * and green is reserved for availability and "incluso".
+ * Anatomy: text brand · plain-text nav (≥1100px) · green phone pill · two
+ * ink-tile icons (cart with badge, account). No pills, no hamburger — below
+ * 1100px navigation belongs to MobileNav's bottom bar, and below 560px the
+ * phone pill collapses to its glyph.
  *
- * The inline navigation collapses into a native `<details>` disclosure below
- * 1244px; on phones the persistent bottom navigation takes over instead. Both are
- * CSS and markup — the header's one script does nothing but paint the cart badge,
- * and every link here works without it.
- *
- * ⚠️ That 1244px is `--container-page`, NOT the `wide` breakpoint (1100px) the rest
- * of the site switches on, and the difference is deliberate. Measured at 1100px:
- * the row needs 1127px and the container gives 1021px, so revealing it there wrapped
- * the CTA onto a second line and doubled the header's height. The full row is shown
- * exactly when the page reaches its full measure, which is the first width where it
- * fits — 1127px into 1165px, 38px to spare with a scrollbar present. Change
- * `--container-page`, or add anything to this row, and re-measure. The margin is
- * why the phone pill shows the number alone: the "— gratis" qualifier that used to
- * follow it cost 66px, which overflowed the row and split the header in two. It
- * survives in the link's `aria-label`, where it costs no width.
+ * The header's one script paints the cart badge; every link works without it.
  */
-import { CONTACT } from '~/lib/site';
 import { routes } from '~/lib/routes';
+import { CONTACT } from '~/lib/site';
 
 const nav = [
   { href: routes.home, label: 'Home', exact: true },
   { href: routes.catalog, label: 'Catalogo noleggio', exact: false },
+  { href: routes.search, label: 'Sfoglia', exact: false },
   { href: routes.blog, label: 'Blog', exact: false },
-  { href: routes.search, label: 'Cerca', exact: false },
-  { href: routes.support, label: 'Assistenza', exact: false },
+  { href: routes.support, label: 'Contatti', exact: false },
 ];
 
-/* The account entry is an icon on desktop, not a fifth pill: a fifth pill made the
-   inline row wider than the container, which pushed "Noleggia ora" onto a second
-   line and doubled the header's height. In the disclosure menu, where items are
-   stacked, it is a text row like the rest. */
 const account = { href: routes.account, label: 'Area clienti', exact: false };
-const disclosureNav = [...nav, account];
 
 const path = Astro.url.pathname;
 const isActive = (item: { href: string; exact: boolean }) =>
   item.exact ? path === item.href : path.startsWith(item.href);
 ---
 
-<header class="border-hair sticky top-0 z-50 border-b bg-white">
-  {
-    /*
-      The bar wraps. The prototype's fixed row overflows horizontally at 200%
-      zoom, which is a reflow failure for exactly the people who use this site.
-    */
-  }
-  <div
-    class="max-w-page mid:px-8 mx-auto flex min-h-20.5 w-full flex-wrap items-center gap-x-6 gap-y-3 px-5 py-3"
-  >
-    <a
-      class="flex flex-none items-center"
-      href="/"
-      aria-label="Vai alla home di Mia Medical Italia"
-    >
-      <img
-        class="mid:h-[42px] h-9 w-auto"
-        src="/img/logo.svg"
-        alt="M.i.a. Medical Italia — moving in autonomy"
-        width="82"
-        height="44"
-      />
+<header class="site-head">
+  <div class="container head-row">
+    <a class="brand" href={routes.home} aria-label="Vai alla home di Mia Medical Italia">
+      MIA-MEDICAL
     </a>
 
-    <nav class="mr-auto hidden gap-1.5 min-[1244px]:flex" aria-label="Navigazione principale">
+    <nav class="head-nav" aria-label="Navigazione principale">
       {
         nav.map((item) => (
-          <a
-            class:list={[
-              'text-ui-strong hover:bg-tint hover:text-ink inline-flex min-h-12 items-center rounded-full px-4 whitespace-nowrap no-underline',
-              isActive(item) ? 'bg-tint text-ink font-bold' : 'text-ink-2',
-            ]}
-            href={item.href}
-            aria-current={isActive(item) ? 'page' : undefined}
-          >
+          <a href={item.href} aria-current={isActive(item) ? 'page' : undefined}>
             {item.label}
           </a>
         ))
       }
     </nav>
 
-    {
-      /*
-      The right-hand cluster is one group with its own tighter gap, so the phone
-      pill, the two icons and the CTA travel together. It still wraps internally
-      rather than overflowing, which is what keeps 200% zoom readable.
-    */
-    }
-    <div class="ml-auto flex flex-wrap items-center justify-end gap-x-2.5 gap-y-3">
+    <div class="head-tools">
       <a
-        class="border-hair bg-tint font-display text-ui-strong hover:border-hair-strong hover:bg-tint-2 inline-flex min-h-13 flex-none items-center gap-2.5 rounded-full border px-4 font-semibold whitespace-nowrap no-underline min-[1244px]:px-5"
+        class="phone-quiet"
         href={`tel:${CONTACT.phoneE164}`}
         aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
         data-analytics="phone-call"
       >
         <svg
-          class="text-ink-2 size-4.5 flex-none"
+          class="phone-glyph"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.1"
+          stroke-width="1.9"
           stroke-linecap="round"
           aria-hidden="true"
         >
@@ -113,34 +66,26 @@ const isActive = (item: { href: string; exact: boolean }) =>
             d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
           ></path>
         </svg>
-        {CONTACT.phoneDisplay}
+        <span>{CONTACT.phoneDisplay}</span>
       </a>
 
       {
         /*
-        Cart. A link, not a button: it navigates.
-
-        The count used to be deliberately absent, because on a PRERENDERED page a
-        server-rendered number is either stale or forces every cached page to
-        bootstrap a script. Now that the cart is real, the first half of that is
-        still true and settles the design: the badge is never rendered on the
-        server. It ships empty and `hidden`, and the script below fills it from the
-        same store the cart page reads — so a cached page cannot carry a wrong
-        number, only no number, and only for as long as the script takes to run.
-      */
+          The badge is never rendered on the server: it ships empty and `hidden`,
+          and the script below fills it from the same store the cart page reads —
+          a cached page cannot carry a wrong number, only no number. It is
+          `aria-hidden` because the script rewrites the LINK's label with the
+          count; two announcements of one number is worse than one.
+        */
       }
-      <a
-        class="border-hair bg-tint hover:border-hair-strong hover:bg-tint-2 relative grid size-13 flex-none place-items-center rounded-full border"
-        href={routes.cart}
-        aria-label="Apri la tua richiesta di noleggio"
-        data-cart-link
-      >
+      <a class="head-icon" href={routes.cart} aria-label="Apri il carrello" data-cart-link>
         <svg
-          class="size-5.25"
+          width="21"
+          height="21"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.9"
+          stroke-width="1.8"
           stroke-linecap="round"
           stroke-linejoin="round"
           aria-hidden="true"
@@ -149,47 +94,22 @@ const isActive = (item: { href: string; exact: boolean }) =>
           <circle cx="10.5" cy="20" r="1.4"></circle>
           <circle cx="17.5" cy="20" r="1.4"></circle>
         </svg>
-
-        {
-          /*
-          `aria-hidden`, because the link's own `aria-label` is rewritten with the
-          count by the script. Two announcements of the same number — one from the
-          label, one from a badge in the accessibility tree — is worse than one.
-        */
-        }
-        <span
-          class="absolute -top-0.5 -right-0.5 grid min-w-5.5 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-bold text-white tabular-nums"
-          data-cart-count
-          aria-hidden="true"
-          hidden
-        >
-        </span>
+        <span class="cart-count" data-cart-count aria-hidden="true" hidden></span>
       </a>
 
-      {
-        /*
-        Account, desktop only — the disclosure menu below carries it as a text row
-        for every narrower width. No session lookup: it always points at
-        /area-clienti/, which redirects anonymous visitors to /accedi/ itself, so a
-        session-dependent icon would cost a request on every page to render the
-        same glyph.
-      */
-      }
       <a
-        class:list={[
-          'border-hair hover:border-hair-strong hover:bg-tint-2 hidden size-13 flex-none place-items-center rounded-full border min-[1244px]:grid',
-          isActive(account) ? 'bg-tint-2 border-hair-strong' : 'bg-tint',
-        ]}
+        class="head-icon"
         href={account.href}
         aria-label={account.label}
         aria-current={isActive(account) ? 'page' : undefined}
       >
         <svg
-          class="size-5.25"
+          width="21"
+          height="21"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.9"
+          stroke-width="1.8"
           stroke-linecap="round"
           stroke-linejoin="round"
           aria-hidden="true"
@@ -198,45 +118,6 @@ const isActive = (item: { href: string; exact: boolean }) =>
           <path d="M4.6 20a7.4 7.4 0 0 1 14.8 0"></path>
         </svg>
       </a>
-
-      <a class="btn btn-primary hidden flex-none min-[1244px]:inline-flex" href={routes.catalog}>
-        Noleggia ora
-      </a>
-
-      <details class="flex-none min-[1244px]:hidden">
-        <summary
-          class="border-hair bg-tint grid size-13 cursor-pointer list-none place-items-center rounded-full border [&::-webkit-details-marker]:hidden"
-          aria-label="Apri il menu"
-        >
-          <svg
-            class="size-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            aria-hidden="true"
-          >
-            <path d="M4 7h16M4 12h16M4 17h16"></path>
-          </svg>
-        </summary>
-        <nav
-          class="border-hair mid:px-8 absolute inset-x-0 grid border-b bg-white px-5 pt-2 pb-4"
-          aria-label="Navigazione principale"
-        >
-          {
-            disclosureNav.map((item) => (
-              <a
-                class="border-hair font-display text-ui-strong text-ink flex min-h-12 items-center border-b font-semibold no-underline last:border-b-0"
-                href={item.href}
-                aria-current={isActive(item) ? 'page' : undefined}
-              >
-                {item.label}
-              </a>
-            ))
-          }
-        </nav>
-      </details>
     </div>
   </div>
 </header>
@@ -248,11 +129,9 @@ const isActive = (item: { href: string; exact: boolean }) =>
    * It reads the same store the cart page and the product page write, and listens
    * on two channels because they cover different cases: `mia:cart-changed` for
    * this tab (a native `storage` event never fires in the tab that wrote), and
-   * `storage` for the others (add something on one tab, the badge updates here).
-   *
-   * The count is a paint, never a source of truth. Nothing branches on it — the
-   * cart page always re-reads storage itself — so a badge that is briefly wrong
-   * after a bfcache restore is cosmetic, which is why `pageshow` is enough.
+   * `storage` for the others. The count is a paint, never a source of truth —
+   * the cart page always re-reads storage itself — so a badge that is briefly
+   * wrong after a bfcache restore is cosmetic, which is why `pageshow` is enough.
    */
   import { CART_CHANGED_EVENT, cartCount, readCartLines } from '~/lib/cart-store';
 
@@ -264,11 +143,9 @@ const isActive = (item: { href: string; exact: boolean }) =>
 
     const paint = (count: number) => {
       $badge.hidden = count === 0;
-      /* Capped at 9+, because two digits do not fit the 22px badge and a cart of
-         10 aids is already a phone call rather than a number to read. */
+      /* Capped at 9+: two digits do not fit the 18px badge, and a cart of ten
+         aids is already a phone call rather than a number to read. */
       $badge.textContent = count > 9 ? '9+' : String(count);
-      /* The count belongs in the LINK's name, not in a second announced element —
-         see the badge's `aria-hidden` in the markup above. */
       $link.setAttribute(
         'aria-label',
         count === 0 ? baseLabel : `${baseLabel} — ${count} ${count === 1 ? 'ausilio' : 'ausili'}`,

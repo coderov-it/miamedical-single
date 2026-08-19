@@ -17,12 +17,12 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 export const prerender = false;
 
 const field =
-  'w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-[15px] outline-none focus:border-neutral-900';
+  'w-full rounded-lg border border-transparent bg-tint px-3 py-2.5 text-[15px] focus:border-accent';
 const label = 'mb-1.5 block text-sm font-medium';
 const primary =
-  'w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50';
+  'w-full rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-accent-deep disabled:opacity-50';
 const secondary =
-  'w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-[15px] font-medium transition hover:border-neutral-900 disabled:opacity-50';
+  'w-full rounded-lg bg-tint px-4 py-2.5 text-[15px] font-medium transition hover:bg-tint-2 disabled:opacity-50';
 ---
 
 <BaseLayout
@@ -40,7 +40,7 @@ const secondary =
     <div
       data-feedback
       hidden
-      class="mt-6 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm"
+      class="bg-tint mt-6 rounded-lg px-4 py-3 text-sm"
     >
     </div>
 
@@ -67,9 +67,9 @@ const secondary =
       </p>
 
       <div class="my-7 flex items-center gap-3 text-xs text-neutral-500">
-        <span class="h-px flex-1 bg-neutral-200"></span>
+        <span class="bg-hair h-px flex-1"></span>
         oppure
-        <span class="h-px flex-1 bg-neutral-200"></span>
+        <span class="bg-hair h-px flex-1"></span>
       </div>
 
       <div>
