@@ -47,7 +47,7 @@ const title = isFirstPage
   : `${heading} — pagina ${meta.page} | Mia Medical Italia`;
 
 const chipClass =
-  'inline-flex min-h-12 items-center rounded-full border px-4.5 font-display text-ui font-semibold no-underline';
+  'inline-flex min-h-12 items-center rounded-full px-4.5 font-display text-ui font-semibold no-underline';
 ---
 
 <BaseLayout
@@ -100,8 +100,8 @@ const chipClass =
                 class:list={[
                   chipClass,
                   !categoria
-                    ? 'bg-tint border-accent text-accent'
-                    : 'border-hair-strong text-ink hover:bg-tint bg-white',
+                    ? 'bg-accent-tint text-accent'
+                    : 'bg-tint text-ink hover:bg-tint-2',
                 ]}
                 href={blogPath()}
                 aria-current={!categoria ? 'true' : undefined}
@@ -115,8 +115,8 @@ const chipClass =
                   class:list={[
                     chipClass,
                     cat.slug === categoria
-                      ? 'bg-tint border-accent text-accent'
-                      : 'border-hair-strong text-ink hover:bg-tint bg-white',
+                      ? 'bg-accent-tint text-accent'
+                      : 'bg-tint text-ink hover:bg-tint-2',
                   ]}
                   href={blogPath({ categoria: cat.slug })}
                   aria-current={cat.slug === categoria ? 'true' : undefined}
@@ -135,7 +135,7 @@ const chipClass =
 
       {
         posts.length === 0 ? (
-          <div class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6">
+          <div class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6">
             <p class="font-display text-h4 font-semibold">Nessun articolo trovato.</p>
             <p>Non ci sono ancora articoli in questa sezione. Torna presto!</p>
           </div>

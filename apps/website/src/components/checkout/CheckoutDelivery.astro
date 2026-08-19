@@ -70,7 +70,7 @@ const { labelStage = false } = Astro.props;
   {
     DELIVERY_METHODS.map((option) => (
       <div
-        class="border-hair rounded-xl border-[1.5px] bg-white"
+        class="bg-tint rounded-xl border-[1.5px] border-transparent"
         data-delivery-card={option.id}
         data-delivery-name={t(option.id)}
         data-delivery-short={t(`${option.id}Short`)}
@@ -196,14 +196,14 @@ const { labelStage = false } = Astro.props;
             >
               {PICKUP_POINTS.map((point, index) => (
                 <button
-                  class="border-hair-strong shadow-pdp-card flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border bg-white px-4.25 py-3.75 text-left"
+                  class="bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left"
                   type="button"
                   role="radio"
                   aria-checked={index === 0 ? 'true' : 'false'}
                   data-pickup-card={point.city}
                 >
                   <span
-                    class="bg-tint grid size-8.5 flex-none place-items-center rounded-lg text-[15px] font-bold text-accent"
+                    class="bg-accent-tint grid size-8.5 flex-none place-items-center rounded-lg text-[15px] font-bold text-accent"
                     aria-hidden="true"
                   >
                     {index + 1}

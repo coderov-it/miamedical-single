@@ -17,7 +17,7 @@ import { CONTACT } from '~/lib/site';
 export const prerender = false;
 
 const field =
-  'w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-[15px] outline-none focus:border-neutral-900';
+  'w-full rounded-lg border border-transparent bg-tint px-3 py-2.5 text-[15px] focus:border-accent';
 const label = 'mb-1.5 block text-sm font-medium';
 ---
 
@@ -56,7 +56,7 @@ const label = 'mb-1.5 block text-sm font-medium';
           <textarea class={field} id="message" name="message" rows="4" required></textarea>
         </div>
         <button
-          class="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
+          class="bg-accent hover:bg-accent-deep w-full rounded-lg px-4 py-2.5 text-[15px] font-medium text-white transition disabled:opacity-50"
           type="submit"
           data-submit
         >
@@ -65,7 +65,7 @@ const label = 'mb-1.5 block text-sm font-medium';
       </form>
     </div>
 
-    <div data-done hidden class="mt-6 rounded-xl border border-neutral-200 px-4 py-5">
+    <div data-done hidden class="bg-tint mt-6 rounded-xl px-4 py-5">
       <p class="text-[15px] font-medium">Grazie, abbiamo ricevuto la tua segnalazione.</p>
       <p class="mt-1.5 text-[15px] text-neutral-600">
         Ti contatteremo su WhatsApp al più presto. Se preferisci, puoi chiamarci al {

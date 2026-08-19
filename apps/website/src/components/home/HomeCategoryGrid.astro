@@ -1,13 +1,12 @@
 ---
 /**
- * Category tiles. A section on white, so the tiles are white too and the
- * hairline does the separating; the fill inside each tile goes tinted.
+ * "Esplora per categoria" — quiet white tiles, one hairline each, ported 1:1
+ * from docs/blueprint/home.html (styles in styles/editorial.css).
  *
- * Each tile is a real link into the catalogue filtered by category **code**, so
- * a category rename cannot orphan the tile — the code is stable, the slug is
- * not.
+ * Categories without products are already dropped by `buildHomeCategories`,
+ * and the section hides itself when nothing is left — a grid of dead tiles
+ * would read as a broken shop.
  */
-import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import { mediaUrl } from '~/lib/api';
 import type { HomeCategoryCard } from '~/lib/home-content';
 import { catalogPath } from '~/lib/routes';
@@ -21,32 +20,36 @@ const { categories } = Astro.props;
 
 {
   categories.length > 0 && (
-    <section class="pt-section-sm mid:pt-section" aria-labelledby="home-categories-title">
-      <div class="max-w-page mid:px-8 mx-auto w-full px-5">
-        <SectionHeading id="home-categories" heading="Categorie" />
+    <section class="categories" aria-labelledby="categories-title">
+      <div class="container">
+        <h2 class="section-title" id="categories-title">
+          Esplora per categoria.
+          <svg
+            width="44"
+            height="16"
+            viewBox="0 0 44 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
+          </svg>
+        </h2>
 
-        <ul class="mid:grid-cols-2 wide:grid-cols-4 grid gap-4.5">
+        <ul class="category-grid">
           {categories.map((category) => (
-            <li class="flex">
-              <a
-                class="rounded-card border-hair hover:border-hair-strong flex min-h-26 w-full items-center gap-4.5 border bg-white px-5.5 py-4.5 no-underline hover:bg-[#fcfdff]"
-                href={catalogPath({ category: category.code })}
-              >
-                <span class="rounded-field border-hair bg-tint grid size-15.5 flex-none place-items-center border">
+            <li>
+              <a class="category-tile" href={catalogPath({ category: category.code })}>
+                <span class="cat-media">
                   {category.imagePath && (
-                    <img
-                      class="size-10 object-contain mix-blend-multiply"
-                      src={mediaUrl(category.imagePath)}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    <img src={mediaUrl(category.imagePath)} alt="" loading="lazy" />
                   )}
                 </span>
-                <span class="min-w-0">
-                  <h3 class="text-body">{category.title}</h3>
-                  <p class="text-ui text-ink-2 mt-0.5">{category.detail}</p>
-                </span>
+                <h3 class="cat-name">{category.title}</h3>
+                <p class="cat-count">{category.detail}</p>
               </a>
             </li>
           ))}

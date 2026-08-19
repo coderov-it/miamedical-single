@@ -210,7 +210,11 @@ const STOREFRONT_LABELS = {
   goToCheckout: { it: 'Vai alla conferma' },
   cartNoChargeYet: { it: 'Non paghi niente adesso.' },
   continueBrowsing: { it: 'Continua a sfogliare' },
-  editConfiguration: { it: 'Modifica la scelta' },
+  /* No `editConfiguration` any more: the cart's "Modifica la scelta" is gone
+     (owner, 2026-08-20). Editing meant going back to the product page and adding
+     again, which appends a second line rather than replacing the first — so the
+     button promised something it did not do. Remove and re-add is the honest
+     route, and it is one press away. */
   remove: { it: 'Rimuovi' },
   removeNamed: { it: 'Rimuovi {title}' },
   increaseQuantity: { it: 'Aumenta la quantità' },
@@ -225,6 +229,16 @@ const STOREFRONT_LABELS = {
      the cart's helper is one sentence on one line, not a card with a call button. */
   cartHelpDetail: { it: 'Chiamaci al numero verde gratuito' },
   cartLoading: { it: 'Calcolo dei prezzi…' },
+  /* Shown while the island reads the cart out of `localStorage` and has it priced.
+     The server cannot know what the cart holds, so this is what the FIRST paint
+     says — see the `booting` state in lib/cart-state.svelte.ts. */
+  cartBooting: { it: 'Carichiamo la tua richiesta…' },
+  /* With JavaScript off nothing can read the store, so the page says so instead of
+     leaving a spinner turning forever. Only rendered when the URL carried no line:
+     a hand-off from a product page needs no script and shows its row. */
+  cartNoScript: {
+    it: 'Per vedere la tua richiesta serve JavaScript. Puoi anche chiamarci: la completiamo insieme al telefono.',
+  },
   cartOffline: {
     it: 'Non riusciamo ad aggiornare i prezzi in questo momento. Gli importi qui sotto potrebbero non essere aggiornati — la conferma al telefono vale sempre.',
   },

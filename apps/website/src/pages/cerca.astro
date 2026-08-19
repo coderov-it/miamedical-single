@@ -45,8 +45,12 @@ const result = q
       role="search"
       aria-label="Cerca un ausilio"
     >
-      <label class="sr-only" for="search-q">Cerca un ausilio</label>
-      <div class="field-control flex-1 basis-80">
+      {
+        /* The well itself is the label, so the padding and the icon beside the
+           caret focus the field instead of swallowing the click. */
+      }
+      <label class="field-control flex-1 basis-80" for="search-q">
+        <span class="sr-only">Cerca un ausilio</span>
         <svg
           class="text-ink-2 size-4.75 flex-none"
           viewBox="0 0 24 24"
@@ -61,14 +65,14 @@ const result = q
         </svg>
         <input
           id="search-q"
-          class="font-display text-body w-full min-w-0 border-0 bg-transparent p-0 font-semibold"
+          class="font-display text-body font-semibold"
           type="search"
           name="q"
           value={q}
           placeholder="Es. carrozzina, letto, deambulatore…"
           autofocus
         />
-      </div>
+      </label>
       <button
         class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 min-w-38 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"
         type="submit"
@@ -95,12 +99,12 @@ const result = q
               ))}
             </ul>
           ) : (
-            <div class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6">
+            <div class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6">
               <p class="max-w-[60ch]">
                 Prova con una parola più semplice — per esempio <strong>carrozzina</strong> invece
                 del modello — oppure sfoglia il catalogo completo.
               </p>
-              <a class="btn btn-soft border-hair-strong bg-white" href={routes.catalog}>
+              <a class="btn btn-soft-on-tint" href={routes.catalog}>
                 Vedi tutto il catalogo
               </a>
               <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
@@ -114,7 +118,7 @@ const result = q
     {
       !result && (
         <section
-          class="rounded-card border-hair bg-tint mid:p-8 grid justify-items-start gap-4 border p-6"
+          class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6"
           aria-labelledby="search-suggest-title"
         >
           <h2 id="search-suggest-title" class="text-h3">
@@ -123,7 +127,7 @@ const result = q
           <p class="max-w-[60ch]">
             Sfoglia il catalogo per categoria, oppure chiamaci e ti guidiamo noi nella scelta.
           </p>
-          <a class="btn btn-soft border-hair-strong bg-white" href={routes.catalog}>
+          <a class="btn btn-soft-on-tint" href={routes.catalog}>
             Vedi tutto il catalogo
           </a>
           <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>

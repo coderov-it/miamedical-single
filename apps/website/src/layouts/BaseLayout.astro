@@ -64,16 +64,17 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Ast
 
     {
       /*
-        ONE preload, because the site is now one face. Atkinson, Lexend and Inter
-        were all preloaded here while the design ran three faces. Inter is still
-        declared in app.css as the tabular-numeral fallback behind Instrument
-        Sans, but it is never the selected face, so preloading it would cost 48KB
-        on first paint for nothing. See app.css § fonts for the override.
+        ONE preload, and it is Inter: the editorial design system's face, which
+        every page paints first (the sticky header) and the home page uses
+        throughout. Instrument Sans still dresses the body of the not-yet-
+        restyled pages and loads with `font-display: swap` — a brief fallback
+        paint there beats a double preload on every first visit. See app.css
+        § fonts.
       */
     }
     <link
       rel="preload"
-      href="/fonts/instrument-sans-variable-latin.woff2"
+      href="/fonts/inter-variable-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin

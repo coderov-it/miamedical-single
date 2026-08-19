@@ -6,8 +6,8 @@
  * page and the checkout, and released from Variante B the same way they are.
  * Layout, deviations and the no-JavaScript path: docs/code/storefront-cart.md
  *
- * This page is a SHELL. It renders the chrome and the first paint, and
- * `CartApp.svelte` owns everything after that, because the cart lives in
+ * This page is a SHELL. It renders the chrome and the first paint; the island
+ * under `components/cart/` owns everything after that, because the cart lives in
  * `localStorage` and the server cannot know what is in it.
  *
  * The first paint is not a placeholder, though. Whatever the URL carries is
@@ -17,7 +17,7 @@
  * priced, with a working way on to the checkout — which is exactly what the page
  * did before it became a cart at all.
  */
-import CartApp from '~/components/cart/CartApp.svelte';
+import CartContainer from '~/components/cart/CartContainer.svelte';
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
@@ -43,6 +43,16 @@ const copy = cartCopy();
 ---
 
 <BaseLayout title={t('cartMetaTitle')} description={t('cartMetaDescription')} noindex>
+  {
+    /*
+      The island's first paint is a loading plate, because only the browser can read
+      the cart out of `localStorage`. With scripting off that plate can never
+      resolve, so it is hidden and the <noscript> block below speaks instead. A
+      stylesheet cannot ask whether JavaScript runs; a <noscript> in the head can,
+      and this is the one thing it is for.
+    */
+  }
+  <noscript slot="head"><style is:inline>[data-cart-boot] { display: none }</style></noscript>
   <div
     class="cart mid:px-8 mid:pb-24 mx-auto w-full max-w-310 px-5 pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
   >
@@ -55,7 +65,7 @@ const copy = cartCopy();
         empty cart while their actual cart sat unread in `localStorage`.
       */
     }
-    <CartApp
+    <CartContainer
       client:load
       {initial}
       {urlLines}
@@ -79,11 +89,33 @@ const copy = cartCopy();
         not dropped, only moved out of the link so the link is just the number.
       */
     }
-    <p class="border-hair text-ink-2 mt-10 border-t pt-6 text-[13.5px] leading-[1.55]">
+    {
+      /* Centred under the cart, not ranged left against it: the closing line of the
+         page rather than a footnote to the last row (owner, 2026-08-20). */
+    }
+    <p class="border-hair text-ink-2 mt-12 border-t pt-7 text-center text-[16px] leading-[1.55]">
       <strong class="text-ink font-semibold">{t('cartHelpTitle')}</strong>
       {' '}{t('cartHelpDetail')}{' '}
       <PhoneCta variant="inline" showFree={false} />
       {' '}<span class="whitespace-nowrap">· {CONTACT.hours.it}</span>
     </p>
+
+    {
+      /*
+        Scripting off, and nothing in the URL to render: the island is showing a
+        plate that will never resolve (hidden by the head style above), so say why.
+        Not rendered on the hand-off path — there the server HAS the line, the page
+        works without a single byte of JavaScript, and this would contradict it.
+      */
+    }
+    {
+      urlLines.length === 0 && (
+        <noscript>
+          <p class="border-hair text-ink-2 rounded-card border bg-white p-6 text-center text-[16px]">
+            {t('cartNoScript')}
+          </p>
+        </noscript>
+      )
+    }
   </div>
 </BaseLayout>

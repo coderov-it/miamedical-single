@@ -1,0 +1,100 @@
+---
+/**
+ * The booking bar — one segmented white bar under its arrowed heading, ported
+ * 1:1 from docs/blueprint/home.html (styles in styles/editorial.css). It
+ * carries the page's only shadow.
+ *
+ * A native GET form: every control works without hydration and the chosen
+ * criteria land in the catalogue URL. `area` and `from` are carried, not
+ * filters — the catalogue echoes them back and the product page prefills from
+ * them (see routes.ts § BrowseContext). The one script floors the date at
+ * today; without it the field still works, it just accepts a past date the
+ * confirmation call would catch.
+ */
+import { routes } from '~/lib/routes';
+import { SERVICE_AREAS } from '~/lib/site';
+---
+
+<section class="booking" aria-labelledby="booking-title">
+  <div class="container">
+    <h2 class="section-title" id="booking-title">
+      Prenota un ausilio.
+      <svg
+        width="44"
+        height="16"
+        viewBox="0 0 44 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
+      </svg>
+    </h2>
+
+    <form
+      class="search-bar"
+      method="get"
+      action={routes.catalog}
+      role="search"
+      aria-label="Cerca disponibilità per un ausilio a noleggio"
+    >
+      {
+        /* Each cell IS the label — a click anywhere in it, gutters included,
+           lands on that cell's control. The micro-label is a <span> because a
+           label cannot nest inside a label. */
+      }
+      <label class="bar-cell" for="booking-product">
+        <span class="bar-label">Cerca per nome</span>
+        <input
+          id="booking-product"
+          name="q"
+          type="search"
+          autocomplete="off"
+          placeholder="es. Carrozzina"
+        />
+      </label>
+
+      <label class="bar-cell" for="booking-area">
+        <span class="bar-label">Zona</span>
+        <div class="select-wrap">
+          <select id="booking-area" name="area" required>
+            <option value="" selected disabled>Scegli la zona</option>
+            {SERVICE_AREAS.map((area) => <option value={area.value}>{area.label}</option>)}
+          </select>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m7 9.5 5 5 5-5"></path>
+          </svg>
+        </div>
+      </label>
+
+      <label class="bar-cell" for="booking-start">
+        <span class="bar-label">Data di prenotazione</span>
+        <input id="booking-start" name="from" type="date" autocomplete="off" />
+      </label>
+
+      <button class="bar-submit" type="submit">Prenota ora</button>
+    </form>
+  </div>
+</section>
+
+<script>
+  // A rental cannot start in the past: floor the date field at today.
+  // 'sv' formats as YYYY-MM-DD, which is exactly what the attribute wants.
+  const startField = document.getElementById('booking-start');
+  if (startField instanceof HTMLInputElement) {
+    startField.min = new Date().toLocaleDateString('sv');
+  }
+</script>

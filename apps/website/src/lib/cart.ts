@@ -76,6 +76,17 @@ export interface CartLineView {
   thumbnailAlt: string;
   /** "Taglia M · Buono · Pacchetto weekend" — the one-line configuration recap. */
   summary: string;
+  /**
+   * The rental read as a RANGE — "Ritiro 25/08/2026 → Riconsegna 01/09/2026" — so
+   * the island can draw it as one booking instead of two unrelated columns.
+   *
+   * Split out here rather than found in `facts` by the island, because finding it
+   * there would mean the island comparing Italian label strings, and it holds no
+   * Italian at all. Null on a product with no period (a sale, or a rental with no
+   * dates yet), in which case `facts` still carries whatever there is to say.
+   */
+  period: { fromLabel: string; from: string; toLabel: string; to: string } | null;
+  /** What the period did not already say — the quantity, and nothing else today. */
   facts: ItemFact[];
   lines: EstimateLine[];
   quantity: number;
@@ -176,6 +187,35 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
   const { product } = item;
   const { thumbnail } = product.media;
 
+  /*
+   * The card states each fact ONCE, and states the rental as a range.
+   *
+   * Three of the four facts `buildFacts()` produces are handled here rather than
+   * left to the island: pickup and return become `period`, which the card draws as
+   * "from → to"; "Durata 7 giorni" is dropped because the row's own price caption
+   * already says the package. What remains is the quantity. The checkout's review
+   * keeps the full set — there, nothing else states them.
+   *
+   * The duration goes only when the summary REALLY says it: on an open-ended rental,
+   * with no package picked, that fact is the only place the period appears.
+   */
+  const pickup = item.facts.find((fact) => fact.label === t('pickupDate'));
+  const dropoff = item.facts.find((fact) => fact.label === t('returnDate'));
+  const period =
+    pickup && dropoff
+      ? {
+          fromLabel: pickup.label,
+          from: pickup.value,
+          toLabel: dropoff.label,
+          to: dropoff.value,
+        }
+      : null;
+
+  const rest = item.facts.filter((fact) => {
+    if (fact === pickup || fact === dropoff) return period === null;
+    return !(fact.label === t('duration') && item.summary.includes(fact.value));
+  });
+
   return {
     id: line.id,
     slug: product.slug,
@@ -185,8 +225,11 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
     thumbnail: thumbnail ? mediaUrl(thumbnail.path) : null,
     thumbnailAlt: thumbnail?.alt ?? product.title,
     summary: item.summary,
-    facts: item.facts,
-    lines: item.lines,
+    period,
+    facts: rest,
+    /* The "Quantità × 10" amount row goes too: the stepper is beside the figure it
+       multiplies, and the quantity fact is in the panel. */
+    lines: item.lines.filter((estimateLine) => estimateLine.label !== t('quantity')),
     quantity: line.quantity,
     subtotal: item.subtotal,
     /* `Number()` here and below: the island does one multiplication per stepper
@@ -273,7 +316,6 @@ export interface CartCopy {
   goToCheckout: string;
   noChargeYet: string;
   continueBrowsing: string;
-  editConfiguration: string;
   remove: string;
   removeNamed: string;
   increase: string;
@@ -282,6 +324,8 @@ export interface CartCopy {
   showDetailsOf: string;
   updated: string;
   loading: string;
+  /** The first paint's word, before the store has been read. */
+  booting: string;
   offline: string;
   unavailableOne: string;
   unavailableMany: string;
@@ -305,7 +349,6 @@ export function cartCopy(): CartCopy {
     goToCheckout: t('goToCheckout'),
     noChargeYet: t('cartNoChargeYet'),
     continueBrowsing: t('continueBrowsing'),
-    editConfiguration: t('editConfiguration'),
     remove: t('remove'),
     removeNamed: t('removeNamed'),
     increase: t('increaseQuantity'),
@@ -314,6 +357,7 @@ export function cartCopy(): CartCopy {
     showDetailsOf: t('showDetailsOf'),
     updated: t('cartUpdated'),
     loading: t('cartLoading'),
+    booting: t('cartBooting'),
     offline: t('cartOffline'),
     unavailableOne: t('cartLineUnavailableOne'),
     unavailableMany: t('cartLineUnavailableMany'),

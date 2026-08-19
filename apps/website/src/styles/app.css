@@ -20,6 +20,13 @@
 
 @import 'tailwindcss';
 
+/*
+ * The 2026-08 editorial design system (site chrome + home page), ported 1:1
+ * from docs/blueprint/home.html. Unlayered on purpose, so it outranks the
+ * layers below without specificity fights. See its own header comment.
+ */
+@import './editorial.css';
+
 /* app.css lives two levels below `src/`, which is where every template is. */
 @source '../';
 
@@ -50,9 +57,11 @@
 }
 
 /*
- * Inter stays declared as the numeral fallback behind Instrument Sans: it has
- * true tabular figures, which every price, quantity and total on the site leans
- * on via `tabular-nums`. It is never selected on its own any more.
+ * Inter is the editorial design system's ONE face (the 2026-08 blueprint): the
+ * site chrome and the home page select it directly, and it stays the tabular-
+ * numeral fallback behind Instrument Sans everywhere else. The full 100–900
+ * range is declared because the blueprint uses mid weights (550/650/750/780)
+ * that a 400–800 clamp would still cover but the spec file declares in full.
  *
  * lexend-variable-latin.woff2 and the three atkinson-*.woff2 files are still in
  * public/fonts/ but no longer referenced or preloaded. They are kept so the
@@ -61,7 +70,7 @@
 @font-face {
   font-family: 'Inter';
   font-style: normal;
-  font-weight: 400 800;
+  font-weight: 100 900;
   font-display: swap;
   src: url('/fonts/inter-variable-latin.woff2') format('woff2');
 }
@@ -152,6 +161,12 @@
   --color-accent: #3846b1; /* 7.84:1 — safe as text and as a button fill */
   --color-accent-deep: #262d97; /* 11.03:1 with white — the closing CTA band */
 
+  /* The accent's palest step (7:1 with the accent as text on it). Fills quiet
+     accent-labelled actions and SELECTED chips/pills — the fill-based selection
+     marker that replaced accent borders (owner rule 2026-08-19: controls are
+     fills, never borders). The home page's .btn-quiet uses the same value. */
+  --color-accent-tint: #eef0fb;
+
   /* The page still closes by descending, but the two steps are no longer the
      same colour: the CTA band is the blue accent's dark step, and the footer
      below it is neutral near-black. Blue is the accent and the footer is
@@ -167,6 +182,15 @@
   --color-ok: #0e6b41; /* 6.57:1 — "Disponibile", "incluso" */
   --color-danger: #c2402a; /* 5.17:1 — errors */
   --color-star: #d99a2b; /* the page's only warm tone, aria-hidden stars */
+
+  /* The danger tier's palest step — `--color-accent-tint`'s counterpart, and used
+     the same way: a DESTRUCTIVE action fills it and labels itself in
+     `--color-danger`, so "Rimuovi" reads as a delete before anyone hovers it
+     (owner, 2026-08-20). Danger on this is 4.8:1 — AA, and the same tier
+     concession `--color-danger` itself already documents; red cannot reach the
+     7:1 the neutral text tiers hold without going brown. Hover inverts to the
+     solid fill with white (5.17:1). */
+  --color-danger-tint: #fdf2ef;
 
   /* -- type scale ---------------------------------------------------------- */
 
@@ -318,6 +342,17 @@
     color: inherit;
   }
 
+  /* Focus and fill changes on form controls glide rather than snap. The
+     reduced-motion block below zeroes this for people who asked for less. */
+  input,
+  textarea,
+  select {
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease,
+      background-color 150ms ease;
+  }
+
   /* A placeholder is a hint, never a label: it disappears exactly when the user
      needs it most — which is why it must also LOOK like a hint. Its own tier, one
      step below the muted ink and still AA; see `--color-ink-placeholder`. The
@@ -425,6 +460,15 @@
  */
 
 @layer components {
+  /*
+   * CONTROLS ARE FILLS, NEVER BORDERS — owner rule, 2026-08-19. A control on a
+   * white ground fills subtle grey (`tint`); on a tinted ground it fills white;
+   * a quiet accent action fills `accent-tint`. A grey border on a resting
+   * control reads rigid and is banned. The only border a control may wear is
+   * feedback: the accent on a SELECTED choice card, focus, or an invalid field.
+   * Hairlines remain for surfaces (cards, panels) and dividers only.
+   */
+
   /* Pill buttons are the design's most immediate signal — every call to action
      on the site is one of these three. */
   .btn {
@@ -436,59 +480,128 @@
   }
 
   .btn-soft {
-    @apply border-hair bg-tint text-ink hover:border-hair-strong hover:bg-tint-2 border;
+    @apply bg-tint text-ink hover:bg-tint-2;
   }
 
-  /* On the dark closing band the figure/ground rule inverts: the solid button
-     becomes white, the soft one a translucent white. */
+  /* On a tinted ground the figure/ground rule inverts: the soft button is the
+     white object on the tint, and hover speaks through the label instead of a
+     darker fill (tint-2 would sink it into the ground it sits on). */
+  .btn-soft-on-tint {
+    @apply text-ink hover:text-accent bg-white;
+  }
+
+  /* On the dark closing band it inverts again: the solid button becomes white,
+     the soft one a translucent white. */
   .btn-on-dark {
     @apply text-accent-deep bg-white hover:bg-[#dfe4f2];
   }
 
   .btn-soft-on-dark {
-    @apply border border-white/30 bg-white/12 text-white hover:border-white/50 hover:bg-white/20;
+    @apply bg-white/12 text-white hover:bg-white/22;
   }
 
   /*
-   * A form control. The label sits OUTSIDE the box and the box itself is white:
-   * the field stops being a coloured well and becomes a container, so it is
-   * obvious where to type and the label stays readable once the field is full.
+   * A form control. The label sits OUTSIDE the box and the box is a subtle
+   * grey well sunk into its white ground — the owner's input rule (grey on
+   * white, white on grey). The border exists but is TRANSPARENT at rest: it is
+   * the reserved lane for feedback (accent on focus below, danger on
+   * `aria-invalid`), so state changes never shift layout.
+   *
+   * Placeholder contrast on the tint: #86878d on #f5f6f7 is 3.3:1 — above the
+   * 3:1 floor the placeholder tier is held to (see --color-ink-placeholder).
+   *
+   * MARKUP CONTRACT: the well is a `<label>` (or sits inside one), never a bare
+   * `<div>`. See the hit-area block below for why.
    */
   .field-control {
-    @apply rounded-field border-hair-strong flex min-h-14.5 items-center gap-3 border bg-white px-4;
-  }
+    --field-pad: 1rem;
 
-  /* Pointer affordance: the box reacts to focus of any kind, including a click. */
-  .field-control:focus-within {
-    @apply border-accent;
+    @apply rounded-field bg-tint flex min-h-14.5 items-stretch gap-3 border border-transparent;
 
-    box-shadow: 0 0 0 3px rgb(46 70 153 / 0.14);
+    padding-inline: var(--field-pad);
+    cursor: text;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease,
+      background-color 150ms ease;
   }
 
   /*
-   * The accessible ring belongs to the BOX, not to the bare input inside it. The
+   * THE WELL *IS* THE CONTROL — every pixel of it has to behave like one. The
+   * box only paints the field, so the control inside takes the box's full
+   * height and bleeds back over its inline padding, re-adding that padding as
+   * its own: the text sits exactly where it did, but a click on what used to be
+   * wrapper now lands on the input, caret where the pointer is. Without this a
+   * ~26px line box floats in a 58px well and four fifths of what reads as
+   * typable is dead `<div>` (owner, 2026-08-20: "it's hard to determine which
+   * one is the actual input"). The wrapper being a `<label>` covers the slivers
+   * a bleed cannot reach — an icon and the gap beside it forward their click
+   * natively. The geometry is the component's: do not re-add `p-0` or `px-*` to
+   * the inner control at a call site, or the utility layer wins and the dead
+   * band comes back.
+   */
+  .field-control > :is(input, textarea, select) {
+    /* `flex-1`, not `w-full`: a percentage width resolves against the box's
+       CONTENT edge, so the control would stop short of the padding it just
+       bled into. Growing into the free space the negative margins create is
+       what makes the two meet. */
+    @apply min-w-0 flex-1 self-stretch border-0 bg-transparent p-0;
+  }
+
+  .field-control > :is(input, textarea, select):first-child {
+    margin-inline-start: calc(var(--field-pad) * -1);
+    padding-inline-start: var(--field-pad);
+  }
+
+  .field-control > :is(input, textarea, select):last-child {
+    margin-inline-end: calc(var(--field-pad) * -1);
+    padding-inline-end: var(--field-pad);
+  }
+
+  /* Anything else in the well is DECORATION — a leading icon, a trailing unit.
+     It centres itself and refuses the click, which the label then hands to the
+     control. An affordance that must be clickable goes outside the well. */
+  .field-control > :not(input, textarea, select) {
+    @apply self-center;
+
+    pointer-events: none;
+  }
+
+  /* A well holding a picker rather than prose keeps the arrow cursor. */
+  .field-control:has(:is(select, [type='date'], [type='time'])) {
+    cursor: default;
+  }
+
+  /* A field that sits on a tinted surface inverts to a white well. */
+  .field-control-on-tint {
+    @apply bg-white;
+  }
+
+  /*
+   * FOCUS, the smooth way (owner, 2026-08-19: no hard rings on fields). The
+   * well wakes up rather than getting fenced: it lifts to white, the border
+   * tints accent and a soft accent halo fades in — no offset outline, no
+   * second paint. The box reacts to focus of any kind, including a click.
+   * This IS the field's visible focus indicator: the accent border alone is a
+   * 7.8:1 change against both fills, so 2.4.13 is met without the hard ring.
+   */
+  .field-control:focus-within {
+    @apply border-accent bg-white;
+
+    box-shadow: 0 0 0 4px rgb(56 70 177 / 0.12);
+  }
+
+  /*
+   * The indicator belongs to the BOX, not to the bare input inside it. The
    * input has no border of its own and fills the box, so ringing it draws the
    * ring *inside* the visible control — the black slug that showed up around
    * every search field and, most plainly, around a Firefox date field's
-   * `mm/dd/yyyy` text.
-   *
-   * Both paints go (see the focus block in @layer base for why one is not
-   * enough), and the box picks them up. `:has(:focus-visible)` rather than
-   * `:focus-within`, so a mouse click on a button inside the field does not
-   * raise a keyboard-grade ring — for text inputs the two coincide anyway.
+   * `mm/dd/yyyy` text. Both paints of the global ring go; the box's
+   * `:focus-within` treatment above takes over.
    */
   .field-control :is(input, select, textarea):focus-visible {
     outline: none;
     box-shadow: none;
-  }
-
-  /* The same pair as the global rule, on the box. Kept in step with it by hand:
-     hoisting it to a custom property would hide which element owns the ring, and
-     that ownership is the whole point of this block. */
-  .field-control:has(:is(input, select, textarea):focus-visible) {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 2px #fff;
   }
 
   /* The uppercase field label. Always visible, never a placeholder. */
@@ -505,6 +618,34 @@
   .skip-link {
     @apply absolute top-0 left-0 z-100 -translate-y-full bg-accent px-4 py-3 text-white focus:translate-y-0;
   }
+}
+
+/* ------------------------------------------------ smooth text-field focus --- */
+
+/*
+ * Bare text controls (checkout, account pages, PDP inline fields) focus the
+ * way `.field-control` does: accent border + soft accent halo + white lift —
+ * never the two-paint ring, which reads as a hard fence around a field
+ * (owner, 2026-08-19). Un-layered so it outranks the utility fills
+ * (`bg-tint`, `border-transparent`) that dress these controls at rest.
+ *
+ * Wrapped controls are excluded — inside `.field-control` the BOX carries the
+ * indicator, and inside the home page's `.bar-cell` the segmented bar does.
+ * Buttons, links, checkboxes and radios keep the global two-paint ring: they
+ * have no border-and-fill body for the soft treatment to speak through.
+ */
+:is(input, textarea, select):not(
+    [type='checkbox'],
+    [type='radio'],
+    [type='range'],
+    [type='file'],
+    .field-control *,
+    .bar-cell *
+  ):focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgb(56 70 177 / 0.12);
 }
 
 /* ------------------------------------ reference design page face --- */
@@ -539,17 +680,21 @@ legend {
  * it. Nothing about the paint changes and nothing about the target size is lost.
  * Un-layered, so it outranks the base rule without !important.
  *
- * `.cart` is in scope for the same reason `.checkout` is — its stepper buttons
- * are 32px painted, 48px to the finger. Anything smaller than 48 in either scope
- * MUST carry `.target-48`; that is the deal that makes the release legitimate
- * rather than just a dropped rule.
+ * `.cart` is in scope for the same reason `.checkout` is — its stepper keys are
+ * 44px painted, 48px to the finger. Anything smaller than 48 in either scope MUST
+ * carry `.target-48`; that is the deal that makes the release legitimate rather
+ * than just a dropped rule, and since 2026-08-20 the SELECTOR enforces it.
+ *
+ * It did not, until then: the exemption named `button` outright, so `min-height: 0`
+ * landed on every button in both scopes and quietly beat the `min-h-*` utility on
+ * each one — un-layered rule over layered utility. The cart's "Vai alla conferma"
+ * asked for 52px and painted 24; the owner reported it as buttons looking wrong.
+ * Only `.target-48` earns the exemption now, so a button that asks for a height
+ * gets it, and one that asks for nothing falls back to the 48px floor.
  */
-:is(.checkout, .cart) :is(button, input[type='checkbox'], input[type='radio']) {
+:is(.checkout, .cart) .target-48 {
   min-height: 0;
   min-width: 0;
-}
-
-:is(.checkout, .cart) .target-48 {
   position: relative;
 }
 
@@ -619,16 +764,18 @@ legend {
 /*
  * Delivery and pickup selection. `data-selected` on the card is again the only
  * thing the script writes — the radio dot, the icon wash and the card's own
- * border all follow from it. Accent marks selection here and nothing else, which
- * is the storefront's rule as much as the reference design's.
+ * paint all follow from it. Accent marks selection here and nothing else.
+ *
+ * The cards follow the control rule: a resting card is a tint fill with a
+ * transparent border (the reserved feedback lane); selecting it lifts it to
+ * white and draws the accent border — the one border a control may wear. The
+ * dot and the icon well are white objects on the resting tint, per the same
+ * figure/ground inversion the inputs use.
  */
 .checkout [data-delivery-card][data-selected],
 .checkout [data-pickup-card][data-selected] {
   border-color: var(--color-accent);
-}
-
-.checkout [data-delivery-dot] {
-  border: 1.5px solid var(--color-hair-strong);
+  background: #fff;
 }
 
 .checkout [data-selected] [data-delivery-dot] {
@@ -636,12 +783,12 @@ legend {
 }
 
 .checkout [data-delivery-icon] {
-  background: var(--color-tint);
+  background: #fff;
   color: var(--color-ink-2);
 }
 
 .checkout [data-selected] [data-delivery-icon] {
-  background: var(--color-tint-2);
+  background: var(--color-accent-tint);
   color: var(--color-accent);
 }
 

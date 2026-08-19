@@ -3,10 +3,11 @@
  * Product card — the locked round-4 design. Zero JavaScript.
  *
  * Anatomy: clean 4:3 tint stage (nothing overlaid) → name → two-line blurb →
- * spec tags (one line, cropped) → full-bleed hairline → price + bordered
- * button. Out of stock renders dead: no price, a flat "Esaurito" plate, muted
- * art, no hover. Full spec: docs/code/storefront-design-system.md, reference
- * at docs/visual/examples/product-card/reference.html.
+ * spec tags (one line, cropped) → full-bleed hairline → price + quiet accent
+ * fill button (borderless — the 2026-08-19 control rule in app.css). Out of
+ * stock renders dead: no price, a flat "Esaurito" plate, muted art, no hover.
+ * Full spec: docs/code/storefront-design-system.md, reference at
+ * docs/visual/examples/product-card/reference.html.
  *
  * The card is the one place the 16px type floor bends (14/15px data rows) and
  * the one Inter surface — both locked design decisions, not drift.
@@ -47,8 +48,10 @@ const unit =
 const priceLabel = amount === null ? null : formatMoney(amount, product.pricing.currency);
 const ctaLabel = product.pricing.mode === 'rental' ? 'Noleggia' : 'Acquista';
 
+/* Borderless per the control rule (see app.css § components): the action is a
+   quiet accent fill, and the group hover paints it the full theme. */
 const btnBase =
-  'inline-flex min-h-12 items-center justify-center rounded-field border px-5 ' +
+  'inline-flex min-h-12 items-center justify-center rounded-field px-5 ' +
   'text-[16px] font-semibold whitespace-nowrap transition-colors duration-150';
 ---
 
@@ -121,7 +124,7 @@ const btnBase =
       product.chips.length > 0 && (
         <span class="mt-3.5 flex h-7.5 flex-wrap gap-1.5 overflow-hidden">
           {product.chips.map((tag) => (
-            <span class="border-hair bg-tint text-ink-2 rounded-full border px-[11px] py-1 text-[14px]/[1.4] font-medium whitespace-nowrap">
+            <span class="bg-tint text-ink-2 rounded-full px-[11px] py-1 text-[14px]/[1.4] font-medium whitespace-nowrap">
               {tag}
             </span>
           ))}
@@ -143,7 +146,7 @@ const btnBase =
   <span class="flex flex-wrap items-center justify-between gap-3.5 px-5 pt-3.5 pb-4.5">
     {
       out ? (
-        <span class:list={[btnBase, 'border-tint-2 bg-tint-2 text-ink-2 flex-1']}>Esaurito</span>
+        <span class:list={[btnBase, 'bg-tint-2 text-ink-2 flex-1']}>Esaurito</span>
       ) : (
         <>
           <span class="text-ink-2 flex items-baseline gap-1.5 text-[14px] whitespace-nowrap">
@@ -155,8 +158,8 @@ const btnBase =
           <span
             class:list={[
               btnBase,
-              'border-hair-strong text-ink flex-none bg-white',
-              'group-hover:border-accent group-hover:bg-accent group-hover:text-white',
+              'bg-accent-tint flex-none text-accent',
+              'group-hover:bg-accent group-hover:text-white',
             ]}
           >
             {ctaLabel}

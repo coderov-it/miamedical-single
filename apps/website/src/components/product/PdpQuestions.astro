@@ -36,12 +36,11 @@ const cell = 'grid min-w-0 grid-rows-subgrid row-span-3 gap-1.75';
 const promptLabel = 'text-[13.5px] font-semibold';
 const hintBelow = 'm-0 text-[12.5px] font-normal text-ink-2';
 const textInput =
-  'min-h-11 w-full rounded-[9px] border border-hair-strong bg-white px-3.5 py-2.5 text-[15px] font-normal';
+  'min-h-11 w-full rounded-[9px] border border-transparent bg-tint px-3.5 py-2.5 text-[15px] font-normal';
 
 const segPill =
-  'flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-[9px] border-[1.5px] border-hair-strong bg-white px-4 text-[14px] font-semibold text-ink-2 ' +
-  'peer-checked:border-accent peer-checked:bg-tint peer-checked:text-accent ' +
-  'hover:border-accent ' +
+  'flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-[9px] bg-tint px-4 text-[14px] font-semibold text-ink-2 hover:bg-tint-2 ' +
+  'peer-checked:bg-accent-tint peer-checked:text-accent peer-checked:hover:bg-accent-tint ' +
   'peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-white ' +
   'peer-focus-visible:shadow-[0_0_0_6px_var(--color-ink)]';
 ---
