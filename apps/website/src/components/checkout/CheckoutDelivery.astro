@@ -40,7 +40,8 @@
 import { PICKUP_POINTS } from '~/lib/checkout';
 import { DELIVERY_METHODS } from '@mia/pricing';
 import { t } from '~/lib/labels';
-import { EYEBROW, FIELD_INPUT, FIELD_LABEL, PANEL } from './styles';
+import CheckoutField from './CheckoutField.astro';
+import { EYEBROW, FIELD_INPUT, PANEL } from './styles';
 
 interface Props {
   /**
@@ -66,7 +67,17 @@ const { labelStage = false } = Astro.props;
 }
 {labelStage && <span class={EYEBROW}>{t('deliveryStage')}</span>}
 
-<div class="flex flex-col gap-3.5" role="radiogroup" aria-label={t('deliveryAndPickup')}>
+{/* GATED AS A GROUP. Nothing here is a form control — the options are cards with
+    panels inside them, which an <input> cannot be — so there is no `required` to
+    hang on anything and the gate's predicate reads the page's own `state.delivery`
+    instead. See `scripts/checkout/gates.ts`. */}
+<div
+  class="flex flex-col gap-3.5"
+  role="radiogroup"
+  aria-label={t('deliveryAndPickup')}
+  data-gate="deliveryMethod"
+  data-delivery-group
+>
   {
     DELIVERY_METHODS.map((option) => (
       <div
@@ -153,8 +164,11 @@ const { labelStage = false } = Astro.props;
               buzzer name. The customer knows how to write where they live better
               than a form does, and a human reads it at the other end.
             */}
-            <label class={FIELD_LABEL}>
-              {t('deliveryAddress')}
+            <CheckoutField
+              label={t('deliveryAddress')}
+              gate="address"
+              error={t('errorAddress')}
+            >
               <textarea
                 class={`${FIELD_INPUT} resize-none`}
                 name="delivery-address"
@@ -165,7 +179,7 @@ const { labelStage = false } = Astro.props;
                 data-field="address"
                 data-autogrow
               />
-            </label>
+            </CheckoutField>
 
             {/*
               What happens about the cost, in the customer's own words.
@@ -193,6 +207,7 @@ const { labelStage = false } = Astro.props;
               class="flex flex-col gap-2.5"
               role="radiogroup"
               aria-labelledby="checkout-pickup-label"
+              data-gate="pickupPoint"
             >
               {PICKUP_POINTS.map((point, index) => (
                 <button
@@ -214,12 +229,18 @@ const { labelStage = false } = Astro.props;
                   </span>
                 </button>
               ))}
+
+              <p class="field-error" data-field-error="pickupPoint" hidden>
+                {t('errorPickupPoint')}
+              </p>
             </div>
           </div>
         )}
       </div>
     ))
   }
+
+  <p class="field-error" data-field-error="deliveryMethod" hidden>{t('errorDeliveryMethod')}</p>
 </div>
 
 {

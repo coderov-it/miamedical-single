@@ -25,6 +25,7 @@
  */
 import { CUSTOMER_TYPES } from '~/lib/checkout';
 import { t } from '~/lib/labels';
+import CheckoutField from './CheckoutField.astro';
 import { CHIP, CTA, FIELD_GRID, FIELD_INPUT, FIELD_LABEL } from './styles';
 
 /** The chip the page opens on, and so the fiscal block that starts visible. */
@@ -32,8 +33,7 @@ const DEFAULT_TYPE = 'private';
 ---
 
 <div class={FIELD_GRID}>
-  <label class={FIELD_LABEL}>
-    {t('firstName')}
+  <CheckoutField label={t('firstName')} gate="firstName" error={t('errorFirstName')}>
     <input
       class={FIELD_INPUT}
       type="text"
@@ -43,9 +43,8 @@ const DEFAULT_TYPE = 'private';
       data-bwignore
       data-field="firstName"
     />
-  </label>
-  <label class={FIELD_LABEL}>
-    {t('lastName')}
+  </CheckoutField>
+  <CheckoutField label={t('lastName')} gate="lastName" error={t('errorLastName')}>
     <input
       class={FIELD_INPUT}
       type="text"
@@ -55,12 +54,11 @@ const DEFAULT_TYPE = 'private';
       data-bwignore
       data-field="lastName"
     />
-  </label>
+  </CheckoutField>
 </div>
 
 <div class={FIELD_GRID}>
-  <label class={FIELD_LABEL}>
-    {t('email')}
+  <CheckoutField label={t('email')} gate="email" error={t('errorEmail')}>
     <input
       class={FIELD_INPUT}
       type="email"
@@ -71,9 +69,8 @@ const DEFAULT_TYPE = 'private';
       data-bwignore
       data-field="email"
     />
-  </label>
-  <label class={FIELD_LABEL}>
-    {t('phoneNumber')}
+  </CheckoutField>
+  <CheckoutField label={t('phoneNumber')} gate="phone" error={t('errorPhone')}>
     <input
       class={FIELD_INPUT}
       type="tel"
@@ -84,7 +81,7 @@ const DEFAULT_TYPE = 'private';
       data-bwignore
       data-field="phone"
     />
-  </label>
+  </CheckoutField>
 </div>
 
 {
@@ -115,23 +112,27 @@ const DEFAULT_TYPE = 'private';
   </div>
 </div>
 
-<label class={FIELD_LABEL} data-when-type="private">
-  {t('codiceFiscale')}
-  <input
-    class={`${FIELD_INPUT} uppercase`}
-    type="text"
-    name="codice-fiscale"
-    autocapitalize="characters"
-    spellcheck="false"
-    placeholder={t('placeholderCodiceFiscale')}
-    data-bwignore
-    data-field="codiceFiscale"
-  />
-</label>
+{/* The wrapper carries `data-when-type`, not the field itself: the script hides
+    this whole block for a company or a tourist, and the gate reads a hidden
+    block as "nothing asked" — which is exactly right for a fiscal identifier
+    Italy does not ask that customer for. */}
+<div data-when-type="private">
+  <CheckoutField label={t('codiceFiscale')} gate="codiceFiscale" error={t('errorCodiceFiscale')}>
+    <input
+      class={`${FIELD_INPUT} uppercase`}
+      type="text"
+      name="codice-fiscale"
+      autocapitalize="characters"
+      spellcheck="false"
+      placeholder={t('placeholderCodiceFiscale')}
+      data-bwignore
+      data-field="codiceFiscale"
+    />
+  </CheckoutField>
+</div>
 
 <div class={FIELD_GRID} data-when-type="company" hidden>
-  <label class={FIELD_LABEL}>
-    {t('partitaIva')}
+  <CheckoutField label={t('partitaIva')} gate="partitaIva" error={t('errorPartitaIva')}>
     <input
       class={`${FIELD_INPUT} uppercase`}
       type="text"
@@ -142,9 +143,12 @@ const DEFAULT_TYPE = 'private';
       data-bwignore
       data-field="partitaIva"
     />
-  </label>
-  <label class={FIELD_LABEL}>
-    {t('companyCodiceFiscale')}
+  </CheckoutField>
+  <CheckoutField
+    label={t('companyCodiceFiscale')}
+    gate="companyCodiceFiscale"
+    error={t('errorCompanyCodiceFiscale')}
+  >
     <input
       class={`${FIELD_INPUT} uppercase`}
       type="text"
@@ -155,7 +159,7 @@ const DEFAULT_TYPE = 'private';
       data-bwignore
       data-field="companyCodiceFiscale"
     />
-  </label>
+  </CheckoutField>
 </div>
 
 <label class={FIELD_LABEL}>

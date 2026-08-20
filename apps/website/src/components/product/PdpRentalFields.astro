@@ -1,0 +1,142 @@
+---
+/**
+ * The two questions a rental cannot be quoted without: which package, and from
+ * when.
+ *
+ * THEY ARE THE SAME CONTROL TWICE — a small label above a filled single-line
+ * field, with the field's affordance at its right edge (`pdp-chooser.ts`). Each
+ * field holds one line, the answer; what follows from the answer (the return
+ * date, the price) belongs to the overview below the rule, not stacked in the
+ * box.
+ *
+ * BOTH ARE GATED, because the API refuses a rental line without them and the
+ * customer should hear that here, on the page that can still fix it, rather than
+ * as a failure at the last step. See `lib/form-gate-markup.ts`.
+ *
+ * Rendered only for a rental product: a fixed-price product has its price from
+ * the start and no period at all.
+ */
+import PdpDatePicker from '~/components/product/PdpDatePicker.astro';
+import { PDP_FIELD, PDP_LABEL } from '~/components/product/pdp-chooser.ts';
+import { formatMoney } from '~/lib/api';
+import type { ProductDetail } from '~/lib/catalog';
+import { FIELD } from '~/lib/request-config';
+
+interface Props {
+  packages: ProductDetail['rentalPackages'];
+  currency: string;
+  /** Today in Europe/Rome, ISO. The floor for the start date. */
+  today: string;
+  deliveryCity?: string | null;
+  startDate?: string;
+}
+
+const { packages, currency, today, deliveryCity = null, startDate = '' } = Astro.props;
+
+const hasHourPackage = packages.some((pkg) => pkg.unit === 'hour');
+
+const pkgRow =
+  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-tint ' +
+  'peer-checked:bg-tint peer-checked:[&_[data-pkg-name]]:text-accent ' +
+  'peer-focus-visible:outline-3 peer-focus-visible:-outline-offset-3 peer-focus-visible:outline-white ' +
+  'peer-focus-visible:shadow-[inset_0_0_0_3px_var(--color-ink)]';
+---
+
+<div class="flex flex-col gap-4">
+  {
+    /*
+    The reference design's disclosure, unchanged in shape. The one thing
+    the new pricing model moves is what it opens onto: there is no
+    "Nessun pacchetto" row any more, because a rental has no rate to fall
+    back to — every row is a real price and one of them must be chosen.
+
+    The checkbox carries `form="pdp-detached"` (an id that exists nowhere)
+    so the disclosure state never joins the GET submission; the radios
+    inside DO belong to the form.
+  */
+  }
+  {
+    /*
+      THE GATE. A rental has no price without a package, so this is the
+      first thing the customer must answer and the first thing the order
+      actions check — see `lib/form-validation.ts`. Focus is pointed at the
+      trigger because the radios themselves are `sr-only`: a browser will
+      not scroll to a one-pixel control, and Chrome refuses to focus one at
+      all, which is why native `required` cannot do this job here.
+    */
+  }
+  <div
+    class="relative flex flex-col gap-1.5"
+    data-gate="package"
+    data-gate-focus="[data-pkg-trigger]"
+  >
+    <label class={PDP_LABEL} for="pdp-pkg-open"> Scegli il pacchetto </label>
+    {
+      /* Opening the list is not choosing from it — `data-gate-ignore`
+          keeps this checkbox from answering the question it reveals. */
+    }
+    <input
+      class="peer sr-only"
+      type="checkbox"
+      id="pdp-pkg-open"
+      form="pdp-detached"
+      data-pkg-toggle
+      data-gate-ignore
+    />
+    <label
+      class={`${PDP_FIELD} cursor-pointer select-none peer-checked:border-accent peer-focus-visible:border-accent peer-checked:[&_[data-chev]]:rotate-180`}
+      for="pdp-pkg-open"
+      data-pkg-trigger
+    >
+      <span class="min-w-0 flex-1 truncate" data-pkg-title> Scegli un pacchetto </span>
+      <span
+        class="text-ink-2 text-[11px] transition-transform duration-150"
+        data-chev
+        aria-hidden="true"
+      >
+        ▼
+      </span>
+    </label>
+
+    <div
+      class="border-hair rounded-field shadow-pdp-pop absolute inset-x-0 top-[calc(100%+6px)] z-20 hidden max-h-75 flex-col gap-0.5 overflow-x-clip overflow-y-auto border bg-white p-1.5 peer-checked:flex"
+    >
+      {
+        packages.map((pkg) => (
+          <span>
+            <input
+              class="peer sr-only"
+              type="radio"
+              name={FIELD.rentalPackage}
+              id={`pdp-pkg-${pkg.code}`}
+              value={pkg.code}
+              data-est-kind="package"
+              data-est-price={pkg.price}
+              data-est-duration={pkg.duration}
+              data-est-unit={pkg.unit}
+              data-est-label={pkg.name}
+              data-est-detail={pkg.label}
+            />
+            <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
+              <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+                <strong class="text-[14px]" data-pkg-name>
+                  {pkg.name}
+                </strong>
+                {/* An unnamed package falls back to its own duration label,
+                  and printing "3 giorni" twice says nothing. */}
+                {pkg.name !== pkg.label && <span class="text-ink-2 text-[13px]">{pkg.label}</span>}
+              </span>
+              <strong class="text-[14px] whitespace-nowrap tabular-nums">
+                {formatMoney(pkg.price, currency)}
+              </strong>
+            </label>
+          </span>
+        ))
+      }
+    </div>
+
+    <p class="field-error" data-field-error="package" hidden>Scegli un pacchetto per continuare.</p>
+  </div>
+
+  <PdpDatePicker {today} {hasHourPackage} {deliveryCity} {startDate} />
+</div>

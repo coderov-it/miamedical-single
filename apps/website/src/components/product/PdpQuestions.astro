@@ -5,8 +5,11 @@
  * Answers travel as `question.<key>` params and are resolved by the summary page.
  *
  * ALIGNMENT. Every cell is a three-row `grid-rows-subgrid` — prompt, control,
- * help text — so those three bands line up across the whole row regardless of
- * what any individual question carries. The obvious alternatives both fail on
+ * foot — so those three bands line up across the whole row regardless of what
+ * any individual question carries. THREE CHILDREN EXACTLY, which is why the hint
+ * and the gate's error message share one `<FieldFoot>` instead of being siblings:
+ * a fourth child falls outside `row-span-3` and takes that cell out of step with
+ * the rest of the row. The obvious alternatives both fail on
  * this data: plain stacking leaves the controls ragged as soon as one prompt
  * wraps to two lines, and bottom-aligning with `mt-auto` aligns the LAST
  * element, so a question with help text lines its hint up against its
@@ -16,6 +19,8 @@
  * own box-model rules inside a grid container and will not sit in a subgrid
  * track. `aria-labelledby` gives the group the same accessible name.
  */
+import FieldFoot from '~/components/primitives/FieldFoot.astro';
+import RequiredMark from '~/components/primitives/RequiredMark.astro';
 import type { ProductDetail } from '~/lib/catalog';
 import { t } from '~/lib/labels';
 import { BOOLEAN_VALUES, QUESTION_PREFIX } from '~/lib/request-config';
@@ -31,10 +36,19 @@ const { questions } = Astro.props;
 const isWide = (question: Props['questions'][number]) =>
   question.valueType === 'text' || question.options.length > 3;
 
+/**
+ * The section's hint has to tell the truth. It said "facoltativo" unconditionally
+ * while the back office could — and did — mark individual questions required, so
+ * a customer was told a field was optional and then stopped by it.
+ */
+const anyRequired = questions.some((question) => question.isRequired);
+const sectionHint = anyRequired
+  ? 'i campi contrassegnati sono obbligatori'
+  : 'facoltativo — ci aiuta a prepararci';
+
 /** One cell: three subgrid rows, so prompt/control/hint align row-wide. */
 const cell = 'grid min-w-0 grid-rows-subgrid row-span-3 gap-1.75';
 const promptLabel = 'text-[13.5px] font-semibold';
-const hintBelow = 'm-0 text-[12.5px] font-normal text-ink-2';
 const textInput =
   'min-h-11 w-full rounded-[9px] border border-transparent bg-tint px-3.5 py-2.5 text-[15px] font-normal';
 
@@ -46,7 +60,7 @@ const segPill =
 ---
 
 <section>
-  <PdpSectionHead n="03" title="Per la consegna" hint="facoltativo — ci aiuta a prepararci" />
+  <PdpSectionHead n="03" title="Per la consegna" hint={sectionHint} />
 
   <div class="border-hair shadow-pdp-card rounded-[14px] border bg-white p-6">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-3.5 gap-y-4">
@@ -55,6 +69,10 @@ const segPill =
           const name = `${QUESTION_PREFIX}${question.key}`;
           const promptId = `q-${question.id}-label`;
           const wide = isWide(question);
+          /* Every required question is gated, whatever kind it is: the option
+             groups never carried `required` at all, and the ones that did lose
+             native validation the moment the script turns it off. */
+          const gate = question.isRequired ? `question-${question.id}` : undefined;
 
           if (question.options.length > 0 || question.valueType === 'boolean') {
             const multiple = question.valueType === 'multi_select';
@@ -75,19 +93,29 @@ const segPill =
                 class:list={[cell, wide && 'col-span-full']}
                 role="group"
                 aria-labelledby={promptId}
+                data-gate={gate}
               >
                 <span class={promptLabel} id={promptId}>
                   {question.prompt}
+                  <RequiredMark on={question.isRequired} />
                 </span>
                 <span class="flex flex-wrap items-end gap-2">
-                  {options.map((option) => (
+                  {options.map((option, index) => (
                     <span class="flex min-w-24 flex-1">
+                      {/*
+                        `required` on ONE radio requires the whole group, which is
+                        what the no-JavaScript path needs. It is deliberately not
+                        set on checkboxes: there it would demand every box be
+                        ticked rather than one of them, so a required multi-select
+                        is left to the gate and to the server.
+                      */}
                       <input
                         class="peer sr-only"
                         type={multiple ? 'checkbox' : 'radio'}
                         name={name}
                         id={`q-${question.id}-${option.key}`}
                         value={option.value}
+                        required={question.isRequired && !multiple && index === 0}
                       />
                       <label class={segPill} for={`q-${question.id}-${option.key}`}>
                         {option.label}
@@ -95,16 +123,17 @@ const segPill =
                     </span>
                   ))}
                 </span>
-                {question.helpText && <p class={hintBelow}>{question.helpText}</p>}
+                <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
               </div>
             );
           }
 
           if (question.valueType === 'text') {
             return (
-              <div class:list={[cell, 'col-span-full']}>
+              <div class:list={[cell, 'col-span-full']} data-gate={gate}>
                 <label class={promptLabel} for={`q-${question.id}`}>
                   {question.prompt}
+                  <RequiredMark on={question.isRequired} />
                 </label>
                 <textarea
                   id={`q-${question.id}`}
@@ -114,15 +143,16 @@ const segPill =
                   maxlength={question.maxLength ?? 300}
                   required={question.isRequired}
                 />
-                {question.helpText && <p class={hintBelow}>{question.helpText}</p>}
+                <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
               </div>
             );
           }
 
           return (
-            <div class={cell}>
+            <div class={cell} data-gate={gate}>
               <label class={promptLabel} for={`q-${question.id}`}>
                 {question.prompt}
+                <RequiredMark on={question.isRequired} />
               </label>
               <input
                 id={`q-${question.id}`}
@@ -143,7 +173,7 @@ const segPill =
                 required={question.isRequired}
                 inputmode={question.valueType === 'number' ? 'numeric' : undefined}
               />
-              {question.helpText && <p class={hintBelow}>{question.helpText}</p>}
+              <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
             </div>
           );
         })

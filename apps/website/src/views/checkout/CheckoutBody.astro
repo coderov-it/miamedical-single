@@ -1,0 +1,156 @@
+---
+/**
+ * The checkout's body: the three steps, the order overview, and the empty state.
+ *
+ * Its spec is the Claude Design file "Checkout.dc.html" from the same project as
+ * the product detail page, and like the PDP it is deliberately released from
+ * Variante B: Instrument Sans, sub-16px secondary text, the reference's own radii
+ * and spacing. Layout, rationale and every deliberate deviation:
+ * docs/code/storefront-checkout.md
+ *
+ * ONE BODY SERVES BOTH ENTRY POINTS. `resolveCheckout()` reads the single-item
+ * form a product page writes and the `i<n>.`-indexed form a cart writes into the
+ * same list, so nothing here branches on where the request came from — only on
+ * how many items came with it.
+ */
+import CheckoutConfirm from '~/components/checkout/CheckoutConfirm.astro';
+import CheckoutDelivery from '~/components/checkout/CheckoutDelivery.astro';
+import CheckoutDetails from '~/components/checkout/CheckoutDetails.astro';
+import CheckoutOverview from '~/components/checkout/CheckoutOverview.astro';
+import CheckoutReturn from '~/components/checkout/CheckoutReturn.astro';
+import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
+import { CTA } from '~/components/checkout/styles';
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import { API_BASE } from '~/lib/api';
+import type { Checkout } from '~/lib/checkout';
+import { t } from '~/lib/labels';
+import { productPath, routes } from '~/lib/routes';
+import { CONTACT, whatsappUrl } from '~/lib/site';
+
+interface Props {
+  checkout: Checkout;
+  /** The server-built handover, already carrying every line item. */
+  handoverMessage: string;
+}
+
+const { checkout, handoverMessage } = Astro.props;
+const { items } = checkout;
+const single = items.length === 1;
+
+/**
+ * Whether anything here comes back — which is what makes step 2 two questions
+ * instead of one.
+ *
+ * `some`, not `every`: a mixed request with one rented item still has a
+ * collection to arrange, and a customer should not have to split the order to
+ * say where.
+ */
+const hasRental = items.some((item) => item.product.pricing.mode === 'rental');
+
+/* The trail names where the request came from: the product itself when there is
+   one, the cart when there are several. */
+const originCrumb =
+  single && items[0]
+    ? { label: items[0].product.title, href: productPath(items[0].product.slug) }
+    : { label: t('yourRequest'), href: routes.cart };
+---
+
+{
+  /*
+    The bottom padding clears the persistent bottom navigation on phones; the
+    reference design's own 96px takes over from `mid` up.
+  */
+}
+<div
+  class="checkout mid:px-8 mid:pb-24 mx-auto w-full max-w-310 px-5 pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
+  data-checkout
+  data-api-base={API_BASE}
+>
+  <Breadcrumbs items={[{ label: t('home'), href: '/' }, originCrumb, { label: t('checkout') }]} />
+
+  <h1 class="mb-7 text-[30px] font-bold tracking-[-0.015em]">{t('checkout')}</h1>
+
+  {
+    items.length > 0 ? (
+      <div class="flex flex-wrap items-start gap-12">
+        <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-4">
+          <CheckoutStep index={1} title={t('yourDetails')}>
+            <CheckoutDetails />
+          </CheckoutStep>
+
+          <CheckoutStep index={2} title={t('delivery')} bodyGap="gap-3.5">
+            {/*
+                Two questions, in the order they happen: where it goes, then where
+                it comes back from. The second only exists for a rental, and the
+                forward button sits after BOTH — a "Continua" rendered above an
+                unanswered question invites the customer to skip it.
+              */}
+            <CheckoutDelivery labelStage={hasRental} />
+            {hasRental && <CheckoutReturn />}
+            <button class={CTA} type="button" data-step-continue="2" hidden>
+              {t('continueToConfirmation')}
+            </button>
+          </CheckoutStep>
+
+          <CheckoutStep index={3} title={t('confirmRequest')} editable={false}>
+            <CheckoutConfirm
+              whatsappHref={whatsappUrl(handoverMessage)}
+              whatsappBase={handoverMessage}
+              blocked={checkout.blocked}
+              blockedItem={checkout.blockedItem}
+              backHref={
+                /* The blocking item's own page when there is one, so a
+                   multi-item cart sends the customer to the row that needs
+                   fixing rather than to the list. */
+                checkout.blockedItem && !single
+                  ? productPath(checkout.blockedItem.product.slug)
+                  : originCrumb.href
+              }
+            />
+          </CheckoutStep>
+        </main>
+
+        <CheckoutOverview {checkout} />
+      </div>
+    ) : (
+      /*
+        The reference design has no empty state — it always has a cart behind it.
+        Arriving here with nothing resolvable is normal all the same (a shared
+        link, a product since unpublished), and it must not be a dead end.
+      */
+      <div class="border-hair shadow-pdp-card flex max-w-150 flex-col items-start gap-4 rounded-[14px] border bg-white p-7">
+        <h2 class="text-[17px] font-bold">{t('nothingToConfirm')}</h2>
+        <p class="text-ink-2 m-0 text-[15px] leading-[1.55]">{t('nothingToConfirmDetail')}</p>
+        <a
+          class="bg-tint text-ink rounded-full px-5.5 py-2.75 text-[15.5px] font-semibold no-underline hover:bg-tint-2 hover:text-accent"
+          href={routes.catalog}
+        >
+          {t('goToCatalog')}
+        </a>
+        <p class="text-ink-2 m-0 text-[13.5px]">{CONTACT.hours.it}</p>
+        <PhoneCta variant="primary" />
+      </div>
+    )
+  }
+
+  {
+    /*
+      The spoken half of the form gate, for BOTH steps — only one is ever open, so
+      a shared region cannot be overwritten by the other.
+
+      It counts rather than naming a field: the visible messages already name the
+      fields, and a count is what changes between two failed attempts. A live
+      region whose text did not change announces nothing the second time.
+    */
+  }
+  <p
+    class="sr-only"
+    role="status"
+    aria-live="assertive"
+    data-checkout-gate-announce
+    data-message-one={t('errorCountOne')}
+    data-message-many={t('errorCountMany')}
+  >
+  </p>
+</div>

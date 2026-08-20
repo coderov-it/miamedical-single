@@ -25,7 +25,8 @@
  * this was asked for about Bitwarden.
  */
 import { t } from '~/lib/labels';
-import { EYEBROW, FIELD_INPUT, FIELD_LABEL } from './styles';
+import CheckoutField from './CheckoutField.astro';
+import { EYEBROW, FIELD_INPUT } from './styles';
 ---
 
 <div class="border-hair mt-1.5 flex flex-col gap-3.5 border-t pt-5" data-return-block>
@@ -66,16 +67,24 @@ import { EYEBROW, FIELD_INPUT, FIELD_LABEL } from './styles';
       asks for the whole thing at once.
     */
   }
-  <label class={FIELD_LABEL} data-return-address-field hidden>
-    {t('returnAddressLabel')}
-    <input
-      class={FIELD_INPUT}
-      type="text"
-      name="return-address"
-      autocomplete="off"
-      placeholder={t('placeholderReturnAddress')}
-      data-bwignore
-      data-field="returnAddress"
-    />
-  </label>
+  {/* `hidden` until the box is unticked, and the gate reads a hidden block as
+      "nothing asked" — so the address becomes required by the same act that
+      reveals it, with no second rule to keep in step. */}
+  <div data-return-address-field hidden>
+    <CheckoutField
+      label={t('returnAddressLabel')}
+      gate="returnAddress"
+      error={t('errorReturnAddress')}
+    >
+      <input
+        class={FIELD_INPUT}
+        type="text"
+        name="return-address"
+        autocomplete="off"
+        placeholder={t('placeholderReturnAddress')}
+        data-bwignore
+        data-field="returnAddress"
+      />
+    </CheckoutField>
+  </div>
 </div>
