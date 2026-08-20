@@ -120,10 +120,7 @@
     () => calRange,
     async (range, signal) =>
       unwrap<CalendarResponse['data']>(
-        await api.api.admin.orders.calendar.$get(
-          { query: range },
-          { init: { signal } },
-        ),
+        await api.api.admin.orders.calendar.$get({ query: range }, { init: { signal } }),
       ),
     { enabled: () => canReadOrders },
   );
@@ -206,7 +203,9 @@
         {:else if calendarEvents.error}
           <!-- Surfaced, never swallowed: an empty grid and a failed fetch must
                not look the same, or a broken endpoint reads as a quiet month. -->
-          <div class="flex flex-col items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-4">
+          <div
+            class="flex flex-col items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-4"
+          >
             <p class="text-sm text-destructive">
               The calendar could not load: {calendarEvents.error}
             </p>
@@ -241,9 +240,7 @@
             <span class="text-sm text-muted-foreground">
               Placed on {formatDate(query.current.day)}
             </span>
-            <Button variant="ghost" size="sm" onclick={() => query.set({ day: '' })}>
-              Clear
-            </Button>
+            <Button variant="ghost" size="sm" onclick={() => query.set({ day: '' })}>Clear</Button>
           </div>
         {/if}
       {/snippet}
@@ -268,7 +265,9 @@
                 </Table.Cell>
                 <Table.Cell class="text-muted-foreground">{order.email}</Table.Cell>
                 <Table.Cell><StatusBadge status={order.status} dot /></Table.Cell>
-                <Table.Cell><StatusBadge status={order.paymentStatus} kind="payment" dot /></Table.Cell>
+                <Table.Cell
+                  ><StatusBadge status={order.paymentStatus} kind="payment" dot /></Table.Cell
+                >
                 <Table.Cell class="text-muted-foreground">
                   {relativeTime(order.placedAt)}
                 </Table.Cell>

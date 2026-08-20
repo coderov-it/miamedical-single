@@ -88,13 +88,13 @@ often than it is a button.
 
 Dark now takes the brighter accent and dark ink on it, verified in the browser:
 
-| Use | Ratio |
-| --- | --- |
-| `--primary` `#3d89ff` as text/border on `--card` | 5.3 |
-| the same on `--background` | 5.9 |
-| the same inside its own `bg-primary/10` badge fill | 4.7 |
-| `--primary-foreground` `#051531` on `--primary` | 5.4 |
-| white on `--primary`, had it stayed white | 3.5 |
+| Use                                                | Ratio |
+| -------------------------------------------------- | ----- |
+| `--primary` `#3d89ff` as text/border on `--card`   | 5.3   |
+| the same on `--background`                         | 5.9   |
+| the same inside its own `bg-primary/10` badge fill | 4.7   |
+| `--primary-foreground` `#051531` on `--primary`    | 5.4   |
+| white on `--primary`, had it stayed white          | 3.5   |
 
 That last row is why the foreground flipped: at this brightness white _fails_ on
 the accent, and keeping white would have meant keeping a blue too dark to read

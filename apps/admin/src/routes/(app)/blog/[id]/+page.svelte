@@ -26,10 +26,7 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
 
-  type BlogPost = InferResponseType<
-    (typeof api.api.admin.blog)[':id']['$get'],
-    200
-  >['data'];
+  type BlogPost = InferResponseType<(typeof api.api.admin.blog)[':id']['$get'], 200>['data'];
 
   const post = new Resource(
     () => page.params.id,
@@ -116,7 +113,9 @@
           param: { id: p.id },
           json: {
             translations: { it, ...(en ? { en } : {}) },
-            ...(featuredImage.trim() ? { featuredImage: featuredImage.trim() } : { featuredImage: null }),
+            ...(featuredImage.trim()
+              ? { featuredImage: featuredImage.trim() }
+              : { featuredImage: null }),
           },
         }),
       );
@@ -227,7 +226,13 @@
                 </div>
                 <div>
                   <label class="mb-1.5 block text-sm font-medium" for="excerpt-it">Excerpt</label>
-                  <Textarea id="excerpt-it" bind:value={excerpt} rows={3} disabled={!canUpdate} placeholder="Short summary for listing cards…" />
+                  <Textarea
+                    id="excerpt-it"
+                    bind:value={excerpt}
+                    rows={3}
+                    disabled={!canUpdate}
+                    placeholder="Short summary for listing cards…"
+                  />
                 </div>
               </Card.Content>
             </Card.Root>
@@ -238,19 +243,41 @@
               <Card.Content class="space-y-4">
                 <div>
                   <label class="mb-1.5 block text-sm font-medium" for="title-en">Title</label>
-                  <Input id="title-en" bind:value={titleEn} disabled={!canUpdate} placeholder="English title (optional)" />
+                  <Input
+                    id="title-en"
+                    bind:value={titleEn}
+                    disabled={!canUpdate}
+                    placeholder="English title (optional)"
+                  />
                 </div>
                 <div>
                   <label class="mb-1.5 block text-sm font-medium" for="slug-en">Slug</label>
-                  <Input id="slug-en" bind:value={slugEn} disabled={!canUpdate} placeholder="english-slug" />
+                  <Input
+                    id="slug-en"
+                    bind:value={slugEn}
+                    disabled={!canUpdate}
+                    placeholder="english-slug"
+                  />
                 </div>
                 <div>
                   <label class="mb-1.5 block text-sm font-medium" for="body-en">Body</label>
-                  <Textarea id="body-en" bind:value={bodyEn} rows={20} disabled={!canUpdate} placeholder="English body (optional)" />
+                  <Textarea
+                    id="body-en"
+                    bind:value={bodyEn}
+                    rows={20}
+                    disabled={!canUpdate}
+                    placeholder="English body (optional)"
+                  />
                 </div>
                 <div>
                   <label class="mb-1.5 block text-sm font-medium" for="excerpt-en">Excerpt</label>
-                  <Textarea id="excerpt-en" bind:value={excerptEn} rows={3} disabled={!canUpdate} placeholder="English excerpt…" />
+                  <Textarea
+                    id="excerpt-en"
+                    bind:value={excerptEn}
+                    rows={3}
+                    disabled={!canUpdate}
+                    placeholder="English excerpt…"
+                  />
                 </div>
               </Card.Content>
             </Card.Root>
@@ -259,25 +286,57 @@
 
         <!-- SEO -->
         <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">SEO ({lang === 'it' ? 'IT' : 'EN'})</div>
+          <div class="border-b px-4 py-2.5 text-sm font-medium">
+            SEO ({lang === 'it' ? 'IT' : 'EN'})
+          </div>
           <div class="space-y-4 p-4">
             {#if lang === 'it'}
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-title-it">Meta title</label>
-                <Input id="meta-title-it" bind:value={metaTitle} disabled={!canUpdate} placeholder="Custom page title for search engines" />
+                <label class="mb-1.5 block text-sm font-medium" for="meta-title-it"
+                  >Meta title</label
+                >
+                <Input
+                  id="meta-title-it"
+                  bind:value={metaTitle}
+                  disabled={!canUpdate}
+                  placeholder="Custom page title for search engines"
+                />
               </div>
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-desc-it">Meta description</label>
-                <Textarea id="meta-desc-it" bind:value={metaDescription} rows={2} disabled={!canUpdate} placeholder="Short description for search results" />
+                <label class="mb-1.5 block text-sm font-medium" for="meta-desc-it"
+                  >Meta description</label
+                >
+                <Textarea
+                  id="meta-desc-it"
+                  bind:value={metaDescription}
+                  rows={2}
+                  disabled={!canUpdate}
+                  placeholder="Short description for search results"
+                />
               </div>
             {:else}
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-title-en">Meta title</label>
-                <Input id="meta-title-en" bind:value={metaTitleEn} disabled={!canUpdate} placeholder="English meta title" />
+                <label class="mb-1.5 block text-sm font-medium" for="meta-title-en"
+                  >Meta title</label
+                >
+                <Input
+                  id="meta-title-en"
+                  bind:value={metaTitleEn}
+                  disabled={!canUpdate}
+                  placeholder="English meta title"
+                />
               </div>
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-desc-en">Meta description</label>
-                <Textarea id="meta-desc-en" bind:value={metaDescriptionEn} rows={2} disabled={!canUpdate} placeholder="English meta description" />
+                <label class="mb-1.5 block text-sm font-medium" for="meta-desc-en"
+                  >Meta description</label
+                >
+                <Textarea
+                  id="meta-desc-en"
+                  bind:value={metaDescriptionEn}
+                  rows={2}
+                  disabled={!canUpdate}
+                  placeholder="English meta description"
+                />
               </div>
             {/if}
           </div>

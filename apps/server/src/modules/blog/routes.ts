@@ -80,14 +80,12 @@ async function upsertTranslations(
   }
 }
 
-async function syncCategories(
-  db: Database,
-  postId: string,
-  categoryIds: string[],
-): Promise<void> {
+async function syncCategories(db: Database, postId: string, categoryIds: string[]): Promise<void> {
   await db.delete(blogPostCategories).where(eq(blogPostCategories.postId, postId));
   if (categoryIds.length > 0) {
-    await db.insert(blogPostCategories).values(categoryIds.map((categoryId) => ({ postId, categoryId })));
+    await db
+      .insert(blogPostCategories)
+      .values(categoryIds.map((categoryId) => ({ postId, categoryId })));
   }
 }
 
@@ -139,59 +137,54 @@ function toCategoryDto(row: typeof blogCategories.$inferSelect) {
 // --- Admin routes ---
 
 export const blogAdminRoutes = new Hono<AppEnv>()
-  .get(
-    '/',
-    requirePermission(P.BLOG_READ),
-    validate('query', BlogPostQuerySchema),
-    async (c) => {
-      const db = c.get('db');
-      const { page, perPage, status, category, q, locale } = c.req.valid('query');
+  .get('/', requirePermission(P.BLOG_READ), validate('query', BlogPostQuerySchema), async (c) => {
+    const db = c.get('db');
+    const { page, perPage, status, category, q, locale } = c.req.valid('query');
 
-      const clauses = [];
-      if (status) clauses.push(eq(blogPosts.status, status));
-      if (category) {
-        const cat = await db.query.blogCategories.findFirst({
-          where: eq(blogCategories.code, category),
-          columns: { id: true },
-        });
-        if (cat) {
-          clauses.push(
-            sql`${blogPosts.id} IN (
+    const clauses = [];
+    if (status) clauses.push(eq(blogPosts.status, status));
+    if (category) {
+      const cat = await db.query.blogCategories.findFirst({
+        where: eq(blogCategories.code, category),
+        columns: { id: true },
+      });
+      if (cat) {
+        clauses.push(
+          sql`${blogPosts.id} IN (
               SELECT ${blogPostCategories.postId}
               FROM ${blogPostCategories}
               WHERE ${blogPostCategories.categoryId} = ${cat.id}
             )`,
-          );
-        }
+        );
       }
-      if (q) {
-        const term = `%${q}%`;
-        clauses.push(
-          sql`${blogPosts.id} IN (
+    }
+    if (q) {
+      const term = `%${q}%`;
+      clauses.push(
+        sql`${blogPosts.id} IN (
             SELECT ${blogPostTranslations.postId}
             FROM ${blogPostTranslations}
             WHERE ${blogPostTranslations.title} ILIKE ${term}
           )`,
-        );
-      }
+      );
+    }
 
-      const where = clauses.length > 0 ? and(...clauses) : undefined;
+    const where = clauses.length > 0 ? and(...clauses) : undefined;
 
-      const [rows, totals] = await Promise.all([
-        db.query.blogPosts.findMany({
-          where,
-          orderBy: desc(blogPosts.updatedAt),
-          limit: perPage,
-          offset: (page - 1) * perPage,
-          with: { translations: true, postCategories: true },
-        }),
-        db.select({ value: count() }).from(blogPosts).where(where),
-      ]);
+    const [rows, totals] = await Promise.all([
+      db.query.blogPosts.findMany({
+        where,
+        orderBy: desc(blogPosts.updatedAt),
+        limit: perPage,
+        offset: (page - 1) * perPage,
+        with: { translations: true, postCategories: true },
+      }),
+      db.select({ value: count() }).from(blogPosts).where(where),
+    ]);
 
-      const total = totals[0]?.value ?? 0;
-      return c.json({ data: rows.map(toAdminPostDto), meta: toPageMeta(page, perPage, total) });
-    },
-  )
+    const total = totals[0]?.value ?? 0;
+    return c.json({ data: rows.map(toAdminPostDto), meta: toPageMeta(page, perPage, total) });
+  })
 
   .post(
     '/',
@@ -221,7 +214,9 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     requirePermission(P.BLOG_READ),
     validate('param', BlogPostIdParamSchema),
     async (c) => {
-      return c.json({ data: toAdminPostDto(await findPostById(c.get('db'), c.req.valid('param').id)) });
+      return c.json({
+        data: toAdminPostDto(await findPostById(c.get('db'), c.req.valid('param').id)),
+      });
     },
   )
 
@@ -455,48 +450,53 @@ export const blogPublicRoutes = new Hono<AppEnv>()
     return c.json({ data, meta: toPageMeta(page, perPage, total) });
   })
 
-  .get('/:slug', validate('param', BlogPostSlugParamSchema), validate('query', PublicBlogQuerySchema), async (c) => {
-    const db = c.get('db');
-    const { slug } = c.req.valid('param');
-    const { locale } = c.req.valid('query');
+  .get(
+    '/:slug',
+    validate('param', BlogPostSlugParamSchema),
+    validate('query', PublicBlogQuerySchema),
+    async (c) => {
+      const db = c.get('db');
+      const { slug } = c.req.valid('param');
+      const { locale } = c.req.valid('query');
 
-    const hit = await db.query.blogPostTranslations.findFirst({
-      where: eq(blogPostTranslations.slug, slug),
-      columns: { postId: true },
-    });
-    if (!hit) throw notFound('Blog post');
+      const hit = await db.query.blogPostTranslations.findFirst({
+        where: eq(blogPostTranslations.slug, slug),
+        columns: { postId: true },
+      });
+      if (!hit) throw notFound('Blog post');
 
-    const row = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.id, hit.postId),
-      with: {
-        translations: true,
-        postCategories: { with: { category: true } },
-      },
-    });
-    if (!row || row.status !== 'published') throw notFound('Blog post');
-    if (row.publishedAt && row.publishedAt > new Date()) throw notFound('Blog post');
+      const row = await db.query.blogPosts.findFirst({
+        where: eq(blogPosts.id, hit.postId),
+        with: {
+          translations: true,
+          postCategories: { with: { category: true } },
+        },
+      });
+      if (!row || row.status !== 'published') throw notFound('Blog post');
+      if (row.publishedAt && row.publishedAt > new Date()) throw notFound('Blog post');
 
-    const t = pickTranslation(row.translations, locale);
-    if (!t) throw notFound('Blog post');
+      const t = pickTranslation(row.translations, locale);
+      if (!t) throw notFound('Blog post');
 
-    return c.json({
-      data: {
-        id: row.id,
-        title: t.title,
-        slug: t.slug,
-        body: t.body,
-        excerpt: t.excerpt,
-        metaTitle: t.metaTitle,
-        metaDescription: t.metaDescription,
-        featuredImage: row.featuredImage,
-        publishedAt: row.publishedAt?.toISOString() ?? null,
-        categories: row.postCategories.map((pc) => ({
-          slug: pc.category.slug,
-          name: pc.category.name,
-        })),
-      },
-    });
-  })
+      return c.json({
+        data: {
+          id: row.id,
+          title: t.title,
+          slug: t.slug,
+          body: t.body,
+          excerpt: t.excerpt,
+          metaTitle: t.metaTitle,
+          metaDescription: t.metaDescription,
+          featuredImage: row.featuredImage,
+          publishedAt: row.publishedAt?.toISOString() ?? null,
+          categories: row.postCategories.map((pc) => ({
+            slug: pc.category.slug,
+            name: pc.category.name,
+          })),
+        },
+      });
+    },
+  )
 
   .get('/categories', async (c) => {
     const rows = await c.get('db').query.blogCategories.findMany({

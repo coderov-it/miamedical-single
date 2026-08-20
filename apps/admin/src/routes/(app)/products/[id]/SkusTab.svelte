@@ -251,7 +251,11 @@
       -->
       <Button variant="secondary" onclick={generate} disabled={generating || !canUpdate}>
         <WandSparklesIcon />
-        {generating ? 'Generating…' : affectingGroups.length === 0 ? 'Generate SKU' : 'Generate matrix'}
+        {generating
+          ? 'Generating…'
+          : affectingGroups.length === 0
+            ? 'Generate SKU'
+            : 'Generate matrix'}
       </Button>
     </div>
 

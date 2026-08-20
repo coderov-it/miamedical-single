@@ -27,7 +27,10 @@ interface MoneyOptions {
  * `null` rather than `"0.00"` for junk, so a caller can put the previous value
  * back instead of silently pricing something at zero.
  */
-export function parseMoney(text: string, { allowNegative = false }: MoneyOptions = {}): string | null {
+export function parseMoney(
+  text: string,
+  { allowNegative = false }: MoneyOptions = {},
+): string | null {
   const raw = text.trim().replace(',', '.');
   const match = /^(-?)(\d*)(?:\.(\d*))?$/.exec(raw);
   if (!match || raw === '' || raw === '-') return null;

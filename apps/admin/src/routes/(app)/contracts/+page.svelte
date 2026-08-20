@@ -14,11 +14,7 @@
   import { api } from '~/lib/api';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
-  import {
-    CONTRACT_STATUS_ORDER,
-    contractStatusMeta,
-    variantLabel,
-  } from '~/lib/contracts/status';
+  import { CONTRACT_STATUS_ORDER, contractStatusMeta, variantLabel } from '~/lib/contracts/status';
   import { formatDate, relativeTime } from '~/lib/format';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
   import { unwrapFull } from '~/lib/request';

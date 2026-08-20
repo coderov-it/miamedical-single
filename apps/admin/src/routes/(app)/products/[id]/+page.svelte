@@ -182,11 +182,18 @@
         {formatMoney(current.basePrice, current.currency)}
       </Badge>
       {#if current.translationStatus.en === 'complete'}
-        <Badge variant="outline" class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">EN complete</Badge>
+        <Badge
+          variant="outline"
+          class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">EN complete</Badge
+        >
       {:else if current.translationStatus.en === 'partial'}
-        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">EN partial</Badge>
+        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400"
+          >EN partial</Badge
+        >
       {:else}
-        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">EN missing</Badge>
+        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400"
+          >EN missing</Badge
+        >
       {/if}
       <span class="ml-auto text-muted-foreground">
         Updated {relativeTime(current.updatedAt)}
