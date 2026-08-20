@@ -654,10 +654,15 @@ Testability is a consequence of the layering, not of mocks:
    the call site.
 6. Confirm the build emits `dist/<name>.js`.
 
-Modules still to build: `access`, `notifications`, `payments`, `settings`,
-`users`, `webhooks`. (`products`, `categories`, `media`, `terms`, `attributes`,
-`orders` are built; `modules/media` is only upload (server-side WebP conversion via sharp) +
-staging deletion — objects commit through `modules/products/media/service.ts`.)
+Modules still to build: `payments`, `webhooks`. (`products`, `categories`,
+`media`, `terms`, `attributes`, `orders`, `settings`, `notifications`, `blog`,
+`contracts`, `order-disputes` and `admin-users` are built; `modules/media` is only upload (server-side WebP
+conversion via sharp) + staging deletion — objects commit through
+`modules/products/media/service.ts`.)
+
+`admin-users` is the write side of `admin_users` — who exists in the back office
+and what each of them holds — while `auth` stays read-only over the same table.
+Its policy is the interesting part and lives in `docs/code/access-control.md`.
 
 `orders` also serves the **read-only cart** surface (`/api/admin/carts`) rather
 than a separate `cart` module: a cart is a pre-order, it reuses `ORDER_READ`,

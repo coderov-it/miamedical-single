@@ -12,3 +12,4 @@ export * from './settings.ts';
 export * from './customer.ts';
 export * from './contract.ts';
 export * from './blog.ts';
+export * from './admin-user.ts';

@@ -44,6 +44,10 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { pattern: routes.blogCategories, requiredAny: [P.BLOG_CATEGORY_READ] },
 
   { pattern: routes.notificationSettings, requiredAny: [P.SETTING_READ] },
+
+  // Reading the operator list is its own grant, not part of "can look around":
+  // it names every account and everything each one can reach.
+  { pattern: routes.adminUsers, requiredAny: [P.ADMIN_READ] },
 ];
 
 /**
