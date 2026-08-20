@@ -39,6 +39,9 @@ export const routes = {
   /** Operator-editable platform settings. */
   notificationSettings: '/settings/notifications',
 
+  /** Back-office accounts and what each of them may reach. */
+  adminUsers: '/access',
+
   login: '/login',
 } as const;
 

@@ -14,6 +14,7 @@ import PackageIcon from '@lucide/svelte/icons/package';
 import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import TagsIcon from '@lucide/svelte/icons/tags';
+import UsersIcon from '@lucide/svelte/icons/users';
 import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
 import NewspaperIcon from '@lucide/svelte/icons/newspaper';
@@ -58,13 +59,14 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   },
   {
     title: 'Content',
-    items: [
-      { title: 'Blog Posts', url: routes.blog, icon: NewspaperIcon },
-    ],
+    items: [{ title: 'Blog Posts', url: routes.blog, icon: NewspaperIcon }],
   },
   {
     title: 'Settings',
-    items: [{ title: 'Notifications', url: routes.notificationSettings, icon: BellIcon }],
+    items: [
+      { title: 'Notifications', url: routes.notificationSettings, icon: BellIcon },
+      { title: 'Admin Users', url: routes.adminUsers, icon: UsersIcon },
+    ],
   },
 ];
 
