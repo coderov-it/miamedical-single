@@ -25,7 +25,7 @@
   data-cart-boot
 >
   <span
-    class="border-hair border-t-accent size-7 animate-spin rounded-full border-[3px]"
+    class="border-hair size-7 animate-spin rounded-full border-[3px] border-t-accent"
     aria-hidden="true"
   ></span>
   <span class="text-ink-2 text-[16px] font-semibold">{label}</span>

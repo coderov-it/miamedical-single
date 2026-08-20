@@ -13,8 +13,18 @@ export const FIELD_GRID = 'grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1f
 /** The label owns the column and the gap; the control sits inside it. */
 export const FIELD_LABEL = 'flex flex-col gap-1.75 text-[14.5px] font-semibold';
 
+/**
+ * A text control: tint well, and a 2px border ONE STEP DARKER than its own fill
+ * (`--color-hair` on `--color-tint`) — visible enough to say where to type,
+ * too close in tone to harden into a frame (owner, 2026-08-20).
+ *
+ * The width is 2px AT REST on purpose. `[aria-invalid='true']` in app.css paints
+ * its danger border at 2px, so a 1px resting border made every flagged field
+ * grow by a pixel and nudge the row; matching the width means feedback only ever
+ * changes the COLOUR — accent on focus, danger when wrong.
+ */
 export const FIELD_INPUT =
-  'rounded-[10px] border border-transparent bg-tint px-3.75 py-3.25 text-[15.5px] font-normal';
+  'rounded-[10px] border-2 border-hair bg-tint px-3.75 py-3.25 text-[15.5px] font-normal';
 
 /** A conditional panel that opens under a delivery option. */
 export const PANEL = 'mt-1 border-t border-hair px-4.5 pt-4 pb-4.5';

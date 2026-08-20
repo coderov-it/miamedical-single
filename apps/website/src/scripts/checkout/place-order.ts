@@ -57,9 +57,7 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
       `${label('email')}: ${value('email')}`,
       `${label('phone')}: ${value('phone')}`,
       `${label('customerType')}: ${context.customerTypeLabel(state.type)}`,
-      ...(state.type === 'private'
-        ? [`${label('codiceFiscale')}: ${value('codiceFiscale')}`]
-        : []),
+      ...(state.type === 'private' ? [`${label('codiceFiscale')}: ${value('codiceFiscale')}`] : []),
       ...(isCompany
         ? [
             `${label('partitaIva')}: ${value('partitaIva')}`,
@@ -68,9 +66,7 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
         : []),
       `${label('deliveryLine')}: ${context.deliveryName(state.delivery) || label('toBeArranged')}`,
       ...(isHome && value('address') ? [`${label('deliveryAddress')}: ${value('address')}`] : []),
-      ...(state.delivery === 'storePickup'
-        ? [`${label('pickupBranch')}: ${state.pickup}`]
-        : []),
+      ...(state.delivery === 'storePickup' ? [`${label('pickupBranch')}: ${state.pickup}`] : []),
       /* Only when it is somewhere else — otherwise the agent already knows, and a
          line saying "the same address" is a line they read to learn nothing. */
       ...(returnsElsewhere && value('returnAddress')

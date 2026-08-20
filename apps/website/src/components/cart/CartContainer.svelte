@@ -145,7 +145,11 @@
 
     <!-- --------------------------------------------------- the summary -->
     {#if !cart.empty && !cart.booting}
-      <CartOverview {copy} total={cart.money(cart.optimisticTotal)} noPackage={cart.view.noPackage} />
+      <CartOverview
+        {copy}
+        total={cart.money(cart.optimisticTotal)}
+        noPackage={cart.view.noPackage}
+      />
     {/if}
   </div>
 

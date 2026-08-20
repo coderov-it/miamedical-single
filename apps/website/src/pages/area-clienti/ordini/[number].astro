@@ -109,9 +109,7 @@ const { number } = Astro.params;
 
     const lines = order.items
       .map(
-        (
-          item,
-        ) => `<li class="flex justify-between gap-4 border-hair border-b py-3 last:border-0">
+        (item) => `<li class="flex justify-between gap-4 border-hair border-b py-3 last:border-0">
           <div>
             <p class="font-medium">${escapeHtml(item.productTitle)}</p>
             <p class="text-sm text-neutral-600">${escapeHtml(item.skuLabel)} · ${item.quantity} pz</p>

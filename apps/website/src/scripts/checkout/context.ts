@@ -92,7 +92,10 @@ export function createContext(): CheckoutContext | null {
     deliveryCards.map((card) => [card.dataset.deliveryCard ?? '', card.dataset.deliveryName ?? '']),
   );
   const shortNames = new Map(
-    deliveryCards.map((card) => [card.dataset.deliveryCard ?? '', card.dataset.deliveryShort ?? '']),
+    deliveryCards.map((card) => [
+      card.dataset.deliveryCard ?? '',
+      card.dataset.deliveryShort ?? '',
+    ]),
   );
   const typeLabels = new Map(
     typeChips.map((chip) => [chip.dataset.customerType ?? '', chip.textContent?.trim() ?? '']),
@@ -100,8 +103,7 @@ export function createContext(): CheckoutContext | null {
 
   const labels = parseIsland<Record<string, string | undefined>>('[data-checkout-labels]', {});
 
-  const field = (name: string) =>
-    root.querySelector<Field>(`[data-field="${name}"]`);
+  const field = (name: string) => root.querySelector<Field>(`[data-field="${name}"]`);
 
   return {
     root,
