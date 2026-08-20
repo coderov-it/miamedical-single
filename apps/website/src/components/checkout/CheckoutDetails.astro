@@ -112,10 +112,12 @@ const DEFAULT_TYPE = 'private';
   </div>
 </div>
 
-{/* The wrapper carries `data-when-type`, not the field itself: the script hides
+{
+  /* The wrapper carries `data-when-type`, not the field itself: the script hides
     this whole block for a company or a tourist, and the gate reads a hidden
     block as "nothing asked" — which is exactly right for a fiscal identifier
-    Italy does not ask that customer for. */}
+    Italy does not ask that customer for. */
+}
 <div data-when-type="private">
   <CheckoutField label={t('codiceFiscale')} gate="codiceFiscale" error={t('errorCodiceFiscale')}>
     <input

@@ -46,7 +46,7 @@ import { EYEBROW, FIELD_INPUT } from './styles';
   }
   <label class="flex cursor-pointer items-center gap-3 text-[15px]">
     <input
-      class="target-48 accent-accent size-4.5 flex-none cursor-pointer"
+      class="target-48 size-4.5 flex-none cursor-pointer accent-accent"
       type="checkbox"
       name="return-same-address"
       checked
@@ -67,9 +67,11 @@ import { EYEBROW, FIELD_INPUT } from './styles';
       asks for the whole thing at once.
     */
   }
-  {/* `hidden` until the box is unticked, and the gate reads a hidden block as
+  {
+    /* `hidden` until the box is unticked, and the gate reads a hidden block as
       "nothing asked" — so the address becomes required by the same act that
-      reveals it, with no second rule to keep in step. */}
+      reveals it, with no second rule to keep in step. */
+  }
   <div data-return-address-field hidden>
     <CheckoutField
       label={t('returnAddressLabel')}

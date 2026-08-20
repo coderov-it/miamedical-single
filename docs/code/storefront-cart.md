@@ -60,11 +60,11 @@ about what a line is.
 
 ### Two modules, and why
 
-| Module                  | Runs   | Imports                                    |
-| ----------------------- | ------ | ------------------------------------------ |
-| `cart-store.ts`         | both   | **nothing, ever**                          |
-| `cart-state.svelte.ts`  | client | `cart-store.ts` — and `cart.ts` for TYPES  |
-| `cart.ts`               | server | `api.ts`, `checkout.ts`, `labels.ts`       |
+| Module                 | Runs   | Imports                                   |
+| ---------------------- | ------ | ----------------------------------------- |
+| `cart-store.ts`        | both   | **nothing, ever**                         |
+| `cart-state.svelte.ts` | client | `cart-store.ts` — and `cart.ts` for TYPES |
+| `cart.ts`              | server | `api.ts`, `checkout.ts`, `labels.ts`      |
 
 `cart-store.ts` importing nothing is load-bearing, not tidiness. It is the only cart
 code the browser downloads; one runtime import from `cart.ts` would drag the Hono
@@ -214,8 +214,7 @@ identically, because `splitItemParams()` already accepts both.
 The layout is still the reference's. Three things about it are not:
 
 - **Type is the site's scale.** The reference's 12.5/13/13.5px asides are gone; the
-  page floors at 16px, row titles are 17, a row's amount is 20 and the summary total
-  28. The one sub-16 use left is the two 14px notes under the total.
+  page floors at 16px, row titles are 17, a row's amount is 20 and the summary total 28. The one sub-16 use left is the two 14px notes under the total.
 - **Controls are fills at honest sizes.** "Modifica la scelta" and "Rimuovi" were
   13px text links; they are 44px pills now — quiet accent and grey — each with its
   Heroicons glyph, right-aligned under the amounts they act on. The disclosure

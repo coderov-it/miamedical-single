@@ -214,9 +214,7 @@ const chipClass =
               <a
                 class:list={[
                   chipClass,
-                  !category
-                    ? 'bg-accent-tint text-accent'
-                    : 'bg-tint text-ink hover:bg-tint-2',
+                  !category ? 'bg-accent-tint text-accent' : 'bg-tint text-ink hover:bg-tint-2',
                 ]}
                 href={catalogPath({ q, sort, ...browseContext })}
                 aria-current={!category ? 'true' : undefined}
@@ -316,9 +314,7 @@ const chipClass =
         heading="Non trovi quello che cerchi?"
         lede="Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo."
       />
-      <div
-        class="rounded-card bg-tint mid:p-8 flex flex-wrap items-center gap-4 p-6"
-      >
+      <div class="rounded-card bg-tint mid:p-8 flex flex-wrap items-center gap-4 p-6">
         <PhoneCta variant="primary" />
         <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
       </div>

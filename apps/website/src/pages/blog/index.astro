@@ -30,16 +30,11 @@ const [result, categories] = await Promise.all([
 
 const { data: posts, meta } = result;
 const isFirstPage = meta.page <= 1;
-const activeCategory = categories.find(
-  (cat) => cat.slug === categoria,
-);
-const activeCategoryName = activeCategory
-  ? (activeCategory.name as { it: string }).it
-  : null;
+const activeCategory = categories.find((cat) => cat.slug === categoria);
+const activeCategoryName = activeCategory ? (activeCategory.name as { it: string }).it : null;
 
 const prevUrl = meta.page > 1 ? blogPath({ categoria, page: meta.page - 1 }) : null;
-const nextUrl =
-  meta.page < meta.pageCount ? blogPath({ categoria, page: meta.page + 1 }) : null;
+const nextUrl = meta.page < meta.pageCount ? blogPath({ categoria, page: meta.page + 1 }) : null;
 
 const heading = activeCategoryName ?? 'Blog';
 const title = isFirstPage
@@ -80,9 +75,7 @@ const chipClass =
         meta.total > 0 && (
           <p class="font-display text-ui text-ink-2 mt-3.5 font-semibold">
             {`${meta.total} ${meta.total === 1 ? 'articolo' : 'articoli'}`}
-            {meta.pageCount > 1 && (
-              <span>{` · pagina ${meta.page} di ${meta.pageCount}`}</span>
-            )}
+            {meta.pageCount > 1 && <span>{` · pagina ${meta.page} di ${meta.pageCount}`}</span>}
           </p>
         )
       }
@@ -99,9 +92,7 @@ const chipClass =
               <a
                 class:list={[
                   chipClass,
-                  !categoria
-                    ? 'bg-accent-tint text-accent'
-                    : 'bg-tint text-ink hover:bg-tint-2',
+                  !categoria ? 'bg-accent-tint text-accent' : 'bg-tint text-ink hover:bg-tint-2',
                 ]}
                 href={blogPath()}
                 aria-current={!categoria ? 'true' : undefined}
@@ -143,11 +134,7 @@ const chipClass =
           <ul class="wide:grid-cols-3 grid gap-6 sm:grid-cols-2">
             {posts.map((post, index) => (
               <li class="flex">
-                <BlogPostCard
-                  {post}
-                  priority={isFirstPage && index === 0}
-                  headingLevel={3}
-                />
+                <BlogPostCard {post} priority={isFirstPage && index === 0} headingLevel={3} />
               </li>
             ))}
           </ul>

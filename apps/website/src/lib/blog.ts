@@ -7,10 +7,7 @@ type BlogListResponse = InferResponseType<typeof api.api.blog.$get, 200>;
 export type BlogPostSummary = BlogListResponse['data'][number];
 export type BlogPageMeta = BlogListResponse['meta'];
 
-export type BlogPostDetail = InferResponseType<
-  (typeof api.api.blog)[':slug']['$get'],
-  200
->['data'];
+export type BlogPostDetail = InferResponseType<(typeof api.api.blog)[':slug']['$get'], 200>['data'];
 
 export type BlogCategory = InferResponseType<
   typeof api.api.blog.categories.$get,
@@ -23,9 +20,7 @@ export interface BlogQuery {
   category?: string;
 }
 
-export async function listBlogPosts(
-  query: BlogQuery = {},
-): Promise<BlogListResponse> {
+export async function listBlogPosts(query: BlogQuery = {}): Promise<BlogListResponse> {
   const response = await api.api.blog.$get({
     query: {
       locale: 'it',

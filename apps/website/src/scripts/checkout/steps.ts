@@ -66,9 +66,11 @@ export function createStepper(context: CheckoutContext, options: StepperOptions)
     state.step = step;
     paintSteps();
     if (step === 3) options.onReview();
-    sections.find((section) => Number(section.dataset.step) === step)?.scrollIntoView({
-      block: 'nearest',
-    });
+    sections
+      .find((section) => Number(section.dataset.step) === step)
+      ?.scrollIntoView({
+        block: 'nearest',
+      });
   }
 
   /*

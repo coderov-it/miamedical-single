@@ -64,13 +64,35 @@
    normal tracking; each one sets its own weight. `:where()` keeps this at zero
    specificity, so any blueprint class (`.section-title`, `.foot-heading`) still
    wins its own tracking. */
-:where(.site-head, .site-foot, .hero, .booking, .categories, .trending, .how, .delivery, .testimonials, .faq)
+:where(
+    .site-head,
+    .site-foot,
+    .hero,
+    .booking,
+    .categories,
+    .trending,
+    .how,
+    .delivery,
+    .testimonials,
+    .faq
+  )
   :is(h1, h2, h3) {
   font-family: var(--font-ui);
   letter-spacing: normal;
 }
 
-:where(.site-head, .site-foot, .hero, .booking, .categories, .trending, .how, .delivery, .testimonials, .faq)
+:where(
+    .site-head,
+    .site-foot,
+    .hero,
+    .booking,
+    .categories,
+    .trending,
+    .how,
+    .delivery,
+    .testimonials,
+    .faq
+  )
   button {
   cursor: pointer;
 }

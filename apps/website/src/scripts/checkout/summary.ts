@@ -32,7 +32,8 @@ export function createSummary(context: CheckoutContext): Summary {
       row.hidden = !state.delivery;
       const rowLabel = row.querySelector('[data-overview-delivery-label]');
       const amount = row.querySelector('[data-overview-delivery-fee]');
-      if (rowLabel) rowLabel.textContent = context.deliveryShort(state.delivery) || label('delivery');
+      if (rowLabel)
+        rowLabel.textContent = context.deliveryShort(state.delivery) || label('delivery');
       if (amount) amount.textContent = unknown ? label('deliveryPending') : label('free');
     }
 

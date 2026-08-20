@@ -30,7 +30,10 @@ export const prerender = false;
 
     <!-- Loading state -->
     <div data-loading class="space-y-4 py-16 text-center">
-      <div class="border-hair-strong border-t-accent mx-auto size-8 animate-spin rounded-full border-2"></div>
+      <div
+        class="border-hair-strong mx-auto size-8 animate-spin rounded-full border-2 border-t-accent"
+      >
+      </div>
       <p class="text-neutral-600">Caricamento del contratto…</p>
     </div>
 
@@ -63,10 +66,9 @@ export const prerender = false;
         <div class="relative mt-4">
           <canvas
             data-signature-canvas
-            class="bg-tint h-48 w-full cursor-crosshair rounded-xl touch-none"
+            class="bg-tint h-48 w-full cursor-crosshair touch-none rounded-xl"
             width="700"
-            height="200"
-          ></canvas>
+            height="200"></canvas>
           <button
             data-clear-signature
             type="button"
@@ -77,14 +79,10 @@ export const prerender = false;
         </div>
 
         <label class="mt-4 flex items-start gap-3 text-sm">
-          <input
-            data-consent
-            type="checkbox"
-            class="mt-0.5 size-4 shrink-0 accent-neutral-900"
-          />
+          <input data-consent type="checkbox" class="mt-0.5 size-4 shrink-0 accent-neutral-900" />
           <span class="text-neutral-600">
-            Confermo di aver letto e accettato i termini del contratto. /
-            I confirm that I have read and accepted the terms of the contract.
+            Confermo di aver letto e accettato i termini del contratto. / I confirm that I have read
+            and accepted the terms of the contract.
           </span>
         </label>
 
@@ -92,7 +90,7 @@ export const prerender = false;
           data-submit
           type="button"
           disabled
-          class="bg-accent hover:bg-accent-deep mt-6 w-full rounded-xl px-6 py-3 text-[15px] font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+          class="hover:bg-accent-deep mt-6 w-full rounded-xl bg-accent px-6 py-3 text-[15px] font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
         >
           Firma il contratto / Sign the contract
         </button>
@@ -102,8 +100,14 @@ export const prerender = false;
     <!-- Success state -->
     <div data-done hidden class="py-16 text-center">
       <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100">
-        <svg class="size-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        <svg
+          class="size-8 text-emerald-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
         </svg>
       </div>
       <h2 class="mt-4 text-xl font-semibold">Contratto firmato con successo!</h2>
@@ -123,7 +127,7 @@ export const prerender = false;
       data-scroll-to-sign
       hidden
       type="button"
-      class="bg-accent hover:bg-accent-deep fixed right-6 bottom-6 z-50 rounded-full px-6 py-3 text-sm font-medium text-white shadow-lg transition md:right-8 md:bottom-8 max-sm:right-6 max-sm:left-6 max-sm:text-center"
+      class="hover:bg-accent-deep fixed right-6 bottom-6 z-50 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white shadow-lg transition max-sm:right-6 max-sm:left-6 max-sm:text-center md:right-8 md:bottom-8"
     >
       Vai alla firma ↓
     </button>
@@ -184,7 +188,7 @@ export const prerender = false;
 
   function startDrawing(e: MouseEvent | TouchEvent) {
     drawing = true;
-    const pos = getPosition('touches' in e ? e.touches[0]! : e as MouseEvent);
+    const pos = getPosition('touches' in e ? e.touches[0]! : (e as MouseEvent));
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   }
@@ -192,7 +196,7 @@ export const prerender = false;
   function draw(e: MouseEvent | TouchEvent) {
     if (!drawing) return;
     e.preventDefault();
-    const pos = getPosition('touches' in e ? e.touches[0]! : e as MouseEvent);
+    const pos = getPosition('touches' in e ? e.touches[0]! : (e as MouseEvent));
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     hasSigned = true;
@@ -246,11 +250,13 @@ export const prerender = false;
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
+        const body = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
         throw new Error(body?.error?.message ?? 'Non è stato possibile caricare il contratto.');
       }
 
-      const { data } = await res.json() as {
+      const { data } = (await res.json()) as {
         data: {
           contract: { number: string; orderNumber: string | null };
           html: string;
@@ -301,7 +307,9 @@ export const prerender = false;
         );
 
         if (!res.ok) {
-          const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
+          const body = (await res.json().catch(() => null)) as {
+            error?: { message?: string };
+          } | null;
           throw new Error(body?.error?.message ?? 'Errore nella firma del contratto.');
         }
 

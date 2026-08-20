@@ -67,10 +67,12 @@ const { labelStage = false } = Astro.props;
 }
 {labelStage && <span class={EYEBROW}>{t('deliveryStage')}</span>}
 
-{/* GATED AS A GROUP. Nothing here is a form control — the options are cards with
+{
+  /* GATED AS A GROUP. Nothing here is a form control — the options are cards with
     panels inside them, which an <input> cannot be — so there is no `required` to
     hang on anything and the gate's predicate reads the page's own `state.delivery`
-    instead. See `scripts/checkout/gates.ts`. */}
+    instead. See `scripts/checkout/gates.ts`. */
+}
 <div
   class="flex flex-col gap-3.5"
   role="radiogroup"
@@ -139,14 +141,14 @@ const { labelStage = false } = Astro.props;
             <span class="text-ink-2 text-[13.5px] leading-[1.45]">{t(`${option.id}Detail`)}</span>
           </span>
 
-        {/*
+          {/*
           Collection is free. Home delivery is not — it is unpriced, and this says
           so in the two words that fit beside an amount. The sentence that explains
           it sits in the panel below, where there is room for it.
         */}
-        <strong class="text-[15px] whitespace-nowrap tabular-nums">
-          {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
-        </strong>
+          <strong class="text-[15px] whitespace-nowrap tabular-nums">
+            {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
+          </strong>
         </button>
 
         {option.id === 'homeDelivery' && (
@@ -164,11 +166,7 @@ const { labelStage = false } = Astro.props;
               buzzer name. The customer knows how to write where they live better
               than a form does, and a human reads it at the other end.
             */}
-            <CheckoutField
-              label={t('deliveryAddress')}
-              gate="address"
-              error={t('errorAddress')}
-            >
+            <CheckoutField label={t('deliveryAddress')} gate="address" error={t('errorAddress')}>
               <textarea
                 class={`${FIELD_INPUT} resize-none`}
                 name="delivery-address"
