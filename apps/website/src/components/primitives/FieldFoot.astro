@@ -1,0 +1,43 @@
+---
+/**
+ * The bottom band of a field: its hint, and the message the form gate reveals
+ * when the field is what is holding the customer up.
+ *
+ * ONE ELEMENT FOR BOTH, and that is the whole reason this exists. The delivery
+ * questions align on `grid-rows-subgrid row-span-3` — prompt, control, foot —
+ * so every cell must contribute EXACTLY three children or its rows stop lining
+ * up with its neighbours'. A hint and an error rendered as two siblings would be
+ * four, and the section would go ragged the first time a question failed.
+ *
+ * It renders unconditionally for the same reason: an empty third row still holds
+ * the subgrid open. A cell with no hint and no gate is not a cell with two rows.
+ */
+interface Props {
+  /** The field's own hint, from the back office. */
+  help?: string | null;
+  /**
+   * The gate key, when this field is required. Matches `data-gate` on the block
+   * — see `discoverGates` in lib/form-validation.ts.
+   */
+  gate?: string | undefined;
+  /**
+   * The question as the customer read it, quoted back in the message. "Rispondi
+   * a «Ci sono scale?»" tells them which of six cells to look at; a bare
+   * "Campo obbligatorio" makes them hunt for it.
+   */
+  prompt?: string;
+}
+
+const { help = null, gate, prompt } = Astro.props;
+---
+
+<div class="flex flex-col gap-1">
+  {help && <p class="text-ink-2 m-0 text-[12.5px] font-normal">{help}</p>}
+  {
+    gate && (
+      <p class="field-error" data-field-error={gate} hidden>
+        {prompt ? `Rispondi a «${prompt}» per continuare.` : 'Rispondi per continuare.'}
+      </p>
+    )
+  }
+</div>

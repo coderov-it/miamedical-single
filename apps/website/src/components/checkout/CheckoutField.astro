@@ -1,0 +1,53 @@
+---
+/**
+ * One labelled control in the checkout, with the place its error message goes.
+ *
+ * IT EXISTS FOR THE ERROR, not for the label. Every field in steps 1 and 2 needs
+ * a `<p class="field-error">` in the same position, carrying the same key as the
+ * `data-gate` on its block, and eleven hand-written copies of that pairing is
+ * eleven chances for one of them to be keyed wrong and silently never shown. Here
+ * the two come from ONE prop and cannot disagree.
+ *
+ * The control is a slot because the eleven of them share nothing else — a type,
+ * an `autocomplete`, an `inputmode`, a placeholder and sometimes an uppercase
+ * cast are all different, and threading them through as props would rebuild
+ * `<input>` badly.
+ *
+ * The `<label>` wraps the control, so the whole block is the hit area and no `id`
+ * has to be invented to tie them together. That is also why the gate lives on the
+ * label rather than on a wrapper div: the gate's message must be a direct child
+ * of the block whose controls it describes — see `focusTargetOf` in
+ * lib/form-validation.ts.
+ */
+import { FIELD_LABEL } from './styles';
+
+interface Props {
+  label: string;
+  /**
+   * The gate key, when the field is required. Matches `data-field-error` on the
+   * message and the `key` of the gate in `scripts/checkout/gates.ts`.
+   *
+   * Omit it for a genuinely optional field (the notes box) and nothing is
+   * rendered — an unused message element would be a message that can never show.
+   */
+  gate?: string | undefined;
+  /** What the customer should do about it. Never "campo obbligatorio". */
+  error?: string | undefined;
+  /** Appended to the label's classes — the fiscal fields cast to uppercase. */
+  class?: string | undefined;
+}
+
+const { label, gate, error, class: className } = Astro.props;
+---
+
+<label class:list={[FIELD_LABEL, className]} data-gate={gate}>
+  <span>{label}</span>
+  <slot />
+  {
+    gate && error && (
+      <p class="field-error" data-field-error={gate} hidden>
+        {error}
+      </p>
+    )
+  }
+</label>

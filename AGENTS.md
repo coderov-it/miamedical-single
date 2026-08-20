@@ -19,6 +19,34 @@
      SEO commitment governed in `apps/website/src/lib/routes.ts`. Query and form keys
      are wire format, not routes, so English.
 
+- **File names are English — except where the file name IS the URL.** Every
+  directory and file in the repo is named in English. The single exception is
+  `apps/website/src/pages/**`: in Astro a page file's path is its public route, so
+  `pages/carrello.astro` is not a badly named file, it is the declaration of
+  `/carrello/`, and renaming it is the SEO event the rule above forbids. Two
+  consequences:
+
+  1. **Only page files may carry an Italian name, and only for the segment the URL
+     needs.** `pages/prodotto/[slug].astro` — yes. `lib/carrello-stato.ts`,
+     `components/product/PdpConfigurazione.astro` — no.
+  2. **A page file is a route declaration, not a place to keep code.** When a page
+     outgrows the size rule below, the logic moves to an English-named module or
+     view component and the Italian file stays the thin shim that names the URL.
+
+- **A source file lives in 300–350 lines.** That is the target, not a suggestion:
+  past it, split by responsibility — a view into sections, a script into modules, a
+  route module into handlers. 800 lines is the absolute ceiling and needs a real
+  reason (one generated table, one irreducible state machine), not "it grew".
+  Splitting is the default answer; a file at 500 lines is already asking to be two.
+
+- **Never block a customer with a disabled control or a silent return.** A form
+  gate must say what is missing, at the control that is missing it, the moment the
+  customer asks to move on. So: the action stays clickable, the click validates,
+  and an invalid result marks every offending field, scrolls to the first one and
+  moves focus there. `disabled` on a submit and `if (invalid) return` in a click
+  handler are both the same bug — the customer is stopped and never told why. The
+  storefront's implementation of this is `apps/website/src/lib/form-validation.ts`.
+
 - **A ternary chooses a value, never a branch.** `count === 1 ? 'ordine' : 'ordini'`
   is fine. Once an arm is a function expression, spans more than one line, or nests
   another ternary, it is hiding control flow — write it as a branch with an early

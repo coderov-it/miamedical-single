@@ -1,0 +1,145 @@
+---
+/**
+ * The buy box's actions, and everything the page says back after one is used.
+ *
+ * NEITHER BUTTON IS EVER DISABLED. The request button used to disable itself
+ * whenever a rental was missing its package or its start date, which stopped the
+ * customer with no explanation at all. Both are live now and the click runs the
+ * form gate instead, which marks the field that is missing — see
+ * `scripts/product/order-actions.ts` and the rule in AGENTS.md.
+ *
+ * Both are `type="submit"` on the SAME form, and that is what makes the second
+ * one work without JavaScript: `formaction` overrides the form's `/checkout/`
+ * target, so "aggiungi" degrades to a plain GET of this configuration to
+ * `/carrello/` — the cart renders it server-side and folds it into the store on
+ * mount. The script only upgrades that to "stay on the page"; it never becomes
+ * the only way to add something.
+ *
+ * THREE STATUS REGIONS, and they are three because they say three different
+ * things at three different moments: the visible "added" panel, its spoken
+ * counterpart, and the form gate's count of what is still missing. Each is a
+ * separate element because a `role="status"` announces on CHANGE — merging them
+ * would leave one silently overwriting another's text.
+ */
+import { routes } from '~/lib/routes';
+
+interface Props {
+  isRental: boolean;
+  /** Quoted into the WhatsApp handover so the message names the product. */
+  productTitle: string;
+}
+
+const { isRental, productTitle } = Astro.props;
+---
+
+{
+  /*
+  Three actions, in three weights, because they are three different sizes of
+  commitment: go and confirm this one now, put it aside and keep looking, or
+  ask a human. Solid → accent outline → neutral outline, so the hierarchy is
+  readable without reading the words.
+
+  Both are `type="submit"` on the SAME form, which is what makes the second
+  one work without JavaScript: `formaction` overrides the form's `/checkout/`
+  target, so "aggiungi" degrades to a plain GET of this configuration to
+  `/carrello/` — the cart renders it server-side and folds it into the store
+  on mount. The script below only upgrades that to "stay on the page"; it
+  never becomes the only way to add something.
+*/
+}
+<div class="flex flex-col gap-2.5">
+  {
+    /*
+    BOTH ACTIONS STAY CLICKABLE, ALWAYS. This button used to disable itself
+    whenever a rental was missing its package or its start date, which stopped
+    the customer without telling them anything — they clicked a dead control
+    and were left to guess. It now submits into the form gate: the click
+    checks, and anything missing is marked at the field that is missing it
+    (`lib/form-validation.ts`, and the rule in AGENTS.md).
+
+    With no JavaScript the click is a plain submit and the server answers,
+    which is the same complete path it always was.
+  */
+  }
+  <button
+    class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[15.5px] font-semibold text-white focus-visible:shadow-[0_0_0_6px_var(--color-ink)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
+    type="submit"
+    data-est-submit
+  >
+    {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
+  </button>
+
+  <button
+    class="bg-accent-tint flex min-h-12 cursor-pointer items-center justify-center rounded-full px-5 text-[14.5px] font-semibold text-accent hover:bg-accent hover:text-white"
+    type="submit"
+    formaction={routes.cart}
+    formmethod="get"
+    data-add-to-cart
+    data-product-title={productTitle}
+  >
+    Aggiungi alla richiesta
+  </button>
+</div>
+
+{
+  /*
+  The confirmation, revealed by the script after a successful add. Ships with
+  the `hidden` attribute rather than a `hidden:` utility, for the reason the
+  calendar popover and the checkout's step bodies both do: preflight makes
+  `[hidden]` `display: none !important`, so the attribute is the ONE thing
+  that decides visibility and a utility class cannot fight it.
+*/
+}
+<div
+  class="bg-ok/8 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-[13.5px]"
+  data-cart-added
+  hidden
+>
+  <span class="text-ok font-semibold">Aggiunto alla richiesta</span>
+  <a class="font-semibold text-accent underline" href={routes.cart}>Vai alla richiesta</a>
+</div>
+
+{
+  /*
+  The spoken half of that confirmation, and a separate element on purpose.
+  Revealing a `role="status"` region announces it once; adding a second time
+  changes nothing in the DOM, so a screen-reader user would hear nothing at
+  all on every add after the first. This region's text ends in the cart's new
+  SIZE, which does change every time — so every add is announced, and the
+  thing it announces is the fact the customer actually wants confirmed.
+
+  The template is a value, not an identifier, so Italian belongs in it. The
+  island's own live region is built the same way.
+*/
+}
+<p
+  class="sr-only"
+  role="status"
+  aria-live="polite"
+  data-cart-announce
+  data-message-template="Aggiunto alla richiesta. Ora contiene {count}."
+  data-count-one="1 ausilio"
+  data-count-many="{count} ausili"
+>
+</p>
+
+{
+  /*
+  The spoken half of the form gate. The visible half is the message under
+  each field; this says HOW MANY are outstanding, for a reader who cannot see
+  that focus has just landed on the first of them.
+
+  It counts for the same reason the cart announcement ends in the cart's
+  size: the text has to differ between two failed attempts, or a live region
+  whose content did not change announces nothing the second time.
+*/
+}
+<p
+  class="sr-only"
+  role="status"
+  aria-live="assertive"
+  data-order-gate-announce
+  data-message-one="Manca un dato per continuare."
+  data-message-many="Mancano {count} dati per continuare."
+>
+</p>

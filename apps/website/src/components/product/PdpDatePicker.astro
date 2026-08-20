@@ -72,7 +72,25 @@ const navButton =
   'grid size-11 flex-none place-items-center rounded-lg bg-tint text-[15px] cursor-pointer hover:bg-tint-2';
 ---
 
-<div class="relative flex flex-col gap-2.5" data-date-block>
+{
+  /*
+    THE GATE sits on the OUTER block, not on either of the two date controls.
+    The script hides whichever one is not in use, and a hidden block is read as
+    "nothing asked" — so gating the native row would silently stop asking for a
+    start date the moment the calendar mounted. The outer block is visible in
+    both modes, which is exactly what the question is.
+
+    Focus goes to the calendar trigger when there is one; the proxy resolves to
+    null while `[data-cal-block]` is still hidden, and the gate's own scan finds
+    the native input instead. See `discoverGates` in lib/form-validation.ts.
+  */
+}
+<div
+  class="relative flex flex-col gap-2.5"
+  data-date-block
+  data-gate="startDate"
+  data-gate-focus="[data-cal-trigger]"
+>
   {/* ---- no-JavaScript control, and the source of truth in both modes ---- */}
   <div class="flex flex-col gap-1.5" data-date-native>
     <label class={PDP_LABEL} for="pdp-start-date">Scegli la data di inizio</label>
@@ -125,8 +143,24 @@ const navButton =
       this inside either block would leave one path unable to express it. */
   }
   {
+    /* Direct child of the date block, so the gate's focus scan reads this block
+      and lands on whichever of the two date controls is currently showing.
+      Placed here, under both of them and above the time row, because the message
+      belongs to the control it is about. */
+  }
+  <p class="field-error" data-field-error="startDate" hidden>
+    Scegli la data di inizio del noleggio.
+  </p>
+
+  {
+    /* Its OWN gate, nested inside the date block's. An hourly package cannot be
+       ordered without a time, but the row is `hidden` until one is chosen — and a
+       hidden gate asks nothing, so this becomes required exactly when the package
+       makes it so. `answersIn` stops the date above from answering for it. */
+  }
+  {
     hasHourPackage && (
-      <div class="flex flex-col gap-1.5" data-time-row hidden>
+      <div class="flex flex-col gap-1.5" data-time-row hidden data-gate="startTime">
         <label class={PDP_LABEL} for="pdp-start-time">
           Scegli l'ora di inizio
         </label>
@@ -138,6 +172,9 @@ const navButton =
           step="900"
           data-est-time
         />
+        <p class="field-error" data-field-error="startTime" hidden>
+          Indica l'ora di inizio: il pacchetto scelto è a ore.
+        </p>
       </div>
     )
   }

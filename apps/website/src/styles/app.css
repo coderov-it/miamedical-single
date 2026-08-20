@@ -609,6 +609,31 @@
     @apply font-display text-ui text-ink-2 font-semibold tracking-wider uppercase;
   }
 
+  /*
+   * WHAT THE CUSTOMER STILL HAS TO DO, said under the control that needs it.
+   * Server-rendered `hidden` beside its field and revealed by the form gate —
+   * `lib/form-validation.ts`, and the "never block silently" rule in AGENTS.md.
+   *
+   * NOT colour alone (SC 1.4.1): the icon and the sentence carry the meaning and
+   * `--color-danger` only reinforces it, which is the same deal the global
+   * `[aria-invalid='true']` border above makes. The icon is a `::before` rather
+   * than markup so that every message is one element the server writes as plain
+   * text — nothing has to remember to include the glyph.
+   *
+   * Visibility is the `hidden` ATTRIBUTE alone. Preflight makes `[hidden]`
+   * `display: none !important`, so it beats this `flex` and the gate has exactly
+   * one thing to toggle — the same contract the calendar popover and the
+   * checkout's step bodies are built on.
+   */
+  .field-error {
+    @apply text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium;
+  }
+
+  .field-error::before {
+    content: '⚠';
+    @apply flex-none not-italic;
+  }
+
   /* The one card treatment: white, one hairline, one radius. On a tinted band
      this is the figure; on white the fills inside it go tinted instead. */
   .hair-card {

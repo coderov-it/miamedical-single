@@ -83,6 +83,31 @@ const STOREFRONT_LABELS = {
   placeholderCompanyCodiceFiscale: { it: '01234567890' },
   placeholderComments: { it: 'Qualcosa che dovremmo sapere' },
 
+  /* -- what is still missing ------------------------------------------------
+     Revealed by the form gate at the field it belongs to, never as a summary at
+     the top and never as a browser bubble — see `lib/form-validation.ts` and the
+     "never block silently" rule in AGENTS.md.
+
+     Each one says what to DO, not what went wrong: "Inserisci il tuo nome", not
+     "Campo obbligatorio". The customer knows the field is empty; what they need
+     from this sentence is what to put in it. */
+  errorFirstName: { it: 'Inserisci il tuo nome.' },
+  errorLastName: { it: 'Inserisci il tuo cognome.' },
+  errorEmail: { it: 'Inserisci un indirizzo email valido: ci serve per la conferma.' },
+  errorPhone: { it: 'Inserisci un numero di telefono: ti chiamiamo per confermare.' },
+  errorCodiceFiscale: { it: 'Inserisci il codice fiscale.' },
+  errorPartitaIva: { it: 'Inserisci la partita IVA.' },
+  errorCompanyCodiceFiscale: { it: 'Inserisci il codice fiscale dell\u2019azienda.' },
+  errorDeliveryMethod: { it: 'Scegli come vuoi ricevere l\u2019ausilio.' },
+  errorAddress: { it: 'Inserisci l\u2019indirizzo di consegna completo.' },
+  errorPickupPoint: { it: 'Scegli la sede dove ritirare.' },
+  errorReturnAddress: { it: 'Inserisci l\u2019indirizzo per il ritiro a fine noleggio.' },
+  /* Spoken, not shown. The visible half is the message under each field; this
+     tells a screen-reader user HOW MANY are outstanding, and it counts so that
+     two failed attempts in a row do not produce identical live-region text. */
+  errorCountOne: { it: 'Manca un dato per continuare.' },
+  errorCountMany: { it: 'Mancano {count} dati per continuare.' },
+
   // -- step 2: delivery ----------------------------------------------------
   /* Step 2 asks two questions and they are not the same one: where it GOES, and
      where it comes back FROM. These name the two halves; they only appear when

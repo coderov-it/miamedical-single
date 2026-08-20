@@ -11,16 +11,19 @@
  * A PACKAGE IS THE PRICE, and that shapes this whole panel. There is no
  * "no package" option and no standard rate to fall back to, so nothing shows a
  * total until one is picked — the headline reads "scegli un pacchetto" and the
- * CTA is disabled. A variant modifier is added flat on top of the package; a
+ * estimate a dash. A variant modifier is added flat on top of the package; a
  * rental-mode add-on multiplies by the package's duration.
  *
- * The package and the start date are the same control twice — a label over a
- * filled field, see `pdp-chooser.ts`. Each field holds one line, the answer;
- * what follows from the answer (the return date, the price) belongs to the
- * overview below the rule.
+ * THE CTA IS NOT DISABLED WHILE THAT IS TRUE, and used to be. A dead button
+ * stops the customer without telling them anything; the actions stay live and
+ * the form gate marks the missing field instead — `PdpOrderActions.astro`.
+ *
+ * The panel is four parts, in the order the customer meets them: the estimate,
+ * the rental fields (`PdpRentalFields.astro`), the overview those two produce,
+ * and the actions.
  */
-import { PDP_FIELD, PDP_LABEL } from '~/components/product/pdp-chooser.ts';
-import PdpDatePicker from '~/components/product/PdpDatePicker.astro';
+import PdpOrderActions from '~/components/product/PdpOrderActions.astro';
+import PdpRentalFields from '~/components/product/PdpRentalFields.astro';
 import { formatMoney } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
 import { REVIEW_AGGREGATE } from '~/lib/home-content';
@@ -77,13 +80,6 @@ const initialNote = isRental ? 'scegli un pacchetto' : 'prezzo del prodotto';
 const baseLineLabel = defaultLabels.length > 0 ? defaultLabels.join(' · ') : 'Tariffa base';
 
 const packages = product.rentalPackages;
-const hasHourPackage = packages.some((pkg) => pkg.unit === 'hour');
-
-const pkgRow =
-  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-tint ' +
-  'peer-checked:bg-tint peer-checked:[&_[data-pkg-name]]:text-accent ' +
-  'peer-focus-visible:outline-3 peer-focus-visible:-outline-offset-3 peer-focus-visible:outline-white ' +
-  'peer-focus-visible:shadow-[inset_0_0_0_3px_var(--color-ink)]';
 ---
 
 {
@@ -114,83 +110,7 @@ const pkgRow =
 
     {
       isRental && (
-        <div class="flex flex-col gap-4">
-          {/*
-          The reference design's disclosure, unchanged in shape. The one thing
-          the new pricing model moves is what it opens onto: there is no
-          "Nessun pacchetto" row any more, because a rental has no rate to fall
-          back to — every row is a real price and one of them must be chosen.
-
-          The checkbox carries `form="pdp-detached"` (an id that exists nowhere)
-          so the disclosure state never joins the GET submission; the radios
-          inside DO belong to the form.
-        */}
-          <div class="relative flex flex-col gap-1.5">
-            <label class={PDP_LABEL} for="pdp-pkg-open">
-              Scegli il pacchetto
-            </label>
-            <input
-              class="peer sr-only"
-              type="checkbox"
-              id="pdp-pkg-open"
-              form="pdp-detached"
-              data-pkg-toggle
-            />
-            <label
-              class={`${PDP_FIELD} cursor-pointer select-none peer-checked:border-accent peer-focus-visible:border-accent peer-checked:[&_[data-chev]]:rotate-180`}
-              for="pdp-pkg-open"
-              data-pkg-trigger
-            >
-              <span class="min-w-0 flex-1 truncate" data-pkg-title>
-                Scegli un pacchetto
-              </span>
-              <span
-                class="text-ink-2 text-[11px] transition-transform duration-150"
-                data-chev
-                aria-hidden="true"
-              >
-                ▼
-              </span>
-            </label>
-
-            <div class="border-hair rounded-field shadow-pdp-pop absolute inset-x-0 top-[calc(100%+6px)] z-20 hidden max-h-75 flex-col gap-0.5 overflow-x-clip overflow-y-auto border bg-white p-1.5 peer-checked:flex">
-              {packages.map((pkg) => (
-                <span>
-                  <input
-                    class="peer sr-only"
-                    type="radio"
-                    name={FIELD.rentalPackage}
-                    id={`pdp-pkg-${pkg.code}`}
-                    value={pkg.code}
-                    data-est-kind="package"
-                    data-est-price={pkg.price}
-                    data-est-duration={pkg.duration}
-                    data-est-unit={pkg.unit}
-                    data-est-label={pkg.name}
-                    data-est-detail={pkg.label}
-                  />
-                  <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
-                    <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
-                      <strong class="text-[14px]" data-pkg-name>
-                        {pkg.name}
-                      </strong>
-                      {/* An unnamed package falls back to its own duration label,
-                        and printing "3 giorni" twice says nothing. */}
-                      {pkg.name !== pkg.label && (
-                        <span class="text-ink-2 text-[13px]">{pkg.label}</span>
-                      )}
-                    </span>
-                    <strong class="text-[14px] whitespace-nowrap tabular-nums">
-                      {formatMoney(pkg.price, currency)}
-                    </strong>
-                  </label>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <PdpDatePicker {today} {hasHourPackage} {deliveryCity} {startDate} />
-        </div>
+        <PdpRentalFields packages={packages} {currency} {today} {deliveryCity} {startDate} />
       )
     }
 
@@ -269,91 +189,7 @@ const pkgRow =
       </div>
     </div>
 
-    {
-      /*
-      Three actions, in three weights, because they are three different sizes of
-      commitment: go and confirm this one now, put it aside and keep looking, or
-      ask a human. Solid → accent outline → neutral outline, so the hierarchy is
-      readable without reading the words.
-
-      Both are `type="submit"` on the SAME form, which is what makes the second
-      one work without JavaScript: `formaction` overrides the form's `/checkout/`
-      target, so "aggiungi" degrades to a plain GET of this configuration to
-      `/carrello/` — the cart renders it server-side and folds it into the store
-      on mount. The script below only upgrades that to "stay on the page"; it
-      never becomes the only way to add something.
-    */
-    }
-    <div class="flex flex-col gap-2.5">
-      {
-        /*
-        Disabled by the script until a rental has both a package and a start
-        date, because the API refuses that line — better to say so on the page
-        that can still fix it than to fail at the last step. It ships ENABLED so
-        the no-JavaScript path still submits and gets the server's own message.
-      */
-      }
-      <button
-        class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[15.5px] font-semibold text-white focus-visible:shadow-[0_0_0_6px_var(--color-ink)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-45"
-        type="submit"
-        data-est-submit
-      >
-        {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
-      </button>
-
-      <button
-        class="bg-accent-tint hover:bg-accent flex min-h-12 cursor-pointer items-center justify-center rounded-full px-5 text-[14.5px] font-semibold text-accent hover:text-white"
-        type="submit"
-        formaction={routes.cart}
-        formmethod="get"
-        data-add-to-cart
-        data-product-title={product.title}
-      >
-        Aggiungi alla richiesta
-      </button>
-    </div>
-
-    {
-      /*
-      The confirmation, revealed by the script after a successful add. Ships with
-      the `hidden` attribute rather than a `hidden:` utility, for the reason the
-      calendar popover and the checkout's step bodies both do: preflight makes
-      `[hidden]` `display: none !important`, so the attribute is the ONE thing
-      that decides visibility and a utility class cannot fight it.
-    */
-    }
-    <div
-      class="bg-ok/8 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-[13.5px]"
-      data-cart-added
-      hidden
-    >
-      <span class="text-ok font-semibold">Aggiunto alla richiesta</span>
-      <a class="font-semibold text-accent underline" href={routes.cart}>Vai alla richiesta</a>
-    </div>
-
-    {
-      /*
-      The spoken half of that confirmation, and a separate element on purpose.
-      Revealing a `role="status"` region announces it once; adding a second time
-      changes nothing in the DOM, so a screen-reader user would hear nothing at
-      all on every add after the first. This region's text ends in the cart's new
-      SIZE, which does change every time — so every add is announced, and the
-      thing it announces is the fact the customer actually wants confirmed.
-
-      The template is a value, not an identifier, so Italian belongs in it. The
-      island's own live region is built the same way.
-    */
-    }
-    <p
-      class="sr-only"
-      role="status"
-      aria-live="polite"
-      data-cart-announce
-      data-message-template="Aggiunto alla richiesta. Ora contiene {count}."
-      data-count-one="1 ausilio"
-      data-count-many="{count} ausili"
-    >
-    </p>
+    <PdpOrderActions {isRental} productTitle={product.title} />
 
     {
       /*

@@ -57,8 +57,20 @@ const inlineInput =
           // resolves the clash by its own canonical CSS order rather than the
           // order written here — the resets win and the row silently loses the
           // card border every other section has. `rowCard` states both in full.
+          /*
+            A single-select group always has something ticked (a default, or the
+            first option), so only a REQUIRED MULTI-SELECT can actually come up
+            empty — and native `required` cannot express "at least one of these
+            boxes", it demands every one of them. Hence the gate, which is also
+            the only thing that can mark an `sr-only` input's group at all.
+          */
+          const gated = group.isRequired && multiple;
+
           return (
-            <fieldset class:list={['m-0 min-w-0', rowCard]}>
+            <fieldset
+              class:list={['m-0 min-w-0', rowCard]}
+              data-gate={gated ? `variant-${group.id}` : undefined}
+            >
               <legend class="sr-only">{group.label}</legend>
               <span class={groupLabel} aria-hidden="true">
                 {group.icon && (
@@ -98,13 +110,21 @@ const inlineInput =
               {group.helpText && (
                 <p class="text-ink-2 m-0 w-full text-[13.5px]">{group.helpText}</p>
               )}
+              {gated && (
+                <p class="field-error w-full" data-field-error={`variant-${group.id}`} hidden>
+                  Scegli almeno un'opzione per {group.label.toLocaleLowerCase('it-IT')}.
+                </p>
+              )}
             </fieldset>
           );
         }
 
         if (group.valueType === 'number' || group.valueType === 'number_range') {
+          /* `required` below stays for the no-JavaScript path; the gate is what
+             enforces it once the script turns native validation off, so the two
+             halves of the form speak with one voice. */
           return (
-            <div class={rowCard}>
+            <div class={rowCard} data-gate={group.isRequired ? `variant-${group.id}` : undefined}>
               <label class={groupLabel} for={`v-${group.id}`}>
                 {group.label}
               </label>
@@ -133,12 +153,17 @@ const inlineInput =
               {group.helpText && (
                 <p class="text-ink-2 m-0 w-full text-[13.5px]">{group.helpText}</p>
               )}
+              {group.isRequired && (
+                <p class="field-error w-full" data-field-error={`variant-${group.id}`} hidden>
+                  Indica {group.label.toLocaleLowerCase('it-IT')} per continuare.
+                </p>
+              )}
             </div>
           );
         }
 
         return (
-          <div class={rowCard}>
+          <div class={rowCard} data-gate={group.isRequired ? `variant-${group.id}` : undefined}>
             <label class={groupLabel} for={`v-${group.id}`}>
               {group.label}
             </label>
@@ -151,6 +176,11 @@ const inlineInput =
               required={group.isRequired}
             />
             {group.helpText && <p class="text-ink-2 m-0 w-full text-[13.5px]">{group.helpText}</p>}
+            {group.isRequired && (
+              <p class="field-error w-full" data-field-error={`variant-${group.id}`} hidden>
+                Indica {group.label.toLocaleLowerCase('it-IT')} per continuare.
+              </p>
+            )}
           </div>
         );
       })

@@ -20,13 +20,19 @@ export const FIELD_INPUT =
 export const PANEL = 'mt-1 border-t border-hair px-4.5 pt-4 pb-4.5';
 
 /**
- * The step's forward action. Rendered in the reachable state and driven to the
- * unreachable one by the page script, so it is never disabled without
- * JavaScript to re-enable it.
+ * The step's forward action.
+ *
+ * IT HAS NO UNREACHABLE STATE, and it used to. The script painted it
+ * `aria-disabled` whenever the step was incomplete and then opened its click
+ * handler with `if (aria-disabled) return` — a grey button that swallowed the
+ * click and named none of the eleven fields that might have been the problem.
+ *
+ * It is one appearance now, always clickable, and the click runs the form gate:
+ * either the step advances or every missing field is marked where it is. See
+ * `scripts/checkout/gates.ts` and the "never block silently" rule in AGENTS.md.
  */
 export const CTA =
-  'mt-1.5 cursor-pointer rounded-full border-0 bg-accent p-3.5 text-[15.5px] font-semibold text-white hover:bg-accent-deep ' +
-  'aria-disabled:cursor-not-allowed aria-disabled:bg-hair aria-disabled:text-ink-2 aria-disabled:hover:bg-hair';
+  'mt-1.5 cursor-pointer rounded-full border-0 bg-accent p-3.5 text-[15.5px] font-semibold text-white hover:bg-accent-deep';
 
 /** One of the three identity chips. Selection is the only thing accent marks. */
 export const CHIP =
