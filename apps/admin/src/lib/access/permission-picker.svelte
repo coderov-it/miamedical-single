@@ -170,7 +170,7 @@
     </p>
   {/if}
 
-  <div class="grid gap-3 md:grid-cols-2" class:opacity-60={isSuperuser}>
+  <div class="space-y-3" class:opacity-60={isSuperuser}>
     {#each groups as group (group.group)}
       {@const groupCodes = group.permissions.map((p) => p.code)}
       {@const selected = groupCodes.filter((code) => held.has(code)).length}
@@ -193,23 +193,37 @@
           {/if}
         </div>
 
-        <div class="p-1.5">
+        <!--
+          Chips, not rows: each permission is intrinsically wide and the list
+          wraps, so a nine-permission group is three lines instead of nine. The
+          fill is what separates one chip from the next — the card behind them is
+          plain, so a `bg-muted` tile reads as its own control without a hairline.
+          The border is always present and transparent when unselected, so
+          picking one cannot nudge the row it sits in.
+        -->
+        <div class="flex flex-wrap gap-1.5 p-2">
           {#each group.permissions as permission (permission.code)}
             {@const locked = frozen || !grantable(permission.code)}
+            {@const on = held.has(permission.code)}
             <Label
-              class="flex items-start gap-2.5 rounded-md px-1.5 py-1.5 font-normal {locked
+              class="flex items-start gap-2 rounded-md border px-2 py-1.5 font-normal {on
+                ? 'border-primary/35 bg-primary/10'
+                : 'border-transparent bg-muted/60'} {locked
                 ? 'opacity-55'
-                : 'cursor-pointer hover:bg-muted/60'}"
+                : 'cursor-pointer hover:bg-muted'}"
             >
               <Checkbox
                 class="mt-0.5"
-                checked={held.has(permission.code)}
+                checked={on}
                 disabled={locked}
                 onCheckedChange={() => toggle(permission.code)}
               />
-              <span class="min-w-0 flex-1">
-                <span class="block text-sm leading-tight">{permission.label}</span>
-                <code class="mt-0.5 block font-mono text-[11px] text-muted-foreground">
+              <span>
+                <span class="block text-sm leading-tight whitespace-nowrap">{permission.label}</span
+                >
+                <code
+                  class="mt-0.5 block font-mono text-[11px] whitespace-nowrap text-muted-foreground"
+                >
                   {permission.key}
                 </code>
               </span>
