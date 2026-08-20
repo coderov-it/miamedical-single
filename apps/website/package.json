@@ -8,6 +8,7 @@
     "build": "astro build",
     "preview": "node --env-file-if-exists=../../.env ./dist/server/entry.mjs",
     "check": "astro check",
+    "test": "node --test --experimental-strip-types 'src/**/*.test.ts'",
     "astro": "astro",
     "clean": "rm -rf .turbo .astro dist node_modules"
   },
