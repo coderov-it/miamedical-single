@@ -118,12 +118,14 @@ export async function getTermsBySlug(slug: string): Promise<TermsDocument | null
 }
 
 /**
- * Every read on a prerendered page goes through this.
+ * The last line under a read that a marketing page cannot fail on.
  *
- * A marketing page must still build when the API or the database is down —
- * the sections that need data hide themselves when the list comes back empty.
- * Failing the whole build instead would make a content deploy depend on
- * database uptime.
+ * `assistenza` is still prerendered, so this keeps a content deploy from
+ * depending on database uptime. The home page renders on demand behind
+ * `cached()`, which holds the last good catalogue across an outage — this only
+ * catches the case that gets past it, a cold cache and an API that is down.
+ * Either way the sections that need data hide themselves when the list comes
+ * back empty, rather than 500 the page.
  */
 export async function safely<T>(read: () => Promise<T>, fallback: T, label: string): Promise<T> {
   try {

@@ -7,9 +7,17 @@
  * two Embla carousels, the booking date floor and the header's cart badge.
  *
  * The page coordinates data and SEO; every visual section is a focused
- * component. Reads go through `safely()`: a marketing page must still build
- * when the API or the database is unavailable, so sections that need data hide
- * themselves when the list comes back empty.
+ * component.
+ *
+ * Rendered on demand, not prerendered: the hero and the trending rail are live
+ * catalogue state — a product added, retired or gone out of stock has to show
+ * without a deploy, and a build must not need the API to be up. The cost is a
+ * ~4 ms render, and `cached()` keeps the API out of the common path; the layers
+ * and their numbers are in docs/code/storefront-caching.md.
+ *
+ * Reads still go through `safely()` as the last line: a cold cache plus an API
+ * that is down means sections with no data, and those hide themselves rather
+ * than break the page.
  */
 import HomeBooking from '~/components/home/HomeBooking.astro';
 import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
@@ -20,12 +28,24 @@ import HomeHowItWorks from '~/components/home/HomeHowItWorks.astro';
 import HomeProductRail from '~/components/home/HomeProductRail.astro';
 import HomeReviews from '~/components/home/HomeReviews.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { cached, CATALOG_POLICY } from '~/lib/cache';
 import { listAllProducts, listCategories, safely } from '~/lib/catalog';
 import { buildHomeCategories, HOME_FAQ, selectHomeFeatured } from '~/lib/home-content';
+import { cacheHtml } from '~/lib/http-cache';
+
+export const prerender = false;
+
+// The same HTML for every visitor — no cookie is read here, and the cart badge
+// and account link are filled in by the browser.
+cacheHtml(Astro.response.headers);
 
 const [products, categories] = await Promise.all([
-  safely(() => listAllProducts(), { items: [], total: 0 }, 'listAllProducts'),
-  safely(() => listCategories(), [], 'listCategories'),
+  safely(
+    () => cached('catalog:products', listAllProducts, CATALOG_POLICY),
+    { items: [], total: 0 },
+    'listAllProducts',
+  ),
+  safely(() => cached('catalog:categories', listCategories, CATALOG_POLICY), [], 'listCategories'),
 ]);
 
 const spotlight = selectHomeFeatured(products.items, 3);
