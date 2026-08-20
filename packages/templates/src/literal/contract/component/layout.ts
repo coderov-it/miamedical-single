@@ -4,11 +4,7 @@ import { escapeHtml } from './escape.ts';
 
 const FONT = "'Instrument Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 
-export function contractLayout(props: {
-  title: string;
-  lang: 'it' | 'en';
-  body: string;
-}): string {
+export function contractLayout(props: { title: string; lang: 'it' | 'en'; body: string }): string {
   return `<!doctype html>
 <html lang="${props.lang}">
 <head>

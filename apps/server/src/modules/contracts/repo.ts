@@ -1,11 +1,6 @@
 import type { Database } from '@mia/db';
 import { and, count, desc, eq, ilike, or, sql } from '@mia/db';
-import {
-  adminUsers,
-  contractSigningTokens,
-  contracts,
-  orders,
-} from '@mia/db/schema';
+import { adminUsers, contractSigningTokens, contracts, orders } from '@mia/db/schema';
 import type { ContractStatus, ContractVariant } from '@mia/validators';
 
 export interface ContractRow {
@@ -142,10 +137,17 @@ export async function findById(db: Database, id: string): Promise<ContractDetail
 
   const row = rows[0];
   if (!row) return undefined;
-  return { ...row.contract, orderNumber: row.orderNumber, voidedByAdminName: row.voidedByAdminName };
+  return {
+    ...row.contract,
+    orderNumber: row.orderNumber,
+    voidedByAdminName: row.voidedByAdminName,
+  };
 }
 
-export async function findByOrderId(db: Database, orderId: string): Promise<ContractSummaryRow | undefined> {
+export async function findByOrderId(
+  db: Database,
+  orderId: string,
+): Promise<ContractSummaryRow | undefined> {
   const rows = await db
     .select({ contract: contracts, orderNumber: orders.number })
     .from(contracts)
@@ -165,7 +167,10 @@ export async function updateStatus(
   status: ContractStatus,
   patch: Partial<typeof contracts.$inferInsert> = {},
 ): Promise<void> {
-  await db.update(contracts).set({ status, ...patch }).where(eq(contracts.id, id));
+  await db
+    .update(contracts)
+    .set({ status, ...patch })
+    .where(eq(contracts.id, id));
 }
 
 export async function createSigningToken(
@@ -178,10 +183,13 @@ export async function createSigningToken(
 export async function findSigningToken(
   db: Database,
   tokenHash: string,
-): Promise<{
-  token: typeof contractSigningTokens.$inferSelect;
-  contract: ContractDetailRow;
-} | undefined> {
+): Promise<
+  | {
+      token: typeof contractSigningTokens.$inferSelect;
+      contract: ContractDetailRow;
+    }
+  | undefined
+> {
   const tokenRow = await db.query.contractSigningTokens.findFirst({
     where: eq(contractSigningTokens.id, tokenHash),
   });

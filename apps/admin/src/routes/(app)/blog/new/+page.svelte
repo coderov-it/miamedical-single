@@ -66,7 +66,10 @@
   <Card.Root class="mx-auto max-w-2xl">
     <Card.Header>
       <Card.Title>Create post</Card.Title>
-      <Card.Description>Fill in at least the Italian title and body. You can add English, SEO, and images from the editor.</Card.Description>
+      <Card.Description
+        >Fill in at least the Italian title and body. You can add English, SEO, and images from the
+        editor.</Card.Description
+      >
     </Card.Header>
     <Card.Content>
       <form

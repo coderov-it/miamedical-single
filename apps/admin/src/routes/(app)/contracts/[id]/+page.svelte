@@ -36,10 +36,7 @@
     () => page.params.id,
     async (id, signal) =>
       unwrap<ContractDetail>(
-        await api.api.admin.contracts[':id'].$get(
-          { param: { id: id! } },
-          { init: { signal } },
-        ),
+        await api.api.admin.contracts[':id'].$get({ param: { id: id! } }, { init: { signal } }),
       ),
     { enabled: () => session.can(P.CONTRACT_READ) },
   );
@@ -181,8 +178,7 @@
           </span>
         </div>
         {#if index < TIMELINE_STEPS.length - 1}
-          <span
-            class={cn('h-px w-6 shrink-0', timelineIndex > index ? 'bg-primary' : 'bg-border')}
+          <span class={cn('h-px w-6 shrink-0', timelineIndex > index ? 'bg-primary' : 'bg-border')}
           ></span>
         {/if}
       {/each}
@@ -199,12 +195,7 @@
         <Card.Root class="gap-0 overflow-hidden py-0">
           <div class="flex items-center justify-between border-b px-4 py-2.5">
             <span class="text-sm font-medium">Contract Preview</span>
-            <Button
-              href={previewUrl(c.id)}
-              target="_blank"
-              variant="ghost"
-              size="sm"
-            >
+            <Button href={previewUrl(c.id)} target="_blank" variant="ghost" size="sm">
               <ExternalLinkIcon class="size-4" />
               Open in new tab
             </Button>
@@ -250,7 +241,9 @@
             {#if c.requiresDeposit}
               <div class="flex justify-between">
                 <span class="text-muted-foreground">Deposit</span>
-                <span class="tabular-nums">{c.depositAmount ? `€ ${c.depositAmount}` : EM_DASH}</span>
+                <span class="tabular-nums"
+                  >{c.depositAmount ? `€ ${c.depositAmount}` : EM_DASH}</span
+                >
               </div>
             {/if}
           </div>

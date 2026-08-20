@@ -2,7 +2,12 @@ import { escapeHtml } from './escape.ts';
 import type { ContractDamageItem } from './types.ts';
 
 export function articlesIt(damages: ContractDamageItem[]): string {
-  const damageRows = damages.map((d) => `<tr><td>${escapeHtml(d.description)}</td><td class="num">€${escapeHtml(d.amount)}</td></tr>`).join('\n');
+  const damageRows = damages
+    .map(
+      (d) =>
+        `<tr><td>${escapeHtml(d.description)}</td><td class="num">€${escapeHtml(d.amount)}</td></tr>`,
+    )
+    .join('\n');
 
   return `<h2>Termini e Condizioni</h2>
 <div class="article">
@@ -42,7 +47,12 @@ export function articlesIt(damages: ContractDamageItem[]): string {
 }
 
 export function articlesEn(damages: ContractDamageItem[]): string {
-  const damageRows = damages.map((d) => `<tr><td>${escapeHtml(d.description)}</td><td class="num">€${escapeHtml(d.amount)}</td></tr>`).join('\n');
+  const damageRows = damages
+    .map(
+      (d) =>
+        `<tr><td>${escapeHtml(d.description)}</td><td class="num">€${escapeHtml(d.amount)}</td></tr>`,
+    )
+    .join('\n');
 
   return `<h2>Terms and Conditions</h2>
 <div class="article">

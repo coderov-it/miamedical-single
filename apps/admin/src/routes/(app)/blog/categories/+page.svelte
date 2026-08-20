@@ -112,16 +112,17 @@
 </script>
 
 <section class="admin-page">
-  <PageHeader
-    eyebrow="Blog"
-    title="Blog Categories"
-    description="Organize blog posts by topic."
-  >
+  <PageHeader eyebrow="Blog" title="Blog Categories" description="Organize blog posts by topic.">
     {#snippet actions()}
       <div class="flex items-center gap-2">
         <Button href={routes.blog} variant="outline">Back to posts</Button>
         {#if canManage}
-          <Button onclick={() => { resetForm(); showForm = true; }}>
+          <Button
+            onclick={() => {
+              resetForm();
+              showForm = true;
+            }}
+          >
             <PlusIcon />
             New category
           </Button>
@@ -164,7 +165,11 @@
             <Input id="cat-pos" type="number" bind:value={position} />
           </div>
           <div class="flex gap-2">
-            <Button type="submit" class="flex-1" disabled={busy || !code.trim() || !nameIt.trim() || !slug.trim()}>
+            <Button
+              type="submit"
+              class="flex-1"
+              disabled={busy || !code.trim() || !nameIt.trim() || !slug.trim()}
+            >
               {#if busy}<Spinner />{/if}
               {editId ? 'Update' : 'Create'}
             </Button>
@@ -177,7 +182,10 @@
 
   <Card.Root class="gap-0 overflow-hidden py-0">
     <div class="border-b px-4 py-3">
-      <p class="text-sm font-medium">{rows.length} {rows.length === 1 ? 'category' : 'categories'}</p>
+      <p class="text-sm font-medium">
+        {rows.length}
+        {rows.length === 1 ? 'category' : 'categories'}
+      </p>
     </div>
 
     {#if categories.loading && !categories.data}
