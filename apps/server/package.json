@@ -14,6 +14,7 @@
     "clean": "rm -rf .turbo dist node_modules",
     "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
     "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts",
+    "admin:seed": "tsx --env-file-if-exists=../../.env script/seed-superadmin.ts",
     "wp:extract": "tsx --env-file-if-exists=../../.env script/wp-migrate/extract.ts",
     "wp:load": "tsx --env-file-if-exists=../../.env script/wp-migrate/load.ts"
   },

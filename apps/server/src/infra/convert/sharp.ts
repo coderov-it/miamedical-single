@@ -18,9 +18,17 @@ export class SharpImageConverter implements ImageConverter {
   constructor(private readonly quality: number) {}
 
   async toWebp(input: Uint8Array, target: ConvertTarget): Promise<ConvertedImage> {
+    /*
+     * `failOn: 'truncated'` instead of libvips' default `'warning'`. Real
+     * catalogue photography carries recoverable defects — two of the migrated
+     * WordPress JPEGs decode fine but warn "38 extraneous bytes before marker
+     * 0xc0" — and refusing those loses a product photo over a byte of padding
+     * no viewer ever notices. Genuinely truncated data still throws, which is
+     * the case worth refusing: half an image is not an image.
+     */
     // `rotate()` with no args applies the EXIF orientation, so a portrait
     // phone photo does not land sideways once the metadata is stripped.
-    let image = sharp(input).rotate();
+    let image = sharp(input, { failOn: 'truncated' }).rotate();
 
     let meta: Metadata;
     try {

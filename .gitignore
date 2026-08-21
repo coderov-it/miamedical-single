@@ -91,3 +91,4 @@ Thumbs.db
 #   pnpm-lock.yaml         — reproducible installs
 #   .env.example           — the env template
 # ---------------------------------------------------------------------------
+miamedical_database.sql

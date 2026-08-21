@@ -21,6 +21,7 @@ import {
 } from '@mia/db/schema';
 import {
   CreateProductSchema,
+  MEDIA_PROFILES,
   RentalPackagesSchema,
   SpecValueInputSchema,
   VariantGroupInputSchema,
@@ -52,6 +53,8 @@ import type {
  *   pnpm --filter @mia/server wp:load -- --dry-run     validate only, write nothing
  *   pnpm --filter @mia/server wp:load -- --skip-media  rows only, no downloads
  *   pnpm --filter @mia/server wp:load -- --truncate    clear the catalog first
+ *   pnpm --filter @mia/server wp:load -- --only-categories=affitto-e-noleggio-carrozzina
+ *                                                      load one category and nothing else
  *
  * Idempotent by construction: every id came from `ids.ts` as a UUIDv5 of the
  * WordPress row, so a second run updates the same rows instead of duplicating
@@ -67,6 +70,21 @@ const args = new Set(process.argv.slice(2));
 const DRY_RUN = args.has('--dry-run');
 const SKIP_MEDIA = args.has('--skip-media');
 const TRUNCATE = args.has('--truncate');
+
+/**
+ * Category codes to load, or empty for all of them. The catalog is migrated one
+ * category at a time — 15 wheelchairs reviewed and live beat 98 products landing
+ * at once — so the filter is applied to every chunk before validation, not
+ * during the writes: a scoped run then validates exactly what it will write and
+ * its `--dry-run` counts are the real ones.
+ */
+const ONLY_CATEGORIES = new Set(
+  [...args]
+    .filter((arg) => arg.startsWith('--only-categories='))
+    .flatMap((arg) => arg.slice('--only-categories='.length).split(','))
+    .map((code) => code.trim())
+    .filter((code) => code.length > 0),
+);
 
 const db = createDatabase({ url: env.DATABASE_URL, logger: false });
 
@@ -97,17 +115,52 @@ function check<TSchema extends v.GenericSchema>(
 }
 
 async function main(): Promise<void> {
-  const categoryChunks = read<{ categories: CategoryChunk[] }>('01-categories.json').categories;
-  const specChunks = read<{ specs: SpecChunk[] }>('02-category-specs.json').specs;
-  const productChunks = read<{ products: ProductChunk[] }>('03-products.json').products;
-  const specValueChunks = read<{ specValues: SpecValueChunk[] }>(
-    '04-product-specs.json',
-  ).specValues;
-  const variantChunks = read<{ variantGroups: VariantGroupChunk[] }>(
+  const allCategories = read<{ categories: CategoryChunk[] }>('01-categories.json').categories;
+  const allSpecs = read<{ specs: SpecChunk[] }>('02-category-specs.json').specs;
+  const allProducts = read<{ products: ProductChunk[] }>('03-products.json').products;
+  const allSpecValues = read<{ specValues: SpecValueChunk[] }>('04-product-specs.json').specValues;
+  const allVariants = read<{ variantGroups: VariantGroupChunk[] }>(
     '05-variants.json',
   ).variantGroups;
   const mediaDoc = read<{ mediaBaseUrl: string; media: MediaChunk[] }>('06-media.json');
-  const addonChunks = read<{ addons: AddonChunk[] }>('07-addons.json').addons;
+  const allAddons = read<{ addons: AddonChunk[] }>('07-addons.json').addons;
+
+  const unknown = [...ONLY_CATEGORIES].filter(
+    (code) => !allCategories.some((chunk) => chunk.code === code),
+  );
+  if (unknown.length > 0) {
+    console.error(`Unknown category code(s): ${unknown.join(', ')}`);
+    console.error(`Known: ${allCategories.map((chunk) => chunk.code).join(', ')}`);
+    process.exit(1);
+  }
+
+  const scoped = ONLY_CATEGORIES.size > 0;
+  const categoryChunks = scoped
+    ? allCategories.filter((chunk) => ONLY_CATEGORIES.has(chunk.code))
+    : allCategories;
+  const keptCategoryIds = new Set(categoryChunks.map((chunk) => chunk.id));
+  const specChunks = allSpecs.filter((chunk) => keptCategoryIds.has(chunk.categoryId));
+  const productChunks = allProducts.filter((chunk) => keptCategoryIds.has(chunk.categoryId));
+  const keptProductIds = new Set(productChunks.map((chunk) => chunk.id));
+  const specValueChunks = allSpecValues.filter((chunk) => keptProductIds.has(chunk.productId));
+  const variantChunks = allVariants.filter((chunk) => keptProductIds.has(chunk.productId));
+  mediaDoc.media = mediaDoc.media.filter((chunk) => keptProductIds.has(chunk.productId));
+  // An addon bound to products on both sides of the filter keeps only the ones
+  // in scope. One that loses every binding is out of scope and drops out — but
+  // an addon that arrived unbound stays, because that is the YITH backlog the
+  // run is supposed to keep complaining about.
+  const addonChunks = allAddons.flatMap((chunk) => {
+    const productIds = chunk.productIds.filter((id) => keptProductIds.has(id));
+    if (chunk.productIds.length > 0 && productIds.length === 0) return [];
+    return [{ ...chunk, productIds }];
+  });
+
+  if (scoped) {
+    console.log(
+      `scope: ${categoryChunks.map((chunk) => `${chunk.code} (${chunk.name.it})`).join(', ')}\n` +
+        `       ${allProducts.length - productChunks.length} products in other categories ignored`,
+    );
+  }
 
   console.log(
     `Loading ${categoryChunks.length} categories, ${productChunks.length} products, ` +
@@ -249,7 +302,11 @@ async function main(): Promise<void> {
     );
     console.log(`  product_skus           ~${skuCount}`);
     console.log(`  product_addons         ${addonChunks.length - unbound.length}`);
-    console.log(`  R2 objects             ${SKIP_MEDIA ? 0 : mediaDoc.media.length}`);
+    const iconCount = categoryChunks.filter((chunk) => chunk.iconSource !== null).length;
+    console.log(
+      `  R2 objects             ${SKIP_MEDIA ? 0 : mediaDoc.media.length + iconCount}` +
+        `${SKIP_MEDIA ? '' : ` (${iconCount} category icons)`}`,
+    );
     console.log('\nDry run — nothing written.');
     await db.$client.end();
     return;
@@ -563,6 +620,10 @@ async function main(): Promise<void> {
         .returning({ id: productSkus.id });
       if (!row) continue;
       skuTotal++;
+      // The base combination of a product with no SKU-affecting group has no
+      // options at all, and drizzle refuses an empty VALUES list — same guard
+      // `regenerate()` carries, for the same reason.
+      if (combo.optionIds.length === 0) continue;
       await db
         .insert(productSkuOptions)
         .values(
@@ -610,6 +671,10 @@ async function main(): Promise<void> {
   if (SKIP_MEDIA) {
     console.log('media                skipped (--skip-media)');
   } else {
+    const icons = await loadCategoryIcons(categoryChunks);
+    console.log(
+      `category icons       ${icons.uploaded} uploaded, ${icons.reused} already in R2, ${icons.failed} failed`,
+    );
     const stats = await loadMedia(mediaDoc.media, productChunks);
     console.log(
       `media                ${stats.uploaded} uploaded, ${stats.reused} already in R2, ${stats.failed} failed`,
@@ -621,6 +686,60 @@ async function main(): Promise<void> {
 }
 
 // --- media ------------------------------------------------------------------
+
+/**
+ * The WooCommerce category image becomes `categories.icon`, under the same
+ * `categories/<uuid>/` scope and the same `icon_256` geometry the admin's own
+ * uploader commits — so a migrated icon and a hand-uploaded one are
+ * indistinguishable afterwards. SVG is stored byte-for-byte, per the profile.
+ *
+ * An icon that would breach the profile's `maxBytes` is left unset rather than
+ * written: the admin could not have uploaded it, so neither does this.
+ */
+async function loadCategoryIcons(
+  categoryChunks: CategoryChunk[],
+): Promise<{ uploaded: number; reused: number; failed: number }> {
+  const profile = MEDIA_PROFILES.icon_256;
+  let uploaded = 0;
+  let reused = 0;
+  let failed = 0;
+
+  for (const chunk of categoryChunks) {
+    const source = chunk.iconSource;
+    if (!source) continue;
+
+    const isVector = source.mimeType === 'image/svg+xml';
+    const key = `categories/${chunk.id}/icon-${source.wpAttachmentId}.${isVector ? 'svg' : 'webp'}`;
+    const mimeType = isVector ? source.mimeType : 'image/webp';
+
+    const existing = await r2FileUploader.head(key);
+    if (existing) {
+      reused++;
+    } else {
+      try {
+        const response = await fetch(source.url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const downloaded = new Uint8Array(await response.arrayBuffer());
+        const bytes = isVector
+          ? downloaded
+          : (await imageConverter.toWebp(downloaded, { square: true, edge: profile.edge })).bytes;
+        if (bytes.byteLength > profile.maxBytes) {
+          throw new Error(`${bytes.byteLength} bytes over the ${profile.maxBytes} icon cap`);
+        }
+        await r2FileUploader.upload(key, bytes, mimeType);
+        uploaded++;
+      } catch (error) {
+        failed++;
+        console.warn(`  category icon ${chunk.code} (${source.url}): ${(error as Error).message}`);
+        continue;
+      }
+    }
+
+    await db.update(categories).set({ icon: key }).where(eq(categories.id, chunk.id));
+  }
+
+  return { uploaded, reused, failed };
+}
 
 /**
  * Download from the live site, convert images to WebP through the same

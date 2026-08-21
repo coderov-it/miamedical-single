@@ -19,6 +19,15 @@ export interface TranslationChunk {
   metaDescription: string | null;
 }
 
+/** One downloadable file on the live site, with the origin that names its key. */
+export interface MediaSource {
+  wpAttachmentId: number;
+  /** Absolute URL on the live site — what the loader downloads. */
+  url: string;
+  mimeType: string;
+  alt: string | null;
+}
+
 export interface CategoryChunk {
   id: string;
   wpTermId: number;
@@ -30,7 +39,14 @@ export interface CategoryChunk {
   treePricingMode: 'fixed' | 'rental';
   position: number;
   isActive: boolean;
+  /** R2 key, written by `load` from `iconSource`. Always null out of `extract`. */
   icon: string | null;
+  /**
+   * The WooCommerce category image (`wp_termmeta.thumbnail_id`) as the live site
+   * still serves it. `load` downloads it, squares it to 256 and puts the
+   * resulting key in `icon`. Null when the term carried no thumbnail.
+   */
+  iconSource: MediaSource | null;
   name: Localized;
   slug: string;
   description: string | null;
