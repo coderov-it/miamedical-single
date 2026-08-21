@@ -37,16 +37,44 @@ export type PricingMode = 'fixed' | 'rental';
  * so their fields merge — deduplicated by `field_key` further down.
  */
 export const COMPARE_GROUP_TO_CATEGORY: Record<string, string> = {
-  'letti-elettrici-ortopedici': 'noleggio-letti-ortopedici-ospedalieri',
-  'carrozzine-elettriche': 'noleggio-e-affitto-carrozzina-elettrica-e-scooter',
-  'scooter-elettrici': 'noleggio-e-affitto-carrozzina-elettrica-e-scooter',
-  'carrozzine-manuali': 'affitto-e-noleggio-carrozzina',
-  sollevatori: 'noleggio-sollevatori',
-  deambulatori: 'affitto-e-noleggio-deambulatori',
-  magnetoterapia: 'affitto-noleggio-magnetoterapia-cemp',
-  verticalizzatori: 'affitto-noleggio-verticalizzatori',
-  montascale: 'affitto-noleggio-montascale',
+  'letti-elettrici-ortopedici': 'letti-ortopedici-ospedalieri',
+  'carrozzine-elettriche': 'carrozzine-elettriche-e-scooter',
+  'scooter-elettrici': 'carrozzine-elettriche-e-scooter',
+  'carrozzine-manuali': 'carrozzine',
+  sollevatori: 'sollevatori',
+  deambulatori: 'deambulatori-e-rollatori',
+  magnetoterapia: 'magnetoterapia',
+  verticalizzatori: 'verticalizzatori',
+  montascale: 'montascale',
 };
+
+// --- category naming --------------------------------------------------------
+
+/** "Affitto e noleggio X", "Noleggio e affitto X", "Vendita X". */
+const LEADING_SALES_MODE =
+  /^(?:affitto|noleggio|vendita)(?:\s+e\s+(?:affitto|noleggio|vendita))?\s+/i;
+/** "X in Vendita", "X a noleggio". */
+const TRAILING_SALES_MODE = /\s+(?:in|a|da)\s+(?:affitto|noleggio|vendita)\b/i;
+
+/**
+ * How a category was sold is not part of its name. WooCommerce disagreed —
+ * every term in the rental tree is prefixed with it and three sale-tree names
+ * repeat it — so it comes off here, name and code alike:
+ *
+ *   "Vendita Ausili per la mobilità"  → "Ausili per la mobilità"
+ *   "Occasione Usato in Vendita"      → "Occasione usato"
+ *   "Carrozzine"                      → "Carrozzine"          (already clean)
+ *
+ * `products.pricing_mode` is where that fact lives now, so leaving it in the
+ * name would both duplicate the column and split one product family in two the
+ * day the same wheelchairs are also sold outright.
+ */
+export function stripSalesMode(name: string): string {
+  const stripped = name.replace(LEADING_SALES_MODE, '').replace(TRAILING_SALES_MODE, '').trim();
+  if (stripped.length === 0) return name.trim();
+  // A stripped prefix leaves the next word lowercase where it now starts.
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+}
 
 // --- spec value shapes ------------------------------------------------------
 

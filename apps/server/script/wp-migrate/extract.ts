@@ -25,6 +25,7 @@ import {
   isFilterableType,
   matchModelToProducts,
   specKey,
+  stripSalesMode,
   type ValueType,
 } from './mapping.ts';
 import { sanitizeRichText } from '../../src/shared/html/rich-text.ts';
@@ -118,6 +119,8 @@ async function main(): Promise<void> {
   `);
 
   const modeByTermId = new Map<number, 'fixed' | 'rental'>();
+  /** Every term that resolves to a category, merged terms included. */
+  const categoryByTermId = new Map<number, CategoryChunk>();
   const categories: CategoryChunk[] = [];
   const codesTaken = new Set<string>();
   const catSlugsTaken = new Set<string>();
@@ -140,23 +143,77 @@ async function main(): Promise<void> {
     const mode: 'fixed' | 'rental' = parent === RENTAL_ROOT_TERM_ID ? 'rental' : 'fixed';
     modeByTermId.set(termId, mode);
 
-    const code = uniquify(slugify(str(row.slug) || str(row.name), `cat-${termId}`), codesTaken);
-    categories.push({
+    /**
+     * The name is the cleaned name and the code follows it — never the
+     * WordPress slug. Every rental slug in the dump is prefixed with how the
+     * thing was sold (`Carrozzine` sat at `affitto-e-noleggio-carrozzina`) and
+     * three names repeat it outright, and that is precisely what
+     * `pricing_mode` now carries. See `stripSalesMode`.
+     */
+    const name = stripSalesMode(str(row.name));
+    const code = slugify(name || str(row.slug), `cat-${termId}`);
+    if (name !== str(row.name).trim() || slugify(str(row.slug), '') !== code) {
+      note(
+        'category',
+        termId,
+        str(row.name),
+        `→ "${name}" / "${code}" (WordPress: name "${str(row.name)}", url "${str(row.slug)}" — redirect that url if it is worth keeping)`,
+      );
+    }
+
+    /**
+     * Two terms cleaning to one name are one category sold two ways — the
+     * second-hand pair, "Occasione usato" in the rental tree and "Occasione
+     * Usato in Vendita" in the sale tree. They merge onto the first, and the
+     * products keep their own `pricing_mode`, which is the whole point: a
+     * category holds a product family, not a price list.
+     */
+    const merged = categoryByTermId.get(termId) ?? categories.find((item) => item.code === code);
+    if (merged) {
+      categoryByTermId.set(termId, merged);
+      note(
+        'category',
+        termId,
+        str(row.name),
+        `same family as term ${merged.wpTermId} ("${merged.name.it}") → merged, products keep ${mode} pricing`,
+      );
+      continue;
+    }
+
+    const category: CategoryChunk = {
       id: categoryId(termId),
       wpTermId: termId,
-      code,
+      code: uniquify(code, codesTaken),
       treePricingMode: mode,
       position: categories.length,
       isActive: true,
       icon: null,
-      name: { it: str(row.name) },
-      slug: uniquify(slugify(str(row.slug) || str(row.name), code), catSlugsTaken),
+      iconSource: null,
+      name: { it: name },
+      slug: uniquify(code, catSlugsTaken),
       description: htmlToText(str(row.description)),
-    });
+    };
+    categories.push(category);
+    categoryByTermId.set(termId, category);
   }
 
   const categoryByCode = new Map(categories.map((category) => [category.code, category]));
-  console.log(`categories        ${categories.length}`);
+
+  const attachments = await loadAttachments(q);
+  const thumbnailRows = await q(`
+    SELECT tm.term_id, tm.meta_value
+    FROM {p}termmeta tm
+    JOIN {p}term_taxonomy tt ON tt.term_id = tm.term_id AND tt.taxonomy = 'product_cat'
+    WHERE tm.meta_key = 'thumbnail_id'
+  `);
+  attachCategoryIcons(
+    categories,
+    attachments,
+    new Map(thumbnailRows.map((row) => [int(row.term_id), int(row.meta_value)])),
+  );
+
+  const withIcon = categories.filter((category) => category.iconSource !== null).length;
+  console.log(`categories        ${categories.length} (${withIcon} with a category image)`);
 
   // --- products -------------------------------------------------------------
 
@@ -279,7 +336,7 @@ async function main(): Promise<void> {
     }
 
     const termId = termIds.find((id) => modeByTermId.get(id) === mode) ?? termIds[0]!;
-    const category = categories.find((item) => item.wpTermId === termId);
+    const category = categoryByTermId.get(termId);
     if (!category) {
       note('product', postId, title, `category term ${termId} not extracted — SKIPPED`);
       continue;
@@ -559,7 +616,7 @@ async function main(): Promise<void> {
 
   // --- media ----------------------------------------------------------------
 
-  const media = await extractMedia(q, products, metaOf);
+  const media = extractMedia(products, metaOf, attachments);
   console.log(`media items       ${media.length}`);
 
   // --- addons ---------------------------------------------------------------
@@ -593,6 +650,7 @@ async function main(): Promise<void> {
     source: { host: `${MYSQL.host}:${MYSQL.port}`, database: MYSQL.database },
     counts: {
       categories: categories.length,
+      categoryIcons: categories.filter((category) => category.iconSource !== null).length,
       products: products.length,
       productsNeedingReview: reviewCount,
       productsWithPackages: products.filter((product) => product.rentalPackages.length).length,
@@ -930,12 +988,21 @@ function safeJsonArray(raw: string): string[] | null {
 
 // --- media ------------------------------------------------------------------
 
-async function extractMedia(
-  q: Query,
-  products: ProductChunk[],
-  metaOf: (postId: number, key: string) => string,
-): Promise<MediaChunk[]> {
-  const attachmentRows = await q(`
+interface Attachment {
+  id: number;
+  mimeType: string;
+  path: string;
+  alt: string | null;
+  title: string;
+}
+
+/**
+ * Every attachment in the library, by id. One query for the whole run: both
+ * product media and category icons resolve their ids against this map, and the
+ * dump has few enough attachments that holding them all costs nothing.
+ */
+async function loadAttachments(q: Query): Promise<Map<number, Attachment>> {
+  const rows = await q(`
     SELECT p.ID, p.post_mime_type, p.post_title, pm.meta_value AS path,
            alt.meta_value AS alt
     FROM {p}posts p
@@ -944,15 +1011,8 @@ async function extractMedia(
     WHERE p.post_type = 'attachment'
   `);
 
-  interface Attachment {
-    id: number;
-    mimeType: string;
-    path: string;
-    alt: string | null;
-    title: string;
-  }
   const attachments = new Map<number, Attachment>();
-  for (const row of attachmentRows) {
+  for (const row of rows) {
     attachments.set(int(row.ID), {
       id: int(row.ID),
       mimeType: str(row.post_mime_type),
@@ -961,7 +1021,60 @@ async function extractMedia(
       title: str(row.post_title),
     });
   }
+  return attachments;
+}
 
+/** Absolute URL of an attachment on the live site. */
+const urlOf = (attachment: Attachment): string =>
+  `${MEDIA_BASE}/wp-content/uploads/${attachment.path}`;
+
+/**
+ * WooCommerce keeps a category's image in `wp_termmeta.thumbnail_id`. It is the
+ * only imagery a `categories` row has (`icon`), so it is read here and
+ * downloaded by `load` — never left for the back office to re-upload by hand.
+ *
+ * Vectors and rasters both pass: `icon_256` stores SVG as-is and squares
+ * everything else, so the only rejection here is a mime that is not an image.
+ */
+function attachCategoryIcons(
+  categories: CategoryChunk[],
+  attachments: Map<number, Attachment>,
+  thumbnailIdByTermId: Map<number, number>,
+): void {
+  for (const category of categories) {
+    const attachmentId = thumbnailIdByTermId.get(category.wpTermId);
+    if (!attachmentId) {
+      note('category-icon', category.wpTermId, category.code, 'no thumbnail_id — icon stays null');
+      continue;
+    }
+    const attachment = attachments.get(attachmentId);
+    if (!attachment) {
+      note('category-icon', category.wpTermId, category.code, `thumbnail ${attachmentId} missing`);
+      continue;
+    }
+    if (!attachment.mimeType.startsWith('image/')) {
+      note(
+        'category-icon',
+        category.wpTermId,
+        category.code,
+        `thumbnail ${attachmentId} is ${attachment.mimeType}, not an image — skipped`,
+      );
+      continue;
+    }
+    category.iconSource = {
+      wpAttachmentId: attachment.id,
+      url: urlOf(attachment),
+      mimeType: attachment.mimeType,
+      alt: attachment.alt ?? attachment.title ?? null,
+    };
+  }
+}
+
+function extractMedia(
+  products: ProductChunk[],
+  metaOf: (postId: number, key: string) => string,
+  attachments: Map<number, Attachment>,
+): MediaChunk[] {
   const roleFor = (mimeType: string, preferred: MediaRole): MediaRole | null => {
     if (mimeType === 'application/pdf') return 'document';
     if (mimeType.startsWith('video/')) return 'video';
@@ -987,7 +1100,7 @@ async function extractMedia(
         wpAttachmentId: attachment.id,
         role,
         position,
-        sourceUrl: `${MEDIA_BASE}/wp-content/uploads/${attachment.path}`,
+        sourceUrl: urlOf(attachment),
         mimeType: attachment.mimeType,
         alt: attachment.alt ?? attachment.title ?? null,
       });

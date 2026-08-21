@@ -13,15 +13,12 @@
  * Access is attribute-based — a list of permission codes, plus `--superuser`
  * meaning "every code". There are no roles; see `@mia/permissions`.
  */
-import { createDatabase, eq } from '@mia/db';
-import { adminUsers } from '@mia/db/schema';
 import { normalizePermissions } from '@mia/permissions';
 import type { Interface } from 'node:readline';
 import { createInterface } from 'node:readline';
 import { parseArgs } from 'node:util';
 
-import { env } from '../src/config/env.ts';
-import { hashPassword } from '../src/shared/auth/password.ts';
+import { MIN_PASSWORD_LENGTH, upsertAdminAccount } from './admin-account.ts';
 
 // `pnpm run … -- --email x` forwards the `--` itself, which parseArgs would
 // treat as an argument terminator and reject everything after it.
@@ -52,43 +49,20 @@ if (!isSuperuser && permissions.length === 0) {
 }
 
 const password = process.env.ADMIN_PASSWORD ?? (await prompt('Password: '));
-if (password.length < 12) fail('Password must be at least 12 characters.');
+if (password.length < MIN_PASSWORD_LENGTH) {
+  fail(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+}
 
-const db = createDatabase({ url: env.DATABASE_URL, logger: false });
-const passwordHash = await hashPassword(password);
-
-const [existing] = await db
-  .select({ id: adminUsers.id })
-  .from(adminUsers)
-  .where(eq(adminUsers.email, email));
+const outcome = await upsertAdminAccount({
+  email,
+  password,
+  ...(values.name ? { fullName: values.name } : {}),
+  isSuperuser,
+  permissions,
+});
 
 const access = isSuperuser ? 'superuser' : `${permissions.length} permissions`;
-
-if (existing) {
-  await db
-    .update(adminUsers)
-    .set({
-      passwordHash,
-      isSuperuser,
-      permissions,
-      isActive: true,
-      ...(values.name ? { fullName: values.name } : {}),
-    })
-    .where(eq(adminUsers.id, existing.id));
-
-  console.log(`Updated ${email} (${access}).`);
-} else {
-  await db.insert(adminUsers).values({
-    email,
-    fullName: values.name ?? null,
-    passwordHash,
-    isSuperuser,
-    permissions,
-    emailVerifiedAt: new Date(),
-  });
-
-  console.log(`Created ${email} (${access}).`);
-}
+console.log(`${outcome === 'created' ? 'Created' : 'Updated'} ${email} (${access}).`);
 
 process.exit(0);
 

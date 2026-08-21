@@ -48,7 +48,28 @@ MySQL, so it has no business in `config/env.ts`.
 
 Flags: `--dry-run` validates and prints planned counts; `--skip-media` writes rows without
 downloading; `--truncate` clears the catalog and orders first, **keeping `users` and
-`sessions`** so the admin login survives.
+`sessions`** so the admin login survives; `--only-categories=<code[,code]>` loads one
+category and nothing else.
+
+### One category at a time
+
+The catalog goes live per category, not in one 98-product drop — fifteen wheelchairs whose
+specs and packages have actually been read beat a full catalog nobody has checked:
+
+```bash
+pnpm --filter @mia/server wp:load -- --only-categories=carrozzine --dry-run
+```
+
+The filter is applied to every chunk **before** validation, not during the writes. So a
+scoped run validates exactly the rows it will write, its dry-run counts are the real ones,
+and an out-of-scope product cannot fail the run for a category nobody is loading yet.
+Cascade: category → its specs → its products → their spec values, variants, media and
+addons. An unknown code is a hard exit with the list of known ones — a typo must not
+quietly load nothing.
+
+Addons are the one non-obvious edge: an addon bound to products on both sides of the filter
+keeps only the in-scope bindings, one that loses all of them drops out, and one that arrived
+with none stays — that last group is the YITH backlog the run is meant to keep reporting.
 
 ## Idempotency
 
@@ -70,14 +91,14 @@ SKUs already priced against it.
 
 | File                     | Rows       | What it holds                                                     |
 | ------------------------ | ---------- | ----------------------------------------------------------------- |
-| `01-categories.json`     | 18         | leaf `product_cat` terms → `categories` + `category_translations` |
+| `01-categories.json`     | 17         | leaf `product_cat` terms → `categories` + `category_translations` |
 | `02-category-specs.json` | 217        | inferred spec definitions, with the reason for each shape         |
 | `03-products.json`       | 98         | products, Italian translation, **`rentalPackages`**               |
 | `04-product-specs.json`  | 430        | coerced spec values, each keeping its `rawValue`                  |
 | `05-variants.json`       | 1          | SKU-affecting variant groups                                      |
 | `06-media.json`          | 291        | download manifest: source URL → role                              |
 | `07-addons.json`         | 7          | priced extras                                                     |
-| `report.json`            | 80 entries | **every judgement call and every dropped row**                    |
+| `report.json`            | 99 entries | **every judgement call and every dropped row**                    |
 
 `report.json` is the point of the whole split. Read it before loading.
 
@@ -88,7 +109,32 @@ SKUs already priced against it.
 WooCommerce has two roots: _Affitto e noleggio_ (260) and _Vendita_ (261). The new
 `categories` table is flat and has no `parentId`, so the roots do not survive as
 categories — they survive as `products.pricing_mode`, which is all they ever encoded. The
-18 leaves become the category list.
+18 leaves become 17 categories — see the naming rule below.
+
+### A category is named for the thing, never for how it is sold
+
+WooCommerce put the commercial arrangement in the name and in the URL of every leaf. That is
+the one thing `pricing_mode` already carries, so it comes off both:
+
+```
+term 68   name "Carrozzine"                  slug "affitto-e-noleggio-carrozzina"
+          →  name "Carrozzine"               code/slug "carrozzine"
+
+term 20   name "Vendita Ausili per la mobilità"
+          →  name "Ausili per la mobilità"   code/slug "ausili-per-la-mobilita"
+
+term 440  name "Occasione Usato in Vendita"
+          →  name "Occasione usato"          MERGED into term 93's category
+```
+
+`code` and `slug` follow the cleaned name, never `wp_terms.slug` — `stripSalesMode()` in
+`mapping.ts` does the stripping, and every rename lands in `report.json` with the URL
+WordPress served it at, so a redirect can be written later if that URL is worth keeping.
+
+The merge is the point of doing this at the name and not just the slug: _Occasione usato_
+existed twice, once per tree, and those are not two product families. They become one
+category whose products carry their own `pricing_mode` — 6 second-hand products, all
+`fixed`. 18 leaves, 17 categories.
 
 Six products sit in both trees (the _Occasione usato_ second-hand items). The tie-break is
 whether the product actually sells rental periods: duration tiers → rental, otherwise
@@ -176,7 +222,10 @@ uppercased, capped at 48 chars and deduplicated. The cap is applied _inside_
 
 SKU rows are generated through the app's own `generateCombinations` / `composeSku`, so the
 strings match what the admin would produce for the same groups. A product with no
-SKU-affecting group gets no `product_skus` rows, matching `regenerate()`'s behaviour.
+SKU-affecting group still gets its one base SKU, exactly as `regenerate()` does — and, like
+`regenerate()`, writes no `product_sku_options` for it, because the base combination has no
+options and drizzle refuses an empty `VALUES` list. The loader was missing that guard; the
+first wheelchair-only run found it, since all 15 of those products are group-less.
 
 ### Text and language
 
@@ -188,6 +237,32 @@ Italian only: every TranslatePress dictionary table in the dump is empty, so the
 English to migrate. Translation rows are written for `it`; `en` is left absent and the
 existing `en → it` fallback covers it. `search_vector` is written through
 `searchVectorFor()` — never by hand.
+
+### Category images
+
+A `categories` row has exactly one image, `icon` — an R2 key holding a 256×256 WebP.
+WooCommerce keeps the same thing in `wp_termmeta.thumbnail_id`, so that is where it comes
+from, and the walk is:
+
+```
+wp_termmeta       term 68 → thumbnail_id 12260
+wp_posts/postmeta 12260   → 2024/05/carrozzina-slim-MIA-MEDICAL-ITALIA-…jpg   (1000×1000)
+extract           01-categories.json  iconSource: { wpAttachmentId, url, mimeType, alt }
+load              toWebp(bytes, { square: true, edge: 256 })
+R2                categories/21a7ea8a-eb71-52de-ab8f-1db901e077a0/icon-12260.webp
+categories.icon   = that key
+```
+
+Same scope and same geometry the admin's own uploader commits, so a migrated icon and a
+hand-uploaded one are indistinguishable afterwards. SVG is stored byte-for-byte, per
+`icon_256`. Anything over the profile's `maxBytes` is left unset rather than written — the
+admin could not have uploaded it, so neither does this.
+
+17 of the 17 categories have a thumbnail; both wheelchair sources happen to be square
+already (1000×1000 and 1200×1200), so the 256 is a clean downscale with nothing cropped.
+A term without one keeps `icon: null`, and the home page falls back to the category's first
+product image (`home-content.ts`) — the reason a missing icon is a note in `report.json`
+rather than a failure.
 
 ### Media
 
@@ -201,6 +276,13 @@ download. 291 objects across 96 thumbnails and 195 gallery images.
 
 Note: very small, already-compressed JPEGs can grow slightly as WebP at q95. That is the
 project's existing "visually lossless" choice, not a migration artefact.
+
+Two of the wheelchair JPEGs decode with `"38 extraneous bytes before marker 0xc0"`, which
+libvips fails on by default. `SharpImageConverter` therefore opens every image with
+`failOn: 'truncated'`: a recoverable defect in real catalogue photography must not cost a
+product photo, while genuinely truncated data still throws. It is a decode policy for the
+whole app, admin uploads included — an admin should not be blocked by a byte of padding
+either.
 
 ## PHP deserialization
 
