@@ -1,10 +1,15 @@
 /**
- * The one write path for a back-office account, shared by `create-admin.ts`
- * (interactive, flag-driven) and `seed-superadmin.ts` (non-interactive, env
- * driven). Both need the same hash, the same upsert and the same reactivation
- * of a disabled row, and two copies of that would drift.
+ * The one write path for a back-office account, shared by three callers:
+ * `create-admin.ts` (interactive, flag-driven), `seed-superadmin.ts`
+ * (non-interactive, env-driven) and `seed.ts` (as one step of the demo seed).
+ * All three need the same hash, the same upsert and the same reactivation of a
+ * disabled row, and three copies of that would drift — they already had.
+ *
+ * Two entry points, so ownership of the connection is never ambiguous:
+ * `applyAdminAccount` writes through a caller's `db` and leaves it open,
+ * `upsertAdminAccount` opens one, writes and closes it.
  */
-import { createDatabase, eq } from '@mia/db';
+import { createDatabase, eq, type Database } from '@mia/db';
 import { adminUsers } from '@mia/db/schema';
 
 import { env } from '../src/config/env.ts';
@@ -30,8 +35,10 @@ export interface AdminAccountInput {
  * the command line has no verification mail to click — the human running this
  * *is* the verification.
  */
-export async function upsertAdminAccount(input: AdminAccountInput): Promise<'created' | 'updated'> {
-  const db = createDatabase({ url: env.DATABASE_URL, logger: false });
+export async function applyAdminAccount(
+  db: Database,
+  input: AdminAccountInput,
+): Promise<'created' | 'updated'> {
   const passwordHash = await hashPassword(input.password);
   const permissions = input.isSuperuser ? [] : input.permissions;
 
@@ -51,7 +58,6 @@ export async function upsertAdminAccount(input: AdminAccountInput): Promise<'cre
         ...(input.fullName ? { fullName: input.fullName } : {}),
       })
       .where(eq(adminUsers.id, existing.id));
-    await db.$client.end();
     return 'updated';
   }
 
@@ -63,6 +69,17 @@ export async function upsertAdminAccount(input: AdminAccountInput): Promise<'cre
     permissions,
     emailVerifiedAt: new Date(),
   });
-  await db.$client.end();
   return 'created';
+}
+
+/** `applyAdminAccount` on a connection of its own, for a standalone script. */
+export async function upsertAdminAccount(
+  input: AdminAccountInput,
+): Promise<'created' | 'updated'> {
+  const db = createDatabase({ url: env.DATABASE_URL, logger: false });
+  try {
+    return await applyAdminAccount(db, input);
+  } finally {
+    await db.$client.end();
+  }
 }

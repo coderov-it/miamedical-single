@@ -28,7 +28,6 @@ import {
   searchVectorFor,
   termsDocumentTranslations,
   termsDocuments,
-  adminUsers,
 } from '@mia/db/schema';
 
 import { env } from '../src/config/env.ts';
@@ -37,7 +36,7 @@ import {
   generateCombinations,
   randomSuffix,
 } from '../src/modules/products/variants/sku.ts';
-import { hashPassword } from '../src/shared/auth/password.ts';
+import { applyAdminAccount } from './admin-account.ts';
 
 /**
  * Development seed for the catalog domain: the attribute preset library, two
@@ -1082,32 +1081,22 @@ if (!env.R2_BUCKET) {
 }
 
 // --- development super admin ------------------------------------------------
-// Production accounts are created with `pnpm --filter @mia/server admin:create`.
+// Production accounts are created with `pnpm admin:seed` or, interactively,
+// `pnpm --filter @mia/server admin:create`. Same `SUPERADMIN_*` variables as
+// those two — one account named one way, whichever script writes it — with
+// local-dev fallbacks so `db:seed` still works on an empty environment.
 
 if (env.NODE_ENV === 'production') {
   console.log('  · skipping the development super admin (NODE_ENV=production)');
 } else {
-  const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@miamedical.local';
-  const passwordHash = await hashPassword(process.env.SEED_ADMIN_PASSWORD ?? 'localdev-password');
-
-  const [existing] = await db
-    .select({ id: adminUsers.id })
-    .from(adminUsers)
-    .where(eq(adminUsers.email, email));
-  if (existing) {
-    await db
-      .update(adminUsers)
-      .set({ passwordHash, isSuperuser: true, isActive: true })
-      .where(eq(adminUsers.id, existing.id));
-  } else {
-    await db.insert(adminUsers).values({
-      email,
-      fullName: 'Super Admin',
-      isSuperuser: true,
-      passwordHash,
-      emailVerifiedAt: new Date(),
-    });
-  }
+  const email = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase() ?? 'admin@miamedical.local';
+  await applyAdminAccount(db, {
+    email,
+    password: process.env.SUPERADMIN_PASSWORD || 'localdev-password',
+    fullName: process.env.SUPERADMIN_NAME?.trim() ?? 'Super Admin',
+    isSuperuser: true,
+    permissions: [],
+  });
   console.log(`  ✓ super admin ${email}`);
 }
 
