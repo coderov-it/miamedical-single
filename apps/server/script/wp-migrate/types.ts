@@ -183,3 +183,19 @@ export interface Report {
   /** Read this. Every inference, fallback and dropped row lands here. */
   entries: ReportEntry[];
 }
+
+/**
+ * One load's worth of chunks, after `--only-categories` has narrowed them.
+ * Passed around whole because validation, the row writes and the media pass all
+ * need to cross-reference the same set — a product's category, a spec value's
+ * product — and splitting them into arguments only invites a mismatched pair.
+ */
+export interface LoadPlan {
+  categories: CategoryChunk[];
+  specs: SpecChunk[];
+  products: ProductChunk[];
+  specValues: SpecValueChunk[];
+  variantGroups: VariantGroupChunk[];
+  media: MediaChunk[];
+  addons: AddonChunk[];
+}

@@ -1,6 +1,15 @@
 # WordPress/WooCommerce → PostgreSQL migration
 
-Covers `apps/server/script/wp-migrate/`.
+Covers `apps/server/script/wp-migrate/`:
+
+```
+extract.ts          MySQL → JSON chunks
+load.ts             the plan: flags, chunks, scope, order
+load/validate.ts    every check, against the real API schemas
+load/rows.ts        the row writes, phase by phase
+load/media.ts       the two phases that touch R2
+load/progress.ts    what it prints, and how wide it runs
+```
 
 ## Shape
 
@@ -47,8 +56,8 @@ from `process.env` rather than the app's env schema — nothing in the running s
 MySQL, so it has no business in `config/env.ts`.
 
 Flags: `--dry-run` validates and prints planned counts; `--skip-media` writes rows without
-downloading; `--truncate` clears the catalog and orders first, **keeping `users` and
-`sessions`** so the admin login survives; `--only-categories=<code[,code]>` loads one
+downloading; `--truncate` clears the catalog and orders first, **keeping `admin_users` and
+`admin_sessions`** so the admin login survives; `--only-categories=<code[,code]>` loads one
 category and nothing else.
 
 ### One category at a time
@@ -70,6 +79,37 @@ quietly load nothing.
 Addons are the one non-obvious edge: an addon bound to products on both sides of the filter
 keeps only the in-scope bindings, one that loses all of them drops out, and one that arrived
 with none stays — that last group is the YITH backlog the run is meant to keep reporting.
+
+## Latency, not hanging
+
+Against a remote database every statement is a round trip — 274 ms to the dev box — and a
+full load is about 1,300 of them. Run serially that is thirteen minutes, and the loader used
+to print one line per phase _after_ the phase finished, so it read as a hung process. It was
+not; it was waiting.
+
+Two changes, both in `load/progress.ts`:
+
+- **`runPhase` spends the latency in parallel.** Writes inside a phase run 10 at a time,
+  matched to `createDatabase`'s default pool. Safe because every id is a UUIDv5 fixed by
+  `ids.ts` and every write is an upsert on it, so items in a phase are independent and order
+  cannot matter. Phases stay sequential — each points at the one before it.
+- **It says where it is.** An interim line at most once a second during row phases, and one
+  line per object during the media phases, where each item is seconds of network rather than
+  milliseconds:
+
+```
+spec_values          180/430
+spec_values          430
+
+media                291 objects to check in R2
+media  [ 38/291] up     products/8f2…/12524-Cuscino.webp  142 KB  1.2s
+media  [ 39/291] reuse  products/8f2…/12518-Rialzo.webp
+```
+
+Full catalog, rows only, against a local database: 2.5 s for the same 1,300 statements.
+
+An interrupted media pass is resumed by re-running **without** `--truncate` — `head()` finds
+every object already uploaded, so the run picks up where it stopped.
 
 ## Idempotency
 
