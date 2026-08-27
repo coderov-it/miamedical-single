@@ -48,6 +48,14 @@ export function contractLayout(props: { title: string; lang: 'it' | 'en'; body: 
   .damage-list td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .deposit-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 12px; }
   .deposit-box strong { display: block; margin-bottom: 4px; }
+  .warning-box { background: #fdf1f0; border: 1px solid #d9534a; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 12px; font-weight: 600; color: #8f2b24; }
+  .intro-line { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 12px; }
+  .clause-critical { color: #b3312a; }
+  .article-body p { margin-bottom: 6px; }
+  .article-body p:last-child { margin-bottom: 0; }
+  .article-body ul { margin: 6px 0 8px 18px; }
+  .article-body li { margin-bottom: 4px; }
+  .bank-details { margin-bottom: 20px; }
   .signature-block { margin-top: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
   .signature-area { border-top: 1px solid ${COLORS.ink}; padding-top: 8px; }
   .signature-area p { font-size: 11px; color: ${COLORS.inkSoft}; }

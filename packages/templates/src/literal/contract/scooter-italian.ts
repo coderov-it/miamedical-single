@@ -1,22 +1,27 @@
-import { articlesIt } from './component/articles.ts';
+import { articlesItScooterDeposit } from './component/articles-it.ts';
+import { bankDetailsIt } from './component/bank-details.ts';
 import { customerInfoIt } from './component/customer-info.ts';
 import { depositClauseIt } from './component/deposit.ts';
 import { contractHeader } from './component/header.ts';
 import { itemsTableIt } from './component/items-table.ts';
 import { contractLayout } from './component/layout.ts';
 import { signatureBlockIt } from './component/signature.ts';
+import { importantNoticeIt } from './component/warning.ts';
 import type { ContractData } from './component/types.ts';
 
 export function scooterItalian(data: ContractData): string {
-  const title = 'Contratto di Noleggio – Scooter Elettrico';
+  const title = 'Contratto di locazione per scooter e carrozzine elettriche';
+  const deposit = data.depositAmount ?? '300,00';
   return contractLayout({
     title,
     lang: 'it',
     body: `${contractHeader({ contractNumber: data.contractNumber, title, date: data.generatedAt })}
 ${customerInfoIt(data.customer)}
 ${itemsTableIt(data.items, data.subtotal, data.shippingTotal, data.total)}
-${depositClauseIt(data.depositAmount ?? '300.00')}
-${articlesIt(data.damages)}
-${signatureBlockIt()}`,
+${bankDetailsIt()}
+${depositClauseIt(deposit)}
+${importantNoticeIt()}
+${articlesItScooterDeposit(data.damages, deposit)}
+${signatureBlockIt(data.signature)}`,
   });
 }

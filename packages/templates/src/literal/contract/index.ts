@@ -7,4 +7,5 @@ export type {
   ContractCustomer,
   ContractRentalItem,
   ContractDamageItem,
+  ContractSignature,
 } from './component/types.ts';

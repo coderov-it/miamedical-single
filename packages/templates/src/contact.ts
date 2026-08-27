@@ -22,6 +22,16 @@ export const CONTACT = {
 } as const;
 
 /**
+ * Bank transfer coordinates printed on the Italian rental contracts, exactly as
+ * they appear on the official documents in `blank-contracts /`.
+ */
+export const BANK = {
+  iban: 'IT80R0569603211000011773X40',
+  accountHolder: 'MIA MEDICAL ITALIA S.R.L.',
+  bankName: 'Banca Popolare di Sondrio',
+} as const;
+
+/**
  * `wa.me` rather than `api.whatsapp.com`: it resolves to the app on a phone and to
  * WhatsApp Web on a desktop, which is the difference between a working button and a
  * dead one for whoever opens the email where.

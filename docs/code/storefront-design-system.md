@@ -587,6 +587,53 @@ attribute. The resets won, and every variant row rendered with no card border
 and no padding while the number/text rows beside them kept theirs. State the
 border and padding once, in `rowCard`.
 
+## The home hero (owner's reference layout, 2026-08-27)
+
+The owner supplied a competitor hero as the layout reference and asked for its
+composition with this system's paint. What that resolved to, decision by
+decision — read this before moving anything in `HomeHero`, `HomeShowcase`,
+`HomeBooking` or `HomeTrustBar`.
+
+**The shape.** One pale `--color-surface` band holds copy left and the featured
+product right; the white booking card straddles the band's bottom edge; the
+trust strip closes under it on white. The straddle is `--hero-overlap`, read
+twice — by the band's bottom padding and by `.hero-foot`'s negative top margin.
+Change one and the card slides off the seam.
+
+**The booking bar moved into the hero** and stopped being a section. There is
+still exactly one search bar on the site; it just lives where the reference puts
+it, and its arrowed section heading became the card's own title.
+
+**Four things the reference does in colour, this system does otherwise:**
+
+| Reference                                     | Here                                                                                      |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Headline lines 2–3 in the second brand colour | Same lines at weight 760. One accent, spent on actions.                                   |
+| Outlined field boxes                          | Filled wells (`--color-surface` on the card's white) — controls are fills, never borders. |
+| A shadow under the price card                 | A hairline. The page's one resting shadow is the booking card's.                          |
+| "BEST PRICE" sticker                          | The same disc, saying something the business can stand behind.                            |
+
+**The booking controls use the shared primitives.** `Dropdown.astro` and
+`DatePicker.astro` render native fields as the server and form source of truth,
+then reveal their restylable controls after JavaScript mounts. Cally owns the
+accessible calendar grid; the shared Floating UI adapter positions temporary
+surfaces without changing document height. On desktop it prefers the bottom,
+flips above when space runs out, and constrains any remaining overflow to the
+viewport. On phones the calendar is a fixed full-screen surface. Every choice
+writes through the native field and dispatches `change`, so `area` and `from`
+reach the catalogue identically with or without JavaScript.
+
+**The zone is no longer `required`.** A `hidden` required control is
+unfocusable, so Chrome refuses the submit and shows the message nowhere — the
+silent block the rules forbid. The zone is carried context, not a filter, and
+the catalogue is complete without it.
+
+**The product never runs under the price card.** `.spot-track img` carries a
+right padding wider than the card's lane, because a photo disappearing behind a
+floating panel reads as a cropped photo. The carousel's arrows and dots sit in
+the image's bottom-left corner — the reference shows one product and needs
+neither; this hero shows three.
+
 ## Deliberate deviations from the prototype
 
 - **Phones keep a bottom navigation.** Variant B hides the inline navigation

@@ -1,0 +1,146 @@
+---
+/**
+ * Reusable single-date picker. The native date input is rendered first and
+ * remains authoritative; Cally supplies the enhanced accessible calendar when
+ * JavaScript loads. This keeps SSR, form submission and no-JavaScript use whole.
+ */
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  value?: string | undefined;
+  min?: string | 'today' | undefined;
+  max?: string | undefined;
+  placeholder?: string | undefined;
+  variant?: 'default' | 'hero' | undefined;
+  class?: string | undefined;
+  describedBy?: string | undefined;
+}
+
+const {
+  id,
+  name,
+  label,
+  value = '',
+  min,
+  max,
+  placeholder = 'Scegli la data',
+  variant = 'default',
+  class: className,
+  describedBy,
+} = Astro.props;
+
+const labelId = `${id}-label`;
+const valueId = `${id}-value`;
+const dialogId = `${id}-dialog`;
+const hasIcon = Astro.slots.has('icon');
+const nativeMin = min === 'today' ? undefined : min;
+---
+
+<div
+  class:list={['core-date-picker', `core-date-picker-${variant}`, className]}
+  data-core-date-picker
+  data-min={min}
+  data-max={max}
+  data-has-icon={hasIcon ? '' : undefined}
+>
+  <label class="core-date-label" id={labelId} for={id}>{label}</label>
+
+  <div class="core-date-control">
+    {
+      hasIcon && (
+        <span class="core-control-icon" aria-hidden="true">
+          <slot name="icon" />
+        </span>
+      )
+    }
+
+    <input
+      class="core-date-native"
+      {id}
+      {name}
+      type="date"
+      value={value || undefined}
+      min={nativeMin}
+      {max}
+      autocomplete="off"
+      aria-labelledby={labelId}
+      aria-describedby={describedBy}
+      data-date-native
+    />
+
+    <button
+      class="core-date-trigger"
+      id={`${id}-trigger`}
+      type="button"
+      hidden
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      aria-controls={dialogId}
+      aria-labelledby={`${labelId} ${valueId}`}
+      data-date-trigger
+    >
+      <span
+        class:list={['core-control-value', !value && 'is-empty']}
+        id={valueId}
+        data-date-value
+        data-placeholder={placeholder}
+      >
+        {placeholder}
+      </span>
+    </button>
+
+    <div
+      class="core-date-popover"
+      id={dialogId}
+      role="dialog"
+      aria-label={label}
+      hidden
+      data-date-popover
+    >
+      <div class="core-date-mobile-head">
+        <strong>{label}</strong>
+        <button type="button" data-date-close aria-label="Chiudi il calendario">Chiudi</button>
+      </div>
+      <calendar-date
+        locale="it-IT"
+        first-day-of-week="1"
+        format-weekday="short"
+        show-outside-days
+        data-date-calendar
+      >
+        <svg
+          slot="previous"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-label="Mese precedente"
+        >
+          <path d="m15 18-6-6 6-6"></path>
+        </svg>
+        <svg
+          slot="next"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-label="Mese successivo"
+        >
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
+        <calendar-month></calendar-month>
+      </calendar-date>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { mountDatePickers } from '~/scripts/primitives/date-picker';
+
+  mountDatePickers();
+</script>

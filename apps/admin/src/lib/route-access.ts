@@ -30,6 +30,9 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { pattern: routes.attributes, requiredAny: [P.ATTRIBUTE_READ] },
   { pattern: routes.terms, requiredAny: [P.TERMS_READ] },
 
+  { pattern: routes.rentals, requiredAny: [P.RENTAL_READ] },
+  { pattern: routes.payments, requiredAny: [P.PAYMENT_READ] },
+
   { pattern: routes.orders, requiredAny: [P.ORDER_READ] },
   { pattern: routePatterns.orderDetail, requiredAny: [P.ORDER_READ] },
   { pattern: routes.contracts, requiredAny: [P.CONTRACT_READ] },

@@ -5,7 +5,6 @@
 -->
 <script lang="ts">
   import { P } from '@mia/permissions';
-  import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
   import BanknoteIcon from '@lucide/svelte/icons/banknote';
   import ClockIcon from '@lucide/svelte/icons/clock';
   import InboxIcon from '@lucide/svelte/icons/inbox';

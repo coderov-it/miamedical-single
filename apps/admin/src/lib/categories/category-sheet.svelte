@@ -54,6 +54,7 @@
 
   let code = $state('');
   let isActive = $state(true);
+  let requiresDeposit = $state(false);
   let icon = $state<string | null>(null);
   let name = $state<Localized>({ it: '' });
   let description = $state<Localized>({ it: '' });
@@ -86,6 +87,7 @@
     if (open === null) {
       code = '';
       isActive = true;
+      requiresDeposit = false;
       icon = null;
       name = { it: '' };
       description = { it: '' };
@@ -96,6 +98,7 @@
 
     code = open.code;
     isActive = open.isActive;
+    requiresDeposit = open.requiresDeposit;
     icon = open.icon;
     name = toLocalized(open.translations.it?.name, open.translations.en?.name);
     description = toLocalized(open.translations.it?.description, open.translations.en?.description);
@@ -176,7 +179,7 @@
     fields = {};
 
     try {
-      const body = { code, isActive, icon, translations: translationsPayload() };
+      const body = { code, isActive, requiresDeposit, icon, translations: translationsPayload() };
 
       // Two calls, because specs have their own PUT. Basics first: a category
       // that does not exist yet has no id to hang specs off.
@@ -293,6 +296,22 @@
               />
               <span class="text-sm text-muted-foreground">
                 {isActive ? 'Visible on the storefront' : 'Hidden'}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <Label class="mb-1.5" for="category-deposit">Security deposit</Label>
+            <div class="flex h-9 items-center gap-2">
+              <Switch
+                id="category-deposit"
+                checked={requiresDeposit}
+                onCheckedChange={(checked) => (requiresDeposit = checked)}
+              />
+              <span class="text-sm text-muted-foreground">
+                {requiresDeposit
+                  ? 'Rentals sign the deposit contract'
+                  : 'Rentals sign the standard contract'}
               </span>
             </div>
           </div>

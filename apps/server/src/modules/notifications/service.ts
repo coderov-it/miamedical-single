@@ -149,6 +149,25 @@ export function sendPasswordReset(input: { email: string; token: string }): Prom
   );
 }
 
+export function sendRentalReminder(input: {
+  email: string;
+  customerName: string;
+  orderNumber: string;
+  productTitle: string;
+  rentalEndDate: string;
+}): Promise<void> {
+  return sendQuietly(
+    templates.rentalReminder({
+      to: input.email,
+      customerName: input.customerName,
+      orderNumber: input.orderNumber,
+      productTitle: input.productTitle,
+      rentalEndDate: input.rentalEndDate,
+    }),
+    `rental reminder for order ${input.orderNumber}`,
+  );
+}
+
 /**
  * Alerts whoever the operator listed under Settings → Notifications. An empty list
  * is a configuration state, not an error: warn and move on, because the dispute

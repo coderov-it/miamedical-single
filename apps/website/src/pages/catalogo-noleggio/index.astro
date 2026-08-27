@@ -10,6 +10,7 @@
 import ProductCard from '~/components/catalog/ProductCard.astro';
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
+import Dropdown from '~/components/primitives/Dropdown.astro';
 import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { listCategories, listProducts, safely, type ProductSort } from '~/lib/catalog';
@@ -164,20 +165,14 @@ const chipClass =
         </span>
       </label>
 
-      <label class="mid:grow-0 flex min-w-0 flex-1 basis-60 flex-col gap-2.25" for="catalog-sort">
-        <span class="field-label">Ordina per</span>
-        <span class="field-control">
-          <select id="catalog-sort" class="font-display text-body font-semibold" name="sort">
-            {
-              SORTS.map((option) => (
-                <option value={option.value} selected={option.value === sort}>
-                  {option.label}
-                </option>
-              ))
-            }
-          </select>
-        </span>
-      </label>
+      <Dropdown
+        id="catalog-sort"
+        name="sort"
+        label="Ordina per"
+        options={SORTS}
+        value={sort}
+        class="mid:grow-0 flex min-w-0 flex-1 basis-60"
+      />
 
       <button
         class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"

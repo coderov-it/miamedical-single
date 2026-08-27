@@ -15,8 +15,8 @@ import { serviceAreaCity } from './site.ts';
 export interface BrowseAnswers {
   /**
    * The delivery city chosen in the home search. Null when the customer came
-   * straight to the catalogue, or picked "Altra zona" — either way there is
-   * nothing to print and the confirmation call settles it.
+   * straight to the catalogue or selected "Altra zona", so there is nothing
+   * specific to print yet.
    *
    * Null far more often than not, which is why null renders nothing at all
    * rather than a placeholder.
