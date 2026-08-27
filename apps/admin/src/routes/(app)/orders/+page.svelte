@@ -34,7 +34,13 @@
 
   const ANY = '__any';
 
-  const query = new QueryState({ q: '', status: ANY, page: 1 });
+  const TYPE_OPTIONS = [
+    { value: ANY, label: 'All' },
+    { value: 'rental', label: 'Noleggio' },
+    { value: 'fixed', label: 'Vendita' },
+  ] as const;
+
+  const query = new QueryState({ q: '', status: ANY, type: ANY, page: 1 });
   const draft = new QueryDraft(query);
 
   const orders = new Resource(
@@ -47,6 +53,7 @@
               page: String(current.page),
               ...(current.q ? { q: current.q } : {}),
               ...(current.status !== ANY ? { status: current.status } : {}),
+              ...(current.type !== ANY ? { type: current.type } : {}),
             },
           },
           { init: { signal } },
@@ -165,6 +172,23 @@
     {/each}
   </div>
 
+  <div class="flex flex-wrap items-center gap-1 rounded-lg border bg-card p-1">
+    {#each TYPE_OPTIONS as opt (opt.value)}
+      {@const active = query.current.type === opt.value}
+      <button
+        type="button"
+        onclick={() => query.set({ type: opt.value })}
+        aria-pressed={active}
+        class={cn(
+          'rounded-md px-2.5 py-1 text-sm font-medium transition-colors',
+          active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+        )}
+      >
+        {opt.label}
+      </button>
+    {/each}
+  </div>
+
   <ListCard
     noun="order"
     meta={orders.data?.meta}
@@ -173,7 +197,7 @@
     isEmpty={rows.length === 0}
     onPage={(next) => query.set({ page: next })}
     onRetry={() => orders.refresh()}
-    skeletonColumns={6}
+    skeletonColumns={7}
   >
     {#snippet filters()}
       <form
@@ -210,6 +234,7 @@
             <Table.Head>Customer</Table.Head>
             <Table.Head>Status</Table.Head>
             <Table.Head>Payment</Table.Head>
+            <Table.Head>Contract</Table.Head>
             <Table.Head class="text-right">Items</Table.Head>
             <Table.Head>Placed</Table.Head>
             <Table.Head class="text-right">Total</Table.Head>
@@ -227,6 +252,21 @@
               <Table.Cell class="text-muted-foreground">{order.email}</Table.Cell>
               <Table.Cell><StatusBadge status={order.status} dot /></Table.Cell>
               <Table.Cell><StatusBadge status={order.paymentStatus} kind="payment" /></Table.Cell>
+              <Table.Cell>
+                <!-- Only rentals owe a contract, so a sale shows a dash rather
+                     than a warning it could never clear. -->
+                {#if !order.hasRental}
+                  <span class="text-muted-foreground">—</span>
+                {:else if order.contractStatus === 'signed'}
+                  <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    Signed
+                  </span>
+                {:else}
+                  <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    Not signed
+                  </span>
+                {/if}
+              </Table.Cell>
               <Table.Cell class="text-right tabular-nums">{order.itemCount}</Table.Cell>
               <Table.Cell class="text-muted-foreground">
                 <span title={formatDate(order.placedAt)}>{relativeTime(order.placedAt)}</span>

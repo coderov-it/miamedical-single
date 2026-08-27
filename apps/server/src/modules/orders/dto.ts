@@ -70,7 +70,7 @@ export interface OrderDeliveryDto {
 
 export interface OrderEventDto {
   id: string;
-  field: 'status' | 'paymentStatus' | 'customerLink';
+  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract';
   fromValue: string | null;
   toValue: string;
   note: string | null;
@@ -100,6 +100,10 @@ export interface AdminOrderSummaryDto {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   itemCount: number;
+  /** True when any line is rented — the case where a signed contract is owed. */
+  hasRental: boolean;
+  /** The newest non-voided contract's status, so the list can say "contract not signed". */
+  contractStatus: string | null;
   total: string;
   currency: string;
   placedAt: string;

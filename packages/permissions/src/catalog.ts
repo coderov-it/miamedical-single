@@ -28,6 +28,10 @@
  * | 1800  | Content (terms documents)   |
  * | 1900  | Attributes (preset library) |
  * | 2000  | Delivery zones              |
+ * | 2100  | Contracts                   |
+ * | 2200  | Blog                        |
+ * | 2300  | Rentals                     |
+ * | 2400  | Payments                    |
  */
 
 export interface PermissionDefinition {
@@ -55,6 +59,8 @@ export const PERMISSION_GROUPS = [
   'Delivery',
   'Contracts',
   'Blog',
+  'Rentals',
+  'Payments',
 ] as const;
 
 export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
@@ -298,6 +304,33 @@ export const PERMISSION_DEFINITIONS = {
     key: 'blog:category:manage',
     label: 'Manage blog categories',
     group: 'Blog',
+  },
+  // --- 2300 · rentals --------------------------------------------------------
+  RENTAL_READ: {
+    code: 2300,
+    key: 'rental:read',
+    label: 'View rent management',
+    group: 'Rentals',
+  },
+  RENTAL_UPDATE: {
+    code: 2301,
+    key: 'rental:update',
+    label: 'Manage active rentals',
+    group: 'Rentals',
+  },
+
+  // --- 2400 · payments -------------------------------------------------------
+  PAYMENT_READ: {
+    code: 2400,
+    key: 'payment:read',
+    label: 'View payments',
+    group: 'Payments',
+  },
+  PAYMENT_UPDATE: {
+    code: 2401,
+    key: 'payment:update',
+    label: 'Update payments',
+    group: 'Payments',
   },
 } as const satisfies Record<string, PermissionDefinition>;
 

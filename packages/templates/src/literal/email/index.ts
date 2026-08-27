@@ -34,3 +34,4 @@ export { orderPlacedNewAccount } from './order-placed-new-account.ts';
 export { passwordReset } from './password-reset.ts';
 export { contractReady } from './contract-ready.ts';
 export { contractSigned } from './contract-signed.ts';
+export { rentalReminder } from './rental-reminder.ts';

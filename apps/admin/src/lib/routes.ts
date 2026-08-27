@@ -24,6 +24,9 @@ export const routes = {
   /** The queue with a detail drawer open — deep-linkable and refresh-safe. */
   ordersWithDrawer: (id: string) => `/orders?order=${id}`,
 
+  rentals: '/rentals',
+  payments: '/payments',
+
   contracts: '/contracts',
   contractNew: '/contracts/new',
   contractDetail: (id: string) => `/contracts/${id}`,

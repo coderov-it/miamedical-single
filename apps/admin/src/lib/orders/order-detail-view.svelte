@@ -20,7 +20,6 @@
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
-  import { Separator } from '$lib/components/ui/separator/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -43,7 +42,6 @@
     orderStatusMeta,
     paymentStatusMeta,
     type OrderStatus,
-    type PaymentStatus,
   } from '~/lib/orders/status';
   import { errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
@@ -113,18 +111,6 @@
     );
   }
 
-  function movePayment(to: PaymentStatus) {
-    void run(
-      `payment:${to}`,
-      () =>
-        api.api.admin.orders[':id'].payment.$post({
-          param: { id: order.id },
-          json: { to, ...notePayload() },
-        }),
-      (updated) =>
-        `Payment is now ${paymentStatusMeta(updated.paymentStatus).label.toLowerCase()}.`,
-    );
-  }
 
   const addresses = $derived(
     [
@@ -220,7 +206,14 @@
     status: 'Status',
     paymentStatus: 'Payment',
     customerLink: 'Account link',
+    contract: 'Contract',
   };
+
+  function eventMeta(field: string, toValue: string) {
+    if (field === 'status') return orderStatusMeta(toValue);
+    if (field === 'contract') return contractStatusMeta(toValue);
+    return paymentStatusMeta(toValue);
+  }
 
   const CUSTOMER_LINK_LABELS: Record<string, string> = {
     unverified: 'Account matched by email · unconfirmed',
@@ -244,22 +237,30 @@
     return `${span} · ${rental.duration} ${pluralize(rental.duration, rental.unit)}`;
   }
 
-  type ContractSummary = InferResponseType<
+  type ContractSummaries = InferResponseType<
     (typeof api.api.admin.contracts)['by-order'][':orderId']['$get'],
     200
   >['data'];
 
-  const orderContract = new Resource(
+  const orderContracts = new Resource(
     () => order.id,
-    async (id, signal) => {
-      const res = await api.api.admin.contracts['by-order'][':orderId'].$get(
-        { param: { orderId: id } },
-        { init: { signal } },
-      );
-      const json = (await res.json()) as { data: ContractSummary };
-      return json.data;
-    },
+    async (id, signal) =>
+      unwrap<ContractSummaries>(
+        await api.api.admin.contracts['by-order'][':orderId'].$get(
+          { param: { orderId: id } },
+          { init: { signal } },
+        ),
+      ),
     { enabled: () => session.can(P.CONTRACT_READ) },
+  );
+
+  /** Whether anything on this order is rented — the case where a contract is owed. */
+  const hasRental = $derived(
+    order.items.some((item) => item.configuration?.pricingMode === 'rental'),
+  );
+  /** Newest first from the server; the first non-voided one is the live one. */
+  const liveContract = $derived(
+    orderContracts.data?.find((contract) => contract.status !== 'voided') ?? null,
   );
 
   let generating = $state(false);
@@ -267,9 +268,9 @@
   async function generateContract() {
     generating = true;
     try {
-      await api.api.admin.contracts.generate.$post({ json: { orderId: order.id } });
-      orderContract.refresh();
-      toast.success('Contract generated.');
+      await unwrap(await api.api.admin.contracts.generate.$post({ json: { orderId: order.id } }));
+      orderContracts.refresh();
+      toast.success('Contract generated and sent for signing.');
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -483,10 +484,7 @@
           {:else}
             <ol class="space-y-0">
               {#each order.events as event, index (event.id)}
-                {@const meta =
-                  event.field === 'status'
-                    ? orderStatusMeta(event.toValue)
-                    : paymentStatusMeta(event.toValue)}
+                {@const meta = eventMeta(event.field, event.toValue)}
                 <li class="flex gap-3">
                   <div class="flex flex-col items-center">
                     <span class={cn('mt-1.5 size-2 shrink-0 rounded-full', meta.dot)}></span>
@@ -621,26 +619,37 @@
         </Card.Root>
       {/if}
 
-      <!-- Contract -->
+      <!-- Contract. Renewals stack up, so this card reads as a history: the
+           live contract on top, every earlier one dated beneath it. -->
       <Card.Root class="gap-0 py-0">
         <div class="border-b px-4 py-2.5 text-sm font-medium">Contract</div>
         <div class="p-4 text-sm">
-          {#if orderContract.loading && !orderContract.data}
+          {#if orderContracts.loading && !orderContracts.data}
             <p class="text-muted-foreground">Loading…</p>
-          {:else if orderContract.data}
-            {@const oc = orderContract.data}
-            {@const cMeta = contractStatusMeta(oc.status)}
+          {:else if liveContract}
+            {@const cMeta = contractStatusMeta(liveContract.status)}
             <div class="space-y-2">
               <div class="flex items-center gap-2">
                 <Badge variant="outline" class={cMeta.tone}>
                   <span class={cn('size-1.5 rounded-full', cMeta.dot)}></span>
                   {cMeta.label}
                 </Badge>
-                <span class="font-mono text-xs text-muted-foreground">{oc.number}</span>
+                <span class="font-mono text-xs text-muted-foreground">{liveContract.number}</span>
               </div>
-              <p class="text-muted-foreground">{variantLabel(oc.variant)}</p>
+              <p class="text-muted-foreground">{variantLabel(liveContract.variant)}</p>
+              {#if liveContract.status !== 'signed'}
+                <!-- The one fact an operator must not miss: no signature, no
+                     money and no goods. It gates "Mark paid" on the server. -->
+                <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  Contract not signed — the order cannot be marked paid yet.
+                </p>
+              {:else}
+                <p class="text-xs text-muted-foreground">
+                  Signed {liveContract.signedAt ? formatDateTime(liveContract.signedAt) : ''}
+                </p>
+              {/if}
               <Button
-                href={routes.contractDetail(oc.id)}
+                href={routes.contractDetail(liveContract.id)}
                 variant="outline"
                 size="sm"
                 class="w-full"
@@ -648,10 +657,39 @@
                 <FileSignatureIcon class="size-4" />
                 View contract
               </Button>
+
+              {#if (orderContracts.data?.length ?? 0) > 1}
+                <div class="space-y-1 border-t pt-2">
+                  <p class="text-xs font-medium text-muted-foreground">History</p>
+                  {#each orderContracts.data ?? [] as history (history.id)}
+                    {#if history.id !== liveContract.id}
+                      {@const hMeta = contractStatusMeta(history.status)}
+                      <p class="flex items-center gap-2 text-xs">
+                        <a
+                          href={routes.contractDetail(history.id)}
+                          class="font-mono hover:underline"
+                        >
+                          {history.number}
+                        </a>
+                        <span class={hMeta.tone}>{hMeta.label}</span>
+                        <span class="ml-auto text-muted-foreground">
+                          {formatDate(history.createdAt)}
+                        </span>
+                      </p>
+                    {/if}
+                  {/each}
+                </div>
+              {/if}
             </div>
+          {:else if !hasRental}
+            <p class="text-muted-foreground">
+              Nothing on this order is rented, so no rental contract applies.
+            </p>
           {:else}
             <div class="space-y-2">
-              <p class="text-muted-foreground">No contract generated for this order.</p>
+              <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                Contract not signed — no contract has been generated for this rental.
+              </p>
               {#if session.can(P.CONTRACT_CREATE)}
                 <Button
                   variant="outline"
@@ -710,11 +748,10 @@
     </div>
 
     <div class="space-y-3 p-4">
-      {#if order.allowedStatuses.length === 0 && order.allowedPaymentStatuses.length === 0}
+      {#if order.allowedStatuses.length === 0}
         <p class="text-sm text-muted-foreground">
-          This order is {orderStatusMeta(order.status).label.toLowerCase()} and its payment is
-          {paymentStatusMeta(order.paymentStatus).label.toLowerCase()}. There is nothing left to
-          move.
+          This order is {orderStatusMeta(order.status).label.toLowerCase()}. There is nothing left
+          to move.
         </p>
       {:else}
         <Textarea
@@ -735,22 +772,6 @@
             >
               {#if busy === `status:${to}`}<Spinner />{/if}
               Mark {orderStatusMeta(to as OrderStatus).label.toLowerCase()}
-            </Button>
-          {/each}
-
-          {#if order.allowedStatuses.length > 0 && order.allowedPaymentStatuses.length > 0}
-            <Separator orientation="vertical" class="h-6" />
-          {/if}
-
-          {#each order.allowedPaymentStatuses as to (to)}
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={!canUpdate || busy !== null}
-              onclick={() => movePayment(to as PaymentStatus)}
-            >
-              {#if busy === `payment:${to}`}<Spinner />{/if}
-              Payment: {paymentStatusMeta(to as PaymentStatus).label.toLowerCase()}
             </Button>
           {/each}
         </div>

@@ -25,6 +25,7 @@ import type {
   OrderAggregate,
   OrderListFilters,
   OrderStatusEventRecord,
+  AdminOrderSummaryRecord,
   OrderSummaryRecord,
 } from './types.ts';
 
@@ -39,9 +40,16 @@ function orderWhere(filters: OrderListFilters) {
   }
   if (filters.status) clauses.push(eq(orders.status, filters.status));
   if (filters.paymentStatus) clauses.push(eq(orders.paymentStatus, filters.paymentStatus));
+  if (filters.type) {
+    clauses.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${orderItems} oi
+        WHERE oi.order_id = ${orders.id}
+          AND oi.configuration->>'pricingMode' = ${filters.type}
+      )`,
+    );
+  }
   if (filters.from) clauses.push(gte(orders.placedAt, new Date(`${filters.from}T00:00:00.000Z`)));
-  // Exclusive upper bound on the *next* day, so `to` includes the whole day it
-  // names — `<= 2026-08-07` would otherwise drop everything after midnight.
   if (filters.to) clauses.push(lt(orders.placedAt, nextDay(filters.to)));
 
   return clauses.length > 0 ? and(...clauses) : undefined;
@@ -56,7 +64,7 @@ function nextDay(date: string): Date {
 export async function findMany(
   db: Database,
   filters: OrderListFilters,
-): Promise<{ rows: OrderSummaryRecord[]; total: number }> {
+): Promise<{ rows: AdminOrderSummaryRecord[]; total: number }> {
   const where = orderWhere(filters);
 
   // LEFT JOIN + GROUP BY rather than a correlated subquery in `sql`: drizzle
@@ -67,7 +75,20 @@ export async function findMany(
   // columns through on functional dependency, and LIMIT still counts orders.
   const [rows, totals] = await Promise.all([
     db
-      .select({ order: orders, itemCount: count(orderItems.id) })
+      .select({
+        order: orders,
+        itemCount: count(orderItems.id),
+        // Whether anything on the order is rented — the fact that decides if a
+        // missing/unsigned contract is a problem worth flagging on the list.
+        hasRental: sql<boolean>`COALESCE(bool_or(${orderItems.configuration}->>'pricingMode' = 'rental'), false)`,
+        // The newest live contract's status. Voided ones are dead paper, so
+        // they fall back to the contract they replaced rather than masking it.
+        contractStatus: sql<string | null>`(
+          SELECT c.status FROM contracts c
+          WHERE c.order_id = ${orders.id} AND c.status <> 'voided'
+          ORDER BY c.created_at DESC LIMIT 1
+        )`,
+      })
       .from(orders)
       .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
       .where(where)
@@ -79,7 +100,12 @@ export async function findMany(
   ]);
 
   return {
-    rows: rows.map((row) => ({ ...row.order, itemCount: row.itemCount })),
+    rows: rows.map((row) => ({
+      ...row.order,
+      itemCount: row.itemCount,
+      hasRental: row.hasRental,
+      contractStatus: row.contractStatus,
+    })),
     total: totals[0]?.value ?? 0,
   };
 }
@@ -518,6 +544,33 @@ export async function applyTransition(db: Database, event: StatusEventData): Pro
       .set({ [event.field]: event.toValue })
       .where(eq(orders.id, event.orderId));
     await tx.insert(orderStatusEvents).values(event);
+  });
+}
+
+export interface ContractEventData {
+  orderId: string;
+  fromValue: string | null;
+  /** A contract status — `sent`, `signed` — so the timeline can badge it. */
+  toValue: string;
+  note: string | null;
+  actorAdminUserId?: string | null;
+}
+
+/**
+ * A contract milestone on the order's timeline. Unlike `applyTransition` this
+ * writes no order column — the contract's own row is the source of truth for
+ * its status; the event exists so "the customer signed" reads in the same place
+ * every other fact about the order does.
+ */
+export async function insertContractEvent(db: Database, event: ContractEventData): Promise<void> {
+  await db.insert(orderStatusEvents).values({
+    orderId: event.orderId,
+    field: 'contract',
+    fromValue: event.fromValue,
+    toValue: event.toValue,
+    note: event.note,
+    actorAdminUserId: event.actorAdminUserId ?? null,
+    actorCustomerAccountId: null,
   });
 }
 

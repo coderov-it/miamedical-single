@@ -33,6 +33,14 @@ export interface OrderSummaryRecord extends OrderRow {
   itemCount: number;
 }
 
+/** The admin list row: the summary plus what the contract column reads. */
+export interface AdminOrderSummaryRecord extends OrderSummaryRecord {
+  /** True when any line is rented — the case where a contract is owed. */
+  hasRental: boolean;
+  /** The newest non-voided contract's status, or null when none exists. */
+  contractStatus: string | null;
+}
+
 export interface OrderAggregate extends OrderRow {
   items: OrderItemRow[];
   events: OrderStatusEventRecord[];
@@ -65,6 +73,7 @@ export interface OrderListFilters {
   q?: string | undefined;
   status?: OrderRow['status'] | undefined;
   paymentStatus?: OrderRow['paymentStatus'] | undefined;
+  type?: 'rental' | 'fixed' | undefined;
   /** Inclusive ISO dates against `placedAt`. */
   from?: string | undefined;
   to?: string | undefined;

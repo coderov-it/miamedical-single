@@ -34,11 +34,14 @@ const DateOnlySchema = v.pipe(
   v.regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.'),
 );
 
+export const PricingModeSchema = v.picklist(['rental', 'fixed']);
+
 export const AdminOrderQuerySchema = v.object({
   ...PaginationSchema.entries,
   q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
   status: v.optional(OrderStatusSchema),
   paymentStatus: v.optional(PaymentStatusSchema),
+  type: v.optional(PricingModeSchema),
   from: v.optional(DateOnlySchema),
   to: v.optional(DateOnlySchema),
 });
