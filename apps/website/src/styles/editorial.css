@@ -313,6 +313,7 @@
  */
 .hero {
   --hero-overlap: 76px;
+  --spot-control-size: 46px;
 }
 
 .hero-band {
@@ -418,6 +419,11 @@
     grid-template-columns: minmax(0, 1fr) minmax(440px, 1.06fr);
     column-gap: 44px;
   }
+
+  /* Center the copy against the product area above the carousel controls. */
+  .hero-copy {
+    margin-bottom: var(--spot-control-size);
+  }
 }
 
 /* ============ the showcase — the product on the bare band ============ */
@@ -472,8 +478,8 @@
 .spot-arrow {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  width: var(--spot-control-size);
+  height: var(--spot-control-size);
   border: 1px solid var(--color-line);
   border-radius: 999px;
   background: #fff;
