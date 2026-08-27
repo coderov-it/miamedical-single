@@ -24,7 +24,6 @@
 .site-head,
 .site-foot,
 .hero,
-.booking,
 .categories,
 .trending,
 .how,
@@ -64,35 +63,13 @@
    normal tracking; each one sets its own weight. `:where()` keeps this at zero
    specificity, so any blueprint class (`.section-title`, `.foot-heading`) still
    wins its own tracking. */
-:where(
-    .site-head,
-    .site-foot,
-    .hero,
-    .booking,
-    .categories,
-    .trending,
-    .how,
-    .delivery,
-    .testimonials,
-    .faq
-  )
+:where(.site-head, .site-foot, .hero, .categories, .trending, .how, .delivery, .testimonials, .faq)
   :is(h1, h2, h3) {
   font-family: var(--font-ui);
   letter-spacing: normal;
 }
 
-:where(
-    .site-head,
-    .site-foot,
-    .hero,
-    .booking,
-    .categories,
-    .trending,
-    .how,
-    .delivery,
-    .testimonials,
-    .faq
-  )
+:where(.site-head, .site-foot, .hero, .categories, .trending, .how, .delivery, .testimonials, .faq)
   button {
   cursor: pointer;
 }
@@ -142,13 +119,11 @@
   inset: -14px -4px;
 }
 
-/* The bar itself carries the focus treatment (`.search-bar:focus-within`), so
-   the controls inside surrender BOTH paints of the global ring — the same
-   two-declaration opt-out `.field-control` documents in app.css. */
-.bar-cell :focus-visible {
-  outline: none;
-  box-shadow: none;
-}
+/* The search bar used to draw focus as a border colour on itself, and the
+   controls inside surrendered both paints of the global ring to it. The bar has
+   no border of its own any more — the booking card owns it — and a card-sized
+   frame does not say WHICH field is focused (SC 2.4.13), so the global two-paint
+   ring is back on the controls. Do not opt out of it here again. */
 
 /* ---------------------------------------------------------------- shared --- */
 
@@ -328,15 +303,33 @@
   }
 }
 
-/* ============ hero — copy left, showcase right ============ */
+/* ============ hero — pale band, copy left, product right ============ */
+
+/*
+ * The band IS the stage: the product stands directly on it with no panel, and
+ * the booking card straddles its bottom edge. `--hero-overlap` is that
+ * straddle, read once by the band's bottom padding and once by the foot's
+ * pull-up — move one without the other and the card slides off the seam.
+ */
 .hero {
-  padding-top: 56px;
+  --hero-overlap: 76px;
+}
+
+.hero-band {
+  background: var(--color-surface);
+  padding-block: 48px calc(var(--hero-overlap) + 18px);
 }
 
 .hero-grid {
   display: grid;
   align-items: center;
-  gap: 44px;
+  gap: 40px;
+}
+
+.hero-foot {
+  position: relative;
+  margin-top: calc(var(--hero-overlap) * -1);
+  padding-bottom: 36px;
 }
 
 .hero-kicker {
@@ -348,6 +341,23 @@
   color: var(--color-ink-soft);
 }
 
+/* The short accent rule that opens the hero. Its own class, not `.hero-kicker`,
+   because the testimonial band borrows that kicker and must not grow a rule. */
+.kicker-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kicker-rule::before {
+  content: '';
+  flex: none;
+  width: 34px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--color-accent);
+}
+
 .hero-display {
   font-size: clamp(2.5rem, 4.6vw, 3.875rem);
   line-height: 1.04;
@@ -355,54 +365,75 @@
   letter-spacing: -0.032em;
 }
 
+/* The reference paints its last two lines in a second brand colour; this system
+   has one accent and spends it on actions, so the same emphasis is carried by
+   weight. */
 .hero-display strong {
   font-weight: 760;
 }
 
 .hero-sub {
-  max-width: 54ch;
+  max-width: 52ch;
   margin-top: 22px;
   font-size: 1.0625rem;
   line-height: 1.65;
   color: var(--color-ink-soft);
 }
 
-.hero-cta {
-  margin-top: 32px;
+/* three service facts where the reference puts them — under the paragraph, in
+   one wrapping row, no button between them and the booking card */
+.hero-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 30px;
+  list-style: none;
+}
+
+/* 14px, the one step down in this row: three facts on one line is the
+   reference's shape, and at 15px the third wraps out of this column. */
+.hero-features li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.hero-features svg {
+  flex: none;
+  color: var(--color-accent);
 }
 
 @media (min-width: 1100px) {
   .hero {
-    padding-top: 72px;
+    --hero-overlap: 84px;
+  }
+
+  .hero-band {
+    padding-block: 60px calc(var(--hero-overlap) + 20px);
   }
 
   .hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(440px, 0.95fr);
-    column-gap: 72px;
+    grid-template-columns: minmax(0, 1fr) minmax(440px, 1.06fr);
+    column-gap: 44px;
   }
 }
 
-/* ============ the showcase — one pale surface, no box-in-box ============ */
-.spot {
-  position: relative;
-  padding: 22px 22px 26px;
-  border-radius: var(--radius-stage);
-  background: var(--color-surface);
-}
-
+/* ============ the showcase — the product on the bare band ============ */
+.spot,
 .spot-stage {
   position: relative;
 }
 
 .spot-window {
   overflow: hidden;
-  border-radius: 20px;
 }
 
 .spot-track {
   /* embla core drives the transform — no CSS transition on it, ever */
   display: flex;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 5 / 4;
   touch-action: pan-y pinch-zoom;
 }
 
@@ -410,8 +441,8 @@
   min-width: 100%;
   display: grid;
   place-items: center;
-  /* the sliding transform isolates blending, so each slide carries the
-     surface color itself — multiply then melts the photo's white into it */
+  /* the sliding transform isolates blending, so each slide carries the band
+     color itself — multiply then melts the photo's white into it */
   background: var(--color-surface);
 }
 
@@ -420,14 +451,25 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 10px 18px 34px; /* the dots live in the bottom lane */
+  /* the bottom lane belongs to the controls */
+  padding: 4px 8px 46px;
   mix-blend-mode: multiply;
 }
 
-.spot-arrow {
+/* Arrows and dots travel together in the image's bottom-left corner. The
+   reference shows one product and needs neither; ours shows three, and the
+   corner is the only lane the floating deck does not claim. */
+.spot-controls {
   position: absolute;
-  top: 50%;
-  translate: 0 -50%;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+}
+
+.spot-arrow {
   display: grid;
   place-items: center;
   width: 46px;
@@ -440,24 +482,14 @@
 }
 
 .spot-arrow:hover {
-  border-color: var(--color-ink-soft);
-}
-
-.spot-arrow[data-spot-prev] {
-  left: -6px;
-}
-
-.spot-arrow[data-spot-next] {
-  right: -6px;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .spot-dots {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  translate: -50% 0;
   display: flex;
   gap: 8px;
+  margin-left: 6px;
 }
 
 .spot-dots button {
@@ -476,60 +508,136 @@
   background: var(--color-accent);
 }
 
-.meta-deck {
+/*
+ * The price card — the owner's reference card, one per slide, stacked in a
+ * single grid cell so the deck never resizes as the carousel moves.
+ *
+ * Badge, rate, claim. No product name and no button: the whole card is the
+ * link, and the name would push the rate — the card's actual subject — down
+ * and out of the shape the reference draws.
+ *
+ * White on a hairline rather than white on a shadow: the page's one resting
+ * shadow belongs to the booking card below, and on the pale band a hairline is
+ * all the separation a white panel needs.
+ */
+.spot-deck {
   display: grid;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
-.meta-deck > div {
+.spot-card {
+  position: relative;
   grid-area: 1 / 1;
   visibility: hidden;
-  padding-inline: 6px;
-}
-
-.meta-deck > div.is-active {
-  visibility: visible;
-}
-
-.spot-name {
-  display: block;
-  font-size: 1.1875rem;
-  line-height: 1.35;
-  font-weight: 650;
+  padding: 24px 20px 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  background: #fff;
+  text-align: center;
   text-decoration: none;
 }
 
-.spot-name:hover {
-  color: var(--color-accent);
+.spot-card.is-active {
+  visibility: visible;
 }
 
-.spot-offer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 16px;
-  margin-top: 14px;
+/* the reference's round sticker, overlapping the card's top right corner */
+.spot-badge {
+  position: absolute;
+  top: -24px;
+  /* far enough out that the disc clears the centred eyebrow under it at every
+     card width — it may overlap the corner, never the words */
+  right: -26px;
+  display: grid;
+  place-content: center;
+  width: 82px;
+  height: 82px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-.spot-price {
-  font-size: 1rem;
+.spot-from {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--color-ink-soft);
 }
 
-.spot-price strong {
-  margin-right: 5px;
-  font-size: 2.125rem;
-  font-weight: 750;
-  letter-spacing: -0.02em;
+.spot-money {
+  display: block;
+  margin-top: 4px;
+  font-size: 2.375rem;
+  line-height: 1.1;
+  font-weight: 780;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink);
+}
+
+/* the reference paints this line in its second brand colour; here that is the
+   one accent, and a unit is not an action, so it is the single place on the
+   card the accent appears as text */
+.spot-unit {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* the reference's solid "ALL INCLUDED" tab — navy, which is this system's ink */
+.spot-chip {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.spot-card:hover .spot-chip {
+  background: var(--color-accent);
 }
 
 .spot-arrow:focus-visible,
 .spot-dots button:focus-visible {
   outline: 3px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+@media (min-width: 1100px) {
+  /* the deck floats over the product's lower right, as in the reference; the
+     image's right padding walks the product out from under it */
+  /* the deck lifts out of the flow and floats over the product's lower
+     right, as in the reference; `.spot` is its frame */
+  .spot-deck {
+    position: absolute;
+    right: -8px;
+    bottom: 12%;
+    width: 210px;
+    margin-top: 0;
+  }
+
+  /* Right: the card's lane, wide enough that the product NEVER runs under the
+     card — a photo that disappears behind it reads as cropped. Bottom: the
+     controls' lane. */
+  .spot-track img {
+    padding: 4px 202px 56px 0;
+  }
 }
 
 /* the page's section heading — a sentence with a long arrow */
@@ -547,34 +655,69 @@
   margin-top: 3px;
 }
 
-/* ============ booking — arrowed heading, one segmented bar ============ */
-.booking {
-  padding-block: 88px 96px;
+/* Stacked, the deck is a plain card under the product and the stage stops
+   growing with the column — a full-width 4:3 photo swallows a tablet. */
+@media (max-width: 1099px) {
+  .spot {
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  /* the badge hangs off the card's corner and the deck is in flow here, so the
+     card keeps clear of the column's right edge */
+  .spot-deck {
+    padding-right: 30px;
+  }
+
+  /* `width` and not `max-width` alone: the card has to actually reach 300px,
+     or the centred eyebrow drifts right and the badge lands on top of it */
+  .spot-card {
+    width: 100%;
+    max-width: 300px;
+    margin-inline: auto;
+  }
 }
 
-.search-bar {
-  display: grid;
-  margin-top: 24px;
-  padding: 8px;
+/* ============ booking — the white card straddling the hero band ============ */
+
+/*
+ * The page's one search bar and its one resting shadow. It used to be a section
+ * of its own under an arrowed heading; on 2026-08-27 it moved inside the hero,
+ * where the reference puts it, and took its question with it. The heading is
+ * the card's own title now, so it drops the section arrow.
+ */
+.booking-card {
+  position: relative;
+  padding: 22px 24px 24px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-bar);
   background: #fff;
   box-shadow: var(--shadow-whisper);
+}
+
+.booking-title {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.search-bar {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
   text-align: left;
 }
 
+/* A cell is a micro-label over one bounded field, the reference's shape. The
+   hairline dividers this bar used to segment itself with are gone: they made
+   three answers read as one long strip, and the owner asked for a clearly
+   separate area per question. */
 .bar-cell {
+  position: relative;
   display: grid;
-  align-content: center;
-  gap: 3px;
-  padding: 10px 20px;
-  cursor: text;
-}
-
-/* Each cell is a <label>, so its gutters and its micro-label focus the field —
-   the cursor says so. A cell holding a picker keeps the arrow. */
-.bar-cell:has(:is(select, [type='date'])) {
-  cursor: default;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
 }
 
 .bar-label {
@@ -585,61 +728,84 @@
   color: var(--color-ink-soft);
 }
 
-.bar-cell input,
-.bar-cell select {
+/* THE FIELD IS A FILL, NEVER A BORDER (owner rule, 2026-08-19): grey on the
+   card's white, going white on focus. The reference draws these as outlined
+   boxes; this system says the same thing with figure and ground. */
+.bar-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding-inline: 14px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  text-align: left;
+  cursor: text;
   width: 100%;
+}
+
+.bar-field:hover {
+  background: var(--color-surface-2);
+}
+
+.bar-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--color-ink-soft);
+}
+
+.bar-field input {
   min-width: 0;
+  flex: 1;
   border: 0;
   padding: 0;
   background: transparent;
+  color: inherit;
+  font-family: inherit;
   font-size: 1.0625rem;
   font-weight: 600;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.search-bar:focus-within {
-  border-color: var(--color-accent);
-}
-
-.bar-cell input::placeholder {
+.bar-field input::placeholder {
   color: var(--color-ink-soft);
   font-weight: 500;
   opacity: 1;
 }
 
-.bar-cell select {
-  appearance: none;
-  padding-right: 24px;
+/* The field is the focus surface — it is the size of the control, which a
+   ring around the bare text is not. The paints are the project's two, so
+   whatever is inside surrenders both (see the note in the 48px block above). */
+.bar-field:has(:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff;
+  background: #fff;
 }
 
-.bar-cell select:invalid {
-  color: var(--color-ink-soft);
-  font-weight: 500;
-}
-
-.select-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.select-wrap svg {
-  position: absolute;
-  right: 2px;
-  pointer-events: none;
-  color: var(--color-ink-soft);
+.bar-field :focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .bar-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   border: 0;
   border-radius: var(--radius-control);
   background: var(--color-accent);
   color: #fff;
   font-size: 1.0625rem;
   font-weight: 600;
-  padding-inline: 40px;
-  min-height: 58px;
+  padding-inline: 30px;
+  min-height: 54px;
 }
 
 .bar-submit:hover {
@@ -648,21 +814,55 @@
 
 @media (min-width: 1020px) {
   .search-bar {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr) auto;
-  }
-
-  .bar-cell + .bar-cell {
-    border-left: 1px solid var(--color-line);
-  }
-}
-
-@media (max-width: 1019px) {
-  .bar-cell + .bar-cell {
-    border-top: 1px solid var(--color-line);
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 14px;
   }
 
   .bar-submit {
-    margin-top: 8px;
+    margin-left: 4px;
+  }
+}
+
+/* ============ the hero's closing facts ============ */
+
+/* Five claims in one row under the card — the last thing the hero says. */
+.trust-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  margin-top: 34px;
+  list-style: none;
+}
+
+.trust-bar li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.875rem;
+  color: var(--color-ink-soft);
+}
+
+.trust-bar strong {
+  font-weight: 650;
+  color: var(--color-ink);
+}
+
+.trust-bar svg {
+  flex: none;
+  color: var(--color-accent);
+}
+
+/* the rating keeps the testimonial band's gold — a grey star reads as unrated */
+.trust-bar li:first-child svg {
+  color: #f5a623;
+}
+
+@media (min-width: 1100px) {
+  .trust-bar {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 18px;
   }
 }
 

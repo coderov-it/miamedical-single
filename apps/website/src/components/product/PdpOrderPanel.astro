@@ -37,8 +37,8 @@ interface Props {
   today: string;
   /**
    * The delivery city the customer chose in the home search, carried here by
-   * the browse links. Null when they came straight to the catalogue, or chose
-   * "Altra zona" — either way there is nothing to print and the call settles it.
+   * the browse links. Null when they came straight to the catalogue or selected
+   * "Altra zona".
    */
   deliveryCity?: string | null;
   /** A start date carried from the home search, already checked as orderable. */
