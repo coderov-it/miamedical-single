@@ -13,3 +13,5 @@ export * from './customer.ts';
 export * from './contract.ts';
 export * from './blog.ts';
 export * from './admin-user.ts';
+export * from './rental.ts';
+export * from './payment.ts';

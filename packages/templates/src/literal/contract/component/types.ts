@@ -32,6 +32,18 @@ export interface ContractDamageItem {
   amount: string;
 }
 
+/**
+ * The customer's drawn signature, present only when rendering an already-signed
+ * contract. The signing page itself renders the blank block — this is for the
+ * copy an operator previews or prints afterwards.
+ */
+export interface ContractSignature {
+  /** PNG data URL captured on the signing pad. */
+  imageDataUrl: string;
+  /** YYYY-MM-DD of the signature. */
+  signedAt: string;
+}
+
 export interface ContractData {
   contractNumber: string;
   /** Null for manual contracts, which have no storefront order behind them. */
@@ -46,4 +58,5 @@ export interface ContractData {
   depositAmount: string | null;
   damages: ContractDamageItem[];
   generatedAt: string;
+  signature?: ContractSignature | null;
 }

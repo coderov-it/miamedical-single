@@ -44,6 +44,7 @@ export async function create(db: Database, storage: FileUploader, input: CreateC
     code: input.code,
     position: input.position,
     isActive: input.isActive,
+    requiresDeposit: input.requiresDeposit,
     translations: normalizeTranslations(input.translations),
   });
   if (input.icon) {
@@ -69,6 +70,7 @@ export async function update(
   if (input.code !== undefined) data.code = input.code;
   if (input.position !== undefined) data.position = input.position;
   if (input.isActive !== undefined) data.isActive = input.isActive;
+  if (input.requiresDeposit !== undefined) data.requiresDeposit = input.requiresDeposit;
   if (input.translations !== undefined) {
     data.translations = normalizeTranslations(input.translations);
   }

@@ -28,6 +28,8 @@ export const CreateCategorySchema = v.strictObject({
   icon: v.optional(v.nullable(MediaPathSchema)),
   position: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)), 0),
   isActive: v.optional(v.boolean(), true),
+  /** Rentals in this category sign the deposit (scooter) contract variant. */
+  requiresDeposit: v.optional(v.boolean(), false),
   translations: CategoryTranslationsSchema,
 });
 

@@ -45,6 +45,13 @@ export const SignedMoneySchema = v.pipe(
 
 export const CurrencySchema = v.pipe(v.string(), v.length(3), v.toUpperCase());
 
+/** A calendar date on the wire — `"2026-09-01"`, never a timestamp. */
+export const DateOnlySchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.'),
+);
+
 /** Coerces `?page=2` style query strings into numbers before validating. */
 const numericQuery = (fallback: number) =>
   v.pipe(

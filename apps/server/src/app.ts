@@ -24,7 +24,9 @@ import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
+import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
+import { rentalAdminRoutes } from './modules/rentals/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
 import { withCustomerSession } from './shared/auth/customer-session.ts';
 import { withSession } from './shared/auth/session.ts';
@@ -93,6 +95,8 @@ const routes = app
   .route('/api/admin/contracts', contractAdminRoutes)
   .route('/api/admin/blog', blogAdminRoutes)
   .route('/api/admin/users', adminUserRoutes)
+  .route('/api/admin/rentals', rentalAdminRoutes)
+  .route('/api/admin/payments', paymentAdminRoutes)
   .route('/api/contracts', contractPublicRoutes)
   .route('/api/blog', blogPublicRoutes);
 

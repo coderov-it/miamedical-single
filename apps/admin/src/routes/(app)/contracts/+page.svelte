@@ -1,12 +1,19 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import CalendarIcon from '@lucide/svelte/icons/calendar';
+  import ClipboardIcon from '@lucide/svelte/icons/clipboard';
+  import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
   import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
+  import MailIcon from '@lucide/svelte/icons/mail';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import SearchIcon from '@lucide/svelte/icons/search';
   import type { InferResponseType } from 'hono/client';
+  import { toast } from 'svelte-sonner';
 
   import { Badge } from '$lib/components/ui/badge/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
+  import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
@@ -17,7 +24,7 @@
   import { CONTRACT_STATUS_ORDER, contractStatusMeta, variantLabel } from '~/lib/contracts/status';
   import { formatDate, relativeTime } from '~/lib/format';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
-  import { unwrapFull } from '~/lib/request';
+  import { errorMessage, unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
@@ -48,6 +55,65 @@
   );
 
   const rows = $derived(contracts.data?.data ?? []);
+
+  let periodDialogOpen = $state(false);
+  let periodContractId = $state('');
+  let periodContractNumber = $state('');
+  let periodFrom = $state('');
+  let periodTo = $state('');
+  let periodSubmitting = $state(false);
+
+  function openPeriodDialog(contractId: string, contractNumber: string) {
+    periodContractId = contractId;
+    periodContractNumber = contractNumber;
+    periodFrom = '';
+    periodTo = '';
+    periodDialogOpen = true;
+  }
+
+  async function submitPeriodUpdate() {
+    if (!periodFrom || !periodTo) return;
+    periodSubmitting = true;
+    try {
+      await unwrap(
+        await api.api.admin.contracts[':id']['update-period'].$post({
+          param: { id: periodContractId },
+          json: { from: periodFrom, to: periodTo },
+        }),
+      );
+      toast.success(`Contract ${periodContractNumber} updated and resent`);
+      periodDialogOpen = false;
+      contracts.refresh();
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      periodSubmitting = false;
+    }
+  }
+
+  async function resendContract(contractId: string, contractNumber: string) {
+    try {
+      await unwrap(await api.api.admin.contracts[':id'].send.$post({ param: { id: contractId } }));
+      toast.success(`Contract ${contractNumber} resent`);
+      contracts.refresh();
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
+  }
+
+  async function copySigningLink(contractId: string) {
+    try {
+      const { url } = await unwrap<{ url: string }>(
+        await api.api.admin.contracts[':id']['signing-link'].$post({
+          param: { id: contractId },
+        }),
+      );
+      await navigator.clipboard.writeText(url);
+      toast.success('Signing link copied to clipboard');
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
+  }
 </script>
 
 <section class="admin-page">
@@ -94,7 +160,7 @@
     isEmpty={rows.length === 0}
     onPage={(next) => query.set({ page: next })}
     onRetry={() => contracts.refresh()}
-    skeletonColumns={6}
+    skeletonColumns={8}
   >
     {#snippet filters()}
       <form
@@ -134,16 +200,21 @@
             <Table.Head>Variant</Table.Head>
             <Table.Head>Sent</Table.Head>
             <Table.Head>Signed</Table.Head>
+            <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {#each rows as contract (contract.id)}
             {@const meta = contractStatusMeta(contract.status)}
-            <Table.Row
-              class="cursor-pointer"
-              onclick={() => window.location.assign(routes.contractDetail(contract.id))}
-            >
-              <Table.Cell class="font-mono font-medium">{contract.number}</Table.Cell>
+            <Table.Row>
+              <Table.Cell>
+                <a
+                  href={routes.contractDetail(contract.id)}
+                  class="font-mono font-medium hover:underline"
+                >
+                  {contract.number}
+                </a>
+              </Table.Cell>
               <Table.Cell>
                 {#if contract.customerName || contract.customerEmail}
                   <div class="min-w-0">
@@ -194,6 +265,37 @@
                   —
                 {/if}
               </Table.Cell>
+              <Table.Cell>
+                {#if session.can(P.CONTRACT_UPDATE) && contract.status !== 'signed' && contract.status !== 'voided'}
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger
+                      class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+                      aria-label="Row actions"
+                    >
+                      <EllipsisVerticalIcon class="size-4" />
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Content align="end">
+                      <DropdownMenu.Item
+                        onSelect={() => resendContract(contract.id, contract.number)}
+                      >
+                        <MailIcon class="size-4" />
+                        Send signing link
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item onSelect={() => copySigningLink(contract.id)}>
+                        <ClipboardIcon class="size-4" />
+                        Copy signing link
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Separator />
+                      <DropdownMenu.Item
+                        onSelect={() => openPeriodDialog(contract.id, contract.number)}
+                      >
+                        <CalendarIcon class="size-4" />
+                        Send updated contract
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Root>
+                {/if}
+              </Table.Cell>
             </Table.Row>
           {/each}
         </Table.Body>
@@ -221,4 +323,40 @@
       </Empty.Root>
     {/snippet}
   </ListCard>
+
+  <Dialog.Root bind:open={periodDialogOpen}>
+    <Dialog.Content class="sm:max-w-md">
+      <Dialog.Header>
+        <Dialog.Title>Update rental period</Dialog.Title>
+        <Dialog.Description>
+          Set the new rental period for contract {periodContractNumber}. The contract will be
+          regenerated and a new signing link sent to the customer.
+        </Dialog.Description>
+      </Dialog.Header>
+      <form
+        class="grid gap-4 py-2"
+        onsubmit={(e) => {
+          e.preventDefault();
+          submitPeriodUpdate();
+        }}
+      >
+        <div class="grid gap-1.5">
+          <label for="period-from" class="text-sm font-medium">From</label>
+          <Input id="period-from" type="date" bind:value={periodFrom} required />
+        </div>
+        <div class="grid gap-1.5">
+          <label for="period-to" class="text-sm font-medium">To</label>
+          <Input id="period-to" type="date" bind:value={periodTo} required />
+        </div>
+        <Dialog.Footer>
+          <Button type="button" variant="outline" onclick={() => (periodDialogOpen = false)}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!periodFrom || !periodTo || periodSubmitting}>
+            {periodSubmitting ? 'Sending…' : 'Update & send'}
+          </Button>
+        </Dialog.Footer>
+      </form>
+    </Dialog.Content>
+  </Dialog.Root>
 </section>
