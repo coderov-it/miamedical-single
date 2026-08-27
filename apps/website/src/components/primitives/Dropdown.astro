@@ -1,0 +1,147 @@
+---
+/**
+ * Reusable select with a server-rendered native control and an enhanced
+ * listbox. The native `<select>` remains the form's source of truth, so the
+ * submitted value and no-JavaScript path are identical on every instance.
+ */
+export interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  options: readonly DropdownOption[];
+  value?: string | undefined;
+  placeholder?: string | undefined;
+  variant?: 'default' | 'hero' | undefined;
+  class?: string | undefined;
+  describedBy?: string | undefined;
+}
+
+const {
+  id,
+  name,
+  label,
+  options,
+  value = '',
+  placeholder,
+  variant = 'default',
+  class: className,
+  describedBy,
+} = Astro.props;
+
+const labelId = `${id}-label`;
+const valueId = `${id}-value`;
+const listboxId = `${id}-listbox`;
+const selected = options.find((option) => option.value === value);
+const displayValue = selected?.label ?? placeholder ?? options[0]?.label ?? '';
+const isEmpty = selected === undefined && placeholder !== undefined;
+const hasIcon = Astro.slots.has('icon');
+---
+
+<div
+  class:list={['core-dropdown', `core-dropdown-${variant}`, className]}
+  data-core-dropdown
+  data-has-icon={hasIcon ? '' : undefined}
+>
+  <label class="core-dropdown-label" id={labelId} for={id}>{label}</label>
+
+  <div class="core-dropdown-control">
+    {
+      hasIcon && (
+        <span class="core-control-icon" aria-hidden="true">
+          <slot name="icon" />
+        </span>
+      )
+    }
+
+    <select
+      class="core-dropdown-native"
+      {id}
+      {name}
+      aria-labelledby={labelId}
+      aria-describedby={describedBy}
+      data-dropdown-native
+    >
+      {
+        placeholder !== undefined && (
+          <option value="" selected={value === ''} disabled hidden>
+            {placeholder}
+          </option>
+        )
+      }
+      {
+        options.map((option) => (
+          <option value={option.value} selected={option.value === value}>
+            {option.label}
+          </option>
+        ))
+      }
+    </select>
+
+    <button
+      class="core-dropdown-trigger"
+      id={`${id}-trigger`}
+      type="button"
+      hidden
+      aria-expanded="false"
+      aria-haspopup="listbox"
+      aria-controls={listboxId}
+      aria-labelledby={`${labelId} ${valueId}`}
+      data-dropdown-trigger
+    >
+      <span
+        class:list={['core-control-value', isEmpty && 'is-empty']}
+        id={valueId}
+        data-dropdown-value
+        data-placeholder={placeholder}
+      >
+        {displayValue}
+      </span>
+      <svg
+        class="core-control-chevron"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m7 9.5 5 5 5-5"></path>
+      </svg>
+    </button>
+
+    <div
+      class="core-dropdown-popover"
+      id={listboxId}
+      role="listbox"
+      aria-labelledby={labelId}
+      hidden
+      data-dropdown-popover
+    >
+      {
+        options.map((option) => (
+          <button
+            class="core-dropdown-option"
+            type="button"
+            role="option"
+            aria-selected={option.value === value}
+            data-value={option.value}
+          >
+            {option.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  import { mountDropdowns } from '~/scripts/primitives/dropdown';
+
+  mountDropdowns();
+</script>

@@ -1,192 +1,110 @@
 ---
 /**
- * Home hero — copy and one accent CTA on the left, the featured-product
- * showcase on the right, ported 1:1 from docs/blueprint/home.html (styles in
- * styles/editorial.css).
+ * Home hero — one pale band carrying the copy on the left and the featured
+ * product on the right, with the booking card straddling the band's bottom
+ * edge and the trust strip closing underneath.
  *
- * The showcase is an Embla core carousel (the project-wide engine): the slides,
- * dots and meta deck are all server-rendered HTML, and the script below only
- * attaches scrolling behavior — nothing here blocks SSR. Embla owns the track
- * transform, so the track carries no CSS transition, ever; the meta deck and
- * the dots follow the selected snap by class toggling.
+ * The layout is the owner's reference (2026-08-27): kicker with a rule →
+ * display headline → one paragraph → three service facts, and NO button in the
+ * copy column. The hero's action is the booking card; a second CTA above it
+ * only splits the click.
+ *
+ * The band's bottom padding and `.hero-foot`'s negative margin are one number
+ * seen twice — that overlap is the whole composition, so change them together.
  */
-import { mediaUrl } from '~/lib/api';
+import HomeBooking from '~/components/home/HomeBooking.astro';
+import HomeShowcase from '~/components/home/HomeShowcase.astro';
+import HomeTrustBar from '~/components/home/HomeTrustBar.astro';
 import type { ProductSummary } from '~/lib/catalog';
-import { productOffer } from '~/lib/home-content';
-import { productPath, routes } from '~/lib/routes';
 
 interface Props {
   products: ProductSummary[];
 }
 
 const { products } = Astro.props;
-const slides = products.slice(0, 3);
 ---
 
 <section class="hero" aria-labelledby="home-title">
-  <div class="hero-grid container">
-    <div>
-      <p class="hero-kicker">Noleggio medicale · Roma e Firenze</p>
+  <div class="hero-band">
+    <div class="hero-grid container">
+      <div class="hero-copy">
+        <p class="hero-kicker kicker-rule">Noleggio medicale · Roma e Firenze</p>
 
-      <h1 class="hero-display" id="home-title">
-        Noleggia<br />
-        l’ausilio giusto,<br />
-        <strong>senza pensieri.</strong>
-      </h1>
+        <h1 class="hero-display" id="home-title">
+          Noleggia<br />
+          l’ausilio giusto,<br />
+          <strong>senza pensieri.</strong>
+        </h1>
 
-      <p class="hero-sub">
-        Carrozzine, letti ortopedici, scooter e molto altro: scegli quando iniziare e al resto
-        pensiamo noi. Consegna a domicilio in 24–48 ore, prodotti sanificati e assistenza con
-        persone vere.
-      </p>
+        <p class="hero-sub">
+          Carrozzine, letti ortopedici, scooter e molto altro. Consegniamo a domicilio in 24–48 ore,
+          sanificati, montati e pronti all’uso.
+        </p>
 
-      <p class="hero-cta">
-        <a class="btn-accent" href={routes.catalog}>Scopri il catalogo</a>
-      </p>
+        <ul class="hero-features">
+          <li>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+              ></path>
+            </svg>
+            Consegna a domicilio
+          </li>
+          <li>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
+              ></path>
+            </svg>
+            Assistenza telefonica
+          </li>
+          <li>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              ></path>
+            </svg>
+            Ritiro incluso
+          </li>
+        </ul>
+      </div>
+
+      <HomeShowcase products={products} />
     </div>
+  </div>
 
-    {
-      slides.length > 0 && (
-        <section class="spot" data-carousel="spot" aria-labelledby="spot-label">
-          <h2 class="visually-hidden" id="spot-label">
-            Prodotti in evidenza
-          </h2>
-
-          <div class="spot-stage">
-            <div class="spot-window" data-spot-viewport>
-              <ul class="spot-track">
-                {slides.map((product, index) => (
-                  <li>
-                    {product.thumbnail && (
-                      <img
-                        src={mediaUrl(product.thumbnail.path)}
-                        alt={product.thumbnail.alt || product.title}
-                        loading={index === 0 ? 'eager' : 'lazy'}
-                        fetchpriority={index === 0 ? 'high' : 'auto'}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {slides.length > 1 && (
-              <>
-                <button
-                  class="spot-arrow"
-                  type="button"
-                  data-spot-prev
-                  aria-label="Prodotto precedente"
-                >
-                  <svg
-                    width="19"
-                    height="19"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m14 6-6 6 6 6" />
-                  </svg>
-                </button>
-                <button
-                  class="spot-arrow"
-                  type="button"
-                  data-spot-next
-                  aria-label="Prodotto successivo"
-                >
-                  <svg
-                    width="19"
-                    height="19"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m10 6 6 6-6 6" />
-                  </svg>
-                </button>
-
-                <div class="spot-dots" data-spot-dots>
-                  {slides.map((_, index) => (
-                    <button
-                      type="button"
-                      class:list={[index === 0 && 'is-active']}
-                      aria-label={`Mostra il prodotto ${index + 1} di ${slides.length}`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          <div class="meta-deck" data-spot-meta>
-            {slides.map((product, index) => {
-              const offer = productOffer(product);
-              const href = productPath(product.slug);
-              const cta = product.pricing.mode === 'rental' ? 'Noleggia ora' : 'Acquista ora';
-              return (
-                <div class:list={[index === 0 && 'is-active']}>
-                  <a class="spot-name" href={href}>
-                    {product.title}
-                  </a>
-                  <div class="spot-offer">
-                    {offer && (
-                      <p class="spot-price">
-                        <strong>{offer.money}</strong>
-                        {offer.unit}
-                      </p>
-                    )}
-                    <a class="btn-accent" href={href}>
-                      {cta}
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )
-    }
+  <div class="hero-foot container">
+    <HomeBooking />
+    <HomeTrustBar />
   </div>
 </section>
-
-<script>
-  // Embla core — same engine as the trending rail, loop on. Guarded: the spot
-  // section does not render at all when the catalogue read failed.
-  import EmblaCarousel from 'embla-carousel';
-
-  const spotRoot = document.querySelector<HTMLElement>('[data-carousel="spot"]');
-  const viewport = spotRoot?.querySelector<HTMLElement>('[data-spot-viewport]');
-
-  if (spotRoot && viewport && viewport.querySelectorAll('li').length > 1) {
-    const spot = EmblaCarousel(viewport, { loop: true });
-    // Jump instead of glide for people who asked the OS for less motion.
-    const jump = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const dots = [...spotRoot.querySelectorAll<HTMLButtonElement>('[data-spot-dots] button')];
-    const metas = [...spotRoot.querySelectorAll<HTMLElement>('[data-spot-meta] > div')];
-
-    const syncSpot = () => {
-      const selected = spot.selectedScrollSnap();
-      dots.forEach((dot, index) => dot.classList.toggle('is-active', index === selected));
-      metas.forEach((meta, index) => meta.classList.toggle('is-active', index === selected));
-    };
-
-    spotRoot
-      .querySelector('[data-spot-prev]')
-      ?.addEventListener('click', () => spot.scrollPrev(jump));
-    spotRoot
-      .querySelector('[data-spot-next]')
-      ?.addEventListener('click', () => spot.scrollNext(jump));
-    dots.forEach((dot, index) => dot.addEventListener('click', () => spot.scrollTo(index, jump)));
-    spot.on('select', syncSpot);
-    syncSpot();
-  }
-</script>
