@@ -8,6 +8,7 @@
 
 import BanknoteIcon from '@lucide/svelte/icons/banknote';
 import BellIcon from '@lucide/svelte/icons/bell';
+import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
 import ShieldAlertIcon from '@lucide/svelte/icons/shield-alert';
 import GaugeIcon from '@lucide/svelte/icons/gauge';
 import PackageIcon from '@lucide/svelte/icons/package';
@@ -15,6 +16,7 @@ import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import TagsIcon from '@lucide/svelte/icons/tags';
 import UsersIcon from '@lucide/svelte/icons/users';
+import WalletIcon from '@lucide/svelte/icons/wallet';
 import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
 import NewspaperIcon from '@lucide/svelte/icons/newspaper';
@@ -52,7 +54,9 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     title: 'Sales',
     items: [
       { title: 'Orders', url: routes.orders, icon: ShoppingCartIcon },
+      { title: 'Rent Management', url: routes.rentals, icon: CalendarClockIcon },
       { title: 'Contracts', url: routes.contracts, icon: FileSignatureIcon },
+      { title: 'Payments', url: routes.payments, icon: WalletIcon },
       { title: 'Carts', url: routes.carts, icon: BanknoteIcon },
       { title: 'Disputed Orders', url: routes.orderDisputes, icon: ShieldAlertIcon },
     ],

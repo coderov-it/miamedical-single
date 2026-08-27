@@ -4,12 +4,12 @@ import {
   ContractQuerySchema,
   GenerateContractSchema,
   ManualContractSchema,
+  RentalPeriodInputSchema,
   SignContractSchema,
   SigningTokenQuerySchema,
   UuidSchema,
   VoidContractSchema,
 } from '@mia/validators';
-import type { RentalPeriod } from '@mia/pricing';
 import * as v from 'valibot';
 import { Hono } from 'hono';
 
@@ -41,8 +41,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     requirePermission(P.CONTRACT_READ),
     validate('param', v.object({ orderId: UuidSchema })),
     async (c) => {
-      const contract = await service.getByOrderId(c.get('db'), c.req.valid('param').orderId);
-      return c.json({ data: contract ? toContractSummary(contract) : null });
+      // Every contract the order has accumulated, newest first — renewals mean
+      // an order's history is a list, and the first entry is the live one.
+      const contracts = await service.listByOrderId(c.get('db'), c.req.valid('param').orderId);
+      return c.json({ data: contracts.map(toContractSummary) });
     },
   )
 
@@ -73,6 +75,36 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     async (c) => {
       await service.resend(c.get('db'), c.req.valid('param').id);
       const contract = await service.getById(c.get('db'), c.req.valid('param').id);
+      return c.json({ data: toContractDetail(contract) });
+    },
+  )
+
+  .post(
+    '/:id/signing-link',
+    /* UPDATE, not READ: minting a token is a write that yields the power to
+       execute the contract — the same capability as /send, same permission. */
+    requirePermission(P.CONTRACT_UPDATE),
+    validate('param', ContractIdParamSchema),
+    async (c) => {
+      const url = await service.getSigningLink(c.get('db'), c.req.valid('param').id);
+      return c.json({ data: { url } });
+    },
+  )
+
+  .post(
+    '/:id/update-period',
+    requirePermission(P.CONTRACT_UPDATE),
+    validate('param', ContractIdParamSchema),
+    // The renewal flow's period shape, `to > from` rule included.
+    validate('json', RentalPeriodInputSchema),
+    async (c) => {
+      const { from, to } = c.req.valid('json');
+      const contract = await service.updatePeriodAndResend(
+        c.get('db'),
+        c.req.valid('param').id,
+        from,
+        to,
+      );
       return c.json({ data: toContractDetail(contract) });
     },
   )
@@ -110,54 +142,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     requirePermission(P.CONTRACT_CREATE),
     validate('json', GenerateContractSchema),
     async (c) => {
-      const { orderId } = c.req.valid('json');
       const db = c.get('db');
-
-      const order = await db.query.orders.findFirst({
-        where: (t, { eq }) => eq(t.id, orderId),
-        with: { items: true },
+      const contract = await service.generateFromOrder(db, c.req.valid('json').orderId, {
+        actorAdminUserId: c.get('user')?.id ?? null,
       });
-      if (!order) throw new Error('Order not found.');
-
-      const items = order.items.map((item) => {
-        const config = item.configuration as Record<string, unknown> | null;
-        const rental = config?.rental as RentalPeriod | null;
-        return {
-          productTitle: item.productTitle,
-          sku: item.sku,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: item.total,
-          startDate: rental?.startDate ?? '',
-          endDate: rental?.endDate ?? null,
-          duration: rental?.duration ?? 1,
-          durationUnit: rental?.unit ?? 'day',
-        };
-      });
-
-      const address = order.shippingAddress as Record<string, unknown> | null;
-      const addressStr = address
-        ? `${address.line1 ?? ''}, ${address.postalCode ?? ''} ${address.city ?? ''}`
-        : '';
-
-      const contract = await service.generateForOrder(db, {
-        orderId: order.id,
-        orderNumber: order.number,
-        customerType: (order.customerType ?? 'tourist') as 'private' | 'company' | 'tourist',
-        customerName: `${order.firstName ?? ''} ${order.lastName ?? ''}`.trim(),
-        email: order.email,
-        phone: order.phone ?? '',
-        address: addressStr,
-        codiceFiscale: order.codiceFiscale,
-        partitaIva: order.partitaIva,
-        items,
-        subtotal: order.subtotal,
-        shippingTotal: order.shippingTotal,
-        total: order.total,
-        currency: order.currency,
-        hasDepositProduct: false,
-      });
-
       const detail = await service.getById(db, contract.id);
       return c.json({ data: toContractDetail(detail) }, 201);
     },

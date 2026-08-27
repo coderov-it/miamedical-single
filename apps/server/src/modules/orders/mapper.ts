@@ -25,6 +25,7 @@ import type {
   OrderAggregate,
   OrderItemRow,
   OrderStatusEventRecord,
+  AdminOrderSummaryRecord,
   OrderSummaryRecord,
   PlacedOrder,
 } from './types.ts';
@@ -120,8 +121,8 @@ export function toOrderItem(row: OrderItemRow): OrderItemDto {
 export function toOrderEvent(row: OrderStatusEventRecord): OrderEventDto {
   return {
     id: row.id,
-    // Written by this module and only ever one of two values; the cast keeps
-    // the DTO honest without a runtime branch on our own audit trail.
+    // Written only by this codebase and always one of the DTO's values; the
+    // cast keeps the DTO honest without a runtime branch on our own audit trail.
     field: row.field as OrderEventDto['field'],
     fromValue: row.fromValue,
     toValue: row.toValue,
@@ -143,7 +144,7 @@ function toTotals(row: OrderAggregate | OrderSummaryRecord): OrderTotalsDto {
   };
 }
 
-export function toOrderSummary(row: OrderSummaryRecord): AdminOrderSummaryDto {
+export function toOrderSummary(row: AdminOrderSummaryRecord): AdminOrderSummaryDto {
   return {
     id: row.id,
     number: row.number,
@@ -151,6 +152,8 @@ export function toOrderSummary(row: OrderSummaryRecord): AdminOrderSummaryDto {
     status: row.status,
     paymentStatus: row.paymentStatus,
     itemCount: row.itemCount,
+    hasRental: row.hasRental,
+    contractStatus: row.contractStatus,
     total: row.total,
     currency: row.currency,
     placedAt: iso(row.placedAt),

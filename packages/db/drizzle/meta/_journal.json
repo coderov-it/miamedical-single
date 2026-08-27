@@ -43,6 +43,20 @@
       "when": 1786805227544,
       "tag": "0005_wild_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787616000000,
+      "tag": "0006_sync_payment_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787656081051,
+      "tag": "0007_bumpy_spyke",
+      "breakpoints": true
     }
   ]
 }

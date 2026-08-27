@@ -84,6 +84,7 @@ export interface CategoryData {
   icon?: string | null;
   position?: number;
   isActive?: boolean;
+  requiresDeposit?: boolean;
   translations?: Partial<Record<LanguageCode, CategoryTranslationData>>;
 }
 
@@ -99,6 +100,7 @@ export async function create(
         icon: data.icon ?? null,
         position: data.position ?? 0,
         isActive: data.isActive ?? true,
+        requiresDeposit: data.requiresDeposit ?? false,
       })
       .returning({ id: categories.id });
     if (!category) throw new Error('Category insert returned no row.');

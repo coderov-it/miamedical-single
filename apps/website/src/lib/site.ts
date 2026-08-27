@@ -35,14 +35,12 @@ export const COMPANY = {
  * Delivery areas offered by the home search selector.
  *
  * `label` is what the selector and the catalogue's "la tua richiesta" line say;
- * `city` is the short form the product page prints beside a pin, where the
- * column is narrow and "e provincia" earns nothing. "Altra zona" has no city
- * because the customer told us they are somewhere we do not name — that one is
- * settled on the confirmation call, so the product page shows nothing at all.
+ * `city` is what the product page prints beside a pin. "Altra zona" has no city
+ * because its exact delivery location is settled during the confirmation call.
  */
 export const SERVICE_AREAS = [
-  { value: 'rm', label: 'Roma e provincia', city: 'Roma' },
-  { value: 'fi', label: 'Firenze e provincia', city: 'Firenze' },
+  { value: 'rm', label: 'Roma', city: 'Roma' },
+  { value: 'fi', label: 'Firenze', city: 'Firenze' },
   { value: 'other', label: 'Altra zona', city: null },
 ] as const;
 

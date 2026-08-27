@@ -26,6 +26,7 @@
  * layers below without specificity fights. See its own header comment.
  */
 @import './editorial.css';
+@import './form-pickers.css';
 
 /* app.css lives two levels below `src/`, which is where every template is. */
 @source '../';

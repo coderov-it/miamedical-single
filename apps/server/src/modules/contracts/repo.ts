@@ -1,6 +1,15 @@
 import type { Database } from '@mia/db';
-import { and, count, desc, eq, ilike, or, sql } from '@mia/db';
-import { adminUsers, contractSigningTokens, contracts, orders } from '@mia/db/schema';
+import { and, count, desc, eq, ilike, ne, or, sql } from '@mia/db';
+import {
+  adminUsers,
+  categories,
+  contractSigningTokens,
+  contracts,
+  orderItems,
+  orders,
+  products,
+  productSkus,
+} from '@mia/db/schema';
 import type { ContractStatus, ContractVariant } from '@mia/validators';
 
 export interface ContractRow {
@@ -144,7 +153,27 @@ export async function findById(db: Database, id: string): Promise<ContractDetail
   };
 }
 
-export async function findByOrderId(
+/**
+ * Every contract ever issued against the order, newest first. Renewals add a
+ * contract per period, so an order accumulates a history rather than owning a
+ * single row — the first element is the one whose state currently matters.
+ */
+export async function findAllByOrderId(
+  db: Database,
+  orderId: string,
+): Promise<ContractSummaryRow[]> {
+  const rows = await db
+    .select({ contract: contracts, orderNumber: orders.number })
+    .from(contracts)
+    .innerJoin(orders, eq(contracts.orderId, orders.id))
+    .where(eq(contracts.orderId, orderId))
+    .orderBy(desc(contracts.createdAt));
+
+  return rows.map((row) => ({ ...row.contract, orderNumber: row.orderNumber }));
+}
+
+/** The newest contract that still counts — voided ones are dead paper. */
+export async function findLatestActiveByOrderId(
   db: Database,
   orderId: string,
 ): Promise<ContractSummaryRow | undefined> {
@@ -152,13 +181,39 @@ export async function findByOrderId(
     .select({ contract: contracts, orderNumber: orders.number })
     .from(contracts)
     .innerJoin(orders, eq(contracts.orderId, orders.id))
-    .where(eq(contracts.orderId, orderId))
+    .where(and(eq(contracts.orderId, orderId), ne(contracts.status, 'voided')))
     .orderBy(desc(contracts.createdAt))
     .limit(1);
 
   const row = rows[0];
   if (!row) return undefined;
   return { ...row.contract, orderNumber: row.orderNumber };
+}
+
+/**
+ * Whether any RENTED line of the order is an aid from a deposit category — the
+ * fact that selects the scooter contract variants. Only rental lines count: the
+ * deposit secures the return of a rented aid, and a scooter bought outright on
+ * the same order must not drag a deposit clause into the wheelchair's contract.
+ * Read through the live catalogue (item → SKU → product → category) so one
+ * query serves placement, admin generation and renewal alike; a line whose SKU
+ * has since been deleted simply contributes nothing.
+ */
+export async function orderRequiresDeposit(db: Database, orderId: string): Promise<boolean> {
+  const rows = await db
+    .select({ value: sql<boolean>`bool_or(${categories.requiresDeposit})` })
+    .from(orderItems)
+    .innerJoin(productSkus, eq(orderItems.skuId, productSkus.id))
+    .innerJoin(products, eq(productSkus.productId, products.id))
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        eq(orderItems.orderId, orderId),
+        sql`${orderItems.configuration}->>'pricingMode' = 'rental'`,
+      ),
+    );
+
+  return rows[0]?.value ?? false;
 }
 
 export async function updateStatus(

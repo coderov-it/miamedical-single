@@ -16,11 +16,13 @@
     "@astrojs/node": "catalog:",
     "@astrojs/sitemap": "catalog:",
     "@astrojs/svelte": "catalog:",
+    "@floating-ui/dom": "^1.8.0",
     "@mia/i18n": "workspace:*",
     "@mia/pricing": "workspace:*",
     "@mia/server": "workspace:*",
     "@mia/validators": "workspace:*",
     "astro": "catalog:",
+    "cally": "^0.9.2",
     "embla-carousel": "catalog:",
     "hono": "catalog:",
     "svelte": "catalog:"

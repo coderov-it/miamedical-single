@@ -4,6 +4,7 @@
   import CheckIcon from '@lucide/svelte/icons/check';
   import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
   import MailIcon from '@lucide/svelte/icons/mail';
+  import PrinterIcon from '@lucide/svelte/icons/printer';
   import XCircleIcon from '@lucide/svelte/icons/x-circle';
   import type { InferResponseType } from 'hono/client';
   import { toast } from 'svelte-sonner';
@@ -18,7 +19,7 @@
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { cn } from '$lib/utils.js';
-  import { api } from '~/lib/api';
+  import { api, apiUrl } from '~/lib/api';
   import PageHeader from '~/lib/components/page-header.svelte';
   import { contractStatusMeta, variantLabel } from '~/lib/contracts/status';
   import { EM_DASH, formatDateTime, orDash } from '~/lib/format';
@@ -51,6 +52,49 @@
 
   let busy = $state<string | null>(null);
   let voidReason = $state('');
+  let previewHtml = $state<string | null>(null);
+  let previewError = $state<string | null>(null);
+  let previewFrame = $state<HTMLIFrameElement | null>(null);
+
+  /*
+    The preview is fetched with credentials and rendered via `srcdoc` rather than
+    pointing the iframe at the API: a bare iframe `src` carries no error handling
+    and, depending on cookie SameSite, sometimes no session either. Fetching also
+    hands us the HTML for "open in new tab" and printing. Re-runs whenever the
+    contract is replaced by an action, so a fresh signature shows up in it.
+  */
+  $effect(() => {
+    const c = contract.data;
+    if (!c) return;
+    const controller = new AbortController();
+    previewError = null;
+    fetch(apiUrl(`/api/admin/contracts/${c.id}/preview`), {
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`The preview could not be loaded (${r.status}).`);
+        previewHtml = await r.text();
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        previewError = err instanceof Error ? err.message : 'The preview could not be loaded.';
+      });
+    return () => controller.abort();
+  });
+
+  function openPreviewTab() {
+    if (!previewHtml) return;
+    const url = URL.createObjectURL(new Blob([previewHtml], { type: 'text/html' }));
+    window.open(url, '_blank', 'noopener');
+    // The new tab has the document by now; the URL itself can go.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  /** The browser's print dialog on the contract alone — "Save as PDF" lives there. */
+  function printContract() {
+    previewFrame?.contentWindow?.print();
+  }
 
   const TIMELINE_STEPS = [
     { key: 'createdAt', label: 'Generated' },
@@ -107,9 +151,6 @@
     }
   }
 
-  function previewUrl(id: string): string {
-    return `/api/admin/contracts/${id}/preview`;
-  }
 </script>
 
 <section class="admin-page">
@@ -193,18 +234,38 @@
       <div class="space-y-5 @4xl:col-span-2">
         <!-- Contract preview -->
         <Card.Root class="gap-0 overflow-hidden py-0">
-          <div class="flex items-center justify-between border-b px-4 py-2.5">
+          <div class="flex items-center justify-between gap-2 border-b px-4 py-2.5">
             <span class="text-sm font-medium">Contract Preview</span>
-            <Button href={previewUrl(c.id)} target="_blank" variant="ghost" size="sm">
-              <ExternalLinkIcon class="size-4" />
-              Open in new tab
-            </Button>
+            <div class="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!previewHtml}
+                onclick={openPreviewTab}
+              >
+                <ExternalLinkIcon class="size-4" />
+                Open in new tab
+              </Button>
+              <Button variant="ghost" size="sm" disabled={!previewHtml} onclick={printContract}>
+                <PrinterIcon class="size-4" />
+                Download / print PDF
+              </Button>
+            </div>
           </div>
-          <iframe
-            src={previewUrl(c.id)}
-            title="Contract preview"
-            class="h-[600px] w-full border-0 bg-white"
-          ></iframe>
+          {#if previewHtml}
+            <iframe
+              bind:this={previewFrame}
+              srcdoc={previewHtml}
+              title="Contract preview"
+              class="h-[600px] w-full border-0 bg-white"
+            ></iframe>
+          {:else if previewError}
+            <div class="flex h-40 items-center justify-center p-4 text-sm text-muted-foreground">
+              {previewError}
+            </div>
+          {:else}
+            <div class="p-4"><Skeleton class="h-[600px] w-full" /></div>
+          {/if}
         </Card.Root>
       </div>
 

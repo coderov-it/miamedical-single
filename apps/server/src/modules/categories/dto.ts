@@ -73,6 +73,8 @@ export interface AdminCategoryDto {
   icon: string | null;
   position: number;
   isActive: boolean;
+  /** Rentals in this category sign the deposit (scooter) contract variant. */
+  requiresDeposit: boolean;
   translations: Partial<Record<LanguageCode, AdminCategoryTranslationDto>>;
   specs: AdminCategorySpecDto[];
   createdAt: string;

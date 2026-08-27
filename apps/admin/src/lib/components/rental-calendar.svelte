@@ -182,7 +182,7 @@
     <table class="w-full table-fixed border-collapse text-sm">
       <thead>
         <tr>
-          {#each WEEKDAYS as day}
+          {#each WEEKDAYS as day (day)}
             <th class="border-b px-1 py-1.5 text-center text-xs font-medium text-muted-foreground"
               >{day}</th
             >
@@ -190,9 +190,9 @@
         </tr>
       </thead>
       <tbody>
-        {#each grid as row}
+        {#each grid as row, rowIndex (rowIndex)}
           <tr>
-            {#each row as cell}
+            {#each row as cell (cell.dateString)}
               <td
                 class="h-20 border-r border-b p-1 align-top last:border-r-0 {cell.isCurrentMonth
                   ? ''
@@ -209,7 +209,7 @@
                           ? 'text-foreground'
                           : 'text-muted-foreground'}">{cell.date}</span
                     >
-                    {#each cell.events.slice(0, 2) as event}
+                    {#each cell.events.slice(0, 2) as event, eventIndex (`${event.orderNumber}-${event.type}-${eventIndex}`)}
                       <span
                         class="flex min-w-0 items-center gap-1 rounded-sm bg-muted px-1 py-px"
                         title="{event.orderNumber} — {EVENT_LABELS[event.type]}"
@@ -234,7 +234,7 @@
                       </Popover.Header>
                       {#if cell.events.length > 0}
                         <div class="flex flex-col gap-2 py-2">
-                          {#each cell.events as event}
+                          {#each cell.events as event, eventIndex (`${event.orderNumber}-${event.type}-${eventIndex}`)}
                             <div class="flex items-start gap-2 text-sm">
                               <span
                                 class="mt-1.5 size-2 shrink-0 rounded-full {EVENT_COLORS[

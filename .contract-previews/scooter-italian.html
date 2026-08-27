@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contratto di locazione per scooter e carrozzine elettriche</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Instrument Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #303137;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .contract { max-width: 800px; margin: 0 auto; padding: 32px 40px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 2px solid #303137; margin-bottom: 24px; }
+  .brand-name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand-tagline { font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #929397; margin-top: 4px; }
+  .contract-ref { text-align: right; font-size: 12px; color: #525358; }
+  .contract-ref strong { display: block; font-size: 14px; color: #303137; }
+  h2 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .info-block label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: #929397; margin-bottom: 2px; }
+  .info-block span { font-size: 13px; }
+  table.items { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  table.items th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #525358; padding: 8px 10px; border-bottom: 1px solid #e7e8ea; }
+  table.items td { padding: 8px 10px; border-bottom: 1px solid #e7e8ea; font-size: 13px; }
+  table.items td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.items tfoot td { font-weight: 600; border-bottom: none; border-top: 2px solid #303137; }
+  .article { margin-bottom: 14px; }
+  .article-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .article-body { font-size: 12px; line-height: 1.6; color: #525358; }
+  .damage-list { margin: 12px 0; }
+  .damage-list table { width: 100%; border-collapse: collapse; }
+  .damage-list th, .damage-list td { padding: 4px 10px; font-size: 12px; border-bottom: 1px solid #e7e8ea; }
+  .damage-list th { text-align: left; font-weight: 600; }
+  .damage-list td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .deposit-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 12px; }
+  .deposit-box strong { display: block; margin-bottom: 4px; }
+  .warning-box { background: #fdf1f0; border: 1px solid #d9534a; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 12px; font-weight: 600; color: #8f2b24; }
+  .intro-line { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 12px; }
+  .clause-critical { color: #b3312a; }
+  .article-body p { margin-bottom: 6px; }
+  .article-body p:last-child { margin-bottom: 0; }
+  .article-body ul { margin: 6px 0 8px 18px; }
+  .article-body li { margin-bottom: 4px; }
+  .bank-details { margin-bottom: 20px; }
+  .signature-block { margin-top: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .signature-area { border-top: 1px solid #303137; padding-top: 8px; }
+  .signature-area p { font-size: 11px; color: #525358; }
+  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e7e8ea; font-size: 10px; color: #929397; text-align: center; }
+  @media print {
+    .contract { padding: 0; }
+    body { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="contract">
+<div class="header">
+  <div>
+    <div class="brand-name">M.i.a. Medical Italia</div>
+    <div class="brand-tagline">moving in autonomy</div>
+  </div>
+  <div class="contract-ref">
+    <strong>CTR-2026-1745</strong>
+    Contratto di locazione per scooter e carrozzine elettriche<br>
+    25/08/2026
+  </div>
+</div>
+<h2>Dati del Cliente</h2>
+<div class="info-grid">
+  <div class="info-block"><label>Nome e Cognome</label><span>Valentina Mangini</span></div>
+  <div class="info-block"><label>Indirizzo</label><span>Viale Alessandro Guidoni 129, 50127 Firenze</span></div>
+  <div class="info-block"><label>Email</label><span>valentinamangini23@gmail.com</span></div>
+  <div class="info-block"><label>Telefono</label><span>+39 320 223 0531</span></div>
+  <div class="info-block"><label>Codice Fiscale</label><span>MNGVNT85T50D612Q</span></div>
+</div>
+<h2>Articoli Noleggiati</h2>
+<table class="items">
+  <thead><tr>
+    <th>Prodotto</th><th>SKU</th><th>Qtà</th><th>Periodo</th><th>Durata</th><th>Prezzo/u</th><th>Totale</th>
+  </tr></thead>
+  <tbody><tr>
+  <td>Magnetoterapia Therapist 150 Plus</td>
+  <td>KT-ADV-03</td>
+  <td class="num">1</td>
+  <td>01/09/2026 – 30/09/2026</td>
+  <td class="num">30g</td>
+  <td class="num">€260,00</td>
+  <td class="num">€260,00</td>
+</tr></tbody>
+  <tfoot>
+    <tr><td colspan="6">Subtotale</td><td class="num">€260,00</td></tr>
+    <tr><td colspan="6">Spedizione</td><td class="num">€0,00</td></tr>
+    <tr><td colspan="6">Totale</td><td class="num">€260,00</td></tr>
+  </tfoot>
+</table>
+<div class="info-block bank-details">
+  <label>Coordinate bancarie per bonifici</label>
+  <span>IBAN IT80R0569603211000011773X40<br>Intestato a: MIA MEDICAL ITALIA S.R.L.<br>Banca Popolare di Sondrio</span>
+</div>
+<div class="deposit-box">
+  <strong>Deposito cauzionale con carta di credito: €300,00</strong>
+  La cauzione verrà restituita per intero al Locatario salvo quanto previsto all'art. 4 del presente contratto. Il Locatario conferma di ritenersi responsabile dell'ausilio/i in noleggio fino ad avvenuta riconsegna alla MIA MEDICAL ITALIA SRL, consegna che verrà certificata da apposita ricevuta firmata dal rappresentante della MIA MEDICAL ITALIA SRL. Il Locatario dichiara di rimborsare alla MIA MEDICAL ITALIA SRL l'intero ammontare di eventuali danni causati al/ai beni in noleggio cui al presente contratto, tramite prelievo dalla carta di credito inserita per la cauzione.
+</div>
+<div class="warning-box">
+  <strong>IMPORTANTE:</strong> Tutti gli ausili devono essere utilizzati esclusivamente per lo scopo a cui sono destinati. È OBBLIGATORIO RICONSEGNARE GLI AUSILI PULITI NELLO STESSO STATO IN CUI VENGONO PRESI IN CONSEGNA DAL LOCATARIO, PENA L'ADDEBITO DI €50,00. Per eventuali rinvii o ritiri degli ausili, si prega di contattare il numero per le comunicazioni ALMENO 2 GIORNI PRIMA DELLA SCADENZA.
+</div>
+<h2>Termini e Condizioni</h2>
+<p class="intro-line">Le parti meglio indicate nel presente contratto convengono e stipulano quanto segue:</p>
+<div class="article">
+  <div class="article-title">Art. 1 – Oggetto del contratto</div>
+  <div class="article-body">Il presente contratto ha per oggetto la locazione di beni di proprietà della M.I.A. MEDICAL ITALIA SRL (denominata in seguito "Il Locatore"), i quali vengono locati alle condizioni ed ai presupposti indicati alla prima pagina del presente contratto al cliente (denominato di seguito "Il Locatario").</div>
+</div>
+<div class="article">
+  <div class="article-title">Art. 2 – Responsabilità del Locatore e Locatario, manuali, avvertenze e precauzioni</div>
+  <div class="article-body">Il locatario certifica che il/i bene/i in noleggio viene/vengono a lui consegnato/i in ottimo stato e dichiara, con la sottoscrizione del presente accordo, di averlo/i visionato/i e di averne verificato le ottime condizioni e di reputarlo/i idoneo/i all'uso previsto. I beni forniti dalla MIA MEDICAL ITALIA SRL hanno le certificazioni previste dalla legge, le quali sono rilasciate dagli uffici tecnici in capo al produttore degli ausili ortopedici in locazione, per i quali la MIA MEDICAL ITALIA SRL si obbliga nel fornirli in perfetta efficienza. È assolutamente vietato da parte del locatario l'uso dei beni, oggetto della locazione, a persone diverse dall'intestatario del presente contratto o diverse dalla persona sottoposta alla sua potestà genitoriale o tutela. Il locatario e/o l'utilizzatore è tenuto a conservare e custodire i beni affidatigli in noleggio con ogni diligenza. Egli è pertanto tenuto a rifondere alla M.I.A. MEDICAL ITALIA SRL l'eventuale costo relativo alla rottura o alla perdita dei medesimi anche se per cause dipese da terzi. Il sottoscrittore del presente contratto è il responsabile in solido del bene in locazione. Il Locatario è responsabile dei danni causati durante l'utilizzo dei beni in noleggio a se stesso, a terzi, a cose di terzi, ed agli stessi ausili in noleggio.</div>
+</div>
+<div class="article">
+  <div class="article-title">Art. 3 – Durata della locazione</div>
+  <div class="article-body">
+    <p>La durata della locazione è concordata e specificata nel presente contratto:</p>
+    <ul>
+      <li>Ha validità dal giorno della consegna e scadenza il giorno della restituzione del bene ad un nostro incaricato, che ne attesterà detta operazione con il rilascio di ricevuta al cliente;</li>
+      <li><strong>Non prevede alcun rimborso economico e/o nota di credito da parte della M.I.A. MEDICAL ITALIA SRL a favore del locatario, della somma corrisposta dallo stesso, in caso di restituzione anticipata del bene in noleggio da parte di quest'ultimo prima della data di scadenza della locazione concordata tra le parti nel presente contratto.</strong></li>
+    </ul>
+    <p>Il Locatore si riserva il diritto di risolvere il contratto, in caso di violazioni degli articoli del presente contratto a suo insindacabile giudizio, e richiedere al Locatario l'immediata restituzione del/i bene/i in noleggio, restituendo in tal caso unicamente la differenza del prezzo del noleggio relativo al periodo di mancato godimento, ovvero trattenere detto importo qualora venissero riscontrati danni al bene medesimo di valore superiore alla cauzione versata.</p>
+    <p class="clause-critical">Allo scadere della locazione cui al presente contratto, il locatario si obbliga a restituire il bene alla MIA MEDICAL ITALIA SRL. In mancanza di espressa comunicazione o disdetta tra le parti, opera il tacito rinnovo, che prevede l'applicazione delle condizioni contrattuali precedentemente vigenti.</p>
+  </div>
+</div>
+<div class="article">
+  <div class="article-title">Art. 4 – Deposito cauzionale</div>
+  <div class="article-body">Il Locatario versa al Locatore contestualmente alla sottoscrizione del presente contratto la somma di €300,00 a titolo di deposito cauzionale/penale per ogni ausilio noleggiato, somma che verrà restituita al Locatario all'atto della riconsegna del/i bene/i, accertata l'assenza di vizi e danni arrecati allo/agli stesso/i, se versata in contanti, oppure svincolata automaticamente al termine del noleggio se trattenuta da carta di credito con procedura di pre-autorizzazione. La cauzione potrà essere utilizzata in toto o in parte per coprire eventuali danni causati nel periodo di noleggio, con l'eventuale aggiunta della spesa per la perizia di stima dei danni se necessaria. Il Locatario si obbliga a risarcire il Locatore per qualsiasi danno derivante dal furto del/dei bene/i o di parti dello stesso. Descrizione addebito o penale sul deposito cauzionale: furto o smarrimento del bene da €300,00 a €1.500,00.</div>
+</div>
+<div class="article">
+  <div class="article-title">Listino prezzi per eventuali danni</div>
+  <div class="damage-list">
+    <table>
+      <thead><tr><th>Descrizione</th><th class="num">Importo</th></tr></thead>
+      <tbody><tr><td>Carica batteria (addebito su deposito)</td><td class="num">€250,00</td></tr>
+<tr><td>Sterzo (addebito su deposito + fattura)</td><td class="num">€1.000,00</td></tr>
+<tr><td>Sedile (addebito su deposito)</td><td class="num">€500,00</td></tr>
+<tr><td>Catarifrangente (addebito su deposito)</td><td class="num">€60,00</td></tr>
+<tr><td>Batteria (addebito su deposito + fattura)</td><td class="num">€600,00</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<div class="article">
+  <div class="article-title">Art. 5 – Pagamenti e fatturazione</div>
+  <div class="article-body">L'importo pattuito per il noleggio dovrà essere corrisposto alla M.I.A. MEDICAL ITALIA SRL per il tramite di un suo incaricato contestualmente alla consegna del/i bene/i e ad ogni rinnovo della locazione. Nel caso in cui l'utilizzatore non paghi la quota di noleggio, il presente contratto s'intenderà automaticamente risolto e l'utilizzatore dovrà riconsegnare al noleggiatore il bene, il quale noleggiatore tratterrà le somme incassate a titolo di penale. Le operazioni di fatturazione verranno effettuate dalla M.I.A. MEDICAL ITALIA SRL.</div>
+</div>
+<div class="article">
+  <div class="article-title">Art. 6 – Legge applicabile</div>
+  <div class="article-body">Il presente contratto è disciplinato dalla legge italiana. Per quanto non espressamente previsto si applicano le norme del Codice civile, ed in particolare le norme previste dall'art. 1571 c.c. e seguenti.</div>
+</div>
+<div class="article">
+  <div class="article-title">Trattamento dei dati personali</div>
+  <div class="article-body">I dati personali del cliente saranno trattati nel rispetto del Regolamento UE 2016/679 (GDPR) e della normativa italiana vigente, esclusivamente ai fini dell'esecuzione del presente contratto.</div>
+</div>
+<div class="signature-block">
+  <div class="signature-area">
+    <p>Firma del Cliente</p>
+    <p>Data: ____________________</p>
+  </div>
+  <div class="signature-area">
+    <p>Per M.i.a. Medical Italia</p>
+    <p>Data: ____________________</p>
+  </div>
+</div>
+<div class="footer">M.i.a. Medical Italia &middot; moving in autonomy &middot; Tel. 800 031962 &middot; miamedicalitalia.com</div>
+</div>
+</body>
+</html>

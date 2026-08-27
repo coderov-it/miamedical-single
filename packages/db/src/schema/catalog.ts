@@ -51,6 +51,13 @@ export const categories = pgTable(
     icon: text(),
     position: integer().notNull().default(0),
     isActive: boolean().notNull().default(true),
+    /**
+     * Whether renting an aid of this category takes a security deposit. This is
+     * what selects between the two contract families: deposit categories
+     * (scooters, electric wheelchairs) sign the scooter contract with its
+     * deposit clause, the rest sign the plain carrozzina contract.
+     */
+    requiresDeposit: boolean().notNull().default(false),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

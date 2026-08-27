@@ -57,6 +57,7 @@ export function toAdminCategory(row: CategoryAggregate): AdminCategoryDto {
     icon: row.icon,
     position: row.position,
     isActive: row.isActive,
+    requiresDeposit: row.requiresDeposit,
     translations,
     specs: row.specs
       .sort((a, b) => a.position - b.position)

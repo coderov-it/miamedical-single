@@ -27,6 +27,19 @@ after the goods went out, and a partial refund does not un-fulfil an order.
 `cancelled` and `refunded` are **exits**, not stages — nothing continues out of
 them, which is what makes them safe for the UI to treat as terminal.
 
+## The contract gate on `pending → paid`
+
+The machine's edges say what _may_ follow what; one edge additionally carries a
+precondition. `service.moveStatus` refuses `paid` on an order with rental lines
+until the order's newest non-voided contract is `signed`
+(`assertContractSigned`). Money is only taken once the customer has signed, so
+nothing later on the happy path is reachable unsigned either — which is why the
+gate sits on `paid` alone and `fulfilled` needs no second check.
+
+Sales orders owe no contract and pass untouched. The **payment** machine is
+deliberately not gated: a transfer arriving is a fact regardless of paperwork.
+The refusal is a 409 naming the contract, shown verbatim by the admin.
+
 ## What is deliberately _not_ modelled
 
 Reversal. There is no `fulfilled → paid`.
@@ -69,10 +82,13 @@ cannot touch status at all — `AdminUpdateOrderSchema` omits the field. A secon
 unaudited write path is the only way this invariant could be lost, so there
 isn't one.
 
-`order_status_events` is append-only. `field` is `status` or `paymentStatus` —
-one table rather than two, so the timeline is a single ordered read. Values are
-stored as `text`, not the enums: an event written today has to stay readable
-after an enum member is renamed or dropped. `actorUserId` is nullable and
+`order_status_events` is append-only. `field` is `status`, `paymentStatus`,
+`customerLink` or `contract` — one table rather than four, so the timeline is a
+single ordered read. `contract` events (written by `repo.insertContractEvent`)
+record contract milestones — sent, signed, voided, renewal sent — against the
+order without touching any order column: the contract's own row stays the source
+of truth for its status. Values are stored as `text`, not the enums: an event
+written today has to stay readable after an enum member is renamed or dropped. `actorUserId` is nullable and
 `ON DELETE SET NULL`, because the event has to outlive the account that caused
 it.
 

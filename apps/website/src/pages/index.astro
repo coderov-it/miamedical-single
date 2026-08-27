@@ -2,8 +2,8 @@
 /**
  * Storefront home page, in the 2026-08 editorial design — ported 1:1 from the
  * approved blueprint at docs/blueprint/home.html. Section order is the
- * blueprint's: hero → booking → categories → trending → how → delivery →
- * testimonials → faq. The only framework-free JavaScript on the page is the
+ * blueprint's: hero (copy, product showcase, booking card, trust strip) →
+ * categories → trending → how → delivery → testimonials → faq. The only framework-free JavaScript on the page is the
  * two Embla carousels, the booking date floor and the header's cart badge.
  *
  * The page coordinates data and SEO; every visual section is a focused
@@ -19,7 +19,6 @@
  * that is down means sections with no data, and those hide themselves rather
  * than break the page.
  */
-import HomeBooking from '~/components/home/HomeBooking.astro';
 import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
 import HomeDelivery from '~/components/home/HomeDelivery.astro';
 import HomeFaq from '~/components/home/HomeFaq.astro';
@@ -76,7 +75,6 @@ const jsonLd = [
   jsonLd={jsonLd}
 >
   <HomeHero products={spotlight} />
-  <HomeBooking />
   <HomeCategoryGrid categories={categoryCards} />
   <HomeProductRail products={trending} total={products.total} />
   <HomeHowItWorks />

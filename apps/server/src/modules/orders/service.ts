@@ -21,6 +21,10 @@ import {
   issueOrderMailTokens,
   resolveForOrder,
 } from '../customer-auth/order-account.ts';
+/* Read-only: the newest live contract, for the signed-before-paid gate. The
+   repo depends only on the schema, so no cycle — unlike contracts/service,
+   which this module reaches through a dynamic import below. */
+import * as contractsRepo from '../contracts/repo.ts';
 import * as notifications from '../notifications/service.ts';
 import * as productRepo from '../products/catalog/repo.ts';
 import { toPublicDetail } from '../products/mapper.ts';
@@ -43,7 +47,7 @@ import type {
   OrderAggregate,
   OrderListFilters,
   OrderListStats,
-  OrderSummaryRecord,
+  AdminOrderSummaryRecord,
   PlacedOrder,
 } from './types.ts';
 import type { AdminUpdateOrderInput } from './validators.ts';
@@ -51,7 +55,7 @@ import type { AdminUpdateOrderInput } from './validators.ts';
 export async function list(
   db: Database,
   filters: OrderListFilters,
-): Promise<{ rows: OrderSummaryRecord[]; total: number; stats: OrderListStats }> {
+): Promise<{ rows: AdminOrderSummaryRecord[]; total: number; stats: OrderListStats }> {
   const [result, awaitingCount] = await Promise.all([
     repo.findMany(db, filters),
     repo.countAwaiting(db),
@@ -179,14 +183,57 @@ async function transition(
   return getById(db, id);
 }
 
-export function moveStatus(
+const PAYMENT_FOLLOWS_ORDER: Partial<Record<OrderStatus, PaymentStatus>> = {
+  paid: 'paid',
+  refunded: 'refunded',
+};
+
+/**
+ * A rental order does not move forward without a signed contract.
+ *
+ * Checked at `paid` because that is the first forward step: money is only taken
+ * once the customer has signed, so nothing later on the happy path can be
+ * reached unsigned either. Sales orders owe no contract and pass untouched, and
+ * the payment-status machine is deliberately not gated — a transfer arriving is
+ * a fact regardless of paperwork.
+ */
+async function assertContractSigned(db: Database, id: string): Promise<void> {
+  const order = await getById(db, id);
+  const rented = order.items.some(
+    (item) => (item.configuration as Record<string, unknown> | null)?.pricingMode === 'rental',
+  );
+  if (!rented) return;
+
+  const contract = await contractsRepo.findLatestActiveByOrderId(db, id);
+  if (!contract) {
+    throw conflict(
+      'This rental order has no contract. Generate one and get it signed before marking the order paid.',
+    );
+  }
+  if (contract.status !== 'signed') {
+    throw conflict(
+      `Contract ${contract.number} is not signed yet. The customer must sign it before this order can be marked paid.`,
+    );
+  }
+}
+
+export async function moveStatus(
   db: Database,
   id: string,
   to: OrderStatus,
   note: string | null,
   actor: SessionUser | null,
 ): Promise<OrderAggregate> {
-  return transition(db, id, 'status', to, note, actor);
+  if (to === 'paid') await assertContractSigned(db, id);
+
+  let order = await transition(db, id, 'status', to, note, actor);
+
+  const follow = PAYMENT_FOLLOWS_ORDER[to];
+  if (follow && canMovePayment(order.paymentStatus as PaymentStatus, follow)) {
+    order = await transition(db, id, 'paymentStatus', follow, note, actor);
+  }
+
+  return order;
 }
 
 export function movePaymentStatus(
@@ -474,42 +521,26 @@ export async function place(
     console.error(`[orders] order ${created.number} placed but its email failed:`, error);
   }
 
-  try {
-    const { generateForOrder } = await import('../contracts/service.ts');
+  /*
+    The rental contract, sent for signature the moment the order exists. Only
+    when something is actually rented — an outright sale has nothing to sign.
+    `generateFromOrder` reads everything back off the stored order (lines,
+    customer block, deposit category), so this is the same contract the admin's
+    "Generate contract" button would produce.
 
-    const address = snapshot
-      ? `${(snapshot as Record<string, string>).line1 ?? ''}, ${(snapshot as Record<string, string>).postalCode ?? ''} ${(snapshot as Record<string, string>).city ?? ''}`
-      : '';
-
-    await generateForOrder(db, {
-      orderId: created.id,
-      orderNumber: created.number,
-      customerType: input.customer.customerType,
-      customerName: `${input.customer.firstName} ${input.customer.lastName}`,
-      email: input.customer.email,
-      phone: input.customer.phone,
-      address,
-      codiceFiscale: input.customer.codiceFiscale ?? null,
-      partitaIva: input.customer.partitaIva ?? null,
-      items: lines.map((line) => ({
-        productTitle: line.productTitle,
-        sku: line.sku,
-        quantity: line.quantity,
-        unitPrice: line.unitPrice,
-        total: line.total,
-        startDate: line.configuration?.rental?.startDate ?? '',
-        endDate: line.configuration?.rental?.endDate ?? null,
-        duration: line.configuration?.rental?.duration ?? 1,
-        durationUnit: line.configuration?.rental?.unit ?? 'day',
-      })),
-      subtotal,
-      shippingTotal,
-      total,
-      currency,
-      hasDepositProduct: false,
-    });
-  } catch (error) {
-    console.error(`[orders] order ${created.number} placed but contract generation failed:`, error);
+    Dynamic import for the same reason as ever: contracts already imports from
+    this module's repo, and a static cycle here would be load-order roulette.
+  */
+  if (lines.some((line) => line.configuration.pricingMode === 'rental')) {
+    try {
+      const { generateFromOrder } = await import('../contracts/service.ts');
+      await generateFromOrder(db, created.id);
+    } catch (error) {
+      console.error(
+        `[orders] order ${created.number} placed but contract generation failed:`,
+        error,
+      );
+    }
   }
 
   return { ...created, subtotal, shippingTotal, total, currency, items: lines };
