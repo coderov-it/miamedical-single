@@ -27,7 +27,8 @@ PostgreSQL + Cloudflare R2
 ```
 
 Two phases with a human checkpoint, because too much of the source needs a decision:
-no product has a SKU, three rental rates are unparseable prose, specs are inferred from
+no product has a stock count, three rental rates are unparseable prose, specs are
+inferred from
 free text, and six products sit in both the rental and sale trees while `products` allows
 one category and one mode.
 
@@ -72,7 +73,7 @@ pnpm --filter @mia/server wp:load -- --only-categories=carrozzine --dry-run
 The filter is applied to every chunk **before** validation, not during the writes. So a
 scoped run validates exactly the rows it will write, its dry-run counts are the real ones,
 and an out-of-scope product cannot fail the run for a category nobody is loading yet.
-Cascade: category → its specs → its products → their spec values, variants, media and
+Cascade: category → its specs → its products → their spec values, media and
 addons. An unknown code is a hard exit with the list of known ones — a typo must not
 quietly load nothing.
 
@@ -124,8 +125,8 @@ depend on that:
 Verified: two consecutive loads produce identical row counts.
 
 `pricing_mode` is deliberately absent from every `SET` list — it is write-once everywhere
-else in the codebase, and a re-run must not flip a product's mode underneath the addons and
-SKUs already priced against it.
+else in the codebase, and a re-run must not flip a product's mode underneath the addons
+already priced against it.
 
 ## The chunks
 
@@ -135,9 +136,8 @@ SKUs already priced against it.
 | `02-category-specs.json` | 217        | inferred spec definitions, with the reason for each shape         |
 | `03-products.json`       | 98         | products, Italian translation, **`rentalPackages`**               |
 | `04-product-specs.json`  | 430        | coerced spec values, each keeping its `rawValue`                  |
-| `05-variants.json`       | 1          | SKU-affecting variant groups                                      |
 | `06-media.json`          | 291        | download manifest: source URL → role                              |
-| `07-addons.json`         | 7          | priced extras                                                     |
+| `07-addons.json`         | 8          | priced extras                                                     |
 | `report.json`            | 99 entries | **every judgement call and every dropped row**                    |
 
 `report.json` is the point of the whole split. Read it before loading.
@@ -212,23 +212,23 @@ maintain:
 "Conf. 4 pz 5cm x 5cm - 8€"      → null      → product option
 ```
 
-A product option then splits by mode:
+A product option becomes `product_addons` in fixed mode, in **either** mode of the parent
+product. _"Acquista gli elettrodi"_ is an extra you add to what you came for, priced once —
+not an axis of the thing itself. A product has no configurable axes (one product is one
+stock-keeping unit), and the schema explicitly permits a fixed addon on a rental product as
+well as a fixed one.
 
-- **fixed product** → a SKU-affecting `single_select` variant group. Each label states an
-  absolute price, so the cheapest becomes `basePrice` and the rest become non-negative
-  modifiers. `basePrice + modifier` reproduces each option's price exactly, which is what
-  `resolveSkuPrice` computes.
-- **rental product** → `product_addons` in fixed mode. _"Acquista gli elettrodi"_ is an
-  extra you add to a rental, priced once — not an axis of the thing being rented. Modelling
-  it as a variant would multiply the SKU matrix by the tier count for something the
-  warehouse does not track separately, and the schema explicitly permits a fixed addon on a
-  rental product.
+This used to split by mode: a fixed product's options became a `single_select`
+variant group whose cheapest label set `basePrice`, and only a rental product's became
+addons. Variants are gone, so both sides now land the same way.
+The cheapest label still sets `basePrice` on a fixed product, so the figure the old shop
+showed is preserved.
 
 Two products carry a duration **and** an option on the same variation. There, `_price` is
 the combined total, so the option's price is read from its own label
 (`parsePriceFromLabel`) and the tier is recorded once. Those variations also repeat every
 option once per tier — ten rows for two real choices — so options are deduplicated by value
-before emission, or `unique(group_id, value)` would reject them on load.
+before emission.
 
 ### Specs: curated first, attributes second
 
@@ -253,19 +253,17 @@ closed set becomes a facet, everything else stays text and simply does not filte
 whose values use mixed units falls back to text rather than pretending to be comparable.
 Result: 21 boolean, 47 number, 24 single_select, 6 number_range, 119 string; 92 filterable.
 
-### SKUs
+### Stock
 
-WooCommerce has none — every `_sku` is empty. `baseSku` is derived from the title,
-uppercased, capped at 48 chars and deduplicated. The cap is applied _inside_
-`skuFragment()`, because slicing afterwards is what leaves a trailing hyphen, which
-`SkuFragmentSchema` rejects — a bug the dry-run caught on four products.
+There is no SKU anywhere in the model — not on a product, not on an add-on, not on an
+order line. WooCommerce had none either (every `_sku` was empty), so nothing was lost in
+dropping the concept; a product is named by its title and identified by its id.
 
-SKU rows are generated through the app's own `generateCombinations` / `composeSku`, so the
-strings match what the admin would produce for the same groups. A product with no
-SKU-affecting group still gets its one base SKU, exactly as `regenerate()` does — and, like
-`regenerate()`, writes no `product_sku_options` for it, because the base combination has no
-options and drizzle refuses an empty `VALUES` list. The loader was missing that guard; the
-first wheelchair-only run found it, since all 15 of those products are group-less.
+Stock comes from `_stock`, but only where `_manage_stock` is `yes`. WooCommerce keeps no
+count on anything else — it reports availability through `_stock_status` — so an unmanaged
+product lands at `0` and is flagged in `needsReview`. "We never counted these" and "there
+are none left" must not look the same to whoever reviews the import, and `0` is the safe
+default of the two: the storefront refuses to sell it until someone types a real figure.
 
 ### Text and language
 

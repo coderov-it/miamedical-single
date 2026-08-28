@@ -15,8 +15,6 @@ export const PRODUCT_TABS = [
    */
   { key: 'description', label: 'Description' },
   { key: 'pricing', label: 'Pricing' },
-  { key: 'variants', label: 'Variants' },
-  { key: 'skus', label: 'SKUs' },
   { key: 'specs', label: 'Specs' },
   { key: 'media', label: 'Media' },
   { key: 'addons', label: 'Addons' },

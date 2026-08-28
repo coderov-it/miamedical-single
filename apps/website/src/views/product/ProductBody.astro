@@ -25,7 +25,6 @@
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import PdpAddons from '~/components/product/PdpAddons.astro';
-import PdpConfigure from '~/components/product/PdpConfigure.astro';
 import PdpHero from '~/components/product/PdpHero.astro';
 import PdpInfoTabs from '~/components/product/PdpInfoTabs.astro';
 import PdpOrderPanel from '~/components/product/PdpOrderPanel.astro';
@@ -88,7 +87,6 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
 
         <main class={leftColumn}>
           <PdpHero {product} {images} />
-          {product.variants.length > 0 && <PdpConfigure variants={product.variants} />}
           {product.addons.length > 0 && <PdpAddons addons={product.addons} />}
           {product.questions.length > 0 && <PdpQuestions questions={product.questions} />}
           {product.specifications.length > 0 && (

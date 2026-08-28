@@ -15,11 +15,6 @@ export type AdminCategory = InferResponseType<
   200
 >['data'][number];
 
-export type AdminPreset = InferResponseType<
-  typeof api.api.admin.attributes.$get,
-  200
->['data'][number];
-
 export type AdminTerms = InferResponseType<typeof api.api.admin.terms.$get, 200>['data'][number];
 
 export type Localized = { it: string; en?: string | undefined };
@@ -55,7 +50,7 @@ export interface TabProps {
   product: AdminProduct;
   onSaved: (product: AdminProduct) => void;
   /**
-   * Shared across all ten tabs. Each reports its own section so the strip can
+   * Shared across every tab. Each reports its own section so the strip can
    * show a dot and the page-exit guard can name what would be lost.
    */
   dirty: DirtyState;

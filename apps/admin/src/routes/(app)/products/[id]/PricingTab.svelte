@@ -191,7 +191,7 @@
         <Input id="pricing-mode" value={isRental ? 'Rental' : 'Fixed price'} disabled />
         <p class="mt-1 text-xs text-muted-foreground">
           Chosen at creation and permanent. A rental is priced by its packages; a fixed product by
-          its base price, its SKUs and their modifiers.
+          its base price.
         </p>
       </div>
 
@@ -251,9 +251,9 @@
     </div>
 
     <!--
-      Packages are not part of the SKU matrix and nothing derives them from
-      anything: each is a duration sold at a total the operator typed. They are
-      the ONLY way this product is priced, so the last one cannot be removed.
+      Nothing derives a package from anything: each is a duration sold at a
+      total the operator typed. They are the ONLY way this product is priced, so
+      the last one cannot be removed.
     -->
     {#if isRental}
       <div class="space-y-3 border-t pt-6">

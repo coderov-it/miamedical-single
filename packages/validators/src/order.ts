@@ -95,9 +95,9 @@ const TimeOnlySchema = v.pipe(
 );
 
 /**
- * `{ groupKey: [optionValue, …] }`. An array even for a single-select group, so
- * a multi-select needs no second shape. Keys are the catalogue's own group and
- * question keys; unknown ones are rejected by the server, not ignored.
+ * `{ questionKey: [value, …] }`. An array even for a single-select question, so
+ * a multi-select needs no second shape. Keys are the catalogue's own question
+ * keys; unknown ones are rejected by the server, not ignored.
  */
 const SelectionMapSchema = v.record(
   v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(64)),
@@ -142,7 +142,6 @@ export const PlaceOrderItemSchema = v.strictObject({
     ),
     [],
   ),
-  variants: v.optional(SelectionMapSchema, {}),
   answers: v.optional(SelectionMapSchema, {}),
 });
 

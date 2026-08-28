@@ -52,11 +52,9 @@
   import PricingTab from './PricingTab.svelte';
   import QuestionsTab from './QuestionsTab.svelte';
   import type { AdminProduct } from './shared';
-  import SkusTab from './SkusTab.svelte';
   import SpecsTab from './SpecsTab.svelte';
   import { PRODUCT_TABS, parseTab, tabLabel } from './tabs';
   import TermsTab from './TermsTab.svelte';
-  import VariantsTab from './VariantsTab.svelte';
 
   const product = new Resource(
     () => page.params.id,
@@ -104,7 +102,7 @@
       // Clear first: the guard must not challenge a navigation away from a
       // product that no longer exists.
       dirty.clearAll();
-      toast.success(`Deleted "${current.translations.it?.title ?? current.baseSku}".`);
+      toast.success(`Deleted "${current.translations.it?.title ?? 'product'}".`);
       await goto(routes.products);
     } catch (err) {
       toast.error(errorMessage(err));
@@ -116,7 +114,6 @@
   const title = $derived(
     (uiLang.current === 'en' ? product.data?.translations.en?.title : undefined) ||
       product.data?.translations.it?.title ||
-      product.data?.baseSku ||
       'Product',
   );
 
@@ -171,7 +168,6 @@
   {:else}
     {@const current = product.data}
     <div class="flex flex-wrap items-center gap-2 text-sm">
-      <code class="font-mono text-muted-foreground">{current.baseSku}</code>
       <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
         {current.status}
       </Badge>
@@ -206,7 +202,7 @@
       a screen reader. `aria-current` describes what is actually true here.
 
       The IT/EN tabs at the right end are the editor-wide content language —
-      pinned outside the scroll region so they never disappear behind ten
+      pinned outside the scroll region so they never disappear behind the
       section tabs on a narrow screen.
     -->
     <div class="flex items-stretch border-b">
@@ -253,10 +249,6 @@
             <DescriptionTab product={current} {onSaved} {dirty} />
           {:else if tab.key === 'pricing'}
             <PricingTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'variants'}
-            <VariantsTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'skus'}
-            <SkusTab product={current} {onSaved} {dirty} />
           {:else if tab.key === 'specs'}
             <SpecsTab product={current} {onSaved} {dirty} />
           {:else if tab.key === 'media'}
@@ -286,8 +278,8 @@
     <AlertDialog.Header>
       <AlertDialog.Title>Delete this product?</AlertDialog.Title>
       <AlertDialog.Description>
-        "{title}" and everything attached to it — SKUs, variants, specs, media — are removed. This
-        cannot be undone.
+        "{title}" and everything attached to it — specs, media, add-ons — are removed. This cannot
+        be undone.
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>

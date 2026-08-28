@@ -29,7 +29,6 @@
     id?: string | undefined;
     name: Localized;
     description: Localized;
-    sku: string;
     pricingMode: string;
     price: string;
     rentalUnit: string;
@@ -43,7 +42,6 @@
     id: addon.id,
     name: localizedOf(addon.name),
     description: localizedOf(addon.description),
-    sku: addon.sku ?? '',
     pricingMode: addon.pricingMode,
     price: addon.price,
     rentalUnit: addon.rentalUnit ?? 'day',
@@ -82,7 +80,6 @@
       uid: crypto.randomUUID(),
       name: { it: '' },
       description: { it: '' },
-      sku: '',
       pricingMode: allowedModes[0] ?? 'fixed',
       price: '0.00',
       rentalUnit: product.rentalUnit ?? 'day',
@@ -108,7 +105,6 @@
             ...(addon.id ? { id: addon.id } : {}),
             name: localizedOrNull(addon.name) ?? { it: '' },
             description: localizedOrNull(addon.description),
-            sku: addon.sku.trim() || null,
             pricingMode: addon.pricingMode as 'fixed',
             price: addon.price,
             // A fixed addon has no unit to bill against, so this must be null
@@ -169,18 +165,7 @@
     >
       {#snippet row(addon)}
         <div class="space-y-3">
-          <div class="grid gap-3 sm:grid-cols-2">
-            <TranslatedInput label="Name" bind:value={addon.name} />
-            <div>
-              <Label class="mb-1.5" for="addon-sku-{addon.uid}">SKU</Label>
-              <Input
-                id="addon-sku-{addon.uid}"
-                bind:value={addon.sku}
-                class="font-mono uppercase"
-                placeholder="Optional"
-              />
-            </div>
-          </div>
+          <TranslatedInput label="Name" bind:value={addon.name} />
 
           <TranslatedInput
             label="Description"

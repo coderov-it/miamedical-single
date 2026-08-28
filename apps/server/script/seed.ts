@@ -1,8 +1,6 @@
 import { count, createDatabase, eq } from '@mia/db';
 import type { LanguageCode } from '@mia/db/schema';
 import {
-  attributePresetOptions,
-  attributePresets,
   cartItems,
   carts,
   categories,
@@ -16,14 +14,10 @@ import {
   productFaqs,
   productQuestionOptions,
   productQuestions,
-  productSkuOptions,
-  productSkus,
   productSpecValueOptions,
   productSpecValues,
   productTerms,
   productTranslations,
-  productVariantGroups,
-  productVariantOptions,
   products,
   searchVectorFor,
   termsDocumentTranslations,
@@ -31,20 +25,14 @@ import {
 } from '@mia/db/schema';
 
 import { env } from '../src/config/env.ts';
-import {
-  composeSku,
-  generateCombinations,
-  randomSuffix,
-} from '../src/modules/products/variants/sku.ts';
 import { applyAdminAccount } from './admin-account.ts';
 
 /**
- * Development seed for the catalog domain: the attribute preset library, two
- * categories with filterable/comparable specs, one FIXED product and one
- * RENTAL (per-day) product covering every variant value type, a generated SKU
- * matrix, addons following the mode rule (rental product → rental + fixed
- * addons; fixed product → fixed only), FAQs, intake questions and a published
- * terms document.
+ * Development seed for the catalog domain: two categories with
+ * filterable/comparable specs, one FIXED product and one RENTAL (per-day)
+ * product, each carrying its own stock, addons following the mode rule (rental
+ * product → rental + fixed addons; fixed product → fixed only), FAQs, intake
+ * questions and a published terms document.
  *
  * Italian is populated everywhere. English is deliberately missing on a
  * subset — on translation rows AND on jsonb labels — so the `en → it`
@@ -64,90 +52,6 @@ const tr = (
 ): ReturnType<typeof searchVectorFor> => searchVectorFor(lang, title, body);
 
 console.log('Seeding catalog…');
-
-// --- attribute presets ------------------------------------------------------
-
-const PRESETS = [
-  {
-    key: 'altezza',
-    label: { it: 'Altezza', en: 'Height' },
-    valueType: 'number' as const,
-    unit: 'cm',
-    options: [],
-  },
-  {
-    key: 'peso',
-    label: { it: 'Peso', en: 'Weight' },
-    valueType: 'number' as const,
-    unit: 'kg',
-    options: [],
-  },
-  {
-    key: 'materiale',
-    label: { it: 'Materiale' }, // en missing on purpose — jsonb fallback
-    valueType: 'single_select' as const,
-    unit: null,
-    options: [
-      { value: 'acciaio', label: { it: 'Acciaio', en: 'Steel' }, skuCode: 'ACC' },
-      { value: 'alluminio', label: { it: 'Alluminio', en: 'Aluminium' }, skuCode: 'ALU' },
-    ],
-  },
-  {
-    key: 'colore',
-    label: { it: 'Colore', en: 'Colour' },
-    valueType: 'single_select' as const,
-    unit: null,
-    options: [
-      { value: 'bianco', label: { it: 'Bianco', en: 'White' }, skuCode: 'BIA' },
-      { value: 'grigio', label: { it: 'Grigio' }, skuCode: 'GRI' }, // en missing
-      { value: 'blu', label: { it: 'Blu', en: 'Blue' }, skuCode: 'BLU' },
-    ],
-  },
-  {
-    key: 'taglia',
-    label: { it: 'Taglia', en: 'Size' },
-    valueType: 'single_select' as const,
-    unit: null,
-    options: [
-      { value: 's', label: { it: 'S' }, skuCode: 'S' },
-      { value: 'm', label: { it: 'M' }, skuCode: 'M' },
-      { value: 'l', label: { it: 'L' }, skuCode: 'L' },
-    ],
-  },
-  {
-    key: 'marca',
-    label: { it: 'Marca', en: 'Brand' },
-    valueType: 'string' as const,
-    unit: null,
-    options: [],
-  },
-];
-
-for (const [index, preset] of PRESETS.entries()) {
-  const [inserted] = await db
-    .insert(attributePresets)
-    .values({
-      key: preset.key,
-      label: preset.label,
-      valueType: preset.valueType,
-      unit: preset.unit,
-      position: index,
-    })
-    .onConflictDoNothing()
-    .returning({ id: attributePresets.id });
-  if (inserted && preset.options.length > 0) {
-    await db.insert(attributePresetOptions).values(
-      preset.options.map((option, position) => ({
-        presetId: inserted.id,
-        value: option.value,
-        label: option.label,
-        skuCode: option.skuCode,
-        position,
-      })),
-    );
-  }
-}
-console.log(`  ✓ ${PRESETS.length} attribute presets`);
 
 // --- terms document ---------------------------------------------------------
 
@@ -368,113 +272,13 @@ const carrozzine = await seedCategory(
 
 // --- products ---------------------------------------------------------------
 
-interface VariantSeed {
-  key: string;
-  label: { it: string; en?: string };
-  helpText?: { it: string; en?: string };
-  valueType: 'string' | 'number' | 'single_select' | 'multi_select' | 'boolean' | 'number_range';
-  unit?: string;
-  isRequired?: boolean;
-  affectsSku?: boolean;
-  sourcePresetKey?: string;
-  minValue?: number;
-  maxValue?: number;
-  stepValue?: number;
-  priceModifierPerUnit?: string;
-  options?: {
-    value: string;
-    label: { it: string; en?: string };
-    skuCode?: string;
-    priceModifier?: string;
-    isDefault?: boolean;
-  }[];
-}
-
-async function seedVariants(productId: string, variants: VariantSeed[]) {
-  const groups = [];
-  for (const [index, variant] of variants.entries()) {
-    const [group] = await db
-      .insert(productVariantGroups)
-      .values({
-        productId,
-        key: variant.key,
-        label: variant.label,
-        helpText: variant.helpText ?? null,
-        valueType: variant.valueType,
-        unit: variant.unit ?? null,
-        isRequired: variant.isRequired ?? false,
-        affectsSku: variant.affectsSku ?? false,
-        sourcePresetKey: variant.sourcePresetKey ?? null,
-        minValue: variant.minValue === undefined ? null : String(variant.minValue),
-        maxValue: variant.maxValue === undefined ? null : String(variant.maxValue),
-        stepValue: variant.stepValue === undefined ? null : String(variant.stepValue),
-        priceModifierPerUnit: variant.priceModifierPerUnit ?? null,
-        position: index,
-      })
-      .returning();
-    if (!group) continue;
-
-    const options = [];
-    for (const [optIndex, option] of (variant.options ?? []).entries()) {
-      const [optionRow] = await db
-        .insert(productVariantOptions)
-        .values({
-          groupId: group.id,
-          value: option.value,
-          label: option.label,
-          skuCode: option.skuCode ?? null,
-          priceModifier: option.priceModifier ?? '0.00',
-          isDefault: option.isDefault ?? false,
-          position: optIndex,
-        })
-        .returning();
-      if (optionRow) options.push(optionRow);
-    }
-    groups.push({ ...group, options });
-  }
-  return groups;
-}
-
-async function seedSkuMatrix(
-  productId: string,
-  baseSku: string,
-  groups: Awaited<ReturnType<typeof seedVariants>>,
-  stocks: number[],
-) {
-  const combos = generateCombinations(groups);
-  const optionGroup = new Map(groups.flatMap((g) => g.options.map((o) => [o.id, g.id])));
-  for (const [index, combo] of combos.entries()) {
-    const suffix = randomSuffix();
-    const [sku] = await db
-      .insert(productSkus)
-      .values({
-        productId,
-        sku: composeSku(baseSku, combo.codes, suffix),
-        suffix,
-        comboKey: combo.comboKey,
-        stock: stocks[index % stocks.length] ?? 0,
-        position: index,
-      })
-      .returning({ id: productSkus.id });
-    if (!sku) continue;
-    await db.insert(productSkuOptions).values(
-      combo.optionIds.map((optionId) => ({
-        skuId: sku.id,
-        optionId,
-        groupId: optionGroup.get(optionId)!,
-      })),
-    );
-  }
-  return combos.length;
-}
-
 // -- the RENTAL product (per day) --------------------------------------------
 
 if (letti) {
   const [product] = await db
     .insert(products)
     .values({
-      baseSku: 'MIA-LTE',
+      stock: 6,
       status: 'active',
       categoryId: letti.id,
       brand: 'MiaMedical',
@@ -556,68 +360,6 @@ if (letti) {
       },
     ]);
 
-    const groups = await seedVariants(product.id, [
-      {
-        key: 'colore',
-        label: { it: 'Colore', en: 'Colour' },
-        valueType: 'single_select',
-        isRequired: true,
-        affectsSku: true,
-        sourcePresetKey: 'colore',
-        options: [
-          {
-            value: 'bianco',
-            label: { it: 'Bianco', en: 'White' },
-            skuCode: 'BIA',
-            isDefault: true,
-          },
-          { value: 'grigio', label: { it: 'Grigio' }, skuCode: 'GRI', priceModifier: '4.00' },
-        ],
-      },
-      {
-        key: 'sponde',
-        label: { it: 'Sponde laterali', en: 'Side rails' },
-        valueType: 'boolean',
-        isRequired: true,
-        affectsSku: true,
-        options: [
-          {
-            value: 'no',
-            label: { it: 'Senza sponde', en: 'Without rails' },
-            skuCode: 'NS',
-            isDefault: true,
-          },
-          { value: 'si', label: { it: 'Con sponde' }, skuCode: 'CS', priceModifier: '6.00' },
-        ],
-      },
-      {
-        key: 'altezza-materasso',
-        label: { it: 'Altezza materasso', en: 'Mattress height' },
-        helpText: { it: 'Da 10 a 22 cm, a passi di 2.' },
-        valueType: 'number_range',
-        unit: 'cm',
-        minValue: 10,
-        maxValue: 22,
-        stepValue: 2,
-        priceModifierPerUnit: '0.25',
-      },
-      {
-        key: 'accessori',
-        label: { it: 'Accessori inclusi', en: 'Included accessories' },
-        valueType: 'multi_select',
-        options: [
-          { value: 'asta-sollevamento', label: { it: 'Asta di sollevamento', en: 'Lifting pole' } },
-          { value: 'porta-flebo', label: { it: 'Porta flebo' } },
-        ],
-      },
-      {
-        key: 'note-consegna',
-        label: { it: 'Note per la consegna', en: 'Delivery notes' },
-        valueType: 'string',
-      },
-    ]);
-    const skuCount = await seedSkuMatrix(product.id, 'MIA-LTE', groups, [6, 0, 3, 2]);
-
     // Spec values: 90 cm, 170 kg, acciaio, CE.
     const spec = (key: string) => letti.specIds.get(key)!;
     await db.insert(productSpecValues).values([
@@ -637,7 +379,6 @@ if (letti) {
         productId: product.id,
         name: { it: 'Materasso antidecubito', en: 'Anti-decubitus mattress' },
         description: { it: "Materasso a bolle d'aria con compressore." }, // en missing
-        sku: 'MIA-ADD-MAT',
         pricingMode: 'rental',
         productPricingMode: 'rental',
         price: '9.00',
@@ -655,7 +396,6 @@ if (letti) {
           it: 'Consegna a domicilio con montaggio.',
           en: 'Home delivery with assembly.',
         },
-        sku: 'MIA-ADD-DEL',
         pricingMode: 'fixed',
         productPricingMode: 'rental',
         price: '60.00',
@@ -748,7 +488,7 @@ if (letti) {
       await db.insert(productTerms).values({ productId: product.id, termsId, position: 0 });
     }
 
-    console.log(`  ✓ rental product letto-degenza-elettrico (${skuCount} SKUs)`);
+    console.log('  ✓ rental product letto-degenza-elettrico');
   } else {
     console.log('  · rental product already exists, skipping');
   }
@@ -760,7 +500,7 @@ if (carrozzine) {
   const [product] = await db
     .insert(products)
     .values({
-      baseSku: 'MIA-CRZ',
+      stock: 4,
       status: 'active',
       categoryId: carrozzine.id,
       brand: 'MiaMedical',
@@ -797,44 +537,6 @@ if (carrozzine) {
       // No English row at all — translation-table fallback exercised.
     ]);
 
-    const groups = await seedVariants(product.id, [
-      {
-        key: 'taglia',
-        label: { it: 'Larghezza seduta', en: 'Seat width' },
-        valueType: 'single_select',
-        isRequired: true,
-        affectsSku: true,
-        sourcePresetKey: 'taglia',
-        options: [
-          { value: '40', label: { it: '40 cm' }, skuCode: '40', isDefault: true },
-          { value: '45', label: { it: '45 cm' }, skuCode: '45', priceModifier: '15.00' },
-          { value: '48', label: { it: '48 cm' }, skuCode: '48', priceModifier: '25.00' },
-        ],
-      },
-      {
-        key: 'colore',
-        label: { it: 'Colore', en: 'Colour' },
-        valueType: 'single_select',
-        isRequired: true,
-        affectsSku: true,
-        sourcePresetKey: 'colore',
-        options: [
-          { value: 'blu', label: { it: 'Blu', en: 'Blue' }, skuCode: 'BLU', isDefault: true },
-          { value: 'grigio', label: { it: 'Grigio', en: 'Grey' }, skuCode: 'GRI' },
-        ],
-      },
-      {
-        key: 'lunghezza-pedana',
-        label: { it: 'Lunghezza pedana', en: 'Footrest length' },
-        valueType: 'number',
-        unit: 'cm',
-        minValue: 38,
-        maxValue: 50,
-        priceModifierPerUnit: '1.50',
-      },
-    ]);
-    const skuCount = await seedSkuMatrix(product.id, 'MIA-CRZ', groups, [4, 2, 0, 5, 1, 3]);
-
     const spec = (key: string) => carrozzine.specIds.get(key)!;
     await db.insert(productSpecValues).values([
       { productId: product.id, specId: spec('peso').id, numberValue: '11' },
@@ -852,7 +554,6 @@ if (carrozzine) {
       {
         productId: product.id,
         name: { it: 'Cuscino antidecubito', en: 'Anti-decubitus cushion' },
-        sku: 'MIA-ADD-CUS',
         pricingMode: 'fixed',
         productPricingMode: 'fixed',
         price: '45.00',
@@ -863,7 +564,6 @@ if (carrozzine) {
       {
         productId: product.id,
         name: { it: 'Borsa portaoggetti' }, // en missing
-        sku: 'MIA-ADD-BOR',
         pricingMode: 'fixed',
         productPricingMode: 'fixed',
         price: '25.00',
@@ -904,7 +604,7 @@ if (carrozzine) {
       position: 0,
     });
 
-    console.log(`  ✓ fixed product carrozzina-pieghevole (${skuCount} SKUs)`);
+    console.log('  ✓ fixed product carrozzina-pieghevole');
   } else {
     console.log('  · fixed product already exists, skipping');
   }
@@ -917,7 +617,7 @@ if (!env.R2_BUCKET) {
 // --- orders and carts ---------------------------------------------------------
 //
 // One order per status, so the queue's filter bar and the detail page's action
-// set can both be exercised without hand-crafting rows. Lines snapshot the SKU
+// set can both be exercised without hand-crafting rows. Lines snapshot the title
 // exactly as checkout would: the order stays readable after the product moves.
 
 {
@@ -926,20 +626,17 @@ if (!env.R2_BUCKET) {
   if (existingOrder) {
     console.log('  · orders already exist, skipping');
   } else {
-    const skuRows = await db
+    const productRows = await db
       .select({
-        id: productSkus.id,
-        sku: productSkus.sku,
-        productId: productSkus.productId,
+        id: products.id,
         basePrice: products.basePrice,
         rentalPackages: products.rentalPackages,
       })
-      .from(productSkus)
-      .innerJoin(products, eq(productSkus.productId, products.id))
+      .from(products)
       .limit(6);
 
-    if (skuRows.length === 0) {
-      console.log('  · no SKUs to build orders from, skipping');
+    if (productRows.length === 0) {
+      console.log('  · no products to build orders from, skipping');
     } else {
       const titles = new Map(
         (
@@ -977,7 +674,7 @@ if (!env.R2_BUCKET) {
       /* What one of this line costs. A fixed product has its own rate; a rental
          has no rate at all, so its cheapest package stands in — the same figure
          the storefront would quote for the shortest stay. */
-      const linePrice = (row: (typeof skuRows)[number]): string =>
+      const linePrice = (row: (typeof productRows)[number]): string =>
         row.basePrice ??
         row.rentalPackages.reduce(
           (cheapest, pkg) => (cents(pkg.price) < cents(cheapest) ? pkg.price : cheapest),
@@ -985,7 +682,7 @@ if (!env.R2_BUCKET) {
         );
 
       for (const [index, plan] of PLAN.entries()) {
-        const line = skuRows[index % skuRows.length]!;
+        const line = productRows[index % productRows.length]!;
         const quantity = (index % 3) + 1;
         const unitCents = cents(linePrice(line));
         const subtotalCents = unitCents * quantity;
@@ -1015,10 +712,8 @@ if (!env.R2_BUCKET) {
 
         await db.insert(orderItems).values({
           orderId: order.id,
-          skuId: line.id,
-          productTitle: titles.get(line.productId) ?? line.sku,
-          skuLabel: line.sku,
-          sku: line.sku,
+          productId: line.id,
+          productTitle: titles.get(line.id) ?? 'Prodotto',
           quantity,
           unitPrice: money(unitCents),
           total: money(subtotalCents),
@@ -1066,10 +761,10 @@ if (!env.R2_BUCKET) {
           .returning({ id: carts.id });
         if (!cart) continue;
 
-        const line = skuRows[index % skuRows.length]!;
+        const line = productRows[index % productRows.length]!;
         await db.insert(cartItems).values({
           cartId: cart.id,
-          skuId: line.id,
+          productId: line.id,
           quantity: index + 1,
           unitPrice: linePrice(line),
         });

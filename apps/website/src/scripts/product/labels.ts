@@ -15,7 +15,7 @@
 
 /** Every word the page scripts can ask for. Filled by `ProductPage.astro`. */
 export interface PdpLabels {
-  /** The variant line's caption when no option carries a name of its own. */
+  /** The estimate's caption for a fixed product's own rate. */
   baseRate: string;
   /** The package field's own text while nothing is chosen. */
   choosePackage: string;

@@ -46,7 +46,6 @@ export function buildHandoverMessage(items: Checkout['items']): string {
   const body = items
     .flatMap((item) => [
       `• ${item.product.title}`,
-      ...item.request.selections.map((entry) => `  ${entry.label}: ${entry.value}`),
       ...(item.request.rentalPackage
         ? [
             `  ${t('msgPackage')}: ${item.request.rentalPackage.name} (${item.request.rentalPackage.label})`,

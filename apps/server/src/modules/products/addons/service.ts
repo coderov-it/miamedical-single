@@ -76,7 +76,6 @@ export async function replaceAddons(
         productId,
         name: addon.name,
         description: addon.description ?? null,
-        sku: addon.sku ?? null,
         pricingMode: addon.pricingMode,
         productPricingMode: product.pricingMode,
         price: addon.price,

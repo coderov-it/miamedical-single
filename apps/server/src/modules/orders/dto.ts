@@ -27,11 +27,9 @@ export interface AddressDto {
 
 export interface OrderItemDto {
   id: string;
-  /** Null once the SKU has been deleted; the snapshot fields still read. */
-  skuId: string | null;
+  /** Null once the product has been deleted; the snapshot fields still read. */
+  productId: string | null;
   productTitle: string;
-  skuLabel: string;
-  sku: string;
   quantity: number;
   /**
    * The configured rate — per rental unit on a rental line. Deliberately not
@@ -220,11 +218,9 @@ export interface AdminCartSummaryDto {
 
 export interface AdminCartItemDto {
   id: string;
-  skuId: string;
   /** Live from the catalog, not a snapshot — a cart is not a record of sale. */
-  productTitle: string;
   productId: string;
-  sku: string;
+  productTitle: string;
   quantity: number;
   unitPrice: string;
   total: string;

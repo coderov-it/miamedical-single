@@ -87,7 +87,7 @@ export const TERMS_STATUS = {
   archived: { it: 'Archiviato', en: 'Archived' },
 } as const satisfies Labels<TermsStatus, Plain>;
 
-/** Shared by category specs and variant groups. */
+/** The shapes a category spec's value can take. */
 export const VALUE_TYPE = {
   string: { it: 'Testo', en: 'Text' },
   number: { it: 'Numero', en: 'Number' },

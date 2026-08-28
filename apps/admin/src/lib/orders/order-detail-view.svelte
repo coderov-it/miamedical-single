@@ -111,7 +111,6 @@
     );
   }
 
-
   const addresses = $derived(
     [
       { title: 'Shipping', value: order.shippingAddress },
@@ -364,10 +363,6 @@
               <Table.Row class={config ? 'border-b-0' : ''}>
                 <Table.Cell>
                   <p class="font-medium">{item.productTitle}</p>
-                  {#if item.skuLabel}
-                    <p class="text-xs text-muted-foreground">{item.skuLabel}</p>
-                  {/if}
-                  <p class="font-mono text-xs text-muted-foreground">{item.sku}</p>
                 </Table.Cell>
                 <Table.Cell class="text-right tabular-nums">{item.quantity}</Table.Cell>
                 <Table.Cell class="text-right tabular-nums">
@@ -405,22 +400,6 @@
                             {config.rentalPackage.name} ({config.rentalPackage.label}) ·
                             {formatMoney(config.rentalPackage.price, order.totals.currency)}
                           </span>
-                        </p>
-                      {/if}
-
-                      {#if config.selections.length > 0}
-                        <p class="flex flex-wrap gap-x-3 gap-y-1">
-                          {#each config.selections as choice, index (`${choice.key}-${index}`)}
-                            <span>
-                              <span class="text-muted-foreground">{choice.label}</span>
-                              <span class="ml-1">{choice.value}</span>
-                              {#if choice.amount !== '0.00'}
-                                <span class="ml-1 text-muted-foreground tabular-nums">
-                                  ({formatMoney(choice.amount, order.totals.currency)})
-                                </span>
-                              {/if}
-                            </span>
-                          {/each}
                         </p>
                       {/if}
 

@@ -2,13 +2,13 @@
  * A checkout line, resolved against the catalogue and priced.
  *
  * This module is the reason the endpoint can be public. It reads a request of
- * pure CHOICES — a slug, option values, add-on ids, dates, a quantity — and
- * rebuilds the line from the catalogue: every label, every amount, the SKU. The
- * request contributes no money at all, so a crafted body can change what is
- * ordered and never what it costs.
+ * pure CHOICES — a slug, answers, add-on ids, dates, a quantity — and rebuilds
+ * the line from the catalogue: every label and every amount. The request
+ * contributes no money at all, so a crafted body can change what is ordered and
+ * never what it costs.
  *
  * It is deliberately STRICT where the storefront's display resolver is lenient.
- * `src/lib/request-config.ts` drops an option it does not recognise, because a
+ * `src/lib/request-config.ts` drops an answer it does not recognise, because a
  * summary page that shows one line fewer is better than one showing a choice we
  * cannot honour. Here the same input is a 422: the customer is about to be held
  * to this record, and silently ordering something narrower than they asked for is
@@ -20,11 +20,8 @@
 import type { PlaceOrderItemInput } from '@mia/validators';
 import {
   MAX_ADDON_QUANTITY,
-  type PriceModifier,
   type RentalPeriod,
   addMoney,
-  matchSku,
-  mulMoney,
   priceRequest,
   resolvePeriod,
 } from '@mia/pricing';
@@ -35,7 +32,6 @@ import type {
   PublicProductDetailDto,
   PublicQuestionDto,
   PublicRentalPackageDto,
-  PublicVariantGroupDto,
 } from '../products/dto.ts';
 import { booleanLabel } from '../products/mapper.ts';
 
@@ -46,14 +42,6 @@ const BOOLEAN_VALUES = new Set(['yes', 'no']);
 const MAX_PAST_DAYS = 1;
 const MAX_FUTURE_DAYS = 730;
 const DAY_MS = 86_400_000;
-
-export interface ResolvedSelection {
-  key: string;
-  label: string;
-  value: string;
-  /** The choice's price effect: a flat amount, in either mode. */
-  amount: string;
-}
 
 export interface ResolvedAnswer {
   key: string;
@@ -75,9 +63,9 @@ export interface ResolvedAddon {
  * The `order_items.configuration` snapshot: what the customer configured, at the
  * labels they saw, with the amounts it was priced at.
  *
- * Labels are frozen here rather than read live through the SKU, for the same
+ * Labels are frozen here rather than read live from the catalogue, for the same
  * reason `productTitle` is a column: a rental agreement has to keep saying what
- * it said, even after the operator renames the option.
+ * it said, even after the operator rewords the question.
  */
 export interface OrderItemConfiguration {
   productId: string;
@@ -100,9 +88,8 @@ export interface OrderItemConfiguration {
     duration: number;
     unit: 'hour' | 'day';
   } | null;
-  /** The package plus its flat modifiers. Mirrors `order_items.unit_price`. */
+  /** The package, or the fixed price. Mirrors `order_items.unit_price`. */
   unitRate: string;
-  selections: ResolvedSelection[];
   answers: ResolvedAnswer[];
   addons: ResolvedAddon[];
 }
@@ -110,9 +97,6 @@ export interface OrderItemConfiguration {
 export interface ResolvedLine {
   productId: string;
   productTitle: string;
-  skuId: string | null;
-  sku: string;
-  skuLabel: string;
   quantity: number;
   unitPrice: string;
   total: string;
@@ -169,73 +153,6 @@ function resolveRental(
     reject('That start does not make a rental period.', `${field}.startDate`);
   }
   return period;
-}
-
-/**
- * One variant group's chosen values, as labels and amounts.
- *
- * Numeric groups price at `value × priceModifierPerUnit`, which is why they never
- * join the SKU matrix: the matrix has one row per combination, and a number has
- * no finite set of them.
- */
-function resolveGroup(
-  group: PublicVariantGroupDto,
-  raw: readonly string[],
-  field: string,
-): ResolvedSelection[] {
-  const values = raw.map((value) => value.trim()).filter((value) => value.length > 0);
-
-  if (values.length === 0) {
-    if (group.isRequired) reject(`"${group.label}" is required.`, `${field}.${group.key}`);
-    return [];
-  }
-
-  if (values.length > 1 && group.valueType !== 'multi_select') {
-    reject(`"${group.label}" takes one value.`, `${field}.${group.key}`);
-  }
-
-  if (group.options.length > 0) {
-    return values.map((value) => {
-      const option = group.options.find((candidate) => candidate.value === value);
-      if (!option) {
-        reject(`"${value}" is not an option for "${group.label}".`, `${field}.${group.key}`);
-      }
-      return {
-        key: group.key,
-        label: group.label,
-        value: option.label,
-        amount: option.priceModifier.amount,
-      };
-    });
-  }
-
-  const [first] = values;
-  if (first === undefined) return [];
-
-  if (group.valueType === 'number' || group.valueType === 'number_range') {
-    const numeric = Number(first);
-    if (!Number.isFinite(numeric)) {
-      reject(`"${group.label}" takes a number.`, `${field}.${group.key}`);
-    }
-    if (group.min !== null && numeric < group.min) {
-      reject(`"${group.label}" cannot be below ${group.min}.`, `${field}.${group.key}`);
-    }
-    if (group.max !== null && numeric > group.max) {
-      reject(`"${group.label}" cannot be above ${group.max}.`, `${field}.${group.key}`);
-    }
-    return [
-      {
-        key: group.key,
-        label: group.label,
-        value: group.unit ? `${first} ${group.unit}` : first,
-        amount: group.priceModifierPerUnit
-          ? mulMoney(group.priceModifierPerUnit.amount, first)
-          : '0.00',
-      },
-    ];
-  }
-
-  return [{ key: group.key, label: group.label, value: first, amount: '0.00' }];
 }
 
 /** One intake answer, as the label the customer read and the value they gave. */
@@ -355,36 +272,12 @@ export function resolveLine(
   input: PlaceOrderItemInput,
   field: string,
 ): ResolvedLine {
-  /* An unknown group or question key is rejected rather than skipped: it means
-     the form and the catalogue disagree, and guessing which one is right is not
-     this module's call. */
-  for (const key of Object.keys(input.variants)) {
-    if (!product.variants.some((group) => group.key === key)) {
-      reject(`"${key}" is not a choice on this product.`, `${field}.variants.${key}`);
-    }
-  }
+  /* An unknown question key is rejected rather than skipped: it means the form
+     and the catalogue disagree, and guessing which one is right is not this
+     module's call. */
   for (const key of Object.keys(input.answers)) {
     if (!product.questions.some((question) => question.key === key)) {
       reject(`"${key}" is not a question on this product.`, `${field}.answers.${key}`);
-    }
-  }
-
-  const selections: ResolvedSelection[] = [];
-  const modifiers: PriceModifier[] = [];
-  /** `{ groupKey: [optionValue] }` for the sku-affecting groups only. */
-  const skuSelection: Record<string, string[]> = {};
-
-  for (const group of product.variants) {
-    const raw = input.variants[group.key] ?? [];
-    const resolved = resolveGroup(group, raw, `${field}.variants`);
-    selections.push(...resolved);
-
-    for (const entry of resolved) {
-      modifiers.push({ amount: entry.amount, affectsSku: group.affectsSku });
-    }
-
-    if (group.affectsSku && raw.length > 0) {
-      skuSelection[group.key] = raw.map((value) => value.trim());
     }
   }
 
@@ -409,26 +302,17 @@ export function resolveLine(
 
   const rental = resolveRental(input, product, rentalPackage, field);
 
-  const matched = matchSku(product.skus, skuSelection);
-
-  /* Every product materialises at least one SKU, so an empty selection on a
-     product with no variant axes still pins a row and still has a stock figure
-     to answer for. `matched` is null only for a PARTIAL selection, which
-     identifies nothing to check.
-
-     This is a point-in-time check, not a reservation: nothing decrements stock
-     and nothing knows which dates a unit is already out on. It refuses an order
-     for something the shelf says is gone, which is what a stale tab produces —
-     the phone call still settles real availability. */
-  if (matched && !matched.inStock) {
-    reject(`"${product.title}" is out of stock in that configuration.`, `${field}.variants`);
+  /* A point-in-time check, not a reservation: nothing decrements stock and
+     nothing knows which dates a unit is already out on. It refuses an order for
+     something the shelf says is gone, which is what a stale tab produces — the
+     phone call still settles real availability. */
+  if (!product.inStock) {
+    reject(`"${product.title}" is out of stock.`, `${field}.productSlug`);
   }
 
   const priced = priceRequest({
     mode: product.pricing.mode,
     basePrice: product.pricing.price,
-    skuPrice: matched?.price?.amount ?? null,
-    modifiers,
     rentalPackage,
     quantity: input.quantity,
     addons: addons.map((entry) => ({
@@ -460,16 +344,9 @@ export function resolveLine(
     };
   });
 
-  const skuLabel = selections.map((entry) => entry.value).join(' · ');
-
   return {
     productId: product.id,
     productTitle: product.title,
-    skuId: matched?.id ?? null,
-    // No SKU matched — an unconfigured product, or a partial selection. The base
-    // SKU still names what was ordered, which is what this column is for.
-    sku: matched?.sku ?? product.baseSku,
-    skuLabel,
     quantity: input.quantity,
     unitPrice: priced.unitRate,
     total: priced.total,
@@ -482,7 +359,6 @@ export function resolveLine(
       rental,
       rentalPackage,
       unitRate: priced.unitRate,
-      selections,
       answers,
       addons: resolvedAddons,
     },

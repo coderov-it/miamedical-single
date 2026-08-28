@@ -186,7 +186,7 @@ number alone, because that answers the question people actually have.
 
 ### `sortable-list.svelte` — reordering that says what it does
 
-Used by the Pricing, Variants, SKUs, Addons, FAQs and Questions tabs. Each row
+Used by the Pricing, Addons, FAQs and Questions tabs. Each row
 is an L2 well containing an L3 content card (see
 `docs/code/admin-theme-elevation.md`), opened by a header strip.
 

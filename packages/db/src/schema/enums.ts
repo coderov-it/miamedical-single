@@ -81,7 +81,7 @@ export const pricingMode = pgEnum('pricing_mode', ['fixed', 'rental']);
 /** The billing increment a rental price is quoted per. One unit per product. */
 export const rentalUnit = pgEnum('rental_unit', ['hour', 'day']);
 
-/** Value shapes shared by variant groups and category specs. */
+/** Value shapes a category spec can take. */
 export const valueType = pgEnum('value_type', [
   'string',
   'number',

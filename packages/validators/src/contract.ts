@@ -44,7 +44,6 @@ const DateOnlySchema = v.pipe(
 
 export const ManualContractItemSchema = v.strictObject({
   productTitle: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
-  sku: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(80))),
   quantity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(999)),
   unitPrice: MoneySchema,
   total: MoneySchema,

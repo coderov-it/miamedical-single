@@ -490,10 +490,8 @@ export async function place(
     delivery: block,
     notes: input.notes ?? null,
     items: lines.map((line) => ({
-      skuId: line.skuId,
+      productId: line.productId,
       productTitle: line.productTitle,
-      skuLabel: line.skuLabel,
-      sku: line.sku,
       quantity: line.quantity,
       unitPrice: line.unitPrice,
       total: line.total,

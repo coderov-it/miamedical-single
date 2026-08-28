@@ -26,16 +26,12 @@ import {
   LocaleOnlyQuerySchema,
   ProductIdParamSchema,
   ProductQuerySchema,
-  ProductSkuParamSchema,
   ProductSlugParamSchema,
   ProductTermsInputSchema,
   QuestionsPutSchema,
-  SkuUpdateSchema,
   SpecValuesInputSchema,
   UpdateProductSchema,
-  VariantGroupsPutSchema,
 } from './validators.ts';
-import * as variantsService from './variants/service.ts';
 
 /** HTTP edge only: validate, delegate to a service, map records to DTOs. */
 
@@ -143,49 +139,6 @@ export const productAdminRoutes = new Hono<AppEnv>()
     async (c) => {
       await catalogService.remove(c.get('db'), r2FileUploader, c.req.valid('param').id);
       return c.json({ data: { deleted: true } });
-    },
-  )
-
-  .put(
-    '/:id/variants',
-    requirePermission(P.PRODUCT_UPDATE),
-    validate('param', ProductIdParamSchema),
-    validate('json', VariantGroupsPutSchema),
-    async (c) => {
-      const { id } = c.req.valid('param');
-      await variantsService.replaceVariantGroups(
-        c.get('db'),
-        r2FileUploader,
-        id,
-        c.req.valid('json'),
-      );
-      const product = await catalogService.getAggregate(c.get('db'), id);
-      return c.json({ data: toAdminDetail(product) });
-    },
-  )
-
-  .post(
-    '/:id/skus/generate',
-    requirePermission(P.PRODUCT_UPDATE),
-    validate('param', ProductIdParamSchema),
-    async (c) => {
-      const { id } = c.req.valid('param');
-      const result = await variantsService.generateSkus(c.get('db'), id);
-      const product = await catalogService.getAggregate(c.get('db'), id);
-      return c.json({ data: toAdminDetail(product), generation: result });
-    },
-  )
-
-  .patch(
-    '/:id/skus/:skuId',
-    requirePermission(P.PRODUCT_UPDATE),
-    validate('param', ProductSkuParamSchema),
-    validate('json', SkuUpdateSchema),
-    async (c) => {
-      const { id, skuId } = c.req.valid('param');
-      await variantsService.updateSku(c.get('db'), id, skuId, c.req.valid('json'));
-      const product = await catalogService.getAggregate(c.get('db'), id);
-      return c.json({ data: toAdminDetail(product) });
     },
   )
 

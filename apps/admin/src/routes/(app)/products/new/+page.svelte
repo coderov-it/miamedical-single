@@ -38,7 +38,6 @@
   let title = $state('');
   let slug = $state('');
   let slugTouched = $state(false);
-  let baseSku = $state('');
   let categoryId = $state('');
   let pricingMode = $state('fixed');
   let rentalUnit = $state('day');
@@ -95,7 +94,6 @@
       const created = await unwrap<{ id: string }>(
         await api.api.admin.products.$post({
           json: {
-            baseSku,
             categoryId,
             pricingMode: pricingMode as 'fixed',
             ...(pricingMode === 'rental'
@@ -172,18 +170,6 @@
             <p class="mt-1 text-xs text-destructive" role="alert">
               {fields['translations.it.slug']}
             </p>
-          {/if}
-        </div>
-
-        <div>
-          <Label class="mb-1.5" for="new-sku">Base SKU</Label>
-          <Input id="new-sku" bind:value={baseSku} required class="font-mono uppercase" />
-          <p class="mt-1 text-xs text-muted-foreground">
-            Root of every generated SKU, e.g. <code class="font-mono">MIA-LTE</code>. Globally
-            unique.
-          </p>
-          {#if fields.baseSku}
-            <p class="mt-1 text-xs text-destructive" role="alert">{fields.baseSku}</p>
           {/if}
         </div>
 

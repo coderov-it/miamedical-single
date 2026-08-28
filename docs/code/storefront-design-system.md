@@ -426,7 +426,6 @@ no error anywhere.
 
 ```text
 /carrello/?product=<slug>
-  &variant.<groupKey>=<optionValue>   // repeats for multi_select
   &question.<questionKey>=<answer>    // repeats for multi_select; boolean is yes|no
   &addon=<addonId>                    // repeats
   &addon.<addonId>=<n>                // how many, only when that addon allows more than one
@@ -441,8 +440,8 @@ it is code and follows the English rule in AGENTS.md. Public route paths are the
 opposite case and deliberately stay Italian. The catalogue's browse params were
 renamed the same way — `category`, `sort`, `area`, `from`, `duration`.
 
-`PdpConfigure.astro` and `PdpQuestions.astro` render one control per value
-shape, and cover all of them explicitly — `single_select` as radio pills,
+`PdpQuestions.astro` renders one control per value shape, and covers all of
+them explicitly — `single_select` as radio pills,
 `multi_select` as checkbox pills, `boolean` as a Sì/No pair,
 `number`/`number_range` as a numeric field, `string` as a text input. A shape
 with no branch would vanish from the form with no error, which is why there is
@@ -501,15 +500,15 @@ because the reasoning is shared.
 
 Structure: breadcrumb → hero (gallery + identity with the product's chips, or
 comparable specs where none are written) →
-`01 Configura` (variant pills) → `02 Extra` (checkbox cards) → `03 Per la
-consegna` (intake questions) → `04 Scheda tecnica` (icon tiles with
+`01 Extra` (checkbox cards) → `02 Per la
+consegna` (intake questions) → `03 Scheda tecnica` (icon tiles with
 initial-letter fallback) → information tabs → one sticky order panel, the only
 elevated card on the page. One native GET form wraps both columns.
 
 Pricing semantics, per the owner's rule: **a rental IS its package**. The
-package the customer picks is the price for its duration; variant modifiers are
-added FLAT on top of it, never multiplied by the duration the package already
-carries. A rental-mode add-on is the exception that does multiply — `price ×
+package the customer picks is the price for its duration, and nothing modifies
+it — a product has no configurable axes, so there is nothing to add on top.
+A rental-mode add-on is the exception that does multiply — `price ×
 quantity ×` the package duration read in the add-on's own unit, rounded up to a
 whole unit, because half a day of insurance is still a day of it. The figure
 under the product title is the `marketingRate`, which is COPY: the back office
@@ -579,13 +578,13 @@ in-stock badge, because the panel is meant to read exactly as the reference
 does. Put new reassurance copy somewhere other than the order panel.
 
 **Never pair a Tailwind reset with a utility from the same family in one
-`class:list`.** The Configure rows are a `<fieldset>`, so the instinct is
+`class:list`.** A section row wrapped in a `<fieldset>` invites
 `class:list={['border-0 p-0', rowCard]}` — but `border-0`/`border` and
 `p-0`/`px-4.5 py-3.5` are the same utility families, and Tailwind settles the
 clash by its own canonical stylesheet order, not by the order written in the
-attribute. The resets won, and every variant row rendered with no card border
-and no padding while the number/text rows beside them kept theirs. State the
-border and padding once, in `rowCard`.
+attribute. The resets won, and every such row rendered with no card border and
+no padding while the plain rows beside them kept theirs. State the border and
+padding once, in `rowCard`.
 
 ## The home hero (owner's reference layout, 2026-08-27)
 

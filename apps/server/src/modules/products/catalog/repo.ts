@@ -39,7 +39,6 @@ export interface TranslationData {
 }
 
 export interface CreateProductData {
-  baseSku: string;
   categoryId: string;
   status: 'draft' | 'active' | 'archived';
   brand: string | null;
@@ -50,13 +49,13 @@ export interface CreateProductData {
   rentalUnit: 'hour' | 'day' | null;
   /** Non-empty on a rental product; `[]` on a fixed one. Enforced by CHECK. */
   rentalPackages: RentalPackage[];
+  stock: number;
   isFeatured: boolean;
   chips: ProductChip[];
   translations: Partial<Record<LanguageCode, TranslationData>>;
 }
 
 export interface UpdateProductData {
-  baseSku?: string;
   categoryId?: string;
   status?: 'draft' | 'active' | 'archived';
   brand?: string | null;
@@ -68,6 +67,7 @@ export interface UpdateProductData {
   rentalUnit?: 'hour' | 'day';
   /** Replaces the whole list, and never with an empty one — see the CHECK. */
   rentalPackages?: RentalPackage[];
+  stock?: number;
   isFeatured?: boolean;
   /** Replaces the whole list — `[]` clears the product's chips. */
   chips?: ProductChip[];
@@ -78,8 +78,6 @@ export interface UpdateProductData {
 const AGGREGATE_WITH = {
   translations: true,
   category: { with: { translations: true, specs: { with: { options: true } } } },
-  variantGroups: { with: { options: true } },
-  skus: { with: { options: true } },
   specValues: true,
   specValueOptions: true,
   addons: true,
@@ -126,18 +124,6 @@ export async function existsBySlug(
     columns: { productId: true },
   });
   return row !== undefined && row.productId !== excludeProductId;
-}
-
-export async function existsByBaseSku(
-  db: Database,
-  baseSku: string,
-  excludeProductId?: string,
-): Promise<boolean> {
-  const row = await db.query.products.findFirst({
-    where: eq(products.baseSku, baseSku),
-    columns: { id: true },
-  });
-  return row !== undefined && row.id !== excludeProductId;
 }
 
 export async function findCategoryIdByCode(
@@ -253,7 +239,6 @@ export async function findMany(
       with: {
         translations: true,
         category: { with: { translations: true, specs: { with: { options: true } } } },
-        skus: { columns: { stock: true, isActive: true } },
         specValues: true,
         specValueOptions: true,
       },
@@ -265,8 +250,6 @@ export async function findMany(
     rows: rows.map((row) => ({
       ...row,
       specs: row.category.specs,
-      // No SKU matrix → stock is untracked → sellable.
-      inStock: row.skus.length === 0 || row.skus.some((sku) => sku.isActive && sku.stock > 0),
     })) as unknown as ProductSummaryRowData[],
     total: totals[0]?.value ?? 0,
   };
@@ -396,7 +379,6 @@ export async function create(db: Database, data: CreateProductData): Promise<str
     const [product] = await tx
       .insert(products)
       .values({
-        baseSku: data.baseSku,
         categoryId: data.categoryId,
         status: data.status,
         brand: data.brand,
@@ -406,6 +388,7 @@ export async function create(db: Database, data: CreateProductData): Promise<str
         currency: data.currency,
         rentalUnit: data.rentalUnit,
         rentalPackages: data.rentalPackages,
+        stock: data.stock,
         isFeatured: data.isFeatured,
         chips: data.chips,
       })

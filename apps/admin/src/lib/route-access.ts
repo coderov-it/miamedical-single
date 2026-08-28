@@ -27,7 +27,6 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { pattern: routePatterns.productDetail, requiredAny: [P.PRODUCT_READ] },
 
   { pattern: routes.categories, requiredAny: [P.CATEGORY_READ] },
-  { pattern: routes.attributes, requiredAny: [P.ATTRIBUTE_READ] },
   { pattern: routes.terms, requiredAny: [P.TERMS_READ] },
 
   { pattern: routes.rentals, requiredAny: [P.RENTAL_READ] },

@@ -48,12 +48,10 @@ export interface OrderAggregate extends OrderRow {
 
 /**
  * A cart line carries no snapshot — unlike an order line, its title has to be
- * read live from the SKU it points at, and can change under it.
+ * read live from the product it points at, and can change under it.
  */
 export interface CartItemRecord extends CartItemRow {
   productTitle: string;
-  sku: string;
-  productId: string;
 }
 
 export interface CartSummaryRecord extends CartRow {

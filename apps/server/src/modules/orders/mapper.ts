@@ -107,10 +107,8 @@ function actorName(actor: ActorRef | null): string | null {
 export function toOrderItem(row: OrderItemRow): OrderItemDto {
   return {
     id: row.id,
-    skuId: row.skuId,
+    productId: row.productId,
     productTitle: row.productTitle,
-    skuLabel: row.skuLabel,
-    sku: row.sku,
     quantity: row.quantity,
     unitPrice: row.unitPrice,
     total: row.total,
@@ -250,10 +248,8 @@ export function toCartSummary(row: CartSummaryRecord, now = new Date()): AdminCa
 export function toCartItem(row: CartItemRecord): AdminCartItemDto {
   return {
     id: row.id,
-    skuId: row.skuId,
-    productTitle: row.productTitle,
     productId: row.productId,
-    sku: row.sku,
+    productTitle: row.productTitle,
     quantity: row.quantity,
     unitPrice: row.unitPrice,
     // Computed here rather than stored: a cart line has no captured total, and

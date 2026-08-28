@@ -11,9 +11,8 @@
  *   - A rental IS its package. The package price is the price of the rental for
  *     the package's duration — not a discount off a daily rate, because there is
  *     no daily rate. Nothing here derives an amount the back office did not type.
- *   - Variants add FLAT. The package is the base and a modifier goes on top of it
- *     once, never multiplied by the duration. A matched SKU's price override is a
- *     fixed-mode idea and is ignored on a rental.
+ *   - A fixed product IS its base price. There is nothing to configure and so
+ *     nothing to modify it: one product, one rate.
  *   - An add-on is priced on its own terms: its quantity times, for a rental-mode
  *     add-on, the package duration read in the add-on's unit. A 3,00 €/giorno
  *     add-on on a 9-day package is 27,00 €.
@@ -26,28 +25,13 @@
  */
 
 import { convertDuration } from './period.ts';
-import { ZERO, addMoney, isZero, mulMoney, sumMoney } from './money.ts';
+import { ZERO, addMoney, isZero, mulMoney } from './money.ts';
 
 export type PricingMode = 'fixed' | 'rental';
 export type RentalUnit = 'hour' | 'day';
 
 /** How many of one add-on a single line may carry when the back office set no cap. */
 export const MAX_ADDON_QUANTITY = 10;
-
-/**
- * One resolved variant-group choice's price effect. A flat amount in both modes.
- * May be negative — "cheaper without the headboard".
- */
-export interface PriceModifier {
-  amount: string;
-  /**
-   * The group is part of the SKU matrix, so a matched SKU's own price already
-   * carries this amount and it must not be added a second time. Numeric groups
-   * (value × per-unit modifier) never join the matrix and are always `false`.
-   * Only consulted in `fixed` mode, where a SKU price exists to collide with.
-   */
-  affectsSku: boolean;
-}
 
 export interface PriceAddon {
   /** A `rental` add-on multiplies by the package duration; a `fixed` one does not. */
@@ -69,14 +53,6 @@ export interface PriceRequestInput {
   mode: PricingMode;
   /** What a fixed product costs. `null` on a rental, which has no rate. */
   basePrice: string | null;
-  /**
-   * The matched SKU's own price, when the selection pinned one. It already
-   * carries every sku-affecting modifier — and any override the operator typed,
-   * which is precisely why it wins over recomputing base + modifiers. Fixed
-   * mode only: a rental's price is its package, so there is nothing to override.
-   */
-  skuPrice?: string | null;
-  modifiers?: readonly PriceModifier[];
   /** Required on a rental. Its absence is what `incomplete` reports. */
   rentalPackage?: PricePackage | null;
   quantity: number;
@@ -87,8 +63,6 @@ export interface PriceRequestInput {
 export type PriceLine =
   | { kind: 'base'; amount: string }
   | { kind: 'package'; amount: string; units: number; unit: RentalUnit }
-  /** Every variant modifier, summed. Omitted when the choices cost nothing. */
-  | { kind: 'variants'; amount: string }
   | {
       kind: 'addon';
       index: number;
@@ -102,10 +76,7 @@ export type PriceLine =
   | { kind: 'quantity'; quantity: number };
 
 export interface PricedRequest {
-  /**
-   * What one of this line costs before add-ons: the fixed price, or the chosen
-   * package plus its flat modifiers.
-   */
+  /** What one of this line costs before add-ons: the fixed price, or the chosen package. */
   unitRate: string;
   /** The chosen package's duration. `null` on a fixed product. */
   units: number | null;
@@ -128,22 +99,8 @@ export interface PricedRequest {
  * deliberately not `total / quantity`.
  */
 export function resolveUnitRate(input: PriceRequestInput): string {
-  const modifiers = input.modifiers ?? [];
-
-  if (input.mode === 'rental') {
-    const pkg = input.rentalPackage ?? null;
-    if (!pkg) return ZERO;
-    // Every modifier, flat and once. No SKU price to collide with, so
-    // `affectsSku` has nothing to say here.
-    return addMoney(pkg.price, ...modifiers.map((entry) => entry.amount));
-  }
-
-  if (input.skuPrice != null) {
-    const outside = modifiers.filter((entry) => !entry.affectsSku).map((entry) => entry.amount);
-    return addMoney(input.skuPrice, ...outside);
-  }
-
-  return addMoney(input.basePrice ?? ZERO, ...modifiers.map((entry) => entry.amount));
+  if (input.mode === 'rental') return input.rentalPackage?.price ?? ZERO;
+  return input.basePrice ?? ZERO;
 }
 
 export function priceRequest(input: PriceRequestInput): PricedRequest {
@@ -162,8 +119,6 @@ export function priceRequest(input: PriceRequestInput): PricedRequest {
 
   if (pkg) {
     lines.push({ kind: 'package', amount: pkg.price, units: pkg.duration, unit: pkg.unit });
-    const variants = sumMoney((input.modifiers ?? []).map((entry) => entry.amount));
-    if (!isZero(variants)) lines.push({ kind: 'variants', amount: variants });
   } else {
     lines.push({ kind: 'base', amount: rate });
   }

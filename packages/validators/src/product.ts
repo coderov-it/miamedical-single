@@ -1,13 +1,6 @@
 import * as v from 'valibot';
 
-import {
-  CurrencySchema,
-  MoneySchema,
-  PaginationSchema,
-  SignedMoneySchema,
-  SlugSchema,
-  UuidSchema,
-} from './common.ts';
+import { CurrencySchema, MoneySchema, PaginationSchema, SlugSchema, UuidSchema } from './common.ts';
 import { LocaleQuerySchema, localizedSchema, translationsSchema } from './i18n.ts';
 import { MediaPathSchema, ProductMediaSchema } from './media.ts';
 
@@ -40,17 +33,19 @@ const KeySchema = v.pipe(
   v.regex(/^[a-z0-9]+(?:[_-][a-z0-9]+)*$/, 'Use lowercase letters, numbers, - and _.'),
 );
 
-const SkuFragmentSchema = v.pipe(
-  v.string(),
-  v.trim(),
-  v.minLength(1),
-  v.maxLength(64),
-  v.regex(/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/i, 'Use letters, numbers and hyphens.'),
-  v.toUpperCase(),
-);
-
 const FiniteNumberSchema = v.pipe(v.number(), v.finite());
 const PositionSchema = v.optional(v.pipe(v.number(), v.integer(), v.minValue(0)), 0);
+
+/**
+ * Units on the shelf. Whole and never negative — a product is either there or
+ * it is not, and "minus two beds" is a counting mistake, not a backorder.
+ */
+export const StockSchema = v.pipe(
+  v.number(),
+  v.integer('Stock must be a whole number.'),
+  v.minValue(0, 'Stock cannot be negative.'),
+  v.maxValue(1_000_000),
+);
 
 // --- rental packages -------------------------------------------------------
 
@@ -131,7 +126,6 @@ export const ProductTranslationsSchema = translationsSchema(ProductTranslationFi
 
 export const CreateProductSchema = v.pipe(
   v.strictObject({
-    baseSku: SkuFragmentSchema,
     categoryId: UuidSchema,
     status: v.optional(ProductStatusSchema, 'draft'),
     brand: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(120)))),
@@ -149,6 +143,8 @@ export const CreateProductSchema = v.pipe(
      * the CHECK on `products` would refuse the INSERT anyway.
      */
     rentalPackages: v.optional(RentalPackagesSchema),
+    /** How many are on the shelf. A new product starts at none. */
+    stock: v.optional(StockSchema, 0),
     isFeatured: v.optional(v.boolean(), false),
     chips: v.optional(ProductChipsSchema, []),
     translations: ProductTranslationsSchema,
@@ -194,7 +190,6 @@ export const CreateProductSchema = v.pipe(
 export const UpdateProductSchema = v.pipe(
   v.partial(
     v.strictObject({
-      baseSku: SkuFragmentSchema,
       categoryId: UuidSchema,
       status: ProductStatusSchema,
       brand: v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(120))),
@@ -205,6 +200,7 @@ export const UpdateProductSchema = v.pipe(
       currency: CurrencySchema,
       /** hour ↔ day is legal on a rental product; the service rejects it on fixed. */
       rentalUnit: RentalUnitSchema,
+      stock: StockSchema,
       isFeatured: v.boolean(),
       /** Replaces the whole list, like `rentalPackages` — `[]` clears it. */
       chips: ProductChipsSchema,
@@ -243,67 +239,6 @@ export const ProductQuerySchema = v.object({
 export const ProductSlugParamSchema = v.object({ slug: SlugSchema });
 export const LocaleOnlyQuerySchema = v.object({ locale: LocaleQuerySchema });
 
-// --- variants --------------------------------------------------------------
-
-export const VariantOptionInputSchema = v.strictObject({
-  id: v.optional(UuidSchema),
-  value: KeySchema,
-  label: localizedSchema(120),
-  skuCode: v.optional(v.nullable(SkuFragmentSchema)),
-  priceModifier: v.optional(SignedMoneySchema, '0.00'),
-  isDefault: v.optional(v.boolean(), false),
-  position: PositionSchema,
-});
-
-export const VariantGroupInputSchema = v.pipe(
-  v.strictObject({
-    id: v.optional(UuidSchema),
-    key: KeySchema,
-    label: localizedSchema(120),
-    helpText: v.optional(v.nullable(localizedSchema(500))),
-    valueType: ValueTypeSchema,
-    unit: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(20)))),
-    isRequired: v.optional(v.boolean(), false),
-    affectsSku: v.optional(v.boolean(), false),
-    sourcePresetKey: v.optional(v.nullable(KeySchema)),
-    minValue: v.optional(v.nullable(FiniteNumberSchema)),
-    maxValue: v.optional(v.nullable(FiniteNumberSchema)),
-    stepValue: v.optional(v.nullable(FiniteNumberSchema)),
-    priceModifierPerUnit: v.optional(v.nullable(SignedMoneySchema)),
-    icon: v.optional(v.nullable(MediaPathSchema)),
-    position: PositionSchema,
-    options: v.optional(v.pipe(v.array(VariantOptionInputSchema), v.maxLength(50)), []),
-  }),
-  v.forward(
-    v.partialCheck(
-      [['valueType'], ['affectsSku']],
-      (input) => !input.affectsSku || ['single_select', 'boolean'].includes(input.valueType),
-      'Only single-select and yes/no variants can join the SKU matrix.',
-    ),
-    ['affectsSku'],
-  ),
-  v.forward(
-    v.partialCheck(
-      [['valueType'], ['options']],
-      (input) =>
-        ['single_select', 'multi_select'].includes(input.valueType)
-          ? (input.options?.length ?? 0) > 0
-          : true,
-      'Select variants need at least one option.',
-    ),
-    ['options'],
-  ),
-);
-
-export const SkuUpdateSchema = v.partial(
-  v.strictObject({
-    priceOverride: v.nullable(MoneySchema),
-    stock: v.pipe(v.number(), v.integer(), v.minValue(0)),
-    isActive: v.boolean(),
-    position: v.pipe(v.number(), v.integer(), v.minValue(0)),
-  }),
-);
-
 // --- spec values -----------------------------------------------------------
 
 export const SpecValueInputSchema = v.strictObject({
@@ -325,7 +260,6 @@ export const AddonInputSchema = v.pipe(
     id: v.optional(UuidSchema),
     name: localizedSchema(200),
     description: v.optional(v.nullable(localizedSchema(2000))),
-    sku: v.optional(v.nullable(SkuFragmentSchema)),
     /**
      * The addon's own mode. Schema checks internal consistency; the service
      * and a DB CHECK enforce the product-mode bound (fixed product → fixed
@@ -429,9 +363,7 @@ export type ProductChipInput = v.InferOutput<typeof ProductChipSchema>;
 export type CreateProductInput = v.InferOutput<typeof CreateProductSchema>;
 export type UpdateProductInput = v.InferOutput<typeof UpdateProductSchema>;
 export type ProductQuery = v.InferOutput<typeof ProductQuerySchema>;
-export type VariantGroupInput = v.InferOutput<typeof VariantGroupInputSchema>;
-export type VariantOptionInput = v.InferOutput<typeof VariantOptionInputSchema>;
-export type SkuUpdateInput = v.InferOutput<typeof SkuUpdateSchema>;
+export type ProductStock = v.InferOutput<typeof StockSchema>;
 export type SpecValueInput = v.InferOutput<typeof SpecValueInputSchema>;
 export type AddonInput = v.InferOutput<typeof AddonInputSchema>;
 export type FaqInput = v.InferOutput<typeof FaqInputSchema>;

@@ -33,7 +33,7 @@ export const MEDIA_PROFILES = {
     maxEdge: 2048,
     source: IMAGE_SOURCE,
   },
-  /** Category, spec, variant-group and preset icons — raster lands exactly 256×256. */
+  /** Category and spec icons — raster lands exactly 256×256. */
   icon_256: {
     mime: ['image/webp', 'image/svg+xml'],
     maxBytes: 262_144,

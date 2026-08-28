@@ -1,6 +1,6 @@
 /**
  * Every row the migration writes, phase by phase, in dependency order:
- * categories → their specs → products → variants → spec values → SKUs → addons.
+ * categories → their specs → products → spec values → addons.
  *
  * Phases run in sequence because each points at the one before it. Inside a
  * phase the writes are independent and run `POOL` at a time — see `runPhase`
@@ -13,23 +13,14 @@ import {
   categorySpecs,
   categoryTranslations,
   productAddons,
-  productSkuOptions,
-  productSkus,
   productSpecValueOptions,
   productSpecValues,
   productTranslations,
-  productVariantGroups,
-  productVariantOptions,
   products,
   searchVectorFor,
 } from '@mia/db/schema';
 
 import { richTextToPlain } from '../../../src/shared/html/rich-text.ts';
-import {
-  composeSku,
-  generateCombinations,
-  randomSuffix,
-} from '../../../src/modules/products/variants/sku.ts';
 import type { LoadPlan } from '../types.ts';
 import { runPhase } from './progress.ts';
 
@@ -37,9 +28,7 @@ export async function writeRows(db: Database, plan: LoadPlan): Promise<void> {
   await writeCategories(db, plan);
   await writeCategorySpecs(db, plan);
   await writeProducts(db, plan);
-  await writeVariantGroups(db, plan);
   await writeSpecValues(db, plan);
-  await writeSkus(db, plan);
   await writeAddons(db, plan);
 }
 
@@ -139,7 +128,6 @@ async function writeProducts(db: Database, plan: LoadPlan): Promise<void> {
       .insert(products)
       .values({
         id: chunk.id,
-        baseSku: chunk.baseSku,
         status: chunk.status,
         categoryId: chunk.categoryId,
         brand: chunk.brand,
@@ -155,9 +143,8 @@ async function writeProducts(db: Database, plan: LoadPlan): Promise<void> {
         target: products.id,
         // `pricingMode` is write-once everywhere else and stays out of the SET
         // list here too — a re-run must not flip a product's mode underneath
-        // the addons and SKUs already priced against it.
+        // the addons already priced against it.
         set: {
-          baseSku: chunk.baseSku,
           status: chunk.status,
           categoryId: chunk.categoryId,
           brand: chunk.brand,
@@ -205,53 +192,6 @@ async function writeProducts(db: Database, plan: LoadPlan): Promise<void> {
   });
 }
 
-async function writeVariantGroups(db: Database, plan: LoadPlan): Promise<void> {
-  await runPhase('variant_groups', plan.variantGroups, async (chunk) => {
-    await db
-      .insert(productVariantGroups)
-      .values({
-        id: chunk.id,
-        productId: chunk.productId,
-        key: chunk.key,
-        label: chunk.label,
-        valueType: chunk.valueType as 'single_select',
-        unit: chunk.unit,
-        isRequired: chunk.isRequired,
-        affectsSku: chunk.affectsSku,
-        position: chunk.position,
-      })
-      .onConflictDoUpdate({
-        target: productVariantGroups.id,
-        set: { label: chunk.label, position: chunk.position, affectsSku: chunk.affectsSku },
-      });
-
-    for (const option of chunk.options) {
-      await db
-        .insert(productVariantOptions)
-        .values({
-          id: option.id,
-          groupId: chunk.id,
-          value: option.value,
-          label: option.label,
-          skuCode: option.skuCode,
-          priceModifier: option.priceModifier,
-          isDefault: option.isDefault,
-          position: option.position,
-        })
-        .onConflictDoUpdate({
-          target: productVariantOptions.id,
-          set: {
-            label: option.label,
-            skuCode: option.skuCode,
-            priceModifier: option.priceModifier,
-            isDefault: option.isDefault,
-            position: option.position,
-          },
-        });
-    }
-  });
-}
-
 /** Spec values, plus the option join rows that make select facets index-backed. */
 async function writeSpecValues(db: Database, plan: LoadPlan): Promise<void> {
   await runPhase('spec_values', plan.specValues, async (chunk) => {
@@ -282,84 +222,6 @@ async function writeSpecValues(db: Database, plan: LoadPlan): Promise<void> {
         .onConflictDoNothing();
     }
   });
-}
-
-/**
- * SKUs, through the app's own matrix generator so the strings match what the
- * admin would produce for the same groups.
- */
-async function writeSkus(db: Database, plan: LoadPlan): Promise<void> {
-  let skuTotal = 0;
-
-  await runPhase(
-    'product_skus',
-    plan.products,
-    async (chunk) => {
-      const groups = plan.variantGroups
-        .filter((group) => group.productId === chunk.id)
-        .map((group) => ({
-          id: group.id,
-          productId: group.productId,
-          key: group.key,
-          affectsSku: group.affectsSku,
-          position: group.position,
-          options: group.options.map((option) => ({
-            id: option.id,
-            groupId: group.id,
-            value: option.value,
-            skuCode: option.skuCode,
-            position: option.position,
-          })),
-        }));
-
-      /**
-       * `generateCombinations` is typed for full database rows but only reads
-       * `affectsSku`, `position` and each option's `id` / `value` / `skuCode` /
-       * `position` — all of which the chunk carries. Casting here reuses the
-       * app's own generator rather than reimplementing SKU composition, which
-       * is the point: the strings must match what the admin would produce.
-       */
-      const combos = generateCombinations(
-        groups as unknown as Parameters<typeof generateCombinations>[0],
-      );
-      const groupOfOption = new Map(
-        groups.flatMap((group) => group.options.map((option) => [option.id, group.id])),
-      );
-
-      for (const [index, combo] of combos.entries()) {
-        const suffix = randomSuffix();
-        const [row] = await db
-          .insert(productSkus)
-          .values({
-            productId: chunk.id,
-            sku: composeSku(chunk.baseSku, combo.codes, suffix),
-            suffix,
-            comboKey: combo.comboKey,
-            stock: 0,
-            position: index,
-          })
-          .onConflictDoNothing({ target: [productSkus.productId, productSkus.comboKey] })
-          .returning({ id: productSkus.id });
-        if (!row) continue;
-        skuTotal++;
-        // The base combination of a product with no SKU-affecting group has no
-        // options at all, and drizzle refuses an empty VALUES list — same guard
-        // `regenerate()` carries, for the same reason.
-        if (combo.optionIds.length === 0) continue;
-        await db
-          .insert(productSkuOptions)
-          .values(
-            combo.optionIds.map((optionId) => ({
-              skuId: row.id,
-              optionId,
-              groupId: groupOfOption.get(optionId)!,
-            })),
-          )
-          .onConflictDoNothing();
-      }
-    },
-    () => String(skuTotal),
-  );
 }
 
 async function writeAddons(db: Database, plan: LoadPlan): Promise<void> {

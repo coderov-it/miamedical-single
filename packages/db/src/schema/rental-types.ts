@@ -17,10 +17,9 @@ import type { Localized } from './i18n.ts';
  * searched, not filtered, and never shared between products, so rows would buy
  * referential integrity nothing needs. One typed jsonb column on `products`.
  *
- * They deliberately do NOT join the SKU matrix. A SKU is a combination of
- * variants and nothing else — crossing 15 packages with a colour/size product
- * would multiply the matrix for no warehouse meaning, and a variant's price
- * modifier is added flat on top of the package rather than per day.
+ * A package is a PRICE, never a thing on a shelf. It does not affect `stock`:
+ * fifteen packages on one bed are fifteen ways to pay for the same bed, and
+ * counting them separately would report fifteen beds the shop does not own.
  */
 export interface RentalPackage {
   /**

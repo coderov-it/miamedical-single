@@ -56,7 +56,6 @@ const { number } = Astro.params;
 
   interface OrderItem {
     productTitle: string;
-    skuLabel: string;
     quantity: number;
     total: string;
   }
@@ -112,7 +111,7 @@ const { number } = Astro.params;
         (item) => `<li class="flex justify-between gap-4 border-hair border-b py-3 last:border-0">
           <div>
             <p class="font-medium">${escapeHtml(item.productTitle)}</p>
-            <p class="text-sm text-neutral-600">${escapeHtml(item.skuLabel)} · ${item.quantity} pz</p>
+            <p class="text-sm text-neutral-600">${item.quantity} pz</p>
           </div>
           <span class="tabular-nums">${formatMoney(item.total, currency)}</span>
         </li>`,

@@ -13,7 +13,6 @@ import type {
   AdminProductDetailDto,
   AdminProductSummaryDto,
   AdminProductTranslationDto,
-  AdminSkuDto,
   AdminSpecValueDto,
   FacetDto,
   MoneyDto,
@@ -26,11 +25,9 @@ import type {
   PublicProductSummaryDto,
   PublicRentalPackageDto,
   PublicSpecDto,
-  PublicVariantGroupDto,
   TranslationStatusDto,
 } from './dto.ts';
 import { pick, pickAlt, pickOptional, pickTranslation, resolveField } from './i18n.ts';
-import { resolveSkuPrice } from './pricing.ts';
 import type {
   AddonRow,
   ProductAggregate,
@@ -62,10 +59,6 @@ const toFromPrice = (
   }
   return cheapest;
 };
-
-/** A SKU price, or `null` on a rental product — see `resolveSkuPrice`. */
-const toSkuPrice = (amount: string | null, currency: string): MoneyDto | null =>
-  amount === null ? null : money(amount, currency);
 
 /** "90.0000" → 90, "16.5000" → 16.5 — spec quantities, never money. */
 const num = (value: string | null): number | null => (value === null ? null : Number(value));
@@ -259,7 +252,6 @@ function toPublicAddon(row: AddonRow, locale: LanguageCode): PublicAddonDto {
     id: row.id,
     name: pick(row.name, locale),
     description: pickOptional(row.description, locale),
-    sku: row.sku,
     pricing: {
       mode: row.pricingMode,
       rentalUnit: row.rentalUnit,
@@ -303,45 +295,6 @@ export function toPublicDetail(
 
   const categoryTranslation = pickTranslation(row.category.translations, locale);
 
-  const variants: PublicVariantGroupDto[] = row.variantGroups
-    .sort((a, b) => a.position - b.position)
-    .map((group) => ({
-      id: group.id,
-      key: group.key,
-      label: pick(group.label, locale),
-      helpText: pickOptional(group.helpText, locale),
-      valueType: group.valueType,
-      unit: group.unit,
-      isRequired: group.isRequired,
-      affectsSku: group.affectsSku,
-      position: group.position,
-      icon: group.icon,
-      min: num(group.minValue),
-      max: num(group.maxValue),
-      step: num(group.stepValue),
-      priceModifierPerUnit:
-        group.priceModifierPerUnit === null
-          ? null
-          : money(asMoney(group.priceModifierPerUnit), row.currency),
-      options: group.options
-        .sort((a, b) => a.position - b.position)
-        .map((option) => ({
-          id: option.id,
-          value: option.value,
-          label: pick(option.label, locale),
-          skuCode: option.skuCode,
-          isDefault: option.isDefault,
-          priceModifier: money(asMoney(option.priceModifier), row.currency),
-        })),
-    }));
-
-  const optionMeta = new Map<string, { groupKey: string; value: string }>();
-  for (const group of row.variantGroups) {
-    for (const option of group.options) {
-      optionMeta.set(option.id, { groupKey: group.key, value: option.value });
-    }
-  }
-
   const detail: PublicProductDetailDto = {
     id: row.id,
     slug: active.slug,
@@ -349,7 +302,6 @@ export function toPublicDetail(
     availableLocales: translations.map((t) => t.languageCode),
     status: row.status,
     brand: row.brand,
-    baseSku: row.baseSku,
     isFeatured: row.isFeatured,
     title: resolveField(requested?.title, italian?.title, locale).value ?? '',
     shortDescription: shortDescription.value,
@@ -369,24 +321,8 @@ export function toPublicDetail(
     pricing,
     rentalPackages: toPublicRentalPackages(row.rentalPackages, locale),
     media: toPublicMedia(row.media, locale),
-    variants,
-    skus: row.skus
-      .filter((sku) => sku.isActive)
-      .sort((a, b) => a.position - b.position)
-      .map((sku) => ({
-        id: sku.id,
-        sku: sku.sku,
-        options: Object.fromEntries(
-          sku.options.flatMap((link) => {
-            const meta = optionMeta.get(link.optionId);
-            return meta ? [[meta.groupKey, meta.value]] : [];
-          }),
-        ),
-        stock: sku.stock,
-        inStock: sku.stock > 0,
-        isActive: sku.isActive,
-        price: toSkuPrice(resolveSkuPrice(row.basePrice, sku, row.variantGroups), row.currency),
-      })),
+    stock: row.stock,
+    inStock: row.stock > 0,
     specifications: toPublicSpecs(row.specs, row.specValues, row.specValueOptions, locale),
     addons: row.addons.sort((a, b) => a.position - b.position).map((a) => toPublicAddon(a, locale)),
     questions: row.questions
@@ -499,7 +435,7 @@ export function toPublicSummary(
     },
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
     chips: row.chips.length > 0 ? toChips(row.chips, locale) : toCardSpecTags(row, locale),
-    inStock: row.inStock,
+    inStock: row.stock > 0,
   };
 }
 
@@ -521,21 +457,6 @@ function toAdminTranslation(row: ProductTranslationRow): AdminProductTranslation
 export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
   const translations: Partial<Record<LanguageCode, AdminProductTranslationDto>> = {};
   for (const t of row.translations) translations[t.languageCode] = toAdminTranslation(t);
-
-  const skus: AdminSkuDto[] = row.skus
-    .sort((a, b) => a.position - b.position)
-    .map((sku) => ({
-      id: sku.id,
-      sku: sku.sku,
-      suffix: sku.suffix,
-      comboKey: sku.comboKey,
-      optionIds: sku.options.map((link) => link.optionId),
-      priceOverride: sku.priceOverride === null ? null : asMoney(sku.priceOverride),
-      resolvedPrice: resolveSkuPrice(row.basePrice, sku, row.variantGroups),
-      stock: sku.stock,
-      isActive: sku.isActive,
-      position: sku.position,
-    }));
 
   const optionsBySpec = new Map<string, string[]>();
   for (const link of row.specValueOptions) {
@@ -573,7 +494,6 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
 
   return {
     id: row.id,
-    baseSku: row.baseSku,
     status: row.status,
     categoryId: row.categoryId,
     brand: row.brand,
@@ -588,45 +508,13 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     chips: row.chips,
     translations,
     translationStatus: toTranslationStatus(row.translations),
-    variants: row.variantGroups
-      .sort((a, b) => a.position - b.position)
-      .map((group) => ({
-        id: group.id,
-        key: group.key,
-        valueType: group.valueType,
-        unit: group.unit,
-        isRequired: group.isRequired,
-        affectsSku: group.affectsSku,
-        sourcePresetKey: group.sourcePresetKey,
-        minValue: num(group.minValue),
-        maxValue: num(group.maxValue),
-        stepValue: num(group.stepValue),
-        priceModifierPerUnit:
-          group.priceModifierPerUnit === null ? null : asMoney(group.priceModifierPerUnit),
-        icon: group.icon,
-        position: group.position,
-        label: group.label,
-        helpText: group.helpText,
-        options: group.options
-          .sort((a, b) => a.position - b.position)
-          .map((option) => ({
-            id: option.id,
-            value: option.value,
-            skuCode: option.skuCode,
-            priceModifier: asMoney(option.priceModifier),
-            isDefault: option.isDefault,
-            position: option.position,
-            label: option.label,
-          })),
-      })),
-    skus,
+    stock: row.stock,
     specValues,
     media: row.media,
     addons: row.addons
       .sort((a, b) => a.position - b.position)
       .map((addon) => ({
         id: addon.id,
-        sku: addon.sku,
         pricingMode: addon.pricingMode,
         productPricingMode: addon.productPricingMode,
         rentalUnit: addon.rentalUnit,
@@ -691,7 +579,6 @@ export function toAdminSummary(
     row.category.translations.find((t) => t.languageCode === locale) ?? categoryItalian;
   return {
     id: row.id,
-    baseSku: row.baseSku,
     status: row.status,
     brand: row.brand,
     isFeatured: row.isFeatured,
@@ -700,6 +587,7 @@ export function toAdminSummary(
     basePrice: row.basePrice,
     marketingRate: row.marketingRate,
     currency: row.currency,
+    stock: row.stock,
     title: localized?.title || italian?.title || '',
     slug: italian?.slug ?? '',
     categoryName: categoryLocalized?.name || categoryItalian?.name || row.category.code,

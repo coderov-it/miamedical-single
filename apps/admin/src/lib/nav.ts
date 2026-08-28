@@ -13,7 +13,6 @@ import ShieldAlertIcon from '@lucide/svelte/icons/shield-alert';
 import GaugeIcon from '@lucide/svelte/icons/gauge';
 import PackageIcon from '@lucide/svelte/icons/package';
 import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
-import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import TagsIcon from '@lucide/svelte/icons/tags';
 import UsersIcon from '@lucide/svelte/icons/users';
 import WalletIcon from '@lucide/svelte/icons/wallet';
@@ -46,7 +45,6 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { title: 'Products', url: routes.products, icon: PackageIcon },
       { title: 'Categories', url: routes.categories, icon: TagsIcon },
-      { title: 'Attributes', url: routes.attributes, icon: SlidersHorizontalIcon },
       { title: 'Terms', url: routes.terms, icon: FileTextIcon },
     ],
   },

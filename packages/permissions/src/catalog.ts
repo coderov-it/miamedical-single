@@ -228,31 +228,12 @@ export const PERMISSION_DEFINITIONS = {
     group: 'Content',
   },
 
-  // --- 1900 · attributes (variant preset library) ---------------------------
-  ATTRIBUTE_READ: {
-    code: 1900,
-    key: 'attribute:read',
-    label: 'View attribute presets',
-    group: 'Attributes',
-  },
-  ATTRIBUTE_UPDATE: {
-    code: 1901,
-    key: 'attribute:update',
-    label: 'Update attribute presets',
-    group: 'Attributes',
-  },
-  ATTRIBUTE_CREATE: {
-    code: 1902,
-    key: 'attribute:create',
-    label: 'Create attribute presets',
-    group: 'Attributes',
-  },
-  ATTRIBUTE_DELETE: {
-    code: 1903,
-    key: 'attribute:delete',
-    label: 'Delete attribute presets',
-    group: 'Attributes',
-  },
+  // --- 1900 · attributes (retired) ------------------------------------------
+  // 1900-1903 were ATTRIBUTE_READ/UPDATE/CREATE/DELETE, guarding the preset
+  // library the "common variants" were seeded from. A product has no
+  // configurable axes any more — one product is one stock-keeping unit — so the
+  // presets, the tables behind them and these four grants went with
+  // `0008_drop_variants_and_skus`. The codes stay burnt.
 
   // --- 2000 · delivery zones (retired) --------------------------------------
   // 2000-2003 were DELIVERY_ZONE_READ/UPDATE/CREATE/DELETE, guarding the price

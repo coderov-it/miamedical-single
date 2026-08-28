@@ -25,7 +25,7 @@ import { EMPTY_RENTAL_PACKAGES, type RentalPackage } from './rental-types.ts';
 import { tsvector } from './search.ts';
 
 /**
- * The catalog domain. 21 tables: 18 entity tables (3 of them joins) and 3
+ * The catalog domain. 15 tables: 12 entity tables (2 of them joins) and 3
  * translation tables (`product_translations`, `category_translations`,
  * `terms_document_translations` — the last in content.ts).
  *
@@ -142,8 +142,6 @@ export const products = pgTable(
   'products',
   {
     id: uuid().primaryKey().defaultRandom(),
-    /** Root of every generated SKU string. Globally unique. */
-    baseSku: text().notNull(),
     status: productStatus().notNull().default('draft'),
     categoryId: uuid()
       .notNull()
@@ -171,6 +169,16 @@ export const products = pgTable(
      * rental product, always `[]` on a fixed one (CHECK below).
      */
     rentalPackages: jsonb().$type<RentalPackage[]>().notNull().default(EMPTY_RENTAL_PACKAGES),
+    /**
+     * How many are on the shelf. A product IS its stock-keeping unit — there is
+     * no variant axis to count separately — so this one integer is the whole of
+     * availability, and `stock > 0` is what makes a product sellable.
+     *
+     * Point-in-time, not a reservation: nothing decrements it at checkout and
+     * nothing knows which dates a rental unit is already out on. Real
+     * availability is still settled on the phone.
+     */
+    stock: integer().notNull().default(0),
     isFeatured: boolean().notNull().default(false),
     /**
      * Short display claims for the card and the hero — see chip-types.ts.
@@ -185,7 +193,6 @@ export const products = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [
-    uniqueIndex('products_base_sku_key').on(t.baseSku),
     index('products_status_idx').on(t.status),
     index('products_category_idx').on(t.categoryId),
     index('products_created_at_idx').on(t.createdAt),
@@ -303,133 +310,6 @@ export const productSpecValueOptions = pgTable(
   ],
 );
 
-// --- variants & SKUs --------------------------------------------------------
-
-export const productVariantGroups = pgTable(
-  'product_variant_groups',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    productId: uuid()
-      .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
-    key: text().notNull(),
-    label: localized().notNull(),
-    helpText: localized(),
-    valueType: valueType().notNull(),
-    unit: text(),
-    isRequired: boolean().notNull().default(false),
-    /** Joins the SKU matrix. Only legal for single_select / boolean (CHECK). */
-    affectsSku: boolean().notNull().default(false),
-    /** Set when this group was seeded from an attribute preset. */
-    sourcePresetKey: text(),
-    minValue: numeric({ precision: 14, scale: 4 }),
-    maxValue: numeric({ precision: 14, scale: 4 }),
-    stepValue: numeric({ precision: 14, scale: 4 }),
-    /**
-     * How numeric variants price: modifier = entered value × this rate. "Per
-     * unit" is this group's own unit (per metre, per kg), never the rental
-     * unit — the resulting modifier is charged once either way.
-     */
-    priceModifierPerUnit: numeric({ precision: 12, scale: 2 }),
-    /** R2 key of a 256×256 WebP. Copied from the preset when seeded. */
-    icon: text(),
-    position: integer().notNull().default(0),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex('product_variant_groups_product_key_key').on(t.productId, t.key),
-    localizedCheck('product_variant_groups_label_it_check', t.label),
-    optionalLocalizedCheck('product_variant_groups_help_text_it_check', t.helpText),
-    check(
-      'product_variant_groups_affects_sku_check',
-      sql`${t.affectsSku} = false OR ${t.valueType} IN ('single_select', 'boolean')`,
-    ),
-  ],
-);
-
-export const productVariantOptions = pgTable(
-  'product_variant_options',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    groupId: uuid()
-      .notNull()
-      .references(() => productVariantGroups.id, { onDelete: 'cascade' }),
-    value: text().notNull(),
-    label: localized().notNull(),
-    /** Segment used in composed SKU strings, e.g. `GRY`. */
-    skuCode: text(),
-    /**
-     * A flat amount in both modes: added to a fixed product's price, and added
-     * once on top of the chosen package on a rental one. Never multiplied by a
-     * duration — the package already carries the duration.
-     */
-    priceModifier: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
-    isDefault: boolean().notNull().default(false),
-    position: integer().notNull().default(0),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex('product_variant_options_group_value_key').on(t.groupId, t.value),
-    localizedCheck('product_variant_options_label_it_check', t.label),
-  ],
-);
-
-export const productSkus = pgTable(
-  'product_skus',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    productId: uuid()
-      .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
-    /** `[base_sku]-[option codes]-[suffix]`, frozen at generation. */
-    sku: text().notNull(),
-    /** 4-char base32 tail (no I/O/0/1). Adds stability, not uniqueness. */
-    suffix: text().notNull(),
-    /** Canonical sorted option-id key — what makes a combination unique. */
-    comboKey: text().notNull(),
-    /**
-     * Replaces the whole computed price when set — fixed products only. A
-     * rental has no computed price to replace: the chosen package sets the
-     * total, so pricing ignores this and the admin does not offer it.
-     */
-    priceOverride: numeric({ precision: 12, scale: 2 }),
-    stock: integer().notNull().default(0),
-    /** Regeneration never deletes — vanished combinations are deactivated. */
-    isActive: boolean().notNull().default(true),
-    position: integer().notNull().default(0),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ withTimezone: true })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
-  },
-  (t) => [
-    uniqueIndex('product_skus_sku_key').on(t.sku),
-    uniqueIndex('product_skus_product_combo_key').on(t.productId, t.comboKey),
-    index('product_skus_product_idx').on(t.productId),
-  ],
-);
-
-export const productSkuOptions = pgTable(
-  'product_sku_options',
-  {
-    skuId: uuid()
-      .notNull()
-      .references(() => productSkus.id, { onDelete: 'cascade' }),
-    optionId: uuid()
-      .notNull()
-      .references(() => productVariantOptions.id, { onDelete: 'cascade' }),
-    /** Denormalised for "which option of group X does this SKU carry". */
-    groupId: uuid()
-      .notNull()
-      .references(() => productVariantGroups.id, { onDelete: 'cascade' }),
-  },
-  (t) => [
-    primaryKey({ columns: [t.skuId, t.optionId] }),
-    index('product_sku_options_option_idx').on(t.optionId),
-  ],
-);
-
 // --- addons, FAQs, intake questions ----------------------------------------
 
 export const productAddons = pgTable(
@@ -439,7 +319,6 @@ export const productAddons = pgTable(
     productId: uuid().notNull(),
     name: localized().notNull(),
     description: localized(),
-    sku: text(),
     /** The addon's own mode — bounded by the product's (CHECK below). */
     pricingMode: pricingMode().notNull(),
     /**
@@ -475,9 +354,9 @@ export const productAddons = pgTable(
       own description said delivery was included. Dropped in
       `0004_drop_addon_is_required`.
 
-      Variant groups and questions keep their own `is_required` and should — a bed
-      has to have a colour, and "which floor?" has to be answered. Those constrain a
-      CHOICE. This one constrained a PURCHASE.
+      Intake questions keep their own `is_required` and should — "which floor?"
+      has to be answered. That constrains a CHOICE. This one constrained a
+      PURCHASE.
     */
     /** R2 key of a square WebP, up to 1024×1024. */
     icon: text(),
@@ -595,51 +474,6 @@ export const productTerms = pgTable(
   ],
 );
 
-// --- attribute presets (the toggleable "common variants") -------------------
-
-export const attributePresets = pgTable(
-  'attribute_presets',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    key: text().notNull(),
-    label: localized().notNull(),
-    valueType: valueType().notNull(),
-    unit: text(),
-    isActive: boolean().notNull().default(true),
-    /** R2 key of a 256×256 WebP — copied into groups seeded from this preset. */
-    icon: text(),
-    position: integer().notNull().default(0),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ withTimezone: true })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
-  },
-  (t) => [
-    uniqueIndex('attribute_presets_key_key').on(t.key),
-    localizedCheck('attribute_presets_label_it_check', t.label),
-  ],
-);
-
-export const attributePresetOptions = pgTable(
-  'attribute_preset_options',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    presetId: uuid()
-      .notNull()
-      .references(() => attributePresets.id, { onDelete: 'cascade' }),
-    value: text().notNull(),
-    label: localized().notNull(),
-    skuCode: text(),
-    position: integer().notNull().default(0),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex('attribute_preset_options_preset_value_key').on(t.presetId, t.value),
-    localizedCheck('attribute_preset_options_label_it_check', t.label),
-  ],
-);
-
 // --- relations --------------------------------------------------------------
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -675,8 +509,6 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   translations: many(productTranslations),
   specValues: many(productSpecValues),
   specValueOptions: many(productSpecValueOptions),
-  variantGroups: many(productVariantGroups),
-  skus: many(productSkus),
   addons: many(productAddons),
   faqs: many(productFaqs),
   questions: many(productQuestions),
@@ -721,39 +553,6 @@ export const productSpecValueOptionsRelations = relations(productSpecValueOption
   }),
 }));
 
-export const productVariantGroupsRelations = relations(productVariantGroups, ({ one, many }) => ({
-  product: one(products, {
-    fields: [productVariantGroups.productId],
-    references: [products.id],
-  }),
-  options: many(productVariantOptions),
-}));
-
-export const productVariantOptionsRelations = relations(productVariantOptions, ({ one, many }) => ({
-  group: one(productVariantGroups, {
-    fields: [productVariantOptions.groupId],
-    references: [productVariantGroups.id],
-  }),
-  skuOptions: many(productSkuOptions),
-}));
-
-export const productSkusRelations = relations(productSkus, ({ one, many }) => ({
-  product: one(products, { fields: [productSkus.productId], references: [products.id] }),
-  options: many(productSkuOptions),
-}));
-
-export const productSkuOptionsRelations = relations(productSkuOptions, ({ one }) => ({
-  sku: one(productSkus, { fields: [productSkuOptions.skuId], references: [productSkus.id] }),
-  option: one(productVariantOptions, {
-    fields: [productSkuOptions.optionId],
-    references: [productVariantOptions.id],
-  }),
-  group: one(productVariantGroups, {
-    fields: [productSkuOptions.groupId],
-    references: [productVariantGroups.id],
-  }),
-}));
-
 export const productAddonsRelations = relations(productAddons, ({ one }) => ({
   product: one(products, { fields: [productAddons.productId], references: [products.id] }),
 }));
@@ -771,16 +570,5 @@ export const productQuestionOptionsRelations = relations(productQuestionOptions,
   question: one(productQuestions, {
     fields: [productQuestionOptions.questionId],
     references: [productQuestions.id],
-  }),
-}));
-
-export const attributePresetsRelations = relations(attributePresets, ({ many }) => ({
-  options: many(attributePresetOptions),
-}));
-
-export const attributePresetOptionsRelations = relations(attributePresetOptions, ({ one }) => ({
-  preset: one(attributePresets, {
-    fields: [attributePresetOptions.presetId],
-    references: [attributePresets.id],
   }),
 }));

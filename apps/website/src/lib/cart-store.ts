@@ -59,7 +59,7 @@ export interface CartLine {
   id: string;
   /**
    * The configuration as a query string, in the SAME field vocabulary the product
-   * page's form writes: `product=carrozzina&variant.size=m&from=2026-09-01`.
+   * page's form writes: `product=carrozzina&package=7g&from=2026-09-01`.
    * Quantity is deliberately NOT in here — see `quantity`.
    */
   config: string;

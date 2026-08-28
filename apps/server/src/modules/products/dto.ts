@@ -99,45 +99,6 @@ export interface PublicCategoryRefDto {
   icon: string | null;
 }
 
-export interface PublicVariantOptionDto {
-  id: string;
-  value: string;
-  label: string;
-  skuCode: string | null;
-  isDefault: boolean;
-  priceModifier: MoneyDto;
-}
-
-export interface PublicVariantGroupDto {
-  id: string;
-  key: string;
-  label: string;
-  helpText: string | null;
-  valueType: string;
-  unit: string | null;
-  isRequired: boolean;
-  affectsSku: boolean;
-  position: number;
-  icon: string | null;
-  min: number | null;
-  max: number | null;
-  step: number | null;
-  priceModifierPerUnit: MoneyDto | null;
-  options: PublicVariantOptionDto[];
-}
-
-export interface PublicSkuDto {
-  id: string;
-  sku: string;
-  /** `{ groupKey: optionValue }` for the combination this SKU materialises. */
-  options: Record<string, string>;
-  stock: number;
-  inStock: boolean;
-  isActive: boolean;
-  /** `null` on a rental product, whose price is the chosen package. */
-  price: MoneyDto | null;
-}
-
 export interface PublicSpecDto {
   id: string;
   key: string;
@@ -158,7 +119,6 @@ export interface PublicAddonDto {
   id: string;
   name: string;
   description: string | null;
-  sku: string | null;
   pricing: AddonPricingDto;
   minQuantity: number;
   maxQuantity: number | null;
@@ -209,7 +169,6 @@ export interface PublicProductDetailDto {
   availableLocales: LanguageCode[];
   status: 'draft' | 'active' | 'archived';
   brand: string | null;
-  baseSku: string;
   isFeatured: boolean;
   title: string;
   shortDescription: string | null;
@@ -225,8 +184,10 @@ export interface PublicProductDetailDto {
   /** Empty on a fixed product, and never empty on a rental one — it IS the price. */
   rentalPackages: PublicRentalPackageDto[];
   media: PublicProductMediaDto;
-  variants: PublicVariantGroupDto[];
-  skus: PublicSkuDto[];
+  /** Units on the shelf. A point-in-time count, not a reservation. */
+  stock: number;
+  /** `stock > 0` — what the buy box and the order resolver both gate on. */
+  inStock: boolean;
   specifications: PublicSpecDto[];
   addons: PublicAddonDto[];
   questions: PublicQuestionDto[];
@@ -312,49 +273,6 @@ export interface TranslationStatusDto {
   missing: Partial<Record<LanguageCode, string[]>>;
 }
 
-export interface AdminVariantOptionDto {
-  id: string;
-  value: string;
-  skuCode: string | null;
-  priceModifier: string;
-  isDefault: boolean;
-  position: number;
-  label: Localized;
-}
-
-export interface AdminVariantGroupDto {
-  id: string;
-  key: string;
-  valueType: string;
-  unit: string | null;
-  isRequired: boolean;
-  affectsSku: boolean;
-  sourcePresetKey: string | null;
-  minValue: number | null;
-  maxValue: number | null;
-  stepValue: number | null;
-  priceModifierPerUnit: string | null;
-  icon: string | null;
-  position: number;
-  label: Localized;
-  helpText: Localized | null;
-  options: AdminVariantOptionDto[];
-}
-
-export interface AdminSkuDto {
-  id: string;
-  sku: string;
-  suffix: string;
-  comboKey: string;
-  optionIds: string[];
-  priceOverride: string | null;
-  /** `null` on a rental product — see `resolveSkuPrice`. */
-  resolvedPrice: string | null;
-  stock: number;
-  isActive: boolean;
-  position: number;
-}
-
 export interface AdminSpecValueDto {
   specId: string;
   valueType: string;
@@ -368,7 +286,6 @@ export interface AdminSpecValueDto {
 
 export interface AdminAddonDto {
   id: string;
-  sku: string | null;
   pricingMode: 'fixed' | 'rental';
   productPricingMode: 'fixed' | 'rental';
   rentalUnit: 'hour' | 'day' | null;
@@ -405,7 +322,6 @@ export interface AdminQuestionDto {
 
 export interface AdminProductDetailDto {
   id: string;
-  baseSku: string;
   status: 'draft' | 'active' | 'archived';
   categoryId: string;
   brand: string | null;
@@ -425,8 +341,8 @@ export interface AdminProductDetailDto {
   chips: ProductChip[];
   translations: Partial<Record<LanguageCode, AdminProductTranslationDto>>;
   translationStatus: TranslationStatusDto;
-  variants: AdminVariantGroupDto[];
-  skus: AdminSkuDto[];
+  /** Units on the shelf — the whole of availability now a product is one unit. */
+  stock: number;
   specValues: AdminSpecValueDto[];
   media: AdminProductMediaDto;
   addons: AdminAddonDto[];
@@ -447,7 +363,6 @@ export interface AdminProductDetailDto {
 
 export interface AdminProductSummaryDto {
   id: string;
-  baseSku: string;
   status: 'draft' | 'active' | 'archived';
   brand: string | null;
   isFeatured: boolean;
@@ -458,6 +373,8 @@ export interface AdminProductSummaryDto {
   /** Rental products only, and display copy even there. */
   marketingRate: string | null;
   currency: string;
+  /** Shown as a column on the admin list, so a stock-take needs no drill-down. */
+  stock: number;
   title: string;
   slug: string;
   categoryName: string;
