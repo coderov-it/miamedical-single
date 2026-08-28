@@ -11,7 +11,6 @@ import {
   orders,
   orderStatusEvents,
   products,
-  productSkus,
   productTranslations,
 } from '@mia/db/schema';
 
@@ -373,10 +372,8 @@ export async function findCustomers(db: Database, q: string): Promise<CustomerMa
 // --- placing an order ------------------------------------------------------
 
 export interface NewOrderItemData {
-  skuId: string | null;
+  productId: string | null;
   productTitle: string;
-  skuLabel: string;
-  sku: string;
   quantity: number;
   unitPrice: string;
   total: string;
@@ -476,10 +473,8 @@ export async function insertOrder(
     await tx.insert(orderItems).values(
       data.items.map((item) => ({
         orderId: order.id,
-        skuId: item.skuId,
+        productId: item.productId,
         productTitle: item.productTitle,
-        skuLabel: item.skuLabel,
-        sku: item.sku,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         total: item.total,
@@ -652,20 +647,16 @@ export async function findCartById(db: Database, id: string): Promise<CartAggreg
     : undefined;
 
   // Unlike an order line, a cart line holds no snapshot — the title has to be
-  // read live, through the SKU, from the Italian translation (the mandatory
+  // read live, through the product, from the Italian translation (the mandatory
   // one). A left join on the translation keeps the line visible even for a
   // product that somehow has none.
   const rows = await db
     .select({
       item: cartItems,
-      sku: productSkus.sku,
-      productId: products.id,
       title: productTranslations.title,
-      baseSku: products.baseSku,
     })
     .from(cartItems)
-    .innerJoin(productSkus, eq(cartItems.skuId, productSkus.id))
-    .innerJoin(products, eq(productSkus.productId, products.id))
+    .innerJoin(products, eq(cartItems.productId, products.id))
     .leftJoin(
       productTranslations,
       and(
@@ -676,11 +667,11 @@ export async function findCartById(db: Database, id: string): Promise<CartAggreg
     .where(eq(cartItems.cartId, id))
     .orderBy(asc(cartItems.createdAt));
 
+  /* The Italian row is mandatory on every product, so the fallback is a
+     belt-and-braces default rather than a case anyone should see. */
   const items: CartItemRecord[] = rows.map((row) => ({
     ...row.item,
-    productTitle: row.title ?? row.baseSku,
-    productId: row.productId,
-    sku: row.sku,
+    productTitle: row.title ?? 'Prodotto',
   }));
 
   return {

@@ -35,7 +35,6 @@ import type {
   ProductChunk,
   SpecChunk,
   SpecValueChunk,
-  VariantGroupChunk,
 } from './types.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -71,7 +70,6 @@ async function main(): Promise<void> {
     specs: read<{ specs: SpecChunk[] }>('02-category-specs.json').specs,
     products: read<{ products: ProductChunk[] }>('03-products.json').products,
     specValues: read<{ specValues: SpecValueChunk[] }>('04-product-specs.json').specValues,
-    variantGroups: read<{ variantGroups: VariantGroupChunk[] }>('05-variants.json').variantGroups,
     media: read<{ mediaBaseUrl: string; media: MediaChunk[] }>('06-media.json').media,
     addons: read<{ addons: AddonChunk[] }>('07-addons.json').addons,
   };
@@ -114,12 +112,11 @@ async function main(): Promise<void> {
   if (TRUNCATE) {
     // `admin_users` and `admin_sessions` are deliberately absent: losing them
     // means losing the admin login for no benefit. Orders go because their
-    // lines point at SKUs that are about to be replaced.
+    // lines point at products that are about to be replaced.
     await db.execute(sql`
       TRUNCATE TABLE
         order_items, order_status_events, orders, cart_items, carts,
-        product_sku_options, product_skus, product_spec_value_options,
-        product_spec_values, product_variant_options, product_variant_groups,
+        product_spec_value_options, product_spec_values,
         product_addons, product_faqs, product_question_options, product_questions,
         product_terms, product_translations, products,
         category_spec_options, category_specs, category_translations, categories
@@ -167,7 +164,6 @@ function narrow(all: LoadPlan): LoadPlan {
     specs: all.specs.filter((chunk) => categoryIds.has(chunk.categoryId)),
     products,
     specValues: all.specValues.filter((chunk) => productIds.has(chunk.productId)),
-    variantGroups: all.variantGroups.filter((chunk) => productIds.has(chunk.productId)),
     media: all.media.filter((chunk) => productIds.has(chunk.productId)),
     // An addon bound to products on both sides of the filter keeps only the
     // ones in scope. One that loses every binding is out of scope and drops
@@ -191,8 +187,7 @@ function announce(all: LoadPlan, plan: LoadPlan): void {
   console.log(
     `Loading ${plan.categories.length} categories, ${plan.products.length} products, ` +
       `${plan.specs.length} specs, ${plan.specValues.length} spec values, ` +
-      `${plan.variantGroups.length} variant groups, ${plan.media.length} media, ` +
-      `${plan.addons.length} addons`,
+      `${plan.media.length} media, ${plan.addons.length} addons`,
   );
   console.log(
     `mode: ${DRY_RUN ? 'DRY RUN' : 'WRITE'}${SKIP_MEDIA ? ' +skip-media' : ''}${TRUNCATE ? ' +truncate' : ''}\n`,
@@ -200,10 +195,6 @@ function announce(all: LoadPlan, plan: LoadPlan): void {
 }
 
 function printPlan(plan: LoadPlan): void {
-  const skuCount = plan.variantGroups.reduce(
-    (sum, group) => sum + (group.affectsSku ? group.options.length : 0),
-    0,
-  );
   const icons = plan.categories.filter((chunk) => chunk.iconSource !== null).length;
   const bound = plan.addons.filter((chunk) => chunk.productIds.length > 0).length;
 
@@ -217,11 +208,6 @@ function printPlan(plan: LoadPlan): void {
   console.log(`  products               ${plan.products.length}`);
   console.log(`  product_translations   ${plan.products.length}`);
   console.log(`  product_spec_values    ${plan.specValues.length}`);
-  console.log(`  product_variant_groups ${plan.variantGroups.length}`);
-  console.log(
-    `  product_variant_options ${plan.variantGroups.reduce((sum, group) => sum + group.options.length, 0)}`,
-  );
-  console.log(`  product_skus           ~${skuCount || plan.products.length}`);
   console.log(`  product_addons         ${bound}`);
   console.log(
     `  R2 objects             ${SKIP_MEDIA ? 0 : plan.media.length + icons}` +

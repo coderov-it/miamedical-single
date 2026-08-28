@@ -116,7 +116,7 @@
     deleteBusy = true;
     try {
       await unwrapFull(await api.api.admin.products[':id'].$delete({ param: { id: target.id } }));
-      toast.success(`Deleted "${target.title || target.baseSku}".`);
+      toast.success(`Deleted "${target.title || 'product'}".`);
       deleting = null;
       products.refresh();
     } catch (err) {
@@ -151,7 +151,7 @@
     isEmpty={rows.length === 0}
     onPage={(page) => query.set({ page })}
     onRetry={() => products.refresh()}
-    skeletonColumns={6}
+    skeletonColumns={7}
   >
     {#snippet filters()}
       <!--
@@ -172,7 +172,7 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Search title or SKU…"
+            placeholder="Search products…"
             aria-label="Search products"
             class="h-8 w-56 pl-8"
           />
@@ -217,6 +217,7 @@
             <Table.Head>Status</Table.Head>
             <Table.Head>English</Table.Head>
             <Table.Head>Updated</Table.Head>
+            <Table.Head class="text-right">Stock</Table.Head>
             <Table.Head class="text-right">Price</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
@@ -245,10 +246,10 @@
                       href={routes.productDetail(product.id)}
                       class="block truncate font-medium hover:underline"
                     >
-                      {product.title || product.baseSku}
+                      {product.title || 'Untitled'}
                     </a>
-                    <p class="truncate font-mono text-xs text-muted-foreground">
-                      {product.baseSku}
+                    <p class="truncate text-xs text-muted-foreground">
+                      {product.categoryName}
                     </p>
                   </div>
                 </div>
@@ -284,6 +285,19 @@
 
               <Table.Cell class="text-muted-foreground">
                 {relativeTime(product.updatedAt)}
+              </Table.Cell>
+
+              <!--
+                Zero reads as a warning rather than a number: the storefront
+                renders such a product dead and refuses to take an order for it,
+                which is worth spotting from the list.
+              -->
+              <Table.Cell class="text-right tabular-nums">
+                {#if product.stock > 0}
+                  {product.stock}
+                {:else}
+                  <span class="text-amber-600 dark:text-amber-400">0</span>
+                {/if}
               </Table.Cell>
 
               <!--
@@ -380,8 +394,8 @@
     <AlertDialog.Header>
       <AlertDialog.Title>Delete this product?</AlertDialog.Title>
       <AlertDialog.Description>
-        "{deleting?.title || deleting?.baseSku}" and everything attached to it — SKUs, variants,
-        specs, media — are removed. This cannot be undone.
+        "{deleting?.title}" and everything attached to it — specs, media, add-ons — are removed.
+        This cannot be undone.
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>

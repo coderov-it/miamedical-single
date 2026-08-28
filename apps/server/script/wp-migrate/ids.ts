@@ -49,8 +49,4 @@ export const specId = (categoryCode: string, key: string): string =>
   uuidV5(`spec:${categoryCode}:${key}`);
 export const specOptionId = (categoryCode: string, key: string, value: string): string =>
   uuidV5(`spec-option:${categoryCode}:${key}:${value}`);
-export const variantGroupId = (postId: number, key: string): string =>
-  uuidV5(`variant-group:${postId}:${key}`);
-export const variantOptionId = (postId: number, key: string, value: string): string =>
-  uuidV5(`variant-option:${postId}:${key}:${value}`);
 export const addonId = (wpAddonId: number): string => uuidV5(`addon:${wpAddonId}`);

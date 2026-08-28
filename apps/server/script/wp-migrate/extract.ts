@@ -5,15 +5,7 @@ import { fileURLToPath } from 'node:url';
 import type { Localized, RentalPackage } from '@mia/db/schema';
 import mysql from 'mysql2/promise';
 
-import {
-  addonId,
-  categoryId,
-  productId,
-  specId,
-  specOptionId,
-  variantGroupId,
-  variantOptionId,
-} from './ids.ts';
+import { addonId, categoryId, productId, specId, specOptionId } from './ids.ts';
 import {
   COMPARE_GROUP_TO_CATEGORY,
   RENTAL_ROOT_TERM_ID,
@@ -35,7 +27,6 @@ import {
   parseDailyRate,
   parseDuration,
   parsePriceFromLabel,
-  skuFragment,
   slugify,
   stripTrailingPrice,
   toMoney,
@@ -54,8 +45,6 @@ import type {
   SpecChunk,
   SpecOptionChunk,
   SpecValueChunk,
-  VariantGroupChunk,
-  VariantOptionChunk,
 } from './types.ts';
 
 /**
@@ -63,7 +52,7 @@ import type {
  *
  * Writes nothing to PostgreSQL and nothing to R2 — see load.ts for that. The
  * split exists because too much of this data needs a human eye before it lands:
- * no product has a SKU, some rental rates are junk, and specs are inferred from
+ * no product has a stock count, some rental rates are junk, and specs are inferred from
  * free text. Full walkthrough in docs/code/wp-migration.md.
  *
  *   pnpm --filter @mia/server wp:extract
@@ -239,7 +228,7 @@ async function main(): Promise<void> {
     WHERE p.post_type IN ('product','product_variation')
       AND (
         pm.meta_key IN (
-          '_price','_regular_price','_sku','_thumbnail_id','_product_image_gallery',
+          '_price','_regular_price','_thumbnail_id','_product_image_gallery',
           '_product_attributes','prodotto_prezzo_a_partire_da','_yoast_wpseo_title',
           '_yoast_wpseo_metadesc','_stock','_manage_stock'
         )
@@ -289,10 +278,8 @@ async function main(): Promise<void> {
   }
 
   const products: ProductChunk[] = [];
-  const variantGroups: VariantGroupChunk[] = [];
   /** Addons discovered from variation options on rental products. */
   const derivedAddons: AddonChunk[] = [];
-  const skusTaken = new Set<string>();
   const productSlugsTaken = new Set<string>();
 
   for (const row of postRows) {
@@ -468,9 +455,8 @@ async function main(): Promise<void> {
     } else {
       /**
        * On a fixed product with a variation axis, every option label states an
-       * absolute price. The cheapest becomes the base so that no modifier is
-       * negative — `basePrice + modifier` then reproduces each option's price
-       * exactly, which is what `resolveSkuPrice` computes.
+       * absolute price. The cheapest becomes the base, and each option lands as
+       * an add-on priced at its own figure — see the option loop below.
        */
       const absolutes = [...optionsByAttr.values()]
         .flatMap((bucket) => [...bucket.values()])
@@ -499,68 +485,48 @@ async function main(): Promise<void> {
     }
 
     /**
-     * A non-duration option means different things either side of the mode:
+     * A non-duration option is an EXTRA, in either mode: "Acquista gli
+     * elettrodi" is something you add to what you came for, priced once.
      *
-     *  - fixed product → the options are mutually exclusive configurations of
-     *    the thing being bought, i.e. a SKU-affecting variant group;
-     *  - rental product → "Acquista gli elettrodi" is an extra you add to a
-     *    rental, priced once. That is `product_addons` in fixed mode, which the
-     *    schema explicitly permits on a rental product. Modelling it as a
-     *    variant would multiply the SKU matrix by the tier count for something
-     *    the warehouse does not track separately.
+     * It used to split either way — a fixed product's options became a
+     * single_select variant group, a rental product's became add-ons. Products
+     * have no variant axes any more (one product is one stock-keeping unit), so
+     * both sides land as `product_addons` in fixed mode, which the schema
+     * permits on a rental product as well as a fixed one.
      */
     for (const [attrName, bucket] of optionsByAttr) {
       const options = [...bucket.values()].sort((a, b) => a.firstSeen - b.firstSeen);
       const groupLabel = attrName.replaceAll('-', ' ').replace(/^./, (char) => char.toUpperCase());
 
-      if (mode === 'rental') {
-        for (const [index, option] of options.entries()) {
-          const price = option.absolute;
-          derivedAddons.push({
-            id: addonId(postId * 100 + index),
-            productIds: [productId(postId)],
-            name: { it: stripTrailingPrice(option.label).slice(0, 200) },
-            description: { it: groupLabel },
-            pricingMode: 'fixed',
-            price: price ?? '0.00',
-            minQuantity: 0,
-            maxQuantity: 1,
-            position: index,
-            needsReview: price ? [] : ['price'],
-          });
-        }
-        note(
-          'addon',
-          postId,
-          title,
-          `"${groupLabel}" (${options.length} choices) → fixed addons on a rental product`,
-        );
-        continue;
-      }
-
-      variantGroups.push({
-        id: variantGroupId(postId, attrName),
-        productId: productId(postId),
-        wpPostId: postId,
-        key: slugify(attrName, 'opzione'),
-        label: { it: groupLabel },
-        valueType: 'single_select',
-        unit: null,
-        isRequired: true,
-        affectsSku: true,
-        position: variantGroups.filter((group) => group.wpPostId === postId).length,
-        options: options.map((option, index): VariantOptionChunk => ({
-          id: variantOptionId(postId, attrName, option.value),
-          value: option.value,
-          label: { it: stripTrailingPrice(option.label) },
-          skuCode: skuFragment(stripTrailingPrice(option.label), `OPT${index + 1}`, 12),
-          priceModifier: option.absolute
-            ? (Number(option.absolute) - Number(basePrice)).toFixed(2)
-            : '0.00',
-          isDefault: index === 0,
+      for (const [index, option] of options.entries()) {
+        const price = option.absolute;
+        derivedAddons.push({
+          id: addonId(postId * 100 + index),
+          productIds: [productId(postId)],
+          name: { it: stripTrailingPrice(option.label).slice(0, 200) },
+          description: { it: groupLabel },
+          pricingMode: 'fixed',
+          price: price ?? '0.00',
+          minQuantity: 0,
+          maxQuantity: 1,
           position: index,
-        })),
-      });
+          needsReview: price ? [] : ['price'],
+        });
+      }
+      note('addon', postId, title, `"${groupLabel}" (${options.length} choices) → fixed addons`);
+    }
+
+    /* WooCommerce only keeps a count on products it was managing stock for;
+       everything else reports availability through `_stock_status` and has no
+       number at all. An unmanaged product lands at 0 and is flagged, because
+       "we never counted these" and "there are none left" must not look the same
+       to whoever reviews the import. */
+    const managesStock = metaOf(postId, '_manage_stock') === 'yes';
+    const rawStock = Number.parseInt(metaOf(postId, '_stock'), 10);
+    const stock = managesStock && Number.isFinite(rawStock) ? Math.max(0, rawStock) : 0;
+    if (!managesStock) {
+      needsReview.push('stock');
+      note('stock', postId, title, 'WooCommerce did not manage stock — set 0, FILL IN');
     }
 
     // `description` is rich text on the storefront (`set:html`), so WordPress
@@ -574,7 +540,6 @@ async function main(): Promise<void> {
     products.push({
       id: productId(postId),
       wpPostId: postId,
-      baseSku: uniquify(skuFragment(title, `MIA-${postId}`, 48), skusTaken),
       status: STATUS_MAP[str(row.post_status)] ?? 'draft',
       categoryId: category.id,
       categoryCode: category.code,
@@ -584,6 +549,7 @@ async function main(): Promise<void> {
       marketingRate,
       currency: DEFAULT_CURRENCY,
       rentalUnit,
+      stock,
       isFeatured: false,
       rentalPackages: packages,
       translation: {
@@ -606,7 +572,6 @@ async function main(): Promise<void> {
   console.log(
     `  with packages   ${products.filter((product) => product.rentalPackages.length).length}`,
   );
-  console.log(`variant groups    ${variantGroups.length}`);
 
   // --- specs ----------------------------------------------------------------
 
@@ -640,7 +605,6 @@ async function main(): Promise<void> {
   write('02-category-specs.json', { specs });
   write('03-products.json', { products });
   write('04-product-specs.json', { specValues });
-  write('05-variants.json', { variantGroups });
   write('06-media.json', { mediaBaseUrl: MEDIA_BASE, media });
   write('07-addons.json', { addons });
 
@@ -657,7 +621,6 @@ async function main(): Promise<void> {
       rentalPackages: products.reduce((sum, product) => sum + product.rentalPackages.length, 0),
       categorySpecs: specs.length,
       specValues: specValues.length,
-      variantGroups: variantGroups.length,
       mediaItems: media.length,
       addons: addons.length,
       reportEntries: report.length,

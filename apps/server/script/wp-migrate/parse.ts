@@ -260,25 +260,9 @@ export function slugify(raw: string, fallback = 'voce'): string {
 }
 
 /**
- * `SkuFragmentSchema`: A–Z, 0–9 and single hyphens, uppercase, no hyphen at
- * either end.
- *
- * `maxLength` is applied here rather than by the caller, because slicing after
- * the fact is what produces a trailing hyphen — and the schema rejects it.
- */
-export function skuFragment(raw: string, fallback = 'MIA', maxLength = 64): string {
-  const fragment = slugify(raw, '')
-    .toUpperCase()
-    .replace(/-+/g, '-')
-    .slice(0, maxLength)
-    .replace(/^-+|-+$/g, '');
-  return fragment || fallback;
-}
-
-/**
  * Keeps a derived identifier unique inside one namespace by appending `-2`,
- * `-3`… Used for slugs, base SKUs and category codes, all of which carry a
- * unique index the loader would otherwise trip over.
+ * `-3`… Used for slugs and category codes, both of which carry a unique index
+ * the loader would otherwise trip over.
  */
 export function uniquify(candidate: string, taken: Set<string>): string {
   if (!taken.has(candidate)) {

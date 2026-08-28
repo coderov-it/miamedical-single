@@ -36,13 +36,6 @@ export const MoneySchema = v.pipe(
   v.regex(/^\d{1,10}\.\d{2}$/, 'Use a decimal amount with two places, e.g. "35.00".'),
 );
 
-/** Price modifiers may be negative — "cheaper without the headboard". */
-export const SignedMoneySchema = v.pipe(
-  v.string(),
-  v.trim(),
-  v.regex(/^-?\d{1,10}\.\d{2}$/, 'Use a decimal amount with two places, e.g. "-4.00".'),
-);
-
 export const CurrencySchema = v.pipe(v.string(), v.length(3), v.toUpperCase());
 
 /** A calendar date on the wire — `"2026-09-01"`, never a timestamp. */

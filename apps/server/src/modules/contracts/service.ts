@@ -140,7 +140,6 @@ export async function generateFromOrder(
     const rental = (config.rental as RentalPeriod | undefined) ?? null;
     items.push({
       productTitle: item.productTitle,
-      sku: item.sku,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       total: item.total,
@@ -224,7 +223,6 @@ export async function createManual(
 ): Promise<{ id: string; number: string }> {
   const items: ContractData['items'] = input.items.map((item) => ({
     productTitle: item.productTitle,
-    sku: item.sku ?? '',
     quantity: item.quantity,
     unitPrice: item.unitPrice,
     total: item.total,

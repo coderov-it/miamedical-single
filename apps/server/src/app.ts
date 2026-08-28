@@ -8,7 +8,6 @@ import { secureHeaders } from 'hono/secure-headers';
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
 import { adminUserRoutes } from './modules/admin-users/routes.ts';
-import { attributeAdminRoutes } from './modules/attributes/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
 import { customerAccountRoutes } from './modules/customer-account/routes.ts';
 import { customerAuthRoutes } from './modules/customer-auth/routes.ts';
@@ -87,7 +86,6 @@ const routes = app
   .route('/api/admin/products', productAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)
   .route('/api/admin/terms', termsAdminRoutes)
-  .route('/api/admin/attributes', attributeAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)

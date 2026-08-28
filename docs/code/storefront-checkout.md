@@ -30,12 +30,12 @@ many** items came with it.
 ```text
 # One product, configured on its detail page: GET, the format
 # request-config.ts already defines, so a PDP can point here unchanged.
-/checkout/?product=<slug>&variant.<groupKey>=…&question.<questionKey>=…
+/checkout/?product=<slug>&question.<questionKey>=…
           &addon=<addonId>&package=<code>&from=YYYY-MM-DD&to=YYYY-MM-DD&qty=<1..10>
 
 # Several products, from a cart: POST, same field names, one `item.<n>.` prefix.
 POST /checkout/
-  item.0.product=<slug>&item.0.variant.size=m&item.0.qty=2
+  item.0.product=<slug>&item.0.question.piano=3&item.0.qty=2
   &item.1.product=<slug>&item.1.package=7-days
 ```
 
@@ -112,8 +112,8 @@ Same status as the PDP's order panel, and the same rules — the owner's:
 
 - A rental **is its package**. The package price is the price for that duration,
   and a rental with no package picked has no price at all.
-- Variant modifiers are **flat** — added once on top of the package, never
-  multiplied by its duration, which the package already carries.
+- A fixed product **is its base price**. There is nothing to configure on a
+  product and so nothing to modify its rate.
 - A rental-mode add-on is priced on its own terms: `price × quantity ×` the
   package duration read in the add-on's unit, rounded up to a whole unit. A
   fixed-mode add-on is charged once.

@@ -81,7 +81,6 @@ export interface SpecChunk {
 export interface ProductChunk {
   id: string;
   wpPostId: number;
-  baseSku: string;
   status: 'draft' | 'active' | 'archived';
   categoryId: string;
   categoryCode: string;
@@ -93,6 +92,8 @@ export interface ProductChunk {
   marketingRate: string | null;
   currency: string;
   rentalUnit: 'hour' | 'day' | null;
+  /** 0 where WooCommerce was not managing stock — flagged in `needsReview`. */
+  stock: number;
   isFeatured: boolean;
   rentalPackages: RentalPackage[];
   translation: TranslationChunk;
@@ -115,30 +116,6 @@ export interface SpecValueChunk {
   textValue: Localized | null;
   optionIds: string[];
   source: string;
-}
-
-export interface VariantOptionChunk {
-  id: string;
-  value: string;
-  label: Localized;
-  skuCode: string | null;
-  priceModifier: string;
-  isDefault: boolean;
-  position: number;
-}
-
-export interface VariantGroupChunk {
-  id: string;
-  productId: string;
-  wpPostId: number;
-  key: string;
-  label: Localized;
-  valueType: string;
-  unit: string | null;
-  isRequired: boolean;
-  affectsSku: boolean;
-  position: number;
-  options: VariantOptionChunk[];
 }
 
 export type MediaRole = 'thumbnail' | 'gallery' | 'document' | 'video';
@@ -195,7 +172,6 @@ export interface LoadPlan {
   specs: SpecChunk[];
   products: ProductChunk[];
   specValues: SpecValueChunk[];
-  variantGroups: VariantGroupChunk[];
   media: MediaChunk[];
   addons: AddonChunk[];
 }

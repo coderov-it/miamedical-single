@@ -16,30 +16,27 @@ const PKG_3_DAY = { unit: 'day' as const, duration: 3, price: '25.00' };
 const PKG_4_HOUR = { unit: 'hour' as const, duration: 4, price: '15.00' };
 
 describe('a fixed product', () => {
-  it('prices at its base plus its modifiers', () => {
+  it('prices at its base price, which is the whole of it', () => {
     const priced = priceRequest({
       mode: 'fixed',
       basePrice: '289.00',
-      modifiers: [{ amount: '11.00', affectsSku: false }],
       quantity: 1,
     });
-    assert.equal(priced.total, '300.00');
-    assert.equal(priced.unitRate, '300.00');
+    assert.equal(priced.total, '289.00');
+    assert.equal(priced.unitRate, '289.00');
     assert.equal(priced.incomplete, false);
   });
 
-  it('lets a matched SKU price replace the base and its sku-affecting modifiers', () => {
+  it('adds a fixed add-on on top of the base', () => {
     const priced = priceRequest({
       mode: 'fixed',
       basePrice: '289.00',
-      skuPrice: '310.00',
-      modifiers: [
-        { amount: '21.00', affectsSku: true },
-        { amount: '5.00', affectsSku: false },
-      ],
+      addons: [{ mode: 'fixed', price: '26.00', rentalUnit: null, quantity: 1 }],
       quantity: 1,
     });
     assert.equal(priced.total, '315.00');
+    // The rate the order line records is the product's own, before extras.
+    assert.equal(priced.unitRate, '289.00');
   });
 });
 
@@ -55,43 +52,17 @@ describe('a rental product', () => {
     assert.equal(priced.units, 3);
   });
 
-  it('adds variant modifiers FLAT, never multiplied by the duration', () => {
-    const priced = priceRequest({
-      mode: 'rental',
-      basePrice: null,
-      rentalPackage: PKG_9_DAY,
-      modifiers: [{ amount: '5.00', affectsSku: true }],
-      quantity: 1,
-    });
-    // 80.00 + 5.00, NOT 80.00 + 5.00 × 9.
-    assert.equal(priced.total, '85.00');
-    assert.equal(priced.unitRate, '85.00');
-  });
-
-  it('ignores a matched SKU price, which has nothing to override', () => {
-    const priced = priceRequest({
-      mode: 'rental',
-      basePrice: null,
-      skuPrice: '999.00',
-      rentalPackage: PKG_3_DAY,
-      modifiers: [{ amount: '2.00', affectsSku: true }],
-      quantity: 1,
-    });
-    assert.equal(priced.total, '27.00');
-  });
-
   it('multiplies a rental add-on by the package duration and its quantity', () => {
     const priced = priceRequest({
       mode: 'rental',
       basePrice: null,
       rentalPackage: PKG_9_DAY,
-      modifiers: [{ amount: '5.00', affectsSku: true }],
       addons: [{ mode: 'rental', price: '3.00', rentalUnit: 'day', quantity: 2 }],
       quantity: 1,
     });
-    // 80.00 package + 5.00 flat variant + 3.00 × 2 × 9 days.
-    assert.equal(priced.total, '139.00');
-    assert.equal(priced.unitRate, '85.00');
+    // 80.00 package + 3.00 × 2 × 9 days.
+    assert.equal(priced.total, '134.00');
+    assert.equal(priced.unitRate, '80.00');
   });
 
   it('charges a fixed-mode add-on once, whatever the duration', () => {
@@ -146,7 +117,6 @@ describe('a rental product', () => {
       mode: 'rental',
       basePrice: null,
       rentalPackage: null,
-      modifiers: [{ amount: '5.00', affectsSku: true }],
       addons: [{ mode: 'fixed', price: '60.00', rentalUnit: null, quantity: 1 }],
       quantity: 3,
     });
@@ -154,17 +124,6 @@ describe('a rental product', () => {
     assert.equal(priced.total, '0.00');
     assert.equal(priced.units, null);
     assert.deepEqual(priced.lines, []);
-  });
-
-  it('handles a negative modifier without going below the package by more than it', () => {
-    const priced = priceRequest({
-      mode: 'rental',
-      basePrice: null,
-      rentalPackage: PKG_3_DAY,
-      modifiers: [{ amount: '-4.00', affectsSku: true }],
-      quantity: 1,
-    });
-    assert.equal(priced.total, '21.00');
   });
 });
 
@@ -174,13 +133,12 @@ describe('resolveUnitRate', () => {
       mode: 'rental' as const,
       basePrice: null,
       rentalPackage: PKG_9_DAY,
-      modifiers: [{ amount: '5.00', affectsSku: true }],
       addons: [{ mode: 'rental' as const, price: '3.00', rentalUnit: 'day' as const, quantity: 2 }],
       quantity: 2,
     };
     const priced = priceRequest(input);
-    assert.equal(resolveUnitRate(input), '85.00');
-    assert.equal(priced.total, '278.00');
-    assert.notEqual(priced.unitRate, '139.00');
+    assert.equal(resolveUnitRate(input), '80.00');
+    assert.equal(priced.total, '268.00');
+    assert.notEqual(priced.unitRate, '134.00');
   });
 });

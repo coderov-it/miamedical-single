@@ -2,9 +2,7 @@
  * The order panel's DISPLAY ESTIMATE: the form, mirrored into the panel.
  *
  * It mirrors `priceRequest` in `@mia/pricing` and is authoritative over nothing.
- * A RENTAL IS ITS PACKAGE — the package price is the base, variant modifiers are
- * added FLAT on top of it (the package already carries the duration, so
- * multiplying a modifier by it would charge for the days twice), and a
+ * A RENTAL IS ITS PACKAGE — the package price is the whole rate, and a
  * rental-mode add-on multiplies by the package's duration read in the add-on's
  * own unit. With no package there is nothing to price, so the panel shows a dash.
  *
@@ -55,27 +53,6 @@ function syncAddonSteppers(form: HTMLFormElement): Map<string, HTMLInputElement>
   }
 
   return steppers;
-}
-
-/** The flat modifiers the variant groups contribute, and what to call them. */
-function readModifiers(form: HTMLFormElement): { total: number; labels: string[] } {
-  let total = 0;
-  const labels: string[] = [];
-
-  for (const input of form.querySelectorAll<HTMLInputElement>('[data-est-kind="variant"]')) {
-    if (!input.checked) continue;
-    total += Number(input.dataset.estPrice ?? '0');
-    if (input.dataset.estLabel) labels.push(input.dataset.estLabel);
-  }
-
-  for (const input of form.querySelectorAll<HTMLInputElement>('[data-est-kind="number"]')) {
-    const value = Number(input.value);
-    if (input.value !== '' && Number.isFinite(value)) {
-      total += value * Number(input.dataset.estPerUnit ?? '0');
-    }
-  }
-
-  return { total, labels };
 }
 
 export function createEstimate(form: HTMLFormElement, labels: PdpLabels): Estimate {
@@ -179,7 +156,6 @@ export function createEstimate(form: HTMLFormElement, labels: PdpLabels): Estima
   }
 
   function update(): void {
-    const modifiers = readModifiers(form);
     const pkg = readChosenPackage(form);
     /* Before the price branch, never inside it — see `syncAddonSteppers`. */
     const steppers = syncAddonSteppers(form);
@@ -191,23 +167,18 @@ export function createEstimate(form: HTMLFormElement, labels: PdpLabels): Estima
       1,
       Math.min(Number(quantityInput?.value) || 1, Number(quantityInput?.max) || 10),
     );
-    const baseLabel = modifiers.labels.length > 0 ? modifiers.labels.join(' · ') : labels.baseRate;
-
     const lines: EstimateLine[] = [];
     /* Nothing to quote until a rental has its package — see the module note. */
     const incomplete = isRental && !pkg;
     let total = 0;
 
     if (!incomplete) {
-      total = pkg ? pkg.price + modifiers.total : base + modifiers.total;
+      total = pkg ? pkg.price : base;
 
       if (pkg) {
         lines.push({ label: pkg.detail, amount: money.format(pkg.price) });
-        if (Math.abs(modifiers.total) > 0.005) {
-          lines.push({ label: baseLabel, amount: money.format(modifiers.total) });
-        }
       } else {
-        lines.push({ label: baseLabel, amount: money.format(total) });
+        lines.push({ label: labels.baseRate, amount: money.format(total) });
       }
 
       total += collectAddons(pkg, steppers, lines);

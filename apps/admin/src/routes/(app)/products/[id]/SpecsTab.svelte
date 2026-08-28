@@ -6,6 +6,12 @@
   Each row states whether the value feeds a storefront filter or the comparison
   table, because that is the difference between "worth filling in" and "nice to
   have" — and it is not visible anywhere else.
+
+  Brand sits here rather than on Basics because it is a specification of the
+  product, not part of its identity. It is still a column on `products` and not
+  a category spec, so saving this tab is two requests: a PATCH for the brand and
+  the PUT for the values. They are reported honestly rather than as one save —
+  see the error handling below.
 -->
 <script lang="ts">
   import { P } from '@mia/permissions';
@@ -51,6 +57,14 @@
     { enabled: () => session.can(P.CATEGORY_READ) },
   );
 
+  /**
+   * A product column, so it lives outside the spec-value map. Seeded by the
+   * same effect as `edits`, not at init: the category definitions arrive
+   * asynchronously and both halves of this tab reseed on the same stamp.
+   */
+  let brand = $state('');
+  let savedBrand = $state('');
+
   function snapshot(specs: AdminCategory['specs'], source: AdminProduct) {
     const next: Record<string, SpecEdit> = {};
     for (const spec of specs) {
@@ -87,9 +101,11 @@
 
     edits = snapshot(specs, product);
     saved = snapshot(specs, product);
+    brand = product.brand ?? '';
+    savedBrand = product.brand ?? '';
   });
 
-  const isDirty = $derived(!sameAsSaved(edits, saved));
+  const isDirty = $derived(!sameAsSaved(edits, saved) || brand.trim() !== savedBrand);
   $effect(() => dirty.set(SECTION, isDirty));
 
   const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
@@ -146,6 +162,17 @@
           };
         });
 
+      /* Brand first: if it fails the values are untouched, which is the easier
+         half to reason about when a save only partly lands. */
+      if (brand.trim() !== savedBrand) {
+        await unwrap<AdminProduct>(
+          await api.api.admin.products[':id'].$patch({
+            param: { id: product.id },
+            json: { brand: brand.trim() || null },
+          }),
+        );
+      }
+
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].specs.$put({
           param: { id: product.id },
@@ -155,6 +182,8 @@
 
       edits = snapshot(specs, updated);
       saved = snapshot(specs, updated);
+      brand = updated.brand ?? '';
+      savedBrand = updated.brand ?? '';
       dirty.clear(SECTION);
       onSaved(updated);
       toast.success('Specifications saved.');
@@ -176,7 +205,7 @@
   dirty={isDirty}
   {saving}
   error={error ?? category.error}
-  onSave={category.data?.specs.length ? save : undefined}
+  onSave={category.data ? save : undefined}
   saveLabel="Save specifications"
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
@@ -186,13 +215,26 @@
         <Skeleton class="h-20 w-full" />
       {/each}
     </div>
-  {:else if category.data.specs.length === 0}
-    <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-      The category “{category.data.translations.it?.name ?? category.data.code}” defines no
-      specifications. Add spec fields to it under Categories.
-    </p>
   {:else}
     <div class="max-w-2xl space-y-3">
+      <!--
+        Brand is every category's spec, so it is written here rather than
+        defined per category — it identifies the manufacturer of any aid, and
+        making eighteen categories each declare their own "Marca" would be
+        eighteen chances to word it differently.
+      -->
+      <div class="rounded-lg border p-4">
+        <Label class="mb-2.5 block text-sm font-medium" for="specs-brand">Brand</Label>
+        <Input id="specs-brand" bind:value={brand} disabled={!canUpdate} class="max-w-sm" />
+      </div>
+
+      {#if category.data.specs.length === 0}
+        <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          The category “{category.data.translations.it?.name ?? category.data.code}” defines no
+          further specifications. Add spec fields to it under Categories.
+        </p>
+      {/if}
+
       {#each category.data.specs as spec (spec.id)}
         {@const edit = edits[spec.id]}
         {#if edit}

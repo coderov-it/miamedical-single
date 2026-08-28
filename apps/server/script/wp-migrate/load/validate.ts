@@ -7,12 +7,7 @@
  * the first. Cross-references are checked here too, because a chunk pointing at
  * a row no other chunk contains is the failure mode a scoped load invites.
  */
-import {
-  CreateProductSchema,
-  RentalPackagesSchema,
-  SpecValueInputSchema,
-  VariantGroupInputSchema,
-} from '@mia/validators';
+import { CreateProductSchema, RentalPackagesSchema, SpecValueInputSchema } from '@mia/validators';
 import * as v from 'valibot';
 
 import type { LoadPlan } from '../types.ts';
@@ -53,7 +48,6 @@ export function validatePlan(plan: LoadPlan): string[] {
     check(
       CreateProductSchema,
       {
-        baseSku: chunk.baseSku,
         categoryId: chunk.categoryId,
         status: chunk.status,
         brand: chunk.brand,
@@ -63,6 +57,7 @@ export function validatePlan(plan: LoadPlan): string[] {
         currency: chunk.currency,
         rentalUnit: chunk.rentalUnit,
         rentalPackages: chunk.pricingMode === 'rental' ? chunk.rentalPackages : undefined,
+        stock: chunk.stock,
         isFeatured: chunk.isFeatured,
         translations: { it: chunk.translation },
       },
@@ -75,32 +70,6 @@ export function validatePlan(plan: LoadPlan): string[] {
     } else if (chunk.rentalPackages.length > 0) {
       fail(where, 'fixed product carries rental packages — the database CHECK will reject it');
     }
-  }
-
-  for (const chunk of plan.variantGroups) {
-    const where = `variant group ${chunk.key} on product ${chunk.wpPostId}`;
-    if (!productIds.has(chunk.productId)) fail(where, 'productId not in chunk 03');
-    check(
-      VariantGroupInputSchema,
-      {
-        key: chunk.key,
-        label: chunk.label,
-        valueType: chunk.valueType,
-        unit: chunk.unit,
-        isRequired: chunk.isRequired,
-        affectsSku: chunk.affectsSku,
-        position: chunk.position,
-        options: chunk.options.map((option) => ({
-          value: option.value,
-          label: option.label,
-          skuCode: option.skuCode,
-          priceModifier: option.priceModifier,
-          isDefault: option.isDefault,
-          position: option.position,
-        })),
-      },
-      where,
-    );
   }
 
   for (const chunk of plan.specValues) {

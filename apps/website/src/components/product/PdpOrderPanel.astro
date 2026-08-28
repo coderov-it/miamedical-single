@@ -51,33 +51,19 @@ const isRental = product.pricing.mode === 'rental';
 const { currency } = product.pricing;
 const money = (amount: number) => formatMoney(amount.toFixed(2), currency);
 
-/* Initial paint mirrors the form's default state (default option per group, no
-   add-ons ticked, no package, quantity 1) so the script never causes a flash. */
-const defaultLabels: string[] = [];
-const defaultModifiers = product.variants.reduce((sum, group) => {
-  if (group.options.length === 0) return sum;
-  if (group.valueType === 'multi_select') {
-    const chosen = group.options.filter((option) => option.isDefault);
-    defaultLabels.push(...chosen.map((option) => option.label));
-    return sum + chosen.reduce((acc, option) => acc + Number(option.priceModifier.amount), 0);
-  }
-  const chosen = group.options.find((option) => option.isDefault) ?? group.options[0];
-  if (!chosen) return sum;
-  defaultLabels.push(chosen.label);
-  return sum + Number(chosen.priceModifier.amount);
-}, 0);
-
 /*
   On a rental there is nothing to show until a package is picked: no rate exists,
-  and printing the variant modifiers alone would put a number on the panel that
-  is not the price of anything. Nothing is preselected for the same reason the
-  card says "Scegli un pacchetto" — the choice is the customer's, and a default
-  would quote them a price they never asked for. A fixed product has its price
-  from the start.
+  so there is no number to print that would be the price of anything. Nothing is
+  preselected for the same reason the card says "Scegli un pacchetto" — the
+  choice is the customer's, and a default would quote them a price they never
+  asked for. A fixed product has its price from the start.
+
+  Initial paint mirrors the form's default state (no add-ons ticked, no package,
+  quantity 1) so the script never causes a flash.
 */
-const initialTotal = isRental ? null : Number(product.pricing.price ?? '0') + defaultModifiers;
+const initialTotal = isRental ? null : Number(product.pricing.price ?? '0');
 const initialNote = isRental ? 'scegli un pacchetto' : 'prezzo del prodotto';
-const baseLineLabel = defaultLabels.length > 0 ? defaultLabels.join(' · ') : 'Tariffa base';
+const baseLineLabel = 'Tariffa base';
 
 const packages = product.rentalPackages;
 ---

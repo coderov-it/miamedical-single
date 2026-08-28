@@ -8,7 +8,6 @@ import {
   orderItems,
   orders,
   products,
-  productSkus,
 } from '@mia/db/schema';
 import type { ContractStatus, ContractVariant } from '@mia/validators';
 
@@ -195,16 +194,15 @@ export async function findLatestActiveByOrderId(
  * fact that selects the scooter contract variants. Only rental lines count: the
  * deposit secures the return of a rented aid, and a scooter bought outright on
  * the same order must not drag a deposit clause into the wheelchair's contract.
- * Read through the live catalogue (item → SKU → product → category) so one
- * query serves placement, admin generation and renewal alike; a line whose SKU
+ * Read through the live catalogue (item → product → category) so one
+ * query serves placement, admin generation and renewal alike; a line whose product
  * has since been deleted simply contributes nothing.
  */
 export async function orderRequiresDeposit(db: Database, orderId: string): Promise<boolean> {
   const rows = await db
     .select({ value: sql<boolean>`bool_or(${categories.requiresDeposit})` })
     .from(orderItems)
-    .innerJoin(productSkus, eq(orderItems.skuId, productSkus.id))
-    .innerJoin(products, eq(productSkus.productId, products.id))
+    .innerJoin(products, eq(orderItems.productId, products.id))
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .where(
       and(

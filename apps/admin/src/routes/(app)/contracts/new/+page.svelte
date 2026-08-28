@@ -68,7 +68,6 @@
     };
     items: {
       productTitle: string;
-      sku: string;
       quantity: number;
       unitPrice: string;
       total: string;
@@ -100,7 +99,6 @@
    */
   interface ItemDraft {
     productTitle: string;
-    sku: string;
     quantity: number;
     duration: number;
     durationUnit: 'hour' | 'day';
@@ -113,7 +111,6 @@
   function blankItem(): ItemDraft {
     return {
       productTitle: '',
-      sku: '',
       quantity: 1,
       duration: 1,
       durationUnit: 'day',
@@ -189,7 +186,6 @@
       shippingTotal = data.shippingTotal || '0.00';
       items = data.items.map((item) => ({
         productTitle: item.productTitle,
-        sku: item.sku ?? '',
         quantity: item.quantity,
         duration: item.duration,
         durationUnit: item.durationUnit,
@@ -265,7 +261,6 @@
     const item = items[index];
     if (!item) return;
     item.productTitle = product.title;
-    item.sku = product.baseSku;
     /* A starting point for the operator to edit, not a price: a rental has no
        rate of its own, so its marketing headline stands in. */
     item.unitPrice = product.basePrice ?? product.marketingRate ?? '0.00';
@@ -349,7 +344,6 @@
           hasDepositProduct,
           items: items.map((item) => ({
             productTitle: item.productTitle.trim(),
-            ...(item.sku ? { sku: item.sku } : {}),
             quantity: item.quantity,
             duration: item.duration,
             durationUnit: item.durationUnit,

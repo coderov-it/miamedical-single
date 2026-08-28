@@ -4,7 +4,6 @@ export * from './media.ts';
 export * from './auth.ts';
 export * from './product.ts';
 export * from './category.ts';
-export * from './attribute.ts';
 export * from './terms.ts';
 export * from './cart.ts';
 export * from './order.ts';

@@ -8,7 +8,7 @@
  * docs/code/storefront-checkout.md
  */
 import { durationLabel } from '@mia/i18n';
-import { DELIVERY_METHODS, matchSku, priceRequest, sumMoney } from '@mia/pricing';
+import { DELIVERY_METHODS, priceRequest, sumMoney } from '@mia/pricing';
 import type { PlaceOrderItemInput } from '@mia/validators';
 import { formatMoney } from './api.ts';
 import { t } from './labels.ts';
@@ -18,7 +18,7 @@ import { CONTACT, LOCATIONS } from './site.ts';
 
 /**
  * `item.<n>.` in front of every field of one line item. A cart sends
- * `item.0.product=…&item.0.variant.size=…&item.1.product=…`; a product detail
+ * `item.0.product=…&item.0.question.piano=…&item.1.product=…`; a product detail
  * page sends the un-prefixed single-item form and is read as item 0. Both are the
  * SAME field names from `request-config.ts` — the prefix is the only addition, so
  * a cart never needs a second vocabulary.
@@ -179,22 +179,9 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
   const { currency } = product.pricing;
   const money = (amount: string) => formatMoney(amount, currency);
 
-  /* A pinned SKU can carry a price override, which no sum of modifiers would
-     find. The server matches the same way, from the same values — only the
-     sku-affecting groups take part, because the matrix has one row per
-     combination and a numeric group has no finite set of them. */
-  const skuSelection: Record<string, string[]> = {};
-  for (const group of product.variants) {
-    const values = request.variantValues[group.key];
-    if (group.affectsSku && values) skuSelection[group.key] = values;
-  }
-  const matched = matchSku(product.skus, skuSelection);
-
   const priced = priceRequest({
     mode: product.pricing.mode,
     basePrice: product.pricing.price,
-    skuPrice: matched?.price?.amount ?? null,
-    modifiers: request.selections,
     rentalPackage: request.rentalPackage,
     quantity: request.quantity,
     addons: request.addons.map((entry) => ({
@@ -205,25 +192,17 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
     })),
   });
 
-  /* The configured choices read as themselves — "Grigio · Con sponde" — and fall
-     back to "Tariffa base" when nothing the customer picked costs extra. */
-  const labels = request.selections
-    .filter((entry) => entry.amount !== '0.00')
-    .map((entry) => entry.value);
-  const baseLabel = labels.length > 0 ? labels.join(' · ') : t('baseRate');
   const pkg = request.rentalPackage;
 
   const lines: EstimateLine[] = priced.lines.map((line) => {
     switch (line.kind) {
       case 'base':
-        return { label: baseLabel, amount: money(line.amount) };
+        return { label: t('baseRate'), amount: money(line.amount) };
       case 'package':
         return {
           label: pkg?.label ?? durationLabel(line.units, line.unit, 'it'),
           amount: money(line.amount),
         };
-      case 'variants':
-        return { label: baseLabel, amount: money(line.amount) };
       case 'addon': {
         const entry = request.addons[line.index];
         /* "Materasso × 2 × 7 giorni" — the two multipliers are different things,
@@ -309,23 +288,19 @@ function toOrderItem(product: ProductDetail, request: ResolvedRequest): PlaceOrd
     ...(request.startTime ? { startTime: request.startTime } : {}),
     ...(request.rentalPackage ? { rentalPackageCode: request.rentalPackage.code } : {}),
     addons: request.addons.map((entry) => ({ id: entry.addon.id, quantity: entry.quantity })),
-    variants: request.variantValues,
     answers: request.answerValues,
   };
 }
 
 /**
- * Required groups and questions this configuration left unanswered.
+ * Required questions this configuration left unanswered.
  *
- * Read off the product, not off a list kept here, so a group the operator marks
- * required tomorrow starts blocking today's stale links without a deploy.
+ * Read off the product, not off a list kept here, so a question the operator
+ * marks required tomorrow starts blocking today's stale links without a deploy.
  */
 function missingRequired(product: ProductDetail, request: ResolvedRequest): string[] {
   const missing: string[] = [];
 
-  for (const group of product.variants) {
-    if (group.isRequired && !request.variantValues[group.key]) missing.push(group.label);
-  }
   for (const question of product.questions) {
     if (question.isRequired && !request.answerValues[question.key]) missing.push(question.prompt);
   }
@@ -350,18 +325,13 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
       const product = await getProductBySlug(slug);
       if (!product) return null;
 
-      const request = resolveRequest(product, group, formatMoney);
+      const request = resolveRequest(product, group);
       const priced = estimate(product, request);
-
-      const summaryParts = [
-        ...(request.rentalPackage ? [request.rentalPackage.label] : []),
-        ...request.selections.map((entry) => entry.value),
-      ];
 
       return {
         product,
         request,
-        summary: summaryParts.join(' · '),
+        summary: request.rentalPackage?.label ?? '',
         facts: buildFacts(product, request),
         lines: priced.lines,
         total: priced.total,

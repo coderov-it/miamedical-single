@@ -17,12 +17,10 @@ mattress, and confirms. What each step gets:
 1. checkout page renders          resolveCheckout(params)
      item.0.product=letto-degenza-elettrico
      item.0.package=7-day    item.0.from=2026-09-10
-     item.0.variant.colore=grigio
-     item.0.variant.sponde=si
      item.0.question.piano-installazione=3
      item.0.question.ascensore=yes
      item.0.addon=943f31e2…
-     item.0.addon.943f31e2…=2                   → shows "376,00 €"
+     item.0.addon.943f31e2…=2                   → shows "366,00 €"
 
 2. the page's JSON island               data-checkout-items
      [{ productSlug: 'letto-degenza-elettrico',
@@ -30,7 +28,6 @@ mattress, and confirms. What each step gets:
         rentalPackageCode: '7-day',             ← no end date: it is DERIVED
         addons: [{ id: '943f31e2…', quantity: 2 },
                  { id: 'ea063eea…', quantity: 1 }],
-        variants: { colore: ['grigio'], sponde: ['si'] },
         answers:  { 'piano-installazione': ['3'], ascensore: ['yes'] } }]
                                                 → choices only, no amounts
 
@@ -41,39 +38,34 @@ mattress, and confirms. What each step gets:
 
 5. server re-resolves every choice      resolveLine(product, item)
      package=7-day                              → "7 giorni"        180.00
-     colore=grigio                              → "Grigio"           +4.00
-     sponde=si                                  → "Con sponde"       +6.00
      ascensore=yes                              → "Sì"
-     matchSku({colore:'grigio', sponde:'si'})   → MIA-LTE-GRI-CS-5VC6
-       identity only — a rental SKU carries no price
+     products.stock                             → 6, so the line is sellable
 
 6. server places the period             resolvePeriod('2026-09-10', null, pkg)
      7 days from 2026-09-10                     → ends 2026-09-17
 
 7. server prices it                     priceRequest(...) in @mia/pricing
      package      7 giorni                      → 180.00
-     variants     4.00 + 6.00, FLAT             → +10.00
-       not × 7: the package already carries the days
-     unit rate                                  → 190.00
+     unit rate                                  → 180.00
      add-on       9.00 × qty 2 × 7 days         → 126.00
      add-on       60.00 (fixed, one-off)        → 60.00
        both chosen — nothing attaches itself
-     line total                                 → 376.00
+     line total                                 → 366.00
 
 8. server writes, in one transaction    insertOrder(...)
      nextval('order_number_seq') → 1000         → MIA-2026-001000
-     orders.subtotal                            → 376.00
+     orders.subtotal                            → 366.00
      orders.shipping_total                      → 0.00
-     orders.total                               → 376.00
-     order_items.unit_price / .total            → 190.00 / 376.00
+     orders.total                               → 366.00
+     order_items.unit_price / .total            → 180.00 / 366.00
      order_items.configuration                  → the snapshot below
      order_status_events                        → null → pending
 
 9. response                             201
      { number: 'MIA-2026-001000', status: 'pending',
        paymentStatus: 'unpaid',
-       totals: { subtotal: '376.00', shippingTotal: '0.00',
-                 total: '376.00', currency: 'EUR' } }
+       totals: { subtotal: '366.00', shippingTotal: '0.00',
+                 total: '366.00', currency: 'EUR' } }
 ```
 
 Step 1 and step 7 print the same figure because they run the same function.
@@ -88,12 +80,11 @@ time of day because a 4-hour rental starting "on the 10th" says nothing:
 
      resolvePeriod('2026-09-10', '22:00', pkg)  → ends 2026-09-11 02:00
      package      4 ore                         → 15.00
-     variants     flat                          → +10.00
      add-on       9.00 per DAY on a 4-hour package:
                   convertDuration(4, 'hour', 'day') → 1
                   9.00 × qty 2 × 1                  → 18.00
      add-on       60.00 (fixed)                 → 60.00
-     line total                                 → 103.00
+     line total                                 → 93.00
 ```
 
 Half a day of insurance is still a day of insurance, so the conversion rounds up.
@@ -126,8 +117,12 @@ open-ended period, so a line without one has no total — and `orders.total` is
 `NOT NULL` for a reason. An hour package additionally needs `startTime`, refused
 the same way.
 
-The same gate covers a line that never made a required choice
+The same gate covers a line that never answered a required question
 (`checkout.blocked === 'incomplete'`), because `resolveLine` refuses that too.
+
+A line for a product whose `stock` is `0` is refused the same way — a point-in-time
+check, not a reservation. Nothing decrements stock and nothing knows which dates a
+unit is already out on; the phone call still settles real availability.
 
 ## What the request may and may not contain
 
@@ -147,13 +142,13 @@ do is order something else — at that thing's real price.
 `apps/website/src/lib/request-config.ts` and `apps/server/.../resolve.ts` read the
 same choices and disagree on purpose:
 
-| input                      | the storefront     | the server |
-| -------------------------- | ------------------ | ---------- |
-| unknown option value       | drops it           | 422        |
-| unknown group key          | ignores it         | 422        |
-| required group unanswered  | renders without it | 422        |
-| numeric value out of range | drops it           | 422        |
-| unpublished product        | drops the line     | 422        |
+| input                        | the storefront     | the server |
+| ---------------------------- | ------------------ | ---------- |
+| unknown option value         | drops it           | 422        |
+| unknown question key         | ignores it         | 422        |
+| required question unanswered | renders without it | 422        |
+| numeric value out of range   | drops it           | 422        |
+| unpublished product          | drops the line     | 422        |
 
 A summary page showing one line fewer is better than one showing a choice we cannot
 honour. A stored order is the opposite: the customer is about to be held to it, so
@@ -186,11 +181,7 @@ One jsonb per line, holding what the customer configured at the labels they read
     "duration": 7,
     "unit": "day"
   },
-  "unitRate": "190.00",
-  "selections": [
-    { "key": "colore", "label": "Colore", "value": "Grigio", "amount": "4.00" },
-    { "key": "sponde", "label": "Sponde laterali", "value": "Con sponde", "amount": "6.00" }
-  ],
+  "unitRate": "180.00",
   "answers": [
     { "key": "piano-installazione", "label": "A che piano…?", "value": "3" },
     { "key": "ascensore", "label": "E' presente un ascensore?", "value": "Sì" }
@@ -216,9 +207,9 @@ One jsonb per line, holding what the customer configured at the labels they read
 }
 ```
 
-Labels are **frozen**, not read live through the SKU — for the same reason
+Labels are **frozen**, not read live from the catalogue — for the same reason
 `productTitle` is a column. A rental agreement has to keep saying what it said after
-the operator renames an option.
+the operator rewords a question.
 
 `unit_price × quantity` is deliberately **not** `total`: the total also carries the
 add-ons, and this blob is what explains the difference. The admin

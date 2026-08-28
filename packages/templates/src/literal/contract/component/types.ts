@@ -12,7 +12,6 @@ export interface ContractCustomer {
 
 export interface ContractRentalItem {
   productTitle: string;
-  sku: string;
   quantity: number;
   unitPrice: string;
   total: string;

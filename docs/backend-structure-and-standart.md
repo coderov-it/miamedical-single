@@ -143,10 +143,10 @@ Never hand-maintain a shape that the database already defines:
 
 ```ts
 export type ProductRow = typeof products.$inferSelect;
-export type VariantRow = typeof productVariants.$inferSelect;
+export type AddonRow = typeof productAddons.$inferSelect;
 
 export interface ProductWithRelations extends ProductRow {
-  variants: VariantRow[];
+  addons: AddonRow[];
   images: ImageRow[];
   categories: { category: CategoryRow }[];
 }
@@ -231,7 +231,7 @@ Multi-statement writes go in a transaction inside the repo:
 ```ts
 export async function create(db: Database, data: CreateProductData) {
   return db.transaction(async (tx) => {
-    /* insert product, then variants */
+    /* insert product, then its translations */
   });
 }
 ```
@@ -289,7 +289,7 @@ modules/products/
 ├── moderation/       relevance.ts service.ts routes.ts service.test.ts
 ├── questions/        answers.ts answers.test.ts validators.ts
 ├── specs/            fields.ts fields.test.ts validators.ts
-├── variants/         identity.ts
+├── addons/           service.ts
 ├── testing/          fixtures.ts
 ├── dto.ts            ← shared contracts stay at the root
 ├── mapper.ts
@@ -681,9 +681,10 @@ Cloudflare R2 port — is built.)
   in `app.ts` and read via `c.get('db')`; services take it as their first
   argument. A project-wide DI standard is pending — do not introduce a container
   or framework before it lands, and revisit §4.4/§4.5 signatures when it does.
-- **Price sorting.** `price_asc` / `price_desc` order by `products.base_price`
-  — option modifiers are ignored, which is right for "from" prices but worth
-  revisiting if SKU-level sorting is ever wanted.
+- **Price sorting.** `price_asc` / `price_desc` order by `products.base_price`,
+  so a rental sorts by no figure of its own — its packages are its price. Right
+  for "from" prices, but worth revisiting if sorting a rental by its cheapest
+  package is ever wanted.
 - **Admin user management.** The `access` module — listing back-office users and
   editing their permission arrays from the UI — is not built yet. Until it is,
   accounts are provisioned with `script/create-admin.ts`. The permission catalog,

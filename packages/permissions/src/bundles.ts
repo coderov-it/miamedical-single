@@ -42,7 +42,6 @@ export const PERMISSION_BUNDLES: readonly PermissionBundle[] = [
       P.ORDER_DISPUTE_READ,
       P.PRODUCT_READ,
       P.CATEGORY_READ,
-      P.ATTRIBUTE_READ,
       P.TERMS_READ,
       P.MEDIA_READ,
       P.CUSTOMER_READ,
@@ -80,7 +79,7 @@ export const PERMISSION_BUNDLES: readonly PermissionBundle[] = [
     label: 'Catalog editor',
     // No `product:price` and no deletes — what a product costs, and whether it
     // still exists, sit one grant further out than editing its content.
-    description: 'Build and publish products, categories and attributes.',
+    description: 'Build and publish products, categories and terms.',
     codes: [
       P.DASHBOARD_READ,
       P.PRODUCT_READ,
@@ -91,9 +90,6 @@ export const PERMISSION_BUNDLES: readonly PermissionBundle[] = [
       P.CATEGORY_READ,
       P.CATEGORY_CREATE,
       P.CATEGORY_UPDATE,
-      P.ATTRIBUTE_READ,
-      P.ATTRIBUTE_CREATE,
-      P.ATTRIBUTE_UPDATE,
       P.TERMS_READ,
       P.TERMS_CREATE,
       P.TERMS_UPDATE,

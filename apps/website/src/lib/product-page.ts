@@ -54,9 +54,9 @@ export function readBrowseAnswers(url: URL): BrowseAnswers {
   };
 }
 
-/** Whether anything can actually be ordered. No SKUs at all means unrestricted. */
+/** Whether anything can actually be ordered. */
 export function isInStock(product: ProductDetail): boolean {
-  return product.skus.length === 0 || product.skus.some((sku) => sku.inStock);
+  return product.inStock;
 }
 
 export interface ProductImages {
@@ -102,7 +102,6 @@ export function buildProductJsonLd(context: JsonLdContext): Record<string, unkno
       name: product.title,
       ...(product.shortDescription ? { description: product.shortDescription } : {}),
       ...(hero ? { image: [new URL(mediaUrl(hero.path), origin).href] } : {}),
-      ...(product.baseSku ? { sku: product.baseSku } : {}),
       ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
       category: product.category.name,
       offers: {

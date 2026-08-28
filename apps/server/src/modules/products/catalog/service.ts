@@ -10,7 +10,6 @@ import { conflict, httpError, notFound } from '../../../shared/http/errors.ts';
 import { pick } from '../i18n.ts';
 import type { FacetDto } from '../dto.ts';
 import { commitProductMedia, deleteAllMedia } from '../media/service.ts';
-import { generateSkus } from '../variants/service.ts';
 import type {
   ProductAggregate,
   ProductListFilters,
@@ -185,13 +184,9 @@ async function assertSlugsFree(
 }
 
 export async function create(db: Database, input: CreateProductInput): Promise<ProductAggregate> {
-  if (await repo.existsByBaseSku(db, input.baseSku)) {
-    throw conflict(`A product with base SKU "${input.baseSku}" already exists.`);
-  }
   await assertSlugsFree(db, input.translations);
 
   const id = await repo.create(db, {
-    baseSku: input.baseSku,
     categoryId: input.categoryId,
     status: input.status,
     brand: input.brand ?? null,
@@ -204,16 +199,11 @@ export async function create(db: Database, input: CreateProductInput): Promise<P
        screen: they ARE the rental's price, and the CHECK refuses the INSERT
        without one. `CreateProductSchema` has already paired them with the mode. */
     rentalPackages: input.rentalPackages ?? [],
+    stock: input.stock,
     isFeatured: input.isFeatured,
     chips: input.chips,
     translations: normalizeTranslations(input.translations),
   });
-
-  /* Every product is at least one stock-keeping unit, so the base SKU exists
-     from creation rather than waiting for someone to press Generate. Without
-     it a product with no variants has nowhere to hold stock and reads as
-     permanently available — see `generateCombinations`. */
-  await generateSkus(db, id);
 
   return getAggregate(db, id);
 }
@@ -267,13 +257,9 @@ export async function update(
   if (input.marketingRate !== undefined && existing.pricingMode !== 'rental') {
     throw httpError(422, 'Only a rental product carries a marketing rate.', 'validation_failed');
   }
-  if (input.baseSku && (await repo.existsByBaseSku(db, input.baseSku, id))) {
-    throw conflict(`A product with base SKU "${input.baseSku}" already exists.`);
-  }
   await assertSlugsFree(db, input.translations, id);
 
   const data: repo.UpdateProductData = {};
-  if (input.baseSku !== undefined) data.baseSku = input.baseSku;
   if (input.categoryId !== undefined) data.categoryId = input.categoryId;
   if (input.status !== undefined) data.status = input.status;
   if (input.brand !== undefined) data.brand = input.brand;
@@ -282,6 +268,7 @@ export async function update(
   if (input.currency !== undefined) data.currency = input.currency;
   if (input.rentalUnit !== undefined) data.rentalUnit = input.rentalUnit;
   if (input.rentalPackages !== undefined) data.rentalPackages = input.rentalPackages;
+  if (input.stock !== undefined) data.stock = input.stock;
   if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
   if (input.chips !== undefined) data.chips = input.chips;
   if (input.translations !== undefined) {
@@ -300,8 +287,9 @@ export async function remove(db: Database, storage: FileUploader, id: string): P
   if (!product) throw notFound('Product');
   await repo.remove(db, id);
   // Bucket cleanup is best-effort and after the row is gone.
-  await deleteAllMedia(storage, product.media, [
-    ...product.addons.map((addon) => addon.icon),
-    ...product.variantGroups.map((group) => group.icon),
-  ]);
+  await deleteAllMedia(
+    storage,
+    product.media,
+    product.addons.map((addon) => addon.icon),
+  );
 }

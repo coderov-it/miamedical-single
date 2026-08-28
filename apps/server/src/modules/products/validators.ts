@@ -8,11 +8,9 @@ import {
   ProductSlugParamSchema,
   ProductTermsInputSchema,
   QuestionInputSchema,
-  SkuUpdateSchema,
   SpecValuesInputSchema,
   UpdateProductSchema,
   UuidSchema,
-  VariantGroupInputSchema,
 } from '@mia/validators';
 import * as v from 'valibot';
 
@@ -22,12 +20,6 @@ import * as v from 'valibot';
  */
 
 export const ProductIdParamSchema = v.object({ id: UuidSchema });
-export const ProductSkuParamSchema = v.object({ id: UuidSchema, skuId: UuidSchema });
-
-export const VariantGroupsPutSchema = v.pipe(
-  v.array(VariantGroupInputSchema),
-  v.maxLength(30, 'Too many variant groups.'),
-);
 
 export const AddonsPutSchema = v.pipe(v.array(AddonInputSchema), v.maxLength(50));
 export const FaqsPutSchema = v.pipe(v.array(FaqInputSchema), v.maxLength(100));
@@ -50,7 +42,6 @@ export {
   ProductQuerySchema,
   ProductSlugParamSchema,
   ProductTermsInputSchema,
-  SkuUpdateSchema,
   SpecValuesInputSchema,
   UpdateProductSchema,
 };

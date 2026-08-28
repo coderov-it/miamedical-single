@@ -9,16 +9,16 @@ directory at the repository root) are the spec;
 
 Two facts pick the variant, both read off the order — never off the request:
 
-| | Italian (`private`/`company`) | Foreigner (`tourist`) |
-| --- | --- | --- |
-| **Deposit category** | `scooter_italian` (IT) | `scooter_tourist` (EN) |
-| **No deposit** | `carrozzina_italian` (IT) | `carrozzina_tourist` (EN) |
+|                      | Italian (`private`/`company`) | Foreigner (`tourist`)     |
+| -------------------- | ----------------------------- | ------------------------- |
+| **Deposit category** | `scooter_italian` (IT)        | `scooter_tourist` (EN)    |
+| **No deposit**       | `carrozzina_italian` (IT)     | `carrozzina_tourist` (EN) |
 
 - Language follows `orders.customerType`: `tourist` → English, otherwise Italian.
 - Deposit follows the catalogue: `categories.requiresDeposit` (set in the admin's
   category editor; scooters and electric wheelchairs) → the `scooter_*` variants
   with the €300 deposit clause. `contracts/repo.orderRequiresDeposit` resolves it
-  per order through item → SKU → product → category.
+  per order through item → product → category.
 
 ## Lifecycle
 

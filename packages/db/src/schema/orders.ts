@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { adminUsers } from './admin-users.ts';
-import { productSkus } from './catalog.ts';
+import { products } from './catalog.ts';
 import { customerAccounts } from './customers.ts';
 import { contracts } from './contracts.ts';
 import {
@@ -28,7 +28,7 @@ import {
 
 /**
  * Money is `numeric(12, 2)` throughout — never integer cents, never a JS float —
- * and lines point at `product_skus`, the sellable unit of the catalog.
+ * and lines point at `products`, the sellable unit of the catalog.
  *
  * The storefront writes here through `POST /api/orders`; how a checkout request
  * becomes these rows is documented in docs/code/orders-placement.md.
@@ -74,16 +74,16 @@ export const cartItems = pgTable(
     cartId: uuid()
       .notNull()
       .references(() => carts.id, { onDelete: 'cascade' }),
-    skuId: uuid()
+    productId: uuid()
       .notNull()
-      .references(() => productSkus.id, { onDelete: 'restrict' }),
+      .references(() => products.id, { onDelete: 'restrict' }),
     quantity: integer().notNull().default(1),
     /** Price captured when the item was added, so cart totals stay stable. */
     unitPrice: numeric({ precision: 12, scale: 2 }).notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    uniqueIndex('cart_items_cart_sku_key').on(t.cartId, t.skuId),
+    uniqueIndex('cart_items_cart_product_key').on(t.cartId, t.productId),
     index('cart_items_cart_idx').on(t.cartId),
   ],
 );
@@ -201,11 +201,9 @@ export const orderItems = pgTable(
     orderId: uuid()
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
-    skuId: uuid().references(() => productSkus.id, { onDelete: 'set null' }),
-    /** Snapshots — the line stays readable even if the product is deleted. */
+    productId: uuid().references(() => products.id, { onDelete: 'set null' }),
+    /** Snapshot — the line stays readable even if the product is deleted. */
     productTitle: text().notNull(),
-    skuLabel: text().notNull(),
-    sku: text().notNull(),
     quantity: integer().notNull(),
     /**
      * The configured rate this line was priced at — per rental unit on a rental
@@ -220,8 +218,8 @@ export const orderItems = pgTable(
     total: numeric({ precision: 12, scale: 2 }).notNull(),
     /**
      * What the customer actually configured, snapshotted at the labels they saw:
-     * the rental period and its resolved duration, the package, every variant
-     * choice, every intake answer, and each add-on with its own amount.
+     * the rental period and its resolved duration, the package, every intake
+     * answer, and each add-on with its own amount.
      *
      * One jsonb rather than a column per concept, because a rental request has no
      * fixed shape — a product can ask any question its category defines — and
@@ -324,7 +322,7 @@ export const cartsRelations = relations(carts, ({ one, many }) => ({
 
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
   cart: one(carts, { fields: [cartItems.cartId], references: [carts.id] }),
-  sku: one(productSkus, { fields: [cartItems.skuId], references: [productSkus.id] }),
+  product: one(products, { fields: [cartItems.productId], references: [products.id] }),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -364,5 +362,5 @@ export const orderDisputesRelations = relations(orderDisputes, ({ one }) => ({
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
-  sku: one(productSkus, { fields: [orderItems.skuId], references: [productSkus.id] }),
+  product: one(products, { fields: [orderItems.productId], references: [products.id] }),
 }));

@@ -3,11 +3,11 @@
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
 
-  import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { api } from '~/lib/api';
+  import NumberStepper from '~/lib/components/number-stepper.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
@@ -49,8 +49,7 @@
       slug: field('slug'),
       metaTitle: field('metaTitle'),
       metaDescription: field('metaDescription'),
-      baseSku: source.baseSku,
-      brand: source.brand ?? '',
+      stock: source.stock,
       status: source.status as string,
       categoryId: source.categoryId,
       isFeatured: source.isFeatured,
@@ -130,8 +129,7 @@
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
           json: {
-            baseSku: form.baseSku,
-            brand: form.brand.trim() || null,
+            stock: form.stock,
             status: form.status as 'draft',
             categoryId: form.categoryId,
             isFeatured: form.isFeatured,
@@ -190,36 +188,13 @@
       hint="One line, shown on cards and in search results."
     />
 
-    <ChipsField bind:items={form.chips} errors={fields} />
-
+    <!--
+      Category and Status sit under the copy rather than at the foot of the tab:
+      the category decides what the Specs tab can even ask for, and changing it
+      drops the values belonging to the old one, so it is a decision an operator
+      has to see while writing rather than find afterwards.
+    -->
     <div class="grid gap-4 sm:grid-cols-2">
-      <TranslatedInput label="Meta title" bind:value={form.metaTitle} required={false} />
-      <TranslatedInput
-        label="Meta description"
-        bind:value={form.metaDescription}
-        required={false}
-      />
-    </div>
-
-    <div class="grid gap-4 sm:grid-cols-2">
-      <div>
-        <Label class="mb-1.5" for="basics-sku">Base SKU</Label>
-        <Input
-          id="basics-sku"
-          bind:value={form.baseSku}
-          class="font-mono uppercase"
-          aria-invalid={fields.baseSku ? 'true' : undefined}
-        />
-        {#if fields.baseSku}
-          <p class="mt-1 text-xs text-destructive" role="alert">{fields.baseSku}</p>
-        {/if}
-      </div>
-
-      <div>
-        <Label class="mb-1.5" for="basics-brand">Brand</Label>
-        <Input id="basics-brand" bind:value={form.brand} />
-      </div>
-
       <div>
         <Label class="mb-1.5">Category</Label>
         <Select.Root type="single" bind:value={form.categoryId}>
@@ -255,6 +230,30 @@
       </div>
     </div>
 
+    <div class="grid items-start gap-4 sm:grid-cols-2">
+      <ChipsField bind:items={form.chips} errors={fields} />
+
+      <!--
+        A product IS its stock-keeping unit, so this one figure is the whole of
+        availability: at zero the storefront renders the product dead — no price,
+        an "Esaurito" plate — and the order endpoint refuses the line.
+      -->
+      <div>
+        <Label class="mb-1.5" for="basics-stock">Stock</Label>
+        <NumberStepper
+          id="basics-stock"
+          bind:value={form.stock}
+          min={0}
+          disabled={!canUpdate}
+          label="Stock"
+          class="w-20"
+        />
+        {#if fields.stock}
+          <p class="mt-1 text-xs text-destructive" role="alert">{fields.stock}</p>
+        {/if}
+      </div>
+    </div>
+
     <div class="flex items-center gap-2">
       <Switch
         id="basics-featured"
@@ -262,6 +261,23 @@
         onCheckedChange={(checked) => (form.isFeatured = checked)}
       />
       <Label for="basics-featured">Featured on the home page</Label>
+    </div>
+
+    <!--
+      SEO last. It is the only block here that describes the product to a
+      machine rather than to the shop. The description is a textarea because
+      Google renders ~160 characters of it and a single line hides all but the
+      last few words being typed.
+    -->
+    <div class="grid items-start gap-4 border-t pt-4 sm:grid-cols-2">
+      <TranslatedInput label="Meta title" bind:value={form.metaTitle} required={false} />
+      <TranslatedInput
+        label="Meta description"
+        bind:value={form.metaDescription}
+        required={false}
+        multiline
+        rows={3}
+      />
     </div>
   </div>
 </TabPanel>

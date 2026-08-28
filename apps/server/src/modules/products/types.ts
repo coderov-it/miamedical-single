@@ -6,14 +6,10 @@ import type {
   productFaqs,
   productQuestionOptions,
   productQuestions,
-  productSkuOptions,
-  productSkus,
   productSpecValueOptions,
   productSpecValues,
   productTerms,
   productTranslations,
-  productVariantGroups,
-  productVariantOptions,
   products,
   termsDocumentTranslations,
   termsDocuments,
@@ -27,10 +23,6 @@ export type SpecRow = typeof categorySpecs.$inferSelect;
 export type SpecOptionRow = typeof categorySpecOptions.$inferSelect;
 export type SpecValueRow = typeof productSpecValues.$inferSelect;
 export type SpecValueOptionRow = typeof productSpecValueOptions.$inferSelect;
-export type VariantGroupRow = typeof productVariantGroups.$inferSelect;
-export type VariantOptionRow = typeof productVariantOptions.$inferSelect;
-export type SkuRow = typeof productSkus.$inferSelect;
-export type SkuOptionRow = typeof productSkuOptions.$inferSelect;
 export type AddonRow = typeof productAddons.$inferSelect;
 export type FaqRow = typeof productFaqs.$inferSelect;
 export type QuestionRow = typeof productQuestions.$inferSelect;
@@ -39,16 +31,8 @@ export type ProductTermsRow = typeof productTerms.$inferSelect;
 export type TermsRow = typeof termsDocuments.$inferSelect;
 export type TermsTranslationRow = typeof termsDocumentTranslations.$inferSelect;
 
-export interface VariantGroupWithOptions extends VariantGroupRow {
-  options: VariantOptionRow[];
-}
-
 export interface QuestionWithOptions extends QuestionRow {
   options: QuestionOptionRow[];
-}
-
-export interface SkuWithOptions extends SkuRow {
-  options: SkuOptionRow[];
 }
 
 export interface SpecValueWithOptions extends SpecValueRow {
@@ -63,8 +47,6 @@ export interface CategoryWithTranslations extends CategoryRow {
 export interface ProductAggregate extends ProductRow {
   translations: ProductTranslationRow[];
   category: CategoryWithTranslations;
-  variantGroups: VariantGroupWithOptions[];
-  skus: SkuWithOptions[];
   specValues: SpecValueRow[];
   specValueOptions: SpecValueOptionRow[];
   addons: AddonRow[];
@@ -83,7 +65,6 @@ export interface ProductSummaryRowData extends ProductRow {
   specValueOptions: SpecValueOptionRow[];
   /** The category's spec definitions — needed to render the card's spec tags. */
   specs: Array<SpecRow & { options: SpecOptionRow[] }>;
-  inStock: boolean;
 }
 
 export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'title';

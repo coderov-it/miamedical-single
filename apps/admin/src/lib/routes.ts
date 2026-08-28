@@ -16,7 +16,6 @@ export const routes = {
   productDetail: (id: string) => `/products/${id}`,
 
   categories: '/categories',
-  attributes: '/attributes',
   terms: '/terms',
 
   orders: '/orders',
