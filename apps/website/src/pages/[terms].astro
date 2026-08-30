@@ -9,6 +9,7 @@
  */
 import PolicyDocument from '~/components/legal/PolicyDocument.astro';
 import { getTermsBySlug } from '~/lib/catalog';
+import { localeFromLocals, translate } from '~/lib/i18n';
 
 export const prerender = false;
 
@@ -30,17 +31,20 @@ const REQUIRED_DOCUMENTS: Record<string, { title: string; description: string }>
 };
 
 const slug = Astro.params.terms ?? '';
-const document = slug ? await getTermsBySlug(slug) : null;
+const locale = localeFromLocals(Astro.locals);
+const document = slug ? await getTermsBySlug(slug, locale) : null;
 const required = REQUIRED_DOCUMENTS[slug];
 
-if (!document && !required) {
+if ((!document && !required) || (document && document.slug !== slug)) {
   return Astro.rewrite('/404');
 }
 
-const fallbackTitle = required?.title ?? document?.title ?? 'Documento';
+const fallbackTitle = required?.title ?? document?.title ?? translate(locale, 'terms.document');
 const description =
   required?.description ??
-  `${document?.title ?? 'Documento'} — condizioni applicabili ai noleggi Mia Medical Italia.`;
+  translate(locale, 'terms.description', {
+    title: document?.title ?? translate(locale, 'terms.document'),
+  });
 ---
 
 <PolicyDocument {document} {fallbackTitle} {description} />

@@ -6,6 +6,7 @@
  * the structured data can never disagree.
  */
 import { serializeJsonLd } from '~/lib/json-ld';
+import { localeForRequest, translate } from '~/lib/i18n';
 
 interface Crumb {
   label: string;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const { items, origin = Astro.site?.origin ?? Astro.url.origin } = Astro.props;
+const locale = localeForRequest();
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -33,7 +35,7 @@ const jsonLd = {
 };
 ---
 
-<nav class="py-3" aria-label="Percorso di navigazione">
+<nav class="py-3" aria-label={translate(locale, 'breadcrumbs.label')}>
   <ol class="text-ui flex flex-wrap items-center gap-2">
     {
       items.map((crumb, index) => (

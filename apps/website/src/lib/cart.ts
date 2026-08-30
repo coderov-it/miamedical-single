@@ -38,6 +38,7 @@ import {
   splitItemParams,
 } from './checkout.ts';
 import { t } from './labels.ts';
+import { localeForRequest, localeTag } from './i18n.ts';
 import { FIELD, MAX_QUANTITY } from './request-config.ts';
 import { productPath } from './routes.ts';
 
@@ -220,7 +221,7 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
     id: line.id,
     slug: product.slug,
     title: product.title,
-    href: productPath(product.slug),
+    href: productPath(product.slug, {}, localeForRequest()),
     currency: product.pricing.currency,
     thumbnail: thumbnail ? mediaUrl(thumbnail.path) : null,
     thumbnailAlt: thumbnail?.alt ?? product.title,
@@ -280,7 +281,7 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
   return {
     lines: views,
     itemsTotal,
-    itemsTotalLabel: formatMoney(itemsTotal.toFixed(2), currency),
+    itemsTotalLabel: formatMoney(itemsTotal.toFixed(2), currency, localeTag(localeForRequest())),
     noPackage: views.some((view) => view.noPackage),
     currency,
     droppedIds,

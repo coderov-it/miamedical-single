@@ -11,3 +11,12 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare namespace App {
+  interface Locals {
+    /** Locale resolved by the strict public route map in middleware. */
+    locale?: import('./lib/i18n.ts').SiteLocale;
+    /** The public URL before an English route is internally rewritten. */
+    publicPath?: string;
+  }
+}

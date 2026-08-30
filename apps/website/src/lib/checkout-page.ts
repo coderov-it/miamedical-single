@@ -78,27 +78,26 @@ export function buildHandoverMessage(items: Checkout['items']): string {
  * storefront catalog in the browser bundle to get twenty strings. It also keeps
  * the project rule intact — no Italian literal exists inside the script.
  */
-export const CHECKOUT_SCRIPT_LABELS = {
-  delivery: t('delivery'),
-  free: t('free'),
-  name: t('msgName'),
-  email: t('msgEmail'),
-  phone: t('msgPhone'),
-  customerType: t('msgCustomerType'),
-  codiceFiscale: t('codiceFiscale'),
-  partitaIva: t('partitaIva'),
-  deliveryLine: t('msgDelivery'),
-  toBeArranged: t('msgToBeArranged'),
-  deliveryAddress: t('msgDeliveryAddress'),
-  deliveryPending: t('deliveryPending'),
-  pickupBranch: t('msgPickupBranch'),
-  notes: t('msgNotes'),
-  collectedAtBranch: t('collectedAtBranch'),
-  /* The return leg's heading, reused in the review line and the handover. */
-  returnStage: t('returnStage'),
-  requestNumberPrefix: t('msgRequestNumber'),
-  /* Read by the parse-time script, which retitles the CTA before first paint:
-     with JavaScript the control records the order rather than opening WhatsApp. */
-  sendRequest: t('sendRequest'),
-  sendingRequest: t('sendingRequest'),
-} as const;
+export function checkoutScriptLabels() {
+  return {
+    delivery: t('delivery'),
+    free: t('free'),
+    name: t('msgName'),
+    email: t('msgEmail'),
+    phone: t('msgPhone'),
+    customerType: t('msgCustomerType'),
+    codiceFiscale: t('codiceFiscale'),
+    partitaIva: t('partitaIva'),
+    deliveryLine: t('msgDelivery'),
+    toBeArranged: t('msgToBeArranged'),
+    deliveryAddress: t('msgDeliveryAddress'),
+    deliveryPending: t('deliveryPending'),
+    pickupBranch: t('msgPickupBranch'),
+    notes: t('msgNotes'),
+    collectedAtBranch: t('collectedAtBranch'),
+    returnStage: t('returnStage'),
+    requestNumberPrefix: t('msgRequestNumber'),
+    sendRequest: t('sendRequest'),
+    sendingRequest: t('sendingRequest'),
+  } as const;
+}

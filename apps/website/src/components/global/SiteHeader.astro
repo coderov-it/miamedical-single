@@ -10,31 +10,43 @@
  *
  * The header's one script paints the cart badge; every link works without it.
  */
-import { routes } from '~/lib/routes';
+import { publicPathForRequest, translate, type SiteLocale } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 import { CONTACT } from '~/lib/site';
 
+interface Props {
+  locale: SiteLocale;
+  languagePaths: Partial<Record<SiteLocale, string>>;
+}
+
+const { locale, languagePaths } = Astro.props;
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+const italianPath = languagePaths.it;
+const englishPath = languagePaths.en;
+
 const nav = [
-  { href: routes.home, label: 'Home', exact: true },
-  { href: routes.catalog, label: 'Catalogo noleggio', exact: false },
-  { href: routes.search, label: 'Sfoglia', exact: false },
-  { href: routes.blog, label: 'Blog', exact: false },
-  { href: routes.support, label: 'Contatti', exact: false },
+  { href: routePath(locale, 'home'), label: text('header.home'), exact: true },
+  { href: routePath(locale, 'catalog'), label: text('header.catalog'), exact: false },
+  { href: routePath(locale, 'search'), label: text('header.browse'), exact: false },
+  { href: routePath(locale, 'blog'), label: text('header.blog'), exact: false },
+  { href: routePath(locale, 'support'), label: text('header.support'), exact: false },
 ];
 
-const account = { href: routes.account, label: 'Area clienti', exact: false };
+const account = { href: routePath(locale, 'account'), label: text('header.account'), exact: false };
 
-const path = Astro.url.pathname;
+const path = Astro.locals.publicPath ?? publicPathForRequest() ?? Astro.url.pathname;
 const isActive = (item: { href: string; exact: boolean }) =>
   item.exact ? path === item.href : path.startsWith(item.href);
 ---
 
 <header class="site-head">
   <div class="head-row container">
-    <a class="brand" href={routes.home} aria-label="Vai alla home di Mia Medical Italia">
+    <a class="brand" href={routePath(locale, 'home')} aria-label={text('header.brand')}>
       MIA-MEDICAL
     </a>
 
-    <nav class="head-nav" aria-label="Navigazione principale">
+    <nav class="head-nav" aria-label={text('navigation.primary')}>
       {
         nav.map((item) => (
           <a href={item.href} aria-current={isActive(item) ? 'page' : undefined}>
@@ -45,10 +57,35 @@ const isActive = (item: { href: string; exact: boolean }) =>
     </nav>
 
     <div class="head-tools">
+      <details class="language-switcher">
+        <summary aria-label={text('language.switch')}>
+          <span aria-hidden="true">{locale === 'it' ? '🇮🇹' : '🇬🇧'}</span>
+          <span>{locale.toUpperCase()}</span>
+        </summary>
+        <div class="language-menu">
+          {
+            italianPath && (
+              <a href={italianPath} aria-current={locale === 'it' ? 'true' : undefined}>
+                <span aria-hidden="true">🇮🇹</span>
+                <span>{text('language.italian')}</span>
+              </a>
+            )
+          }
+          {
+            englishPath && (
+              <a href={englishPath} aria-current={locale === 'en' ? 'true' : undefined}>
+                <span aria-hidden="true">🇬🇧</span>
+                <span>{text('language.english')}</span>
+              </a>
+            )
+          }
+        </div>
+      </details>
+
       <a
         class="phone-quiet"
         href={`tel:${CONTACT.phoneE164}`}
-        aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
+        aria-label={text('header.call', { phone: CONTACT.phoneDisplay })}
         data-analytics="phone-call"
       >
         <svg
@@ -78,7 +115,14 @@ const isActive = (item: { href: string; exact: boolean }) =>
           count; two announcements of one number is worse than one.
         */
       }
-      <a class="head-icon" href={routes.cart} aria-label="Apri il carrello" data-cart-link>
+      <a
+        class="head-icon"
+        href={routePath(locale, 'cart')}
+        aria-label={text('header.cart')}
+        data-cart-link
+        data-cart-aid-one={text('header.medicalAid.one')}
+        data-cart-aid-many={text('header.medicalAid.many')}
+      >
         <svg
           width="21"
           height="21"
@@ -140,6 +184,8 @@ const isActive = (item: { href: string; exact: boolean }) =>
 
   if ($link && $badge) {
     const baseLabel = $link.getAttribute('aria-label') ?? '';
+    const aidOne = $link.dataset.cartAidOne ?? '';
+    const aidMany = $link.dataset.cartAidMany ?? '';
 
     const paint = (count: number) => {
       $badge.hidden = count === 0;
@@ -148,7 +194,7 @@ const isActive = (item: { href: string; exact: boolean }) =>
       $badge.textContent = count > 9 ? '9+' : String(count);
       $link.setAttribute(
         'aria-label',
-        count === 0 ? baseLabel : `${baseLabel} — ${count} ${count === 1 ? 'ausilio' : 'ausili'}`,
+        count === 0 ? baseLabel : `${baseLabel} — ${count} ${count === 1 ? aidOne : aidMany}`,
       );
     };
 

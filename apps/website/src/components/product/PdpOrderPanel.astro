@@ -27,8 +27,9 @@ import PdpRentalFields from '~/components/product/PdpRentalFields.astro';
 import { formatMoney } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
 import { REVIEW_AGGREGATE } from '~/lib/home-content';
+import { localeForRequest, localeTag } from '~/lib/i18n';
 import { FIELD, MAX_QUANTITY } from '~/lib/request-config';
-import { routes } from '~/lib/routes';
+import { routePath } from '~/lib/routes';
 import { whatsappUrl } from '~/lib/site';
 
 interface Props {
@@ -46,10 +47,11 @@ interface Props {
 }
 
 const { product, today, deliveryCity = null, startDate = '' } = Astro.props;
+const locale = localeForRequest();
 
 const isRental = product.pricing.mode === 'rental';
 const { currency } = product.pricing;
-const money = (amount: number) => formatMoney(amount.toFixed(2), currency);
+const money = (amount: number) => formatMoney(amount.toFixed(2), currency, localeTag(locale));
 
 /*
   On a rental there is nothing to show until a package is picked: no rate exists,
@@ -188,7 +190,7 @@ const packages = product.rentalPackages;
     }
     <a
       class="border-hair text-ink flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3.5 text-[13px] no-underline"
-      href={`${routes.home}#recensioni`}
+      href={`${routePath(locale, 'home')}#recensioni`}
       aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, basata su ${REVIEW_AGGREGATE.countLabel}`}
     >
       <span class="text-star tracking-[0.12em]" aria-hidden="true">★★★★★</span>

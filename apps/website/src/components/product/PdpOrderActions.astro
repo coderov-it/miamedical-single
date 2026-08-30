@@ -21,7 +21,8 @@
  * separate element because a `role="status"` announces on CHANGE — merging them
  * would leave one silently overwriting another's text.
  */
-import { routes } from '~/lib/routes';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 
 interface Props {
   isRental: boolean;
@@ -30,6 +31,7 @@ interface Props {
 }
 
 const { isRental, productTitle } = Astro.props;
+const locale = localeForRequest();
 ---
 
 {
@@ -66,18 +68,18 @@ const { isRental, productTitle } = Astro.props;
     type="submit"
     data-est-submit
   >
-    {isRental ? 'Richiedi il noleggio' : 'Richiedi il prodotto'}
+    {translate(locale, isRental ? 'product.requestRental' : 'product.requestProduct')}
   </button>
 
   <button
     class="bg-accent-tint flex min-h-12 cursor-pointer items-center justify-center rounded-full px-5 text-[14.5px] font-semibold text-accent hover:bg-accent hover:text-white"
     type="submit"
-    formaction={routes.cart}
+    formaction={routePath(locale, 'cart')}
     formmethod="get"
     data-add-to-cart
     data-product-title={productTitle}
   >
-    Aggiungi alla richiesta
+    {translate(locale, 'product.addToRequest')}
   </button>
 </div>
 
@@ -95,8 +97,10 @@ const { isRental, productTitle } = Astro.props;
   data-cart-added
   hidden
 >
-  <span class="text-ok font-semibold">Aggiunto alla richiesta</span>
-  <a class="font-semibold text-accent underline" href={routes.cart}>Vai alla richiesta</a>
+  <span class="text-ok font-semibold">{translate(locale, 'product.added')}</span>
+  <a class="font-semibold text-accent underline" href={routePath(locale, 'cart')}>
+    {translate(locale, 'product.goToRequest')}
+  </a>
 </div>
 
 {
@@ -117,7 +121,7 @@ const { isRental, productTitle } = Astro.props;
   role="status"
   aria-live="polite"
   data-cart-announce
-  data-message-template="Aggiunto alla richiesta. Ora contiene {count}."
+  data-message-template={translate(locale, 'product.addedAnnouncement')}
   data-count-one="1 ausilio"
   data-count-many="{count} ausili"
 >

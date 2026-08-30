@@ -15,6 +15,7 @@
 import { perUnitLabel } from '@mia/i18n';
 import { formatMoney, mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
+import { localeForRequest, localeTag, translate } from '~/lib/i18n';
 import { type BrowseContext, productPath } from '~/lib/routes';
 
 interface Props {
@@ -30,8 +31,9 @@ interface Props {
 }
 
 const { product, priority = false, headingLevel = 3, displayTitle, context = {} } = Astro.props;
+const locale = localeForRequest();
 
-const href = productPath(product.slug, context);
+const href = productPath(product.slug, context, locale);
 const image = product.thumbnail;
 const out = !product.inStock;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
@@ -43,10 +45,11 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
 const amount = product.pricing.marketingRate ?? product.pricing.fromPrice;
 const unit =
   product.pricing.mode === 'rental' && product.pricing.marketingRate !== null
-    ? perUnitLabel(product.pricing.rentalUnit, 'it')
+    ? perUnitLabel(product.pricing.rentalUnit, locale)
     : null;
-const priceLabel = amount === null ? null : formatMoney(amount, product.pricing.currency);
-const ctaLabel = product.pricing.mode === 'rental' ? 'Noleggia' : 'Acquista';
+const priceLabel =
+  amount === null ? null : formatMoney(amount, product.pricing.currency, localeTag(locale));
+const ctaLabel = translate(locale, product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy');
 
 /* Borderless per the control rule (see app.css § components): the action is a
    quiet accent fill, and the group hover paints it the full theme. */
@@ -146,7 +149,9 @@ const btnBase =
   <span class="flex flex-wrap items-center justify-between gap-3.5 px-5 pt-3.5 pb-4.5">
     {
       out ? (
-        <span class:list={[btnBase, 'bg-tint-2 text-ink-2 flex-1']}>Esaurito</span>
+        <span class:list={[btnBase, 'bg-tint-2 text-ink-2 flex-1']}>
+          {translate(locale, 'card.outOfStock')}
+        </span>
       ) : (
         <>
           <span class="text-ink-2 flex items-baseline gap-1.5 text-[14px] whitespace-nowrap">

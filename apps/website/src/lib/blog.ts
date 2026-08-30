@@ -1,6 +1,7 @@
 import type { InferResponseType } from 'hono/client';
 
 import { api } from './api.ts';
+import { localeForRequest, type SiteLocale } from './i18n.ts';
 
 type BlogListResponse = InferResponseType<typeof api.api.blog.$get, 200>;
 
@@ -20,10 +21,13 @@ export interface BlogQuery {
   category?: string;
 }
 
-export async function listBlogPosts(query: BlogQuery = {}): Promise<BlogListResponse> {
+export async function listBlogPosts(
+  query: BlogQuery = {},
+  locale: SiteLocale = localeForRequest(),
+): Promise<BlogListResponse> {
   const response = await api.api.blog.$get({
     query: {
-      locale: 'it',
+      locale,
       page: String(query.page ?? 1),
       perPage: String(query.perPage ?? 12),
       ...(query.category ? { category: query.category } : {}),
@@ -33,10 +37,13 @@ export async function listBlogPosts(query: BlogQuery = {}): Promise<BlogListResp
   return response.json();
 }
 
-export async function getBlogPostBySlug(slug: string): Promise<BlogPostDetail | null> {
+export async function getBlogPostBySlug(
+  slug: string,
+  locale: SiteLocale = localeForRequest(),
+): Promise<BlogPostDetail | null> {
   const response = await api.api.blog[':slug'].$get({
     param: { slug },
-    query: { locale: 'it' },
+    query: { locale },
   });
   if (!response.ok) return null;
   const { data } = await response.json();

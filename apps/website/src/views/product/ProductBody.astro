@@ -32,9 +32,10 @@ import PdpQuestions from '~/components/product/PdpQuestions.astro';
 import PdpSpecs from '~/components/product/PdpSpecs.astro';
 import { cardPrice } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
+import { localeForRequest, translate } from '~/lib/i18n';
 import type { BrowseAnswers, ProductImages } from '~/lib/product-page';
 import { FIELD } from '~/lib/request-config';
-import { routes } from '~/lib/routes';
+import { routePath } from '~/lib/routes';
 
 interface Props {
   product: ProductDetail;
@@ -44,12 +45,13 @@ interface Props {
 }
 
 const { product, images, answers, inStock } = Astro.props;
+const locale = localeForRequest();
 
 const isRental = product.pricing.mode === 'rental';
 
 /* The mobile bar carries the same line as the hero: on a rental that is the
    marketing rate, which advertises rather than quotes. */
-const barPrice = cardPrice(product.pricing);
+const barPrice = cardPrice(product.pricing, locale);
 
 const columns = 'flex flex-wrap items-start gap-x-12 gap-y-10 pt-3';
 const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
@@ -66,8 +68,8 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
 >
   <Breadcrumbs
     items={[
-      { label: 'Home', href: '/' },
-      { label: 'Catalogo noleggio', href: routes.catalog },
+      { label: translate(locale, 'home'), href: routePath(locale, 'home') },
+      { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
       { label: product.title },
     ]}
   />
@@ -77,7 +79,7 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
       <form
         id="quote-form"
         method="get"
-        action={routes.checkout}
+        action={routePath(locale, 'checkout')}
         class={columns}
         data-est-base={product.pricing.price ?? ''}
         data-est-mode={product.pricing.mode}

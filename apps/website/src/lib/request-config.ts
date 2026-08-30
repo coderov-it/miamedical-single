@@ -9,6 +9,7 @@ import { MAX_ADDON_QUANTITY, type RentalPeriod, resolvePeriod } from '@mia/prici
 
 import type { ProductDetail } from './catalog.ts';
 import { t } from './labels.ts';
+import { localeForRequest, localeTag } from './i18n.ts';
 
 /**
  * The keys are English because they are code, not content: a wire format is read
@@ -257,7 +258,14 @@ function addonQuantity(params: URLSearchParams, addon: ProductDetail['addons'][n
   return Math.min(ceiling, raw);
 }
 
-/** `2026-09-01` → `01/09/2026`, the Italian reading order. */
+/** `2026-09-01` → a date in the current server-rendered locale. */
 export function formatDateLabel(isoDate: string): string {
-  return isoDate ? isoDate.split('-').reverse().join('/') : '';
+  if (!isoDate) return '';
+  const [year, month, day] = isoDate.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return new Intl.DateTimeFormat(localeTag(localeForRequest()), {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(Date.UTC(year, month - 1, day)));
 }

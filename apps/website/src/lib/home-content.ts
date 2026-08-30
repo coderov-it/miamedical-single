@@ -10,6 +10,7 @@ import { perUnitLabel } from '@mia/i18n';
 
 import { formatMoney } from './api.ts';
 import type { Category, ProductSummary } from './catalog.ts';
+import { localeTag, type SiteLocale } from './i18n.ts';
 
 /**
  * The products shown in the hero showcase (3) and the "I più noleggiati"
@@ -42,13 +43,16 @@ export interface ProductOffer {
  * falls back to the cheapest package's total, which is a total, not a rate —
  * so it carries no unit. `null` only when the product has no figure at all.
  */
-export function productOffer(product: ProductSummary): ProductOffer | null {
+export function productOffer(
+  product: ProductSummary,
+  locale: SiteLocale = 'it',
+): ProductOffer | null {
   const amount = product.pricing.marketingRate ?? product.pricing.fromPrice;
   if (amount === null) return null;
   const isRate = product.pricing.mode === 'rental' && product.pricing.marketingRate !== null;
   return {
-    money: formatMoney(amount, product.pricing.currency),
-    unit: isRate ? perUnitLabel(product.pricing.rentalUnit, 'it') : null,
+    money: formatMoney(amount, product.pricing.currency, localeTag(locale)),
+    unit: isRate ? perUnitLabel(product.pricing.rentalUnit, locale) : null,
   };
 }
 
@@ -73,6 +77,7 @@ export function buildHomeCategories(
   categories: Category[],
   products: ProductSummary[],
   limit = 8,
+  locale: SiteLocale = 'it',
 ): HomeCategoryCard[] {
   const counts = new Map<string, number>();
   const firstImage = new Map<string, string>();
@@ -95,7 +100,10 @@ export function buildHomeCategories(
         key: category.id,
         code: category.code,
         title: category.name,
-        detail: `${count} ${count === 1 ? 'prodotto' : 'prodotti'}`,
+        detail:
+          locale === 'it'
+            ? `${count} ${count === 1 ? 'prodotto' : 'prodotti'}`
+            : `${count} ${count === 1 ? 'product' : 'products'}`,
         imagePath: category.icon ?? firstImage.get(category.slug) ?? null,
       };
     });

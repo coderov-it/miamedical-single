@@ -10,6 +10,7 @@
  * Zero JavaScript. A `tel:` link is a native affordance.
  */
 import { CONTACT } from '~/lib/site';
+import { localeForRequest, translate } from '~/lib/i18n';
 
 interface Props {
   /**
@@ -26,6 +27,7 @@ interface Props {
 }
 
 const { variant = 'primary', showFree = true, srHint, class: className = '' } = Astro.props;
+const locale = localeForRequest();
 
 const variants = {
   primary: 'btn btn-primary',
@@ -66,6 +68,6 @@ const bare = variant === 'inline';
   }
 
   <span>{CONTACT.phoneDisplay}</span>
-  {showFree && <span class="font-normal opacity-90">— gratis</span>}
+  {showFree && <span class="font-normal opacity-90">— {translate(locale, 'phone.free')}</span>}
   {srHint && <span class="sr-only">{srHint}</span>}
 </a>

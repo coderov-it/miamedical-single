@@ -9,6 +9,8 @@
 import type { PdpLabels } from '../scripts/product/labels.ts';
 import { mediaUrl, offerPrice } from './api.ts';
 import type { ProductDetail } from './catalog.ts';
+import { localeForRequest, type SiteLocale } from './i18n.ts';
+import { t } from './labels.ts';
 import { productPath } from './routes.ts';
 import { serviceAreaCity } from './site.ts';
 
@@ -109,7 +111,7 @@ export function buildProductJsonLd(context: JsonLdContext): Record<string, unkno
         ...(product.pricing.fromPrice ? { price: offerPrice(product.pricing.fromPrice) } : {}),
         priceCurrency: product.pricing.currency,
         availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-        url: new URL(productPath(product.slug), site).href,
+        url: new URL(productPath(product.slug, {}, localeForRequest()), site).href,
       },
     },
   ];
@@ -137,18 +139,20 @@ export function buildProductJsonLd(context: JsonLdContext): Record<string, unkno
  * shape here IS `PdpLabels`; the two are checked against each other by the
  * `satisfies` on the export.
  */
-export const PDP_SCRIPT_LABELS = {
-  baseRate: 'Tariffa base',
-  choosePackage: 'Scegli un pacchetto',
-  choosePackageNote: 'scegli un pacchetto',
-  productPrice: 'prezzo del prodotto',
-  packageNote: 'pacchetto {name}',
-  included: 'Incluso',
-  extra: 'Extra',
-  quantity: 'Quantità',
-  chooseDate: 'Scegli la data',
-  hourOne: 'ora',
-  hourMany: 'ore',
-  dayOne: 'giorno',
-  dayMany: 'giorni',
-} as const satisfies PdpLabels;
+export function pdpScriptLabels(locale: SiteLocale = localeForRequest()): PdpLabels {
+  return {
+    baseRate: t('baseRate', undefined, locale),
+    choosePackage: t('pickPackage', undefined, locale),
+    choosePackageNote: t('pickPackage', undefined, locale).toLocaleLowerCase(locale),
+    productPrice: t('pdp.productPrice', undefined, locale),
+    packageNote: t('pdp.packageNote', undefined, locale),
+    included: t('included', undefined, locale),
+    extra: t('msgExtra', undefined, locale),
+    quantity: t('quantity', undefined, locale),
+    chooseDate: t('pdp.chooseDate', undefined, locale),
+    hourOne: t('pdp.hourOne', undefined, locale),
+    hourMany: t('pdp.hourMany', undefined, locale),
+    dayOne: t('pdp.dayOne', undefined, locale),
+    dayMany: t('pdp.dayMany', undefined, locale),
+  };
+}

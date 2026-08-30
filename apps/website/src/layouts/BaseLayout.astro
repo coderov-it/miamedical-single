@@ -10,7 +10,16 @@
 import MobileNav from '~/components/global/MobileNav.astro';
 import SiteFooter from '~/components/global/SiteFooter.astro';
 import SiteHeader from '~/components/global/SiteHeader.astro';
+import {
+  localeFromLocals,
+  localeTag,
+  openGraphLocale,
+  publicPathForRequest,
+  translate,
+  type SiteLocale,
+} from '~/lib/i18n';
 import { serializeJsonLd } from '~/lib/json-ld';
+import { routePaths, type RouteKey } from '~/lib/routes';
 import '~/styles/app.css';
 
 interface Props {
@@ -26,6 +35,8 @@ interface Props {
   jsonLd?: Record<string, unknown>[] | undefined;
   /** Hides the footer and bottom navigation for focused flows. */
   bare?: boolean | undefined;
+  /** Exact public URLs for the language selector on dynamic content. */
+  languagePaths?: Partial<Record<SiteLocale, string>> | undefined;
 }
 
 const {
@@ -36,13 +47,24 @@ const {
   noindex = false,
   jsonLd = [],
   bare = false,
+  languagePaths: suppliedLanguagePaths,
 } = Astro.props;
 
-const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
+const locale = localeFromLocals(Astro.locals);
+const publicPath = Astro.locals.publicPath ?? publicPathForRequest() ?? Astro.url.pathname;
+const staticRouteKey = (Object.keys(routePaths.it) as RouteKey[]).find(
+  (key) => routePaths.it[key] === Astro.url.pathname,
+);
+const languagePaths =
+  suppliedLanguagePaths ??
+  (staticRouteKey
+    ? { it: routePaths.it[staticRouteKey], en: routePaths.en[staticRouteKey] }
+    : { [locale]: publicPath });
+const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.origin).href;
 ---
 
 <!doctype html>
-<html lang="it-IT">
+<html lang={localeTag(locale)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -55,8 +77,8 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Ast
     {noindex && <meta name="robots" content="noindex, follow" />}
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Mia Medical Italia" />
-    <meta property="og:locale" content="it_IT" />
+    <meta property="og:site_name" content={translate(locale, 'layout.siteName')} />
+    <meta property="og:locale" content={openGraphLocale(locale)} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalHref} />
@@ -90,19 +112,19 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Ast
   </head>
 
   <body>
-    <a class="skip-link" href="#contenuto">Salta al contenuto</a>
+    <a class="skip-link" href="#contenuto">{translate(locale, 'layout.skip')}</a>
 
     <div class="flex min-h-screen flex-col bg-white">
-      <SiteHeader />
+      <SiteHeader {locale} {languagePaths} />
 
       <main id="contenuto" class="flex-1">
         <slot />
       </main>
 
-      {!bare && <SiteFooter />}
+      {!bare && <SiteFooter {locale} />}
 
       <slot name="after-body" />
-      {!bare && <MobileNav />}
+      {!bare && <MobileNav {locale} />}
     </div>
   </body>
 </html>

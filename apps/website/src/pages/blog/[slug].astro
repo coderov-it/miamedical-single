@@ -3,19 +3,28 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { mediaUrl } from '~/lib/api';
 import { getBlogPostBySlug } from '~/lib/blog';
+import { localeFromLocals, localeTag, translate } from '~/lib/i18n';
 import { blogPostPath, routes } from '~/lib/routes';
 
 export const prerender = false;
 
 const { slug } = Astro.params;
-const post = slug ? await getBlogPostBySlug(slug) : null;
+const locale = localeFromLocals(Astro.locals);
+const post = slug ? await getBlogPostBySlug(slug, locale) : null;
 
-if (!post) {
+if (!post || post.slug !== slug) {
   return Astro.rewrite('/404');
 }
 
+const otherLocale = locale === 'it' ? 'en' : 'it';
+const alternatePost = await getBlogPostBySlug(slug, otherLocale);
+const languagePaths = {
+  [locale]: blogPostPath(post.slug, locale),
+  ...(alternatePost ? { [otherLocale]: blogPostPath(alternatePost.slug, otherLocale) } : {}),
+};
+
 const publishedAt = post.publishedAt
-  ? new Intl.DateTimeFormat('it-IT', {
+  ? new Intl.DateTimeFormat(localeTag(locale), {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -24,8 +33,10 @@ const publishedAt = post.publishedAt
 
 const pageTitle = post.metaTitle || post.title;
 const pageDescription =
-  post.metaDescription || post.excerpt || `Leggi "${post.title}" sul blog di Mia Medical Italia.`;
-const canonical = new URL(blogPostPath(post.slug), Astro.site ?? Astro.url.origin).href;
+  post.metaDescription ||
+  post.excerpt ||
+  translate(locale, 'blog.readFallback', { title: post.title });
+const canonical = new URL(blogPostPath(post.slug, locale), Astro.site ?? Astro.url.origin).href;
 const ogImage = post.featuredImage ? mediaUrl(post.featuredImage) : undefined;
 
 const jsonLd: Record<string, unknown> = {
@@ -50,6 +61,7 @@ const jsonLd: Record<string, unknown> = {
   {canonical}
   {ogImage}
   jsonLd={[jsonLd]}
+  {languagePaths}
 >
   <article class="max-w-page mid:px-8 pb-section-sm mid:pb-section mx-auto w-full px-5">
     <Breadcrumbs

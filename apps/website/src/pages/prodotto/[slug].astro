@@ -14,10 +14,11 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { mediaUrl } from '~/lib/api';
 import { getProductBySlug } from '~/lib/catalog';
+import { localeFromLocals, translate } from '~/lib/i18n';
 import {
-  PDP_SCRIPT_LABELS,
   buildProductJsonLd,
   isInStock,
+  pdpScriptLabels,
   readBrowseAnswers,
   resolveImages,
 } from '~/lib/product-page';
@@ -27,11 +28,21 @@ import ProductBody from '~/views/product/ProductBody.astro';
 export const prerender = false;
 
 const { slug } = Astro.params;
-const product = slug ? await getProductBySlug(slug) : null;
+const locale = localeFromLocals(Astro.locals);
+const product = slug ? await getProductBySlug(slug, locale) : null;
 
-if (!product) {
+if (!product || product.slug !== slug) {
   return Astro.rewrite('/404');
 }
+
+const otherLocale = locale === 'it' ? 'en' : 'it';
+const alternateProduct = await getProductBySlug(slug, otherLocale);
+const languagePaths = {
+  [locale]: productPath(product.slug, {}, locale),
+  ...(alternateProduct
+    ? { [otherLocale]: productPath(alternateProduct.slug, {}, otherLocale) }
+    : {}),
+};
 
 const isRental = product.pricing.mode === 'rental';
 const inStock = isInStock(product);
@@ -44,13 +55,17 @@ const jsonLd = buildProductJsonLd({ product, hero, inStock, origin: Astro.url.or
 
 <BaseLayout
   title={product.seo.title ??
-    `${product.title} | ${isRental ? 'Noleggio' : 'Vendita'} — Mia Medical Italia`}
+    `${product.title} | ${translate(locale, isRental ? 'product.rental' : 'product.sale')} — Mia Medical Italia`}
   description={product.seo.description ??
     product.shortDescription?.slice(0, 155) ??
-    `${isRental ? 'Noleggio' : 'Vendita'} ${product.title} con consegna a domicilio a Roma e Firenze.`}
-  canonical={new URL(productPath(product.slug), site).href}
+    translate(locale, 'product.metaFallback', {
+      type: translate(locale, isRental ? 'product.rental' : 'product.sale'),
+      title: product.title,
+    })}
+  canonical={new URL(productPath(product.slug, {}, locale), site).href}
   ogImage={hero ? new URL(mediaUrl(hero.path), Astro.url.origin).href : undefined}
   {jsonLd}
+  {languagePaths}
 >
   <ProductBody {product} {images} {answers} {inStock} />
 </BaseLayout>
@@ -66,7 +81,7 @@ const jsonLd = buildProductJsonLd({ product, hero, inStock, origin: Astro.url.or
   type="application/json"
   data-pdp-labels
   is:inline
-  set:html={JSON.stringify(PDP_SCRIPT_LABELS)}
+  set:html={JSON.stringify(pdpScriptLabels(locale))}
 />
 
 <script>
