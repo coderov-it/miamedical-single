@@ -14,6 +14,20 @@ export async function listAll(db: Database, activeOnly: boolean): Promise<Catego
   return repo.findAll(db, activeOnly);
 }
 
+/**
+ * Active categories with their storefront tile data, keyed by category id.
+ *
+ * The summaries come back as a Map rather than folded into the rows, because
+ * the admin list wants the categories without paying for two aggregate queries
+ * it never reads.
+ */
+export async function listPublic(
+  db: Database,
+): Promise<{ rows: CategoryAggregate[]; summaries: Map<string, repo.CategorySummaryRow> }> {
+  const [rows, summaries] = await Promise.all([repo.findAll(db, true), repo.summarise(db)]);
+  return { rows, summaries: new Map(summaries.map((row) => [row.categoryId, row])) };
+}
+
 export async function getById(db: Database, id: string): Promise<CategoryAggregate> {
   const category = await repo.findById(db, id);
   if (!category) throw notFound('Category');

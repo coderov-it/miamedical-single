@@ -11,9 +11,12 @@
  * Rendered by `HomeHero`, not by the page: the overlap is part of the hero's
  * composition, and there is exactly one search bar on the site.
  *
- * A native GET form: the chosen criteria land in the catalogue URL. `area` and
- * `from` are carried, not filters — the catalogue echoes them back and the
- * product page prefills from them (see routes.ts § BrowseContext).
+ * A native GET form landing on the SEARCH page, not the catalogue (owner,
+ * 2026-08-30): the customer has typed a query and picked a date, and search is
+ * the one surface that answers a typed query — it owns the sort, the category
+ * filter and the result count. `area` and `from` are carried, not filters: they
+ * are echoed back and the product page prefills from them (see routes.ts §
+ * BrowseContext).
  *
  * The zone and date use the storefront's reusable progressive-enhancement
  * primitives. Both render native form controls first; the dropdown behavior
@@ -37,7 +40,7 @@ import { SERVICE_AREAS } from '~/lib/site';
   <form
     class="search-bar"
     method="get"
-    action={routes.catalog}
+    action={routes.search}
     role="search"
     aria-label="Cerca disponibilità per un ausilio a noleggio"
   >

@@ -1,0 +1,30 @@
+---
+/**
+ * One category tile — quiet white card, one hairline, a pale well for the art.
+ *
+ * Shared by the home grid and the catalogue directory so the two can never
+ * drift. It paints from the blueprint tokens carried by the region around it
+ * (styles/editorial.css § blueprint :root), so any host section must be in that
+ * selector list or the hairline resolves to nothing.
+ */
+import { mediaUrl } from '~/lib/api';
+import type { CategoryTile } from '~/lib/catalog-page';
+
+interface Props {
+  tile: CategoryTile;
+  /** Heading level, so the tile fits the host page's outline. */
+  headingLevel?: 2 | 3;
+}
+
+const { tile, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+---
+
+<a class="category-tile" href={tile.href}>
+  <span class="cat-media">
+    {tile.imagePath && <img src={mediaUrl(tile.imagePath)} alt="" loading="lazy" />}
+  </span>
+  <Heading class="cat-name">{tile.name}</Heading>
+  {/* A price is an offer and a count is inventory — same slot, different ink. */}
+  <p class:list={['cat-count', tile.isPriced && 'cat-price']}>{tile.detail}</p>
+</a>

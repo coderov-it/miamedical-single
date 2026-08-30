@@ -1,0 +1,75 @@
+---
+/**
+ * The catalogue masthead: what this surface is, on the left, and one minimal
+ * search field on the right.
+ *
+ * The field does not search this page. It posts to the search route, which is
+ * the site's one place for a typed query — sorting, the category filter and the
+ * result count all live there, and duplicating a half of that here would give a
+ * customer two search boxes that answer differently. The browse context rides
+ * along as hidden inputs so the funnel does not forget where and when.
+ */
+import { localeForRequest, translate } from '~/lib/i18n';
+import { routePath, type BrowseContext } from '~/lib/routes';
+
+interface Props {
+  heading: string;
+  lede: string;
+  context?: BrowseContext;
+}
+
+const { heading, lede, context = {} } = Astro.props;
+const locale = localeForRequest();
+---
+
+<header class="mid:flex-row mid:items-end mid:justify-between flex flex-col gap-6 pt-2 pb-7">
+  <div class="min-w-0">
+    <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{heading}</h1>
+    <p class="text-lead text-ink-2 mt-2.5 max-w-[52ch]">{lede}</p>
+  </div>
+
+  <form
+    class="mid:w-90 flex w-full flex-none gap-2.5"
+    method="get"
+    action={routePath(locale, 'search')}
+    role="search"
+    aria-label={translate(locale, 'catalog.search')}
+  >
+    {context.area && <input type="hidden" name="area" value={context.area} />}
+    {context.from && <input type="hidden" name="from" value={context.from} />}
+
+    {
+      /* The well itself is the label, so the padding and the icon beside the
+         caret focus the field instead of swallowing the click. */
+    }
+    <label class="field-control min-w-0 flex-1" for="catalog-search">
+      <span class="sr-only">{translate(locale, 'catalog.searchLabel')}</span>
+      <svg
+        class="text-ink-2 size-4.75 flex-none"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="6.5"></circle>
+        <path d="m20 20-4.2-4.2"></path>
+      </svg>
+      <input
+        id="catalog-search"
+        class="font-display text-body font-semibold"
+        type="search"
+        name="q"
+        placeholder={translate(locale, 'catalog.searchPlaceholder')}
+      />
+    </label>
+
+    <button
+      class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
+      type="submit"
+    >
+      {translate(locale, 'catalog.searchAction')}
+    </button>
+  </form>
+</header>

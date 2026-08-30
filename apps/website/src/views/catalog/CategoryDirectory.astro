@@ -1,0 +1,36 @@
+---
+/**
+ * "Sfoglia per categoria" — the whole-catalogue surface's body.
+ *
+ * A wrapped grid of tiles, deliberately NOT a horizontal overflow scroller: at
+ * 200% zoom and 400% reflow the right-hand items become undiscoverable, and it
+ * reintroduces horizontal scrolling.
+ *
+ * `.category-directory` is not decoration — it carries the blueprint tokens the
+ * tiles paint from (styles/editorial.css § blueprint :root).
+ */
+import CategoryTile from '~/components/catalog/CategoryTile.astro';
+import type { CategoryTile as CategoryTileModel } from '~/lib/catalog-page';
+import { localeForRequest, translate } from '~/lib/i18n';
+
+interface Props {
+  tiles: CategoryTileModel[];
+}
+
+const { tiles } = Astro.props;
+const locale = localeForRequest();
+---
+
+<section class="category-directory" aria-labelledby="browse-title">
+  <h2 id="browse-title" class="text-h3 mb-5">{translate(locale, 'catalog.browse')}</h2>
+
+  <ul class="category-grid">
+    {
+      tiles.map((tile) => (
+        <li>
+          <CategoryTile {tile} headingLevel={3} />
+        </li>
+      ))
+    }
+  </ul>
+</section>

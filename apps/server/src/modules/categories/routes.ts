@@ -23,8 +23,10 @@ export const categoryPublicRoutes = new Hono<AppEnv>().get(
   validate('query', LocaleOnlyQuerySchema),
   async (c) => {
     const { locale } = c.req.valid('query');
-    const rows = await service.listAll(c.get('db'), true);
-    return c.json({ data: rows.map((row) => toPublicCategory(row, locale)) });
+    const { rows, summaries } = await service.listPublic(c.get('db'));
+    return c.json({
+      data: rows.map((row) => toPublicCategory(row, locale, summaries.get(row.id))),
+    });
   },
 );
 

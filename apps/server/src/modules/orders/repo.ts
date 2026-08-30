@@ -482,6 +482,24 @@ export async function insertOrder(
       })),
     );
 
+    /**
+     * Demand, counted once per order rather than per unit — three of the same
+     * product in one cart is still one order that wanted it. Inside the same
+     * transaction as the lines it counts, so the ranking can never drift from
+     * the order history it claims to summarise. Deleted products drop out of
+     * the list; `distinctProductIds` is what keeps the bump idempotent when a
+     * cart holds the same product on two configured lines.
+     */
+    const distinctProductIds = [
+      ...new Set(data.items.map((item) => item.productId).filter((id) => id !== null)),
+    ];
+    if (distinctProductIds.length > 0) {
+      await tx
+        .update(products)
+        .set({ orderCount: sql`${products.orderCount} + 1` })
+        .where(inArray(products.id, distinctProductIds));
+    }
+
     await tx.insert(orderStatusEvents).values({
       orderId: order.id,
       field: 'status',

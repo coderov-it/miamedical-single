@@ -851,3 +851,57 @@ legend {
 :is(.pdp, .checkout, .cart) nav[aria-label] [aria-current] {
   font-weight: 500;
 }
+
+/* -------------------------------------------------- support launcher --- */
+
+/*
+ * The pinned way to reach a person, bottom right of every page. It replaced the
+ * header's support link, so it has to be reachable on every viewport — which is
+ * why it clears the phone's bottom navigation rather than sitting under it.
+ */
+.support-launcher {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--spacing-mobile-nav) + 12px + env(safe-area-inset-bottom, 0px));
+  /* Under MobileNav (z-70) and the product page's price bar (z-65): a floating
+     button must never cover the navigation it floats above. */
+  z-index: 60;
+}
+
+@media (min-width: 45rem) {
+  .support-launcher {
+    right: 24px;
+    bottom: 24px;
+  }
+}
+
+/*
+ * The product page already stacks two bars at the bottom of a phone, and its
+ * price bar carries its own action. A third floating control on top of them is
+ * one too many, so the launcher stands down where the bar is.
+ */
+@media (max-width: 44.99rem) {
+  body:has([data-pdp-price-bar]) .support-launcher {
+    display: none;
+  }
+}
+
+.support-launcher > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.support-launcher > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Opens upward and right-aligned: the button is in the corner, so a panel that
+   grew down or right would leave the viewport. */
+.support-launcher-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: max-content;
+  min-width: 15rem;
+  max-width: min(20rem, calc(100vw - 32px));
+}

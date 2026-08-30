@@ -25,6 +25,9 @@
 .site-foot,
 .hero,
 .categories,
+/* The catalogue directory renders the same tiles as the home grid, so it has to
+   carry the same tokens — without them the tile hairline resolves to nothing. */
+.category-directory,
 .trending,
 .how,
 .delivery,
@@ -1007,6 +1010,13 @@
   font-size: 0.875rem;
   color: var(--color-ink-soft);
   font-variant-numeric: tabular-nums;
+}
+
+/* Same slot, different claim: "da 0,78 € al giorno" is an offer and reads in the
+   accent, while a bare product count stays quiet grey inventory. */
+.cat-price {
+  color: var(--color-accent);
+  font-weight: 650;
 }
 
 /* ============ trending — a whisper-gray band, white cards on top ============ */

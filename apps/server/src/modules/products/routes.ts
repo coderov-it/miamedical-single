@@ -79,6 +79,7 @@ export const productAdminRoutes = new Hono<AppEnv>()
           locale: query.locale,
           q: query.q,
           category: query.category,
+          mode: undefined,
           status: query.status,
           featured: undefined,
           sort: 'newest',

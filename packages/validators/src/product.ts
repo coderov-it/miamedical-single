@@ -221,6 +221,12 @@ export const ProductQuerySchema = v.object({
   q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
   /** Category `code`. */
   category: v.optional(KeySchema),
+  /**
+   * Which half of the catalogue. `rental` and `fixed` are the pricing modes, not
+   * a marketing split: the storefront's rental and sale catalogues are this
+   * filter, and omitting it lists both.
+   */
+  mode: v.optional(PricingModeSchema),
   status: v.optional(ProductStatusSchema),
   featured: v.optional(
     v.pipe(
@@ -228,7 +234,7 @@ export const ProductQuerySchema = v.object({
       v.transform((value) => value === 'true'),
     ),
   ),
-  sort: v.optional(v.picklist(['newest', 'price_asc', 'price_desc', 'title']), 'newest'),
+  sort: v.optional(v.picklist(['newest', 'popular', 'price_asc', 'price_desc', 'title']), 'newest'),
   /**
    * Spec facet filters, `key:value|value;key:value`. Keys are validated
    * against the category's `is_filterable` specs in the service.

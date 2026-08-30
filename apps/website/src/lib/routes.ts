@@ -10,7 +10,14 @@ import type { SiteLocale } from './i18n.ts';
 export const routePaths = {
   it: {
     home: '/',
-    catalog: '/catalogo-noleggio/',
+    /**
+     * The catalogue is three destinations, not one: a category directory, and a
+     * product listing per pricing mode. `catalogRental` keeps the URL the site
+     * has always had — it always meant the rental listing, and now it is one.
+     */
+    catalog: '/catalogo/',
+    catalogRental: '/catalogo-noleggio/',
+    catalogSale: '/catalogo-vendita/',
     product: '/prodotto/',
     search: '/cerca/',
     support: '/assistenza/',
@@ -38,7 +45,9 @@ export const routePaths = {
   },
   en: {
     home: '/en/',
-    catalog: '/en/rental-catalog/',
+    catalog: '/en/catalog/',
+    catalogRental: '/en/rental-catalog/',
+    catalogSale: '/en/sale-catalog/',
     product: '/en/product/',
     search: '/en/search/',
     support: '/en/support/',
@@ -75,20 +84,19 @@ export function routePath(locale: SiteLocale, key: RouteKey): string {
  * to keep them in, and every browse link has to hand them on or the funnel
  * forgets what the customer already told it.
  *
- * `duration` rides along for the catalogue's sentence only. It cannot reach the
- * product page: a rental is priced by a package now, and "30 giorni" from the
- * home selector is not one of this product's packages.
+ * A `duration` used to ride along too, for a sentence the catalogue printed
+ * back. It is gone with that sentence (owner, 2026-08-30): the search page asks
+ * "da quando", not "per quanto", because a rental is priced by a package and
+ * "30 giorni" from a home selector is not one of any product's packages.
  */
 export interface BrowseContext {
   area?: string;
   from?: string;
-  duration?: string;
 }
 
 function appendContext(search: URLSearchParams, context: BrowseContext): void {
   if (context.area) search.set('area', context.area);
   if (context.from) search.set('from', context.from);
-  if (context.duration) search.set('duration', context.duration);
 }
 
 /**
@@ -124,8 +132,49 @@ export function blogPath(
   return qs ? `${base}?${qs}` : base;
 }
 
+/**
+ * Which of the three catalogue surfaces a link points at.
+ *
+ * `all` is the only one that changes shape with its query: bare, it is the
+ * category directory; narrowed by a category or a search it becomes a product
+ * listing across both modes. `rental` and `sale` are always listings.
+ */
+export type CatalogView = 'all' | 'rental' | 'sale';
+
+const CATALOG_ROUTE: Record<CatalogView, RouteKey> = {
+  all: 'catalog',
+  rental: 'catalogRental',
+  sale: 'catalogSale',
+};
+
+export function catalogRoot(view: CatalogView, locale: SiteLocale = 'it'): string {
+  return routePath(locale, CATALOG_ROUTE[view]);
+}
+
 /** Catalogue URL with the browse state preserved. */
 export function catalogPath(
+  params: {
+    view?: CatalogView;
+    q?: string;
+    category?: string;
+    sort?: string;
+    page?: number;
+  } & BrowseContext = {},
+  locale: SiteLocale = 'it',
+): string {
+  const search = new URLSearchParams();
+  if (params.q) search.set('q', params.q);
+  if (params.category) search.set('category', params.category);
+  if (params.sort) search.set('sort', params.sort);
+  if (params.page && params.page > 1) search.set('page', String(params.page));
+  appendContext(search, params);
+  const qs = search.toString();
+  const base = catalogRoot(params.view ?? 'all', locale);
+  return qs ? `${base}?${qs}` : base;
+}
+
+/** Search URL carrying what the customer already told the home booking bar. */
+export function searchPath(
   params: { q?: string; category?: string; sort?: string; page?: number } & BrowseContext = {},
   locale: SiteLocale = 'it',
 ): string {
@@ -136,7 +185,7 @@ export function catalogPath(
   if (params.page && params.page > 1) search.set('page', String(params.page));
   appendContext(search, params);
   const qs = search.toString();
-  const base = routePath(locale, 'catalog');
+  const base = routePath(locale, 'search');
   return qs ? `${base}?${qs}` : base;
 }
 

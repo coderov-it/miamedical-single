@@ -67,7 +67,7 @@ export interface ProductSummaryRowData extends ProductRow {
   specs: Array<SpecRow & { options: SpecOptionRow[] }>;
 }
 
-export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'title';
+export type ProductSort = 'newest' | 'popular' | 'price_asc' | 'price_desc' | 'title';
 
 export interface SpecFilter {
   key: string;
@@ -86,6 +86,8 @@ export interface ProductListFilters {
   locale: 'it' | 'en';
   q?: string | undefined;
   categoryId?: string | undefined;
+  /** Pricing mode, which is what the rental and sale catalogues filter on. */
+  mode?: ProductRow['pricingMode'] | undefined;
   status?: ProductRow['status'] | undefined;
   featured?: boolean | undefined;
   sort: ProductSort;

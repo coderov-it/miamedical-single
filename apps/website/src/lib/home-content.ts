@@ -9,6 +9,7 @@
 import { perUnitLabel } from '@mia/i18n';
 
 import { formatMoney } from './api.ts';
+import { buildCategoryTiles, type CategoryTile } from './catalog-page.ts';
 import type { Category, ProductSummary } from './catalog.ts';
 import { localeTag, type SiteLocale } from './i18n.ts';
 
@@ -56,57 +57,30 @@ export function productOffer(
   };
 }
 
-export interface HomeCategoryCard {
-  key: string;
-  /** Category `code` — the value the catalogue filters on. */
-  code: string;
-  title: string;
-  detail: string;
-  /** Object-storage path, already resolved by the caller through `mediaUrl`. */
-  imagePath: string | null;
-}
-
 /**
  * Category tiles for the home grid.
  *
- * A category has an icon but no imagery of its own, so a category without an
- * icon borrows the thumbnail of one of its products — which is what the design
- * shows. Empty categories are dropped rather than rendered as a dead tile.
+ * The shape and the "da …" line are the catalogue's — one tile model, so the
+ * home grid and the catalogue directory can never say different things about
+ * the same category. Home adds only its own selection: the busiest categories
+ * first, capped at eight, and a product thumbnail standing in for a category
+ * that has no icon of its own.
  */
 export function buildHomeCategories(
   categories: Category[],
   products: ProductSummary[],
   limit = 8,
   locale: SiteLocale = 'it',
-): HomeCategoryCard[] {
-  const counts = new Map<string, number>();
+): CategoryTile[] {
   const firstImage = new Map<string, string>();
-
   for (const product of products) {
-    const slug = product.category.slug;
-    counts.set(slug, (counts.get(slug) ?? 0) + 1);
-    if (product.thumbnail && !firstImage.has(slug)) {
-      firstImage.set(slug, product.thumbnail.path);
-    }
+    const { slug } = product.category;
+    if (product.thumbnail && !firstImage.has(slug)) firstImage.set(slug, product.thumbnail.path);
   }
 
-  return categories
-    .filter((category) => (counts.get(category.slug) ?? 0) > 0)
-    .sort((a, b) => (counts.get(b.slug) ?? 0) - (counts.get(a.slug) ?? 0))
-    .slice(0, limit)
-    .map((category) => {
-      const count = counts.get(category.slug) ?? 0;
-      return {
-        key: category.id,
-        code: category.code,
-        title: category.name,
-        detail:
-          locale === 'it'
-            ? `${count} ${count === 1 ? 'prodotto' : 'prodotti'}`
-            : `${count} ${count === 1 ? 'product' : 'products'}`,
-        imagePath: category.icon ?? firstImage.get(category.slug) ?? null,
-      };
-    });
+  return buildCategoryTiles(categories, { locale, imageFallback: firstImage })
+    .sort((a, b) => b.productCount - a.productCount)
+    .slice(0, limit);
 }
 
 export interface FaqItem {

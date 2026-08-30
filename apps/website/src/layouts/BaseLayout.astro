@@ -10,6 +10,7 @@
 import MobileNav from '~/components/global/MobileNav.astro';
 import SiteFooter from '~/components/global/SiteFooter.astro';
 import SiteHeader from '~/components/global/SiteHeader.astro';
+import SupportLauncher from '~/components/global/SupportLauncher.astro';
 import {
   localeFromLocals,
   localeTag,
@@ -124,6 +125,7 @@ const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.o
       {!bare && <SiteFooter {locale} />}
 
       <slot name="after-body" />
+      {!bare && <SupportLauncher />}
       {!bare && <MobileNav {locale} />}
     </div>
   </body>

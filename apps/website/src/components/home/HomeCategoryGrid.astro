@@ -3,16 +3,19 @@
  * "Esplora per categoria" — quiet white tiles, one hairline each, ported 1:1
  * from docs/blueprint/home.html (styles in styles/editorial.css).
  *
+ * The tile itself is `components/catalog/CategoryTile`, shared with the
+ * catalogue directory: one component, so the two grids can never say different
+ * things about the same category.
+ *
  * Categories without products are already dropped by `buildHomeCategories`,
  * and the section hides itself when nothing is left — a grid of dead tiles
  * would read as a broken shop.
  */
-import { mediaUrl } from '~/lib/api';
-import type { HomeCategoryCard } from '~/lib/home-content';
-import { catalogPath } from '~/lib/routes';
+import CategoryTile from '~/components/catalog/CategoryTile.astro';
+import type { CategoryTile as CategoryTileModel } from '~/lib/catalog-page';
 
 interface Props {
-  categories: HomeCategoryCard[];
+  categories: CategoryTileModel[];
 }
 
 const { categories } = Astro.props;
@@ -40,17 +43,9 @@ const { categories } = Astro.props;
         </h2>
 
         <ul class="category-grid">
-          {categories.map((category) => (
+          {categories.map((tile) => (
             <li>
-              <a class="category-tile" href={catalogPath({ category: category.code })}>
-                <span class="cat-media">
-                  {category.imagePath && (
-                    <img src={mediaUrl(category.imagePath)} alt="" loading="lazy" />
-                  )}
-                </span>
-                <h3 class="cat-name">{category.title}</h3>
-                <p class="cat-count">{category.detail}</p>
-              </a>
+              <CategoryTile {tile} headingLevel={3} />
             </li>
           ))}
         </ul>
