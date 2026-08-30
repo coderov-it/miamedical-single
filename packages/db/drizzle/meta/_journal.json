@@ -71,6 +71,13 @@
       "when": 1787894293768,
       "tag": "0009_drop_sku_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788087258049,
+      "tag": "0010_add_product_order_count",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm';
+import { desc, relations, sql } from 'drizzle-orm';
 import {
   boolean,
   check,
@@ -181,6 +181,15 @@ export const products = pgTable(
     stock: integer().notNull().default(0),
     isFeatured: boolean().notNull().default(false),
     /**
+     * How many orders have ever included this product — one per order line, not
+     * per unit, so a cart of three counts once. Denormalised on purpose: it is
+     * the sort key behind the catalogue's "più richiesti", and a GROUP BY over
+     * `order_items` on every page of every catalogue would be a full scan of the
+     * order history to paint a grid. Bumped when an order is placed, and never
+     * decremented — this ranks demand, it is not a live count of open orders.
+     */
+    orderCount: integer().notNull().default(0),
+    /**
      * Short display claims for the card and the hero — see chip-types.ts.
      * Never indexed, never searched: presentation text, not data.
      */
@@ -196,6 +205,8 @@ export const products = pgTable(
     index('products_status_idx').on(t.status),
     index('products_category_idx').on(t.categoryId),
     index('products_created_at_idx').on(t.createdAt),
+    /** Backs the `popular` sort; DESC because nothing ever asks for the least. */
+    index('products_order_count_idx').on(desc(t.orderCount)),
     /**
      * FK target for `product_addons`' composite key — makes the denormalised
      * `product_pricing_mode` provably in sync with no trigger.

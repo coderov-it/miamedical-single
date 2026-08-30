@@ -1,0 +1,12 @@
+---
+/**
+ * `/catalogo-vendita/` — products sold outright.
+ *
+ * A route declaration, nothing more. The page is `views/catalog/CatalogPage`.
+ */
+import CatalogPage from '~/views/catalog/CatalogPage.astro';
+
+export const prerender = false;
+---
+
+<CatalogPage view="sale" />

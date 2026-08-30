@@ -1,10 +1,29 @@
 import type { LanguageCode } from '@mia/db/schema';
 
 import { pick, pickOptional, pickTranslation } from '../products/i18n.ts';
-import type { AdminCategoryDto, AdminCategoryTranslationDto, PublicCategoryDto } from './dto.ts';
+import type {
+  AdminCategoryDto,
+  AdminCategoryTranslationDto,
+  PublicCategoryDto,
+  PublicCategorySummaryDto,
+} from './dto.ts';
+import type { CategorySummaryRow } from './repo.ts';
 import type { CategoryAggregate } from './types.ts';
 
-export function toPublicCategory(row: CategoryAggregate, locale: LanguageCode): PublicCategoryDto {
+/** A category nothing has been published into yet — zero products, no price. */
+const EMPTY_SUMMARY: PublicCategorySummaryDto = {
+  productCount: 0,
+  fromPrice: null,
+  currency: null,
+  pricingMode: null,
+  rentalUnit: null,
+};
+
+export function toPublicCategory(
+  row: CategoryAggregate,
+  locale: LanguageCode,
+  summary?: CategorySummaryRow,
+): PublicCategoryDto {
   const translation = pickTranslation(row.translations, locale);
   return {
     id: row.id,
@@ -14,6 +33,15 @@ export function toPublicCategory(row: CategoryAggregate, locale: LanguageCode): 
     description: translation?.description ?? null,
     icon: row.icon,
     position: row.position,
+    summary: summary
+      ? {
+          productCount: summary.productCount,
+          fromPrice: summary.fromPrice,
+          currency: summary.currency,
+          pricingMode: summary.pricingMode,
+          rentalUnit: summary.rentalUnit,
+        }
+      : EMPTY_SUMMARY,
     specs: row.specs
       .sort((a, b) => a.position - b.position)
       .map((spec) => ({

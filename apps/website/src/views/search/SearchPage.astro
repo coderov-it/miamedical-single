@@ -1,0 +1,174 @@
+---
+/**
+ * Search — the site's one place for a typed query.
+ *
+ * Every search on the site lands here: the home booking bar, the catalogue's
+ * masthead field, the header's nav item. That is the point of it — sorting, the
+ * category filter and the result count exist once, in one place, instead of
+ * half of them on each catalogue surface answering slightly differently.
+ *
+ * It lists the whole catalogue with an empty query rather than an invitation to
+ * type: most requested first is a better first screen than a blank one, and it
+ * makes the sort and the filter usable on their own.
+ *
+ * A native GET form, submitted by its button. The field does NOT autofocus: it
+ * used to, when arriving here meant an empty page waiting for a query, but a
+ * customer arriving from the home booking bar arrives WITH results — and
+ * autofocus would pull focus and the viewport straight past the answer they
+ * asked for.
+ *
+ * Deliberately not indexed: a search results page adds no canonical content,
+ * and an indexable one invites thin duplicates of the catalogue.
+ */
+import DatePicker from '~/components/primitives/DatePicker.astro';
+import Dropdown from '~/components/primitives/Dropdown.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { categoryOptions, readCatalogQuery, sortOptions } from '~/lib/catalog-page';
+import { listCategories, listProducts, safely } from '~/lib/catalog';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { searchPath } from '~/lib/routes';
+import CatalogListing from '~/views/catalog/CatalogListing.astro';
+
+const PER_PAGE = 24;
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+/* The search page reads the same browse state as a catalogue surface — it is
+   the same query, asked without a pricing mode. */
+const query = readCatalogQuery(Astro.url, 'all');
+
+const emptyResult = {
+  data: [],
+  meta: { page: query.page, perPage: PER_PAGE, total: 0, pageCount: 1 },
+  facets: { specs: [] },
+};
+
+const [categories, result] = await Promise.all([
+  safely(() => listCategories(locale), [], 'listCategories'),
+  safely(
+    () =>
+      listProducts(
+        {
+          page: query.page,
+          perPage: PER_PAGE,
+          sort: query.sort,
+          ...(query.q ? { q: query.q } : {}),
+          ...(query.category ? { category: query.category } : {}),
+        },
+        locale,
+      ),
+    emptyResult,
+    'search',
+  ),
+]);
+
+const pageHref = (page: number) =>
+  searchPath(
+    { q: query.q, category: query.category, sort: query.sort, page, ...query.context },
+    locale,
+  );
+
+const title = query.q
+  ? `${text('search.titleFor', { query: query.q })} | Mia Medical Italia`
+  : `${text('search.title')} | Mia Medical Italia`;
+---
+
+<BaseLayout {title} description={text('search.description')} noindex>
+  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5 pt-10">
+    <header>
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{text('search.title')}</h1>
+      <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">{text('search.lede')}</p>
+    </header>
+
+    <form class="mt-7" method="get" role="search" aria-label={text('search.title')}>
+      {
+        /* `area` has no control here — it is the delivery zone the customer
+           chose on the home page, carried so the product page can still print
+           it. A hidden input is what keeps it from being dropped on submit. */
+      }
+      {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
+
+      <div class="flex flex-wrap gap-3.5">
+        {
+          /* The well itself is the label, so the padding and the icon beside
+             the caret focus the field instead of swallowing the click. */
+        }
+        <label class="field-control min-w-0 flex-1 basis-80" for="search-q">
+          <span class="sr-only">{text('search.label')}</span>
+          <svg
+            class="text-ink-2 size-4.75 flex-none"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m20 20-4.2-4.2"></path>
+          </svg>
+          <input
+            id="search-q"
+            class="font-display text-body font-semibold"
+            type="search"
+            name="q"
+            value={query.q}
+            placeholder={text('search.placeholder')}
+          />
+        </label>
+
+        <button
+          class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 min-w-38 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"
+          type="submit"
+        >
+          {text('search.action')}
+        </button>
+      </div>
+
+      <div class="mid:grid-cols-3 mt-3.5 grid gap-3.5">
+        <Dropdown
+          id="search-category"
+          name="category"
+          label={text('catalog.categoryFilter')}
+          options={categoryOptions(categories)}
+          value={query.category}
+          placeholder={text('catalog.allCategories')}
+        />
+
+        {
+          /* "Da quando" is carried, not a filter: nothing here knows which
+             units are already out on which dates, so a date that narrowed the
+             list would be a promise the site cannot keep. It rides along to
+             prefill the product page's start date. See routes.ts §
+             BrowseContext. */
+        }
+        <DatePicker
+          id="search-from"
+          name="from"
+          label={text('search.fromWhen')}
+          value={query.context.from ?? ''}
+          min="today"
+          placeholder={text('search.fromWhenPlaceholder')}
+        />
+
+        <Dropdown
+          id="search-sort"
+          name="sort"
+          label={text('catalog.sort')}
+          options={sortOptions(locale)}
+          value={query.sort}
+        />
+      </div>
+    </form>
+
+    <div class="mt-10">
+      <CatalogListing
+        products={result.data}
+        meta={result.meta}
+        context={query.context}
+        {pageHref}
+      />
+    </div>
+  </div>
+</BaseLayout>

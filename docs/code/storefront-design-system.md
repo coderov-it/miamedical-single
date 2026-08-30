@@ -354,7 +354,9 @@ opts out.
 | ----------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`                     | prerendered | Marketing. Fastest thing we can serve.                                                                                                       |
 | `/assistenza/`          | prerendered | Static copy plus the FAQ.                                                                                                                    |
-| `/catalogo-noleggio/`   | on demand   | Reads `?q`, `?categoria`, `?ordina`, `?page`.                                                                                                |
+| `/catalogo/`            | on demand   | Category directory when bare; a listing across both modes once `?category` or `?q` narrows it.                                               |
+| `/catalogo-noleggio/`   | on demand   | Rental listing. Reads `?category`, `?sort`, `?page`.                                                                                         |
+| `/catalogo-vendita/`    | on demand   | Sale listing. Same query state as the rental one.                                                                                            |
 | `/prodotto/[slug]/`     | on demand   | Stock, price and specifications must not be stale.                                                                                           |
 | `/cerca/`, `/carrello/` | on demand   | Reads query state; `noindex`.                                                                                                                |
 | `/[terms]/`             | on demand   | Resolves a published legal document by slug.                                                                                                 |
@@ -438,7 +440,7 @@ no error anywhere.
 The keys are English: a wire format is read by a program, never by a customer, so
 it is code and follows the English rule in AGENTS.md. Public route paths are the
 opposite case and deliberately stay Italian. The catalogue's browse params were
-renamed the same way — `category`, `sort`, `area`, `from`, `duration`.
+renamed the same way — `category`, `sort`, `area`, `from`.
 
 `PdpQuestions.astro` renders one control per value shape, and covers all of
 them explicitly — `single_select` as radio pills,
@@ -662,6 +664,65 @@ neither; this hero shows three.
   no governed source yet, and a stale aggregate rating in structured data is a
   Google policy problem rather than a mere inaccuracy.
 
+## The catalogue is three surfaces (owner, 2026-08-30)
+
+The catalogue used to be one page that did everything: a search field, a sort
+control, a chip row of every category and a product grid, all at once. It is now
+three destinations sharing one masthead and one pill row, so moving between them
+changes the body and never the furniture.
+
+| Surface                          | Body                                              |
+| -------------------------------- | ------------------------------------------------- |
+| `/catalogo/`                     | Category directory — a tile per category, priced. |
+| `/catalogo/?category=…` or `?q=` | Product listing across both pricing modes.        |
+| `/catalogo-noleggio/`            | Product listing, `mode=rental`.                   |
+| `/catalogo-vendita/`             | Product listing, `mode=fixed`.                    |
+
+The rule that makes this coherent: **the whole catalogue is a directory until
+something narrows it.** A grid of category tiles is no answer to "show me the
+wheelchairs", so the moment a category or a query arrives the same route renders
+the listing instead.
+
+Everything is composed from `views/catalog/CatalogPage.astro`, which the three
+page files are thin shims over; the query state and the tile model live in
+`lib/catalog-page.ts`. `MODE_FOR_VIEW` is the only place a surface becomes an API
+filter.
+
+Three consequences worth knowing:
+
+- **No search field and no sort control on a catalogue surface.** Both live on
+  `/cerca/`, and the catalogue masthead's field posts there. Sorting and a typed
+  query exist once, in one place, rather than half of them on each surface
+  answering slightly differently.
+- **The pill row is static** — all, one pinned category, rental, sale
+  (`PINNED_CATEGORY_CODE` in `lib/catalog-page.ts`). It is navigation, not a
+  leaderboard: a pill that moved as the catalogue grew would change what the
+  second item means between two visits.
+- **A category tile prices itself.** `/api/categories` now carries a `summary`
+  per category — the product count plus the cheapest headline figure inside,
+  computed with the same expression the product card prints, so a tile and the
+  cheapest card under it can never disagree. A category whose products carry no
+  figure at all falls back to its count.
+
+### "I più richiesti" is a real counter
+
+`products.order_count` is bumped inside the order-placement transaction, once per
+order rather than per unit, and never decremented — it ranks demand, it is not a
+count of open orders. It is denormalised on purpose: it is the default sort on
+`/cerca/`, and a `GROUP BY` over `order_items` on every page of every listing
+would scan the whole order history to paint a grid. Migration `0010` adds it and
+backfills from the existing order lines, so the ranking is truthful on day one.
+
+### Support moved out of the nav
+
+The header nav is Home · Catalogo · Noleggio · Vendita · Cerca · Blog. Support
+left it for `SupportLauncher`, pinned bottom-right of every page: a nav item cost
+a slot the catalogue needed and still landed the customer on a page they then had
+to read. The launcher is a `<details>`, so it opens, closes and takes focus with
+no JavaScript; the script only adds Escape and outside-click. It clears the
+phone's bottom navigation and stands down entirely on the product page, where the
+price bar already fills that corner.
+
 ## Known gaps
 
 - **No SERVER-side cart or orders endpoint.** `/carrello/` is now a real
@@ -677,13 +738,11 @@ neither; this hero shows three.
 - **Organisation facts are hardcoded** in `src/lib/site.ts` (phone, WhatsApp,
   email, addresses, VAT). These belong to a `/api/site` read model so the
   storefront, JSON-LD and the back office cannot drift.
-- **Category chips carry no product count**, unlike the design. It would cost one
-  API request per category; the header shows the result total for the current
-  filter instead.
-- **`zona`, `dal` and `durata` from the home search are not filters.** The API
-  matches on text, category and price only. They are carried in the URL and
-  echoed back on the catalogue as "la tua richiesta", because they are what the
-  confirmation call needs to know.
+- **`area` and `from` from the home search are not filters.** The API matches on
+  text, category and pricing mode only, and nothing knows which units are out on
+  which dates. They are carried in the URL so the product page can prefill the
+  start date and the confirmation call knows where to deliver. `durata` is gone
+  with the sentence that echoed it back (owner, 2026-08-30).
 - **The footer's rental headings are editorial labels**, pointing at a catalogue
   search rather than at category records — the footer renders on every request
   and fetching the category tree there would add a round trip for four labels.

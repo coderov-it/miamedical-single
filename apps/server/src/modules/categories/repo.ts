@@ -1,5 +1,5 @@
 import type { Database } from '@mia/db';
-import { asc, eq } from '@mia/db';
+import { and, asc, count, eq, sql } from '@mia/db';
 import type { LanguageCode } from '@mia/db/schema';
 import {
   categories,
@@ -32,6 +32,80 @@ export async function findAll(db: Database, activeOnly: boolean): Promise<Catego
     with: AGGREGATE_WITH,
   });
   return rows as CategoryAggregate[];
+}
+
+// --- storefront summaries ---------------------------------------------------
+
+/**
+ * The headline figure a product advertises: a rental's promo rate when the back
+ * office typed one, otherwise its cheapest package; a sale product's own price.
+ *
+ * Deliberately the same expression the product card prints, so a category tile
+ * reading "da 0,78 €" and the cheapest card inside that category can never
+ * disagree. NULL only for a product carrying no figure at all.
+ */
+const headlinePrice = sql`CASE WHEN ${products.pricingMode} = 'rental'
+  THEN COALESCE(
+    ${products.marketingRate},
+    (SELECT MIN((entry->>'price')::numeric)
+       FROM jsonb_array_elements(${products.rentalPackages}) AS entry)
+  )
+  ELSE ${products.basePrice} END`;
+
+export interface CategorySummaryRow {
+  categoryId: string;
+  productCount: number;
+  /** Cheapest headline figure in the category, or NULL when nothing is priced. */
+  fromPrice: string | null;
+  currency: string | null;
+  /** Which mode that cheapest figure belongs to — decides whether it takes a unit. */
+  pricingMode: 'fixed' | 'rental' | null;
+  rentalUnit: 'hour' | 'day' | null;
+}
+
+/**
+ * One row per category that has at least one active product: how many, and what
+ * the cheapest one costs.
+ *
+ * Two queries rather than one, because the count is over every active product
+ * while the price comes from a single winning row — a DISTINCT ON with a COUNT
+ * beside it would count the winner, not the category.
+ */
+export async function summarise(db: Database): Promise<CategorySummaryRow[]> {
+  const active = eq(products.status, 'active');
+
+  const [counts, cheapest] = await Promise.all([
+    db
+      .select({ categoryId: products.categoryId, total: count() })
+      .from(products)
+      .where(active)
+      .groupBy(products.categoryId),
+    db
+      .selectDistinctOn([products.categoryId], {
+        categoryId: products.categoryId,
+        fromPrice: sql<string>`${headlinePrice}`,
+        currency: products.currency,
+        pricingMode: products.pricingMode,
+        rentalUnit: products.rentalUnit,
+      })
+      .from(products)
+      .where(and(active, sql`${headlinePrice} IS NOT NULL`))
+      .orderBy(asc(products.categoryId), asc(sql`${headlinePrice}`)),
+  ]);
+
+  const priced = new Map(cheapest.map((row) => [row.categoryId, row]));
+
+  return counts.map((row) => {
+    const price = priced.get(row.categoryId);
+    return {
+      categoryId: row.categoryId,
+      productCount: row.total,
+      fromPrice: price?.fromPrice ?? null,
+      currency: price?.currency ?? null,
+      pricingMode: price?.pricingMode ?? null,
+      rentalUnit: price?.rentalUnit ?? null,
+    };
+  });
 }
 
 export async function findById(db: Database, id: string): Promise<CategoryAggregate | undefined> {

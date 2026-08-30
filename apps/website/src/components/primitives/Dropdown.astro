@@ -17,6 +17,13 @@ interface Props {
   value?: string | undefined;
   placeholder?: string | undefined;
   variant?: 'default' | 'hero' | undefined;
+  /**
+   * Keep the label for assistive tech but take it off the screen. For a row
+   * where the placeholder already names the control ("Tutte le categorie") and
+   * a stacked label would knock the row out of alignment. Never a way to ship
+   * an unlabelled select — the label is still rendered and still referenced.
+   */
+  hideLabel?: boolean | undefined;
   class?: string | undefined;
   describedBy?: string | undefined;
 }
@@ -29,6 +36,7 @@ const {
   value = '',
   placeholder,
   variant = 'default',
+  hideLabel = false,
   class: className,
   describedBy,
 } = Astro.props;
@@ -47,7 +55,9 @@ const hasIcon = Astro.slots.has('icon');
   data-core-dropdown
   data-has-icon={hasIcon ? '' : undefined}
 >
-  <label class="core-dropdown-label" id={labelId} for={id}>{label}</label>
+  <label class:list={['core-dropdown-label', hideLabel && 'sr-only']} id={labelId} for={id}>
+    {label}
+  </label>
 
   <div class="core-dropdown-control">
     {

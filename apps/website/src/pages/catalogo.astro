@@ -1,0 +1,13 @@
+---
+/**
+ * `/catalogo/` — the whole catalogue: a category directory, or a listing across
+ * both pricing modes once a category or a query narrows it.
+ *
+ * A route declaration, nothing more. The page is `views/catalog/CatalogPage`.
+ */
+import CatalogPage from '~/views/catalog/CatalogPage.astro';
+
+export const prerender = false;
+---
+
+<CatalogPage view="all" />

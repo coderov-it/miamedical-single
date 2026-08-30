@@ -1,0 +1,100 @@
+---
+/**
+ * The product body of a listing: how many, the grid, and plain `<a>` pagination
+ * with rel=prev/next so the whole thing works with no JavaScript and stays
+ * crawlable.
+ *
+ * Shared by the catalogue surfaces and the search page — they differ only in
+ * the URL a page number resolves to, which is why that arrives as `pageHref`
+ * rather than being rebuilt from a query this component would have to know the
+ * shape of.
+ */
+import ProductCard from '~/components/catalog/ProductCard.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import type { PageMeta, ProductSummary } from '~/lib/catalog';
+import { localeForRequest, translate } from '~/lib/i18n';
+import type { BrowseContext } from '~/lib/routes';
+
+interface Props {
+  products: ProductSummary[];
+  meta: PageMeta;
+  /** Carried, never a filter — handed on to every card so the funnel remembers. */
+  context?: BrowseContext;
+  pageHref: (page: number) => string;
+}
+
+const { products, meta, context = {}, pageHref } = Astro.props;
+const locale = localeForRequest();
+
+const prevUrl = meta.page > 1 ? pageHref(meta.page - 1) : null;
+const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
+---
+
+<section aria-labelledby="products-title">
+  <h2 id="products-title" class="font-display text-ui text-ink-2 mb-5 font-semibold">
+    {
+      `${meta.total} ${translate(locale, meta.total === 1 ? 'catalog.available.one' : 'catalog.available.many')}`
+    }
+    {
+      meta.pageCount > 1 && (
+        <span>{` · ${translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}`}</span>
+      )
+    }
+  </h2>
+
+  {
+    products.length === 0 ? (
+      <div class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6">
+        <p class="font-display text-h4 font-semibold">{translate(locale, 'catalog.empty')}</p>
+        <p>{translate(locale, 'catalog.helpDetail')}</p>
+        <PhoneCta variant="primary" />
+      </div>
+    ) : (
+      <ul class="wide:grid-cols-3 grid gap-6 sm:grid-cols-2">
+        {products.map((product, index) => (
+          <li class="flex">
+            <ProductCard
+              {product}
+              priority={meta.page === 1 && index === 0}
+              headingLevel={3}
+              {context}
+            />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</section>
+
+{
+  meta.pageCount > 1 && (
+    <nav
+      class="border-hair mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6"
+      aria-label={translate(locale, 'catalog.pagination')}
+    >
+      {prevUrl ? (
+        <a class="btn btn-soft" href={prevUrl} rel="prev">
+          {translate(locale, 'catalog.previous')}
+        </a>
+      ) : (
+        <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
+          {translate(locale, 'catalog.previous')}
+        </span>
+      )}
+
+      <p class="font-display text-ui text-ink-2 font-semibold">
+        {translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}
+      </p>
+
+      {nextUrl ? (
+        <a class="btn btn-soft" href={nextUrl} rel="next">
+          {translate(locale, 'catalog.next')}
+        </a>
+      ) : (
+        <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
+          {translate(locale, 'catalog.next')}
+        </span>
+      )}
+    </nav>
+  )
+}

@@ -1,0 +1,155 @@
+---
+/**
+ * The catalogue, in its three forms — see `CatalogView` in lib/routes.ts.
+ *
+ * `all` is a category directory until something narrows it; `rental` and `sale`
+ * are always product listings. All three share one masthead and one pill row,
+ * so moving between them never changes the furniture, only the body.
+ *
+ * Rendered on demand: search, the category filter and stock are always live,
+ * and a deep link like `?category=carrozzine&page=2` is a real URL.
+ */
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import SectionHeading from '~/components/primitives/SectionHeading.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import {
+  buildCategoryTiles,
+  buildPills,
+  catalogCopy,
+  categoryOptions,
+  MODE_FOR_VIEW,
+  readCatalogQuery,
+  type CatalogView,
+} from '~/lib/catalog-page';
+import { listCategories, listProducts, safely } from '~/lib/catalog';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { catalogPath, routePath } from '~/lib/routes';
+import { CONTACT } from '~/lib/site';
+import CatalogFilters from './CatalogFilters.astro';
+import CatalogHead from './CatalogHead.astro';
+import CatalogListing from './CatalogListing.astro';
+import CategoryDirectory from './CategoryDirectory.astro';
+
+interface Props {
+  view: CatalogView;
+}
+
+const PER_PAGE = 24;
+const { view } = Astro.props;
+const locale = localeFromLocals(Astro.locals);
+const query = readCatalogQuery(Astro.url, view);
+
+/* The whole catalogue with nothing asked of it is the directory. Anything that
+   narrows it — a category, a typed query — turns it into a listing, because a
+   grid of category tiles is no answer to "show me the wheelchairs". */
+const isDirectory = view === 'all' && !query.isNarrowed;
+
+const mode = MODE_FOR_VIEW[view];
+const emptyResult = {
+  data: [],
+  meta: { page: query.page, perPage: PER_PAGE, total: 0, pageCount: 1 },
+  facets: { specs: [] },
+};
+
+const [categories, result] = await Promise.all([
+  safely(() => listCategories(locale), [], 'listCategories'),
+  isDirectory
+    ? Promise.resolve(emptyResult)
+    : safely(
+        () =>
+          listProducts(
+            {
+              page: query.page,
+              perPage: PER_PAGE,
+              sort: query.sort,
+              ...(query.q ? { q: query.q } : {}),
+              ...(query.category ? { category: query.category } : {}),
+              ...(mode ? { mode } : {}),
+            },
+            locale,
+          ),
+        emptyResult,
+        'listProducts',
+      ),
+]);
+
+const activeCategory = categories.find((candidate) => candidate.code === query.category);
+const copy = catalogCopy(view, activeCategory?.name ?? null, locale);
+const pills = buildPills(query, categories, locale);
+const tiles = isDirectory ? buildCategoryTiles(categories, { locale, context: query.context }) : [];
+
+const isFirstPage = result.meta.page <= 1;
+const title = isFirstPage
+  ? `${copy.heading} | Roma e Firenze — Mia Medical Italia`
+  : `${copy.heading} — ${translate(locale, 'blog.pageTitle', { page: result.meta.page })} | Mia Medical Italia`;
+
+/* One page-link builder for the head's rel=prev/next and the listing's pager. */
+const pageLink = (page: number) =>
+  catalogPath(
+    { view, q: query.q, category: query.category, sort: query.sort, page, ...query.context },
+    locale,
+  );
+const prevUrl = result.meta.page > 1 ? pageLink(result.meta.page - 1) : null;
+const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.page + 1) : null;
+---
+
+<BaseLayout
+  {title}
+  description={translate(locale, 'catalog.description')}
+  canonical={new URL(copy.canonical, Astro.site ?? Astro.url.origin).href}
+  noindex={query.isNarrowed || !isFirstPage}
+>
+  <Fragment slot="head">
+    {prevUrl && <link rel="prev" href={prevUrl} />}
+    {nextUrl && <link rel="next" href={nextUrl} />}
+  </Fragment>
+
+  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
+    {
+      /* The masthead is the whole crumb trail on the bare surfaces — a single
+         "Home › Catalogo" row above an h1 that says the same word twice is
+         noise. It earns its place once a category is the page's real subject. */
+    }
+    {
+      activeCategory && (
+        <Breadcrumbs
+          items={[
+            { label: translate(locale, 'home'), href: routePath(locale, 'home') },
+            { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
+            { label: activeCategory.name },
+          ]}
+        />
+      )
+    }
+
+    <CatalogHead heading={copy.heading} lede={copy.lede} context={query.context} />
+
+    <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
+
+    {
+      isDirectory ? (
+        <CategoryDirectory {tiles} />
+      ) : (
+        <CatalogListing
+          products={result.data}
+          meta={result.meta}
+          context={query.context}
+          pageHref={pageLink}
+        />
+      )
+    }
+
+    <section class="mt-section-sm mid:mt-section" aria-labelledby="help-title">
+      <SectionHeading
+        id="help"
+        heading={translate(locale, 'catalog.help')}
+        lede={translate(locale, 'catalog.helpDetail')}
+      />
+      <div class="rounded-card bg-tint mid:p-8 flex flex-wrap items-center gap-4 p-6">
+        <PhoneCta variant="primary" />
+        <p class="text-ui text-ink-2">{CONTACT.hours[locale]}</p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

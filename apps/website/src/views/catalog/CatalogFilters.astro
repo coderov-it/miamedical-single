@@ -1,0 +1,103 @@
+---
+/**
+ * The one filter row, identical on all three catalogue surfaces: four fixed
+ * pills, then every category in a select.
+ *
+ * The select is a GET form pointed at the surface it sits on, so choosing a
+ * category narrows the page you are already on rather than throwing you back to
+ * the whole catalogue. It submits on change once the script runs; the `noscript`
+ * button is the same submit for a customer who never gets it — a select that
+ * only works with JavaScript is the silent block CLAUDE.md forbids.
+ */
+import Dropdown from '~/components/primitives/Dropdown.astro';
+import type { CatalogPill, CatalogQuery } from '~/lib/catalog-page';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { catalogRoot } from '~/lib/routes';
+
+interface Props {
+  pills: CatalogPill[];
+  categories: { value: string; label: string }[];
+  query: CatalogQuery;
+}
+
+const { pills, categories, query } = Astro.props;
+const locale = localeForRequest();
+
+const pillClass =
+  'inline-flex min-h-12 items-center rounded-full px-5 font-display text-ui font-semibold no-underline transition-colors duration-150';
+---
+
+<div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-3 pb-9">
+  <ul class="flex flex-wrap items-center gap-2.5">
+    {
+      pills.map((pill) => (
+        <li>
+          <a
+            class:list={[
+              pillClass,
+              pill.isActive
+                ? 'hover:bg-accent-deep bg-accent text-white'
+                : 'bg-tint text-ink hover:bg-tint-2',
+            ]}
+            href={pill.href}
+            aria-current={pill.isActive ? 'true' : undefined}
+          >
+            {pill.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <form
+    class="mid:w-70 flex w-full items-center gap-2.5"
+    method="get"
+    action={catalogRoot(query.view, locale)}
+    data-catalog-category-form
+    data-selected-category={query.category}
+  >
+    {query.q && <input type="hidden" name="q" value={query.q} />}
+    {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
+    {query.context.from && <input type="hidden" name="from" value={query.context.from} />}
+
+    <Dropdown
+      id="catalog-category"
+      name="category"
+      label={translate(locale, 'catalog.categoryFilter')}
+      options={categories}
+      value={query.category}
+      placeholder={translate(locale, 'catalog.allCategories')}
+      hideLabel
+      class="min-w-0 flex-1"
+    />
+
+    <noscript>
+      <button
+        class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
+        type="submit"
+      >
+        {translate(locale, 'catalog.apply')}
+      </button>
+    </noscript>
+  </form>
+</div>
+
+<script>
+  /**
+   * Choosing a category IS the navigation — there is no "apply" to press.
+   * Bound to the native select, which the Dropdown primitive writes every
+   * choice through, so the enhanced listbox and the bare control behave alike.
+   *
+   * The value guard is not belt and braces. A browser restores form state when
+   * you come BACK to a page, and a restored value fires `change` like a click
+   * does — an unguarded submit would bounce the customer straight forward
+   * again, and the back button would stop working on this page.
+   */
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-catalog-category-form]')) {
+    const rendered = form.dataset.selectedCategory ?? '';
+    form.querySelector('select')?.addEventListener('change', (event) => {
+      if ((event.target as HTMLSelectElement).value === rendered) return;
+      form.submit();
+    });
+  }
+</script>

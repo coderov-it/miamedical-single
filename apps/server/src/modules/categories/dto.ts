@@ -24,6 +24,22 @@ export interface PublicCategorySpecDto {
   options: PublicSpecOptionDto[];
 }
 
+/**
+ * What a category tile says under its name. `fromPrice` is the cheapest
+ * headline figure inside the category — a rental's promo rate if one is typed,
+ * otherwise its cheapest package — and `pricingMode` says whether that figure
+ * takes a per-unit label. Both are null for a category whose products carry no
+ * price at all, which is when the tile falls back to `productCount`.
+ */
+export interface PublicCategorySummaryDto {
+  productCount: number;
+  /** A decimal string, like every other amount on the wire — never a JS number. */
+  fromPrice: string | null;
+  currency: string | null;
+  pricingMode: 'fixed' | 'rental' | null;
+  rentalUnit: 'hour' | 'day' | null;
+}
+
 export interface PublicCategoryDto {
   id: string;
   code: string;
@@ -32,6 +48,8 @@ export interface PublicCategoryDto {
   description: string | null;
   icon: string | null;
   position: number;
+  /** Storefront tile data. Zero products and no price on an empty category. */
+  summary: PublicCategorySummaryDto;
   specs: PublicCategorySpecDto[];
 }
 

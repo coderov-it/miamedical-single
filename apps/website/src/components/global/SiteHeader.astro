@@ -25,12 +25,19 @@ const text = (key: string, params?: Record<string, string | number>) =>
 const italianPath = languagePaths.it;
 const englishPath = languagePaths.en;
 
+/**
+ * Support is deliberately absent: it lives in the support launcher pinned to
+ * the bottom-right of every page (owner, 2026-08-30), which reaches a person
+ * faster than a nav item and does not spend a slot the catalogue needs. The
+ * footer still carries the link for anyone looking for it there.
+ */
 const nav = [
   { href: routePath(locale, 'home'), label: text('header.home'), exact: true },
-  { href: routePath(locale, 'catalog'), label: text('header.catalog'), exact: false },
+  { href: routePath(locale, 'catalog'), label: text('header.catalog'), exact: true },
+  { href: routePath(locale, 'catalogRental'), label: text('header.rental'), exact: false },
+  { href: routePath(locale, 'catalogSale'), label: text('header.sale'), exact: false },
   { href: routePath(locale, 'search'), label: text('header.browse'), exact: false },
   { href: routePath(locale, 'blog'), label: text('header.blog'), exact: false },
-  { href: routePath(locale, 'support'), label: text('header.support'), exact: false },
 ];
 
 const account = { href: routePath(locale, 'account'), label: text('header.account'), exact: false };

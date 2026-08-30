@@ -26,7 +26,7 @@ export type Category = InferResponseType<typeof api.api.categories.$get, 200>['d
 
 export type TermsDocument = InferResponseType<(typeof api.api.terms)[':slug']['$get'], 200>['data'];
 
-export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'title';
+export type ProductSort = 'newest' | 'popular' | 'price_asc' | 'price_desc' | 'title';
 
 export interface ProductQuery {
   page?: number;
@@ -35,6 +35,8 @@ export interface ProductQuery {
   q?: string;
   /** Category **code**, not slug — that is what the API filters on. */
   category?: string;
+  /** Pricing mode. What separates the rental catalogue from the sale one. */
+  mode?: 'rental' | 'fixed';
   sort?: ProductSort;
   featured?: boolean;
 }
@@ -54,6 +56,7 @@ export async function listProducts(
       sort: query.sort ?? 'newest',
       ...(query.q ? { q: query.q } : {}),
       ...(query.category ? { category: query.category } : {}),
+      ...(query.mode ? { mode: query.mode } : {}),
       ...(query.featured === undefined ? {} : { featured: query.featured ? 'true' : 'false' }),
     },
   });

@@ -190,6 +190,7 @@ function baseWhere(filters: ProductListFilters) {
         : undefined
       : eq(products.status, 'active'),
     filters.categoryId ? eq(products.categoryId, filters.categoryId) : undefined,
+    filters.mode ? eq(products.pricingMode, filters.mode) : undefined,
     filters.featured === undefined ? undefined : eq(products.isFeatured, filters.featured),
     filters.q ? searchClause(filters.locale, filters.q) : undefined,
   ].filter((clause) => clause !== undefined);
@@ -209,6 +210,13 @@ const sortablePrice = sql`COALESCE(
 
 function orderBy(filters: ProductListFilters) {
   switch (filters.sort) {
+    /**
+     * Demand first, then the newest — without the tiebreak a catalogue whose
+     * orders have not started yet is one big zero bucket in whatever order the
+     * heap hands back, and the page shuffles between requests.
+     */
+    case 'popular':
+      return [desc(products.orderCount), desc(products.createdAt)];
     case 'price_asc':
       return asc(sortablePrice);
     case 'price_desc':
