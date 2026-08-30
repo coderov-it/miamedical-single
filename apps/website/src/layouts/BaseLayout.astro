@@ -36,6 +36,12 @@ interface Props {
   jsonLd?: Record<string, unknown>[] | undefined;
   /** Hides the footer and bottom navigation for focused flows. */
   bare?: boolean | undefined;
+  /**
+   * The page ground. `muted` is the default and the norm: content is raised in
+   * white on a soft field. `white` is for the home page alone, whose editorial
+   * bands paint their own grounds — see `.ground-muted` in styles/app.css.
+   */
+  ground?: 'muted' | 'white' | undefined;
   /** Exact public URLs for the language selector on dynamic content. */
   languagePaths?: Partial<Record<SiteLocale, string>> | undefined;
 }
@@ -48,6 +54,7 @@ const {
   noindex = false,
   jsonLd = [],
   bare = false,
+  ground = 'muted',
   languagePaths: suppliedLanguagePaths,
 } = Astro.props;
 
@@ -87,17 +94,27 @@ const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.o
 
     {
       /*
-        ONE preload, and it is Inter: the editorial design system's face, which
-        every page paints first (the sticky header) and the home page uses
-        throughout. Instrument Sans still dresses the body of the not-yet-
-        restyled pages and loads with `font-display: swap` — a brief fallback
-        paint there beats a double preload on every first visit. See app.css
-        § fonts.
+        TWO preloads, for the two faces that paint above the fold on every page:
+        Inter dresses the sticky header and the whole home page, and Lexend every
+        heading — including the h1, which is the LCP element on most pages, and
+        the one place a late swap reflows something large.
+
+        Atkinson is deliberately NOT preloaded. It sets running prose, which
+        starts below the fold on most pages, and a third preload would spend the
+        connection's first round trip on the face that needs it least. It loads
+        with `font-display: swap` like the rest. See app.css § fonts.
       */
     }
     <link
       rel="preload"
       href="/fonts/inter-variable-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/lexend-variable-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin
@@ -112,7 +129,7 @@ const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.o
     <slot name="head" />
   </head>
 
-  <body>
+  <body class:list={[ground === 'muted' && 'ground-muted']}>
     <a class="skip-link" href="#contenuto">{translate(locale, 'layout.skip')}</a>
 
     <div class="flex min-h-screen flex-col bg-white">

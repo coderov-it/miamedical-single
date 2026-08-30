@@ -40,10 +40,18 @@ const { view } = Astro.props;
 const locale = localeFromLocals(Astro.locals);
 const query = readCatalogQuery(Astro.url, view);
 
-/* The whole catalogue with nothing asked of it is the directory. Anything that
-   narrows it — a category, a typed query — turns it into a listing, because a
-   grid of category tiles is no answer to "show me the wheelchairs". */
-const isDirectory = view === 'all' && !query.isNarrowed;
+/*
+ * The whole catalogue leads with the directory, then lists everything under it —
+ * the reference site's shape (owner, 2026-08-30). The tiles are the fast way in
+ * for someone who knows what kind of thing they want; the grid below is for
+ * someone who would rather just look.
+ *
+ * The tiles drop away once anything narrows the page — a category, a typed
+ * query — because a grid of category tiles is no answer to "show me the
+ * wheelchairs". They drop on page 2 as well: they are a landing device, and
+ * repeating them above every page of results is furniture, not navigation.
+ */
+const showDirectory = view === 'all' && !query.isNarrowed && query.page === 1;
 
 const mode = MODE_FOR_VIEW[view];
 const emptyResult = {
@@ -54,30 +62,30 @@ const emptyResult = {
 
 const [categories, result] = await Promise.all([
   safely(() => listCategories(locale), [], 'listCategories'),
-  isDirectory
-    ? Promise.resolve(emptyResult)
-    : safely(
-        () =>
-          listProducts(
-            {
-              page: query.page,
-              perPage: PER_PAGE,
-              sort: query.sort,
-              ...(query.q ? { q: query.q } : {}),
-              ...(query.category ? { category: query.category } : {}),
-              ...(mode ? { mode } : {}),
-            },
-            locale,
-          ),
-        emptyResult,
-        'listProducts',
+  safely(
+    () =>
+      listProducts(
+        {
+          page: query.page,
+          perPage: PER_PAGE,
+          sort: query.sort,
+          ...(query.q ? { q: query.q } : {}),
+          ...(query.category ? { category: query.category } : {}),
+          ...(mode ? { mode } : {}),
+        },
+        locale,
       ),
+    emptyResult,
+    'listProducts',
+  ),
 ]);
 
 const activeCategory = categories.find((candidate) => candidate.code === query.category);
 const copy = catalogCopy(view, activeCategory?.name ?? null, locale);
 const pills = buildPills(query, categories, locale);
-const tiles = isDirectory ? buildCategoryTiles(categories, { locale, context: query.context }) : [];
+const tiles = showDirectory
+  ? buildCategoryTiles(categories, { locale, context: query.context })
+  : [];
 
 const isFirstPage = result.meta.page <= 1;
 const title = isFirstPage
@@ -127,18 +135,15 @@ const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.
 
     <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
 
-    {
-      isDirectory ? (
-        <CategoryDirectory {tiles} />
-      ) : (
-        <CatalogListing
-          products={result.data}
-          meta={result.meta}
-          context={query.context}
-          pageHref={pageLink}
-        />
-      )
-    }
+    {showDirectory && <CategoryDirectory {tiles} />}
+
+    <CatalogListing
+      products={result.data}
+      meta={result.meta}
+      heading={showDirectory ? translate(locale, 'catalog.allProducts') : undefined}
+      context={query.context}
+      pageHref={pageLink}
+    />
 
     <section class="mt-section-sm mid:mt-section" aria-labelledby="help-title">
       <SectionHeading

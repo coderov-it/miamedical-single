@@ -18,6 +18,11 @@
  * Reads still go through `safely()` as the last line: a cold cache plus an API
  * that is down means sections with no data, and those hide themselves rather
  * than break the page.
+ *
+ * The only page on the site with a WHITE ground (`ground="white"`). Every other
+ * page raises white content on the muted field in `.ground-muted`; here the
+ * editorial bands paint their own grounds and stack against each other, so a
+ * muted field behind them would be one ground too many.
  */
 import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
 import HomeDelivery from '~/components/home/HomeDelivery.astro';
@@ -79,6 +84,7 @@ const jsonLd = [
   title="Noleggio carrozzine e ausili medicali a domicilio | Roma e Firenze — Mia Medical Italia"
   description="Noleggio carrozzine, letti ortopedici e ausili medicali con consegna a domicilio a Roma e Firenze in 24–48 ore. Prodotti sanificati e certificati, assistenza telefonica gratuita."
   jsonLd={jsonLd}
+  ground="white"
 >
   <HomeHero products={spotlight} />
   <HomeCategoryGrid categories={categoryCards} />

@@ -34,39 +34,67 @@
 /* ---------------------------------------------------------------- fonts --- */
 
 /*
- * ONE face for the whole storefront: Instrument Sans.
+ * THREE faces: Lexend for headings, Atkinson Hyperlegible for prose, Inter for
+ * the chrome and the cards.
  *
- * OWNER OVERRIDE, 2026-08-10. This replaces Lexend (display) and Atkinson
- * Hyperlegible (prose) site-wide. Both were picked for this audience on purpose
- * — Atkinson is the Braille Institute's low-vision face and this file used to
- * forbid substituting a generic sans — and the owner has overridden that in
- * favour of the reference designs' single face. It is recorded as a decision in
- * docs/code/storefront-design-system.md § Typography, not left to look like
- * drift. Restoring Atkinson is a one-line change here plus the BaseLayout
- * preload; the type-size floor and every contrast rule are UNAFFECTED and stay.
+ * REVERTED 2026-08-30, restoring the pairing this file shipped before the
+ * 2026-08-10 single-face override — it is what miamedicalitalia.it renders, and
+ * matching it is the owner's decision. Atkinson is the Braille Institute's
+ * low-vision face and was chosen for this audience on purpose; it also ships a
+ * real italic, so prose <em> stops being a synthesised oblique.
  *
- * Instrument Sans ships upright only, so prose <em> is synthesised oblique. That
- * is the one legibility cost of the override; there is no italic file to add
- * without a new licence-checked download.
+ * The revert cost nothing in markup: the four seams below (`--font-display`,
+ * `--font-body`, `--font-card`, `--font-pdp`) were kept pointing at one stack
+ * precisely so going back would be re-pointing them, and `instrument-sans-*`
+ * stays in public/fonts/ on the same terms.
+ *
+ * The type-size floor and every contrast rule are UNAFFECTED and stay.
  */
 @font-face {
-  font-family: 'Instrument Sans';
+  font-family: 'Lexend';
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/instrument-sans-variable-latin.woff2') format('woff2');
+  src: url('/fonts/lexend-variable-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-400-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-700-latin.woff2') format('woff2');
+}
+
+/* The real italic. Its absence was the one legibility cost the single-face
+   override carried, and it is what makes this a revert rather than a swap. */
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-400-italic-latin.woff2') format('woff2');
 }
 
 /*
- * Inter is the editorial design system's ONE face (the 2026-08 blueprint): the
- * site chrome and the home page select it directly, and it stays the tabular-
- * numeral fallback behind Instrument Sans everywhere else. The full 100–900
- * range is declared because the blueprint uses mid weights (550/650/750/780)
- * that a 400–800 clamp would still cover but the spec file declares in full.
+ * Inter is the editorial design system's face (the 2026-08 blueprint): the site
+ * chrome and the home page select it directly, and it dresses the product and
+ * blog cards — the one surface the locked card design names by hand. The full
+ * 100–900 range is declared because the blueprint uses mid weights
+ * (550/650/750/780) that a 400–800 clamp would still cover but the spec file
+ * declares in full.
  *
- * lexend-variable-latin.woff2 and the three atkinson-*.woff2 files are still in
- * public/fonts/ but no longer referenced or preloaded. They are kept so the
- * override above can be reverted without re-downloading them.
+ * instrument-sans-variable-latin.woff2 is still in public/fonts/ but no longer
+ * referenced or preloaded, on the same terms the Lexend and Atkinson files were
+ * kept under: so the 2026-08-10 override could be restored without a download.
  */
 @font-face {
   font-family: 'Inter';
@@ -81,17 +109,17 @@
 @theme {
   /* -- typefaces ---------------------------------------------------------- */
 
-  /* All four resolve to the same stack after the owner override above. The names
-     are KEPT rather than collapsed to one, because `font-display` appears in 40
-     places and `font-card` in 3: they are the seams that made a three-face site
-     possible and they are what a revert would re-point. Nothing in the markup
-     had to change to go single-face, and nothing would have to change to go
-     back. */
-  --font-ui: 'Instrument Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-ui);
-  --font-body: var(--font-ui);
+  /* Three faces, one seam each. `--font-ui` is the chrome and the controls;
+     `--font-display` every heading; `--font-body` running prose; `--font-card`
+     the product and blog cards, which the locked card design pins to Inter by
+     hand. `--font-pdp` follows the body. Re-pointing these four is the whole of
+     a face change — no markup moves, which is how the 2026-08-10 override went
+     in and how this revert came back out. */
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Lexend', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', 'Inter', system-ui, -apple-system, sans-serif;
   --font-card: var(--font-ui);
-  --font-pdp: var(--font-ui);
+  --font-pdp: var(--font-body);
 
   /* -- colour ------------------------------------------------------------- */
 
@@ -141,6 +169,13 @@
 
   /* Non-text, aria-hidden ONLY. Never put a readable word in this colour. */
   --color-ink-decorative: #929397;
+
+  /* The page ground on every surface but the home page: content is raised in
+     white on a muted field, so a card separates by its own fill rather than by
+     a hairline against white-on-white (owner, 2026-08-30, matching
+     miamedicalitalia.it). The home page keeps white — its editorial bands paint
+     their own grounds and stack against each other. */
+  --color-page: #f6f7fa;
 
   --color-tint: #f5f6f7; /* section bands, wells, soft fills */
   --color-tint-2: #f0f0f1; /* pressed / hover state of a tint fill */
@@ -322,12 +357,22 @@
   h5,
   h6 {
     font-family: var(--font-display);
-    font-weight: 600;
-    /* -0.028em was tuned for Lexend, whose counters are wide enough to take it.
-       Instrument Sans is a tighter face and went muddy at that value; -0.015em
-       is the reference designs' own tracking on their headings. */
-    letter-spacing: -0.015em;
+    /* 700, with the page title at 800 below — the reference site's weights
+       (owner, 2026-08-30). The editorial regions set their own and are
+       un-layered, so the home page's blueprint headings are unaffected. */
+    font-weight: 700;
+    /* Normal, which is what Lexend is drawn for and what the reference site sets
+       on every heading. This has been three values: -0.028em for Lexend, then
+       -0.015em when Instrument Sans went muddy at that, now none. The editorial
+       regions already forced `normal` through a `:where()` override, so this
+       also collapses a special case rather than adding one. */
+    letter-spacing: normal;
     text-wrap: balance;
+  }
+
+  /* The page title carries one step more than the sections under it. */
+  h1 {
+    font-weight: 800;
   }
 
   a {
@@ -748,22 +793,28 @@ legend {
 }
 
 /*
- * A breadcrumb link, painted at its text size and still 48×48 to the finger.
+ * Painted at its own size, still 48×48 to the finger.
  *
- * The same deal as `.target-48` above, in the one other place it was earning
- * its keep: a breadcrumb link used to carry `min-h-12`, so a single line of
- * 13.5px text reserved 72px of vertical space at the top of every catalogue and
- * product page (owner, 2026-08-30 — "this is amount of space just for a
- * breadcrumbs?"). Nothing about the target size is lost; only the paint shrinks.
+ * `.target-48` above is the same deal, scoped to the checkout and the cart. This
+ * is the storefront-wide version, for the two places outside those scopes where
+ * a 48px painted box deformed the layout: a breadcrumb link, where one line of
+ * 14px text reserved 72px at the top of every page (owner, 2026-08-30 — "this is
+ * amount of space just for a breadcrumbs?"), and the catalogue's filter pills,
+ * which the reference design paints at 44px.
  *
- * Un-layered so it outranks the `@layer base` reset without !important.
+ * Nothing about the target size is lost; only the paint shrinks. Un-layered so
+ * it outranks the `@layer base` reset without !important.
  */
-.crumb-link {
+/* No `min-height: 0` here, unlike `.target-48`. That reset exists to escape the
+   base 48px floor, which lands on buttons and selects — never on an `<a>`, which
+   is all this class dresses. Un-layered, it would instead have beaten the
+   element's own `min-h-*` utility and collapsed a 44px pill to its text height:
+   the same un-layered-over-layered trap documented on `.target-48` above. */
+.hit-48 {
   position: relative;
-  min-height: 0;
 }
 
-.crumb-link::after {
+.hit-48::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -870,7 +921,40 @@ legend {
 
    It is the component's own styling now, in Breadcrumbs.astro, so every page
    gets the same trail and the next one cannot miss it. The 48px target is
-   untouched; `.crumb-link` above is what stops it dictating the row height. */
+   untouched; `.hit-48` above is what stops it dictating the row height. */
+
+/* ------------------------------------------------------- page ground --- */
+
+/*
+ * Every page but the home page. `BaseLayout` sets it; the home page opts out
+ * because its editorial bands already paint their own grounds and would stack a
+ * muted field behind a muted band.
+ *
+ * The contract this creates: on a muted ground, CONTENT IS WHITE. A card, a
+ * panel or a well that stayed `--color-tint` here would sit 1% away from the
+ * ground and read as nothing at all.
+ */
+.ground-muted {
+  background: var(--color-page);
+}
+
+/*
+ * The contract, enforced rather than left to each page to remember: a SURFACE
+ * on the muted ground is white.
+ *
+ * `--color-tint` is #f5f6f7 and the ground is #f6f7fa — one percent apart, so a
+ * tint-filled panel here would not read as a panel at all. Promoting it to white
+ * with a hairline is what the reference does, and doing it once means a page
+ * that has not been revisited cannot end up with an invisible card.
+ *
+ * Deliberately scoped to `.rounded-card`, the SURFACE radius: a control keeps
+ * its tint well (`.field-control`, the dropdown trigger), because a control is
+ * meant to read as recessed and the reference recesses its search field too.
+ */
+.ground-muted .rounded-card.bg-tint {
+  background: #fff;
+  border: 1px solid var(--color-hair);
+}
 
 /* -------------------------------------------------- support launcher --- */
 
