@@ -514,6 +514,17 @@
    * MARKUP CONTRACT: the well is a `<label>` (or sits inside one), never a bare
    * `<div>`. See the hit-area block below for why.
    */
+  /*
+   * The compact well: 48px instead of 58px, for a control that sits in a row of
+   * 48px pills rather than in a form. A 58px field beside a 48px pill is what
+   * made the catalogue masthead read as two different rows stacked on one line
+   * (owner, 2026-08-30). Everything else about `.field-control` is unchanged —
+   * this only sets the height, so the well still behaves as the control.
+   */
+  .field-control.field-control-sm {
+    @apply min-h-12;
+  }
+
   .field-control {
     --field-pad: 1rem;
 
@@ -737,6 +748,34 @@ legend {
 }
 
 /*
+ * A breadcrumb link, painted at its text size and still 48×48 to the finger.
+ *
+ * The same deal as `.target-48` above, in the one other place it was earning
+ * its keep: a breadcrumb link used to carry `min-h-12`, so a single line of
+ * 13.5px text reserved 72px of vertical space at the top of every catalogue and
+ * product page (owner, 2026-08-30 — "this is amount of space just for a
+ * breadcrumbs?"). Nothing about the target size is lost; only the paint shrinks.
+ *
+ * Un-layered so it outranks the `@layer base` reset without !important.
+ */
+.crumb-link {
+  position: relative;
+  min-height: 0;
+}
+
+.crumb-link::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 48px;
+  min-height: 48px;
+  translate: -50% -50%;
+}
+
+/*
  * The step bodies are laid out with flex, so revealing one is `display: flex`,
  * never `block`. Preflight makes `[hidden]` `display: none !important`, which
  * wins over any utility class — so visibility here is the `hidden` ATTRIBUTE
@@ -823,34 +862,15 @@ legend {
   rotate: 180deg;
 }
 
-/* The site breadcrumb is a 16px/600 component because 16px is the storefront's
-   floor. The reference designs make it a quiet 13.5px trail, and it is the first
-   thing on the page, so the mismatch reads immediately. Un-layered, so it
-   outranks the `text-ui` utility on the <ol> without needing !important.
+/* The quiet breadcrumb trail used to live here, as an override scoped to `.pdp`,
+   `.checkout` and `.cart` — the three pages that had shipped when it was
+   written. The catalogue never got it, which is how it ended up with a 16px/600
+   trail whose current item was as bold as the h1 under it, saying the same word
+   twice (owner, 2026-08-30).
 
-   All THREE commerce scopes now, not just `.pdp`. The checkout was rendering a
-   16px trail above a 30px reference-design heading — the same mismatch this
-   block exists to fix, missed because the selector was written when the product
-   page was the only released page. The cart is the third.
-
-   The 48px target on each link STAYS — it is a project accessibility rule, not
-   a style — so this row is still taller than the reference's. Dropping the
-   nav's own padding buys back the 24px that is not load-bearing. */
-:is(.pdp, .checkout, .cart) nav[aria-label] {
-  padding-block: 0;
-}
-
-:is(.pdp, .checkout, .cart) nav[aria-label] ol {
-  font-size: 13.5px;
-}
-
-:is(.pdp, .checkout, .cart) nav[aria-label] :is(a, span) {
-  font-weight: 400;
-}
-
-:is(.pdp, .checkout, .cart) nav[aria-label] [aria-current] {
-  font-weight: 500;
-}
+   It is the component's own styling now, in Breadcrumbs.astro, so every page
+   gets the same trail and the next one cannot miss it. The 48px target is
+   untouched; `.crumb-link` above is what stops it dictating the row height. */
 
 /* -------------------------------------------------- support launcher --- */
 

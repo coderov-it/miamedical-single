@@ -16,7 +16,8 @@ interface Props {
   options: readonly DropdownOption[];
   value?: string | undefined;
   placeholder?: string | undefined;
-  variant?: 'default' | 'hero' | undefined;
+  /** `compact` is the 48px control, for a row of 48px pills rather than a form. */
+  variant?: 'default' | 'hero' | 'compact' | undefined;
   /**
    * Keep the label for assistive tech but take it off the screen. For a row
    * where the placeholder already names the control ("Tutte le categorie") and

@@ -3,6 +3,9 @@
  * The catalogue masthead: what this surface is, on the left, and one minimal
  * search field on the right.
  *
+ * Compact by design: the field, its button and the pills below all stand 48px,
+ * so the masthead reads as one band rather than a stack of mismatched rows.
+ *
  * The field does not search this page. It posts to the search route, which is
  * the site's one place for a typed query — sorting, the category filter and the
  * result count all live there, and duplicating a half of that here would give a
@@ -22,14 +25,14 @@ const { heading, lede, context = {} } = Astro.props;
 const locale = localeForRequest();
 ---
 
-<header class="mid:flex-row mid:items-end mid:justify-between flex flex-col gap-6 pt-2 pb-7">
+<header class="mid:flex-row mid:items-end mid:justify-between flex flex-col gap-4 pb-5">
   <div class="min-w-0">
-    <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{heading}</h1>
-    <p class="text-lead text-ink-2 mt-2.5 max-w-[52ch]">{lede}</p>
+    <h1 class="text-[clamp(1.75rem,2.8vw,2.25rem)]/[1.15]">{heading}</h1>
+    <p class="text-ui text-ink-2 mt-1.5 max-w-[52ch]">{lede}</p>
   </div>
 
   <form
-    class="mid:w-90 flex w-full flex-none gap-2.5"
+    class="mid:w-84 flex w-full flex-none gap-2"
     method="get"
     action={routePath(locale, 'search')}
     role="search"
@@ -42,7 +45,7 @@ const locale = localeForRequest();
       /* The well itself is the label, so the padding and the icon beside the
          caret focus the field instead of swallowing the click. */
     }
-    <label class="field-control min-w-0 flex-1" for="catalog-search">
+    <label class="field-control field-control-sm min-w-0 flex-1" for="catalog-search">
       <span class="sr-only">{translate(locale, 'catalog.searchLabel')}</span>
       <svg
         class="text-ink-2 size-4.75 flex-none"
@@ -66,7 +69,7 @@ const locale = localeForRequest();
     </label>
 
     <button
-      class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
+      class="rounded-field font-display text-ui hover:bg-accent-deep inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-4.5 font-semibold text-white"
       type="submit"
     >
       {translate(locale, 'catalog.searchAction')}

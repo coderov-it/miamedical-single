@@ -35,21 +35,31 @@ const jsonLd = {
 };
 ---
 
-<nav class="py-3" aria-label={translate(locale, 'breadcrumbs.label')}>
-  <ol class="text-ui flex flex-wrap items-center gap-2">
+<nav class="pb-4" aria-label={translate(locale, 'breadcrumbs.label')}>
+  {
+    /* 14px, regular, muted — a trail kept for structured data and orientation,
+       not a second heading. It used to render 16px/600 with a bold near-black
+       current item, so a category page opened with the same word twice: once in
+       the trail and once as the h1 under it (owner, 2026-08-30). */
+  }
+  <ol class="flex flex-wrap items-center gap-2 text-[14px]">
     {
       items.map((crumb, index) => (
         <li class="flex items-center gap-2">
           {/*
-            Breadcrumb links are navigation, not prose, so they take the full
-            48px target rather than the WCAG 2.5.8 inline exception.
+            Breadcrumb links are navigation, not prose, so they keep the full
+            48px target rather than the WCAG 2.5.8 inline exception. They no
+            longer PAINT at 48px, though: a 48px-tall box around 13.5px text
+            spent 72px of every page on one line of it (owner, 2026-08-30).
+            `.crumb-link` is the checkout's `.target-48` deal — the paint is the
+            text, the hit area is still 48×48. See app.css § target sizing.
           */}
           {crumb.href ? (
-            <a class="text-ink-2 inline-flex min-h-12 items-center font-semibold" href={crumb.href}>
+            <a class="crumb-link text-ink-2 inline-flex items-center font-normal" href={crumb.href}>
               {crumb.label}
             </a>
           ) : (
-            <span class="text-ink font-bold" aria-current="page">
+            <span class="text-ink-2 font-bold" aria-current="page">
               {crumb.label}
             </span>
           )}
