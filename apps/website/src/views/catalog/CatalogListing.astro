@@ -18,29 +18,45 @@ import type { BrowseContext } from '~/lib/routes';
 interface Props {
   products: ProductSummary[];
   meta: PageMeta;
+  /**
+   * A title for the grid, when it is not the only thing on the page. Without
+   * one the count line IS the heading — on a listing that is the whole page,
+   * "55 ausili disponibili" says everything a title would.
+   */
+  heading?: string | undefined;
   /** Carried, never a filter — handed on to every card so the funnel remembers. */
   context?: BrowseContext;
   pageHref: (page: number) => string;
 }
 
-const { products, meta, context = {}, pageHref } = Astro.props;
+const { products, meta, heading, context = {}, pageHref } = Astro.props;
 const locale = localeForRequest();
+
+const countLabel =
+  `${meta.total} ${translate(locale, meta.total === 1 ? 'catalog.available.one' : 'catalog.available.many')}` +
+  (meta.pageCount > 1
+    ? ` · ${translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}`
+    : '');
 
 const prevUrl = meta.page > 1 ? pageHref(meta.page - 1) : null;
 const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
 ---
 
 <section aria-labelledby="products-title">
-  <h2 id="products-title" class="font-display text-ui text-ink-2 mb-4 font-semibold">
-    {
-      `${meta.total} ${translate(locale, meta.total === 1 ? 'catalog.available.one' : 'catalog.available.many')}`
-    }
-    {
-      meta.pageCount > 1 && (
-        <span>{` · ${translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}`}</span>
-      )
-    }
-  </h2>
+  {
+    heading ? (
+      <Fragment>
+        <h2 id="products-title" class="text-h3">
+          {heading}
+        </h2>
+        <p class="font-display text-ui text-ink-2 mt-1 mb-4 font-semibold">{countLabel}</p>
+      </Fragment>
+    ) : (
+      <h2 id="products-title" class="font-display text-ui text-ink-2 mb-4 font-semibold">
+        {countLabel}
+      </h2>
+    )
+  }
 
   {
     products.length === 0 ? (

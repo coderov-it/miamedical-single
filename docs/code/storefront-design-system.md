@@ -155,42 +155,110 @@ Tailwind's defaults (`sm`, `md`, `lg`, `xl`) still exist and are occasionally
 right for a grid that has nothing to do with the page's own reflow, but prefer
 `mid` and `wide`.
 
-### Fonts — one face, by owner override (2026-08-10)
+### Fonts — three faces, reverted to match the reference site (2026-08-30)
 
-**Instrument Sans, everywhere.** `--font-display`, `--font-body`, `--font-card`
-and `--font-pdp` all resolve to it. The four token names are kept rather than
-collapsed into one, because `font-display` appears in 40 places and `font-card` in
-three: they are the seams that made a three-face site possible, and they are what a
-revert would re-point. Nothing in the markup changed to go single-face and nothing
-would have to change to go back.
+**Lexend for headings, Atkinson Hyperlegible for prose, Inter for the chrome and
+the cards.** `--font-display` → Lexend, `--font-body` and `--font-pdp` →
+Atkinson, `--font-ui` and `--font-card` → Inter.
 
-The base metric moved with the face: **16px/1.5**, which is the reference designs'
-own, and what the product page and checkout had already been released to. The two
-`.pdp` / `.checkout` blocks that used to re-declare it are gone, because the base
-now says it.
+This restores the pairing the storefront shipped before the 2026-08-10
+single-face override. The owner's reason is direct: `miamedicalitalia.it`, the
+site this storefront replaces, renders Lexend headings on Atkinson body, and the
+brief is to match its typography along with its sizing, spacing and layout.
 
-**This override replaced a deliberate accessibility choice, and that is recorded
-rather than quietly dropped.** The previous faces were **Lexend** for headings
-(designed to improve reading proficiency) and **Atkinson Hyperlegible** for body
-(designed by the Braille Institute to maximise character distinction for low-vision
-readers); this document forbade substituting a generic sans, for this audience. The
-owner overrode that in favour of the reference designs' single face. Costs, stated
-plainly:
+The revert cost nothing in markup, which is the whole point of keeping the four
+token names apart. `font-display` appears in 40 places and `font-card` in three;
+re-pointing the tokens is the entire face change, in both directions. All four
+font files stay in `public/fonts/`, and `instrument-sans-variable-latin.woff2`
+now sits there unreferenced on exactly the terms the Lexend and Atkinson files
+did — so this is reversible without a download too.
 
-- Atkinson's character-distinction advantage is gone for body prose.
-- Instrument Sans ships **upright only**, so prose `<em>` is synthesised oblique.
-  There is no italic file to add without a new licence-checked download.
-- Body type dropped from 18px to 16px.
+What came back with it:
 
-`lexend-variable-latin.woff2` and the three `atkinson-*.woff2` files are still in
-`public/fonts/`, unreferenced and unpreloaded, so the revert is one `@font-face`
-block plus the `BaseLayout` preload. **Inter** stays declared as the numeral
-fallback behind Instrument Sans — every price, quantity and total leans on
-`tabular-nums` — but is never selected on its own and is no longer preloaded.
+- Atkinson's character-distinction advantage for body prose. It is the Braille
+  Institute's low-vision face, chosen for this audience on purpose, and losing it
+  was the override's stated cost.
+- A **real italic**. Instrument Sans ships upright only, so prose `<em>` was a
+  synthesised oblique for three weeks.
 
-What the override did **not** touch, and what is still not up for taste: the 16px
-type floor, the two-paint focus ring, the 48px target rule, and every AAA contrast
-ratio.
+What did **not** come back: body type stays at **16px/1.5**, not the 18px of the
+pre-override era. That metric is the reference designs' own and the product page
+and checkout were released against it.
+
+**Heading weights follow the reference**: `h1` at 800, everything below it at
+700 (owner, 2026-08-30). The editorial regions set their own weights and are
+un-layered, so the home page's blueprint headings are unaffected.
+
+**Heading tracking is now `normal`.** It has been three values — `-0.028em` tuned
+for Lexend, then `-0.015em` when Instrument Sans went muddy at that, now none,
+which is what the reference site sets and what Lexend is drawn for. The editorial
+regions already forced `normal` through a `:where()` override, so this collapses
+a special case rather than adding one.
+
+**Two preloads**, Inter and Lexend: the sticky header paints Inter on every page
+and Lexend sets the `h1`, which is the LCP element on most of them. Atkinson is
+deliberately not preloaded — it sets running prose, which mostly starts below the
+fold, and a third preload would spend the first round trip on the face that needs
+it least.
+
+Not up for taste, and untouched by any of this: the 16px type floor, the two-paint
+focus ring, the 48px target rule, and every AAA contrast ratio.
+
+### White content on a muted ground, everywhere but home (2026-08-30)
+
+`--color-page` is `#f6f7fa`, and `BaseLayout` paints it via `.ground-muted` on
+every page except the home page, which passes `ground="white"` because its
+editorial bands already paint their own grounds and would stack ground on ground.
+
+The contract this creates is one line long and worth stating: **on the muted
+ground, a surface is white.** `--color-tint` is `#f5f6f7`, one percent from the
+field behind it, so a tint-filled panel there does not read as a panel at all.
+`.ground-muted .rounded-card.bg-tint` promotes those to white with a hairline —
+enforced once, in CSS, so a page nobody has revisited cannot end up with an
+invisible card.
+
+The promotion is scoped to `.rounded-card`, the SURFACE radius, and deliberately
+not to controls: `.field-control` and the dropdown trigger keep their tint wells,
+because a control is meant to read as recessed. The reference site recesses its
+search field the same way.
+
+### Catalogue geometry, measured from the reference site (2026-08-30)
+
+The numbers below are not taste; they were measured off `miamedicalitalia.it` at
+1128px and 820px, and the storefront was moved onto them.
+
+|                        | Reference            | Was                   | Now                       |
+| ---------------------- | -------------------- | --------------------- | ------------------------- |
+| Category tile          | 180px tall, 78px art | 230px tall, 136px art | 174px tall, 86px art      |
+| Tile columns at 1100px | 4                    | 2                     | 4                         |
+| Tile columns at 820px  | 4                    | 2                     | 4                         |
+| Filter pill            | 44px                 | 48px                  | 44px painted, 48px target |
+| `h1`                   | 34px                 | 36px                  | 34px                      |
+| Breadcrumb row         | —                    | 72px                  | 37px                      |
+
+Three of those needed a mechanism rather than a number:
+
+- **The tile grid goes four-up at 720px**, not 1020px. A 1000px window used to
+  paint two enormous tiles per row and push the rest of the catalogue off screen.
+- **A 44px pill still has a 48px target**, through `.hit-48` — the storefront-wide
+  version of the checkout's `.target-48`. Note it carries no `min-height: 0`,
+  unlike `.target-48`: that reset exists to escape the base 48px floor, which
+  lands on buttons and selects but never on an `<a>`. Un-layered, it would have
+  beaten the element's own `min-h-*` utility and collapsed the pill to its text
+  height — the same un-layered-over-layered trap `.target-48` documents.
+- **`.category-tile` is `height: 100%`**, so a two-line category name lifts its
+  whole row instead of leaving its neighbours short.
+
+### The header nav had a dead zone between 720px and 1100px
+
+`.head-nav` appeared only at `min-width: 1100px`, and `MobileNav`'s bottom bar
+disappears at 720px (`mid:hidden`). Every viewport between the two — a small
+laptop, a tablet in landscape, a half-screen window — rendered **no navigation at
+all**: six items and no way to reach any of them (owner, 2026-08-30, "no menus").
+
+The nav now appears from 720px, the exact width the bottom bar leaves off, with a
+tighter gap until 1100px. The head row already wraps by design, so it wraps rather
+than overflowing. The reference site keeps all six items down to 820px.
 
 ### The palette is neutral grey, by owner decision (2026-08-10)
 
@@ -490,7 +558,7 @@ Claude Design file — project "Product details page design", file
 `Product Details.dc.html` — and it was deliberately released from the design
 system above. What carries over from the site is the brand accent `#3846b1`
 (applied through the reference design's own `accentColor` prop), the ink/hair
-palette, and the focus-ring convention; everything else (Instrument Sans via
+palette, and the focus-ring convention; everything else (the type stack via
 `--font-pdp`, sub-16px secondary text, pill options, numbered sections) is the
 reference design's own language. Do not "correct" the PDP back toward Variante
 B tokens.
@@ -694,6 +762,10 @@ Three consequences worth knowing:
   `/cerca/`, and the catalogue masthead's field posts there. Sorting and a typed
   query exist once, in one place, rather than half of them on each surface
   answering slightly differently.
+- **`CatalogListing` takes an optional `heading`.** With one it renders a title
+  and drops the count to a line beneath; without one the count IS the heading,
+  because on a listing that is the whole page the count says everything a title
+  would.
 - **The pill row is static** — all, one pinned category, rental, sale
   (`PINNED_CATEGORY_CODE` in `lib/catalog-page.ts`). It is navigation, not a
   leaderboard: a pill that moved as the catalogue grew would change what the

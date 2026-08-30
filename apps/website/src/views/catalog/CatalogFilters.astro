@@ -25,8 +25,12 @@ interface Props {
 const { pills, categories, query } = Astro.props;
 const locale = localeForRequest();
 
+/* 44px painted, 48px to the finger — the reference's pill height, with the
+   target restored by `.hit-48` (app.css § target sizing). An unselected pill is
+   WHITE, not tinted: on the muted page ground white is what raises it, and a
+   tint fill there would sit a percent away from the field behind it. */
 const pillClass =
-  'inline-flex min-h-12 items-center rounded-full px-5 font-display text-ui font-semibold no-underline transition-colors duration-150';
+  'hit-48 inline-flex min-h-11 items-center rounded-full px-4.5 font-display text-ui font-semibold no-underline transition-colors duration-150';
 ---
 
 <div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-2.5 pb-6">
@@ -39,7 +43,7 @@ const pillClass =
               pillClass,
               pill.isActive
                 ? 'hover:bg-accent-deep bg-accent text-white'
-                : 'bg-tint text-ink hover:bg-tint-2',
+                : 'border-hair text-ink hover:bg-tint border bg-white',
             ]}
             href={pill.href}
             aria-current={pill.isActive ? 'true' : undefined}
