@@ -439,11 +439,24 @@
   background: var(--color-accent);
 }
 
+/*
+ * The three lines are hard `<br>`s, and the break points are part of the COPY —
+ * `home.hero.line1..3`, one set per language. They have to be: Italian's
+ * "Noleggia / l'ausilio giusto, / senza pensieri." is a rhythm, not a wrap, and
+ * a translation of the same length rarely breaks in the same places.
+ *
+ * `text-wrap: balance` is the safety net under that, and it is the reason a bad
+ * split degrades instead of breaking. English first shipped as "Rent" alone on
+ * line one with "the right medical aid," overflowing to a fourth — a stub line
+ * above a widow (owner, 2026-08-30). Balanced, a segment that no longer fits
+ * splits into two even lines rather than one full line and one orphan word.
+ */
 .hero-display {
   font-size: clamp(2.5rem, 4.6vw, 3.875rem);
   line-height: 1.04;
   font-weight: 550;
   letter-spacing: -0.032em;
+  text-wrap: balance;
 }
 
 /* The reference paints its last two lines in a second brand colour; this system

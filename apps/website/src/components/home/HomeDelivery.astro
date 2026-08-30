@@ -97,8 +97,8 @@ const text = (key: string) => translate(locale, key);
 
       <p class="note-bar">
         <span>
-          <strong>{text('home.delivery.areasStrong')}</strong>
-          {text('home.delivery.areasBefore')}
+          <strong>{text('home.delivery.areasStrong')}</strong>{' '}
+          {text('home.delivery.areasBefore')}{' '}
           <a href={`tel:${CONTACT.phoneE164}`}>{text('support.callUs')}</a>{
             text('support.deliveryAfter')
           }
