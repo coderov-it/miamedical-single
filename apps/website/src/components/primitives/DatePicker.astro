@@ -12,7 +12,8 @@ interface Props {
   min?: string | 'today' | undefined;
   max?: string | undefined;
   placeholder?: string | undefined;
-  variant?: 'default' | 'hero' | undefined;
+  /** `compact` is the 48px control, for a row that is not a full form. */
+  variant?: 'default' | 'hero' | 'compact' | undefined;
   class?: string | undefined;
   describedBy?: string | undefined;
 }

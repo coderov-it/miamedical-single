@@ -11,6 +11,9 @@
  * type: most requested first is a better first screen than a blank one, and it
  * makes the sort and the filter usable on their own.
  *
+ * Every control stands 48px, matching the catalogue masthead: the page is one
+ * compact band of controls above the results, not a form to fill in.
+ *
  * A native GET form, submitted by its button. The field does NOT autofocus: it
  * used to, when arriving here meant an empty page waiting for a query, but a
  * customer arriving from the home booking bar arrives WITH results — and
@@ -75,13 +78,13 @@ const title = query.q
 ---
 
 <BaseLayout {title} description={text('search.description')} noindex>
-  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5 pt-10">
+  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5 pt-6">
     <header>
-      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{text('search.title')}</h1>
-      <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">{text('search.lede')}</p>
+      <h1 class="text-[clamp(1.75rem,2.8vw,2.25rem)]/[1.15]">{text('search.title')}</h1>
+      <p class="text-ui text-ink-2 mt-1.5 max-w-[60ch]">{text('search.lede')}</p>
     </header>
 
-    <form class="mt-7" method="get" role="search" aria-label={text('search.title')}>
+    <form class="mt-5" method="get" role="search" aria-label={text('search.title')}>
       {
         /* `area` has no control here — it is the delivery zone the customer
            chose on the home page, carried so the product page can still print
@@ -89,12 +92,12 @@ const title = query.q
       }
       {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
 
-      <div class="flex flex-wrap gap-3.5">
+      <div class="flex flex-wrap gap-2.5">
         {
           /* The well itself is the label, so the padding and the icon beside
              the caret focus the field instead of swallowing the click. */
         }
-        <label class="field-control min-w-0 flex-1 basis-80" for="search-q">
+        <label class="field-control field-control-sm min-w-0 flex-1 basis-80" for="search-q">
           <span class="sr-only">{text('search.label')}</span>
           <svg
             class="text-ink-2 size-4.75 flex-none"
@@ -119,14 +122,14 @@ const title = query.q
         </label>
 
         <button
-          class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 min-w-38 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"
+          class="rounded-field font-display text-ui mid:w-auto mid:min-w-30 hover:bg-accent-deep inline-flex min-h-12 w-full flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
           type="submit"
         >
           {text('search.action')}
         </button>
       </div>
 
-      <div class="mid:grid-cols-3 mt-3.5 grid gap-3.5">
+      <div class="mid:grid-cols-3 mt-3 grid gap-2.5">
         <Dropdown
           id="search-category"
           name="category"
@@ -134,6 +137,7 @@ const title = query.q
           options={categoryOptions(categories)}
           value={query.category}
           placeholder={text('catalog.allCategories')}
+          variant="compact"
         />
 
         {
@@ -150,6 +154,7 @@ const title = query.q
           value={query.context.from ?? ''}
           min="today"
           placeholder={text('search.fromWhenPlaceholder')}
+          variant="compact"
         />
 
         <Dropdown
@@ -158,11 +163,12 @@ const title = query.q
           label={text('catalog.sort')}
           options={sortOptions(locale)}
           value={query.sort}
+          variant="compact"
         />
       </div>
     </form>
 
-    <div class="mt-10">
+    <div class="mt-8">
       <CatalogListing
         products={result.data}
         meta={result.meta}

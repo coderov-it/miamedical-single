@@ -276,7 +276,7 @@
   "search.title": "Cerca un ausilio",
   "search.titleFor": "Ricerca: {query}",
   "search.description": "Cerca fra gli ausili disponibili a noleggio e in vendita: carrozzine, letti ortopedici, deambulatori e molto altro.",
-  "search.lede": "Scrivi il nome del prodotto o a cosa ti serve, poi premi Cerca. Se non lo trovi, chiamaci: te lo troviamo noi.",
+  "search.lede": "Scrivi il nome del prodotto o a cosa ti serve.",
   "search.label": "Cerca un ausilio",
   "search.placeholder": "Es. carrozzina elettrica, letto, kinetec…",
   "search.action": "Cerca",
