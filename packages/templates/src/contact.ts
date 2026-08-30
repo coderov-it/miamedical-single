@@ -23,7 +23,7 @@ export const CONTACT = {
 
 /**
  * Bank transfer coordinates printed on the Italian rental contracts, exactly as
- * they appear on the official documents in `blank-contracts /`.
+ * they appear on the official documents in `docs/assets/blank-contracts/`.
  */
 export const BANK = {
   iban: 'IT80R0569603211000011773X40',
