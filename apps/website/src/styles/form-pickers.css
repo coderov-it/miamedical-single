@@ -276,8 +276,17 @@
  * and 48px is the project's target floor, so nothing is given up.
  */
 .core-dropdown-compact .core-dropdown-native,
-.core-dropdown-compact .core-dropdown-trigger {
+.core-dropdown-compact .core-dropdown-trigger,
+.core-date-picker-compact .core-date-native,
+.core-date-picker-compact .core-date-trigger {
   min-height: 48px;
+}
+
+/* The label rides down with the control it names. */
+.core-dropdown-compact .core-dropdown-label,
+.core-date-picker-compact .core-date-label {
+  margin-bottom: 6px;
+  font-size: 14px;
 }
 
 .core-dropdown-hero .core-dropdown-label,

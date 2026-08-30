@@ -276,7 +276,7 @@
   "search.title": "Search for an aid",
   "search.titleFor": "Search: {query}",
   "search.description": "Search the aids available to rent and to buy: wheelchairs, orthopaedic beds, walkers and much more.",
-  "search.lede": "Type the product name or what you need it for, then press Search. If you cannot find it, call us and we will find it for you.",
+  "search.lede": "Type the product name or what you need it for.",
   "search.label": "Search for an aid",
   "search.placeholder": "E.g. electric wheelchair, bed, kinetec…",
   "search.action": "Search",
