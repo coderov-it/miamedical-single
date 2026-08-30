@@ -42,9 +42,7 @@ const isWide = (question: Props['questions'][number]) =>
  * a customer was told a field was optional and then stopped by it.
  */
 const anyRequired = questions.some((question) => question.isRequired);
-const sectionHint = anyRequired
-  ? 'i campi contrassegnati sono obbligatori'
-  : 'facoltativo — ci aiuta a prepararci';
+const sectionHint = t(anyRequired ? 'pdp.requiredHint' : 'pdp.optionalHint');
 
 /** One cell: three subgrid rows, so prompt/control/hint align row-wide. */
 const cell = 'grid min-w-0 grid-rows-subgrid row-span-3 gap-1.75';
@@ -60,7 +58,7 @@ const segPill =
 ---
 
 <section>
-  <PdpSectionHead n="02" title="Per la consegna" hint={sectionHint} />
+  <PdpSectionHead n="02" title={t('pdp.deliverySection')} hint={sectionHint} />
 
   <div class="border-hair shadow-pdp-card rounded-[14px] border bg-white p-6">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-3.5 gap-y-4">

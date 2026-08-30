@@ -14,6 +14,7 @@
  * from there, so the page's appearance is never a copy of a variable that could
  * fall out of step with it.
  */
+import { documentLocale } from '../locale';
 
 export type StepIndex = 1 | 2 | 3;
 
@@ -135,7 +136,7 @@ export function createContext(): CheckoutContext | null {
        and a delivery fee must not be folded into one. Nothing is added to it now,
        so the total is the items figure whichever kind it is, and the qualifier
        rendered underneath still says which. */
-    money: new Intl.NumberFormat('it-IT', {
+    money: new Intl.NumberFormat(documentLocale(), {
       style: 'currency',
       currency: overview.dataset.currency || 'EUR',
     }),

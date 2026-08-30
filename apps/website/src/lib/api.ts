@@ -34,12 +34,22 @@ export const api = hc<AppType>(API_BASE, {
   init: { credentials: 'include' },
 });
 
+/** The BCP-47 tags the storefront formats in — `localeTag()`'s return type. */
+export type IntlLocale = 'it-IT' | 'en-GB';
+
 /**
  * `amount` is the wire's decimal string ("35.00") — exact all the way from
  * PostgreSQL `numeric`. Only Intl display parsing happens here, never
  * arithmetic.
+ *
+ * `locale` is REQUIRED, and every money helper below follows it. It used to
+ * default to `it-IT`, which meant a caller that simply forgot it printed
+ * "1843,00 €" — correct on the Italian storefront, and silently wrong on the
+ * English one, where it sat next to "€1,843.00" from a caller that remembered.
+ * A default that is right on the default locale hides the bug on exactly the
+ * pages nobody is looking at (owner, 2026-08-30).
  */
-export function formatMoney(amount: string, currency = 'EUR', locale = 'it-IT') {
+export function formatMoney(amount: string, currency: string, locale: IntlLocale) {
   return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(Number(amount));
 }
 
@@ -56,12 +66,6 @@ export interface Pricing {
 }
 
 /**
- * The storefront is Italian-only, so the content language is a constant rather
- * than a request value. It is passed explicitly all the same: the label catalog
- * takes a `LanguageCode`, so adding an English storefront later is a matter of
- * threading a value through, not of hunting down hardcoded Italian.
- */
-/**
  * "9,00 € al giorno" or "60,00 €" — an amount with the unit it is quoted in.
  *
  * `rentalUnit` is `null` for anything charged once, which is what makes this
@@ -71,8 +75,8 @@ export function formatRate(
   amount: string,
   currency: string,
   rentalUnit: 'hour' | 'day' | null,
-  locale = 'it-IT',
-  language: LanguageCode = 'it',
+  locale: IntlLocale,
+  language: LanguageCode,
 ): string {
   const money = formatMoney(amount, currency, locale);
   if (!rentalUnit) return money;
@@ -90,8 +94,8 @@ export function formatRate(
  */
 export function formatPricing(
   pricing: Pricing,
-  locale = 'it-IT',
-  language: LanguageCode = 'it',
+  locale: IntlLocale,
+  language: LanguageCode,
 ): string | null {
   if (pricing.mode !== 'rental') {
     return pricing.price === null ? null : formatMoney(pricing.price, pricing.currency, locale);
@@ -114,10 +118,10 @@ export function formatPricing(
  */
 export function cardPrice(
   pricing: Pricing,
-  locale: SiteLocale = 'it',
+  locale: SiteLocale,
 ): { prefix: string; text: string } | null {
   const prefix = pricing.mode === 'rental' ? (locale === 'it' ? 'da' : 'from') : '';
-  const intl = locale === 'it' ? 'it-IT' : 'en-GB';
+  const intl: IntlLocale = locale === 'it' ? 'it-IT' : 'en-GB';
   const text = formatPricing(pricing, intl, locale);
   if (text) return { prefix, text };
   if (pricing.fromPrice === null) return null;

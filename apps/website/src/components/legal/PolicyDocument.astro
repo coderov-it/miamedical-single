@@ -10,6 +10,8 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import type { TermsDocument } from '~/lib/catalog';
+import { localeForRequest, localeTag, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 import { CONTACT } from '~/lib/site';
 
 interface Props {
@@ -21,6 +23,9 @@ interface Props {
 }
 
 const { document, fallbackTitle, description } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
 
 const title = document?.title ?? fallbackTitle;
 
@@ -33,13 +38,17 @@ const body = document
   : '';
 
 const effectiveDate = document?.publishedAt
-  ? new Intl.DateTimeFormat('it-IT', { dateStyle: 'long' }).format(new Date(document.publishedAt))
+  ? new Intl.DateTimeFormat(localeTag(locale), { dateStyle: 'long' }).format(
+      new Date(document.publishedAt),
+    )
   : null;
 ---
 
 <BaseLayout title={`${title} | Mia Medical Italia`} {description}>
   <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: title }]} />
+    <Breadcrumbs
+      items={[{ label: text('home'), href: routePath(locale, 'home') }, { label: title }]}
+    />
 
     <article class="max-w-[78ch]">
       <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{title}</h1>
@@ -48,21 +57,18 @@ const effectiveDate = document?.publishedAt
         document ? (
           <Fragment>
             <p class="text-ui text-ink-2 mt-3 mb-6">
-              {`Versione ${document.version}`}
-              {effectiveDate && ` — in vigore dal ${effectiveDate}`}
+              {text('legal.version', { version: document.version })}
+              {effectiveDate && text('legal.effective', { date: effectiveDate })}
             </p>
             <div class="whitespace-pre-line">{body}</div>
           </Fragment>
         ) : (
           <div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
-            <p>
-              Questo documento è in aggiornamento e non è ancora pubblicato online. Possiamo
-              inviartelo subito per email o leggertelo al telefono.
-            </p>
-            <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
+            <p>{text('legal.unpublished')}</p>
+            <p class="text-ui text-ink-2">{CONTACT.hours[locale]}</p>
             <PhoneCta variant="primary" />
             <p>
-              Oppure scrivici a{' '}
+              {text('legal.orWriteTo')}{' '}
               <a class="text-accent underline" href={`mailto:${CONTACT.email}`}>
                 {CONTACT.email}
               </a>

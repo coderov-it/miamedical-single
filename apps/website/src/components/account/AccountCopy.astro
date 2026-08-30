@@ -1,0 +1,17 @@
+---
+/**
+ * Ships this page's browser-side copy and routes as JSON. See lib/account-page.ts.
+ */
+import { accountCopy } from '~/lib/account-page';
+import { localeForRequest } from '~/lib/i18n';
+
+interface Props {
+  /** Full message keys this page's script needs. See lib/account-page.ts. */
+  keys: readonly string[];
+}
+
+const { keys } = Astro.props;
+const copy = accountCopy(localeForRequest(), keys);
+---
+
+<script type="application/json" data-account-copy is:inline set:html={JSON.stringify(copy)} />

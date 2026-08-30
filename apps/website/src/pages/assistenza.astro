@@ -11,15 +11,21 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { SUPPORT_FAQ } from '~/lib/home-content';
-import { routes } from '~/lib/routes';
+import { supportFaq } from '~/lib/home-content';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 import { CONTACT, LOCATIONS, whatsappUrl } from '~/lib/site';
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+const faq = supportFaq(locale);
 
 const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: SUPPORT_FAQ.map((item) => ({
+    mainEntity: faq.map((item) => ({
       '@type': 'Question',
       name: item.question,
       acceptedAnswer: { '@type': 'Answer', text: item.answer },
@@ -29,48 +35,49 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title="Assistenza e contatti | Mia Medical Italia"
-  description="Parla con noi: numero verde gratuito, WhatsApp ed email. Ti aiutiamo a scegliere l'ausilio giusto e possiamo fare l'ordine per te al telefono."
+  title={text('support.metaTitle')}
+  description={text('support.metaDescription')}
   {jsonLd}
 >
   <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Assistenza' }]} />
+    <Breadcrumbs
+      items={[
+        { label: text('home'), href: routePath(locale, 'home') },
+        { label: text('support.launcher.label') },
+      ]}
+    />
 
     <header class="pt-2 pb-10">
-      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">Parla con noi</h1>
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{text('support.title')}</h1>
       <p class="text-lead text-ink-2 mt-3 max-w-[60ch]">
-        Ti aiutiamo a scegliere e possiamo fare l'ordine per te, al telefono. {CONTACT.hours.it}.
+        {text('support.lede', { hours: CONTACT.hours[locale] })}
       </p>
     </header>
 
     <ul class="wide:grid-cols-3 grid gap-4.5">
       <li class="rounded-card bg-tint flex flex-col items-start gap-3.5 p-5.5">
-        <h2 class="text-lead">Numero verde</h2>
-        <p class="text-ui text-ink-2 flex-1">
-          Gratuito da fisso e da cellulare. È il modo più rapido.
-        </p>
-        <PhoneCta variant="primary" srHint="per assistenza sulla scelta di un ausilio" />
+        <h2 class="text-lead">{text('support.freephone')}</h2>
+        <p class="text-ui text-ink-2 flex-1">{text('support.freephoneDetail')}</p>
+        <PhoneCta variant="primary" srHint={text('support.phoneHint')} />
       </li>
 
       <li class="rounded-card border-hair flex flex-col items-start gap-3.5 border bg-white p-5.5">
         <h2 class="text-lead">WhatsApp</h2>
-        <p class="text-ui text-ink-2 flex-1">
-          Scrivici: puoi mandarci anche una foto dello spazio o della prescrizione.
-        </p>
+        <p class="text-ui text-ink-2 flex-1">{text('support.whatsappDetail')}</p>
         <a class="btn btn-soft" href={whatsappUrl()} target="_blank" rel="noopener">
           {CONTACT.whatsappDisplay}
         </a>
       </li>
 
       <li class="rounded-card border-hair flex flex-col items-start gap-3.5 border bg-white p-5.5">
-        <h2 class="text-lead">Email</h2>
-        <p class="text-ui text-ink-2 flex-1">Per preventivi, fatturazione e documenti.</p>
+        <h2 class="text-lead">{text('email')}</h2>
+        <p class="text-ui text-ink-2 flex-1">{text('support.emailDetail')}</p>
         <a class="btn btn-soft" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
       </li>
     </ul>
 
     <section class="pt-section-sm mid:pt-section" aria-labelledby="support-locations-title">
-      <SectionHeading id="support-locations" heading="Le nostre sedi" />
+      <SectionHeading id="support-locations" heading={text('support.locations')} />
 
       <div class="rounded-card bg-tint overflow-hidden">
         <ul class="mid:grid-cols-2 grid">
@@ -90,20 +97,19 @@ const jsonLd = [
           }
         </ul>
         <p class="border-hair text-ui text-ink-2 mid:px-7 border-t bg-white px-5 py-4.5">
-          Consegniamo a domicilio a Roma e Firenze e nelle rispettive province. Sei in un'altra
-          zona?{' '}
-          <a class="text-accent" href={`tel:${CONTACT.phoneE164}`}>Chiamaci</a>: spesso riusciamo a
-          organizzare la consegna.
+          {text('support.deliveryBefore')}{' '}
+          <a class="text-accent" href={`tel:${CONTACT.phoneE164}`}>{text('support.callUs')}</a>
+          {text('support.deliveryAfter')}
         </p>
       </div>
     </section>
 
     <section class="pt-section-sm mid:pt-section" aria-labelledby="support-faq-title">
-      <SectionHeading id="support-faq" heading="Domande frequenti" />
+      <SectionHeading id="support-faq" heading={text('support.launcher.page')} />
 
       <ul class="grid gap-2.5">
         {
-          SUPPORT_FAQ.map((item, index) => (
+          faq.map((item, index) => (
             <li>
               <details
                 class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
@@ -135,10 +141,10 @@ const jsonLd = [
     <section class="pt-section-sm mid:pt-section" aria-labelledby="support-cta-title">
       <SectionHeading
         id="support-cta"
-        heading="Sai già cosa ti serve?"
-        lede="Sfoglia il catalogo e invia la richiesta: nessun pagamento online."
+        heading={text('support.ctaHeading')}
+        lede={text('support.ctaLede')}
       />
-      <a class="btn btn-primary" href={routes.catalog}>Vai al catalogo</a>
+      <a class="btn btn-primary" href={routePath(locale, 'catalog')}>{text('goToCatalog')}</a>
     </section>
   </div>
 </BaseLayout>

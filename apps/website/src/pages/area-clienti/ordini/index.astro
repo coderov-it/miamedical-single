@@ -7,28 +7,48 @@
  * the session is a cookie on the API's origin and this app is a different host —
  * the same pattern carrello and checkout already use.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { routes } from '~/lib/routes';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 
 export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+/** What the script below writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.orders.itemOne',
+  'account.orders.itemMany',
+  'account.orders.verifyPrompt',
+  'account.orders.confirm',
+  'account.orders.reject',
+  'account.retry',
+] as const;
 ---
 
-<BaseLayout title="I miei ordini | Mia Medical Italia" description="Segui i tuoi ordini." noindex>
+<BaseLayout
+  title={text('account.orders.metaTitle')}
+  description={text('account.orders.metaDescription')}
+  noindex
+>
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-3xl px-5 py-10">
     <nav class="mb-6 text-sm text-neutral-500">
-      <a class="underline" href={routes.account}>Area clienti</a>
+      <a class="underline" href={routePath(locale, 'account')}>{text('account.title')}</a>
       <span class="mx-1.5">/</span>
-      <span>Ordini</span>
+      <span>{text('account.orders.breadcrumb')}</span>
     </nav>
 
-    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">I miei ordini</h1>
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">{text('account.myOrders')}</h1>
 
-    <p data-loading class="mt-6 text-[15px] text-neutral-600">Caricamento…</p>
+    <p data-loading class="mt-6 text-[15px] text-neutral-600">{text('account.loading')}</p>
 
     <div data-empty hidden class="bg-tint mt-8 rounded-xl px-5 py-8 text-center">
-      <p class="text-[15px] text-neutral-600">Non hai ancora ordini collegati a questo account.</p>
-      <a class="mt-4 inline-block text-[15px] underline" href={routes.catalog}>
-        Sfoglia il catalogo
+      <p class="text-[15px] text-neutral-600">{text('account.orders.empty')}</p>
+      <a class="mt-4 inline-block text-[15px] underline" href={routePath(locale, 'catalog')}>
+        {text('account.orders.browse')}
       </a>
     </div>
 
@@ -39,7 +59,6 @@ export const prerender = false;
 <script>
   import {
     ApiError,
-    ORDER_STATUS_LABELS,
     confirmOrder,
     formatDate,
     formatMoney,
@@ -48,7 +67,9 @@ export const prerender = false;
     rejectOrder,
     type CustomerOrderSummary,
   } from '~/lib/customer-session';
-  import { accountOrderPath, routes } from '~/lib/routes';
+  import { fill, readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
 
   const loading = document.querySelector<HTMLElement>('[data-loading]');
   const empty = document.querySelector<HTMLElement>('[data-empty]');
@@ -72,21 +93,28 @@ export const prerender = false;
     return `
       <li class="border-hair rounded-xl border p-4" data-order="${number}">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
-          <a class="font-medium underline" href="${accountOrderPath(order.number)}">${number}</a>
+          <a class="font-medium underline" href="${fill(copy.routes.orderDetail, { number: order.number })}">${number}</a>
           <span class="tabular-nums">${formatMoney(order.total, order.currency)}</span>
         </div>
         <p class="mt-1 text-sm text-neutral-600">
-          ${escapeHtml(ORDER_STATUS_LABELS[order.status] ?? order.status)}
-          · ${order.itemCount} ${order.itemCount === 1 ? 'articolo' : 'articoli'}
+          ${escapeHtml(copy.status[order.status] ?? order.status)}
+          · ${escapeHtml(
+            fill(
+              copy.text[
+                order.itemCount === 1 ? 'account.orders.itemOne' : 'account.orders.itemMany'
+              ] ?? '',
+              { count: order.itemCount },
+            ),
+          )}
           · ${formatDate(order.placedAt)}
         </p>
         ${
           unverified
             ? `<div class="bg-tint mt-3 rounded-lg px-3 py-3" data-prompt>
-                 <p class="text-sm">Questo ordine è stato collegato al tuo indirizzo email. Lo hai effettuato tu?</p>
+                 <p class="text-sm">${escapeHtml(copy.text['account.orders.verifyPrompt'] ?? '')}</p>
                  <div class="mt-2.5 flex flex-wrap gap-2">
-                   <button class="bg-accent hover:bg-accent-deep rounded-lg px-3 py-1.5 text-sm font-medium text-white" data-confirm>Sì, confermo</button>
-                   <button class="bg-tint-2 hover:bg-hair rounded-lg px-3 py-1.5 text-sm font-medium" data-reject>No, non è mio</button>
+                   <button class="bg-accent hover:bg-accent-deep rounded-lg px-3 py-1.5 text-sm font-medium text-white" data-confirm>${escapeHtml(copy.text['account.orders.confirm'] ?? '')}</button>
+                   <button class="bg-tint-2 hover:bg-hair rounded-lg px-3 py-1.5 text-sm font-medium" data-reject>${escapeHtml(copy.text['account.orders.reject'] ?? '')}</button>
                  </div>
                  <p class="mt-2 text-xs text-neutral-500" data-prompt-note hidden></p>
                </div>`
@@ -142,7 +170,7 @@ export const prerender = false;
           if (note) {
             note.hidden = false;
             note.textContent =
-              error instanceof ApiError ? error.message : 'Riprova tra un momento.';
+              error instanceof ApiError ? error.message : (copy.text['account.retry'] ?? '');
           }
           item.querySelectorAll('button').forEach((b) => (b.disabled = false));
         }
@@ -155,7 +183,7 @@ export const prerender = false;
   const customer = await loadCustomer();
   if (!customer) {
     const next = encodeURIComponent(window.location.pathname);
-    window.location.replace(`${routes.login}?next=${next}`);
+    window.location.replace(`${copy.routes.login}?next=${next}`);
   } else {
     await render();
   }

@@ -16,6 +16,7 @@
 import { MAX_ADDON_QUANTITY } from '@mia/pricing';
 import { formatRate, mediaUrl } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
+import { localeForRequest, localeTag, translate } from '~/lib/i18n';
 import { ADDON_QUANTITY_PREFIX, FIELD } from '~/lib/request-config';
 import PdpSectionHead from './PdpSectionHead.astro';
 
@@ -24,6 +25,8 @@ interface Props {
 }
 
 const { addons } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
 
 /** More than one allowed — see `maxQuantity` above. `null` means no cap set. */
 const allowsMultiple = (addon: Props['addons'][number]) =>
@@ -33,11 +36,13 @@ const allowsMultiple = (addon: Props['addons'][number]) =>
    package's duration at pricing time, so the label has to carry the unit. */
 const priceLabel = (addon: Props['addons'][number]) =>
   addon.pricing.price === '0.00'
-    ? 'Incluso'
+    ? text('included')
     : formatRate(
         addon.pricing.price,
         addon.pricing.currency,
         addon.pricing.mode === 'rental' ? addon.pricing.rentalUnit : null,
+        localeTag(locale),
+        locale,
       );
 
 const card =
@@ -50,7 +55,7 @@ const card =
 ---
 
 <section>
-  <PdpSectionHead n="01" title="Extra" hint="facoltativi, si aggiungono al totale" />
+  <PdpSectionHead n="01" title={text('pdp.extras')} hint={text('pdp.extrasHint')} />
 
   <div class="grid [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))] gap-2.5">
     {
@@ -114,7 +119,7 @@ const card =
               data-addon-qty-row={addon.id}
               hidden
             >
-              <span class="text-ink-2">Quantità</span>
+              <span class="text-ink-2">{text('quantity')}</span>
               <span class="bg-tint flex items-center overflow-clip rounded-[10px]">
                 <button
                   type="button"
@@ -132,7 +137,7 @@ const card =
                   min="1"
                   max={addon.maxQuantity ?? MAX_ADDON_QUANTITY}
                   inputmode="numeric"
-                  aria-label={`Quantità di ${addon.name}`}
+                  aria-label={translate(locale, 'quantityOf', { title: addon.name })}
                   data-qty-input
                   data-est-addon-qty={addon.id}
                 />

@@ -7,10 +7,27 @@
  * to whoever typed it — so the field is absent from the form rather than disabled,
  * which would only invite the question.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { routes } from '~/lib/routes';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 
 export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+/** What the script below writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.changePassword',
+  'account.changePasswordNote',
+  'account.setPassword',
+  'account.setPasswordNote',
+  'account.profileSaved',
+  'account.passwordSaved',
+  'account.passwordTooShort',
+  'account.genericError',
+] as const;
 
 const field =
   'w-full rounded-lg border border-transparent bg-tint px-3 py-2.5 text-[15px] focus:border-accent';
@@ -19,28 +36,32 @@ const primary =
   'rounded-lg bg-accent px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-accent-deep disabled:opacity-50';
 ---
 
-<BaseLayout title="Area clienti | Mia Medical Italia" description="Il tuo account." noindex>
+<BaseLayout title={text('account.metaTitle')} description={text('account.metaDescription')} noindex>
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-2xl px-5 py-10">
     <div class="flex flex-wrap items-baseline justify-between gap-3">
-      <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">Area clienti</h1>
-      <button class="text-sm text-neutral-600 underline" type="button" data-logout>Esci</button>
+      <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">{text('account.title')}</h1>
+      <button class="text-sm text-neutral-600 underline" type="button" data-logout>
+        {text('account.signOut')}
+      </button>
     </div>
 
-    <p data-loading class="mt-6 text-[15px] text-neutral-600">Caricamento…</p>
+    <p data-loading class="mt-6 text-[15px] text-neutral-600">{text('account.loading')}</p>
 
     <div data-content hidden>
       <a
         class="bg-tint hover:bg-tint-2 mt-6 flex items-center justify-between rounded-xl px-4 py-4 transition"
-        href={routes.accountOrders}
+        href={routePath(locale, 'accountOrders')}
       >
-        <span class="font-medium">I miei ordini</span>
+        <span class="font-medium">{text('account.myOrders')}</span>
         <span aria-hidden="true">→</span>
       </a>
 
       <section class="mt-8">
-        <h2 class="text-base font-medium">I tuoi dati</h2>
+        <h2 class="text-base font-medium">{text('yourDetails')}</h2>
         <p class="mt-1 text-sm text-neutral-600">
-          Email: <span data-email class="font-medium text-neutral-900"></span>
+          {text('account.emailLabel')}
+          <span data-email class="font-medium text-neutral-900"></span>
         </p>
 
         <div data-feedback hidden class="bg-tint mt-4 rounded-lg px-4 py-3 text-sm"></div>
@@ -48,7 +69,7 @@ const primary =
         <form data-profile-form class="mt-4 space-y-4" novalidate>
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label class={label} for="firstName">Nome</label>
+              <label class={label} for="firstName">{text('firstName')}</label>
               <input
                 class={field}
                 id="firstName"
@@ -58,7 +79,7 @@ const primary =
               />
             </div>
             <div>
-              <label class={label} for="lastName">Cognome</label>
+              <label class={label} for="lastName">{text('lastName')}</label>
               <input
                 class={field}
                 id="lastName"
@@ -69,15 +90,15 @@ const primary =
             </div>
           </div>
           <div>
-            <label class={label} for="phone">Numero WhatsApp</label>
+            <label class={label} for="phone">{text('account.whatsappNumber')}</label>
             <input class={field} id="phone" name="phone" type="tel" autocomplete="tel" required />
           </div>
-          <button class={primary} type="submit" data-profile-submit>Salva</button>
+          <button class={primary} type="submit" data-profile-submit>{text('account.save')}</button>
         </form>
       </section>
 
       <section class="border-hair mt-10 border-t pt-8">
-        <h2 class="text-base font-medium" data-password-heading>Password</h2>
+        <h2 class="text-base font-medium" data-password-heading>{text('account.password')}</h2>
         <p class="mt-1 text-sm text-neutral-600" data-password-note></p>
 
         <div data-password-feedback hidden class="bg-tint mt-4 rounded-lg px-4 py-3 text-sm"></div>
@@ -86,7 +107,7 @@ const primary =
           <!-- Only rendered when a password already exists: an account that has
                never had one cannot be asked to prove it. -->
           <div data-current-wrap hidden>
-            <label class={label} for="currentPassword">Password attuale</label>
+            <label class={label} for="currentPassword">{text('account.currentPassword')}</label>
             <input
               class={field}
               id="currentPassword"
@@ -95,7 +116,7 @@ const primary =
             />
           </div>
           <div>
-            <label class={label} for="newPassword">Nuova password</label>
+            <label class={label} for="newPassword">{text('account.newPassword')}</label>
             <input
               class={field}
               id="newPassword"
@@ -103,9 +124,11 @@ const primary =
               autocomplete="new-password"
               minlength="12"
             />
-            <p class="mt-1.5 text-xs text-neutral-500">Almeno 12 caratteri.</p>
+            <p class="mt-1.5 text-xs text-neutral-500">{text('account.minChars')}</p>
           </div>
-          <button class={primary} type="submit" data-password-submit>Salva password</button>
+          <button class={primary} type="submit" data-password-submit>
+            {text('account.savePassword')}
+          </button>
         </form>
       </section>
     </div>
@@ -121,7 +144,9 @@ const primary =
     updateProfile,
     type Customer,
   } from '~/lib/customer-session';
-  import { routes } from '~/lib/routes';
+  import { readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
 
   const loading = document.querySelector<HTMLElement>('[data-loading]');
   const content = document.querySelector<HTMLElement>('[data-content]');
@@ -154,15 +179,12 @@ const primary =
     const currentWrap = document.querySelector<HTMLElement>('[data-current-wrap]');
 
     if (customer.hasPassword) {
-      if (heading) heading.textContent = 'Cambia password';
-      if (note)
-        note.textContent = 'Cambiando la password gli altri dispositivi verranno disconnessi.';
+      if (heading) heading.textContent = copy.text['account.changePassword'] ?? '';
+      if (note) note.textContent = copy.text['account.changePasswordNote'] ?? '';
       if (currentWrap) currentWrap.hidden = false;
     } else {
-      if (heading) heading.textContent = 'Imposta una password';
-      if (note)
-        note.textContent =
-          'Non hai ancora una password: accedi con il link via email. Impostandola potrai accedere anche con email e password.';
+      if (heading) heading.textContent = copy.text['account.setPassword'] ?? '';
+      if (note) note.textContent = copy.text['account.setPasswordNote'] ?? '';
       if (currentWrap) currentWrap.hidden = true;
     }
   }
@@ -170,7 +192,9 @@ const primary =
   const customer = await loadCustomer();
 
   if (!customer) {
-    window.location.replace(`${routes.login}?next=${encodeURIComponent(window.location.pathname)}`);
+    window.location.replace(
+      `${copy.routes.login}?next=${encodeURIComponent(window.location.pathname)}`,
+    );
   } else {
     if (loading) loading.hidden = true;
     if (content) content.hidden = false;
@@ -192,11 +216,11 @@ const primary =
           phone: value('#phone'),
         });
         fill(updated);
-        say(feedback, 'Dati aggiornati.');
+        say(feedback, copy.text['account.profileSaved'] ?? '');
       } catch (error) {
         say(
           feedback,
-          error instanceof ApiError ? error.message : 'Qualcosa è andato storto.',
+          error instanceof ApiError ? error.message : (copy.text['account.genericError'] ?? ''),
           true,
         );
       } finally {
@@ -212,7 +236,7 @@ const primary =
     const next = document.querySelector<HTMLInputElement>('#newPassword')?.value ?? '';
 
     if (next.length < 12) {
-      say(passwordFeedback, 'La password deve avere almeno 12 caratteri.', true);
+      say(passwordFeedback, copy.text['account.passwordTooShort'] ?? '', true);
       return;
     }
 
@@ -220,7 +244,7 @@ const primary =
       if (button) button.disabled = true;
       try {
         await setPassword({ ...(current ? { currentPassword: current } : {}), newPassword: next });
-        say(passwordFeedback, 'Password aggiornata.');
+        say(passwordFeedback, copy.text['account.passwordSaved'] ?? '');
         // The session deliberately survives a password change — see the server's
         // customer-auth service — so there is nothing to redirect to.
         const refreshed = await loadCustomer();
@@ -232,7 +256,7 @@ const primary =
       } catch (error) {
         say(
           passwordFeedback,
-          error instanceof ApiError ? error.message : 'Qualcosa è andato storto.',
+          error instanceof ApiError ? error.message : (copy.text['account.genericError'] ?? ''),
           true,
         );
       } finally {
@@ -244,7 +268,7 @@ const primary =
   document.querySelector('[data-logout]')?.addEventListener('click', () => {
     void (async () => {
       await logout().catch(() => undefined);
-      window.location.assign(routes.home);
+      window.location.assign(copy.routes.home);
     })();
   });
 </script>

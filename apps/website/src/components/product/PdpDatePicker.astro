@@ -28,6 +28,7 @@
  * package cannot be ordered without one, and the calendar has no cell for it.
  */
 import { PDP_FIELD, PDP_LABEL } from '~/components/product/pdp-chooser.ts';
+import { localeForRequest, localeTag, translate } from '~/lib/i18n';
 import { FIELD } from '~/lib/request-config';
 
 interface Props {
@@ -51,6 +52,19 @@ interface Props {
 }
 
 const { today, hasHourPackage, deliveryCity = null, startDate = '' } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+
+/*
+ * Weekday initials for the custom grid, from Intl rather than a hardcoded
+ * "lun mar mer…". 2024-01-01 is a Monday, so seven days from it walk a
+ * Monday-first week — which is the order the grid below renders.
+ */
+const weekdays = Array.from({ length: 7 }, (_, index) =>
+  new Intl.DateTimeFormat(localeTag(locale), { weekday: 'short' }).format(
+    new Date(Date.UTC(2024, 0, 1 + index)),
+  ),
+);
 
 /* The native inputs wear the shared field directly — a date input draws its own
    calendar affordance at the right edge, which is what the enhanced trigger
@@ -93,7 +107,7 @@ const navButton =
 >
   {/* ---- no-JavaScript control, and the source of truth in both modes ---- */}
   <div class="flex flex-col gap-1.5" data-date-native>
-    <label class={PDP_LABEL} for="pdp-start-date">Scegli la data di inizio</label>
+    <label class={PDP_LABEL} for="pdp-start-date">{text('pdp.startDate')}</label>
     <input
       class={nativeField}
       id="pdp-start-date"
@@ -111,7 +125,7 @@ const navButton =
       of the package, so it belongs to the overview, not to this field. */
   }
   <div class="flex flex-col gap-1.5" hidden data-cal-block>
-    <span class={PDP_LABEL} id="pdp-cal-label">Scegli la data di inizio</span>
+    <span class={PDP_LABEL} id="pdp-cal-label">{text('pdp.startDate')}</span>
     <button
       class={`${PDP_FIELD} cursor-pointer aria-expanded:border-accent focus-visible:border-accent`}
       type="button"
@@ -119,7 +133,9 @@ const navButton =
       aria-labelledby="pdp-cal-label pdp-cal-value"
       data-cal-trigger
     >
-      <span class="min-w-0 flex-1 truncate" id="pdp-cal-value" data-cal-start>Scegli la data</span>
+      <span class="min-w-0 flex-1 truncate" id="pdp-cal-value" data-cal-start>
+        {text('pdp.chooseDate')}
+      </span>
       {/* The affordance the native date input draws for itself. */}
       <svg
         class="text-ink-2 size-4.5 shrink-0"
@@ -216,30 +232,37 @@ const navButton =
     data-cal-pop
   >
     <div class="flex items-center justify-between gap-2">
-      <button class={navButton} type="button" data-cal-prev aria-label="Mese precedente">‹</button>
+      <button
+        class={navButton}
+        type="button"
+        data-cal-prev
+        aria-label={text('picker.previousMonth')}
+      >
+        ‹
+      </button>
       <strong class="text-[14px]" aria-live="polite" data-cal-title></strong>
-      <button class={navButton} type="button" data-cal-next aria-label="Mese successivo">›</button>
+      <button class={navButton} type="button" data-cal-next aria-label={text('picker.nextMonth')}>
+        ›
+      </button>
     </div>
 
     <div
       class="text-ink-2 grid grid-cols-7 gap-0.5 text-center text-[11px] font-bold"
       aria-hidden="true"
     >
-      <span>lun</span><span>mar</span><span>mer</span><span>gio</span><span>ven</span><span
-        >sab</span
-      ><span>dom</span>
+      {weekdays.map((day) => <span>{day}</span>)}
     </div>
 
     <div class="grid grid-cols-7 gap-0.5" data-cal-grid></div>
 
-    <p class="text-ink-2 m-0 text-[13px]" data-cal-hint>Scegli il giorno di inizio.</p>
+    <p class="text-ink-2 m-0 text-[13px]" data-cal-hint>{text('pdp.chooseStartDay')}</p>
 
     <button
       class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[14.5px] font-semibold text-white"
       type="button"
       data-cal-done
     >
-      Fatto
+      {text('picker.done')}
     </button>
   </div>
 

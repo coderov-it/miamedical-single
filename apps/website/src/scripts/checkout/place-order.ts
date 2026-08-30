@@ -14,6 +14,7 @@
  * items to sit in the page as readable JSON: the worst a reader can do by editing
  * them is order something else at that thing's real price.
  */
+import { documentLocale } from '../locale';
 import type { CheckoutContext } from './context.ts';
 
 interface PlacedOrder {
@@ -157,7 +158,7 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
     const totalRow = placedPanel.querySelector<HTMLElement>('[data-placed-total-row]');
     const total = placedPanel.querySelector<HTMLElement>('[data-placed-total]');
     if (totalRow && total && order.totals) {
-      total.textContent = new Intl.NumberFormat('it-IT', {
+      total.textContent = new Intl.NumberFormat(documentLocale(), {
         style: 'currency',
         currency: order.totals.currency || 'EUR',
       }).format(Number(order.totals.total));

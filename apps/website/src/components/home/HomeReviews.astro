@@ -7,9 +7,14 @@
  * Card anatomy is the owner's spec: [avatar + name | date] → [stars] → [text]
  * → [source logo, bottom-right]. Never a title.
  */
-import { HOME_TESTIMONIALS, type TestimonialSource } from '~/lib/home-content';
+import { homeTestimonials, TESTIMONIAL_RATING, type TestimonialSource } from '~/lib/home-content';
+import { localeForRequest, translate } from '~/lib/i18n';
 
-const { rating, countLabel, entries } = HOME_TESTIMONIALS;
+const rating = TESTIMONIAL_RATING;
+const locale = localeForRequest();
+const entries = homeTestimonials(locale);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
 
 /* Heroicons' solid star — the premium cut; a simple polygon reads cheap small. */
 const STAR_PATH =
@@ -69,12 +74,19 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
           Recensioni verificate
         </p>
         <h2 class="testimonial-display" id="testimonials-title">
-          La fiducia<br />di <strong>centinaia di famiglie.</strong>
+          {text('home.testimonials.line1')}<br />{text('home.testimonials.line2')}{' '}
+          <strong>{text('home.testimonials.line3')}</strong>
         </h2>
       </div>
       <div class="rating-hero">
-        <p class="rating-score" aria-label={`Valutazione media ${rating} su 5`}>{rating}</p>
-        <span class="stars stars-lg" role="img" aria-label={`${rating} stelle su 5`}>
+        <p class="rating-score" aria-label={text('home.testimonials.average', { rating })}>
+          {rating}
+        </p>
+        <span
+          class="stars stars-lg"
+          role="img"
+          aria-label={text('home.testimonials.stars', { rating })}
+        >
           {
             STARS.map(() => (
               <svg
@@ -89,7 +101,7 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
             ))
           }
         </span>
-        <p class="rating-note">{countLabel}</p>
+        <p class="rating-note">{text('home.reviews.verifiedCount')}</p>
       </div>
     </div>
 
@@ -107,7 +119,7 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
               <span class="tc-date">{review.date}</span>
             </p>
             <p class="tc-meta">
-              <span class="stars" role="img" aria-label="5 stelle su 5">
+              <span class="stars" role="img" aria-label={text('home.testimonials.starsFull')}>
                 {STARS.map(() => (
                   <svg
                     width="14"
@@ -125,7 +137,9 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
             <span
               class="tc-source"
               role="img"
-              aria-label={`Recensione pubblicata su ${SOURCE_LABELS[review.source]}`}
+              aria-label={text('home.testimonials.source', {
+                source: SOURCE_LABELS[review.source],
+              })}
             >
               {review.source === 'google' && (
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">

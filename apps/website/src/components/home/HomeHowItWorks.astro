@@ -5,26 +5,21 @@
  * (styles in styles/editorial.css). Static by design: this copy is the offer,
  * not data.
  */
-const steps = [
-  {
-    name: 'Scegli il prodotto',
-    text: 'Dal catalogo, oppure chiamaci: ti consigliamo noi quello giusto.',
-  },
-  {
-    name: 'Seleziona le date',
-    text: 'Indichi quando ti serve e per quanto tempo. Puoi sempre prolungare.',
-  },
-  {
-    name: 'Lo ricevi a domicilio',
-    text: 'Ti chiamiamo per confermare, consegniamo e montiamo. A fine noleggio ritiriamo noi.',
-  },
-];
+import { localeForRequest, translate } from '~/lib/i18n';
+
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+
+const steps = ['step1', 'step2', 'step3'].map((step) => ({
+  name: text(`home.how.${step}.name`),
+  text: text(`home.how.${step}.text`),
+}));
 ---
 
 <section class="how" aria-labelledby="how-title">
   <div class="container">
     <h2 class="section-title" id="how-title">
-      Come funziona.
+      {text('home.how.title')}
       <svg
         width="44"
         height="16"
@@ -39,7 +34,7 @@ const steps = [
         <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
       </svg>
     </h2>
-    <p class="section-lead">Tre passaggi, senza pagare nulla online.</p>
+    <p class="section-lead">{text('home.how.lede')}</p>
 
     <div class="how-panel">
       <ol class="steps">
@@ -74,8 +69,8 @@ const steps = [
           <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
         </svg>
         <span>
-          <strong>Oggi non paghi nulla.</strong> Paghi solo dopo la nostra telefonata di conferma, con
-          un link di pagamento sicuro via SMS o email.
+          <strong>{text('home.how.noteStrong')}</strong>
+          {text('home.how.noteText')}
         </span>
       </p>
     </div>

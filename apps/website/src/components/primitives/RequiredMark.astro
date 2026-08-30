@@ -17,12 +17,15 @@
  * `.field-error`, and spending it here would leave a page pre-painted with
  * errors nobody has made.
  */
+import { localeForRequest, translate } from '~/lib/i18n';
+
 interface Props {
   /** Rendered only when true, so callers can pass the flag straight through. */
   on?: boolean;
 }
 
 const { on = false } = Astro.props;
+const locale = localeForRequest();
 ---
 
 {
@@ -31,7 +34,7 @@ const { on = false } = Astro.props;
       <span class="text-ink-2 ml-0.5 font-normal" aria-hidden="true">
         *
       </span>
-      <span class="sr-only">(obbligatorio)</span>
+      <span class="sr-only">{translate(locale, 'field.required')}</span>
     </>
   )
 }

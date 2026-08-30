@@ -14,6 +14,7 @@
  */
 import { formatMoney, mediaUrl } from '~/lib/api';
 import type { Checkout } from '~/lib/checkout';
+import { localeForRequest, localeTag } from '~/lib/i18n';
 import { t } from '~/lib/labels';
 import { EYEBROW, LINE_AMOUNT, LINE_LABEL, LINE_ROW } from './styles';
 
@@ -24,6 +25,7 @@ interface Props {
 const { checkout } = Astro.props;
 const { items, itemsTotal, noPackage, currency } = checkout;
 const single = items.length === 1;
+const intl = localeTag(localeForRequest());
 
 /*
  * The reference file draws a diagonal-stripe pattern in these thumbnails because
@@ -181,7 +183,7 @@ const THUMB_FALLBACK = 'bg-tint';
     <span class="text-[13.5px] font-semibold">{t('total')}</span>
     <span class="flex flex-col items-end">
       <strong class="text-[24px] tracking-[-0.01em] tabular-nums" data-overview-total>
-        {formatMoney(itemsTotal, currency)}
+        {formatMoney(itemsTotal, currency, intl)}
       </strong>
       {
         /*

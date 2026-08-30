@@ -13,12 +13,14 @@
  */
 import CategoryTile from '~/components/catalog/CategoryTile.astro';
 import type { CategoryTile as CategoryTileModel } from '~/lib/catalog-page';
+import { localeForRequest, translate } from '~/lib/i18n';
 
 interface Props {
   categories: CategoryTileModel[];
 }
 
 const { categories } = Astro.props;
+const locale = localeForRequest();
 ---
 
 {
@@ -26,7 +28,7 @@ const { categories } = Astro.props;
     <section class="categories" aria-labelledby="categories-title">
       <div class="container">
         <h2 class="section-title" id="categories-title">
-          Esplora per categoria.
+          {translate(locale, 'home.categories.title')}
           <svg
             width="44"
             height="16"

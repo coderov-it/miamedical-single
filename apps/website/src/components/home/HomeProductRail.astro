@@ -14,7 +14,8 @@
 import { mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
 import { productOffer } from '~/lib/home-content';
-import { productPath, routes } from '~/lib/routes';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { productPath, routePath } from '~/lib/routes';
 
 interface Props {
   products: ProductSummary[];
@@ -23,6 +24,9 @@ interface Props {
 }
 
 const { products, total } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
 
 /* "Oltre 60 ausili a noleggio" — rounded DOWN so the claim is never a lie.
    Below ten products a rounded figure would read as zero, so the tile says
@@ -30,8 +34,8 @@ const { products, total } = Astro.props;
 const roundedTotal = Math.floor(total / 10) * 10;
 const browseCount =
   total > 10
-    ? `Oltre ${roundedTotal} ausili a noleggio`
-    : `${total} ${total === 1 ? 'ausilio' : 'ausili'} a noleggio`;
+    ? text('home.rail.countOver', { count: roundedTotal })
+    : text(total === 1 ? 'home.rail.countOne' : 'home.rail.countMany', { count: total });
 ---
 
 {
@@ -40,7 +44,7 @@ const browseCount =
       <div class="container">
         <div class="section-head">
           <h2 class="section-title" id="trending-title">
-            I più noleggiati.
+            {text('home.rail.title')}
             <svg
               width="44"
               height="16"
@@ -56,15 +60,15 @@ const browseCount =
             </svg>
           </h2>
           <div class="section-tools">
-            <a class="section-link" href={routes.catalog}>
-              Vedi tutto il catalogo →
+            <a class="section-link" href={routePath(locale, 'catalog')}>
+              {text('home.rail.seeAll')}
             </a>
             <div class="carousel-nav">
               <button
                 class="carousel-arrow"
                 type="button"
                 data-carousel-prev="trending"
-                aria-label="Prodotti precedenti"
+                aria-label={text('home.rail.previous')}
                 disabled
               >
                 <svg
@@ -85,7 +89,7 @@ const browseCount =
                 class="carousel-arrow"
                 type="button"
                 data-carousel-next="trending"
-                aria-label="Prodotti successivi"
+                aria-label={text('home.rail.next')}
               >
                 <svg
                   width="20"
@@ -109,8 +113,8 @@ const browseCount =
           <div class="trend-viewport">
             <ul class="product-track">
               {products.map((product) => {
-                const offer = productOffer(product);
-                const href = productPath(product.slug);
+                const offer = productOffer(product, locale);
+                const href = productPath(product.slug, {}, locale);
                 return (
                   <li class="carousel-slide">
                     <article class="product-card">
@@ -129,14 +133,14 @@ const browseCount =
                         </p>
                       )}
                       <a class="btn-quiet" href={href}>
-                        {product.pricing.mode === 'rental' ? 'Noleggia' : 'Acquista'}
+                        {text(product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy')}
                       </a>
                     </article>
                   </li>
                 );
               })}
               <li class="carousel-slide">
-                <a class="browse-card" href={routes.catalog}>
+                <a class="browse-card" href={routePath(locale, 'catalog')}>
                   <span class="browse-arrow">
                     <svg
                       width="24"
@@ -154,7 +158,7 @@ const browseCount =
                     </svg>
                   </span>
                   <span>
-                    <span class="browse-title">Sfoglia tutto il catalogo</span>
+                    <span class="browse-title">{text('home.rail.browseTitle')}</span>
                     <span class="browse-count">{browseCount}</span>
                   </span>
                 </a>

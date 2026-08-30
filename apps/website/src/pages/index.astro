@@ -34,9 +34,9 @@ import HomeReviews from '~/components/home/HomeReviews.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { cached, CATALOG_POLICY } from '~/lib/cache';
 import { listAllProducts, listCategories, safely } from '~/lib/catalog';
-import { buildHomeCategories, HOME_FAQ, selectHomeFeatured } from '~/lib/home-content';
+import { buildHomeCategories, homeFaq, selectHomeFeatured } from '~/lib/home-content';
 import { cacheHtml } from '~/lib/http-cache';
-import { localeFromLocals } from '~/lib/i18n';
+import { localeFromLocals, translate } from '~/lib/i18n';
 
 export const prerender = false;
 
@@ -71,7 +71,7 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: HOME_FAQ.map((item) => ({
+    mainEntity: homeFaq(locale).map((item) => ({
       '@type': 'Question',
       name: item.question,
       acceptedAnswer: { '@type': 'Answer', text: item.answer },
@@ -81,8 +81,8 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title="Noleggio carrozzine e ausili medicali a domicilio | Roma e Firenze — Mia Medical Italia"
-  description="Noleggio carrozzine, letti ortopedici e ausili medicali con consegna a domicilio a Roma e Firenze in 24–48 ore. Prodotti sanificati e certificati, assistenza telefonica gratuita."
+  title={translate(locale, 'home.metaTitle')}
+  description={translate(locale, 'home.metaDescription')}
   jsonLd={jsonLd}
   ground="white"
 >

@@ -12,9 +12,21 @@
  * matched pair and can offer to save the credential. That makes the two Enter keys
  * ambiguous, which the script resolves explicitly — see the keydown handler.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
 
 export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+/** What the script below writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.signIn.errorEmail',
+  'account.signIn.errorPassword',
+  'account.genericError',
+] as const;
 
 const field =
   'w-full rounded-lg border border-transparent bg-tint px-3 py-2.5 text-[15px] focus:border-accent';
@@ -26,22 +38,21 @@ const secondary =
 ---
 
 <BaseLayout
-  title="Accedi | Mia Medical Italia"
-  description="Accedi alla tua area clienti per seguire i tuoi ordini."
+  title={text('account.signIn.metaTitle')}
+  description={text('account.signIn.metaDescription')}
   noindex
   bare
 >
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-md px-5 py-12">
-    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">Accedi</h1>
-    <p class="mt-2 text-[15px] text-neutral-600">
-      Entra nella tua area clienti per seguire i tuoi ordini.
-    </p>
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">{text('account.signIn.title')}</h1>
+    <p class="mt-2 text-[15px] text-neutral-600">{text('account.signIn.lede')}</p>
 
     <div data-feedback hidden class="bg-tint mt-6 rounded-lg px-4 py-3 text-sm"></div>
 
     <form data-form class="mt-6" novalidate>
       <div>
-        <label class={label} for="email">Email</label>
+        <label class={label} for="email">{text('email')}</label>
         <input
           class={field}
           id="email"
@@ -55,20 +66,18 @@ const secondary =
 
       <!-- The primary action: submitting the form sends the link. -->
       <button class={`${primary} mt-4`} type="submit" data-magic-submit>
-        Inviami un link di accesso
+        {text('account.signIn.magicSubmit')}
       </button>
-      <p class="mt-2 text-sm text-neutral-600">
-        Ti arriva un link via email e sei dentro. Nessuna password da ricordare.
-      </p>
+      <p class="mt-2 text-sm text-neutral-600">{text('account.signIn.magicNote')}</p>
 
       <div class="my-7 flex items-center gap-3 text-xs text-neutral-500">
         <span class="bg-hair h-px flex-1"></span>
-        oppure
+        {text('account.signIn.or')}
         <span class="bg-hair h-px flex-1"></span>
       </div>
 
       <div>
-        <label class={label} for="password">Password</label>
+        <label class={label} for="password">{text('account.password')}</label>
         <input
           class={field}
           id="password"
@@ -76,16 +85,16 @@ const secondary =
           type="password"
           autocomplete="current-password"
         />
-        <p class="mt-2 text-sm text-neutral-600">Solo se ne hai impostata una.</p>
+        <p class="mt-2 text-sm text-neutral-600">{text('account.signIn.passwordNote')}</p>
       </div>
       <button class={`${secondary} mt-4`} type="button" data-password-submit>
-        Accedi con la password
+        {text('account.signIn.passwordSubmit')}
       </button>
     </form>
 
     <p class="mt-6 text-sm">
       <button class="text-neutral-600 underline" type="button" data-reset>
-        Ho dimenticato la password
+        {text('account.signIn.forgot')}
       </button>
     </p>
   </div>
@@ -99,7 +108,9 @@ const secondary =
     requestPasswordReset,
     safeNext,
   } from '~/lib/customer-session';
-  import { routes } from '~/lib/routes';
+  import { readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
 
   const form = document.querySelector<HTMLFormElement>('[data-form]');
   const passwordButton = document.querySelector<HTMLButtonElement>('[data-password-submit]');
@@ -109,7 +120,10 @@ const secondary =
   const emailInput = document.querySelector<HTMLInputElement>('#email');
   const passwordInput = document.querySelector<HTMLInputElement>('#password');
 
-  const next = safeNext(new URLSearchParams(window.location.search).get('next'), routes.account);
+  const next = safeNext(
+    new URLSearchParams(window.location.search).get('next'),
+    copy.routes.account,
+  );
 
   function say(message: string, tone: 'info' | 'error' = 'info') {
     if (!feedback) return;
@@ -126,7 +140,7 @@ const secondary =
   function email(): string | null {
     const value = emailInput?.value.trim() ?? '';
     if (!value.includes('@')) {
-      say('Inserisci il tuo indirizzo email.', 'error');
+      say(copy.text['account.signIn.errorEmail'] ?? '', 'error');
       emailInput?.focus();
       return null;
     }
@@ -139,7 +153,7 @@ const secondary =
       await work();
     } catch (error) {
       say(
-        error instanceof ApiError ? error.message : 'Qualcosa è andato storto. Riprova.',
+        error instanceof ApiError ? error.message : (copy.text['account.genericError'] ?? ''),
         'error',
       );
     } finally {
@@ -162,7 +176,7 @@ const secondary =
     const password = passwordInput?.value ?? '';
     if (!address) return;
     if (!password) {
-      say('Inserisci la tua password.', 'error');
+      say(copy.text['account.signIn.errorPassword'] ?? '', 'error');
       passwordInput?.focus();
       return;
     }

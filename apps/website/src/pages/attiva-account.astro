@@ -7,22 +7,39 @@
  * redeem a token, get a session. What differs is only the copy, so the page reads
  * its wording from a prop instead of existing three times.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
 
 export const prerender = false;
 
 interface Props {
-  heading?: string;
-  intro?: string;
+  /** Message keys, not copy: the reset flow renders this page with its own two. */
+  headingKey?: string;
+  introKey?: string;
   /** Reset must set a password; activation may skip and stay magic-link only. */
   passwordRequired?: boolean;
 }
 
 const {
-  heading = 'Attiva il tuo account',
-  intro = 'Scegli una password per accedere più rapidamente la prossima volta. Puoi anche saltare questo passaggio e usare sempre il link via email.',
+  headingKey = 'account.activate.heading',
+  introKey = 'account.activate.intro',
   passwordRequired = false,
 } = Astro.props;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+const heading = text(headingKey);
+const intro = text(introKey);
+
+/** What the script below writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.activate.linkIncomplete',
+  'account.activate.linkUnverifiable',
+  'account.activate.requestNewLink',
+  'account.passwordTooShort',
+  'account.genericError',
+] as const;
 
 const field =
   'w-full rounded-lg border border-transparent bg-tint px-3 py-2.5 text-[15px] focus:border-accent';
@@ -32,10 +49,11 @@ const primary =
 
 <BaseLayout
   title={`${heading} | Mia Medical Italia`}
-  description="Attiva la tua area clienti."
+  description={text('account.activate.metaDescription')}
   noindex
   bare
 >
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div
     class="mx-auto w-full max-w-md px-5 py-12"
     data-page
@@ -46,7 +64,9 @@ const primary =
     <!-- Shown while the token is being redeemed. The redemption happens on load,
          not on submit: the link itself is the credential, so waiting for a form
          would leave someone who closes the tab still unactivated. -->
-    <p data-checking class="mt-3 text-[15px] text-neutral-600">Un momento…</p>
+    <p data-checking class="mt-3 text-[15px] text-neutral-600">
+      {text('account.activate.checking')}
+    </p>
 
     <div
       data-error
@@ -60,7 +80,9 @@ const primary =
 
       <form data-form class="mt-6 space-y-4" novalidate>
         <div>
-          <label class="mb-1.5 block text-sm font-medium" for="password"> Nuova password </label>
+          <label class="mb-1.5 block text-sm font-medium" for="password">
+            {text('account.newPassword')}
+          </label>
           <input
             class={field}
             id="password"
@@ -69,14 +91,16 @@ const primary =
             autocomplete="new-password"
             minlength="12"
           />
-          <p class="mt-1.5 text-xs text-neutral-500">Almeno 12 caratteri.</p>
+          <p class="mt-1.5 text-xs text-neutral-500">{text('account.minChars')}</p>
         </div>
-        <button class={primary} type="submit" data-submit>Salva e continua</button>
+        <button class={primary} type="submit" data-submit>
+          {text('account.activate.saveContinue')}
+        </button>
       </form>
 
       <p class="mt-4 text-sm" data-skip-wrap>
         <button class="text-neutral-600 underline" type="button" data-skip>
-          Salta, userò il link via email
+          {text('account.activate.skip')}
         </button>
       </p>
     </div>
@@ -85,7 +109,10 @@ const primary =
 
 <script>
   import { ApiError, redeemToken, setPassword, tokenFromQuery } from '~/lib/customer-session';
-  import { routes } from '~/lib/routes';
+  import { readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
+  const say = (key: string) => copy.text[key] ?? '';
 
   const page = document.querySelector<HTMLElement>('[data-page]');
   const passwordRequired = page?.dataset.passwordRequired === 'true';
@@ -104,7 +131,7 @@ const primary =
     if (ready) ready.hidden = true;
     if (!errorBox) return;
     errorBox.hidden = false;
-    errorBox.innerHTML = `${message} <a class="underline" href="${routes.login}">Richiedi un nuovo link</a>.`;
+    errorBox.innerHTML = `${message} <a class="underline" href="${copy.routes.login}">${say('account.activate.requestNewLink')}</a>.`;
   }
 
   /*
@@ -115,7 +142,7 @@ const primary =
   const token = tokenFromQuery();
 
   if (!token) {
-    fail('Questo link non è completo.');
+    fail(say('account.activate.linkIncomplete'));
   } else {
     try {
       await redeemToken(token);
@@ -125,9 +152,7 @@ const primary =
       if (passwordRequired && skipWrap) skipWrap.hidden = true;
       passwordInput?.focus();
     } catch (error) {
-      fail(
-        error instanceof ApiError ? error.message : 'Non è stato possibile verificare questo link.',
-      );
+      fail(error instanceof ApiError ? error.message : say('account.activate.linkUnverifiable'));
     }
   }
 
@@ -136,8 +161,8 @@ const primary =
     const value = passwordInput?.value ?? '';
 
     if (value.length < 12) {
-      fail('La password deve avere almeno 12 caratteri.');
-      if (errorBox) errorBox.textContent = 'La password deve avere almeno 12 caratteri.';
+      fail(say('account.passwordTooShort'));
+      if (errorBox) errorBox.textContent = say('account.passwordTooShort');
       if (ready) ready.hidden = false;
       return;
     }
@@ -146,12 +171,12 @@ const primary =
       if (submit) submit.disabled = true;
       try {
         await setPassword({ newPassword: value });
-        window.location.assign(routes.accountOrders);
+        window.location.assign(copy.routes.accountOrders);
       } catch (error) {
         if (errorBox) {
           errorBox.hidden = false;
           errorBox.textContent =
-            error instanceof ApiError ? error.message : 'Qualcosa è andato storto.';
+            error instanceof ApiError ? error.message : say('account.genericError');
         }
       } finally {
         if (submit) submit.disabled = false;
@@ -160,5 +185,5 @@ const primary =
   });
 
   // Already signed in by the redemption above, so skipping just moves on.
-  skip?.addEventListener('click', () => window.location.assign(routes.accountOrders));
+  skip?.addEventListener('click', () => window.location.assign(copy.routes.accountOrders));
 </script>

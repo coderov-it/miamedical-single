@@ -21,6 +21,7 @@
 import { mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
 import { productOffer } from '~/lib/home-content';
+import { localeForRequest, translate } from '~/lib/i18n';
 import { productPath } from '~/lib/routes';
 
 interface Props {
@@ -28,6 +29,9 @@ interface Props {
 }
 
 const { products } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
 const slides = products.slice(0, 3);
 ---
 
@@ -35,7 +39,7 @@ const slides = products.slice(0, 3);
   slides.length > 0 && (
     <section class="spot" data-carousel="spot" aria-labelledby="spot-label">
       <h2 class="visually-hidden" id="spot-label">
-        Prodotti in evidenza
+        {text('home.showcase.heading')}
       </h2>
 
       <div class="spot-stage">
@@ -62,7 +66,7 @@ const slides = products.slice(0, 3);
               class="spot-arrow"
               type="button"
               data-spot-prev
-              aria-label="Prodotto precedente"
+              aria-label={text('home.showcase.previous')}
             >
               <svg
                 width="19"
@@ -82,7 +86,7 @@ const slides = products.slice(0, 3);
               class="spot-arrow"
               type="button"
               data-spot-next
-              aria-label="Prodotto successivo"
+              aria-label={text('home.showcase.next')}
             >
               <svg
                 width="19"
@@ -104,7 +108,10 @@ const slides = products.slice(0, 3);
                 <button
                   type="button"
                   class:list={[index === 0 && 'is-active']}
-                  aria-label={`Mostra il prodotto ${index + 1} di ${slides.length}`}
+                  aria-label={text('home.showcase.showSlide', {
+                    index: index + 1,
+                    total: slides.length,
+                  })}
                 />
               ))}
             </div>
@@ -114,18 +121,20 @@ const slides = products.slice(0, 3);
 
       <div class="spot-deck" data-spot-meta>
         {slides.map((product, index) => {
-          const offer = productOffer(product);
+          const offer = productOffer(product, locale);
           return (
             <a
               class:list={['spot-card', index === 0 && 'is-active']}
-              href={productPath(product.slug)}
-              aria-label={`${product.title} — vedi il prodotto`}
+              href={productPath(product.slug, {}, locale)}
+              aria-label={text('home.showcase.cardLabel', { title: product.title })}
             >
-              <span class="spot-badge">Sempre sanificato</span>
-              {offer && <span class="spot-from">Da soli</span>}
-              <strong class="spot-money">{offer ? offer.money : 'Su richiesta'}</strong>
+              <span class="spot-badge">{text('home.showcase.badge')}</span>
+              {offer && <span class="spot-from">{text('home.showcase.from')}</span>}
+              <strong class="spot-money">
+                {offer ? offer.money : text('home.showcase.onRequest')}
+              </strong>
               {offer?.unit && <span class="spot-unit">{offer.unit}</span>}
-              <span class="spot-chip">Tutto incluso</span>
+              <span class="spot-chip">{text('home.showcase.allIncluded')}</span>
             </a>
           );
         })}

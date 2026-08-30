@@ -7,18 +7,38 @@
  * renders the full contract, a canvas-based signature pad, and submits the drawn
  * signature as a data URL.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
 import { CONTACT } from '~/lib/site';
 
 export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+/*
+ * The page used to print every label twice — "Firma / Signature" — because it
+ * had no locale to choose with. It has one now, so each label appears once, in
+ * the reader's language (owner, 2026-08-30).
+ */
+const SCRIPT_KEYS = [
+  'contract.submitting',
+  'contract.linkIncomplete',
+  'contract.loadFailed',
+  'contract.loadError',
+  'contract.signError',
+] as const;
 ---
 
 <BaseLayout
-  title="Firma il contratto | Mia Medical Italia"
-  description="Firma il contratto di noleggio."
+  title={text('contract.metaTitle')}
+  description={text('contract.metaDescription')}
   noindex
   bare
 >
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-3xl px-5 py-8 md:py-12">
     <!-- Error state -->
     <div
@@ -34,17 +54,23 @@ export const prerender = false;
         class="border-hair-strong mx-auto size-8 animate-spin rounded-full border-2 border-t-accent"
       >
       </div>
-      <p class="text-neutral-600">Caricamento del contratto…</p>
+      <p class="text-neutral-600">{text('contract.loading')}</p>
     </div>
 
     <!-- Main content (hidden until loaded) -->
     <div data-content hidden>
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-[clamp(1.4rem,2.2vw,1.75rem)]/[1.2] font-semibold">Firma il contratto</h1>
+          <h1 class="text-[clamp(1.4rem,2.2vw,1.75rem)]/[1.2] font-semibold">
+            {text('contract.title')}
+          </h1>
           <p class="mt-1 text-sm text-neutral-600">
-            Contratto <span data-contract-number class="font-mono font-medium"></span>
-            <span data-order-line>· Ordine <span data-order-number class="font-mono"></span></span>
+            {text('contract.number')}
+            <span data-contract-number class="font-mono font-medium"></span>
+            <span data-order-line>
+              {text('contract.orderLine')}
+              <span data-order-number class="font-mono"></span>
+            </span>
           </p>
         </div>
       </div>
@@ -58,10 +84,8 @@ export const prerender = false;
 
       <!-- Signature section -->
       <div data-signature-section id="signature-section" class="mt-8 scroll-mt-24">
-        <h2 class="text-lg font-semibold">Firma / Signature</h2>
-        <p class="mt-1 text-sm text-neutral-500">
-          Disegna la tua firma nell'area qui sotto. / Draw your signature in the area below.
-        </p>
+        <h2 class="text-lg font-semibold">{text('contract.signatureHeading')}</h2>
+        <p class="mt-1 text-sm text-neutral-500">{text('contract.signatureHint')}</p>
 
         <div class="relative mt-4">
           <canvas
@@ -74,16 +98,13 @@ export const prerender = false;
             type="button"
             class="text-ink-2 absolute top-2 right-2 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm transition hover:bg-white"
           >
-            Cancella / Clear
+            {text('contract.clear')}
           </button>
         </div>
 
         <label class="mt-4 flex items-start gap-3 text-sm">
           <input data-consent type="checkbox" class="mt-0.5 size-4 shrink-0 accent-neutral-900" />
-          <span class="text-neutral-600">
-            Confermo di aver letto e accettato i termini del contratto. / I confirm that I have read
-            and accepted the terms of the contract.
-          </span>
+          <span class="text-neutral-600">{text('contract.consent')}</span>
         </label>
 
         <button
@@ -92,7 +113,7 @@ export const prerender = false;
           disabled
           class="hover:bg-accent-deep mt-6 w-full rounded-xl bg-accent px-6 py-3 text-[15px] font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Firma il contratto / Sign the contract
+          {text('contract.submit')}
         </button>
       </div>
     </div>
@@ -110,15 +131,10 @@ export const prerender = false;
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
         </svg>
       </div>
-      <h2 class="mt-4 text-xl font-semibold">Contratto firmato con successo!</h2>
-      <p class="mt-2 text-neutral-600">
-        Una copia del contratto firmato è stata inviata al tuo indirizzo email.
-      </p>
-      <p class="mt-1 text-neutral-600">
-        A signed copy of the contract has been sent to your email address.
-      </p>
+      <h2 class="mt-4 text-xl font-semibold">{text('contract.doneTitle')}</h2>
+      <p class="mt-2 text-neutral-600">{text('contract.doneDetail')}</p>
       <p class="mt-4 text-sm text-neutral-500">
-        Per qualsiasi domanda contattaci al {CONTACT.phoneDisplay}
+        {text('contract.questions', { phone: CONTACT.phoneDisplay })}
       </p>
     </div>
 
@@ -129,13 +145,17 @@ export const prerender = false;
       type="button"
       class="hover:bg-accent-deep fixed right-6 bottom-6 z-50 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white shadow-lg transition max-sm:right-6 max-sm:left-6 max-sm:text-center md:right-8 md:bottom-8"
     >
-      Vai alla firma ↓
+      {text('contract.goToSignature')}
     </button>
   </div>
 </BaseLayout>
 
 <script>
   import { API_BASE } from '~/lib/api';
+  import { readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
+  const say = (key: string) => copy.text[key] ?? '';
 
   const loading = document.querySelector<HTMLElement>('[data-loading]')!;
   const content = document.querySelector<HTMLElement>('[data-content]')!;
@@ -161,7 +181,7 @@ export const prerender = false;
   }
 
   if (!token) {
-    fail('Questo link non è completo. Apri di nuovo il collegamento ricevuto via email.');
+    fail(say('contract.linkIncomplete'));
   }
 
   // --- Signature pad ---
@@ -253,7 +273,7 @@ export const prerender = false;
         const body = (await res.json().catch(() => null)) as {
           error?: { message?: string };
         } | null;
-        throw new Error(body?.error?.message ?? 'Non è stato possibile caricare il contratto.');
+        throw new Error(body?.error?.message ?? say('contract.loadFailed'));
       }
 
       const { data } = (await res.json()) as {
@@ -282,7 +302,7 @@ export const prerender = false;
       observer.observe(signatureSection);
       scrollToSign.hidden = false;
     } catch (err) {
-      fail(err instanceof Error ? err.message : 'Errore nel caricamento del contratto.');
+      fail(err instanceof Error ? err.message : say('contract.loadError'));
     }
   }
 
@@ -290,7 +310,7 @@ export const prerender = false;
   submitBtn.addEventListener('click', () => {
     if (!token || !hasSigned || !consentBox.checked) return;
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Invio in corso…';
+    submitBtn.textContent = say('contract.submitting');
 
     const signatureDataUrl = canvas.toDataURL('image/png');
 
@@ -310,14 +330,14 @@ export const prerender = false;
           const body = (await res.json().catch(() => null)) as {
             error?: { message?: string };
           } | null;
-          throw new Error(body?.error?.message ?? 'Errore nella firma del contratto.');
+          throw new Error(body?.error?.message ?? say('contract.signError'));
         }
 
         content.hidden = true;
         scrollToSign.hidden = true;
         done.hidden = false;
       } catch (err) {
-        fail(err instanceof Error ? err.message : 'Errore nella firma del contratto.');
+        fail(err instanceof Error ? err.message : say('contract.signError'));
       }
     })();
   });

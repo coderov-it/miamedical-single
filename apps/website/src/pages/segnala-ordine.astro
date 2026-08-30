@@ -11,10 +11,24 @@
  * ordered, or by whom, to whoever holds the link would be the leak this form exists
  * to report.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
 import { CONTACT } from '~/lib/site';
 
 export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+/** What the script below writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.report.linkIncomplete',
+  'account.report.errorPhone',
+  'account.report.errorMessage',
+  'account.report.errorSend',
+] as const;
 
 const field =
   'w-full rounded-lg border border-transparent bg-tint px-3 py-2.5 text-[15px] focus:border-accent';
@@ -22,13 +36,14 @@ const label = 'mb-1.5 block text-sm font-medium';
 ---
 
 <BaseLayout
-  title="Segnala un ordine | Mia Medical Italia"
-  description="Segnalaci un ordine che non hai effettuato."
+  title={text('account.report.metaTitle')}
+  description={text('account.report.metaDescription')}
   noindex
   bare
 >
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-md px-5 py-12">
-    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">Non hai effettuato tu questo ordine?</h1>
+    <h1 class="text-[clamp(1.6rem,2.4vw,2rem)]/[1.2]">{text('account.report.title')}</h1>
 
     <div
       data-error
@@ -38,21 +53,16 @@ const label = 'mb-1.5 block text-sm font-medium';
     </div>
 
     <div data-form-wrap>
-      <p class="mt-3 text-[15px] text-neutral-600">
-        Scrivici cosa è accaduto. Ti contatteremo su WhatsApp per verificare, e nel frattempo non
-        addebiteremo nulla.
-      </p>
+      <p class="mt-3 text-[15px] text-neutral-600">{text('account.report.lede')}</p>
 
       <form data-form class="mt-6 space-y-4" novalidate>
         <div>
-          <label class={label} for="phone">Il tuo numero WhatsApp</label>
+          <label class={label} for="phone">{text('account.report.phone')}</label>
           <input class={field} id="phone" name="phone" type="tel" autocomplete="tel" required />
-          <p class="mt-1.5 text-xs text-neutral-500">
-            Ti chiediamo di nuovo il numero: quello sull’ordine potrebbe non essere il tuo.
-          </p>
+          <p class="mt-1.5 text-xs text-neutral-500">{text('account.report.phoneNote')}</p>
         </div>
         <div>
-          <label class={label} for="message">Cosa è accaduto?</label>
+          <label class={label} for="message">{text('account.report.message')}</label>
           <textarea class={field} id="message" name="message" rows="4" required></textarea>
         </div>
         <button
@@ -60,17 +70,15 @@ const label = 'mb-1.5 block text-sm font-medium';
           type="submit"
           data-submit
         >
-          Invia la segnalazione
+          {text('account.report.submit')}
         </button>
       </form>
     </div>
 
     <div data-done hidden class="bg-tint mt-6 rounded-xl px-4 py-5">
-      <p class="text-[15px] font-medium">Grazie, abbiamo ricevuto la tua segnalazione.</p>
+      <p class="text-[15px] font-medium">{text('account.report.doneTitle')}</p>
       <p class="mt-1.5 text-[15px] text-neutral-600">
-        Ti contatteremo su WhatsApp al più presto. Se preferisci, puoi chiamarci al {
-          CONTACT.phoneDisplay
-        }.
+        {text('account.report.doneDetail', { phone: CONTACT.phoneDisplay })}
       </p>
     </div>
   </div>
@@ -78,6 +86,10 @@ const label = 'mb-1.5 block text-sm font-medium';
 
 <script>
   import { ApiError, reportOrder, tokenFromQuery } from '~/lib/customer-session';
+  import { readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
+  const say = (key: string) => copy.text[key] ?? '';
 
   const formWrap = document.querySelector<HTMLElement>('[data-form-wrap]');
   const form = document.querySelector<HTMLFormElement>('[data-form]');
@@ -95,7 +107,7 @@ const label = 'mb-1.5 block text-sm font-medium';
 
   if (!token) {
     if (formWrap) formWrap.hidden = true;
-    fail('Questo link non è completo. Apri di nuovo il collegamento ricevuto via email.');
+    fail(say('account.report.linkIncomplete'));
   }
 
   form?.addEventListener('submit', (event) => {
@@ -105,8 +117,8 @@ const label = 'mb-1.5 block text-sm font-medium';
     const phone = document.querySelector<HTMLInputElement>('#phone')?.value.trim() ?? '';
     const message = document.querySelector<HTMLTextAreaElement>('#message')?.value.trim() ?? '';
 
-    if (phone.length < 5) return fail('Inserisci un numero di telefono valido.');
-    if (message.length === 0) return fail('Raccontaci cosa è accaduto.');
+    if (phone.length < 5) return fail(say('account.report.errorPhone'));
+    if (message.length === 0) return fail(say('account.report.errorMessage'));
     if (errorBox) errorBox.hidden = true;
 
     void (async () => {
@@ -118,11 +130,7 @@ const label = 'mb-1.5 block text-sm font-medium';
       } catch (error) {
         // The token is single-use, so the most likely failure here is a second
         // submit of a report that already went through.
-        fail(
-          error instanceof ApiError
-            ? error.message
-            : 'Non è stato possibile inviare la segnalazione. Riprova.',
-        );
+        fail(error instanceof ApiError ? error.message : say('account.report.errorSend'));
         if (submit) submit.disabled = false;
       }
     })();

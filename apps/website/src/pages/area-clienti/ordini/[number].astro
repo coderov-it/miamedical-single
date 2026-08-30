@@ -7,23 +7,49 @@
  * `prerender = false` with a dynamic segment: there is no set of paths to build, and
  * the number is only meaningful to whoever holds it.
  */
+import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { routes } from '~/lib/routes';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 
 export const prerender = false;
 
 const { number } = Astro.params;
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+/** What the script below writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.order.title',
+  'account.order.placedOn',
+  'account.order.subtotal',
+  'account.order.storePickup',
+  'account.order.pieces',
+  'account.order.yourNotes',
+  'account.order.unavailable',
+  'account.order.backToOrders',
+  'homeDeliveryShort',
+  'deliveryPending',
+  'delivery',
+  'total',
+] as const;
 ---
 
-<BaseLayout title={`Ordine ${number} | Mia Medical Italia`} description="Il tuo ordine." noindex>
+<BaseLayout
+  title={text('account.order.metaTitle', { number: number ?? '' })}
+  description={text('account.order.metaDescription')}
+  noindex
+>
+  <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-2xl px-5 py-10" data-order-number={number}>
     <nav class="mb-6 text-sm text-neutral-500">
-      <a class="underline" href={routes.accountOrders}>I miei ordini</a>
+      <a class="underline" href={routePath(locale, 'accountOrders')}>{text('account.myOrders')}</a>
       <span class="mx-1.5">/</span>
       <span>{number}</span>
     </nav>
 
-    <p data-loading class="text-[15px] text-neutral-600">Caricamento…</p>
+    <p data-loading class="text-[15px] text-neutral-600">{text('account.loading')}</p>
 
     <div data-error hidden class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm">
     </div>
@@ -34,13 +60,11 @@ const { number } = Astro.params;
 
 <script>
   import { API_BASE } from '~/lib/api';
-  import {
-    ORDER_STATUS_LABELS,
-    formatDate,
-    formatMoney,
-    loadCustomer,
-  } from '~/lib/customer-session';
-  import { routes } from '~/lib/routes';
+  import { formatDate, formatMoney, loadCustomer } from '~/lib/customer-session';
+  import { fill, readAccountCopy } from '~/scripts/account/copy';
+
+  const copy = readAccountCopy();
+  const say = (key: string) => copy.text[key] ?? '';
 
   const root = document.querySelector<HTMLElement>('[data-order-number]');
   const number = root?.dataset.orderNumber ?? '';
@@ -77,8 +101,8 @@ const { number } = Astro.params;
   }
 
   const DELIVERY_LABELS: Record<string, string> = {
-    homeDelivery: 'Consegna a domicilio',
-    storePickup: 'Ritiro in negozio',
+    homeDelivery: say('homeDeliveryShort'),
+    storePickup: say('account.order.storePickup'),
   };
 
   /**
@@ -94,7 +118,7 @@ const { number } = Astro.params;
     if (settled || order.delivery?.method !== 'homeDelivery') {
       return formatMoney(order.totals.shippingTotal, order.totals.currency);
     }
-    return escapeHtml('Da concordare');
+    return escapeHtml(say('deliveryPending'));
   }
 
   function row(labelText: string, value: string, strong = false): string {
@@ -111,7 +135,9 @@ const { number } = Astro.params;
         (item) => `<li class="flex justify-between gap-4 border-hair border-b py-3 last:border-0">
           <div>
             <p class="font-medium">${escapeHtml(item.productTitle)}</p>
-            <p class="text-sm text-neutral-600">${item.quantity} pz</p>
+            <p class="text-sm text-neutral-600">${escapeHtml(
+              fill(say('account.order.pieces'), { count: item.quantity }),
+            )}</p>
           </div>
           <span class="tabular-nums">${formatMoney(item.total, currency)}</span>
         </li>`,
@@ -122,25 +148,29 @@ const { number } = Astro.params;
     detail.hidden = false;
     detail.innerHTML = `
       <header class="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 class="text-[clamp(1.5rem,2.2vw,1.9rem)]/[1.2]">Ordine ${escapeHtml(order.number)}</h1>
+        <h1 class="text-[clamp(1.5rem,2.2vw,1.9rem)]/[1.2]">${escapeHtml(
+          fill(say('account.order.title'), { number: order.number }),
+        )}</h1>
         <span class="bg-tint rounded-full px-3 py-1 text-sm">
-          ${escapeHtml(ORDER_STATUS_LABELS[order.status] ?? order.status)}
+          ${escapeHtml(copy.status[order.status] ?? order.status)}
         </span>
       </header>
-      <p class="mt-1 text-sm text-neutral-600">Effettuato il ${formatDate(order.placedAt)}</p>
+      <p class="mt-1 text-sm text-neutral-600">${escapeHtml(
+        fill(say('account.order.placedOn'), { date: formatDate(order.placedAt) }),
+      )}</p>
 
       <ul class="mt-7">${lines}</ul>
 
       <div class="mt-5 space-y-1.5 text-[15px]">
-        ${row('Subtotale', formatMoney(order.totals.subtotal, currency))}
-        ${row('Consegna', deliveryAmount(order))}
-        ${row('Totale', formatMoney(order.totals.total, currency), true)}
+        ${row(say('account.order.subtotal'), formatMoney(order.totals.subtotal, currency))}
+        ${row(say('delivery'), deliveryAmount(order))}
+        ${row(say('total'), formatMoney(order.totals.total, currency), true)}
       </div>
 
       ${
         order.delivery?.method
           ? `<section class="border-hair mt-7 rounded-xl border p-4">
-               <h2 class="text-sm font-medium">Consegna</h2>
+               <h2 class="text-sm font-medium">${escapeHtml(say('delivery'))}</h2>
                <p class="mt-1 text-[15px] text-neutral-600">
                  ${escapeHtml(DELIVERY_LABELS[order.delivery.method] ?? order.delivery.method)}
                </p>
@@ -158,7 +188,7 @@ const { number } = Astro.params;
       ${
         order.notes
           ? `<section class="border-hair mt-4 rounded-xl border p-4">
-               <h2 class="text-sm font-medium">Le tue note</h2>
+               <h2 class="text-sm font-medium">${escapeHtml(say('account.order.yourNotes'))}</h2>
                <p class="mt-1 text-[15px] whitespace-pre-line text-neutral-600">${escapeHtml(order.notes)}</p>
              </section>`
           : ''
@@ -168,7 +198,9 @@ const { number } = Astro.params;
   const customer = await loadCustomer();
 
   if (!customer) {
-    window.location.replace(`${routes.login}?next=${encodeURIComponent(window.location.pathname)}`);
+    window.location.replace(
+      `${copy.routes.login}?next=${encodeURIComponent(window.location.pathname)}`,
+    );
   } else {
     const response = await fetch(`${API_BASE}/api/customer/orders/${encodeURIComponent(number)}`, {
       credentials: 'include',
@@ -183,7 +215,7 @@ const { number } = Astro.params;
       // A number that is not theirs 404s rather than 403s, so "not found" is the
       // only thing this page can honestly say about either case.
       errorBox.hidden = false;
-      errorBox.innerHTML = `Questo ordine non è disponibile. <a class="underline" href="${routes.accountOrders}">Torna ai tuoi ordini</a>.`;
+      errorBox.innerHTML = `${escapeHtml(say('account.order.unavailable'))} <a class="underline" href="${copy.routes.accountOrders}">${escapeHtml(say('account.order.backToOrders'))}</a>.`;
     }
   }
 </script>

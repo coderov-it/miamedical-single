@@ -1,4 +1,5 @@
 import 'cally';
+import { documentLocale } from '../locale';
 import { createFloating } from './floating';
 
 type CalendarElement = HTMLElement & {
@@ -8,7 +9,7 @@ type CalendarElement = HTMLElement & {
   focus: (options?: FocusOptions & { target?: 'day' | 'next' | 'previous' }) => void;
 };
 
-const DISPLAY_FORMAT = new Intl.DateTimeFormat('it-IT', {
+const DISPLAY_FORMAT = new Intl.DateTimeFormat(documentLocale(), {
   weekday: 'short',
   day: 'numeric',
   month: 'short',
