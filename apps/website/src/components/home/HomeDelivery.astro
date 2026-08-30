@@ -4,13 +4,17 @@
  * bordered panel, white note strip attached below, ported 1:1 from
  * docs/blueprint/home.html (styles in styles/editorial.css).
  */
+import { localeForRequest, translate } from '~/lib/i18n';
 import { CONTACT } from '~/lib/site';
+
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
 ---
 
 <section class="delivery" aria-labelledby="delivery-title">
   <div class="container">
     <h2 class="section-title" id="delivery-title">
-      Consegna e ritiro.
+      {text('home.delivery.title')}
       <svg
         width="44"
         height="16"
@@ -25,7 +29,7 @@ import { CONTACT } from '~/lib/site';
         <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
       </svg>
     </h2>
-    <p class="section-lead">Pensiamo a tutto noi, dall'inizio alla fine.</p>
+    <p class="section-lead">{text('home.delivery.lede')}</p>
 
     <div class="delivery-panel">
       <ul class="delivery-grid">
@@ -46,8 +50,8 @@ import { CONTACT } from '~/lib/site';
               ></path>
             </svg>
           </span>
-          <h3 class="delivery-name">Consegna in 24–48 ore</h3>
-          <p class="delivery-text">A Roma, Firenze e provincia. Anche in appartamento, al piano.</p>
+          <h3 class="delivery-name">{text('home.delivery.cell1.name')}</h3>
+          <p class="delivery-text">{text('home.delivery.cell1.text')}</p>
         </li>
         <li class="delivery-cell">
           <span class="delivery-icon" aria-hidden="true">
@@ -66,10 +70,8 @@ import { CONTACT } from '~/lib/site';
               ></path>
             </svg>
           </span>
-          <h3 class="delivery-name">Montaggio incluso</h3>
-          <p class="delivery-text">
-            Installiamo letti e ausili e ti mostriamo come si usano, con calma.
-          </p>
+          <h3 class="delivery-name">{text('home.delivery.cell2.name')}</h3>
+          <p class="delivery-text">{text('home.delivery.cell2.text')}</p>
         </li>
         <li class="delivery-cell">
           <span class="delivery-icon" aria-hidden="true">
@@ -88,16 +90,18 @@ import { CONTACT } from '~/lib/site';
               ></path>
             </svg>
           </span>
-          <h3 class="delivery-name">Ritiro a fine noleggio</h3>
-          <p class="delivery-text">Fissiamo insieme il giorno: non devi riconsegnare nulla.</p>
+          <h3 class="delivery-name">{text('home.delivery.cell3.name')}</h3>
+          <p class="delivery-text">{text('home.delivery.cell3.text')}</p>
         </li>
       </ul>
 
       <p class="note-bar">
         <span>
-          <strong>Zone servite:</strong> Roma e provincia · Firenze e provincia. Sei in un'altra zona?
-          <a href={`tel:${CONTACT.phoneE164}`}>Chiamaci</a>: spesso riusciamo a organizzare la
-          consegna.
+          <strong>{text('home.delivery.areasStrong')}</strong>
+          {text('home.delivery.areasBefore')}
+          <a href={`tel:${CONTACT.phoneE164}`}>{text('support.callUs')}</a>{
+            text('support.deliveryAfter')
+          }
         </span>
       </p>
     </div>

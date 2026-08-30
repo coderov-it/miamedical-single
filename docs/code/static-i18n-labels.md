@@ -1,6 +1,8 @@
 # Static bilingual labels (`@mia/i18n`)
 
-Covers `packages/i18n/src/enum-labels.ts`.
+Covers `packages/i18n/src/enum-labels.ts`. For the storefront's own page copy —
+the message catalogues, the request locale and the `/en/` routes — see
+[storefront-languages.md](./storefront-languages.md).
 
 ## Two kinds of i18n, one of which the project already solved
 

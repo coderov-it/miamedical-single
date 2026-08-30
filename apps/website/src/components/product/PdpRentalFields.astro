@@ -20,6 +20,8 @@ import PdpDatePicker from '~/components/product/PdpDatePicker.astro';
 import { PDP_FIELD, PDP_LABEL } from '~/components/product/pdp-chooser.ts';
 import { formatMoney } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
+import { localeForRequest, localeTag } from '~/lib/i18n';
+import { t as text } from '~/lib/labels';
 import { FIELD } from '~/lib/request-config';
 
 interface Props {
@@ -32,6 +34,7 @@ interface Props {
 }
 
 const { packages, currency, today, deliveryCity = null, startDate = '' } = Astro.props;
+const locale = localeForRequest();
 
 const hasHourPackage = packages.some((pkg) => pkg.unit === 'hour');
 
@@ -70,7 +73,7 @@ const pkgRow =
     data-gate="package"
     data-gate-focus="[data-pkg-trigger]"
   >
-    <label class={PDP_LABEL} for="pdp-pkg-open"> Scegli il pacchetto </label>
+    <label class={PDP_LABEL} for="pdp-pkg-open"> {text('pickPackage')} </label>
     {
       /* Opening the list is not choosing from it — `data-gate-ignore`
           keeps this checkbox from answering the question it reveals. */
@@ -88,7 +91,7 @@ const pkgRow =
       for="pdp-pkg-open"
       data-pkg-trigger
     >
-      <span class="min-w-0 flex-1 truncate" data-pkg-title> Scegli un pacchetto </span>
+      <span class="min-w-0 flex-1 truncate" data-pkg-title> {text('pickPackage')} </span>
       <span
         class="text-ink-2 text-[11px] transition-transform duration-150"
         data-chev
@@ -127,7 +130,7 @@ const pkgRow =
                 {pkg.name !== pkg.label && <span class="text-ink-2 text-[13px]">{pkg.label}</span>}
               </span>
               <strong class="text-[14px] whitespace-nowrap tabular-nums">
-                {formatMoney(pkg.price, currency)}
+                {formatMoney(pkg.price, currency, localeTag(locale))}
               </strong>
             </label>
           </span>
@@ -135,7 +138,9 @@ const pkgRow =
       }
     </div>
 
-    <p class="field-error" data-field-error="package" hidden>Scegli un pacchetto per continuare.</p>
+    <p class="field-error" data-field-error="package" hidden>
+      {text('pdp.choosePackageToContinue')}
+    </p>
   </div>
 
   <PdpDatePicker {today} {hasHourPackage} {deliveryCity} {startDate} />

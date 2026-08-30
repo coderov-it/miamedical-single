@@ -28,6 +28,7 @@ import { formatMoney } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
 import { REVIEW_AGGREGATE } from '~/lib/home-content';
 import { localeForRequest, localeTag } from '~/lib/i18n';
+import { t } from '~/lib/labels';
 import { FIELD, MAX_QUANTITY } from '~/lib/request-config';
 import { routePath } from '~/lib/routes';
 import { whatsappUrl } from '~/lib/site';
@@ -64,8 +65,8 @@ const money = (amount: number) => formatMoney(amount.toFixed(2), currency, local
   quantity 1) so the script never causes a flash.
 */
 const initialTotal = isRental ? null : Number(product.pricing.price ?? '0');
-const initialNote = isRental ? 'scegli un pacchetto' : 'prezzo del prodotto';
-const baseLineLabel = 'Tariffa base';
+const initialNote = t(isRental ? 'pdp.pickPackageNote' : 'pdp.productPrice');
+const baseLineLabel = t('baseRate');
 
 const packages = product.rentalPackages;
 ---
@@ -144,13 +145,13 @@ const packages = product.rentalPackages;
     </div>
 
     <div class="flex items-center justify-between gap-4" data-qty-row>
-      <label class="text-[14px] font-semibold" for={`qta-${product.id}`}>Quantità</label>
+      <label class="text-[14px] font-semibold" for={`qta-${product.id}`}>{t('quantity')}</label>
       <div class="bg-tint flex items-center overflow-clip rounded-[10px]">
         <button
           type="button"
           class="hover:bg-tint-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-xl font-bold"
           data-qty-dec
-          aria-label="Riduci quantità"
+          aria-label={t('decreaseQuantity')}
         >
           −
         </button>
@@ -170,7 +171,7 @@ const packages = product.rentalPackages;
           type="button"
           class="hover:bg-tint-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-xl font-bold"
           data-qty-inc
-          aria-label="Aumenta quantità"
+          aria-label={t('increaseQuantity')}
         >
           +
         </button>
@@ -191,11 +192,14 @@ const packages = product.rentalPackages;
     <a
       class="border-hair text-ink flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3.5 text-[13px] no-underline"
       href={`${routePath(locale, 'home')}#recensioni`}
-      aria-label={`Valutazione ${REVIEW_AGGREGATE.rating} su 5, basata su ${REVIEW_AGGREGATE.countLabel}`}
+      aria-label={t('pdp.reviewRating', {
+        rating: REVIEW_AGGREGATE.rating,
+        count: t(REVIEW_AGGREGATE.countKey),
+      })}
     >
       <span class="text-star tracking-[0.12em]" aria-hidden="true">★★★★★</span>
       <strong class="tabular-nums">{REVIEW_AGGREGATE.rating}</strong>
-      <span class="text-ink-2">· {REVIEW_AGGREGATE.countLabel}</span>
+      <span class="text-ink-2">· {t(REVIEW_AGGREGATE.countKey)}</span>
     </a>
   </div>
 

@@ -12,6 +12,7 @@
  * rendered order, so it stays correct whichever subset survives.
  */
 import type { ProductDetail } from '~/lib/catalog';
+import { localeForRequest, translate } from '~/lib/i18n';
 
 interface Props {
   product: ProductDetail;
@@ -19,27 +20,31 @@ interface Props {
 
 const { product } = Astro.props;
 const isRental = product.pricing.mode === 'rental';
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
 
 const includes = [
-  'Consegna a domicilio',
-  'Ritiro a fine noleggio',
-  'Montaggio e istruzioni',
-  'Assistenza telefonica',
+  text('pdp.includes.delivery'),
+  text('pdp.includes.collection'),
+  text('pdp.includes.assembly'),
+  text('pdp.includes.phone'),
 ];
 
 const hygiene = [
-  'Sanificato e certificato',
-  'Controllato prima della consegna',
-  'Accessori inclusi e integri',
+  text('pdp.hygiene.sanitised'),
+  text('pdp.hygiene.checked'),
+  text('pdp.hygiene.accessories'),
 ];
 
-type TabKey = 'descrizione' | 'faq' | 'consegna' | 'condizioni';
+type TabKey = 'description' | 'faq' | 'delivery' | 'terms';
 
 const tabs: { key: TabKey; title: string }[] = [
-  ...(product.description ? [{ key: 'descrizione' as const, title: 'Descrizione' }] : []),
-  ...(product.faqs.length > 0 ? [{ key: 'faq' as const, title: 'Domande frequenti' }] : []),
-  { key: 'consegna' as const, title: 'Consegna e igiene' },
-  ...(product.terms.length > 0 ? [{ key: 'condizioni' as const, title: 'Condizioni' }] : []),
+  ...(product.description
+    ? [{ key: 'description' as const, title: text('pdp.tab.description') }]
+    : []),
+  ...(product.faqs.length > 0 ? [{ key: 'faq' as const, title: text('pdp.tab.faq') }] : []),
+  { key: 'delivery' as const, title: text('pdp.tab.delivery') },
+  ...(product.terms.length > 0 ? [{ key: 'terms' as const, title: text('pdp.tab.terms') }] : []),
 ];
 
 /**
@@ -86,7 +91,7 @@ const checkRow = 'flex items-center gap-3 text-[14.5px]';
     {
       tabs.map((tab, index) => (
         <div class={`pdp-panel pdp-panel-${index}`}>
-          {tab.key === 'descrizione' && (
+          {tab.key === 'description' && (
             <div class="pdp-prose max-w-180" set:html={product.description} />
           )}
 
@@ -115,11 +120,11 @@ const checkRow = 'flex items-center gap-3 text-[14.5px]';
             </div>
           )}
 
-          {tab.key === 'consegna' && (
+          {tab.key === 'delivery' && (
             <div class="grid max-w-180 gap-8 min-[560px]:grid-cols-2">
               <div>
                 <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">
-                  {isRental ? 'Cosa è incluso nel noleggio' : 'Cosa è incluso'}
+                  {text(isRental ? 'pdp.includedRental' : 'pdp.includedSale')}
                 </h3>
                 <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
                   {includes.map((item) => (
@@ -142,7 +147,9 @@ const checkRow = 'flex items-center gap-3 text-[14.5px]';
                 </ul>
               </div>
               <div>
-                <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">Igiene e sicurezza</h3>
+                <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">
+                  {text('pdp.hygieneHeading')}
+                </h3>
                 <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
                   {hygiene.map((item) => (
                     <li class={checkRow}>
@@ -165,9 +172,9 @@ const checkRow = 'flex items-center gap-3 text-[14.5px]';
             </div>
           )}
 
-          {tab.key === 'condizioni' && (
+          {tab.key === 'terms' && (
             <div class="flex max-w-180 flex-col gap-3">
-              <p class="m-0">Al noleggio di questo ausilio si applicano le seguenti condizioni:</p>
+              <p class="m-0">{text('pdp.termsIntro')}</p>
               <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
                 {product.terms.map((terms) => (
                   <li>

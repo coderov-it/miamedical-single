@@ -6,6 +6,7 @@
  */
 import { mediaUrl } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
+import { localeForRequest, translate } from '~/lib/i18n';
 import PdpSectionHead from './PdpSectionHead.astro';
 
 interface Props {
@@ -13,10 +14,11 @@ interface Props {
 }
 
 const { specifications } = Astro.props;
+const locale = localeForRequest();
 ---
 
 <section>
-  <PdpSectionHead n="03" title="Scheda tecnica" />
+  <PdpSectionHead n="03" title={translate(locale, 'pdp.techSheet')} />
 
   <div class="grid [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))] gap-3">
     {

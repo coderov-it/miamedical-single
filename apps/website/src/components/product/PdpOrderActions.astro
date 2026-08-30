@@ -122,8 +122,8 @@ const locale = localeForRequest();
   aria-live="polite"
   data-cart-announce
   data-message-template={translate(locale, 'product.addedAnnouncement')}
-  data-count-one="1 ausilio"
-  data-count-many="{count} ausili"
+  data-count-one={translate(locale, 'cartCountOne')}
+  data-count-many={translate(locale, 'cartCountMany')}
 >
 </p>
 
@@ -143,7 +143,7 @@ const locale = localeForRequest();
   role="status"
   aria-live="assertive"
   data-order-gate-announce
-  data-message-one="Manca un dato per continuare."
-  data-message-many="Mancano {count} dati per continuare."
+  data-message-one={translate(locale, 'errorCountOne')}
+  data-message-many={translate(locale, 'errorCountMany')}
 >
 </p>

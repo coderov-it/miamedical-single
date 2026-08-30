@@ -12,6 +12,8 @@
  * It renders unconditionally for the same reason: an empty third row still holds
  * the subgrid open. A cell with no hint and no gate is not a cell with two rows.
  */
+import { localeForRequest, translate } from '~/lib/i18n';
+
 interface Props {
   /** The field's own hint, from the back office. */
   help?: string | null;
@@ -29,6 +31,7 @@ interface Props {
 }
 
 const { help = null, gate, prompt } = Astro.props;
+const locale = localeForRequest();
 ---
 
 <div class="flex flex-col gap-1">
@@ -36,7 +39,9 @@ const { help = null, gate, prompt } = Astro.props;
   {
     gate && (
       <p class="field-error" data-field-error={gate} hidden>
-        {prompt ? `Rispondi a «${prompt}» per continuare.` : 'Rispondi per continuare.'}
+        {prompt
+          ? translate(locale, 'field.answerPrompt', { prompt })
+          : translate(locale, 'field.answerToContinue')}
       </p>
     )
   }

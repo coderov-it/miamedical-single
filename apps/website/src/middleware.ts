@@ -21,13 +21,25 @@ const ENGLISH_STATIC_PATHS = new Map<string, string>(
   (Object.keys(routePaths.en) as RouteKey[]).map((key) => [routePaths.en[key], routePaths.it[key]]),
 );
 
+const ITALIAN_STATIC_PATHS = new Set<string>(Object.values(routePaths.it));
+
+/**
+ * English slugs stripped of their prefix — `/en/search/` leaves `/search/`.
+ * Requesting one of these unprefixed is a mistake, not a route, and gets a 404.
+ *
+ * MINUS the Italian routes, and that subtraction is the whole point. Four paths
+ * are spelled identically in both languages — `/checkout/`, `/blog/`,
+ * `/privacy-policy/`, `/cookie-policy/` — so stripping `/en/` from the English
+ * ones produced the real Italian routes, and this set 404'd them on the Italian
+ * storefront. The checkout among them: the cart's own "vai alla conferma" led
+ * to a 404 (owner, 2026-08-30).
+ */
 const UNPREFIXED_ENGLISH_PATHS = new Set(
   [...ENGLISH_STATIC_PATHS.keys()]
     .filter((path) => path !== '/en/')
-    .map((path) => path.replace(/^\/en/, '')),
+    .map((path) => path.replace(/^\/en/, ''))
+    .filter((path) => !ITALIAN_STATIC_PATHS.has(path)),
 );
-
-const ITALIAN_STATIC_PATHS = new Set<string>(Object.values(routePaths.it));
 
 function notFound(): Response {
   return new Response(null, { status: 404 });

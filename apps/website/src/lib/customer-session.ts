@@ -1,3 +1,4 @@
+import { documentLocale } from '../scripts/locale.ts';
 import { API_BASE } from './api';
 import { routes } from './routes';
 
@@ -197,19 +198,22 @@ export function tokenFromQuery(): string | null {
   return new URLSearchParams(window.location.search).get('token');
 }
 
+/*
+ * Both formatters read the page's own locale rather than a literal `'it-IT'`.
+ * The account pages render their lists in the browser, so this is the only
+ * place that knows which language the surrounding page is in — see
+ * scripts/locale.ts.
+ *
+ * The order-status labels that used to live here are gone with them: they were
+ * Italian-only, and they are now `account.status.*` in the message catalog,
+ * shipped to these scripts by `<AccountCopy>` (lib/account-page.ts).
+ */
 export function formatMoney(amount: string, currency = 'EUR'): string {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency }).format(Number(amount));
+  return new Intl.NumberFormat(documentLocale(), { style: 'currency', currency }).format(
+    Number(amount),
+  );
 }
 
 export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('it-IT', { dateStyle: 'medium' }).format(new Date(iso));
+  return new Intl.DateTimeFormat(documentLocale(), { dateStyle: 'medium' }).format(new Date(iso));
 }
-
-/** Italian labels for the states an order can be in. Data is Italian; code is not. */
-export const ORDER_STATUS_LABELS: Record<string, string> = {
-  pending: 'In lavorazione',
-  paid: 'Pagato',
-  fulfilled: 'Completato',
-  cancelled: 'Annullato',
-  refunded: 'Rimborsato',
-};

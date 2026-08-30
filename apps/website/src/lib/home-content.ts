@@ -11,7 +11,7 @@ import { perUnitLabel } from '@mia/i18n';
 import { formatMoney } from './api.ts';
 import { buildCategoryTiles, type CategoryTile } from './catalog-page.ts';
 import type { Category, ProductSummary } from './catalog.ts';
-import { localeTag, type SiteLocale } from './i18n.ts';
+import { localeTag, translate, type SiteLocale } from './i18n.ts';
 
 /**
  * The products shown in the hero showcase (3) and the "I più noleggiati"
@@ -88,72 +88,47 @@ export interface FaqItem {
   answer: string;
 }
 
-/** The home page's six questions, from the approved blueprint. */
-export const HOME_FAQ: FaqItem[] = [
-  {
-    question: 'Come funziona la consegna a domicilio?',
-    answer:
-      "Consegniamo e montiamo noi, a Roma e Firenze, di solito entro 24–48 ore dall'ordine. Alla fine del noleggio veniamo a ritirare l'ausilio: consegna e ritiro sono già compresi nella tariffa.",
-  },
-  {
-    question: 'Qual è la durata minima del noleggio?',
-    answer:
-      'Si parte da una settimana. Se ti serve più a lungo basta una telefonata: la proroga si attiva subito, senza firmare nulla di nuovo.',
-  },
-  {
-    question: 'Gli ausili sono sanificati?',
-    answer:
-      'Sì. Ogni ausilio viene igienizzato, controllato e regolato prima di ogni consegna. Sono tutti dispositivi certificati CE con manutenzione documentata.',
-  },
-  {
-    question: 'Serve la prescrizione del medico?',
-    answer:
-      'No, per noleggiare non serve alcuna prescrizione. Se hai una pratica ASL in corso ti aiutiamo noi a capire cosa spetta e come muoverti.',
-  },
-  {
-    question: 'Come si paga?',
-    answer:
-      'Online con carta oppure alla consegna. La tariffa è al giorno e comprende tutto: nessun deposito nascosto, nessun costo che spunta dopo.',
-  },
-  {
-    question: "Posso restituire l'ausilio prima del previsto?",
-    answer:
-      'Sì: chiamaci e organizziamo il ritiro anticipato. Paghi solo i giorni di noleggio effettivi previsti dal piano scelto.',
-  },
-];
+/**
+ * The home page's six questions, and the support page's longer, more
+ * operational list.
+ *
+ * Both are keys rather than literals: the answers are customer-facing prose and
+ * the storefront serves them in two languages, so they belong in the message
+ * catalog with everything else a customer reads. The KEYS are the running order
+ * — change the array to reorder a list, the JSON to reword an answer.
+ */
+const HOME_FAQ_KEYS = [
+  'delivery',
+  'minimum',
+  'hygiene',
+  'prescription',
+  'payment',
+  'earlyReturn',
+] as const;
 
-/** The support page's FAQ — a longer, more operational list than the home one. */
-export const SUPPORT_FAQ: FaqItem[] = [
-  {
-    question: 'Quando e come si paga?',
-    answer:
-      'Non paghi nulla sul sito. Invii la richiesta, ti chiamiamo per confermare disponibilità e consegna, poi ricevi un link di pagamento sicuro via SMS o email. Il pagamento avviene solo dopo la nostra telefonata.',
-  },
-  {
-    question: 'Serve una cauzione?',
-    answer:
-      'Per la maggior parte degli ausili no. Solo per alcuni prodotti di valore (per esempio le carrozzine elettriche) è prevista una cauzione, indicata chiaramente sulla scheda prodotto e restituita per intero a fine noleggio.',
-  },
-  {
-    question: 'Quanto costa la consegna?',
-    answer:
-      'Dipende dalla zona e dal prodotto: te la confermiamo al telefono prima del pagamento, senza sorprese. Per molti prodotti è gratuita per i noleggi da 30 giorni, e per i letti il montaggio in camera è sempre incluso.',
-  },
-  {
-    question: 'I prodotti sono igienizzati?',
-    answer:
-      'Sì. Ogni ausilio viene sanificato, controllato e certificato dopo ogni noleggio. Lo ricevi igienizzato e pronto all’uso.',
-  },
-  {
-    question: 'Posso prolungare il noleggio?',
-    answer: 'Sì, basta una telefonata: prolunghi quando vuoi e paghi solo i giorni in più.',
-  },
-  {
-    question: 'E se il prodotto non va bene?',
-    answer:
-      'Chiamaci: lo sostituiamo con uno più adatto o lo ritiriamo. Ti aiutiamo anche a scegliere prima di ordinare.',
-  },
-];
+const SUPPORT_FAQ_KEYS = [
+  'payment',
+  'deposit',
+  'deliveryCost',
+  'hygiene',
+  'extend',
+  'unsuitable',
+] as const;
+
+function faqFrom(namespace: string, keys: readonly string[], locale: SiteLocale): FaqItem[] {
+  return keys.map((key) => ({
+    question: translate(locale, `${namespace}.${key}.q`),
+    answer: translate(locale, `${namespace}.${key}.a`),
+  }));
+}
+
+export function homeFaq(locale: SiteLocale): FaqItem[] {
+  return faqFrom('home.faq', HOME_FAQ_KEYS, locale);
+}
+
+export function supportFaq(locale: SiteLocale): FaqItem[] {
+  return faqFrom('support.faq', SUPPORT_FAQ_KEYS, locale);
+}
 
 /**
  * Aggregate rating, shown in the PDP order panel.
@@ -168,7 +143,8 @@ export const SUPPORT_FAQ: FaqItem[] = [
  */
 export const REVIEW_AGGREGATE = {
   rating: '4,9',
-  countLabel: 'oltre 600 recensioni',
+  /** The count is prose a customer reads — `home.reviews.count` carries it. */
+  countKey: 'home.reviews.count',
   sources: ['Google Maps', 'Trustpilot', 'Facebook'],
 } as const;
 
@@ -185,55 +161,37 @@ export interface Testimonial {
 }
 
 /**
- * The home testimonial band, from the approved blueprint. PLACEHOLDER people
- * and figures: swap for the governed reviews source before launch, and keep
- * the count in step with `REVIEW_AGGREGATE` when either becomes real.
+ * The home testimonial band. PLACEHOLDER people and figures: swap for the
+ * governed reviews source before launch, and keep the count in step with
+ * `REVIEW_AGGREGATE` when either becomes real.
+ *
+ * The names and initials are identity, so they stay here; the quote and the
+ * month are prose a customer reads, so they live in the message catalog and
+ * come back translated. A real reviews source will carry both per language.
  */
-export const HOME_TESTIMONIALS = {
-  rating: '4,9',
-  countLabel: '214 recensioni verificate',
-  entries: [
-    {
-      name: 'Giulia R.',
-      initials: 'GR',
-      date: 'Giugno 2026',
-      text: "L'ho ordinato una sera per mia madre e il pomeriggio seguente era già in camera, montato e regolato. Prima di andare via mi hanno spiegato ogni comando con calma.",
-      source: 'google',
-    },
-    {
-      name: 'Franco M.',
-      initials: 'FM',
-      date: 'Luglio 2026',
-      text: 'Ho spostato due volte le date del ritiro e non è mai stato un problema: stessa voce, stessa pazienza. Quando assisti un genitore anziano, questo vale più di qualsiasi sconto.',
-      source: 'google',
-    },
-    {
-      name: 'Sara T.',
-      initials: 'ST',
-      date: 'Luglio 2026',
-      text: "Cinque minuti dal telefono, senza registrazioni complicate. Il rollator è arrivato a Firenze il giorno dopo, già regolato per l'altezza di mio padre.",
-      source: 'trustpilot',
-    },
-    {
-      name: 'Alessandro B.',
-      initials: 'AB',
-      date: 'Maggio 2026',
-      text: 'Ho confrontato tre servizi prima di scegliere: qui la tariffa è al giorno, con consegna e ritiro compresi, e alla fine non è spuntato nessun costo a sorpresa.',
-      source: 'google',
-    },
-    {
-      name: 'Marta C.',
-      initials: 'MC',
-      date: 'Aprile 2026',
-      text: 'La carrozzina è arrivata igienizzata, con le gomme gonfie e i freni registrati: sembrava appena uscita dal negozio. Al ritiro sono stati puntuali al minuto.',
-      source: 'facebook',
-    },
-    {
-      name: 'Paolo V.',
-      initials: 'PV',
-      date: 'Febbraio 2026',
-      text: "Dopo l'operazione mi serviva un letto elettrico solo per sei settimane. Consegna, montaggio e ritiro compresi: finito il noleggio se lo sono portati via, ed è finita lì.",
-      source: 'trustpilot',
-    },
-  ] satisfies Testimonial[],
-} as const;
+const TESTIMONIAL_PEOPLE = [
+  { key: '1', name: 'Giulia R.', initials: 'GR', source: 'google' },
+  { key: '2', name: 'Franco M.', initials: 'FM', source: 'google' },
+  { key: '3', name: 'Sara T.', initials: 'ST', source: 'trustpilot' },
+  { key: '4', name: 'Alessandro B.', initials: 'AB', source: 'google' },
+  { key: '5', name: 'Marta C.', initials: 'MC', source: 'facebook' },
+  { key: '6', name: 'Paolo V.', initials: 'PV', source: 'trustpilot' },
+] as const satisfies readonly {
+  key: string;
+  name: string;
+  initials: string;
+  source: TestimonialSource;
+}[];
+
+export function homeTestimonials(locale: SiteLocale): Testimonial[] {
+  return TESTIMONIAL_PEOPLE.map((person) => ({
+    name: person.name,
+    initials: person.initials,
+    source: person.source,
+    date: translate(locale, `home.testimonial.${person.key}.date`),
+    text: translate(locale, `home.testimonial.${person.key}.text`),
+  }));
+}
+
+/** The band's headline rating. Its count label is `home.reviews.verifiedCount`. */
+export const TESTIMONIAL_RATING = '4,9';

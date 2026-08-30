@@ -12,6 +12,7 @@
  * ONE DATE to pick, so there is no range state here. The package decides the
  * end; the grid only shades the span it implies.
  */
+import { documentLocale } from '../locale';
 import type { PdpLabels } from './labels.ts';
 import { checkedPackageInput, derivePeriod, fromIsoDate, toIsoDate } from './rental.ts';
 
@@ -55,13 +56,13 @@ export function mountCalendar(options: CalendarOptions): Calendar | null {
   const titleSlot = block.querySelector('[data-cal-title]');
   const valueSlot = block.querySelector('[data-cal-start]');
 
-  const dayFormat = new Intl.DateTimeFormat('it-IT', {
+  const dayFormat = new Intl.DateTimeFormat(documentLocale(), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   });
-  const monthFormat = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
-  const fullFormat = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full' });
+  const monthFormat = new Intl.DateTimeFormat(documentLocale(), { month: 'long', year: 'numeric' });
+  const fullFormat = new Intl.DateTimeFormat(documentLocale(), { dateStyle: 'full' });
 
   const floor = startInput.min || toIsoDate(new Date());
   let cursor = fromIsoDate(startInput.value || floor);

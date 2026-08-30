@@ -802,11 +802,19 @@ price bar already fills that corner.
   not survive a device change and the header count cannot be server-rendered. A
   `/api/cart` read/write model is still missing. See
   [storefront-cart.md](./storefront-cart.md).
-- **Home FAQ, reviews and the review aggregate are hardcoded** in
-  `src/lib/home-content.ts`. This is editorial content and belongs in the back
-  office as page sections plus a governed reviews source. The legacy WordPress
-  theme made exactly this mistake — FAQ JSON-LD in `functions.php` — and the copy
-  drifted from the page.
+- **Home FAQ, reviews and the review aggregate are hardcoded.** The copy itself
+  now lives in `i18n/{it,en}.json` so both languages have it, but the running
+  order and the review figures are still in `src/lib/home-content.ts`. This is
+  editorial content and belongs in the back office as page sections plus a
+  governed reviews source. The legacy WordPress theme made exactly this mistake —
+  FAQ JSON-LD in `functions.php` — and the copy drifted from the page.
+- **No English product content.** Every page's chrome is bilingual, but
+  `product_translations` and `category_translations` carry `it` rows only, so
+  `/en/*` lists Italian titles and descriptions. The plumbing is already there —
+  `listProducts(…, locale)` asks for English — so this is back-office data entry,
+  not a code change. See
+  [storefront-languages.md](./storefront-languages.md) and
+  [wp-migration.md](./wp-migration.md).
 - **Organisation facts are hardcoded** in `src/lib/site.ts` (phone, WhatsApp,
   email, addresses, VAT). These belong to a `/api/site` read model so the
   storefront, JSON-LD and the back office cannot drift.

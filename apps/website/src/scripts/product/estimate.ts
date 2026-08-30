@@ -9,6 +9,7 @@
  * It also owns the two reveals that follow from the chosen package: the start-time
  * row, which only an hourly package needs, and each add-on's quantity stepper.
  */
+import { documentLocale } from '../locale';
 import { type PdpLabels, unitWord } from './labels.ts';
 import { type ChosenPackage, convertDuration, derivePeriod, readChosenPackage } from './rental.ts';
 
@@ -59,13 +60,13 @@ export function createEstimate(form: HTMLFormElement, labels: PdpLabels): Estima
   const config = form.dataset;
   const base = Number(config.estBase ?? '0');
   const isRental = config.estMode === 'rental';
-  const money = new Intl.NumberFormat('it-IT', {
+  const money = new Intl.NumberFormat(documentLocale(), {
     style: 'currency',
     currency: config.estCurrency || 'EUR',
   });
   /* Shared with the calendar, which prints the same dates in its own trigger —
      two formats for one date would read as two dates. */
-  const dateFormat = new Intl.DateTimeFormat('it-IT', {
+  const dateFormat = new Intl.DateTimeFormat(documentLocale(), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

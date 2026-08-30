@@ -13,6 +13,7 @@
  */
 import { cardPrice, mediaUrl } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
+import { localeForRequest, translate } from '~/lib/i18n';
 
 interface Props {
   product: ProductDetail;
@@ -21,6 +22,9 @@ interface Props {
 }
 
 const { product, images } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
 
 /**
  * The line under the title. On a rental this is the MARKETING rate — "da 35,00 €
@@ -28,7 +32,7 @@ const { product, images } = Astro.props;
  * cost: the packages in the buy box are the price. It sits here precisely
  * because nothing has been chosen yet and there is no total to show.
  */
-const price = cardPrice(product.pricing);
+const price = cardPrice(product.pricing, locale);
 const isRental = product.pricing.mode === 'rental';
 const main = images[0];
 const chipClass =
@@ -71,7 +75,10 @@ const hasChips = product.chips.length > 0 || specChips.length > 0;
                 data-pdp-thumb
                 data-src={mediaUrl(item.path)}
                 data-alt={item.alt ?? product.title}
-                aria-label={`Immagine ${index + 1} di ${Math.min(images.length, 4)}`}
+                aria-label={text('pdp.imageOf', {
+                  index: index + 1,
+                  total: Math.min(images.length, 4),
+                })}
                 aria-current={index === 0 ? 'true' : undefined}
               >
                 <img
@@ -91,7 +98,7 @@ const hasChips = product.chips.length > 0 || specChips.length > 0;
 
   <div class="flex min-w-0 flex-[1_1_300px] flex-col gap-4 pt-1">
     <span class="text-[12px] font-bold tracking-[0.12em] text-accent uppercase">
-      {product.category.name} · {isRental ? 'Noleggio' : 'Vendita'}
+      {product.category.name} · {text(isRental ? 'product.rental' : 'product.sale')}
     </span>
 
     <h1
@@ -107,7 +114,7 @@ const hasChips = product.chips.length > 0 || specChips.length > 0;
           <span class="text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
             {price.text}
           </span>
-          <span class="text-ink-2 text-[14px]">IVA inclusa</span>
+          <span class="text-ink-2 text-[14px]">{text('vatIncluded')}</span>
         </p>
       )
     }
