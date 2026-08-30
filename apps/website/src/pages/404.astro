@@ -20,7 +20,7 @@ const locale = localeFromLocals(Astro.locals);
   description={translate(locale, 'notFound.description')}
   noindex
 >
-  <div class="max-w-page py-section-sm mid:px-8 mid:py-section mx-auto w-full px-5">
+  <div class="max-w-page px-gutter py-section-sm mid:py-section mx-auto w-full">
     <div class="max-w-[62ch]">
       <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">
         {translate(locale, 'notFound.heading')}
@@ -30,7 +30,10 @@ const locale = localeFromLocals(Astro.locals);
       </p>
 
       <div class="mt-8 flex flex-wrap gap-3">
-        <a class="btn btn-primary" href={routePath(locale, 'catalog')}>
+        <a
+          class="font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-7 font-semibold text-white no-underline"
+          href={routePath(locale, 'catalog')}
+        >
           {translate(locale, 'notFound.catalog')}
         </a>
         <PhoneCta variant="soft" />

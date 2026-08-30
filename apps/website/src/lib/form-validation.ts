@@ -23,7 +23,7 @@
  * have not reached yet.
  *
  * It is DOM-only and imports nothing, so it costs a page nothing but its own
- * bytes. Visual treatment: the `.field-error` block in `styles/app.css`.
+ * bytes. Visual treatment lives on each server-rendered error via Tailwind.
  */
 
 /** Marks the server-rendered message element inside a gated block. */

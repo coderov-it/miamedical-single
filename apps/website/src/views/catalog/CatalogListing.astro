@@ -66,7 +66,7 @@ const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
         <PhoneCta variant="primary" />
       </div>
     ) : (
-      <ul class="wide:grid-cols-3 grid gap-6 sm:grid-cols-2">
+      <ul class="card-grid">
         {products.map((product, index) => (
           <li class="flex">
             <ProductCard
@@ -89,11 +89,18 @@ const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
       aria-label={translate(locale, 'catalog.pagination')}
     >
       {prevUrl ? (
-        <a class="btn btn-soft" href={prevUrl} rel="prev">
+        <a
+          class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+          href={prevUrl}
+          rel="prev"
+        >
           {translate(locale, 'catalog.previous')}
         </a>
       ) : (
-        <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
+        <span
+          class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
+          aria-hidden="true"
+        >
           {translate(locale, 'catalog.previous')}
         </span>
       )}
@@ -103,11 +110,18 @@ const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
       </p>
 
       {nextUrl ? (
-        <a class="btn btn-soft" href={nextUrl} rel="next">
+        <a
+          class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+          href={nextUrl}
+          rel="next"
+        >
           {translate(locale, 'catalog.next')}
         </a>
       ) : (
-        <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
+        <span
+          class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
+          aria-hidden="true"
+        >
           {translate(locale, 'catalog.next')}
         </span>
       )}

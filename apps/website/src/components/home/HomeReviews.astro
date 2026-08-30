@@ -2,13 +2,14 @@
 /**
  * The testimonial band — display heading with source chips on the left, the
  * display-sized rating on the right, staggered no-title review cards below.
- * Ported 1:1 from docs/blueprint/home.html (styles in styles/editorial.css).
+ * Ported 1:1 from docs/blueprint/home.html with Tailwind utilities.
  *
  * Card anatomy is the owner's spec: [avatar + name | date] → [stars] → [text]
  * → [source logo, bottom-right]. Never a title.
  */
 import { homeTestimonials, TESTIMONIAL_RATING, type TestimonialSource } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME } from '~/styles/editorial';
 
 const rating = TESTIMONIAL_RATING;
 const locale = localeForRequest();
@@ -27,15 +28,28 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
   trustpilot: 'Trustpilot',
   facebook: 'Facebook',
 };
+
+const sourceChipClass =
+  'grid size-7 place-items-center rounded-full border border-[var(--color-line)] bg-white ' +
+  '[&+&]:-ms-2.25';
+const starsClass = 'inline-flex gap-0.75 text-[#f5a623]';
 ---
 
-<section class="testimonials" aria-labelledby="testimonials-title">
-  <div class="container">
-    <div class="section-head">
+<section
+  class:list={[
+    EDITORIAL_THEME,
+    'border-t border-[var(--color-line)] bg-[var(--color-surface-2)] pt-[var(--band-1)] pb-[var(--band-4)]',
+  ]}
+  aria-labelledby="testimonials-title"
+>
+  <div class={EDITORIAL_CONTAINER}>
+    <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
       <div>
-        <p class="hero-kicker kicker-sources">
-          <span class="source-stack" aria-hidden="true">
-            <span class="source-chip">
+        <p
+          class="mb-4.5 flex items-center gap-3 text-[0.8125rem] font-[650] tracking-[0.11em] text-[var(--color-ink-soft)] uppercase"
+        >
+          <span class="inline-flex" aria-hidden="true">
+            <span class={sourceChipClass}>
               <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   fill="#4285F4"
@@ -54,14 +68,14 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
                 ></path>
               </svg>
             </span>
-            <span class="source-chip">
+            <span class={sourceChipClass}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="#00B67A" aria-hidden="true">
                 <path
                   d="m12 1.6 2.9 7 7.5.1-5.9 4.7 2.2 7.2L12 16.3l-6.7 4.3 2.2-7.2L1.6 8.7l7.5-.1z"
                 ></path>
               </svg>
             </span>
-            <span class="source-chip">
+            <span class={sourceChipClass}>
               <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="12" r="12" fill="#1877F2"></circle>
                 <path
@@ -73,17 +87,23 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
           </span>
           Recensioni verificate
         </p>
-        <h2 class="testimonial-display" id="testimonials-title">
+        <h2
+          class="text-[clamp(2.125rem,3.6vw,3rem)] leading-[1.08] font-[550] tracking-[-0.032em] [&_strong]:font-[760]"
+          id="testimonials-title"
+        >
           {text('home.testimonials.line1')}<br />{text('home.testimonials.line2')}{' '}
           <strong>{text('home.testimonials.line3')}</strong>
         </h2>
       </div>
-      <div class="rating-hero">
-        <p class="rating-score" aria-label={text('home.testimonials.average', { rating })}>
+      <div class="flex flex-col items-end gap-1.25 text-right">
+        <p
+          class="text-[clamp(2.75rem,calc(1.43vw+1.607rem),3.5rem)] leading-[0.9] font-[780] tracking-[-0.03em] tabular-nums"
+          aria-label={text('home.testimonials.average', { rating })}
+        >
           {rating}
         </p>
         <span
-          class="stars stars-lg"
+          class={`${starsClass} [&_svg]:size-5.25`}
           role="img"
           aria-label={text('home.testimonials.stars', { rating })}
         >
@@ -101,25 +121,34 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
             ))
           }
         </span>
-        <p class="rating-note">{text('home.reviews.verifiedCount')}</p>
+        <p class="text-[0.9375rem] text-[var(--color-ink-soft)]">
+          {text('home.reviews.verifiedCount')}
+        </p>
       </div>
     </div>
 
-    <ul class="testimonial-grid">
+    <ul
+      class="wide:grid-cols-3 wide:[&>:nth-child(3n-1)]:translate-y-6.5 mt-11.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2"
+    >
       {
         entries.map((review) => (
-          <li class="testimonial-card">
-            <p class="tc-head">
-              <span class="tc-person">
-                <span class="tc-avatar" aria-hidden="true">
+          <li class="flex flex-col rounded-[20px] border border-[var(--color-line)] bg-white px-6 pt-6 pb-5.5">
+            <p class="flex items-center justify-between gap-3">
+              <span class="flex items-center gap-2.5">
+                <span
+                  class="grid size-9 place-items-center rounded-full bg-[var(--color-surface)] text-[0.8125rem] font-bold tracking-[0.02em]"
+                  aria-hidden="true"
+                >
                   {review.initials}
                 </span>
-                <span class="tc-name">{review.name}</span>
+                <span class="text-[0.9375rem] font-[650]">{review.name}</span>
               </span>
-              <span class="tc-date">{review.date}</span>
+              <span class="flex-none text-[0.8125rem] text-[var(--color-ink-soft)]">
+                {review.date}
+              </span>
             </p>
-            <p class="tc-meta">
-              <span class="stars" role="img" aria-label={text('home.testimonials.starsFull')}>
+            <p class="mt-3.5 flex items-center">
+              <span class={starsClass} role="img" aria-label={text('home.testimonials.starsFull')}>
                 {STARS.map(() => (
                   <svg
                     width="14"
@@ -133,9 +162,11 @@ const SOURCE_LABELS: Record<TestimonialSource, string> = {
                 ))}
               </span>
             </p>
-            <p class="tc-text">{review.text}</p>
+            <p class="mt-3 text-[0.9375rem] leading-[1.6] text-[var(--color-ink-soft)]">
+              {review.text}
+            </p>
             <span
-              class="tc-source"
+              class="mt-auto grid place-items-center self-end pt-3.5"
               role="img"
               aria-label={text('home.testimonials.source', {
                 source: SOURCE_LABELS[review.source],

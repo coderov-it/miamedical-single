@@ -2,10 +2,17 @@
 /**
  * "Come funziona" — three steps in one bordered panel with the payment note as
  * an attached gray footer strip, ported 1:1 from docs/blueprint/home.html
- * (styles in styles/editorial.css). Static by design: this copy is the offer,
+ * with Tailwind utilities. Static by design: this copy is the offer,
  * not data.
  */
 import { localeForRequest, translate } from '~/lib/i18n';
+import {
+  EDITORIAL_CONTAINER,
+  EDITORIAL_THEME,
+  NOTE_BAR,
+  SECTION_LEAD,
+  SECTION_TITLE,
+} from '~/styles/editorial';
 
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
@@ -16,9 +23,15 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
 }));
 ---
 
-<section class="how" aria-labelledby="how-title">
-  <div class="container">
-    <h2 class="section-title" id="how-title">
+<section
+  class:list={[
+    EDITORIAL_THEME,
+    'border-t border-[var(--color-line)] bg-white pt-[var(--band-1)] pb-[var(--band-2)]',
+  ]}
+  aria-labelledby="how-title"
+>
+  <div class={EDITORIAL_CONTAINER}>
+    <h2 class={SECTION_TITLE} id="how-title">
       {text('home.how.title')}
       <svg
         width="44"
@@ -34,28 +47,35 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
         <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
       </svg>
     </h2>
-    <p class="section-lead">{text('home.how.lede')}</p>
+    <p class={SECTION_LEAD}>{text('home.how.lede')}</p>
 
-    <div class="how-panel">
-      <ol class="steps">
+    <div class="mt-10 overflow-hidden rounded-[20px] border border-[var(--color-line)] bg-white">
+      <ol
+        class="grid list-none grid-cols-1 gap-8.5 px-7 pt-7.5 pb-9 min-[900px]:grid-cols-3 min-[900px]:gap-10"
+      >
         {
           steps.map((step, index) => (
-            <li class="step">
-              <p class="step-badge-row">
-                <span class="step-badge" aria-hidden="true">
+            <li class="group/step">
+              <p class="flex items-center gap-4 after:h-px after:flex-1 after:bg-[var(--color-line)] after:content-[''] group-last/step:after:hidden">
+                <span
+                  class="grid size-10 place-items-center rounded-full bg-[var(--color-accent)] text-[1.0625rem] font-bold text-white tabular-nums"
+                  aria-hidden="true"
+                >
                   {index + 1}
                 </span>
               </p>
-              <h3 class="step-name">{step.name}</h3>
-              <p class="step-text">{step.text}</p>
+              <h3 class="mt-4.5 text-[1.0625rem] font-[650]">{step.name}</h3>
+              <p class="mt-2 text-[0.9688rem] leading-[1.6] text-[var(--color-ink-soft)]">
+                {step.text}
+              </p>
             </li>
           ))
         }
       </ol>
 
-      <p class="note-bar">
+      <p class={NOTE_BAR}>
         <svg
-          class="note-check"
+          class="text-[var(--color-live)]"
           width="19"
           height="19"
           viewBox="0 0 24 24"

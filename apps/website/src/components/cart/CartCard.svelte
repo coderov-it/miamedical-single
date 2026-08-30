@@ -206,7 +206,7 @@
     -->
     <div class="flex flex-wrap items-center justify-end">
       <button
-        class="target-48 btn bg-danger-tint text-danger hover:bg-danger h-11 px-5 text-[16px] whitespace-nowrap hover:text-white"
+        class="bg-danger-tint font-display text-danger hover:bg-danger relative inline-flex h-11 min-h-0 min-w-0 cursor-pointer items-center justify-center gap-2.5 rounded-full px-5 text-[16px] font-semibold whitespace-nowrap no-underline after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:text-white"
         type="button"
         aria-label={labels.remove}
         onclick={onRemove}

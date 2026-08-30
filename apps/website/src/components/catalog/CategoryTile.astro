@@ -4,8 +4,7 @@
  *
  * Shared by the home grid and the catalogue directory so the two can never
  * drift. It paints from the blueprint tokens carried by the region around it
- * (styles/editorial.css § blueprint :root), so any host section must be in that
- * selector list or the hairline resolves to nothing.
+ * through the editorial Tailwind token class, so each host carries that theme.
  */
 import { mediaUrl } from '~/lib/api';
 import type { CategoryTile } from '~/lib/catalog-page';
@@ -20,11 +19,33 @@ const { tile, headingLevel = 3 } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 ---
 
-<a class="category-tile" href={tile.href}>
-  <span class="cat-media">
-    {tile.imagePath && <img src={mediaUrl(tile.imagePath)} alt="" loading="lazy" />}
+<a
+  class="group/category block h-full rounded-2xl border border-[var(--color-line)] bg-white px-3 py-3.5 no-underline hover:border-[#ccd2e2]"
+  href={tile.href}
+>
+  <span class="mb-2.5 block h-21.5 rounded-xl bg-[var(--color-surface-2)] p-1">
+    {
+      tile.imagePath && (
+        <img
+          class="block size-full object-contain mix-blend-multiply"
+          src={mediaUrl(tile.imagePath)}
+          alt=""
+          loading="lazy"
+        />
+      )
+    }
   </span>
-  <Heading class="cat-name">{tile.name}</Heading>
+  <Heading
+    class="px-2 text-[1.0625rem] leading-[1.35] font-[650] group-hover/category:text-[var(--color-accent)]"
+    >{tile.name}</Heading
+  >
   {/* A price is an offer and a count is inventory — same slot, different ink. */}
-  <p class:list={['cat-count', tile.isPriced && 'cat-price']}>{tile.detail}</p>
+  <p
+    class:list={[
+      'mt-0.75 px-2 text-sm text-[var(--color-ink-soft)] tabular-nums',
+      tile.isPriced && 'font-[650] text-[var(--color-accent)]',
+    ]}
+  >
+    {tile.detail}
+  </p>
 </a>

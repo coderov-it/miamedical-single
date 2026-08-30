@@ -39,7 +39,7 @@ interface Props {
   /**
    * The page ground. `muted` is the default and the norm: content is raised in
    * white on a soft field. `white` is for the home page alone, whose editorial
-   * bands paint their own grounds — see `.ground-muted` in styles/app.css.
+   * bands paint their own grounds.
    */
   ground?: 'muted' | 'white' | undefined;
   /** Exact public URLs for the language selector on dynamic content. */
@@ -129,8 +129,18 @@ const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.o
     <slot name="head" />
   </head>
 
-  <body class:list={[ground === 'muted' && 'ground-muted']}>
-    <a class="skip-link" href="#contenuto">{translate(locale, 'layout.skip')}</a>
+  <body
+    class:list={[
+      ground === 'muted' &&
+        'bg-page [&_.rounded-card.bg-tint]:border-hair [&_.rounded-card.bg-tint]:border [&_.rounded-card.bg-tint]:bg-white',
+    ]}
+  >
+    <a
+      class="absolute top-0 left-0 z-100 -translate-y-full bg-accent px-4 py-3 text-white focus:translate-y-0"
+      href="#contenuto"
+    >
+      {translate(locale, 'layout.skip')}
+    </a>
 
     <div class="flex min-h-screen flex-col bg-white">
       <SiteHeader {locale} {languagePaths} />

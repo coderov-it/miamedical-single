@@ -125,7 +125,10 @@
           {/each}
         </ul>
 
-        <a class="btn btn-soft min-h-12 self-start px-5.5 text-[16px]" href={catalogPath}>
+        <a
+          class="bg-tint font-display text-ink hover:bg-tint-2 inline-flex min-h-12 cursor-pointer items-center justify-center gap-2.5 self-start rounded-full px-5.5 text-[16px] font-semibold no-underline"
+          href={catalogPath}
+        >
           <svg
             class="size-4.5 flex-none"
             viewBox="0 0 24 24"

@@ -51,11 +51,14 @@ const jsonLd = {
             48px target rather than the WCAG 2.5.8 inline exception. They no
             longer PAINT at 48px, though: a 48px-tall box around 13.5px text
             spent 72px of every page on one line of it (owner, 2026-08-30).
-            `.hit-48` is the checkout's `.target-48` deal — the paint is the
-            text, the hit area is still 48×48. See app.css § target sizing.
+            Tailwind's pseudo-element target utilities keep the paint on the
+            text while the hit area remains 48×48.
           */}
           {crumb.href ? (
-            <a class="hit-48 text-ink-2 inline-flex items-center font-normal" href={crumb.href}>
+            <a
+              class="text-ink-2 relative inline-flex items-center font-normal after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
+              href={crumb.href}
+            >
               {crumb.label}
             </a>
           ) : (

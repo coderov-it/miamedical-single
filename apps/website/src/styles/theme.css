@@ -1,0 +1,350 @@
+/* Tailwind v4 CSS-first theme tokens and local font faces. */
+/* ---------------------------------------------------------------- fonts --- */
+/*
+ * THREE faces: Lexend for headings, Atkinson Hyperlegible for prose, Inter for
+ * the chrome and the cards.
+ *
+ * REVERTED 2026-08-30, restoring the pairing this file shipped before the
+ * 2026-08-10 single-face override — it is what miamedicalitalia.it renders, and
+ * matching it is the owner's decision. Atkinson is the Braille Institute's
+ * low-vision face and was chosen for this audience on purpose; it also ships a
+ * real italic, so prose <em> stops being a synthesised oblique.
+ *
+ * The revert cost nothing in markup: the four seams below (`--font-display`,
+ * `--font-body`, `--font-card`, `--font-pdp`) were kept pointing at one stack
+ * precisely so going back would be re-pointing them, and `instrument-sans-*`
+ * stays in public/fonts/ on the same terms.
+ *
+ */
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/lexend-variable-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-400-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-700-latin.woff2') format('woff2');
+}
+
+/* The real italic. Its absence was the one legibility cost the single-face
+   override carried, and it is what makes this a revert rather than a swap. */
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-hyperlegible-400-italic-latin.woff2') format('woff2');
+}
+
+/*
+ * Inter is the editorial design system's face (the 2026-08 blueprint): the site
+ * chrome and the home page select it directly, and it dresses the product and
+ * blog cards — the one surface the locked card design names by hand. The full
+ * 100–900 range is declared because the blueprint uses mid weights
+ * (550/650/750/780) that a 400–800 clamp would still cover but the spec file
+ * declares in full.
+ *
+ * instrument-sans-variable-latin.woff2 is still in public/fonts/ but no longer
+ * referenced or preloaded, on the same terms the Lexend and Atkinson files were
+ * kept under: so the 2026-08-10 override could be restored without a download.
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-variable-latin.woff2') format('woff2');
+}
+
+/* ---------------------------------------------------------------- theme --- */
+
+@theme {
+  /* -- typefaces ---------------------------------------------------------- */
+  /* Three faces, one seam each. `--font-ui` is the chrome and the controls;
+     `--font-display` every heading; `--font-body` running prose; `--font-card`
+     the product and blog cards, which the locked card design pins to Inter by
+     hand. `--font-pdp` follows the body. Re-pointing these four is the whole of
+     a face change — no markup moves, which is how the 2026-08-10 override went
+     in and how this revert came back out. */
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Lexend', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-card: var(--font-ui);
+  --font-pdp: var(--font-body);
+
+  /* -- colour ------------------------------------------------------------- */
+
+  /*
+   * NEUTRAL GREY + ONE BLUE ACCENT. Owner decision, 2026-08-10.
+   *
+   * The greys used to be a dilution of the brand blue — same hue direction, a
+   * little saturation — which made every surface on the site read faintly blue.
+   * They are now near-neutral: hue 275 held at chroma 0.002–0.011, which is
+   * where the reference designs put them. Blue survives in exactly one place,
+   * the accent, and it got MORE saturated rather than less. That contrast
+   * between neutral ground and one vivid accent is the whole look.
+   *
+   * Every value was re-derived in OKLCh with its LIGHTNESS PRESERVED, so the
+   * recolour cost nothing in contrast — the ratios in the comments below are
+   * measured, and each is within 0.01 of what the blue-tinted token measured.
+   * If you add a grey, add it at hue 275 and chroma <= 0.012, and check it.
+   */
+
+  /* Never 100% black (stings on a bright screen) and never navy. 12.96:1. */
+  --color-ink: #303137;
+
+  /* STILL CORRECTED, and still the reason this tier exists. The prototype's
+     secondary ink is #5d6470 (5.96:1) — AA but not AAA. This project holds the
+     muted tier at AAA because magnified and low-vision reading is the norm
+     here, not the exception. 7.67:1 — do not lighten it. */
+  --color-ink-2: #525358;
+
+  /* PLACEHOLDER TEXT ONLY. 3.58:1 on white — AA for large text and UI, under the
+     4.5:1 that 1.4.3 asks of body copy, and chosen deliberately.
+
+     THE NUMBER THAT MATTERS HERE IS THE OTHER ONE. A placeholder is not read
+     against the background, it is read against the answer that replaces it, and
+     that separation is 3.62:1 against `--color-ink`. The two earlier attempts both
+     failed on exactly that axis while looking fine on paper: `--color-ink-2` scores
+     a comfortable 7.67:1 on white but only 2.59:1 against body text, and so does
+     anything darker — the hint and the answer come out the same colour, and a
+     customer cannot tell a filled field from an empty one at a glance.
+
+     Both figures clear 3:1 here, which is the most muting available before the
+     white contrast drops below that floor too. Two things make the AA shortfall
+     safe rather than sloppy, and both must stay true: every field carries a
+     PERMANENTLY VISIBLE <label> (see FIELD_LABEL), and a placeholder holds an
+     example only — never a label, a unit, or anything the customer needs after they
+     start typing. Put essential wording in one and this value becomes a bug. */
+  --color-ink-placeholder: #86878d;
+
+  /* Non-text, aria-hidden ONLY. Never put a readable word in this colour. */
+  --color-ink-decorative: #929397;
+
+  /* The page ground on every surface but the home page: content is raised in
+     white on a muted field, so a card separates by its own fill rather than by
+     a hairline against white-on-white (owner, 2026-08-30, matching
+     miamedicalitalia.it). The home page keeps white — its editorial bands paint
+     their own grounds and stack against each other. */
+  --color-page: #f6f7fa;
+
+  --color-tint: #f5f6f7; /* section bands, wells, soft fills */
+  --color-tint-2: #f0f0f1; /* pressed / hover state of a tint fill */
+
+  /* The hairline. One step below --tint, so it reads on white AND on a band
+     without ever hardening into a frame. --hair-strong is hover only: the line
+     darkens, it does not change.
+
+     --hair-strong alone did NOT get the reference's lighter value. It draws
+     form-control boundaries, where the line is the only
+     thing saying where to type — lightening it weakens an edge that is already
+     only 1.52:1. Lightness kept, chroma dropped. */
+  --color-hair: #e7e8ea;
+  --color-hair-strong: #d1d1d4;
+
+  /* The one blue, from the reference designs. More saturated than the old
+     #2e4699 and slightly lighter, so it still clears AAA as text and as a
+     button fill — but only just. Do not lighten either of these. */
+  --color-accent: #3846b1; /* 7.84:1 — safe as text and as a button fill */
+  --color-accent-deep: #262d97; /* 11.03:1 with white — the closing CTA band */
+
+  /* The accent's palest step (7:1 with the accent as text on it). Fills quiet
+     accent-labelled actions and SELECTED chips/pills — the fill-based selection
+     marker that replaced accent borders (owner rule 2026-08-19: controls are
+     fills, never borders). The home product-card action uses the same value. */
+  --color-accent-tint: #eef0fb;
+
+  /* The page still closes by descending, but the two steps are no longer the
+     same colour: the CTA band is the blue accent's dark step, and the footer
+     below it is neutral near-black. Blue is the accent and the footer is
+     ground, which is the point of the recolour — the old navy-on-navy descent
+     was the single largest source of the blue cast. */
+  --color-footer: #1f2023;
+  --color-on-dark: #a9aaae; /* 7.02:1 on --color-footer */
+  --color-on-deep: #cdced2; /* 7.01:1 on the LIGHTER --color-accent-deep */
+
+  /* Semantic colours keep their chroma. Neutralising these would be the one
+     recolour that costs something real: a desaturated "Disponibile" or a grey
+     error stops being identifiable as status at all (SC 1.4.1). */
+  --color-ok: #0e6b41; /* 6.57:1 — "Disponibile", "incluso" */
+  --color-danger: #c2402a; /* 5.17:1 — errors */
+  --color-star: #d99a2b; /* the page's only warm tone, aria-hidden stars */
+
+  /* The danger tier's palest step — `--color-accent-tint`'s counterpart, and used
+     the same way: a DESTRUCTIVE action fills it and labels itself in
+     `--color-danger`, so "Rimuovi" reads as a delete before anyone hovers it
+     (owner, 2026-08-20). Danger on this is 4.8:1 — AA, and the same tier
+     concession `--color-danger` itself already documents; red cannot reach the
+     7:1 the neutral text tiers hold without going brown. Hover inverts to the
+     solid fill with white (5.17:1). */
+  --color-danger-tint: #fdf2ef;
+
+  /* -- type scale ---------------------------------------------------------- */
+
+  /*
+   * There is STILL no token below 16px, and the answer is still no. That floor
+   * survived the owner's typography override untouched: the override changed
+   * which face the site speaks, not how small it is allowed to get.
+   *
+   * What did change: the base metric is now 16px/1.5 rather than 18px/1.6, which
+   * is the reference designs' own metric and what the product page and checkout
+   * had already been released to. `--text-body` and `--text-ui` therefore both
+   * sit at 16px — deliberately, not by accident. They are kept as two tokens
+   * because they carry different LEADING (1.5 for running prose, 1.4 for a chip
+   * or a label that must not grow taller than its row), and because `text-body`
+   * appearing in markup still says "this is prose".
+   */
+  --text-ui: 1rem; /* 16px — labels, chips, meta. FLOOR. */
+  --text-ui--line-height: 1.4;
+  --text-ui-strong: 1.0625rem; /* 17px — buttons, form controls, nav */
+  --text-ui-strong--line-height: 1.4;
+  --text-body: 1rem; /* 16px — default body, reference metric */
+  --text-body--line-height: 1.5;
+  --text-lead: 1.125rem; /* 18px — hero and section ledes */
+  --text-lead--line-height: 1.5;
+
+  --text-h4: 1.1875rem; /* 19px */
+  --text-h4--line-height: 1.35;
+  --text-h3: 1.4375rem; /* 23px */
+  --text-h3--line-height: 1.3;
+  --text-h2: 2.25rem; /* 36px */
+  --text-h2--line-height: 1.18;
+  --text-h1: 3rem; /* 48px */
+  --text-h1--line-height: 1.1;
+  --text-score: 4.875rem; /* 78px — the review aggregate, and nothing else */
+  --text-score--line-height: 0.92;
+
+  /* -- shape --------------------------------------------------------------- */
+
+  /* One generous radius plus the pill for buttons. --radius-field is the only
+     smaller step, for controls and wells inside a card. */
+  --radius-field: 12px;
+  --radius-card: 18px;
+  --radius-panel: 22px;
+  --radius-spot: 28px;
+
+  /* The marketing pages' one shadow, under the home search panel: wide and
+     almost invisible. Everything else there is defined by the hairline. */
+  --shadow-soft: 0 2px 4px rgb(31 32 35 / 0.04), 0 12px 34px rgb(31 32 35 / 0.07);
+
+  /*
+   * The commerce elevation set, from the reference designs — used by the product
+   * page, the checkout and the cart. (Named `pdp` because the product page was
+   * the first to need them; they are the whole site's now.)
+   *
+   * The tint is a dark NEUTRAL — chroma 0.012, down from 0.06 with the recolour —
+   * and must never be the accent `#3846b1`. At a 30px blur a saturated blue
+   * stops reading as a shadow and becomes a coloured halo ringing the card: same
+   * geometry, wrong colour, and the whole panel looks like it is glowing. The
+   * old 0.06 was a mild case of exactly that, which is why it went down rather
+   * than merely sideways.
+   */
+  --shadow-pdp-card: 0 1px 3px oklch(0.35 0.012 275 / 0.06);
+  --shadow-pdp-panel:
+    0 1px 2px oklch(0.35 0.012 275 / 0.05), 0 10px 30px oklch(0.35 0.012 275 / 0.08);
+  --shadow-pdp-pop: 0 12px 32px oklch(0.35 0.012 275 / 0.16);
+  --shadow-pdp-cal: 0 16px 40px oklch(0.35 0.012 275 / 0.18);
+
+  /* -- layout -------------------------------------------------------------- */
+
+  /*
+   * THE FLUID RAMP: every measurement below interpolates between the same two
+   * anchors, 720px and 1280px, and holds flat outside them. `clamp(min, A*vw +
+   * B, max)` where A and B are solved for those anchors — the comment on each
+   * one gives the pair it was solved for, so a value can be re-derived without
+   * reversing the algebra.
+   *
+   * Why a ramp and not more breakpoints: between `mid` (720) and `wide` (1100)
+   * the design used to paint at FULL desktop size — 56px gutters, 76px of
+   * header, 104px between sections — on a viewport barely wider than a tablet.
+   * A half-screen window on a 1920 monitor is 960px, which is squarely in that
+   * band, and it read as the desktop page with the sides sawn off: the header
+   * row overflowed the document, and the chrome and the body disagreed about
+   * where the left margin was (owner, 2026-08-31).
+   *
+   * The two named breakpoints stay. They are where the design REFLOWS — a
+   * column count, a nav appearing. The ramp is for everything that should
+   * merely get smaller, which is most of it, and those two jobs are different.
+   *
+   * THE TYPE FLOOR IS NOT ON THE RAMP. Body and UI text stay at their 16px
+   * token whatever the viewport does; only display type, chrome and space
+   * scale. The reference site drops to 13px here and the project does not
+   * follow it — see the accessibility table in the design-system doc.
+   */
+
+  /* The one gutter, read by the shared editorial utility string and by
+     `px-gutter` on every page shell. It used to be two systems that disagreed by 24px:
+     the chrome sat at 24/56px and the page body at 20/32px, so a heading never
+     lined up with the brand above it. */
+  --spacing-gutter: clamp(20px, 5vw - 16px, 56px); /* 720 → 20, 1440 → 56 */
+
+  /* 1180px of content plus the gutter each side, in border-box terms. Stated
+     as content-plus-gutter so the column stays 1180px however the gutter
+     moves — the two used to be independent numbers and drifted apart. */
+  --container-page: calc(1180px + 2 * var(--spacing-gutter));
+
+  /*
+   * Control height, following the reference site 1:1 — a filter pill and the
+   * compact field beside it stand 37px on a 960px half-screen window and 46px
+   * once the window is 1180px or wider. Ours stood 44/48px flat, and flat is
+   * the complaint: beside the reference at 960px the row read as a band of
+   * oversized controls (owner, 2026-08-31).
+   *
+   * `3.9vw` is not a fitted curve, it is THEIR ARITHMETIC. miamedicalitalia.it
+   * is not responsive at all — it lays out one fixed 1180px desktop page and
+   * puts `zoom: <viewport>/1180` on a wrapper div, so at 720px the whole page
+   * is drawn at 0.61 scale. 46px × (viewport / 1180) is 3.9vw, and that is why
+   * every measurement taken off it shrinks in perfect proportion.
+   *
+   * TWO THINGS ARE DELIBERATELY NOT COPIED FROM THAT ZOOM.
+   *
+   * The 36px floor. Their scale keeps going — a control is 26px at 720px and a
+   * phone is smaller still. Ours stops, because below this the paint no longer
+   * looks like something you press.
+   *
+   * The type. A `zoom` wrapper scales text with everything else, which is how
+   * their body copy reaches 9.8px at 720px; it also overrides what the reader
+   * set their browser to. The 16px floor stands at every width — see the
+   * accessibility table in the design-system doc.
+   *
+   * THE PAINT SHRINKS, THE TARGET DOES NOT. Everything wearing this token also
+   * carries Tailwind pseudo-element utilities that put the project's 48px hit
+   * area back as an invisible overlay. Anything adopting this token must carry them,
+   * and must leave 12px between neighbours: at a 36px paint the overlay
+   * overhangs 6px a side, and two that overlap send a tap to the wrong pill.
+   */
+  --spacing-control-sm: clamp(36px, 3.9vw, 46px); /* 46px × viewport/1180, floored */
+
+  /* Section rhythm. A section on white gets air above only; a tinted band gets
+     equal air above and below. */
+  --spacing-section: clamp(64px, 7.14vw + 12.6px, 104px); /* 720 → 64, 1280 → 104 */
+  --spacing-section-sm: clamp(44px, 4.29vw + 13.1px, 68px); /* 720 → 44, 1280 → 68 */
+
+  /* The two fixed bars at the bottom of a phone viewport. They must agree, or
+     one of them covers the other: MobileNav is 58px of target plus its 6px/8px
+     padding, and the product page's price bar sits directly above it.
+     Anything that must clear them adds both. */
+  --spacing-mobile-nav: 72px;
+  --spacing-mobile-bar: 88px;
+
+  /* -- breakpoints --------------------------------------------------------- */
+
+  /* The design has exactly two switches. Tailwind's defaults stay available,
+     but prefer these: they are where the prototype actually reflows. */
+  --breakpoint-mid: 45rem; /* 720px — phone → desktop */
+  --breakpoint-wide: 68.75rem; /* 1100px — narrow desktop → full */
+}

@@ -45,21 +45,30 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
 }));
 ---
 
-<section class="booking-card" aria-labelledby="booking-title">
-  <h2 class="booking-title" id="booking-title">{text('home.booking.title')}</h2>
+<section
+  class="relative rounded-[var(--radius-bar)] border border-[var(--color-line)] bg-white px-6 pt-5.5 pb-6 shadow-[var(--shadow-whisper)]"
+  aria-labelledby="booking-title"
+>
+  <h2 class="text-[clamp(1.25rem,2vw,1.5rem)] font-bold tracking-[-0.02em]" id="booking-title">
+    {text('home.booking.title')}
+  </h2>
 
   <form
-    class="search-bar"
+    class="mt-4.5 grid gap-3 text-left min-[1020px]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_auto] min-[1020px]:items-end min-[1020px]:gap-3.5"
     method="get"
     action={routePath(locale, 'search')}
     role="search"
     aria-label={text('home.booking.formLabel')}
   >
-    <label class="bar-cell" for="booking-product">
-      <span class="bar-label">{text('home.booking.query')}</span>
-      <span class="bar-field">
+    <label class="grid min-w-0 content-start gap-1.75" for="booking-product">
+      <span class="text-xs font-[650] tracking-[0.07em] text-[var(--color-ink-soft)] uppercase"
+        >{text('home.booking.query')}</span
+      >
+      <span
+        class="flex min-h-13.5 w-full cursor-text items-center gap-2.5 rounded-[var(--radius-control)] border-0 bg-[var(--color-surface)] px-3.5 text-left text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] has-focus-visible:bg-white has-focus-visible:shadow-[0_0_0_2px_#fff] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--color-accent)]"
+      >
         <svg
-          class="bar-icon"
+          class="size-4.5 flex-none text-[var(--color-ink-soft)]"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -72,6 +81,8 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
           ></path>
         </svg>
         <input
+          class="font-ui min-h-0 min-w-0 flex-1 overflow-hidden border-0 bg-transparent p-0 text-[1.0625rem] font-semibold text-ellipsis whitespace-nowrap placeholder:font-medium placeholder:text-[var(--color-ink-soft)] placeholder:opacity-100 focus-visible:shadow-none focus-visible:outline-none"
+          data-focus-owner
           id="booking-product"
           name="q"
           type="search"
@@ -88,7 +99,7 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
       options={areaOptions}
       placeholder={text('home.booking.areaPlaceholder')}
       variant="hero"
-      class="bar-cell"
+      class="grid min-w-0 content-start gap-1.75"
     >
       <svg
         slot="icon"
@@ -111,7 +122,7 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
       label={text('home.booking.startDate')}
       min="today"
       variant="hero"
-      class="bar-cell"
+      class="grid min-w-0 content-start gap-1.75"
     >
       <svg
         slot="icon"
@@ -127,7 +138,10 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
       </svg>
     </DatePicker>
 
-    <button class="bar-submit" type="submit">
+    <button
+      class="inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] border-0 bg-[var(--color-accent)] px-7.5 text-[1.0625rem] font-semibold text-white hover:bg-[var(--color-accent-deep)] min-[1020px]:ms-1"
+      type="submit"
+    >
       <svg
         width="19"
         height="19"

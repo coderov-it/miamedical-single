@@ -4,7 +4,7 @@
  *
  * `data-state` on the `<section>` is the SINGLE switch — `todo`, `active`,
  * `done`. This module only ever writes that one attribute; what each state looks
- * like is CSS, in the checkout block of app.css. The reference design builds
+ * like is declared by Tailwind data variants in CheckoutStep. The reference design builds
  * those style strings in JavaScript instead, which would put the page's whole
  * visual state in a script that has to run before anything looks right.
  */

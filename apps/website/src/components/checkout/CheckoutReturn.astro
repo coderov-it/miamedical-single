@@ -39,14 +39,14 @@ import { EYEBROW, FIELD_INPUT } from './styles';
       round: almost every rental goes back where it came from.
 
       18px painted with `target-48` restoring the hit area — the deal described in
-      the target-48 block of app.css. The two labels ride on the element as data
+      its Tailwind pseudo-element utilities. The two labels ride on the element as data
       attributes rather than being imported, for the same reason the delivery cards
       carry theirs: the page script must not pull in the label catalog.
     */
   }
   <label class="flex cursor-pointer items-center gap-3 text-[15px]">
     <input
-      class="target-48 size-4.5 flex-none cursor-pointer accent-accent"
+      class="relative size-4.5 min-h-0 min-w-0 flex-none cursor-pointer accent-accent after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
       type="checkbox"
       name="return-same-address"
       checked

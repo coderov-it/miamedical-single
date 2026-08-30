@@ -17,7 +17,9 @@ const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
 ---
 
-<ul class="trust-bar">
+<ul
+  class="wide:flex-nowrap wide:justify-between wide:gap-4.5 mt-8.5 flex list-none flex-wrap gap-x-6 gap-y-3.5 [&_li]:flex [&_li]:items-center [&_li]:gap-2.25 [&_li]:text-sm [&_li]:text-[var(--color-ink-soft)] [&_li:first-child_svg]:text-[#f5a623] [&_strong]:font-[650] [&_strong]:text-[var(--color-ink)] [&_svg]:flex-none [&_svg]:text-[var(--color-accent)]"
+>
   <li>
     {/* Heroicons' solid star — the same cut the testimonial band uses. */}
     <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

@@ -19,5 +19,8 @@
 >
   <h2 class="m-0 text-[19px] font-bold">{copy.emptyTitle}</h2>
   <p class="text-ink-2 m-0 text-[16px] leading-[1.55]">{copy.emptyDetail}</p>
-  <a class="btn btn-soft min-h-12 px-6 text-[16px]" href={catalogPath}>{copy.goToCatalog}</a>
+  <a
+    class="bg-tint font-display text-ink hover:bg-tint-2 inline-flex min-h-12 cursor-pointer items-center justify-center gap-2.5 rounded-full px-6 text-[16px] font-semibold no-underline"
+    href={catalogPath}>{copy.goToCatalog}</a
+  >
 </div>

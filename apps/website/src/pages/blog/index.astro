@@ -64,7 +64,7 @@ const chipClass =
     {nextUrl && <link rel="next" href={nextUrl} />}
   </Fragment>
 
-  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
+  <div class="max-w-page px-gutter pb-section-sm mid:pb-section mx-auto w-full">
     <Breadcrumbs
       items={[
         { label: translate(locale, 'home'), href: routePath(locale, 'home') },
@@ -146,7 +146,7 @@ const chipClass =
             <p>{translate(locale, 'blog.empty.detail')}</p>
           </div>
         ) : (
-          <ul class="wide:grid-cols-3 grid gap-6 sm:grid-cols-2">
+          <ul class="card-grid">
             {posts.map((post, index) => (
               <li class="flex">
                 <BlogPostCard {post} priority={isFirstPage && index === 0} headingLevel={3} />
@@ -164,11 +164,18 @@ const chipClass =
           aria-label="Pagine del blog"
         >
           {prevUrl ? (
-            <a class="btn btn-soft" href={prevUrl} rel="prev">
+            <a
+              class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+              href={prevUrl}
+              rel="prev"
+            >
               {translate(locale, 'blog.previous')}
             </a>
           ) : (
-            <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
+            <span
+              class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
+              aria-hidden="true"
+            >
               {translate(locale, 'blog.previous')}
             </span>
           )}
@@ -178,11 +185,18 @@ const chipClass =
           </p>
 
           {nextUrl ? (
-            <a class="btn btn-soft" href={nextUrl} rel="next">
+            <a
+              class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+              href={nextUrl}
+              rel="next"
+            >
               {translate(locale, 'blog.next')}
             </a>
           ) : (
-            <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
+            <span
+              class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
+              aria-hidden="true"
+            >
               {translate(locale, 'blog.next')}
             </span>
           )}

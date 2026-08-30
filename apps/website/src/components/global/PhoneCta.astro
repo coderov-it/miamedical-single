@@ -30,11 +30,14 @@ const { variant = 'primary', showFree = true, srHint, class: className = '' } = 
 const locale = localeForRequest();
 
 const variants = {
-  primary: 'btn btn-primary',
-  soft: 'btn btn-soft',
-  'on-dark': 'btn btn-on-dark',
+  primary: 'bg-accent text-white hover:bg-accent-deep',
+  soft: 'bg-tint text-ink hover:bg-tint-2',
+  'on-dark': 'bg-white text-accent-deep hover:bg-[#dfe4f2]',
   inline: 'font-semibold text-accent underline decoration-2',
 } as const;
+
+const buttonClass =
+  'inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-display text-ui-strong font-semibold no-underline';
 
 /*
  * `inline` carries no icon and is not a flex container — it is a hyperlink in a
@@ -48,7 +51,7 @@ const bare = variant === 'inline';
 
 <a
   href={`tel:${CONTACT.phoneE164}`}
-  class:list={[variants[variant], className]}
+  class:list={[!bare && buttonClass, variants[variant], className]}
   data-analytics="phone-call"
 >
   {
