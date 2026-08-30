@@ -3,7 +3,7 @@ import type { ContractDamageItem } from './types.ts';
 
 /**
  * The English (tourist) legal articles, transcribed from the company's official
- * contracts (`blank-contracts /*.pdf`) with clerical errors corrected: "THE BEST
+ * contracts (`docs/assets/blank-contracts/*.pdf`) with clerical errors corrected: "THE BEST
  * PARTS INDICATED A TERGO"→"the parties", "Pawn the goods"→"handle the goods",
  * "the agreed freight"→"the agreed rental fee", "on the plate of"→"on the first
  * page of", "early retunr"→"early return". Wording changes beyond clerical fixes

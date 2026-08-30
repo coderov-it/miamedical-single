@@ -3,7 +3,7 @@ import type { ContractDamageItem } from './types.ts';
 
 /**
  * The Italian legal articles, transcribed from the company's official contracts
- * (`blank-contracts /*.pdf`) with clerical errors corrected ("podestà"→"potestà",
+ * (`docs/assets/blank-contracts/*.pdf`) with clerical errors corrected ("podestà"→"potestà",
  * "motociclo"→"bene", the general contract's ART. 6 renumbered to 5). Wording
  * changes beyond clerical fixes need office sign-off.
  */

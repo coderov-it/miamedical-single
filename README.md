@@ -1,3 +1,5 @@
+![M.i.a. Medical Italia — moving in autonomy](docs/assets/readme-banner.png)
+
 # Mia Medical — E-commerce Monorepo
 
 Astro website, Svelte admin panel, Hono server, Drizzle + PostgreSQL, Valibot validation.

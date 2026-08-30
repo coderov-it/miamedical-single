@@ -1,8 +1,8 @@
 # Rental contracts
 
 `apps/server/src/modules/contracts` issues, tracks and signs the rental
-contracts. The four blank paper contracts (PDFs in the `blank-contracts`
-directory at the repository root) are the spec;
+contracts. The four blank paper contracts (PDFs in `docs/assets/blank-contracts/`)
+are the spec;
 `packages/templates/src/literal/contract/` renders their HTML equivalents.
 
 ## The four variants

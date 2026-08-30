@@ -33,6 +33,9 @@
      outgrows the size rule below, the logic moves to an English-named module or
      view component and the Italian file stays the thin shim that names the URL.
 
+- **Nothing lands in the repo root but mainstream repo furniture** — assets go to
+  `assets/` or `/docs/assets/`, anything doc-shaped to `/docs/`, scratch outside the repo. don't forget to add auto generated folder in .gitignore.
+
 - **A source file lives in 300–350 lines.** That is the target, not a suggestion:
   past it, split by responsibility — a view into sections, a script into modules, a
   route module into handlers. 800 lines is the absolute ceiling and needs a real
