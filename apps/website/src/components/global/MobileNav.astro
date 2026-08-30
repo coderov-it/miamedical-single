@@ -10,16 +10,29 @@
  * Deliberately static: every item is a real route link and the active route is
  * derived on the server, so there is no menu state and no client JavaScript.
  */
-import { routes } from '~/lib/routes';
+import { publicPathForRequest, translate, type SiteLocale } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
+
+interface Props {
+  locale: SiteLocale;
+}
+
+const { locale } = Astro.props;
+const text = (key: string) => translate(locale, key);
 
 const items = [
-  { href: routes.home, label: 'Home', exact: true, icon: 'home' },
-  { href: routes.catalog, label: 'Catalogo', exact: false, icon: 'catalog' },
-  { href: routes.cart, label: 'Richiesta', exact: false, icon: 'cart' },
-  { href: routes.support, label: 'Assistenza', exact: false, icon: 'help' },
+  { href: routePath(locale, 'home'), label: text('header.home'), exact: true, icon: 'home' },
+  {
+    href: routePath(locale, 'catalog'),
+    label: text('header.catalog'),
+    exact: false,
+    icon: 'catalog',
+  },
+  { href: routePath(locale, 'cart'), label: text('header.cart'), exact: false, icon: 'cart' },
+  { href: routePath(locale, 'support'), label: text('header.support'), exact: false, icon: 'help' },
 ] as const;
 
-const path = Astro.url.pathname;
+const path = Astro.locals.publicPath ?? publicPathForRequest() ?? Astro.url.pathname;
 const isActive = (item: (typeof items)[number]) =>
   item.exact ? path === item.href : path.startsWith(item.href);
 ---
@@ -27,7 +40,7 @@ const isActive = (item: (typeof items)[number]) =>
 <nav
   id="mobile-nav"
   class="border-hair mid:hidden sticky bottom-0 z-70 grid grid-cols-4 gap-2 border-t bg-white px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
-  aria-label="Navigazione principale"
+  aria-label={text('navigation.primary')}
 >
   {
     items.map((item) => (

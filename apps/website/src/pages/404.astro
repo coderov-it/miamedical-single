@@ -1,7 +1,8 @@
 ---
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { routes } from '~/lib/routes';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 import { CONTACT } from '~/lib/site';
 
 /**
@@ -11,27 +12,31 @@ import { CONTACT } from '~/lib/site';
  * request costs nothing worth measuring.
  */
 export const prerender = false;
+const locale = localeFromLocals(Astro.locals);
 ---
 
 <BaseLayout
-  title="Pagina non trovata | Mia Medical Italia"
-  description="La pagina che cercavi non esiste più. Sfoglia il catalogo o chiamaci: ti aiutiamo noi."
+  title={translate(locale, 'notFound.title')}
+  description={translate(locale, 'notFound.description')}
   noindex
 >
   <div class="max-w-page py-section-sm mid:px-8 mid:py-section mx-auto w-full px-5">
     <div class="max-w-[62ch]">
-      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">Questa pagina non c'è più</h1>
+      <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">
+        {translate(locale, 'notFound.heading')}
+      </h1>
       <p class="text-lead text-ink-2 mt-4">
-        Forse il prodotto è stato spostato o l'indirizzo è stato digitato male. Puoi ripartire dal
-        catalogo, oppure chiamarci: ti diciamo subito dove trovare quello che cerchi.
+        {translate(locale, 'notFound.detail')}
       </p>
 
       <div class="mt-8 flex flex-wrap gap-3">
-        <a class="btn btn-primary" href={routes.catalog}>Vai al catalogo</a>
+        <a class="btn btn-primary" href={routePath(locale, 'catalog')}>
+          {translate(locale, 'notFound.catalog')}
+        </a>
         <PhoneCta variant="soft" />
       </div>
 
-      <p class="text-ui text-ink-2 mt-5">{CONTACT.hours.it}</p>
+      <p class="text-ui text-ink-2 mt-5">{CONTACT.hours[locale]}</p>
     </div>
   </div>
 </BaseLayout>

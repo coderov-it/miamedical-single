@@ -24,8 +24,9 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import { API_BASE } from '~/lib/api';
 import type { Checkout } from '~/lib/checkout';
+import { localeForRequest } from '~/lib/i18n';
 import { t } from '~/lib/labels';
-import { productPath, routes } from '~/lib/routes';
+import { productPath, routePath } from '~/lib/routes';
 import { CONTACT, whatsappUrl } from '~/lib/site';
 
 interface Props {
@@ -35,6 +36,7 @@ interface Props {
 }
 
 const { checkout, handoverMessage } = Astro.props;
+const locale = localeForRequest();
 const { items } = checkout;
 const single = items.length === 1;
 
@@ -52,8 +54,8 @@ const hasRental = items.some((item) => item.product.pricing.mode === 'rental');
    one, the cart when there are several. */
 const originCrumb =
   single && items[0]
-    ? { label: items[0].product.title, href: productPath(items[0].product.slug) }
-    : { label: t('yourRequest'), href: routes.cart };
+    ? { label: items[0].product.title, href: productPath(items[0].product.slug, {}, locale) }
+    : { label: t('yourRequest'), href: routePath(locale, 'cart') };
 ---
 
 {
@@ -67,7 +69,13 @@ const originCrumb =
   data-checkout
   data-api-base={API_BASE}
 >
-  <Breadcrumbs items={[{ label: t('home'), href: '/' }, originCrumb, { label: t('checkout') }]} />
+  <Breadcrumbs
+    items={[
+      { label: t('home'), href: routePath(locale, 'home') },
+      originCrumb,
+      { label: t('checkout') },
+    ]}
+  />
 
   <h1 class="mb-7 text-[30px] font-bold tracking-[-0.015em]">{t('checkout')}</h1>
 
@@ -104,7 +112,7 @@ const originCrumb =
                    multi-item cart sends the customer to the row that needs
                    fixing rather than to the list. */
                 checkout.blockedItem && !single
-                  ? productPath(checkout.blockedItem.product.slug)
+                  ? productPath(checkout.blockedItem.product.slug, {}, locale)
                   : originCrumb.href
               }
             />
@@ -124,11 +132,11 @@ const originCrumb =
         <p class="text-ink-2 m-0 text-[15px] leading-[1.55]">{t('nothingToConfirmDetail')}</p>
         <a
           class="bg-tint text-ink hover:bg-tint-2 rounded-full px-5.5 py-2.75 text-[15.5px] font-semibold no-underline hover:text-accent"
-          href={routes.catalog}
+          href={routePath(locale, 'catalog')}
         >
           {t('goToCatalog')}
         </a>
-        <p class="text-ink-2 m-0 text-[13.5px]">{CONTACT.hours.it}</p>
+        <p class="text-ink-2 m-0 text-[13.5px]">{CONTACT.hours[locale]}</p>
         <PhoneCta variant="primary" />
       </div>
     )

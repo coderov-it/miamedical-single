@@ -31,20 +31,26 @@ import { cached, CATALOG_POLICY } from '~/lib/cache';
 import { listAllProducts, listCategories, safely } from '~/lib/catalog';
 import { buildHomeCategories, HOME_FAQ, selectHomeFeatured } from '~/lib/home-content';
 import { cacheHtml } from '~/lib/http-cache';
+import { localeFromLocals } from '~/lib/i18n';
 
 export const prerender = false;
 
 // The same HTML for every visitor — no cookie is read here, and the cart badge
 // and account link are filled in by the browser.
 cacheHtml(Astro.response.headers);
+const locale = localeFromLocals(Astro.locals);
 
 const [products, categories] = await Promise.all([
   safely(
-    () => cached('catalog:products', listAllProducts, CATALOG_POLICY),
+    () => cached(`catalog:products:${locale}`, () => listAllProducts({}, locale), CATALOG_POLICY),
     { items: [], total: 0 },
     'listAllProducts',
   ),
-  safely(() => cached('catalog:categories', listCategories, CATALOG_POLICY), [], 'listCategories'),
+  safely(
+    () => cached(`catalog:categories:${locale}`, () => listCategories(locale), CATALOG_POLICY),
+    [],
+    'listCategories',
+  ),
 ]);
 
 const spotlight = selectHomeFeatured(products.items, 3);
@@ -54,7 +60,7 @@ const trending = selectHomeFeatured(
   products.items.filter((product) => product.inStock),
   8,
 );
-const categoryCards = buildHomeCategories(categories, products.items);
+const categoryCards = buildHomeCategories(categories, products.items, 8, locale);
 
 const jsonLd = [
   {

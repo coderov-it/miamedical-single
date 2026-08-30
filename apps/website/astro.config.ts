@@ -19,13 +19,11 @@ export default defineConfig({
   site,
 
   /**
-   * `static` is the default: every page is prerendered at build time unless it
-   * opts out with `export const prerender = false`. Marketing pages (home,
-   * assistenza) are static; anything that reads live catalogue state, search
-   * params or a request configuration (catalogue, product, cerca, carrello,
-   * legal documents) renders on demand.
+   * Every locale is rendered on the server. The strict English route map
+   * rewrites only the route declaration, while its locale and public path stay
+   * in middleware locals for the page render.
    */
-  output: 'static',
+  output: 'server',
   adapter: node({ mode: 'standalone' }),
 
   /**

@@ -9,49 +9,57 @@
  * search, which is a real destination that cannot become a dead URL if a
  * category is renamed.
  */
-import { catalogPath, routes } from '~/lib/routes';
+import { translate, type SiteLocale } from '~/lib/i18n';
+import { catalogPath, routePath } from '~/lib/routes';
 import { COMPANY, CONTACT } from '~/lib/site';
 
+interface Props {
+  locale: SiteLocale;
+}
+
+const { locale } = Astro.props;
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
 const year = new Date().getFullYear();
 
 const rentalLinks = [
-  { href: routes.catalog, label: 'Catalogo completo' },
-  { href: catalogPath({ q: 'Carrozzine' }), label: 'Carrozzine' },
-  { href: catalogPath({ q: 'Letti ortopedici' }), label: 'Letti ortopedici' },
-  { href: catalogPath({ q: 'Scooter elettrici' }), label: 'Scooter elettrici' },
-  { href: catalogPath({ q: 'Deambulatori' }), label: 'Deambulatori' },
+  { href: routePath(locale, 'catalog'), label: text('footer.fullCatalog') },
+  { href: catalogPath({ q: 'Carrozzine' }, locale), label: text('footer.wheelchairs') },
+  { href: catalogPath({ q: 'Letti ortopedici' }, locale), label: text('footer.orthopedicBeds') },
+  { href: catalogPath({ q: 'Scooter elettrici' }, locale), label: text('footer.electricScooters') },
+  { href: catalogPath({ q: 'Deambulatori' }, locale), label: text('footer.walkers') },
 ];
 
 const supportLinks = [
-  { href: routes.support, label: 'Contatti' },
-  { href: routes.search, label: 'Cerca un ausilio' },
-  { href: routes.account, label: 'Area clienti' },
-  { href: routes.cart, label: 'Il tuo carrello' },
+  { href: routePath(locale, 'support'), label: text('header.support') },
+  { href: routePath(locale, 'search'), label: text('footer.search') },
+  { href: routePath(locale, 'account'), label: text('header.account') },
+  { href: routePath(locale, 'cart'), label: text('footer.cart') },
 ];
 
 const informationLinks = [
-  { href: routes.blog, label: 'Blog' },
-  { href: routes.terms, label: 'Termini e condizioni' },
-  { href: routes.privacy, label: 'Privacy policy' },
-  { href: routes.cookies, label: 'Cookie policy' },
+  { href: routePath(locale, 'blog'), label: text('header.blog') },
+  { href: routePath(locale, 'terms'), label: text('footer.terms') },
+  { href: routePath(locale, 'privacy'), label: 'Privacy policy' },
+  { href: routePath(locale, 'cookies'), label: 'Cookie policy' },
 ];
 
 /* Placeholder profiles — swap for the real ones when marketing hands them over. */
 const socials = [
   {
     href: 'https://www.facebook.com/miamedicalitalia',
-    label: 'Seguici su Facebook',
+    label: text('footer.followFacebook'),
     icon: 'facebook',
   },
   {
     href: 'https://www.instagram.com/miamedicalitalia',
-    label: 'Seguici su Instagram',
+    label: text('footer.followInstagram'),
     icon: 'instagram',
   },
-  { href: 'https://x.com/miamedicalitalia', label: 'Seguici su X', icon: 'x' },
+  { href: 'https://x.com/miamedicalitalia', label: text('footer.followX'), icon: 'x' },
   {
     href: 'https://maps.google.com/?q=M.i.a.+Medical+Italia',
-    label: 'La nostra sede su Google Maps',
+    label: text('footer.map'),
     icon: 'maps',
   },
 ] as const;
@@ -61,16 +69,15 @@ const socials = [
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="brand" href={routes.home}>MIA-MEDICAL</a>
+        <a class="brand" href={routePath(locale, 'home')}>MIA-MEDICAL</a>
         <p class="foot-tagline">Moving in autonomy</p>
         <p class="foot-about">
-          Noleggio di ausili medicali con consegna a domicilio a Roma e Firenze. Prodotti sanificati
-          e certificati, assistenza con persone vere.
+          {text('footer.about')}
         </p>
         <a
           class="foot-phone"
           href={`tel:${CONTACT.phoneE164}`}
-          aria-label={`Chiama il numero verde ${CONTACT.phoneDisplay}, gratuito`}
+          aria-label={text('header.call', { phone: CONTACT.phoneDisplay })}
           data-analytics="phone-call"
         >
           <svg
@@ -89,7 +96,7 @@ const socials = [
           </svg>
           {CONTACT.phoneDisplay}
         </a>
-        <p class="foot-hours">Numero verde gratuito · {CONTACT.hours.it}</p>
+        <p class="foot-hours">{text('footer.freephone')} · {CONTACT.hours[locale]}</p>
 
         <div class="foot-socials">
           {
@@ -157,21 +164,21 @@ const socials = [
       </div>
 
       <nav aria-labelledby="foot-catalog-heading">
-        <h2 class="foot-heading" id="foot-catalog-heading">Noleggio</h2>
+        <h2 class="foot-heading" id="foot-catalog-heading">{text('footer.rental')}</h2>
         <div class="foot-links">
           {rentalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
         </div>
       </nav>
 
       <nav aria-labelledby="foot-support-heading">
-        <h2 class="foot-heading" id="foot-support-heading">Assistenza</h2>
+        <h2 class="foot-heading" id="foot-support-heading">{text('footer.support')}</h2>
         <div class="foot-links">
           {supportLinks.map((link) => <a href={link.href}>{link.label}</a>)}
         </div>
       </nav>
 
       <nav aria-labelledby="foot-info-heading">
-        <h2 class="foot-heading" id="foot-info-heading">Informazioni</h2>
+        <h2 class="foot-heading" id="foot-info-heading">{text('footer.information')}</h2>
         <div class="foot-links">
           {informationLinks.map((link) => <a href={link.href}>{link.label}</a>)}
         </div>
@@ -181,7 +188,9 @@ const socials = [
     <div class="foot-bottom">
       <p>{`© ${year} ${COMPANY.legalName} · P.IVA ${COMPANY.vat}`}</p>
       <p>
-        <a href={routes.privacy}>Privacy</a> · <a href={routes.cookies}>Cookie</a>
+        <a href={routePath(locale, 'privacy')}>Privacy</a> · <a href={routePath(locale, 'cookies')}
+          >Cookie</a
+        >
       </p>
     </div>
   </div>

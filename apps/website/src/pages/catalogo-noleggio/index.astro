@@ -14,19 +14,21 @@ import Dropdown from '~/components/primitives/Dropdown.astro';
 import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { listCategories, listProducts, safely, type ProductSort } from '~/lib/catalog';
+import { localeFromLocals, translate } from '~/lib/i18n';
 import { t } from '~/lib/labels';
-import { catalogPath, routes } from '~/lib/routes';
+import { catalogPath, routePath } from '~/lib/routes';
 import { CONTACT, SERVICE_AREAS } from '~/lib/site';
 
 export const prerender = false;
 
 const PER_PAGE = 24;
+const locale = localeFromLocals(Astro.locals);
 
 const SORTS: { value: ProductSort; label: string }[] = [
-  { value: 'newest', label: 'Più recenti' },
-  { value: 'price_asc', label: 'Prezzo: dal più basso' },
-  { value: 'price_desc', label: 'Prezzo: dal più alto' },
-  { value: 'title', label: 'Nome A–Z' },
+  { value: 'newest', label: translate(locale, 'catalog.sort.newest') },
+  { value: 'price_asc', label: translate(locale, 'catalog.sort.priceAsc') },
+  { value: 'price_desc', label: translate(locale, 'catalog.sort.priceDesc') },
+  { value: 'title', label: translate(locale, 'catalog.sort.title') },
 ];
 
 const params = Astro.url.searchParams;
@@ -81,16 +83,18 @@ const isFiltered = Boolean(q || category);
 const activeCategory = categories.find((candidate) => candidate.code === category);
 
 const prevUrl =
-  meta.page > 1 ? catalogPath({ q, category, sort, page: meta.page - 1, ...browseContext }) : null;
+  meta.page > 1
+    ? catalogPath({ q, category, sort, page: meta.page - 1, ...browseContext }, locale)
+    : null;
 const nextUrl =
   meta.page < meta.pageCount
-    ? catalogPath({ q, category, sort, page: meta.page + 1, ...browseContext })
+    ? catalogPath({ q, category, sort, page: meta.page + 1, ...browseContext }, locale)
     : null;
 
-const heading = activeCategory ? activeCategory.name : 'Catalogo noleggio';
+const heading = activeCategory ? activeCategory.name : translate(locale, 'catalog.title');
 const title = isFirstPage
   ? `${heading} | Roma e Firenze — Mia Medical Italia`
-  : `${heading} — pagina ${meta.page} | Mia Medical Italia`;
+  : `${heading} — ${translate(locale, 'blog.pageTitle', { page: meta.page })} | Mia Medical Italia`;
 
 const chipClass =
   'inline-flex min-h-12 items-center rounded-full px-4.5 font-display text-ui font-semibold no-underline';
@@ -98,8 +102,8 @@ const chipClass =
 
 <BaseLayout
   {title}
-  description="Noleggio carrozzine, letti ortopedici, deambulatori e ausili medicali. Prezzi al giorno, IVA inclusa. Consegna e ritiro a domicilio a Roma e Firenze."
-  canonical={new URL(routes.catalog, Astro.site ?? Astro.url.origin).href}
+  description={translate(locale, 'catalog.description')}
+  canonical={new URL(routePath(locale, 'catalog'), Astro.site ?? Astro.url.origin).href}
   noindex={isFiltered || !isFirstPage}
 >
   <Fragment slot="head">
@@ -110,27 +114,36 @@ const chipClass =
   <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
     <Breadcrumbs
       items={[
-        { label: 'Home', href: '/' },
+        { label: translate(locale, 'home'), href: routePath(locale, 'home') },
         ...(activeCategory
-          ? [{ label: 'Catalogo noleggio', href: routes.catalog }, { label: activeCategory.name }]
-          : [{ label: 'Catalogo noleggio' }]),
+          ? [
+              { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
+              { label: activeCategory.name },
+            ]
+          : [{ label: translate(locale, 'catalog.title') }]),
       ]}
     />
 
     <header class="pt-2 pb-8">
       <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{heading}</h1>
       <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">
-        Prezzi al giorno, IVA inclusa. Consegna e ritiro a domicilio.
+        {translate(locale, 'catalog.lede')}
       </p>
       <p class="font-display text-ui text-ink-2 mt-3.5 font-semibold">
-        {`${meta.total} ${meta.total === 1 ? 'ausilio disponibile' : 'ausili disponibili'}`}
-        {meta.pageCount > 1 && <span>{` · pagina ${meta.page} di ${meta.pageCount}`}</span>}
+        {
+          `${meta.total} ${translate(locale, meta.total === 1 ? 'catalog.available.one' : 'catalog.available.many')}`
+        }
+        {
+          meta.pageCount > 1 && (
+            <span>{` · ${translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}`}</span>
+          )
+        }
       </p>
       {
         requestContext && (
           <p class="rounded-field bg-tint text-ui mt-4 px-5 py-4">
-            <strong>La tua richiesta:</strong> {requestContext}. Confermiamo disponibilità e
-            consegna al telefono.
+            <strong>{translate(locale, 'catalog.requestContext')}</strong> {requestContext}.{' '}
+            {translate(locale, 'catalog.requestDetail')}
           </p>
         )
       }
@@ -140,7 +153,7 @@ const chipClass =
       class="rounded-card border-hair mb-10 flex flex-wrap items-end gap-3.5 border bg-white p-5"
       method="get"
       role="search"
-      aria-label="Cerca nel catalogo"
+      aria-label={translate(locale, 'catalog.search')}
     >
       {category && <input type="hidden" name="category" value={category} />}
       {area && <input type="hidden" name="area" value={area} />}
@@ -152,7 +165,7 @@ const chipClass =
            pixel of padding inside it all focus the field (app.css § field). */
       }
       <label class="flex min-w-0 flex-1 basis-65 flex-col gap-2.25" for="catalog-q">
-        <span class="field-label">Cerca un ausilio</span>
+        <span class="field-label">{translate(locale, 'catalog.searchLabel')}</span>
         <span class="field-control">
           <input
             id="catalog-q"
@@ -160,7 +173,7 @@ const chipClass =
             type="search"
             name="q"
             value={q}
-            placeholder="Es. carrozzina, letto…"
+            placeholder={translate(locale, 'catalog.searchPlaceholder')}
           />
         </span>
       </label>
@@ -168,7 +181,7 @@ const chipClass =
       <Dropdown
         id="catalog-sort"
         name="sort"
-        label="Ordina per"
+        label={translate(locale, 'catalog.sort')}
         options={SORTS}
         value={sort}
         class="mid:grow-0 flex min-w-0 flex-1 basis-60"
@@ -178,16 +191,16 @@ const chipClass =
         class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14.5 flex-none items-center justify-center border-0 bg-accent px-6 font-semibold text-white"
         type="submit"
       >
-        Applica
+        {translate(locale, 'catalog.apply')}
       </button>
 
       {
         isFiltered && (
           <a
             class="font-display text-ui text-ink-2 inline-flex min-h-14.5 items-center px-3 font-semibold"
-            href={routes.catalog}
+            href={routePath(locale, 'catalog')}
           >
-            Azzera i filtri
+            {translate(locale, 'catalog.clear')}
           </a>
         )
       }
@@ -197,7 +210,7 @@ const chipClass =
       categories.length > 0 && (
         <section class="pb-10" aria-labelledby="browse-title">
           <h2 id="browse-title" class="text-h3 mb-4">
-            Sfoglia per categoria
+            {translate(locale, 'catalog.browse')}
           </h2>
           {/*
             A wrapped grid of links, deliberately NOT the design's horizontal
@@ -211,10 +224,10 @@ const chipClass =
                   chipClass,
                   !category ? 'bg-accent-tint text-accent' : 'bg-tint text-ink hover:bg-tint-2',
                 ]}
-                href={catalogPath({ q, sort, ...browseContext })}
+                href={catalogPath({ q, sort, ...browseContext }, locale)}
                 aria-current={!category ? 'true' : undefined}
               >
-                Tutte
+                {translate(locale, 'catalog.all')}
               </a>
             </li>
             {/* `candidate`, not `category`: the outer `category` is the ACTIVE
@@ -229,7 +242,10 @@ const chipClass =
                       ? 'bg-accent-tint text-accent'
                       : 'bg-tint text-ink hover:bg-tint-2',
                   ]}
-                  href={catalogPath({ q, category: candidate.code, sort, ...browseContext })}
+                  href={catalogPath(
+                    { q, category: candidate.code, sort, ...browseContext },
+                    locale,
+                  )}
                   aria-current={candidate.code === category ? 'true' : undefined}
                 >
                   {candidate.name}
@@ -243,14 +259,18 @@ const chipClass =
 
     <section aria-labelledby="products-title">
       <h2 id="products-title" class="text-h3 mb-6">
-        {q ? `Risultati per “${q}”` : 'Tutti i prodotti'}
+        {
+          q
+            ? translate(locale, 'catalog.results', { query: q })
+            : translate(locale, 'catalog.allProducts')
+        }
       </h2>
 
       {
         productList.length === 0 ? (
           <div class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6">
-            <p class="font-display text-h4 font-semibold">Nessun prodotto trovato.</p>
-            <p>Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo.</p>
+            <p class="font-display text-h4 font-semibold">{translate(locale, 'catalog.empty')}</p>
+            <p>{translate(locale, 'catalog.helpDetail')}</p>
             <PhoneCta variant="primary" />
           </div>
         ) : (
@@ -274,29 +294,29 @@ const chipClass =
       meta.pageCount > 1 && (
         <nav
           class="border-hair mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6"
-          aria-label="Pagine del catalogo"
+          aria-label={translate(locale, 'catalog.pagination')}
         >
           {prevUrl ? (
             <a class="btn btn-soft" href={prevUrl} rel="prev">
-              ← Pagina precedente
+              {translate(locale, 'catalog.previous')}
             </a>
           ) : (
             <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
-              ← Pagina precedente
+              {translate(locale, 'catalog.previous')}
             </span>
           )}
 
           <p class="font-display text-ui text-ink-2 font-semibold">
-            Pagina {meta.page} di {meta.pageCount}
+            {translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}
           </p>
 
           {nextUrl ? (
             <a class="btn btn-soft" href={nextUrl} rel="next">
-              Pagina successiva →
+              {translate(locale, 'catalog.next')}
             </a>
           ) : (
             <span class="btn btn-soft text-ink-2 opacity-60" aria-hidden="true">
-              Pagina successiva →
+              {translate(locale, 'catalog.next')}
             </span>
           )}
         </nav>
@@ -306,12 +326,12 @@ const chipClass =
     <section class="mt-section-sm mid:mt-section" aria-labelledby="help-title">
       <SectionHeading
         id="help"
-        heading="Non trovi quello che cerchi?"
-        lede="Abbiamo oltre 50 ausili a noleggio: chiamaci e te lo troviamo."
+        heading={translate(locale, 'catalog.help')}
+        lede={translate(locale, 'catalog.helpDetail')}
       />
       <div class="rounded-card bg-tint mid:p-8 flex flex-wrap items-center gap-4 p-6">
         <PhoneCta variant="primary" />
-        <p class="text-ui text-ink-2">{CONTACT.hours.it}</p>
+        <p class="text-ui text-ink-2">{CONTACT.hours[locale]}</p>
       </div>
     </section>
   </div>

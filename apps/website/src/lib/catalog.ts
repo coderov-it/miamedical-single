@@ -9,6 +9,7 @@
 import type { InferResponseType } from 'hono/client';
 
 import { api } from './api.ts';
+import { localeForRequest, type SiteLocale } from './i18n.ts';
 
 type ProductListResponse = InferResponseType<typeof api.api.products.$get, 200>;
 
@@ -41,10 +42,13 @@ export interface ProductQuery {
 /** The API's hard ceiling on `perPage`; asking for more is a validation error. */
 export const MAX_PER_PAGE = 100;
 
-export async function listProducts(query: ProductQuery = {}): Promise<ProductListResponse> {
+export async function listProducts(
+  query: ProductQuery = {},
+  locale: SiteLocale = localeForRequest(),
+): Promise<ProductListResponse> {
   const response = await api.api.products.$get({
     query: {
-      locale: 'it',
+      locale,
       page: String(query.page ?? 1),
       perPage: String(query.perPage ?? 24),
       sort: query.sort ?? 'newest',
@@ -67,10 +71,11 @@ export async function listProducts(query: ProductQuery = {}): Promise<ProductLis
  */
 export async function listAllProducts(
   opts: { maxPages?: number; sort?: ProductSort } = {},
+  locale: SiteLocale = localeForRequest(),
 ): Promise<{ items: ProductSummary[]; total: number }> {
   const { maxPages = 20, sort = 'newest' } = opts;
 
-  const first = await listProducts({ page: 1, perPage: MAX_PER_PAGE, sort });
+  const first = await listProducts({ page: 1, perPage: MAX_PER_PAGE, sort }, locale);
   const items = [...first.data];
 
   if (first.meta.pageCount > maxPages) {
@@ -81,25 +86,28 @@ export async function listAllProducts(
   }
 
   for (let page = 2; page <= first.meta.pageCount; page += 1) {
-    const next = await listProducts({ page, perPage: MAX_PER_PAGE, sort });
+    const next = await listProducts({ page, perPage: MAX_PER_PAGE, sort }, locale);
     items.push(...next.data);
   }
 
   return { items, total: first.meta.total };
 }
 
-export async function listCategories(): Promise<Category[]> {
-  const response = await api.api.categories.$get({ query: { locale: 'it' } });
+export async function listCategories(locale: SiteLocale = localeForRequest()): Promise<Category[]> {
+  const response = await api.api.categories.$get({ query: { locale } });
   if (!response.ok) throw new Error(`GET /api/categories failed (${response.status})`);
   const { data } = await response.json();
   return data;
 }
 
 /** `null` when the product is missing or not published — render a 404. */
-export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
+export async function getProductBySlug(
+  slug: string,
+  locale: SiteLocale = localeForRequest(),
+): Promise<ProductDetail | null> {
   const response = await api.api.products[':slug'].$get({
     param: { slug },
-    query: { locale: 'it' },
+    query: { locale },
   });
   if (!response.ok) return null;
   const { data } = await response.json();
@@ -107,10 +115,13 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 }
 
 /** `null` when the legal document has not been published yet. */
-export async function getTermsBySlug(slug: string): Promise<TermsDocument | null> {
+export async function getTermsBySlug(
+  slug: string,
+  locale: SiteLocale = localeForRequest(),
+): Promise<TermsDocument | null> {
   const response = await api.api.terms[':slug'].$get({
     param: { slug },
-    query: { locale: 'it' },
+    query: { locale },
   });
   if (!response.ok) return null;
   const { data } = await response.json();

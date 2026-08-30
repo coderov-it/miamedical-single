@@ -11,6 +11,7 @@ import { durationLabel } from '@mia/i18n';
 import { DELIVERY_METHODS, priceRequest, sumMoney } from '@mia/pricing';
 import type { PlaceOrderItemInput } from '@mia/validators';
 import { formatMoney } from './api.ts';
+import { localeForRequest, localeTag } from './i18n.ts';
 import { t } from './labels.ts';
 import { type ProductDetail, getProductBySlug } from './catalog.ts';
 import { FIELD, type ResolvedRequest, formatDateLabel, resolveRequest } from './request-config.ts';
@@ -177,7 +178,8 @@ export function splitItemParams(params: URLSearchParams): URLSearchParams[] {
 function estimate(product: ProductDetail, request: ResolvedRequest) {
   const unit = product.pricing.rentalUnit;
   const { currency } = product.pricing;
-  const money = (amount: string) => formatMoney(amount, currency);
+  const locale = localeForRequest();
+  const money = (amount: string) => formatMoney(amount, currency, localeTag(locale));
 
   const priced = priceRequest({
     mode: product.pricing.mode,
@@ -200,7 +202,7 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
         return { label: t('baseRate'), amount: money(line.amount) };
       case 'package':
         return {
-          label: pkg?.label ?? durationLabel(line.units, line.unit, 'it'),
+          label: pkg?.label ?? durationLabel(line.units, line.unit, locale),
           amount: money(line.amount),
         };
       case 'addon': {
@@ -209,7 +211,7 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
            and collapsing them into one number hides which is which. */
         const parts = [entry?.addon.name ?? ''];
         if (line.quantity > 1) parts.push(`× ${line.quantity}`);
-        if (line.units !== null && unit) parts.push(`× ${durationLabel(line.units, unit, 'it')}`);
+        if (line.units !== null && unit) parts.push(`× ${durationLabel(line.units, unit, locale)}`);
         return {
           label: parts.join(' '),
           amount: line.included ? t('included') : money(line.amount),
@@ -260,7 +262,9 @@ function buildFacts(product: ProductDetail, request: ResolvedRequest): ItemFact[
     });
     facts.push({
       label: t('duration'),
-      value: period ? durationLabel(period.duration, period.unit, 'it') : t('toBeConfirmed'),
+      value: period
+        ? durationLabel(period.duration, period.unit, localeForRequest())
+        : t('toBeConfirmed'),
     });
   }
 

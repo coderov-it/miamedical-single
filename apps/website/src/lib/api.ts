@@ -3,6 +3,8 @@ import type { AppType } from '@mia/server/types';
 import type { LanguageCode } from '@mia/validators';
 import { hc } from 'hono/client';
 
+import type { SiteLocale } from './i18n.ts';
+
 /** The one place the API origin is named. Same variable the admin reads. */
 const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
 
@@ -59,8 +61,6 @@ export interface Pricing {
  * takes a `LanguageCode`, so adding an English storefront later is a matter of
  * threading a value through, not of hunting down hardcoded Italian.
  */
-const LOCALE: LanguageCode = 'it';
-
 /**
  * "9,00 € al giorno" or "60,00 €" — an amount with the unit it is quoted in.
  *
@@ -72,10 +72,11 @@ export function formatRate(
   currency: string,
   rentalUnit: 'hour' | 'day' | null,
   locale = 'it-IT',
+  language: LanguageCode = 'it',
 ): string {
   const money = formatMoney(amount, currency, locale);
   if (!rentalUnit) return money;
-  const unit = perUnitLabel(rentalUnit, LOCALE);
+  const unit = perUnitLabel(rentalUnit, language);
   return unit ? `${money} ${unit}` : money;
 }
 
@@ -87,12 +88,16 @@ export function formatRate(
  * title where no package has been chosen — it advertises, it does not quote.
  * `null` when a rental advertises no rate; callers fall back to `fromPrice`.
  */
-export function formatPricing(pricing: Pricing, locale = 'it-IT'): string | null {
+export function formatPricing(
+  pricing: Pricing,
+  locale = 'it-IT',
+  language: LanguageCode = 'it',
+): string | null {
   if (pricing.mode !== 'rental') {
     return pricing.price === null ? null : formatMoney(pricing.price, pricing.currency, locale);
   }
   if (pricing.marketingRate === null) return null;
-  return formatRate(pricing.marketingRate, pricing.currency, pricing.rentalUnit, locale);
+  return formatRate(pricing.marketingRate, pricing.currency, pricing.rentalUnit, locale, language);
 }
 
 /**
@@ -107,12 +112,16 @@ export function formatPricing(pricing: Pricing, locale = 'it-IT'): string | null
  * 89,00 €" still tells the customer where the product sits, and a listing that
  * shows no price at all tells them nothing.
  */
-export function cardPrice(pricing: Pricing): { prefix: string; text: string } | null {
-  const prefix = pricing.mode === 'rental' ? 'da' : '';
-  const text = formatPricing(pricing);
+export function cardPrice(
+  pricing: Pricing,
+  locale: SiteLocale = 'it',
+): { prefix: string; text: string } | null {
+  const prefix = pricing.mode === 'rental' ? (locale === 'it' ? 'da' : 'from') : '';
+  const intl = locale === 'it' ? 'it-IT' : 'en-GB';
+  const text = formatPricing(pricing, intl, locale);
   if (text) return { prefix, text };
   if (pricing.fromPrice === null) return null;
-  return { prefix, text: formatMoney(pricing.fromPrice, pricing.currency) };
+  return { prefix, text: formatMoney(pricing.fromPrice, pricing.currency, intl) };
 }
 
 /** Major-unit decimal string for schema.org `Offer.price`, always dot-separated. */
@@ -129,6 +138,7 @@ export function mediaUrl(path: string): string {
 }
 
 /** Localised availability label. The API returns a boolean, not UI copy. */
-export function availabilityLabel(inStock: boolean): string {
+export function availabilityLabel(inStock: boolean, locale: SiteLocale = 'it'): string {
+  if (locale === 'en') return inStock ? 'Available' : 'Unavailable';
   return inStock ? 'Disponibile' : 'Non disponibile';
 }

@@ -16,11 +16,7 @@
  */
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { resolveCheckout } from '~/lib/checkout';
-import {
-  CHECKOUT_SCRIPT_LABELS,
-  buildHandoverMessage,
-  readRequestParams,
-} from '~/lib/checkout-page';
+import { checkoutScriptLabels, buildHandoverMessage, readRequestParams } from '~/lib/checkout-page';
 import { t } from '~/lib/labels';
 import CheckoutBody from '~/views/checkout/CheckoutBody.astro';
 
@@ -52,7 +48,7 @@ const orderItems = checkout.items.map((item) => item.order);
     type="application/json"
     data-checkout-labels
     is:inline
-    set:html={JSON.stringify(CHECKOUT_SCRIPT_LABELS)}
+    set:html={JSON.stringify(checkoutScriptLabels())}
   />
 
   <script
