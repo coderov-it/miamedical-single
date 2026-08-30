@@ -25,16 +25,22 @@ interface Props {
 const { pills, categories, query } = Astro.props;
 const locale = localeForRequest();
 
-/* 44px painted, 48px to the finger — the reference's pill height, with the
-   target restored by `.hit-48` (app.css § target sizing). An unselected pill is
+/* The reference's pill height, followed 1:1 through `--spacing-control-sm` —
+   37px on a half-screen window, 46px on a full one — with the 48px target
+   restored by Tailwind pseudo-element utilities. An unselected pill is
    WHITE, not tinted: on the muted page ground white is what raises it, and a
    tint fill there would sit a percent away from the field behind it. */
 const pillClass =
-  'hit-48 inline-flex min-h-11 items-center rounded-full px-4.5 font-display text-ui font-semibold no-underline transition-colors duration-150';
+  "relative inline-flex min-h-control-sm items-center rounded-full px-4.5 font-display text-ui font-semibold no-underline transition-colors duration-150 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']";
 ---
 
 <div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-2.5 pb-6">
-  <ul class="flex flex-wrap items-center gap-2">
+  {
+    /* 12px, not 8px: the hit overlay overhangs a 37px pill by 5.5px on
+       each side, so a narrower gap would let two invisible targets overlap and
+       a tap in the seam would pick the wrong filter. */
+  }
+  <ul class="flex flex-wrap items-center gap-3">
     {
       pills.map((pill) => (
         <li>
@@ -80,7 +86,7 @@ const pillClass =
 
     <noscript>
       <button
-        class="rounded-field font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
+        class="rounded-field font-display text-ui-strong hover:bg-accent-deep min-h-control-sm relative inline-flex flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
         type="submit"
       >
         {translate(locale, 'catalog.apply')}

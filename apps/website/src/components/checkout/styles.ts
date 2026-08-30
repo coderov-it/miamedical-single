@@ -46,7 +46,7 @@ export const CTA =
 
 /** One of the three identity chips. Selection is the only thing accent marks. */
 export const CHIP =
-  'target-48 cursor-pointer rounded-full bg-tint px-5.5 py-2.75 text-[15.5px] font-semibold text-ink-2 hover:bg-tint-2 ' +
+  "relative min-h-0 min-w-0 cursor-pointer rounded-full bg-tint px-5.5 py-2.75 text-[15.5px] font-semibold text-ink-2 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-tint-2 " +
   'aria-pressed:bg-accent-tint aria-pressed:text-accent aria-pressed:hover:bg-accent-tint';
 
 /** The uppercase micro-label above a review block and the overview. */

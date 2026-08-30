@@ -42,28 +42,50 @@ const valueId = `${id}-value`;
 const dialogId = `${id}-dialog`;
 const hasIcon = Astro.slots.has('icon');
 const nativeMin = min === 'today' ? undefined : min;
+const labelVariants = {
+  default: 'mb-2.25 text-ui',
+  compact: 'mb-1.5 text-[14px]',
+  hero: 'mb-0 text-xs font-[650] tracking-[0.07em] text-[var(--color-ink-soft)] uppercase',
+} as const;
+const controlVariants = {
+  default: 'min-h-14.5 border border-hair rounded-field bg-tint font-display text-body',
+  compact: 'min-h-12 border border-hair rounded-field bg-tint font-display text-body',
+  hero: 'min-h-13.5 border-0 rounded-[var(--radius-control)] bg-[var(--color-surface)] font-[inherit] text-[1.0625rem] hover:bg-[var(--color-surface-2)] focus-visible:bg-white',
+} as const;
+const controlClass =
+  `w-full min-w-0 text-ink font-semibold leading-[1.2] hover:border-hair-strong ` +
+  `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ` +
+  `focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white ` +
+  controlVariants[variant];
 ---
 
 <div
-  class:list={['core-date-picker', `core-date-picker-${variant}`, className]}
+  class:list={['core-date-picker relative min-w-0', className]}
   data-core-date-picker
   data-min={min}
   data-max={max}
   data-has-icon={hasIcon ? '' : undefined}
 >
-  <label class="core-date-label" id={labelId} for={id}>{label}</label>
+  <label
+    class:list={['font-display text-ink-2 block font-bold', labelVariants[variant]]}
+    id={labelId}
+    for={id}>{label}</label
+  >
 
-  <div class="core-date-control">
+  <div class="relative">
     {
       hasIcon && (
-        <span class="core-control-icon" aria-hidden="true">
+        <span
+          class="text-ink-2 pointer-events-none absolute top-1/2 left-3.5 z-1 grid size-4.5 -translate-y-1/2 place-items-center [&_img]:block [&_img]:size-4.5 [&_svg]:block [&_svg]:size-4.5"
+          aria-hidden="true"
+        >
           <slot name="icon" />
         </span>
       )
     }
 
     <input
-      class="core-date-native"
+      class:list={[controlClass, 'px-3.5', hasIcon && 'ps-11']}
       {id}
       {name}
       type="date"
@@ -77,7 +99,7 @@ const nativeMin = min === 'today' ? undefined : min;
     />
 
     <button
-      class="core-date-trigger"
+      class:list={[controlClass, 'flex items-center gap-2.5 px-3.5 text-left', hasIcon && 'ps-11']}
       id={`${id}-trigger`}
       type="button"
       hidden
@@ -88,7 +110,10 @@ const nativeMin = min === 'today' ? undefined : min;
       data-date-trigger
     >
       <span
-        class:list={['core-control-value', !value && 'is-empty']}
+        class:list={[
+          'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
+          !value && 'text-ink-2 font-medium',
+        ]}
         id={valueId}
         data-date-value
         data-placeholder={datePlaceholder}
@@ -98,20 +123,26 @@ const nativeMin = min === 'today' ? undefined : min;
     </button>
 
     <div
-      class="core-date-popover"
+      class="rounded-field border-hair max-mid:inset-0 max-mid:z-100 max-mid:h-dvh max-mid:w-full max-mid:max-w-none max-mid:overflow-y-auto max-mid:rounded-none max-mid:border-0 max-mid:px-5 max-mid:pt-[max(20px,env(safe-area-inset-top))] max-mid:pb-[max(20px,env(safe-area-inset-bottom))] fixed top-0 left-0 z-60 w-85.5 max-w-[calc(100vw-48px)] min-w-0 border bg-white p-2.5 shadow-[0_18px_44px_rgb(11_18_32_/_0.16)]"
       id={dialogId}
       role="dialog"
       aria-label={label}
       hidden
       data-date-popover
     >
-      <div class="core-date-mobile-head">
-        <strong>{label}</strong>
-        <button type="button" data-date-close aria-label={text('picker.closeCalendar')}>
+      <div class="max-mid:flex mb-5 hidden items-center justify-between gap-4">
+        <strong class="text-xl">{label}</strong>
+        <button
+          class="rounded-field bg-tint text-ink min-h-12 min-w-16 border-0 px-3 font-bold"
+          type="button"
+          data-date-close
+          aria-label={text('picker.closeCalendar')}
+        >
           {text('picker.close')}
         </button>
       </div>
       <calendar-date
+        class="font-display text-ink max-mid:mx-auto max-mid:w-[min(100%,430px)] [&::part(button)]:bg-tint [&::part(button)]:text-ink hover:[&::part(button)]:bg-hair [&::part(heading)]:text-ui [&_calendar-month::part(weekday)]:text-ink-2 [&_calendar-month::part(button)]:text-ink hover:[&_calendar-month::part(button)]:bg-tint block w-full [&_calendar-month::part(button)]:min-h-11 [&_calendar-month::part(button)]:w-full [&_calendar-month::part(button)]:min-w-10 [&_calendar-month::part(button)]:rounded-[9px] [&_calendar-month::part(button)]:border-0 [&_calendar-month::part(button)]:bg-transparent [&_calendar-month::part(button)]:text-sm [&_calendar-month::part(button)]:font-[650] [&_calendar-month::part(button)]:tabular-nums focus-visible:[&_calendar-month::part(button)]:outline-2 focus-visible:[&_calendar-month::part(button)]:outline-offset-2 focus-visible:[&_calendar-month::part(button)]:outline-accent [&_calendar-month::part(disallowed)]:text-[color-mix(in_srgb,var(--color-ink)_28%,transparent)] [&_calendar-month::part(outside)]:text-[color-mix(in_srgb,var(--color-ink)_40%,transparent)] [&_calendar-month::part(selected)]:bg-accent [&_calendar-month::part(selected)]:text-white [&_calendar-month::part(table)]:w-full [&_calendar-month::part(table)]:table-fixed [&_calendar-month::part(table)]:border-spacing-0.5 [&_calendar-month::part(weekday)]:text-xs [&_calendar-month::part(weekday)]:font-bold [&_calendar-month::part(weekday)]:lowercase [&::part(button)]:grid [&::part(button)]:size-11 [&::part(button)]:place-items-center [&::part(button)]:rounded-[10px] [&::part(button)]:border-0 focus-visible:[&::part(button)]:outline-2 focus-visible:[&::part(button)]:outline-offset-2 focus-visible:[&::part(button)]:outline-accent [&::part(header)]:mb-2 [&::part(header)]:items-center [&::part(heading)]:font-bold [&>svg]:size-4.5"
         locale={localeTag(locale)}
         first-day-of-week="1"
         format-weekday="short"

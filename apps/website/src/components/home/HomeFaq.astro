@@ -2,7 +2,7 @@
 /**
  * "Domande frequenti" — intro and quiet gray link-buttons on the left, native
  * `<details>` items on the right, ported 1:1 from docs/blueprint/home.html
- * (styles in styles/editorial.css).
+ * with Tailwind utilities.
  *
  * The TRIGGER carries the layering (a gray bar); the answer is plain text, so
  * what you press and what you read never blur. First item ships open so the
@@ -11,17 +11,31 @@
 import { homeFaq } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME, SECTION_TITLE } from '~/styles/editorial';
 
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
 const faq = homeFaq(locale);
+const quietLinkClass =
+  'inline-flex min-h-12 items-center gap-2.25 rounded-[14px] bg-[#f4f5f7] px-4.5 ' +
+  'text-[0.9688rem] font-[650] whitespace-nowrap text-[var(--color-ink)] no-underline ' +
+  'hover:bg-[#eceef1] hover:text-[var(--color-accent)] [&_svg]:flex-none ' +
+  '[&_svg]:text-[var(--color-ink-soft)] hover:[&_svg]:text-current';
 ---
 
-<section class="faq" aria-labelledby="faq-title">
-  <div class="container">
-    <div class="faq-grid">
+<section
+  class:list={[
+    EDITORIAL_THEME,
+    'border-t border-[var(--color-line)] bg-white pt-[var(--band-1)] pb-[var(--band-3)]',
+  ]}
+  aria-labelledby="faq-title"
+>
+  <div class={EDITORIAL_CONTAINER}>
+    <div
+      class="wide:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] wide:gap-22 grid grid-cols-1 gap-10"
+    >
       <div>
-        <h2 class="section-title" id="faq-title">
+        <h2 class={SECTION_TITLE} id="faq-title">
           {text('home.faq.title')}
           <svg
             width="44"
@@ -37,10 +51,12 @@ const faq = homeFaq(locale);
             <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
           </svg>
         </h2>
-        <p class="faq-lead">{text('home.faq.lede')}</p>
-        <div class="faq-contact">
+        <p class="mt-4 max-w-[34ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
+          {text('home.faq.lede')}
+        </p>
+        <div class="mt-7 flex flex-wrap gap-2.5">
           {/* /chi-siamo/ does not exist yet — flagged as a pending route. */}
-          <a class="link-quiet" href="/chi-siamo/">
+          <a class={quietLinkClass} href="/chi-siamo/">
             <svg
               width="18"
               height="18"
@@ -58,7 +74,7 @@ const faq = homeFaq(locale);
             </svg>
             {text('home.faq.about')}
           </a>
-          <a class="link-quiet" href={routePath(locale, 'support')}>
+          <a class={quietLinkClass} href={routePath(locale, 'support')}>
             <svg
               width="18"
               height="18"
@@ -79,14 +95,14 @@ const faq = homeFaq(locale);
         </div>
       </div>
 
-      <div>
+      <div class="[&>details+details]:mt-2.5">
         {
           faq.map((item, index) => (
-            <details class="faq-item" open={index === 0}>
-              <summary>
+            <details class="group/faq" open={index === 0}>
+              <summary class="flex min-h-15.5 cursor-pointer list-none items-center justify-between gap-6 rounded-[14px] bg-[#f4f5f7] px-5 py-4 text-[1.0625rem] font-[650] group-open/faq:bg-[#eceef1] hover:bg-[#eceef1] [&::-webkit-details-marker]:hidden">
                 {item.question}
                 <svg
-                  class="faq-icon"
+                  class="flex-none text-[var(--color-ink-soft)] transition-transform duration-200 ease-out group-open/faq:rotate-45"
                   width="18"
                   height="18"
                   viewBox="0 0 24 24"
@@ -99,7 +115,9 @@ const faq = homeFaq(locale);
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </summary>
-              <p class="faq-answer">{item.answer}</p>
+              <p class="max-w-[62ch] px-5 pt-4 pb-2.5 text-[0.9688rem] leading-[1.65] text-[var(--color-ink-soft)]">
+                {item.answer}
+              </p>
             </details>
           ))
         }

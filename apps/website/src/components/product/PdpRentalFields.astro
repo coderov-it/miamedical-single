@@ -138,7 +138,11 @@ const pkgRow =
       }
     </div>
 
-    <p class="field-error" data-field-error="package" hidden>
+    <p
+      class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+      data-field-error="package"
+      hidden
+    >
       {text('pdp.choosePackageToContinue')}
     </p>
   </div>

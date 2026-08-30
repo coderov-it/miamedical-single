@@ -5,8 +5,8 @@
  * has to know how the accordion works.
  *
  * `data-state` on the <section> is the single switch — `todo`, `active`, `done`.
- * The page script only ever writes that one attribute; what each state LOOKS
- * like is CSS, in the checkout block of app.css. The reference design builds
+ * The page script only ever writes that one attribute; Tailwind data variants
+ * define what each state looks like. The reference design builds
  * those style strings in JavaScript instead, which would put the page's whole
  * visual state in a script that has to run before anything looks right.
  */
@@ -32,7 +32,7 @@ const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
   */
 }
 <section
-  class="border-hair shadow-pdp-card scroll-mt-24 overflow-hidden rounded-[14px] border bg-white"
+  class="group/step border-hair shadow-pdp-card scroll-mt-24 overflow-hidden rounded-[14px] border bg-white"
   data-step={index}
   data-state={index === 1 ? 'active' : 'todo'}
 >
@@ -44,12 +44,12 @@ const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
       */
     }
     <span
-      class="grid size-7.5 flex-none place-items-center rounded-full text-[13.5px] font-bold"
+      class="bg-tint text-ink-2 grid size-7.5 flex-none place-items-center rounded-full text-[13.5px] font-bold group-data-[state=active]/step:bg-accent group-data-[state=active]/step:text-white group-data-[state=done]/step:bg-accent group-data-[state=done]/step:text-[15px] group-data-[state=done]/step:text-white"
       data-step-badge
       aria-hidden="true"
     >
-      <span data-badge-number>{index}</span>
-      <span data-badge-tick>✓</span>
+      <span class="group-data-[state=done]/step:hidden" data-badge-number>{index}</span>
+      <span class="hidden group-data-[state=done]/step:block" data-badge-tick>✓</span>
     </span>
 
     <span class="flex flex-1 flex-col gap-px">
@@ -61,13 +61,15 @@ const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
           longer see.
         */
       }
-      <span class="text-ink-2 text-[13.5px]" data-step-summary></span>
+      <span
+        class="text-ink-2 hidden text-[13.5px] group-data-[state=done]/step:block"
+        data-step-summary></span>
     </span>
 
     {
       editable && (
         <button
-          class="target-48 bg-accent-tint cursor-pointer rounded-full px-4 py-1.75 text-[14px] font-semibold text-accent hover:bg-accent hover:text-white"
+          class="bg-accent-tint relative hidden min-h-0 min-w-0 cursor-pointer rounded-full px-4 py-1.75 text-[14px] font-semibold text-accent group-data-[state=done]/step:block after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent hover:text-white"
           type="button"
           data-step-edit={index}
         >
@@ -77,7 +79,7 @@ const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
     }
   </header>
 
-  <div class:list={['flex-col px-7 pt-2 pb-7', bodyGap]} data-step-body={index}>
+  <div class:list={['flex flex-col px-7 pt-2 pb-7', bodyGap]} data-step-body={index}>
     <slot />
   </div>
 </section>

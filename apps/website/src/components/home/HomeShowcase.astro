@@ -33,22 +33,33 @@ const locale = localeForRequest();
 const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
 const slides = products.slice(0, 3);
+const arrowClass =
+  'relative grid size-[var(--spot-control-size)] min-h-0 min-w-0 place-items-center rounded-full ' +
+  'border border-[var(--color-line)] bg-white text-[var(--color-ink)] after:absolute after:top-1/2 ' +
+  "after:left-1/2 after:size-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] " +
+  'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] focus-visible:outline-3 ' +
+  'focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]';
 ---
 
 {
   slides.length > 0 && (
-    <section class="spot" data-carousel="spot" aria-labelledby="spot-label">
-      <h2 class="visually-hidden" id="spot-label">
+    <section
+      class="max-wide:max-w-130 relative mx-auto"
+      data-carousel="spot"
+      aria-labelledby="spot-label"
+    >
+      <h2 class="sr-only" id="spot-label">
         {text('home.showcase.heading')}
       </h2>
 
-      <div class="spot-stage">
-        <div class="spot-window" data-spot-viewport>
-          <ul class="spot-track">
+      <div class="relative">
+        <div class="overflow-hidden" data-spot-viewport>
+          <ul class="flex aspect-5/4 touch-pan-y">
             {slides.map((product, index) => (
-              <li>
+              <li class="grid min-w-full place-items-center bg-[var(--color-surface)]">
                 {product.thumbnail && (
                   <img
+                    class="wide:pr-50.5 wide:pb-14 wide:pl-0 block size-full object-contain pt-1 pr-2 pb-11.5 pl-2 mix-blend-multiply"
                     src={mediaUrl(product.thumbnail.path)}
                     alt={product.thumbnail.alt || product.title}
                     loading={index === 0 ? 'eager' : 'lazy'}
@@ -61,9 +72,9 @@ const slides = products.slice(0, 3);
         </div>
 
         {slides.length > 1 && (
-          <div class="spot-controls">
+          <div class="absolute bottom-0 left-0 flex items-center gap-2.5 pl-4">
             <button
-              class="spot-arrow"
+              class={arrowClass}
               type="button"
               data-spot-prev
               aria-label={text('home.showcase.previous')}
@@ -83,7 +94,7 @@ const slides = products.slice(0, 3);
               </svg>
             </button>
             <button
-              class="spot-arrow"
+              class={arrowClass}
               type="button"
               data-spot-next
               aria-label={text('home.showcase.next')}
@@ -103,11 +114,14 @@ const slides = products.slice(0, 3);
               </svg>
             </button>
 
-            <div class="spot-dots" data-spot-dots>
+            <div class="ms-1.5 flex gap-2" data-spot-dots>
               {slides.map((_, index) => (
                 <button
                   type="button"
-                  class:list={[index === 0 && 'is-active']}
+                  class:list={[
+                    "relative size-2 min-h-0 min-w-0 rounded-full border-0 bg-[rgb(11_18_32_/_0.18)] p-0 transition-[width] duration-200 ease-out after:absolute after:-inset-x-1 after:-inset-y-3.5 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] [&.is-active]:w-5.5 [&.is-active]:bg-[var(--color-accent)]",
+                    index === 0 && 'is-active',
+                  ]}
                   aria-label={text('home.showcase.showSlide', {
                     index: index + 1,
                     total: slides.length,
@@ -119,22 +133,40 @@ const slides = products.slice(0, 3);
         )}
       </div>
 
-      <div class="spot-deck" data-spot-meta>
+      <div
+        class="wide:absolute wide:right-[-8px] wide:bottom-[12%] wide:mt-0 wide:w-52.5 wide:pr-0 mt-4.5 grid pr-7.5"
+        data-spot-meta
+      >
         {slides.map((product, index) => {
           const offer = productOffer(product, locale);
           return (
             <a
-              class:list={['spot-card', index === 0 && 'is-active']}
+              class:list={[
+                'wide:mx-0 wide:max-w-none group/card invisible relative col-start-1 row-start-1 mx-auto w-full max-w-75 rounded-[20px] border border-[var(--color-line)] bg-white px-5 pt-6 pb-5.5 text-center no-underline [&.is-active]:visible',
+                index === 0 && 'is-active',
+              ]}
               href={productPath(product.slug, {}, locale)}
               aria-label={text('home.showcase.cardLabel', { title: product.title })}
             >
-              <span class="spot-badge">{text('home.showcase.badge')}</span>
-              {offer && <span class="spot-from">{text('home.showcase.from')}</span>}
-              <strong class="spot-money">
+              <span class="absolute -top-6 -right-6.5 grid size-20.5 place-content-center rounded-full bg-[var(--color-accent)] text-[0.6875rem] leading-[1.25] font-[750] tracking-[0.02em] text-white uppercase">
+                {text('home.showcase.badge')}
+              </span>
+              {offer && (
+                <span class="block text-xs font-[650] tracking-[0.09em] text-[var(--color-ink-soft)] uppercase">
+                  {text('home.showcase.from')}
+                </span>
+              )}
+              <strong class="mt-1 block text-[clamp(1.875rem,calc(1.34vw+1.272rem),2.375rem)] leading-[1.1] font-[780] tracking-[-0.03em] text-[var(--color-ink)] tabular-nums">
                 {offer ? offer.money : text('home.showcase.onRequest')}
               </strong>
-              {offer?.unit && <span class="spot-unit">{offer.unit}</span>}
-              <span class="spot-chip">{text('home.showcase.allIncluded')}</span>
+              {offer?.unit && (
+                <span class="mt-0.5 block text-[0.9375rem] font-bold tracking-[0.02em] text-[var(--color-accent)] uppercase">
+                  {offer.unit}
+                </span>
+              )}
+              <span class="mt-4 inline-block rounded-full bg-[var(--color-ink)] px-4 py-1.75 text-xs font-bold tracking-[0.06em] text-white uppercase group-hover/card:bg-[var(--color-accent)]">
+                {text('home.showcase.allIncluded')}
+              </span>
             </a>
           );
         })}

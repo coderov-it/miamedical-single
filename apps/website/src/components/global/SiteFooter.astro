@@ -1,7 +1,7 @@
 ---
 /**
  * Global footer — the page closes on the design system's deep navy, ported 1:1
- * from docs/blueprint/home.html (styles in styles/editorial.css).
+ * from docs/blueprint/home.html with Tailwind utilities.
  *
  * The rental links are editorial labels, not category records: the footer
  * renders on every page, and fetching the category tree here would add an API
@@ -12,6 +12,7 @@
 import { translate, type SiteLocale } from '~/lib/i18n';
 import { catalogPath, routePath } from '~/lib/routes';
 import { COMPANY, CONTACT } from '~/lib/site';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME, INVISIBLE_48 } from '~/styles/editorial';
 
 interface Props {
   locale: SiteLocale;
@@ -63,24 +64,41 @@ const socials = [
     icon: 'maps',
   },
 ] as const;
+
+const footerHeadingClass = 'text-[0.8125rem] font-[650] tracking-[0.1em] text-[#8b94a8] uppercase';
+const footerLinksClass = 'mt-4.5 grid gap-0.5';
+const footerLinkClass =
+  'inline-flex min-h-9.5 w-fit items-center text-base font-medium text-[#c7cdd9] no-underline ' +
+  'hover:text-white hover:underline hover:underline-offset-4';
+const socialLinkClass =
+  `${INVISIBLE_48} grid size-10.5 place-items-center rounded-xl bg-white/7 text-[#c7cdd9] ` +
+  'hover:bg-white/14 hover:text-white';
 ---
 
-<footer class="site-foot">
-  <div class="container">
-    <div class="foot-grid">
-      <div class="foot-brand">
-        <a class="brand" href={routePath(locale, 'home')}>MIA-MEDICAL</a>
-        <p class="foot-tagline">Moving in autonomy</p>
-        <p class="foot-about">
+<footer
+  class:list={[EDITORIAL_THEME, 'bg-[var(--color-ink)] pt-[var(--band-1)] pb-9 text-[#c7cdd9]']}
+>
+  <div class={EDITORIAL_CONTAINER}>
+    <div class="wide:flex wide:items-start wide:gap-22 grid gap-11 min-[760px]:grid-cols-2">
+      <div class="wide:me-auto wide:max-w-100">
+        <a
+          class="flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] text-white no-underline"
+          href={routePath(locale, 'home')}>MIA-MEDICAL</a
+        >
+        <p class="mt-1.5 text-[0.8125rem] font-semibold tracking-[0.09em] text-[#8b94a8] uppercase">
+          Moving in autonomy
+        </p>
+        <p class="mt-4.5 max-w-[34ch] text-base leading-[1.6]">
           {text('footer.about')}
         </p>
         <a
-          class="foot-phone"
+          class="mt-5.5 inline-flex items-center gap-2.5 text-[1.1875rem] font-bold text-white tabular-nums no-underline hover:underline hover:underline-offset-5"
           href={`tel:${CONTACT.phoneE164}`}
           aria-label={text('header.call', { phone: CONTACT.phoneDisplay })}
           data-analytics="phone-call"
         >
           <svg
+            class="flex-none text-[#4ec98d]"
             width="19"
             height="19"
             viewBox="0 0 24 24"
@@ -96,12 +114,20 @@ const socials = [
           </svg>
           {CONTACT.phoneDisplay}
         </a>
-        <p class="foot-hours">{text('footer.freephone')} · {CONTACT.hours[locale]}</p>
+        <p class="mt-2 text-[0.9375rem] text-[#8b94a8]">
+          {text('footer.freephone')} · {CONTACT.hours[locale]}
+        </p>
 
-        <div class="foot-socials">
+        <div class="mt-4.5 flex gap-2">
           {
             socials.map((social) => (
-              <a href={social.href} target="_blank" rel="noopener" aria-label={social.label}>
+              <a
+                class={socialLinkClass}
+                href={social.href}
+                target="_blank"
+                rel="noopener"
+                aria-label={social.label}
+              >
                 {social.icon === 'facebook' && (
                   <svg
                     width="19"
@@ -164,28 +190,48 @@ const socials = [
       </div>
 
       <nav aria-labelledby="foot-catalog-heading">
-        <h2 class="foot-heading" id="foot-catalog-heading">{text('footer.rental')}</h2>
-        <div class="foot-links">
-          {rentalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+        <h2 class={footerHeadingClass} id="foot-catalog-heading">{text('footer.rental')}</h2>
+        <div class={footerLinksClass}>
+          {
+            rentalLinks.map((link) => (
+              <a class={footerLinkClass} href={link.href}>
+                {link.label}
+              </a>
+            ))
+          }
         </div>
       </nav>
 
       <nav aria-labelledby="foot-support-heading">
-        <h2 class="foot-heading" id="foot-support-heading">{text('footer.support')}</h2>
-        <div class="foot-links">
-          {supportLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+        <h2 class={footerHeadingClass} id="foot-support-heading">{text('footer.support')}</h2>
+        <div class={footerLinksClass}>
+          {
+            supportLinks.map((link) => (
+              <a class={footerLinkClass} href={link.href}>
+                {link.label}
+              </a>
+            ))
+          }
         </div>
       </nav>
 
       <nav aria-labelledby="foot-info-heading">
-        <h2 class="foot-heading" id="foot-info-heading">{text('footer.information')}</h2>
-        <div class="foot-links">
-          {informationLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+        <h2 class={footerHeadingClass} id="foot-info-heading">{text('footer.information')}</h2>
+        <div class={footerLinksClass}>
+          {
+            informationLinks.map((link) => (
+              <a class={footerLinkClass} href={link.href}>
+                {link.label}
+              </a>
+            ))
+          }
         </div>
       </nav>
     </div>
 
-    <div class="foot-bottom">
+    <div
+      class="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-2.5 border-t border-white/12 pt-6 text-[0.9375rem] text-[#8b94a8] [&_a]:text-inherit [&_a]:no-underline [&_a:hover]:text-white"
+    >
       <p>{`© ${year} ${COMPANY.legalName} · P.IVA ${COMPANY.vat}`}</p>
       <p>
         <a href={routePath(locale, 'privacy')}>Privacy</a> · <a href={routePath(locale, 'cookies')}

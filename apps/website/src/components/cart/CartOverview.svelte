@@ -50,7 +50,10 @@
     </span>
   </div>
 
-  <button class="btn btn-primary w-full" type="submit">
+  <button
+    class="font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14 w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-7 font-semibold text-white no-underline"
+    type="submit"
+  >
     {copy.goToCheckout}
     <svg
       class="size-4.5 flex-none"

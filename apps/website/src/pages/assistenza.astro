@@ -39,7 +39,7 @@ const jsonLd = [
   description={text('support.metaDescription')}
   {jsonLd}
 >
-  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5">
+  <div class="max-w-page px-gutter pb-section-sm mid:pb-section mx-auto w-full">
     <Breadcrumbs
       items={[
         { label: text('home'), href: routePath(locale, 'home') },
@@ -54,7 +54,7 @@ const jsonLd = [
       </p>
     </header>
 
-    <ul class="wide:grid-cols-3 grid gap-4.5">
+    <ul class="card-grid [--card-gap:18px] [--card-min:240px]">
       <li class="rounded-card bg-tint flex flex-col items-start gap-3.5 p-5.5">
         <h2 class="text-lead">{text('support.freephone')}</h2>
         <p class="text-ui text-ink-2 flex-1">{text('support.freephoneDetail')}</p>
@@ -64,7 +64,12 @@ const jsonLd = [
       <li class="rounded-card border-hair flex flex-col items-start gap-3.5 border bg-white p-5.5">
         <h2 class="text-lead">WhatsApp</h2>
         <p class="text-ui text-ink-2 flex-1">{text('support.whatsappDetail')}</p>
-        <a class="btn btn-soft" href={whatsappUrl()} target="_blank" rel="noopener">
+        <a
+          class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+          href={whatsappUrl()}
+          target="_blank"
+          rel="noopener"
+        >
           {CONTACT.whatsappDisplay}
         </a>
       </li>
@@ -72,7 +77,10 @@ const jsonLd = [
       <li class="rounded-card border-hair flex flex-col items-start gap-3.5 border bg-white p-5.5">
         <h2 class="text-lead">{text('email')}</h2>
         <p class="text-ui text-ink-2 flex-1">{text('support.emailDetail')}</p>
-        <a class="btn btn-soft" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+        <a
+          class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+          href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a
+        >
       </li>
     </ul>
 
@@ -144,7 +152,10 @@ const jsonLd = [
         heading={text('support.ctaHeading')}
         lede={text('support.ctaLede')}
       />
-      <a class="btn btn-primary" href={routePath(locale, 'catalog')}>{text('goToCatalog')}</a>
+      <a
+        class="font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-7 font-semibold text-white no-underline"
+        href={routePath(locale, 'catalog')}>{text('goToCatalog')}</a
+      >
     </section>
   </div>
 </BaseLayout>

@@ -3,7 +3,7 @@
  *
  * It owns exactly one thing the server cannot: the customer's in-progress
  * answers. Everything visual is CSS keyed off `data-state` on a step and
- * `data-selected` on a card (see the checkout block in app.css), so these modules
+ * `data-selected` on a card (styled by Tailwind data variants), so these modules
  * write attributes and text, never style strings.
  *
  * WIRING:

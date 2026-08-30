@@ -2,18 +2,28 @@
 /**
  * "Consegna e ritiro" — the mirror of the how-panel: gray cells in one
  * bordered panel, white note strip attached below, ported 1:1 from
- * docs/blueprint/home.html (styles in styles/editorial.css).
+ * docs/blueprint/home.html with Tailwind utilities.
  */
 import { localeForRequest, translate } from '~/lib/i18n';
 import { CONTACT } from '~/lib/site';
+import {
+  EDITORIAL_CONTAINER,
+  EDITORIAL_THEME,
+  NOTE_BAR,
+  SECTION_LEAD,
+  SECTION_TITLE,
+} from '~/styles/editorial';
 
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
 ---
 
-<section class="delivery" aria-labelledby="delivery-title">
-  <div class="container">
-    <h2 class="section-title" id="delivery-title">
+<section
+  class:list={[EDITORIAL_THEME, 'bg-white pt-2 pb-[var(--band-3)]']}
+  aria-labelledby="delivery-title"
+>
+  <div class={EDITORIAL_CONTAINER}>
+    <h2 class={SECTION_TITLE} id="delivery-title">
       {text('home.delivery.title')}
       <svg
         width="44"
@@ -29,12 +39,17 @@ const text = (key: string) => translate(locale, key);
         <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
       </svg>
     </h2>
-    <p class="section-lead">{text('home.delivery.lede')}</p>
+    <p class={SECTION_LEAD}>{text('home.delivery.lede')}</p>
 
-    <div class="delivery-panel">
-      <ul class="delivery-grid">
-        <li class="delivery-cell">
-          <span class="delivery-icon" aria-hidden="true">
+    <div class="mt-10 overflow-hidden rounded-[20px] border border-[var(--color-line)]">
+      <ul
+        class="grid list-none grid-cols-1 min-[900px]:grid-cols-3 [&>li+li]:border-t [&>li+li]:border-[var(--color-line)] min-[900px]:[&>li+li]:border-t-0 min-[900px]:[&>li+li]:border-l"
+      >
+        <li class="bg-[#f6f7f9] px-7 py-6.5">
+          <span
+            class="grid size-11 place-items-center rounded-xl border border-[var(--color-line)] bg-white text-[var(--color-ink)]"
+            aria-hidden="true"
+          >
             <svg
               width="20"
               height="20"
@@ -50,11 +65,16 @@ const text = (key: string) => translate(locale, key);
               ></path>
             </svg>
           </span>
-          <h3 class="delivery-name">{text('home.delivery.cell1.name')}</h3>
-          <p class="delivery-text">{text('home.delivery.cell1.text')}</p>
+          <h3 class="mt-4 text-[1.0625rem] font-[650]">{text('home.delivery.cell1.name')}</h3>
+          <p class="mt-2 text-[0.9688rem] leading-[1.6] text-[var(--color-ink-soft)]">
+            {text('home.delivery.cell1.text')}
+          </p>
         </li>
-        <li class="delivery-cell">
-          <span class="delivery-icon" aria-hidden="true">
+        <li class="bg-[#f6f7f9] px-7 py-6.5">
+          <span
+            class="grid size-11 place-items-center rounded-xl border border-[var(--color-line)] bg-white text-[var(--color-ink)]"
+            aria-hidden="true"
+          >
             <svg
               width="20"
               height="20"
@@ -70,11 +90,16 @@ const text = (key: string) => translate(locale, key);
               ></path>
             </svg>
           </span>
-          <h3 class="delivery-name">{text('home.delivery.cell2.name')}</h3>
-          <p class="delivery-text">{text('home.delivery.cell2.text')}</p>
+          <h3 class="mt-4 text-[1.0625rem] font-[650]">{text('home.delivery.cell2.name')}</h3>
+          <p class="mt-2 text-[0.9688rem] leading-[1.6] text-[var(--color-ink-soft)]">
+            {text('home.delivery.cell2.text')}
+          </p>
         </li>
-        <li class="delivery-cell">
-          <span class="delivery-icon" aria-hidden="true">
+        <li class="bg-[#f6f7f9] px-7 py-6.5">
+          <span
+            class="grid size-11 place-items-center rounded-xl border border-[var(--color-line)] bg-white text-[var(--color-ink)]"
+            aria-hidden="true"
+          >
             <svg
               width="20"
               height="20"
@@ -90,12 +115,14 @@ const text = (key: string) => translate(locale, key);
               ></path>
             </svg>
           </span>
-          <h3 class="delivery-name">{text('home.delivery.cell3.name')}</h3>
-          <p class="delivery-text">{text('home.delivery.cell3.text')}</p>
+          <h3 class="mt-4 text-[1.0625rem] font-[650]">{text('home.delivery.cell3.name')}</h3>
+          <p class="mt-2 text-[0.9688rem] leading-[1.6] text-[var(--color-ink-soft)]">
+            {text('home.delivery.cell3.text')}
+          </p>
         </li>
       </ul>
 
-      <p class="note-bar">
+      <p class={`${NOTE_BAR} bg-white`}>
         <span>
           <strong>{text('home.delivery.areasStrong')}</strong>{' '}
           {text('home.delivery.areasBefore')}{' '}

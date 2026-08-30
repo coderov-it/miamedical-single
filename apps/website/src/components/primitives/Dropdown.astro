@@ -49,28 +49,55 @@ const selected = options.find((option) => option.value === value);
 const displayValue = selected?.label ?? placeholder ?? options[0]?.label ?? '';
 const isEmpty = selected === undefined && placeholder !== undefined;
 const hasIcon = Astro.slots.has('icon');
+
+const labelVariants = {
+  default: 'mb-2.25 text-ui',
+  compact: 'mb-1.5 text-[14px]',
+  hero: 'mb-0 text-xs font-[650] tracking-[0.07em] text-[var(--color-ink-soft)] uppercase',
+} as const;
+const controlVariants = {
+  default: 'min-h-14.5 border border-hair rounded-field bg-tint font-display text-body',
+  compact: 'min-h-12 border border-hair rounded-field bg-tint font-display text-body',
+  hero: 'min-h-13.5 border-0 rounded-[var(--radius-control)] bg-[var(--color-surface)] font-inherit text-[1.0625rem] hover:bg-[var(--color-surface-2)] focus-visible:bg-white',
+} as const;
+const controlClass =
+  `w-full min-w-0 text-ink font-semibold leading-[1.2] hover:border-hair-strong ` +
+  `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ` +
+  `focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white ` +
+  controlVariants[variant];
 ---
 
 <div
-  class:list={['core-dropdown', `core-dropdown-${variant}`, className]}
+  class:list={['core-dropdown relative min-w-0', className]}
   data-core-dropdown
   data-has-icon={hasIcon ? '' : undefined}
 >
-  <label class:list={['core-dropdown-label', hideLabel && 'sr-only']} id={labelId} for={id}>
+  <label
+    class:list={[
+      'font-display text-ink-2 block font-bold',
+      labelVariants[variant],
+      hideLabel && 'sr-only',
+    ]}
+    id={labelId}
+    for={id}
+  >
     {label}
   </label>
 
-  <div class="core-dropdown-control">
+  <div class="relative">
     {
       hasIcon && (
-        <span class="core-control-icon" aria-hidden="true">
+        <span
+          class="text-ink-2 pointer-events-none absolute top-1/2 left-3.5 z-1 grid size-4.5 -translate-y-1/2 place-items-center [&_img]:block [&_img]:size-4.5 [&_svg]:block [&_svg]:size-4.5"
+          aria-hidden="true"
+        >
           <slot name="icon" />
         </span>
       )
     }
 
     <select
-      class="core-dropdown-native"
+      class:list={[controlClass, 'px-3.5', hasIcon && 'ps-11']}
       {id}
       {name}
       aria-labelledby={labelId}
@@ -94,7 +121,11 @@ const hasIcon = Astro.slots.has('icon');
     </select>
 
     <button
-      class="core-dropdown-trigger"
+      class:list={[
+        controlClass,
+        'group/trigger flex items-center gap-2.5 px-3.5 text-left',
+        hasIcon && 'ps-11',
+      ]}
       id={`${id}-trigger`}
       type="button"
       hidden
@@ -105,7 +136,10 @@ const hasIcon = Astro.slots.has('icon');
       data-dropdown-trigger
     >
       <span
-        class:list={['core-control-value', isEmpty && 'is-empty']}
+        class:list={[
+          'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
+          isEmpty && 'text-ink-2 font-medium',
+        ]}
         id={valueId}
         data-dropdown-value
         data-placeholder={placeholder}
@@ -113,7 +147,7 @@ const hasIcon = Astro.slots.has('icon');
         {displayValue}
       </span>
       <svg
-        class="core-control-chevron"
+        class="text-ink-2 ms-auto size-3.75 flex-none transition-transform duration-160 ease-out group-aria-expanded/trigger:rotate-180 motion-reduce:transition-none"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -127,7 +161,7 @@ const hasIcon = Astro.slots.has('icon');
     </button>
 
     <div
-      class="core-dropdown-popover"
+      class="rounded-field border-hair fixed top-0 left-0 z-60 border bg-white p-2 shadow-[0_18px_44px_rgb(11_18_32_/_0.16)]"
       id={listboxId}
       role="listbox"
       aria-labelledby={labelId}
@@ -137,7 +171,7 @@ const hasIcon = Astro.slots.has('icon');
       {
         options.map((option) => (
           <button
-            class="core-dropdown-option"
+            class="font-display text-ui text-ink hover:bg-tint focus-visible:bg-tint aria-selected:bg-accent-tint block min-h-12 w-full rounded-[10px] border-0 bg-transparent px-3.5 text-left leading-[1.3] font-semibold aria-selected:text-accent"
             type="button"
             role="option"
             aria-selected={option.value === value}

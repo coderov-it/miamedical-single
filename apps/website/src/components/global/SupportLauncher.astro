@@ -13,8 +13,8 @@
  * conveniences, never the mechanism.
  *
  * It sits above the phone's bottom navigation, never over it — see
- * `.support-launcher` in styles/app.css, which also stands it down on the
- * product page, where the price bar already fills that corner.
+ * Its Tailwind classes also stand it down on the product page, where the price
+ * bar already fills that corner.
  */
 import { localeForRequest, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
@@ -27,9 +27,12 @@ const itemClass =
   'flex items-center gap-3 rounded-field px-3.5 py-3 font-display text-ui font-semibold no-underline';
 ---
 
-<details class="support-launcher" data-support-launcher>
+<details
+  class="mid:right-6 mid:bottom-6 max-mid:[body:has([data-pdp-price-bar])_&]:hidden fixed right-4 bottom-[calc(var(--spacing-mobile-nav)+12px+env(safe-area-inset-bottom,0px))] z-60"
+  data-support-launcher
+>
   <summary
-    class="rounded-field font-display text-ui-strong hover:bg-accent-deep flex min-h-13 items-center gap-2.5 border-0 bg-accent px-5 font-semibold text-white shadow-[0_14px_34px_-14px_rgb(11_18_32/0.55)]"
+    class="rounded-field font-display text-ui-strong hover:bg-accent-deep flex min-h-13 cursor-pointer list-none items-center gap-2.5 border-0 bg-accent px-5 font-semibold text-white shadow-[0_14px_34px_-14px_rgb(11_18_32/0.55)] [&::-webkit-details-marker]:hidden"
     aria-label={text('support.launcher.open')}
   >
     <svg
@@ -49,7 +52,9 @@ const itemClass =
     <span>{text('support.launcher.label')}</span>
   </summary>
 
-  <div class="support-launcher-panel rounded-card border-hair border bg-white p-2.5 shadow-lg">
+  <div
+    class="rounded-card border-hair absolute right-0 bottom-[calc(100%+10px)] w-max max-w-[min(20rem,calc(100vw-32px))] min-w-60 border bg-white p-2.5 shadow-lg"
+  >
     <p class="font-display text-ui text-ink-2 px-3.5 pt-2 pb-1.5 font-semibold">
       {CONTACT.hours[locale]}
     </p>

@@ -1,7 +1,7 @@
 ---
 /**
  * "Esplora per categoria" — quiet white tiles, one hairline each, ported 1:1
- * from docs/blueprint/home.html (styles in styles/editorial.css).
+ * from docs/blueprint/home.html with Tailwind utilities.
  *
  * The tile itself is `components/catalog/CategoryTile`, shared with the
  * catalogue directory: one component, so the two grids can never say different
@@ -14,6 +14,12 @@
 import CategoryTile from '~/components/catalog/CategoryTile.astro';
 import type { CategoryTile as CategoryTileModel } from '~/lib/catalog-page';
 import { localeForRequest, translate } from '~/lib/i18n';
+import {
+  CATEGORY_GRID,
+  EDITORIAL_CONTAINER,
+  EDITORIAL_THEME,
+  SECTION_TITLE,
+} from '~/styles/editorial';
 
 interface Props {
   categories: CategoryTileModel[];
@@ -25,9 +31,15 @@ const locale = localeForRequest();
 
 {
   categories.length > 0 && (
-    <section class="categories" aria-labelledby="categories-title">
-      <div class="container">
-        <h2 class="section-title" id="categories-title">
+    <section
+      class:list={[
+        EDITORIAL_THEME,
+        'border-t border-[var(--color-line)] py-[var(--band-2)] pb-[var(--band-3)]',
+      ]}
+      aria-labelledby="categories-title"
+    >
+      <div class={EDITORIAL_CONTAINER}>
+        <h2 class={SECTION_TITLE} id="categories-title">
           {translate(locale, 'home.categories.title')}
           <svg
             width="44"
@@ -44,7 +56,7 @@ const locale = localeForRequest();
           </svg>
         </h2>
 
-        <ul class="category-grid">
+        <ul class={CATEGORY_GRID}>
           {categories.map((tile) => (
             <li>
               <CategoryTile {tile} headingLevel={3} />

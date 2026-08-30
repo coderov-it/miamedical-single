@@ -83,7 +83,7 @@ const { labelStage = false } = Astro.props;
   {
     DELIVERY_METHODS.map((option) => (
       <div
-        class="bg-tint rounded-xl border-[1.5px] border-transparent"
+        class="group/delivery bg-tint rounded-xl border-[1.5px] border-transparent data-selected:border-accent data-selected:bg-white"
         data-delivery-card={option.id}
         data-delivery-name={t(option.id)}
         data-delivery-short={t(`${option.id}Short`)}
@@ -95,10 +95,13 @@ const { labelStage = false } = Astro.props;
           aria-checked="false"
           data-delivery-select={option.id}
         >
-          <span class="box-border size-4 flex-none rounded-full bg-white" data-delivery-dot />
+          <span
+            class="box-border size-4 flex-none rounded-full bg-white group-data-selected/delivery:border-[5px] group-data-selected/delivery:border-accent"
+            data-delivery-dot
+          />
 
           <span
-            class="grid size-10.5 flex-none place-items-center rounded-[10px]"
+            class="text-ink-2 group-data-selected/delivery:bg-accent-tint grid size-10.5 flex-none place-items-center rounded-[10px] bg-white group-data-selected/delivery:text-accent"
             data-delivery-icon
             aria-hidden="true"
           >
@@ -209,7 +212,7 @@ const { labelStage = false } = Astro.props;
             >
               {PICKUP_POINTS.map((point, index) => (
                 <button
-                  class="bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left"
+                  class="group/pickup bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left data-selected:border-accent data-selected:bg-white"
                   type="button"
                   role="radio"
                   aria-checked={index === 0 ? 'true' : 'false'}
@@ -228,7 +231,11 @@ const { labelStage = false } = Astro.props;
                 </button>
               ))}
 
-              <p class="field-error" data-field-error="pickupPoint" hidden>
+              <p
+                class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+                data-field-error="pickupPoint"
+                hidden
+              >
                 {t('errorPickupPoint')}
               </p>
             </div>
@@ -238,7 +245,13 @@ const { labelStage = false } = Astro.props;
     ))
   }
 
-  <p class="field-error" data-field-error="deliveryMethod" hidden>{t('errorDeliveryMethod')}</p>
+  <p
+    class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+    data-field-error="deliveryMethod"
+    hidden
+  >
+    {t('errorDeliveryMethod')}
+  </p>
 </div>
 
 {

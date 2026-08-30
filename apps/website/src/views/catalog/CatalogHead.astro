@@ -3,8 +3,10 @@
  * The catalogue masthead: what this surface is, on the left, and one minimal
  * search field on the right.
  *
- * Compact by design: the field, its button and the pills below all stand 48px,
- * so the masthead reads as one band rather than a stack of mismatched rows.
+ * Compact by design: the field, its button and the pills below all share
+ * `--spacing-control-sm`, so the masthead reads as one band rather than a stack
+ * of mismatched rows — and stays one band at every width, which a set of three
+ * separately-pinned heights did not.
  *
  * The field does not search this page. It posts to the search route, which is
  * the site's one place for a typed query — sorting, the category filter and the
@@ -45,10 +47,13 @@ const locale = localeForRequest();
       /* The well itself is the label, so the padding and the icon beside the
          caret focus the field instead of swallowing the click. */
     }
-    <label class="field-control field-control-sm min-w-0 flex-1" for="catalog-search">
+    <label
+      class="rounded-field min-h-control-sm bg-tint relative flex min-w-0 flex-1 cursor-text items-stretch gap-3 border border-transparent px-4 transition-[border-color,box-shadow,background-color] duration-150 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] focus-within:border-accent focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]"
+      for="catalog-search"
+    >
       <span class="sr-only">{translate(locale, 'catalog.searchLabel')}</span>
       <svg
-        class="text-ink-2 size-4.75 flex-none"
+        class="text-ink-2 pointer-events-none size-4.75 flex-none self-center"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -61,7 +66,7 @@ const locale = localeForRequest();
       </svg>
       <input
         id="catalog-search"
-        class="font-display text-body font-semibold"
+        class="font-display text-body -ms-4 -me-4 min-h-0 min-w-0 flex-1 self-stretch border-0 bg-transparent p-0 ps-4 pe-4 font-semibold focus-visible:shadow-none focus-visible:outline-none"
         type="search"
         name="q"
         placeholder={translate(locale, 'catalog.searchPlaceholder')}
@@ -69,7 +74,7 @@ const locale = localeForRequest();
     </label>
 
     <button
-      class="rounded-field font-display text-ui hover:bg-accent-deep inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-4.5 font-semibold text-white"
+      class="rounded-field font-display text-ui hover:bg-accent-deep min-h-control-sm relative inline-flex flex-none items-center justify-center border-0 bg-accent px-4.5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
       type="submit"
     >
       {translate(locale, 'catalog.searchAction')}

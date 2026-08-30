@@ -22,10 +22,10 @@
   const { quantity, decreaseLabel, increaseLabel, valueLabel, onChange }: Props = $props();
 
   /* Both keys, so the pair cannot drift: 44px painted, 48px to the finger.
-     `.target-48` is what zeroes `min-height` — that is the deal that earns a
+     Tailwind's pseudo-element target utilities restore 48px while keeping a
      sub-48 paint — so the size is stated with `size-*`, never `min-h-*`. */
   const KEY =
-    'target-48 text-ink hover:bg-tint-2 disabled:text-ink-placeholder grid size-11 cursor-pointer ' +
+    "relative grid size-11 min-h-0 min-w-0 cursor-pointer text-ink after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-tint-2 disabled:text-ink-placeholder " +
     'place-items-center border-0 bg-transparent text-xl font-bold disabled:cursor-not-allowed ' +
     'disabled:hover:bg-transparent';
 </script>

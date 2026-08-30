@@ -78,7 +78,7 @@ const title = query.q
 ---
 
 <BaseLayout {title} description={text('search.description')} noindex>
-  <div class="max-w-page pb-section-sm mid:px-8 mid:pb-section mx-auto w-full px-5 pt-6">
+  <div class="max-w-page px-gutter pb-section-sm mid:pb-section mx-auto w-full pt-6">
     <header>
       <h1 class="text-[clamp(1.75rem,3.2vw,2.125rem)]/[1.16]">{text('search.title')}</h1>
       <p class="text-lead text-ink-2 mt-1 max-w-[60ch]">{text('search.lede')}</p>
@@ -97,10 +97,13 @@ const title = query.q
           /* The well itself is the label, so the padding and the icon beside
              the caret focus the field instead of swallowing the click. */
         }
-        <label class="field-control field-control-sm min-w-0 flex-1 basis-80" for="search-q">
+        <label
+          class="rounded-field min-h-control-sm bg-tint relative flex min-w-0 flex-1 basis-80 cursor-text items-stretch gap-3 border border-transparent px-4 transition-[border-color,box-shadow,background-color] duration-150 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] focus-within:border-accent focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]"
+          for="search-q"
+        >
           <span class="sr-only">{text('search.label')}</span>
           <svg
-            class="text-ink-2 size-4.75 flex-none"
+            class="text-ink-2 pointer-events-none size-4.75 flex-none self-center"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -113,7 +116,7 @@ const title = query.q
           </svg>
           <input
             id="search-q"
-            class="font-display text-body font-semibold"
+            class="font-display text-body -ms-4 -me-4 min-h-0 min-w-0 flex-1 self-stretch border-0 bg-transparent p-0 ps-4 pe-4 font-semibold focus-visible:shadow-none focus-visible:outline-none"
             type="search"
             name="q"
             value={query.q}
@@ -122,7 +125,7 @@ const title = query.q
         </label>
 
         <button
-          class="rounded-field font-display text-ui mid:w-auto mid:min-w-30 hover:bg-accent-deep inline-flex min-h-12 w-full flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
+          class="rounded-field font-display text-ui mid:w-auto mid:min-w-30 hover:bg-accent-deep min-h-control-sm relative inline-flex w-full flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
           type="submit"
         >
           {text('search.action')}

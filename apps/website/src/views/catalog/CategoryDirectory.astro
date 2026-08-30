@@ -6,12 +6,12 @@
  * 200% zoom and 400% reflow the right-hand items become undiscoverable, and it
  * reintroduces horizontal scrolling.
  *
- * `.category-directory` is not decoration — it carries the blueprint tokens the
- * tiles paint from (styles/editorial.css § blueprint :root).
+ * The section carries the shared editorial Tailwind tokens the tiles paint from.
  */
 import CategoryTile from '~/components/catalog/CategoryTile.astro';
 import type { CategoryTile as CategoryTileModel } from '~/lib/catalog-page';
 import { localeForRequest, translate } from '~/lib/i18n';
+import { CATEGORY_GRID, EDITORIAL_THEME } from '~/styles/editorial';
 
 interface Props {
   tiles: CategoryTileModel[];
@@ -21,10 +21,10 @@ const { tiles } = Astro.props;
 const locale = localeForRequest();
 ---
 
-<section class="category-directory mb-10" aria-labelledby="browse-title">
+<section class:list={[EDITORIAL_THEME, 'mb-10']} aria-labelledby="browse-title">
   <h2 id="browse-title" class="text-h3 mb-5">{translate(locale, 'catalog.browse')}</h2>
 
-  <ul class="category-grid">
+  <ul class={CATEGORY_GRID}>
     {
       tiles.map((tile) => (
         <li>

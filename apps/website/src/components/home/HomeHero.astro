@@ -17,6 +17,7 @@ import HomeShowcase from '~/components/home/HomeShowcase.astro';
 import HomeTrustBar from '~/components/home/HomeTrustBar.astro';
 import type { ProductSummary } from '~/lib/catalog';
 import { localeForRequest, translate } from '~/lib/i18n';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME } from '~/styles/editorial';
 
 interface Props {
   products: ProductSummary[];
@@ -27,23 +28,45 @@ const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
 ---
 
-<section class="hero" aria-labelledby="home-title">
-  <div class="hero-band">
-    <div class="hero-grid container">
-      <div class="hero-copy">
-        <p class="hero-kicker kicker-rule">{text('home.hero.kicker')}</p>
+<section
+  class:list={[
+    EDITORIAL_THEME,
+    '[--hero-overlap:clamp(64px,calc(3.57vw+38.3px),84px)] [--spot-control-size:46px]',
+  ]}
+  aria-labelledby="home-title"
+>
+  <div
+    class="bg-[var(--color-surface)] pt-[clamp(40px,calc(3.57vw+14.3px),60px)] pb-[calc(var(--hero-overlap)+18px)]"
+  >
+    <div
+      class:list={[
+        EDITORIAL_CONTAINER,
+        'wide:grid-cols-[minmax(0,1fr)_minmax(440px,1.06fr)] wide:gap-x-11 grid items-center gap-10',
+      ]}
+    >
+      <div class="wide:mb-[var(--spot-control-size)]">
+        <p
+          class="mb-4.5 flex items-center gap-3.5 text-[0.8125rem] font-[650] tracking-[0.11em] text-[var(--color-ink-soft)] uppercase before:h-0.75 before:w-8.5 before:flex-none before:rounded-[3px] before:bg-[var(--color-accent)] before:content-['']"
+        >
+          {text('home.hero.kicker')}
+        </p>
 
-        <h1 class="hero-display" id="home-title">
+        <h1
+          class="text-[clamp(2.5rem,4.6vw,3.875rem)] leading-[1.04] font-[550] tracking-[-0.032em] text-balance [&_strong]:font-[760]"
+          id="home-title"
+        >
           {text('home.hero.line1')}<br />
           {text('home.hero.line2')}<br />
           <strong>{text('home.hero.line3')}</strong>
         </h1>
 
-        <p class="hero-sub">
+        <p class="mt-5.5 max-w-[52ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
           {text('home.hero.sub')}
         </p>
 
-        <ul class="hero-features">
+        <ul
+          class="mt-7.5 flex list-none flex-wrap gap-x-6 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2.25 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-accent)]"
+        >
           <li>
             <svg
               width="20"
@@ -105,7 +128,7 @@ const text = (key: string) => translate(locale, key);
     </div>
   </div>
 
-  <div class="hero-foot container">
+  <div class:list={[EDITORIAL_CONTAINER, 'relative -mt-[var(--hero-overlap)] pb-9']}>
     <HomeBooking />
     <HomeTrustBar />
   </div>
