@@ -268,6 +268,18 @@
   color: #fff;
 }
 
+/*
+ * The compact control: 48px instead of 58px, for a select that sits in a row of
+ * 48px pills rather than in a form. A 58px select beside a 48px pill is what
+ * made the catalogue's filter row read as two rows on one line (owner,
+ * 2026-08-30). Height only — the paint and the enhanced listbox are unchanged,
+ * and 48px is the project's target floor, so nothing is given up.
+ */
+.core-dropdown-compact .core-dropdown-native,
+.core-dropdown-compact .core-dropdown-trigger {
+  min-height: 48px;
+}
+
 .core-dropdown-hero .core-dropdown-label,
 .core-date-picker-hero .core-date-label {
   margin-bottom: 0;

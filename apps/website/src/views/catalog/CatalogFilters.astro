@@ -1,7 +1,9 @@
 ---
 /**
  * The one filter row, identical on all three catalogue surfaces: four fixed
- * pills, then every category in a select.
+ * pills, then every category in a select. Everything in it stands 48px — the
+ * project's target floor — so the row reads as one band rather than a pill row
+ * with a taller control parked beside it.
  *
  * The select is a GET form pointed at the surface it sits on, so choosing a
  * category narrows the page you are already on rather than throwing you back to
@@ -27,8 +29,8 @@ const pillClass =
   'inline-flex min-h-12 items-center rounded-full px-5 font-display text-ui font-semibold no-underline transition-colors duration-150';
 ---
 
-<div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-3 pb-9">
-  <ul class="flex flex-wrap items-center gap-2.5">
+<div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-2.5 pb-6">
+  <ul class="flex flex-wrap items-center gap-2">
     {
       pills.map((pill) => (
         <li>
@@ -50,7 +52,7 @@ const pillClass =
   </ul>
 
   <form
-    class="mid:w-70 flex w-full items-center gap-2.5"
+    class="mid:w-64 flex w-full items-center gap-2.5"
     method="get"
     action={catalogRoot(query.view, locale)}
     data-catalog-category-form
@@ -68,6 +70,7 @@ const pillClass =
       value={query.category}
       placeholder={translate(locale, 'catalog.allCategories')}
       hideLabel
+      variant="compact"
       class="min-w-0 flex-1"
     />
 
