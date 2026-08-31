@@ -9,13 +9,23 @@
  * supersedes the 2026-08-27 no-button rule: the reference puts the primary
  * action back in the copy, and the booking card below keeps the search.
  *
- * THE ASSURANCES ARE A GRID CHILD, NOT PART OF THE COPY COLUMN, and that is
- * only so a phone can put them after the showcase card (owner, 2026-08-31).
- * The grid collapses to one column below `wide`, so lifting the list out of the
- * copy div is the entire mechanism — copy, showcase, assurances, in source
- * order. Above `wide` the list lands in row two of column one, which is where
- * it was drawn anyway; `wide:gap-y-6` keeps the air under the CTAs at the 24px
- * it had while it was still a child of that column.
+ * THE ASSURANCES READ AFTER THE SHOWCASE CARD ON A PHONE (owner, 2026-08-31),
+ * and `max-wide:contents` on the copy wrapper is the whole mechanism: below
+ * `wide` the wrapper leaves the box tree, so the copy block and the list are
+ * grid items in their own right and `order` can send the list past the card.
+ * Above `wide` the wrapper is an ordinary block again, with the list inside the
+ * copy column 24px under the CTAs — one grid row, one column of copy.
+ *
+ * That wrapper is load-bearing, not tidying. Making the list a plain grid child
+ * instead put it in row two, where `items-center` paid the showcase card's
+ * surplus height out as 66px of nothing between the CTAs and the list: a grid
+ * row cannot be told to hug the row above it, while a block inside one column
+ * needs no telling. Same idiom as the catalogue's filter strip.
+ *
+ * The phone's reorder is VISUAL ONLY — in the DOM the assurances stay in the
+ * copy, ahead of the card, at every width. That is safe here because the list
+ * is three static claims with nothing focusable in it; put a link in one and
+ * the tab order stops matching the screen, and the list has to move for real.
  *
  * The white band's bottom padding and the pale band's negative margin are
  * one number seen twice — that overlap is the whole composition, so change
@@ -38,7 +48,10 @@
  *
  * The desktop composition is unchanged: children two and three both paint
  * `--color-page`, so the grey field reads as one ground across them, and the
- * card still straddles the seam on `--hero-overlap`.
+ * card still straddles the seam on `--hero-overlap`. The price of splitting
+ * them is that EACH now needs its own `flow-root`, one against the overlap's
+ * negative margin and one against the trust strip's top margin — a margin that
+ * escapes either child lands between two grey blocks as a white stripe.
  */
 import HomeBooking from '~/components/home/HomeBooking.astro';
 import HomeShowcase from '~/components/home/HomeShowcase.astro';
@@ -78,147 +91,151 @@ const checks = [
     <div
       class:list={[
         EDITORIAL_CONTAINER,
-        'wide:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)] wide:gap-x-14 wide:gap-y-6',
+        'wide:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)] wide:gap-x-14',
         'max-mid:gap-6 grid items-center gap-10',
       ]}
     >
-      <div>
-        {
-          /*
-           * ONE LINE ON A PHONE, NORMAL WEIGHT (owner, 2026-08-31). One line is
-           * a width problem before it is a type one, which is why this carries
-           * a formula rather than a size:
-           *
-           *   "Rome and Florence · home delivery in 24–48 hours"   48 chars
-           *   its width in Lexend 400 at 14px                      340px
-           *   room inside the pill at 390px (390 − 40 − 24 − 22)   304px
-           *
-           * 14px does not fit, and no single fixed size fits every phone width
-           * and every translation. So the size is solved for the width: the
-           * string measures ~24.28px per point of font size, the pill has
-           * `100vw − 64px` to put it in once the pin is gone, and
-           * `4.12vw − 2.64px` is those two solved against each other. Clamped
-           * at 12px so a 320px phone stays legible and at 14px so nothing
-           * wider overshoots the owner's phone size.
-           *
-           * The pin stands down below `mid` because it is the cheapest 22px in
-           * the row: it is `aria-hidden`, and "Rome and Florence" is already
-           * the two words beside it.
-           *
-           * `whitespace-nowrap` is the GUARD, not the mechanism. If a longer
-           * translation ever beats the formula it overflows visibly here,
-           * rather than quietly returning to the two lines this replaced.
-           */
-        }
-        <p
-          class="bg-accent-tint mid:px-4 mid:py-2 mid:text-[0.9375rem] mid:font-bold max-mid:px-3 max-mid:py-1.5 max-mid:text-[clamp(0.75rem,calc(4.12vw-2.64px),0.875rem)] max-mid:font-normal max-mid:whitespace-nowrap mid:rounded-full max-mid:rounded-[10px] inline-flex items-center gap-2 leading-[1.35] text-[var(--color-accent)]"
-        >
-          <svg
-            class="max-mid:hidden flex-none"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.9"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+      {/* `contents` below `wide` — see the header note. */}
+      <div class="max-wide:contents">
+        <div>
+          {
+            /*
+             * ONE LINE ON A PHONE, NORMAL WEIGHT (owner, 2026-08-31). One line is
+             * a width problem before it is a type one, which is why this carries
+             * a formula rather than a size:
+             *
+             *   "Rome and Florence · home delivery in 24–48 hours"   48 chars
+             *   its width in Lexend 400 at 14px                      340px
+             *   room inside the pill at 390px (390 − 40 − 24 − 22)   304px
+             *
+             * 14px does not fit, and no single fixed size fits every phone width
+             * and every translation. So the size is solved for the width: the
+             * string measures ~24.28px per point of font size, the pill has
+             * `100vw − 64px` to put it in once the pin is gone, and
+             * `4.12vw − 2.64px` is those two solved against each other. Clamped
+             * at 12px so a 320px phone stays legible and at 14px so nothing
+             * wider overshoots the owner's phone size.
+             *
+             * The pin stands down below `mid` because it is the cheapest 22px in
+             * the row: it is `aria-hidden`, and "Rome and Florence" is already
+             * the two words beside it.
+             *
+             * `whitespace-nowrap` is the GUARD, not the mechanism. If a longer
+             * translation ever beats the formula it overflows visibly here,
+             * rather than quietly returning to the two lines this replaced.
+             */
+          }
+          <p
+            class="bg-accent-tint mid:px-4 mid:py-2 mid:text-[0.9375rem] mid:font-bold max-mid:px-3 max-mid:py-1.5 max-mid:text-[clamp(0.75rem,calc(4.12vw-2.64px),0.875rem)] max-mid:font-normal max-mid:whitespace-nowrap mid:rounded-full max-mid:rounded-[10px] inline-flex items-center gap-2 leading-[1.35] text-[var(--color-accent)]"
           >
-            <path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-            <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-            ></path>
-          </svg>
-          {text('home.hero.kicker')}
-        </p>
-
-        <h1
-          class="mid:mt-5 mid:text-[clamp(2.125rem,3.3vw,2.625rem)] mid:leading-[1.14] max-mid:mt-3.5 max-mid:text-[1.75rem] max-mid:leading-[1.18] font-[760] tracking-[-0.028em]"
-          id="home-title"
-        >
-          {text('home.hero.line1')}<br />
-          {text('home.hero.line2')}
-        </h1>
-
-        <p
-          class="mid:mt-5 mid:text-[1.0625rem] mid:leading-[1.65] max-mid:mt-3 max-mid:text-(length:--text-phone-lead) max-mid:leading-[1.45] max-w-[52ch] text-[var(--color-ink-soft)]"
-        >
-          {text('home.hero.sub')}
-        </p>
-
-        {/* Stacked and full width on a phone, the reference's own pair. */}
-        <div
-          class="mid:mt-7 mid:flex-row mid:flex-wrap mid:items-center max-mid:mt-5 max-mid:flex-col flex gap-3"
-        >
-          <a
-            class="max-mid:w-full inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-7 text-[1.0625rem] font-semibold text-white no-underline hover:bg-[var(--color-accent-deep)]"
-            href={routePath(locale, 'catalogRental')}
-          >
-            {text('home.hero.rentNow')}
             <svg
-              width="18"
-              height="18"
+              class="max-mid:hidden flex-none"
+              width="17"
+              height="17"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
+              stroke-width="1.9"
               stroke-linecap="round"
               stroke-linejoin="round"
               aria-hidden="true"
             >
-              <path d="M4.5 12h15m0 0-6-6m6 6-6 6"></path>
-            </svg>
-          </a>
-          <a
-            class="max-mid:w-full inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-phone-tint)] px-6 text-[1.0625rem] font-semibold text-[var(--color-phone-ink)] no-underline hover:bg-[#d3ecdd]"
-            href={whatsappUrl()}
-            target="_blank"
-            rel="noopener"
-            data-analytics="whatsapp"
-          >
-            <svg class="flex-none" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
               <path
-                fill="currentColor"
-                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"
+                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
               ></path>
             </svg>
-            {text('home.hero.whatsapp')}
-          </a>
-        </div>
-      </div>
+            {text('home.hero.kicker')}
+          </p>
 
-      <HomeShowcase products={products} />
+          <h1
+            class="mid:mt-5 mid:text-[clamp(2.125rem,3.3vw,2.625rem)] mid:leading-[1.14] max-mid:mt-3.5 max-mid:text-[1.75rem] max-mid:leading-[1.18] font-[760] tracking-[-0.028em]"
+            id="home-title"
+          >
+            {text('home.hero.line1')}<br />
+            {text('home.hero.line2')}
+          </h1>
 
-      {
-        /* Source order IS the phone order: the grid is one column below
-           `wide`, so the assurances read after the showcase card there and
-           fall into row two of column one above it (owner, 2026-08-31). */
-      }
-      <ul
-        class="mid:mt-6 max-mid:mt-0 max-mid:gap-x-3 max-mid:gap-y-2 max-mid:[&_li]:gap-1.5 max-mid:[&_svg]:size-4 flex list-none flex-wrap gap-x-5 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-live)]"
-      >
-        {
-          checks.map((check) => (
-            <li>
+          <p
+            class="mid:mt-5 mid:text-[1.0625rem] mid:leading-[1.65] max-mid:mt-3 max-mid:text-(length:--text-phone-lead) max-mid:leading-[1.45] max-w-[52ch] text-[var(--color-ink-soft)]"
+          >
+            {text('home.hero.sub')}
+          </p>
+
+          {/* Stacked and full width on a phone, the reference's own pair. */}
+          <div
+            class="mid:mt-7 mid:flex-row mid:flex-wrap mid:items-center max-mid:mt-5 max-mid:flex-col flex gap-3"
+          >
+            <a
+              class="max-mid:w-full inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-7 text-[1.0625rem] font-semibold text-white no-underline hover:bg-[var(--color-accent-deep)]"
+              href={routePath(locale, 'catalogRental')}
+            >
+              {text('home.hero.rentNow')}
               <svg
-                width="19"
-                height="19"
+                width="18"
+                height="18"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="1.8"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 aria-hidden="true"
               >
-                <circle cx="12" cy="12" r="9.25" />
-                <path d="m8.5 12.2 2.4 2.4 4.6-4.9" />
+                <path d="M4.5 12h15m0 0-6-6m6 6-6 6"></path>
               </svg>
-              {check}
-            </li>
-          ))
+            </a>
+            <a
+              class="max-mid:w-full inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-phone-tint)] px-6 text-[1.0625rem] font-semibold text-[var(--color-phone-ink)] no-underline hover:bg-[#d3ecdd]"
+              href={whatsappUrl()}
+              target="_blank"
+              rel="noopener"
+              data-analytics="whatsapp"
+            >
+              <svg class="flex-none" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"
+                ></path>
+              </svg>
+              {text('home.hero.whatsapp')}
+            </a>
+          </div>
+        </div>
+
+        {
+          /* Last of the grid's items below `wide`, so it reads after the
+             showcase card; last child of this column above it, 24px under the
+             CTAs (owner, 2026-08-31). */
         }
-      </ul>
+        <ul
+          class="wide:mt-6 max-wide:order-last max-mid:gap-x-3 max-mid:gap-y-2 max-mid:[&_li]:gap-1.5 max-mid:[&_svg]:size-4 flex list-none flex-wrap gap-x-5 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-live)]"
+        >
+          {
+            checks.map((check) => (
+              <li>
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9.25" />
+                  <path d="m8.5 12.2 2.4 2.4 4.6-4.9" />
+                </svg>
+                {check}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <HomeShowcase products={products} />
     </div>
   </div>
 
@@ -241,7 +258,16 @@ const checks = [
     </div>
   </div>
 
-  <div class="mid:bg-[var(--color-page)] max-mid:order-3 max-mid:bg-white">
+  {
+    /*
+      `flow-root` again, for the mirror-image reason: the trust strip's own
+      `mid:mt-8.5` has nothing above it to collapse against, so without a
+      formatting context it collapses out through both wrappers and becomes a
+      34px WHITE stripe between two grey children — the seam the strip's air was
+      meant to be part of. Keep the air inside the ground that pays for it.
+    */
+  }
+  <div class="mid:flow-root mid:bg-[var(--color-page)] max-mid:order-3 max-mid:bg-white">
     <div class:list={[EDITORIAL_CONTAINER, 'mid:pb-9 max-mid:px-0']}>
       <HomeTrustBar />
     </div>
