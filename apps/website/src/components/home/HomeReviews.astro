@@ -6,6 +6,22 @@
  *
  * Card anatomy is the owner's spec: [avatar + name | date] → [stars] → [text]
  * → [source logo, bottom-right]. Never a title.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * The 78px display rating is a DESKTOP figure. Hung on the right of a phone
+ * column it took a third of the screen to say one number, so below `mid` the
+ * aggregate becomes the reference's compact summary card instead: the score,
+ * its stars and its count on one line, in a white row above the testimonials
+ * (miamedicalitalia.it at 390px, measured 2026-08-31). Same three elements,
+ * re-laid — the header block turns from a two-column spread into a stack, and
+ * the rating block from a right-aligned column into a centred row.
+ *
+ * THREE TESTIMONIALS ON A PHONE, NOT SIX. Six stacked cards ran to 1833px —
+ * two full screens of strangers agreeing with each other, and nobody reads the
+ * fourth. Same treatment as the home rails: the rest render on the server and
+ * CSS takes them out of the phone's paint, so the mobile page (which is the
+ * indexed one) still carries every review.
  */
 import { homeTestimonials, TESTIMONIAL_RATING, type TestimonialSource } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
@@ -35,11 +51,15 @@ const sourceChipClass =
 const starsClass = 'inline-flex gap-0.75 text-[#f5a623]';
 ---
 
-{/* Transparent since 2026-08-31: the section sits on the home page's one grey
-    ground and its white cards raise off it, like every section around it. */}
+{
+  /* Transparent since 2026-08-31: the section sits on the home page's one grey
+    ground and its white cards raise off it, like every section around it. */
+}
 <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="testimonials-title">
   <div class={EDITORIAL_CONTAINER}>
-    <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+    <div
+      class="mid:flex-row mid:flex-wrap mid:items-end mid:justify-between mid:gap-x-8 max-mid:flex-col-reverse max-mid:gap-4 flex gap-y-3"
+    >
       <div>
         <p
           class="mb-4.5 flex items-center gap-3 text-[0.8125rem] font-[650] tracking-[0.11em] text-[var(--color-ink-soft)] uppercase"
@@ -91,9 +111,15 @@ const starsClass = 'inline-flex gap-0.75 text-[#f5a623]';
           <strong>{text('home.testimonials.line3')}</strong>
         </h2>
       </div>
-      <div class="flex flex-col items-end gap-1.25 text-right">
+      {
+        /* A right-aligned column on desktop; the reference's summary row on a
+          phone — white card, score and stars and count on one baseline. */
+      }
+      <div
+        class="mid:flex-col mid:items-end mid:gap-1.25 mid:rounded-none mid:border-0 mid:bg-transparent mid:p-0 mid:text-right max-mid:w-full max-mid:flex-row max-mid:flex-wrap max-mid:items-center max-mid:gap-x-3 max-mid:gap-y-1 max-mid:rounded-[16px] max-mid:border max-mid:border-[var(--color-line)] max-mid:bg-white max-mid:px-5 max-mid:py-4 max-mid:text-left flex"
+      >
         <p
-          class="text-[clamp(2.75rem,calc(1.43vw+1.607rem),3.5rem)] leading-[0.9] font-[780] tracking-[-0.03em] tabular-nums"
+          class="max-mid:text-[2.25rem] text-[clamp(2.75rem,calc(1.43vw+1.607rem),3.5rem)] leading-[0.9] font-[780] tracking-[-0.03em] tabular-nums"
           aria-label={text('home.testimonials.average', { rating })}
         >
           {rating}
@@ -117,18 +143,18 @@ const starsClass = 'inline-flex gap-0.75 text-[#f5a623]';
             ))
           }
         </span>
-        <p class="text-[0.9375rem] text-[var(--color-ink-soft)]">
+        <p class="max-mid:basis-full text-[0.9375rem] text-[var(--color-ink-soft)]">
           {text('home.reviews.verifiedCount')}
         </p>
       </div>
     </div>
 
     <ul
-      class="wide:grid-cols-3 wide:[&>:nth-child(3n-1)]:translate-y-6.5 mt-11.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2"
+      class="wide:grid-cols-3 wide:[&>:nth-child(3n-1)]:translate-y-6.5 mid:mt-11.5 max-mid:mt-4 max-mid:[&>li:nth-child(n+4)]:hidden grid grid-cols-1 gap-3.5 sm:grid-cols-2"
     >
       {
         entries.map((review) => (
-          <li class="flex flex-col rounded-[20px] border border-[var(--color-line)] bg-white px-6 pt-6 pb-5.5">
+          <li class="mid:px-6 mid:pt-6 mid:pb-5.5 max-mid:px-4.5 max-mid:pt-4.5 max-mid:pb-4 flex flex-col rounded-[20px] border border-[var(--color-line)] bg-white">
             <p class="flex items-center justify-between gap-3">
               <span class="flex items-center gap-2.5">
                 <span

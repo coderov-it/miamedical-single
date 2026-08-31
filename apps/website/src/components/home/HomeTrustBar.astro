@@ -8,6 +8,22 @@
  * reviews are hand-aggregated from three platforms, not Google-verified), and
  * the other four restate what the FAQ and the delivery section already
  * promise.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * Below `mid` this is the reference's phone strip: a white band ruled off top
+ * and bottom, carrying the claims in ONE row that scrolls sideways rather than
+ * stacking into five (miamedicalitalia.it at 390px, measured 2026-08-31).
+ *
+ * The reference fits three across by setting them at 13px. This project has no
+ * token below 16px, so the row scrolls instead of shrinking — two and a bit are
+ * visible at rest, the rest are a swipe away, and every claim survives. The
+ * The strip carries its OWN gutter (`px-gutter`) and its wrapper carries none,
+ * so the row is exactly viewport-wide and the last claim clips at the screen
+ * edge rather than at a margin. That clip is the whole of the affordance: a
+ * strip that ends flush with the viewport does not look like it continues.
+ * Do NOT add a negative margin here to "bleed" it — the wrapper already gave
+ * its padding up, and the two together overflow the document by 40px.
  */
 import { REVIEW_AGGREGATE } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
@@ -18,7 +34,16 @@ const text = (key: string, params?: Record<string, string | number>) =>
 ---
 
 <ul
-  class="wide:flex-nowrap wide:justify-between wide:gap-4.5 mt-8.5 flex list-none flex-wrap gap-x-6 gap-y-3.5 [&_li]:flex [&_li]:items-center [&_li]:gap-2.25 [&_li]:text-sm [&_li]:text-[var(--color-ink-soft)] [&_li:first-child_svg]:text-[#f5a623] [&_strong]:font-[650] [&_strong]:text-[var(--color-ink)] [&_svg]:flex-none [&_svg]:text-[var(--color-accent)]"
+  class:list={[
+    'wide:flex-nowrap wide:justify-between wide:gap-4.5 mid:mt-8.5 mid:flex-wrap mid:gap-x-6 mid:gap-y-3.5 mid:overflow-visible mid:border-0 mid:py-0 flex list-none',
+    /* The phone strip: one scrolling row on its own white band, bleeding to
+       both screen edges so the overflow is visible rather than implied. */
+    'max-mid:px-gutter max-mid:flex-nowrap max-mid:gap-x-5 max-mid:overflow-x-auto max-mid:[scrollbar-width:none] max-mid:[&::-webkit-scrollbar]:hidden max-mid:border-y max-mid:border-[var(--color-line)] max-mid:bg-white max-mid:py-3.5',
+    '[&_li]:flex [&_li]:items-center [&_li]:gap-2.25 [&_li]:text-sm [&_li]:text-[var(--color-ink-soft)]',
+    'max-mid:[&_li]:flex-none max-mid:[&_li]:text-base',
+    '[&_li:first-child_svg]:text-[#f5a623] [&_strong]:font-[650] [&_strong]:text-[var(--color-ink)]',
+    '[&_svg]:flex-none [&_svg]:text-[var(--color-accent)]',
+  ]}
 >
   <li>
     {/* Heroicons' solid star — the same cut the testimonial band uses. */}

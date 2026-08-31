@@ -15,7 +15,8 @@ const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
 const slides = products.slice(0, 3);
 const arrowClass =
-  'absolute top-1/2 -translate-y-1/2 grid size-11.5 min-h-0 min-w-0 place-items-center rounded-full ' +
+  'absolute top-1/2 -translate-y-1/2 grid size-11.5 min-h-0 min-w-0 place-items-center ' +
+  'mid:rounded-full max-mid:rounded-field ' +
   'border border-[var(--color-line)] bg-white text-[var(--color-ink)] shadow-[0_6px_18px_rgb(11_18_32_/_0.08)] ' +
   'after:absolute after:top-1/2 after:left-1/2 after:size-12 ' +
   "after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] " +

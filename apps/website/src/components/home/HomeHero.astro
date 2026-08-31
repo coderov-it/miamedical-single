@@ -9,9 +9,36 @@
  * supersedes the 2026-08-27 no-button rule: the reference puts the primary
  * action back in the copy, and the booking card below keeps the search.
  *
+ * THE ASSURANCES ARE A GRID CHILD, NOT PART OF THE COPY COLUMN, and that is
+ * only so a phone can put them after the showcase card (owner, 2026-08-31).
+ * The grid collapses to one column below `wide`, so lifting the list out of the
+ * copy div is the entire mechanism — copy, showcase, assurances, in source
+ * order. Above `wide` the list lands in row two of column one, which is where
+ * it was drawn anyway; `wide:gap-y-6` keeps the air under the CTAs at the 24px
+ * it had while it was still a child of that column.
+ *
  * The white band's bottom padding and the pale band's negative margin are
  * one number seen twice — that overlap is the whole composition, so change
  * them together.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * ON A PHONE THE SEARCH COMES FIRST. The reference site opens its phone home
+ * page with a labelled search field directly under the header, then the hero
+ * (miamedicalitalia.it at 390px, measured 2026-08-31) — the shop's one question
+ * asked before the shop's pitch, which is the whole difference between a page
+ * and an app.
+ *
+ * That is why this section has THREE direct children rather than two: the
+ * booking card, the white band and the trust strip are siblings, and `order`
+ * puts the booking card first below `mid`. Order only sorts siblings, so a
+ * booking card nested two levels down — where it used to sit, inside the grey
+ * field with the trust bar — could not have been lifted without a second copy
+ * of it for phones. Flattening it is what keeps this one component.
+ *
+ * The desktop composition is unchanged: children two and three both paint
+ * `--color-page`, so the grey field reads as one ground across them, and the
+ * card still straddles the seam on `--hero-overlap`.
  */
 import HomeBooking from '~/components/home/HomeBooking.astro';
 import HomeShowcase from '~/components/home/HomeShowcase.astro';
@@ -38,22 +65,56 @@ const checks = [
 ---
 
 <section
-  class:list={[EDITORIAL_THEME, '[--hero-overlap:clamp(64px,calc(3.57vw+38.3px),84px)]']}
+  class:list={[
+    EDITORIAL_THEME,
+    '[--hero-overlap:clamp(64px,calc(3.57vw+38.3px),84px)]',
+    'max-mid:flex max-mid:flex-col',
+  ]}
   aria-labelledby="home-title"
 >
-  <div class="bg-white pt-[clamp(36px,calc(3.57vw+10.3px),56px)] pb-[calc(var(--hero-overlap)+18px)]">
+  <div
+    class="max-mid:order-2 max-mid:pt-6 max-mid:pb-7 bg-white pt-[clamp(36px,calc(3.57vw+10.3px),56px)] pb-[calc(var(--hero-overlap)+18px)]"
+  >
     <div
       class:list={[
         EDITORIAL_CONTAINER,
-        'wide:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)] wide:gap-x-14 grid items-center gap-10',
+        'wide:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)] wide:gap-x-14 wide:gap-y-6',
+        'max-mid:gap-6 grid items-center gap-10',
       ]}
     >
       <div>
+        {
+          /*
+           * ONE LINE ON A PHONE, NORMAL WEIGHT (owner, 2026-08-31). One line is
+           * a width problem before it is a type one, which is why this carries
+           * a formula rather than a size:
+           *
+           *   "Rome and Florence · home delivery in 24–48 hours"   48 chars
+           *   its width in Lexend 400 at 14px                      340px
+           *   room inside the pill at 390px (390 − 40 − 24 − 22)   304px
+           *
+           * 14px does not fit, and no single fixed size fits every phone width
+           * and every translation. So the size is solved for the width: the
+           * string measures ~24.28px per point of font size, the pill has
+           * `100vw − 64px` to put it in once the pin is gone, and
+           * `4.12vw − 2.64px` is those two solved against each other. Clamped
+           * at 12px so a 320px phone stays legible and at 14px so nothing
+           * wider overshoots the owner's phone size.
+           *
+           * The pin stands down below `mid` because it is the cheapest 22px in
+           * the row: it is `aria-hidden`, and "Rome and Florence" is already
+           * the two words beside it.
+           *
+           * `whitespace-nowrap` is the GUARD, not the mechanism. If a longer
+           * translation ever beats the formula it overflows visibly here,
+           * rather than quietly returning to the two lines this replaced.
+           */
+        }
         <p
-          class="inline-flex items-center gap-2 rounded-full bg-accent-tint px-4 py-2 text-[0.9375rem] leading-[1.35] font-bold text-[var(--color-accent)]"
+          class="bg-accent-tint mid:px-4 mid:py-2 mid:text-[0.9375rem] mid:font-bold max-mid:px-3 max-mid:py-1.5 max-mid:text-[clamp(0.75rem,calc(4.12vw-2.64px),0.875rem)] max-mid:font-normal max-mid:whitespace-nowrap mid:rounded-full max-mid:rounded-[10px] inline-flex items-center gap-2 leading-[1.35] text-[var(--color-accent)]"
         >
           <svg
-            class="flex-none"
+            class="max-mid:hidden flex-none"
             width="17"
             height="17"
             viewBox="0 0 24 24"
@@ -72,20 +133,25 @@ const checks = [
         </p>
 
         <h1
-          class="mt-5 text-[clamp(2.125rem,3.3vw,2.625rem)] leading-[1.14] font-[760] tracking-[-0.028em]"
+          class="mid:mt-5 mid:text-[clamp(2.125rem,3.3vw,2.625rem)] mid:leading-[1.14] max-mid:mt-3.5 max-mid:text-[1.75rem] max-mid:leading-[1.18] font-[760] tracking-[-0.028em]"
           id="home-title"
         >
           {text('home.hero.line1')}<br />
           {text('home.hero.line2')}
         </h1>
 
-        <p class="mt-5 max-w-[52ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
+        <p
+          class="mid:mt-5 mid:text-[1.0625rem] mid:leading-[1.65] max-mid:mt-3 max-mid:text-(length:--text-phone-lead) max-mid:leading-[1.45] max-w-[52ch] text-[var(--color-ink-soft)]"
+        >
           {text('home.hero.sub')}
         </p>
 
-        <div class="mt-7 flex flex-wrap items-center gap-3">
+        {/* Stacked and full width on a phone, the reference's own pair. */}
+        <div
+          class="mid:mt-7 mid:flex-row mid:flex-wrap mid:items-center max-mid:mt-5 max-mid:flex-col flex gap-3"
+        >
           <a
-            class="inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-7 text-[1.0625rem] font-semibold text-white no-underline hover:bg-[var(--color-accent-deep)]"
+            class="max-mid:w-full inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-7 text-[1.0625rem] font-semibold text-white no-underline hover:bg-[var(--color-accent-deep)]"
             href={routePath(locale, 'catalogRental')}
           >
             {text('home.hero.rentNow')}
@@ -104,7 +170,7 @@ const checks = [
             </svg>
           </a>
           <a
-            class="inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-phone-tint)] px-6 text-[1.0625rem] font-semibold text-[var(--color-phone-ink)] no-underline hover:bg-[#d3ecdd]"
+            class="max-mid:w-full inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-phone-tint)] px-6 text-[1.0625rem] font-semibold text-[var(--color-phone-ink)] no-underline hover:bg-[#d3ecdd]"
             href={whatsappUrl()}
             target="_blank"
             rel="noopener"
@@ -119,35 +185,40 @@ const checks = [
             {text('home.hero.whatsapp')}
           </a>
         </div>
-
-        <ul
-          class="mt-6 flex list-none flex-wrap gap-x-5 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-live)]"
-        >
-          {
-            checks.map((check) => (
-              <li>
-                <svg
-                  width="19"
-                  height="19"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="12" r="9.25" />
-                  <path d="m8.5 12.2 2.4 2.4 4.6-4.9" />
-                </svg>
-                {check}
-              </li>
-            ))
-          }
-        </ul>
       </div>
 
       <HomeShowcase products={products} />
+
+      {
+        /* Source order IS the phone order: the grid is one column below
+           `wide`, so the assurances read after the showcase card there and
+           fall into row two of column one above it (owner, 2026-08-31). */
+      }
+      <ul
+        class="mid:mt-6 max-mid:mt-0 max-mid:gap-x-3 max-mid:gap-y-2 max-mid:[&_li]:gap-1.5 max-mid:[&_svg]:size-4 flex list-none flex-wrap gap-x-5 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-live)]"
+      >
+        {
+          checks.map((check) => (
+            <li>
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9.25" />
+                <path d="m8.5 12.2 2.4 2.4 4.6-4.9" />
+              </svg>
+              {check}
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </div>
 
@@ -156,11 +227,22 @@ const checks = [
       `flow-root` matters: without it the container's negative margin collapses
       through this wrapper and drags the pale background up over the card. A
       new formatting context blocks the collapse without clipping the overlap.
+
+      On a phone there is nothing to straddle — this is the first thing under
+      the header — so the ground, the overlap and the formatting context all
+      stand down together.
     */
   }
-  <div class="flow-root bg-[var(--color-page)]">
-    <div class:list={[EDITORIAL_CONTAINER, 'relative -mt-[var(--hero-overlap)] pb-9']}>
+  <div class="mid:flow-root mid:bg-[var(--color-page)] max-mid:order-1 max-mid:bg-white">
+    <div
+      class:list={[EDITORIAL_CONTAINER, 'mid:relative mid:-mt-[var(--hero-overlap)] max-mid:px-0']}
+    >
       <HomeBooking />
+    </div>
+  </div>
+
+  <div class="mid:bg-[var(--color-page)] max-mid:order-3 max-mid:bg-white">
+    <div class:list={[EDITORIAL_CONTAINER, 'mid:pb-9 max-mid:px-0']}>
       <HomeTrustBar />
     </div>
   </div>

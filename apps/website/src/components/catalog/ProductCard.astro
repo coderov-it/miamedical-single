@@ -26,6 +26,26 @@
  *
  * Photos never crop: `object-contain` letterboxes anything that is not the
  * house 3:2.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * BELOW `mid` THIS IS A LIST ROW, NOT A CARD — 84px photo, a column of
+ * name/price, a compact action pill. 336px per product becomes ~120px, which is
+ * most of what takes a catalogue page from 12286px to 6900px on a phone. The
+ * full spec, the measurements it follows and the reasons it differs from the
+ * reference are in docs/code/storefront-mobile.md.
+ *
+ * TWO THINGS TO KNOW BEFORE EDITING THIS FILE:
+ *
+ * 1. THE FOUR CHILDREN STAY FLAT. The row is drawn by placing them on a grid
+ *    with explicit `grid-area` coordinates — CSS can reposition and reorder, it
+ *    cannot re-parent. Wrap the name and the price in a shared div and the row
+ *    becomes impossible without a second copy of this card for phones.
+ *
+ * 2. THE ACTION HAS ITS OWN COLUMN. Sharing the price's cell was the first
+ *    attempt and they overlapped: a price is `flex-wrap` and takes the cell's
+ *    full width, so "15,00 € al giorno" ran under the pill. The name spans
+ *    columns two and three so it still gets the width the pill does not need.
  */
 import { perUnitLabel } from '@mia/i18n';
 
@@ -69,14 +89,28 @@ const unit =
    lines up even when one product carries no figure to print. */
 const actionClass =
   'mt-auto font-ui inline-flex min-h-12 items-center justify-center rounded-xl ' +
-  'text-base font-semibold';
+  'text-base font-semibold ' +
+  /* The row's pill: hugs its own label, hard left under the price. 40px of
+     paint inside a 122px row whose whole surface is the same link, so the
+     project's 48px target rule is met by the row, not by the pill. */
+  'max-mid:[grid-area:2/3/3/4] max-mid:mt-0 max-mid:min-h-9 max-mid:w-auto ' +
+  'max-mid:justify-self-end max-mid:self-center max-mid:rounded-[10px] max-mid:px-3';
 ---
 
 <a
-  class="group/product rounded-card border-hair hover:border-hair-strong flex h-full w-full min-w-0 flex-col border bg-white p-3.5 no-underline"
+  class:list={[
+    'group/product rounded-card border-hair hover:border-hair-strong h-full w-full min-w-0 border bg-white p-3.5 no-underline',
+    'mid:flex mid:flex-col',
+    /* The phone row. `align-content:center` centres the text block against the
+       92px photo when the name runs to one line instead of two. */
+    'max-mid:grid max-mid:grid-cols-[var(--spacing-row-photo)_minmax(0,1fr)_auto]',
+    'max-mid:content-center max-mid:gap-x-3.5 max-mid:gap-y-1.5 max-mid:p-3.5',
+  ]}
   href={href}
 >
-  <span class="bg-tint mid:h-46 block h-38 flex-none rounded-[14px] p-3.5">
+  <span
+    class="bg-tint mid:h-46 mid:w-auto mid:p-3.5 max-mid:[grid-area:1/1/3/2] max-mid:size-(--spacing-row-photo) block h-38 flex-none self-center rounded-[14px] p-1.5"
+  >
     {
       product.thumbnail && (
         <img
@@ -97,15 +131,15 @@ const actionClass =
        scope colour, and the editorial home sections set their own. */
   }
   <Heading
-    class="font-ui text-ink mt-4 mb-2.5 line-clamp-2 min-h-[2.7em] text-[1rem]/[1.35] font-[650] group-hover/product:text-accent"
+    class="font-ui text-ink max-mid:[grid-area:1/2/2/4] max-mid:mt-0 max-mid:mb-0 max-mid:line-clamp-3 max-mid:min-h-0 max-mid:text-[1.0313rem]/[1.25] max-mid:font-bold mt-4 mb-2.5 line-clamp-2 min-h-[2.7em] text-[1rem]/[1.35] font-[650] group-hover/product:text-accent"
   >
     {displayTitle ?? product.title}
   </Heading>
 
   {
     price && (
-      <p class="text-ink-2 mb-3.5 flex flex-wrap items-baseline gap-x-1.5 text-[0.8438rem]">
-        <b class="font-ui text-ink text-[1.25rem]/[1.15] font-bold tracking-[-0.01em] tabular-nums">
+      <p class="text-ink-2 max-mid:[grid-area:2/2/3/3] max-mid:mt-0 max-mid:mb-0 max-mid:flex-nowrap max-mid:gap-x-1 max-mid:self-center max-mid:justify-self-start max-mid:whitespace-nowrap mb-3.5 flex flex-wrap items-baseline gap-x-1.5 text-[0.8438rem]">
+        <b class="font-ui text-ink max-mid:text-[1.0625rem]/[1.2] text-[1.25rem]/[1.15] font-bold tracking-[-0.01em] tabular-nums">
           {price}
         </b>
         {unit}

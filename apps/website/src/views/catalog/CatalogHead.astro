@@ -4,7 +4,10 @@
  *
  * Matched to the reference site (miamedicalitalia.it, measured 2026-08-31):
  * a 34px/800 title, 6px of air, a 18.5px soft lede, 20px of air, then the
- * filter row. No search field — the reference puts typed search behind its own
+ * filter row. Below `mid` the lede steps to the phone lead token — 18.5px is an
+ * explicit size, so it did not follow the base step, and at 390px it sat close
+ * enough to the 28px title to read as a second heading rather than as its
+ * caption. No search field — the reference puts typed search behind its own
  * "Cerca" destination, and so does our header, so a second search box here
  * would give the customer two fields that answer differently.
  */
@@ -16,7 +19,15 @@ interface Props {
 const { heading, lede } = Astro.props;
 ---
 
-<header class="pb-5">
-  <h1 class="text-[clamp(1.75rem,2.36vw,2.125rem)]/[1.26] font-extrabold">{heading}</h1>
-  <p class="text-ink-2 mt-1.5 max-w-[56ch] text-[1.15625rem]/[1.25]">{lede}</p>
+<header class="mid:pb-5 max-mid:pb-3.5">
+  <h1
+    class="mid:text-[clamp(1.75rem,2.36vw,2.125rem)]/[1.26] max-mid:text-[1.625rem]/[1.2] font-extrabold"
+  >
+    {heading}
+  </h1>
+  <p
+    class="text-ink-2 mid:text-[1.15625rem]/[1.25] max-mid:text-(length:--text-phone-lead) max-mid:leading-[1.4] mt-1.5 max-w-[56ch]"
+  >
+    {lede}
+  </p>
 </header>

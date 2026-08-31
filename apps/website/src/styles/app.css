@@ -12,9 +12,15 @@
  * near-neutral grey with a single blue accent, and to Instrument Sans as the one
  * face.
  *
- * What did NOT move, and is not up for taste: the 16px type floor, the two-paint
- * focus ring, the 48px target rule, and every AAA contrast ratio. The recolour
- * was done in OKLCh with lightness preserved precisely so it cost none of them.
+ * What did NOT move, and is not up for taste: the two-paint focus ring, the 48px
+ * target rule, and every AAA contrast ratio. The recolour was done in OKLCh with
+ * lightness preserved precisely so it cost none of them.
+ *
+ * The 16px type floor used to be on that list and no longer is. On 2026-08-31
+ * the owner took the phone to 14/16; above `mid` 16px still holds. The step,
+ * what it costs and the mitigations that keep it safe are on `--text-phone-body`
+ * in theme.css, and the one declaration that applies it is in the base layer
+ * below. Everything else on the list is unchanged and still not up for taste.
  */
 
 @import 'tailwindcss';
@@ -40,8 +46,8 @@
   }
 
   /*
-   * 16px/1.5, which is the reference designs' metric and now the whole site's.
-   * The product page and checkout used to override this back to 16/1.5 from
+   * 16px/1.5, which is the reference designs' metric and the site's from `mid`
+   * up. The product page and checkout used to override this back to 16/1.5 from
    * their own scope; that override is gone because the base agrees with them.
    */
   body {
@@ -52,6 +58,26 @@
     line-height: var(--text-body--line-height);
     /* Helps line-length control under magnification. */
     text-wrap: pretty;
+  }
+
+  /*
+   * THE PHONE STEPS ONCE, HERE, AND ONLY HERE (owner, 2026-08-31 — the
+   * reasoning and what it costs are on `--text-phone-body` in theme.css).
+   *
+   * One declaration on `body` rather than a `max-mid:` utility on a hundred
+   * elements, because inheritance is the mechanism: everything that never
+   * states a size of its own follows, and everything that DOES state one keeps
+   * it until somebody decides otherwise for that element.
+   *
+   * The 45rem is `--breakpoint-mid`. It cannot read the token — a media query
+   * is evaluated before custom properties resolve — so if that breakpoint ever
+   * moves, this moves with it by hand.
+   */
+  @media (width < 45rem) {
+    body {
+      font-size: var(--text-phone-body);
+      line-height: var(--text-phone-body--line-height);
+    }
   }
 
   h1,

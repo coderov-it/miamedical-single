@@ -60,7 +60,7 @@ const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
    page count, and a disabled end renders as the same pill at rest. */
 const pagerClass =
   'font-ui bg-tint text-ink hover:bg-tint-2 inline-flex min-h-13 items-center justify-center ' +
-  'rounded-full px-7 text-[1.0313rem] font-semibold no-underline';
+  'mid:rounded-full max-mid:rounded-field px-7 text-[1.0313rem] font-semibold no-underline';
 
 /* 14px under a painted title, nothing under an `sr-only` one — a screen-reader
    heading is out of flow, so a margin here would open a gap the reference's
@@ -97,7 +97,12 @@ const bodyGap = heading || showCount ? 'mt-3.5' : '';
         <PhoneCta variant="primary" />
       </div>
     ) : (
-      <ul class:list={['wide:grid-cols-3 mid:grid-cols-2 grid grid-cols-1 gap-4', bodyGap]}>
+      <ul
+        class:list={[
+          'wide:grid-cols-3 mid:grid-cols-2 mid:gap-4 max-mid:gap-3 grid grid-cols-1',
+          bodyGap,
+        ]}
+      >
         {products.map((product, index) => (
           <li class="flex">
             <ProductCard

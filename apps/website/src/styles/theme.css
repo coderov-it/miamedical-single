@@ -206,17 +206,31 @@
   /* -- type scale ---------------------------------------------------------- */
 
   /*
-   * There is STILL no token below 16px, and the answer is still no. That floor
-   * survived the owner's typography override untouched: the override changed
-   * which face the site speaks, not how small it is allowed to get.
+   * 16px IS THE DESKTOP FLOOR. It is no longer the phone's — see
+   * `--text-phone-*` below. That is an owner decision of 2026-08-31 and it
+   * reverses what this comment said for the previous three months, so the
+   * reversal is written down rather than quietly applied:
    *
-   * What did change: the base metric is now 16px/1.5 rather than 18px/1.6, which
-   * is the reference designs' own metric and what the product page and checkout
-   * had already been released to. `--text-body` and `--text-ui` therefore both
-   * sit at 16px — deliberately, not by accident. They are kept as two tokens
-   * because they carry different LEADING (1.5 for running prose, 1.4 for a chip
-   * or a label that must not grow taller than its row), and because `text-body`
-   * appearing in markup still says "this is prose".
+   *   was   16px everywhere, at every viewport, on the grounds that magnified
+   *         and low-vision reading is the norm for this audience
+   *   now   16px above `mid`; below it, prose sets at 14px and the prominent
+   *         tier at 16px
+   *
+   * WHAT THAT COSTS, so nobody has to rediscover it. 14px body on a phone is
+   * common and is not a WCAG failure on its own — 1.4.4 is satisfied because
+   * nothing here blocks zoom (`text-size-adjust: 100%`, no `zoom:` wrapper, no
+   * px root size, and the `viewport` meta sets no `maximum-scale`), so a reader
+   * who needs 200% still gets it. What it does cost is the readers who never
+   * change a setting and would have been served by the larger default. The
+   * mitigations that make that survivable are all still in force and must stay:
+   * the AAA contrast tiers, the 48px targets, and Atkinson Hyperlegible — which
+   * holds a larger x-height at 14px than most faces do at 16.
+   *
+   * The base metric is 16px/1.5, the reference designs' own. `--text-body` and
+   * `--text-ui` both sit there deliberately, not by accident: they are two
+   * tokens because they carry different LEADING (1.5 for running prose, 1.4 for
+   * a chip or a label that must not grow taller than its row), and because
+   * `text-body` in markup still says "this is prose".
    */
   --text-ui: 1rem; /* 16px — labels, chips, meta. FLOOR. */
   --text-ui--line-height: 1.4;
@@ -226,6 +240,25 @@
   --text-body--line-height: 1.5;
   --text-lead: 1.125rem; /* 18px — hero and section ledes */
   --text-lead--line-height: 1.5;
+
+  /*
+   * THE PHONE'S TWO SIZES (owner, 2026-08-31). Below `mid` the storefront reads
+   * at 14/16 rather than 16/17: `--text-phone-body` is the default — prose,
+   * ledes, list items, anything that inherits — and `--text-phone-lead` is the
+   * one step up, for the line that has to carry more weight than the paragraph
+   * around it. There is no third size; if something needs to be louder than
+   * `lead` on a phone it is a heading and takes a heading's token.
+   *
+   * `app.css` applies `--text-phone-body` to `body` inside one media query, so
+   * everything inheriting follows without a utility. Anything that sets its own
+   * `text-[…]` does NOT follow and has to name `max-mid:` for itself — which is
+   * the point: an explicit size is a decision somebody made about that element,
+   * and a global override should not silently undo it.
+   */
+  --text-phone-body: 0.875rem; /* 14px */
+  --text-phone-body--line-height: 1.55;
+  --text-phone-lead: 1rem; /* 16px */
+  --text-phone-lead--line-height: 1.5;
 
   --text-h4: 1.1875rem; /* 19px */
   --text-h4--line-height: 1.35;
@@ -241,7 +274,20 @@
   /* -- shape --------------------------------------------------------------- */
 
   /* One generous radius plus the pill for buttons. --radius-field is the only
-     smaller step, for controls and wells inside a card. */
+     smaller step, for controls and wells inside a card.
+
+     THE PILL IS A DESKTOP SHAPE (owner, 2026-08-31). Below `mid` every control
+     that wore `rounded-full` — filter pills, the category dropdown, the row's
+     action, the pager, the phone CTA, the booking submit, the carousel arrows —
+     takes `--radius-field` instead, and the two smallest (the tab bar's active
+     marker and the product row's action) take 10px. Circles stay circles only
+     where the shape IS the meaning: the carousel dots, the cart badge, the
+     review avatars and the source chips.
+
+     There is no `--radius-*` token for the phone step because there is nothing
+     to choose: it is `rounded-field` on a control and `rounded-[10px]` on the
+     two that are shorter than 40px. Write it as `mid:rounded-full
+     max-mid:rounded-field` so both shapes stay visible in the markup. */
   --radius-field: 12px;
   --radius-card: 18px;
   --radius-panel: 22px;
@@ -290,10 +336,12 @@
    * column count, a nav appearing. The ramp is for everything that should
    * merely get smaller, which is most of it, and those two jobs are different.
    *
-   * THE TYPE FLOOR IS NOT ON THE RAMP. Body and UI text stay at their 16px
-   * token whatever the viewport does; only display type, chrome and space
-   * scale. The reference site drops to 13px here and the project does not
-   * follow it — see the accessibility table in the design-system doc.
+   * TYPE IS NOT ON THE RAMP, IT IS ON A SWITCH. Body and UI text hold their
+   * 16px token from `mid` upward whatever the viewport does — only display
+   * type, chrome and space scale along the ramp. Below `mid` they step once, to
+   * `--text-phone-body` / `--text-phone-lead`, and hold there. The reference
+   * site keeps scaling past that and reaches ~10px at 720; we do not follow it
+   * down, which is the whole difference between a step and a zoom.
    */
 
   /* The one gutter, read by the shared editorial utility string and by
@@ -345,11 +393,42 @@
   --spacing-section-sm: clamp(44px, 4.29vw + 13.1px, 68px); /* 720 → 44, 1280 → 68 */
 
   /* The two fixed bars at the bottom of a phone viewport. They must agree, or
-     one of them covers the other: MobileNav is 58px of target plus its 6px/8px
+     one of them covers the other: MobileNav is 61px of target plus its 6px/8px
      padding, and the product page's price bar sits directly above it.
-     Anything that must clear them adds both. */
-  --spacing-mobile-nav: 72px;
+     Anything that must clear them adds both.
+
+     76px is MEASURED off the reference site's own tab bar (miamedicalitalia.it
+     at 390px, 2026-08-31), not chosen: its floating WhatsApp button is pinned
+     at `bottom: 92px`, which is this bar plus a 16px gap, and ours has to land
+     in the same place to read as the same app. */
+  --spacing-mobile-nav: 76px;
   --spacing-mobile-bar: 88px;
+
+  /* -- the phone's app surface ---------------------------------------------- */
+
+  /*
+   * THE MOBILE ROW CARD, measured off the reference site at 390px (2026-08-31).
+   *
+   * Below `mid` the product card stops being a card and becomes a list row —
+   * square photo, a column of title/price/state, a chevron — which is what
+   * takes the catalogue from 336px per product to ~120px. The numbers live
+   * here because the row is drawn in three places (the two home rails and
+   * every listing) and they have to agree; the mechanism is in
+   * ProductCard.astro and docs/code/storefront-mobile.md.
+   */
+  /* 84px, not the reference's measured 92px, and the 8px is bought deliberately:
+     their row carries name/blurb/price and ours carries name/price/ACTION, so
+     ours needs a third column theirs does not have. At 92px the price and the
+     action pill left 105px between them and "15,00 € al giorno" broke onto two
+     lines; at 84px it fits on one. The photo is the only thing in the row that
+     loses nothing by being 8px smaller. */
+  --spacing-row-photo: 84px; /* the square photo well */
+  --spacing-row-pad: 14px; /* row padding AND the gap to the text column */
+
+  /* The tab bar lifts off the page rather than ruling itself off it — the
+     reference's own shadow, and the one place on the site a shadow says
+     "this floats above the document" rather than "this is a card". */
+  --shadow-tabbar: 0 -4px 16px rgb(31 32 35 / 0.07);
 
   /* -- breakpoints --------------------------------------------------------- */
 
