@@ -9,10 +9,41 @@
 import type { PdpLabels } from '../scripts/product/labels.ts';
 import { mediaUrl, offerPrice } from './api.ts';
 import type { ProductDetail } from './catalog.ts';
-import { localeForRequest, type SiteLocale } from './i18n.ts';
+import { DEFAULT_LOCALE, localeForRequest, localeTag, type SiteLocale } from './i18n.ts';
 import { t } from './labels.ts';
 import { productPath } from './routes.ts';
 import { serviceAreaCity } from './site.ts';
+
+/**
+ * The locale the product's WORDS are actually in — which is not always the
+ * locale of the URL they are being served at.
+ *
+ * The API answers every locale and falls back to Italian when a translation is
+ * missing, but it still stamps the response `locale: 'en'`. So the response's
+ * own `locale` cannot be trusted to describe the text in it; the only honest
+ * signal is `availableLocales`, which lists the translations that really exist.
+ *
+ * Today that matters on every product: 0 of 24 have an English translation, so
+ * `/en/prodotto/…` serves an English shell around Italian copy. Until that stops
+ * being true, every element carrying product text has to SAY it is Italian —
+ * `lang` on the part, which is WCAG 3.1.2 — or a screen reader reads Italian
+ * with English phonetics and the kicker glues "Rental" onto an Italian category
+ * name (owner, 2026-09-01).
+ */
+export function contentLocale(product: ProductDetail, requested: SiteLocale): SiteLocale {
+  const available: readonly string[] = product.availableLocales;
+  if (available.includes(requested)) return requested;
+  return available.includes(DEFAULT_LOCALE) ? DEFAULT_LOCALE : requested;
+}
+
+/**
+ * `lang` for an element carrying product text — set only when that text is NOT
+ * in the page's language, because `lang` on every element is noise.
+ */
+export function contentLang(product: ProductDetail, requested: SiteLocale): string | undefined {
+  const actual = contentLocale(product, requested);
+  return actual === requested ? undefined : localeTag(actual);
+}
 
 export interface BrowseAnswers {
   /**

@@ -2,9 +2,9 @@
   How many of one line. One tint group, transparent keys inside it — the product
   page's stepper, down to the 44px keys.
 
-  It sits ABOVE the card's toggle overlay (`relative z-1`), because the reference
-  design nests its stepper inside the clickable row and stops propagation, which in
-  HTML would be a button inside a button.
+  It used to need `relative z-1` to sit above the card's stretched toggle overlay.
+  The card no longer has one — nothing on it opens — so the stepper is an ordinary
+  child again.
 -->
 <script lang="ts">
   import { MAX_CART_QUANTITY } from '~/lib/cart-store';
@@ -30,7 +30,7 @@
     'disabled:hover:bg-transparent';
 </script>
 
-<div class="bg-tint relative z-1 flex flex-none items-center overflow-hidden rounded-[10px]">
+<div class="bg-tint flex flex-none items-center overflow-hidden rounded-[10px]">
   <button
     class={KEY}
     type="button"

@@ -114,7 +114,49 @@ moved to the catalogue because they are prose a customer reads.
 layer: `listProducts(…, locale)` already asks the API for English, and the
 `product_translations` rows for `en` do not exist yet (see `wp-migration.md` —
 the importer writes `it` only). Filling them is back-office work, not a code
-change.
+change. Today it is **0 of 24 products**.
+
+### What the fallback must not do (2026-09-01)
+
+The API answers every locale — it falls back to Italian rather than 404-ing on a
+missing translation — and it still stamps the response `locale: 'en'`. **The
+response's own `locale` therefore does not describe the text in it.** The honest
+signal is `availableLocales`, which lists the translations that really exist, and
+`lib/product-page.ts` wraps it:
+
+```ts
+contentLocale(product, requested); // 'it' when there is no 'en' translation
+contentLang(product, requested); // 'it-IT', or undefined when they agree
+```
+
+Three things went wrong before anything consulted it, all on
+`/en/product/materasso-antidecubito-hospital-care-xl/`:
+
+1. **The kicker glued two languages together.**
+   `{product.category.name} · {t('product.rental')}` resolved the label in the
+   PAGE's locale and the name in whatever the DATA turned out to be, printing
+   `MATERASSI ANTIDECUBITO AD ALTO RISCHIO · RENTAL`. Both halves now resolve in
+   the content's locale, so it reads `… · NOLEGGIO`.
+
+2. **Italian text sat under `<html lang="en-GB">` unmarked.** A screen reader
+   read Italian with English phonetics. The title, the kicker, the chips, the
+   short description and the description tab now carry `lang` — WCAG 3.1.2,
+   Language of Parts. `lang` is set **only** when the content locale differs from
+   the page's, so the Italian page still has exactly one `lang` on it.
+
+3. **The header offered a language that did not exist.** `[slug].astro` treated a
+   truthy `getProductBySlug(slug, 'en')` as proof of a translation, so every
+   Italian product page offered English and re-served the same Italian words.
+   The alternate is now gated on `availableLocales`. Note this drives the visible
+   switcher only — the page emits no `hreflang`.
+
+There was also a hardcoded Italian sentence in `views/product/ProductBody.astro`
+— the out-of-stock message — which was Italian on every locale by construction.
+It is `product.outOfStock` in both catalogues now.
+
+**The rule this leaves behind:** when a string that comes from the database sits
+next to a string that comes from `i18n/*.json`, resolve BOTH in the content's
+locale and mark the pair. Never resolve one in each.
 
 ## The `/en/` guard, and the four routes it used to 404
 

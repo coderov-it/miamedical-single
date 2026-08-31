@@ -87,7 +87,10 @@ export interface CartLineView {
    * dates yet), in which case `facts` still carries whatever there is to say.
    */
   period: { fromLabel: string; from: string; toLabel: string; to: string } | null;
-  /** What the period did not already say — the quantity, and nothing else today. */
+  /**
+   * What neither the period nor a control on the card already says. Empty today:
+   * the card's stepper states the quantity and the summary states the package.
+   */
   facts: ItemFact[];
   lines: EstimateLine[];
   quantity: number;
@@ -191,11 +194,14 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
   /*
    * The card states each fact ONCE, and states the rental as a range.
    *
-   * Three of the four facts `buildFacts()` produces are handled here rather than
-   * left to the island: pickup and return become `period`, which the card draws as
+   * All four facts `buildFacts()` produces are handled here rather than left to
+   * the island: pickup and return become `period`, which the card draws as
    * "from → to"; "Durata 7 giorni" is dropped because the row's own price caption
-   * already says the package. What remains is the quantity. The checkout's review
-   * keeps the full set — there, nothing else states them.
+   * already says the package; and the quantity goes because the card's stepper
+   * sits beside the amount it multiplies and states it as a control. `facts` is
+   * therefore normally empty, and the card renders whatever is left generically —
+   * it is the slot a future per-line fact arrives in. The checkout's review keeps
+   * the full set: there, nothing else states them.
    *
    * The duration goes only when the summary REALLY says it: on an open-ended rental,
    * with no package picked, that fact is the only place the period appears.
@@ -214,6 +220,7 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
 
   const rest = item.facts.filter((fact) => {
     if (fact === pickup || fact === dropoff) return period === null;
+    if (fact.label === t('quantity')) return false;
     return !(fact.label === t('duration') && item.summary.includes(fact.value));
   });
 
@@ -229,7 +236,7 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
     period,
     facts: rest,
     /* The "Quantità × 10" amount row goes too: the stepper is beside the figure it
-       multiplies, and the quantity fact is in the panel. */
+       multiplies, and it is the only place the cart states a quantity. */
     lines: item.lines.filter((estimateLine) => estimateLine.label !== t('quantity')),
     quantity: line.quantity,
     subtotal: item.subtotal,
@@ -307,6 +314,7 @@ export interface CartCopy {
   countOne: string;
   countMany: string;
   heading: string;
+  lead: string;
   summary: string;
   subtotal: string;
   deliveryLabel: string;
@@ -315,14 +323,14 @@ export interface CartCopy {
   vatIncluded: string;
   noPackageNote: string;
   goToCheckout: string;
-  noChargeYet: string;
+  dueToday: string;
+  dueTodayNote: string;
   continueBrowsing: string;
   remove: string;
   removeNamed: string;
   increase: string;
   decrease: string;
   quantityOf: string;
-  showDetailsOf: string;
   updated: string;
   loading: string;
   /** The first paint's word, before the store has been read. */
@@ -340,6 +348,7 @@ export function cartCopy(): CartCopy {
     countOne: t('cartCountOne'),
     countMany: t('cartCountMany'),
     heading: t('cart'),
+    lead: t('cartLead'),
     summary: t('cartSummary'),
     subtotal: t('cartSubtotal'),
     deliveryLabel: t('delivery'),
@@ -348,14 +357,14 @@ export function cartCopy(): CartCopy {
     vatIncluded: t('vatIncluded'),
     noPackageNote: t('estimateNoPackage'),
     goToCheckout: t('goToCheckout'),
-    noChargeYet: t('cartNoChargeYet'),
+    dueToday: t('cartDueToday'),
+    dueTodayNote: t('cartDueTodayNote'),
     continueBrowsing: t('continueBrowsing'),
     remove: t('remove'),
     removeNamed: t('removeNamed'),
     increase: t('increaseQuantity'),
     decrease: t('decreaseQuantity'),
     quantityOf: t('quantityOf'),
-    showDetailsOf: t('showDetailsOf'),
     updated: t('cartUpdated'),
     loading: t('cartLoading'),
     booting: t('cartBooting'),

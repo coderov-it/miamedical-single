@@ -35,8 +35,25 @@ if (!product || product.slug !== slug) {
   return Astro.rewrite('/404');
 }
 
+/*
+ * A LANGUAGE IS ONLY OFFERED WHEN IT REALLY EXISTS.
+ *
+ * `getProductBySlug` answers in every locale, because the API falls back to
+ * Italian rather than 404-ing on a missing translation. So a truthy response
+ * used to be read as "there is an English version", and the header's language
+ * switch offered English on every product — a switch that changed the chrome,
+ * re-served the same Italian copy, and called it a translation (owner,
+ * 2026-09-01). `languagePaths` drives that switch and nothing else; the page
+ * emits no `hreflang`, so this was never an SEO signal.
+ *
+ * `availableLocales` is the honest list. Today it holds `['it']` for all 24
+ * products, so the switch offers nothing until a translation is actually
+ * written.
+ */
 const otherLocale = locale === 'it' ? 'en' : 'it';
-const alternateProduct = await getProductBySlug(slug, otherLocale);
+const alternateProduct = product.availableLocales.includes(otherLocale)
+  ? await getProductBySlug(slug, otherLocale)
+  : null;
 const languagePaths = {
   [locale]: productPath(product.slug, {}, locale),
   ...(alternateProduct
