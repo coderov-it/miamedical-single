@@ -1,13 +1,18 @@
 ---
 /**
- * Storefront home page, in the 2026-08 editorial design — ported 1:1 from the
- * approved blueprint at docs/blueprint/home.html. Section order is the
- * blueprint's: hero (copy, product showcase, booking card, trust strip) →
- * categories → trending → how → delivery → testimonials → faq. The only framework-free JavaScript on the page is the
- * two Embla carousels, the booking date floor and the header's cart badge.
+ * Storefront home page, matched section-for-section to the owner's reference
+ * (miamedicalitalia.it, 2026-08-31). Section order is the reference's: hero
+ * (copy, showcase, booking card, trust strip) → how it works → most rented →
+ * for sale → categories → testimonials → faq → speak-to-a-person band. Below
+ * the hero everything sits on ONE grey ground (`--color-page`, the reference's
+ * own body colour) with white cards — which is why the sections are wrapped in
+ * a single `bg-page` div and paint no grounds of their own. The only
+ * framework-free JavaScript on the page is the Embla carousels, the booking
+ * date floor and the header's cart badge.
  *
  * The page coordinates data and SEO; every visual section is a focused
- * component.
+ * component. (HomeDelivery still exists but is unmounted — the reference order
+ * has no delivery section; re-adding it is one import and one line.)
  *
  * Rendered on demand, not prerendered: the hero and the trending rail are live
  * catalogue state — a product added, retired or gone out of stock has to show
@@ -25,18 +30,19 @@
  * muted field behind them would be one ground too many.
  */
 import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
-import HomeDelivery from '~/components/home/HomeDelivery.astro';
 import HomeFaq from '~/components/home/HomeFaq.astro';
 import HomeHero from '~/components/home/HomeHero.astro';
 import HomeHowItWorks from '~/components/home/HomeHowItWorks.astro';
 import HomeProductRail from '~/components/home/HomeProductRail.astro';
 import HomeReviews from '~/components/home/HomeReviews.astro';
+import HomeSpeakToPerson from '~/components/home/HomeSpeakToPerson.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { cached, CATALOG_POLICY } from '~/lib/cache';
-import { listAllProducts, listCategories, safely } from '~/lib/catalog';
+import { listAllProducts, listCategories, safely, type ProductSummary } from '~/lib/catalog';
 import { buildHomeCategories, homeFaq, selectHomeFeatured } from '~/lib/home-content';
 import { cacheHtml } from '~/lib/http-cache';
 import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
 
 export const prerender = false;
 
@@ -59,10 +65,21 @@ const [products, categories] = await Promise.all([
 ]);
 
 const spotlight = selectHomeFeatured(products.items, 3);
-/* The carousel's cards have no out-of-stock state by design — a dead card in a
-   promotional rail sells nothing — so the selection considers stock. */
-const trending = selectHomeFeatured(
-  products.items.filter((product) => product.inStock),
+/* Each rail is one pricing mode, in-stock products ahead of the rest — the
+   sort inside selectHomeFeatured is stable, so this input order survives
+   within each featured class. Out-of-stock cards stay in the rail with their
+   honest "esaurito" state: they sell less than available ones, but an empty
+   rail sells nothing at all. */
+const byAvailability = (items: ProductSummary[]) => [
+  ...items.filter((product) => product.inStock),
+  ...items.filter((product) => !product.inStock),
+];
+const mostRented = selectHomeFeatured(
+  byAvailability(products.items.filter((product) => product.pricing.mode === 'rental')),
+  8,
+);
+const forSale = selectHomeFeatured(
+  byAvailability(products.items.filter((product) => product.pricing.mode === 'fixed')),
   8,
 );
 const categoryCards = buildHomeCategories(categories, products.items, 8, locale);
@@ -87,10 +104,27 @@ const jsonLd = [
   ground="white"
 >
   <HomeHero products={spotlight} />
-  <HomeCategoryGrid categories={categoryCards} />
-  <HomeProductRail products={trending} total={products.total} />
-  <HomeHowItWorks />
-  <HomeDelivery />
-  <HomeReviews />
-  <HomeFaq />
+  {/* One grey ground under everything below the hero — the reference's body. */}
+  <div class="bg-page">
+    <HomeHowItWorks />
+    <HomeProductRail
+      id="most-rented"
+      title={translate(locale, 'home.rail.title')}
+      seeAllLabel={translate(locale, 'home.rail.seeAll')}
+      seeAllHref={routePath(locale, 'catalog')}
+      products={mostRented}
+      total={products.total}
+    />
+    <HomeProductRail
+      id="for-sale"
+      title={translate(locale, 'home.sale.title')}
+      seeAllLabel={translate(locale, 'home.sale.seeAll')}
+      seeAllHref={routePath(locale, 'catalogSale')}
+      products={forSale}
+    />
+    <HomeCategoryGrid categories={categoryCards} />
+    <HomeReviews />
+    <HomeFaq />
+    <HomeSpeakToPerson />
+  </div>
 </BaseLayout>

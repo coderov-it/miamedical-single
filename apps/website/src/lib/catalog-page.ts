@@ -73,8 +73,10 @@ export function readCatalogQuery(url: URL, view: CatalogView): CatalogQuery {
   const context: BrowseContext = {};
   const area = params.get('area')?.trim();
   const from = params.get('from')?.trim();
+  const carriedFor = params.get('for')?.trim();
   if (area) context.area = area;
   if (from) context.from = from;
+  if (carriedFor) context.for = carriedFor;
 
   return { view, q, category, sort, page, context, isNarrowed: Boolean(q || category) };
 }

@@ -19,11 +19,13 @@ const { tile, headingLevel = 3 } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 ---
 
+{/* Centered composition since 2026-08-31, matching the reference tiles:
+    the art well on top, the name and the offer centered under it. */}
 <a
-  class="group/category block h-full rounded-2xl border border-[var(--color-line)] bg-white px-3 py-3.5 no-underline hover:border-[#ccd2e2]"
+  class="group/category rounded-card block h-full border border-[var(--color-line)] bg-white px-4 pt-4 pb-4.5 text-center no-underline hover:border-[#ccd2e2]"
   href={tile.href}
 >
-  <span class="mb-2.5 block h-21.5 rounded-xl bg-[var(--color-surface-2)] p-1">
+  <span class="mb-3 block h-24 rounded-xl bg-[var(--color-surface-2)] p-1.5">
     {
       tile.imagePath && (
         <img
@@ -36,13 +38,13 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
     }
   </span>
   <Heading
-    class="px-2 text-[1.0625rem] leading-[1.35] font-[650] group-hover/category:text-[var(--color-accent)]"
+    class="text-[1.0625rem] leading-[1.35] font-bold group-hover/category:text-[var(--color-accent)]"
     >{tile.name}</Heading
   >
   {/* A price is an offer and a count is inventory — same slot, different ink. */}
   <p
     class:list={[
-      'mt-0.75 px-2 text-sm text-[var(--color-ink-soft)] tabular-nums',
+      'mt-1 text-sm text-[var(--color-ink-soft)] tabular-nums',
       tile.isPriced && 'font-[650] text-[var(--color-accent)]',
     ]}
   >

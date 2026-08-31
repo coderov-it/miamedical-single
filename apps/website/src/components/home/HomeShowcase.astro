@@ -1,23 +1,4 @@
 ---
-/**
- * The hero showcase — the featured product standing on the hero's bare
- * lavender band, its price card floating over the lower right and the carousel
- * controls gathered at the lower left.
- *
- * The card is the owner's reference card: a badge, the rate, and the one claim
- * — no product name, no button. It IS the link to the product, which is why it
- * carries the name in `aria-label`: the price alone says nothing to a screen
- * reader about where the link goes.
- *
- * There is no panel around the product on purpose: the band IS the stage, and
- * `mix-blend-mode: multiply` melts the photo's white studio ground into it.
- *
- * Embla core (the project-wide engine) drives the track: slides, controls and
- * price deck are all server-rendered HTML and the script only attaches
- * behavior. Embla owns the track transform, so the track carries no CSS
- * transition, ever; the deck and the dots follow the selected snap by class
- * toggling.
- */
 import { mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
 import { productOffer } from '~/lib/home-content';
@@ -34,9 +15,10 @@ const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
 const slides = products.slice(0, 3);
 const arrowClass =
-  'relative grid size-[var(--spot-control-size)] min-h-0 min-w-0 place-items-center rounded-full ' +
-  'border border-[var(--color-line)] bg-white text-[var(--color-ink)] after:absolute after:top-1/2 ' +
-  "after:left-1/2 after:size-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] " +
+  'absolute top-1/2 -translate-y-1/2 grid size-11.5 min-h-0 min-w-0 place-items-center rounded-full ' +
+  'border border-[var(--color-line)] bg-white text-[var(--color-ink)] shadow-[0_6px_18px_rgb(11_18_32_/_0.08)] ' +
+  'after:absolute after:top-1/2 after:left-1/2 after:size-12 ' +
+  "after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] " +
   'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] focus-visible:outline-3 ' +
   'focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]';
 ---
@@ -44,7 +26,7 @@ const arrowClass =
 {
   slides.length > 0 && (
     <section
-      class="max-wide:max-w-130 relative mx-auto"
+      class="max-wide:max-w-130 relative mx-auto w-full rounded-(--radius-bar) border border-(--color-line) bg-white px-5 pt-4.5 pb-5 shadow-(--shadow-whisper)"
       data-carousel="spot"
       aria-labelledby="spot-label"
     >
@@ -52,14 +34,60 @@ const arrowClass =
         {text('home.showcase.heading')}
       </h2>
 
-      <div class="relative">
-        <div class="overflow-hidden" data-spot-viewport>
-          <ul class="flex aspect-5/4 touch-pan-y">
+      {/*
+          The price pill sits ON the photo, anchored to its top-right corner —
+          top edge flush with the image's top, right edge overhanging it by a
+          few px — exactly where the reference card pins it.
+        */}
+      <div class="relative mt-1">
+        <div class="absolute top-0 -right-1 z-1 grid justify-items-end" data-spot-swap>
+          {slides.map((product, index) => {
+            const offer = productOffer(product, locale);
+            return (
+              <span
+                class:list={[
+                  'text-ink invisible col-start-1 row-start-1 inline-flex items-baseline gap-1.5 rounded-[10px] border border-(--color-line) bg-white px-4 py-1.75 text-sm font-medium whitespace-nowrap shadow-[0_6px_18px_rgb(11_18_32/0.08)] [&.is-active]:visible',
+                  index === 0 && 'is-active',
+                ]}
+              >
+                {offer ? (
+                  <>
+                    {text('home.showcase.from')}
+                    <strong class="text-[1.0625rem] font-[750] tracking-[-0.01em] tabular-nums">
+                      {offer.money}
+                    </strong>
+                    {offer.unit}
+                  </>
+                ) : (
+                  <strong class="text-[1.0625rem] font-[750] tracking-[-0.01em]">
+                    {text('home.showcase.onRequest')}
+                  </strong>
+                )}
+              </span>
+            );
+          })}
+        </div>
+
+        {/*
+            The stage is the photo: full card width, softly rounded, at 3:2 —
+            the catalogue's standard product-shot aspect, so a standard photo
+            fills it exactly. Any other aspect letterboxes via `object-contain`;
+            a product photo is NEVER cropped (owner rule, 2026-08-31).
+          */}
+        <div class="overflow-hidden rounded-[14px]" data-spot-viewport>
+          {/*
+              The img is ABSOLUTE inside its slide on purpose: an in-flow
+              `height:100%` doesn't reliably resolve in the auto-sized row, so
+              a tall photo renders at intrinsic height and the viewport CROPS
+              it. Absolute sizing resolves against the slide box, so
+              `object-contain` can always letterbox instead of cropping.
+            */}
+          <ul class="flex aspect-3/2 touch-pan-y">
             {slides.map((product, index) => (
-              <li class="grid min-w-full place-items-center bg-[var(--color-surface)]">
+              <li class="relative min-w-full">
                 {product.thumbnail && (
                   <img
-                    class="wide:pr-50.5 wide:pb-14 wide:pl-0 block size-full object-contain pt-1 pr-2 pb-11.5 pl-2 mix-blend-multiply"
+                    class="absolute inset-0 block size-full object-contain mix-blend-multiply"
                     src={mediaUrl(product.thumbnail.path)}
                     alt={product.thumbnail.alt || product.title}
                     loading={index === 0 ? 'eager' : 'lazy'}
@@ -72,9 +100,9 @@ const arrowClass =
         </div>
 
         {slides.length > 1 && (
-          <div class="absolute bottom-0 left-0 flex items-center gap-2.5 pl-4">
+          <>
             <button
-              class={arrowClass}
+              class:list={[arrowClass, '-left-2.5']}
               type="button"
               data-spot-prev
               aria-label={text('home.showcase.previous')}
@@ -94,7 +122,7 @@ const arrowClass =
               </svg>
             </button>
             <button
-              class={arrowClass}
+              class:list={[arrowClass, '-right-2.5']}
               type="button"
               data-spot-next
               aria-label={text('home.showcase.next')}
@@ -113,88 +141,110 @@ const arrowClass =
                 <path d="m10 6 6 6-6 6" />
               </svg>
             </button>
-
-            <div class="ms-1.5 flex gap-2" data-spot-dots>
-              {slides.map((_, index) => (
-                <button
-                  type="button"
-                  class:list={[
-                    "relative size-2 min-h-0 min-w-0 rounded-full border-0 bg-[rgb(11_18_32_/_0.18)] p-0 transition-[width] duration-200 ease-out after:absolute after:-inset-x-1 after:-inset-y-3.5 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] [&.is-active]:w-5.5 [&.is-active]:bg-[var(--color-accent)]",
-                    index === 0 && 'is-active',
-                  ]}
-                  aria-label={text('home.showcase.showSlide', {
-                    index: index + 1,
-                    total: slides.length,
-                  })}
-                />
-              ))}
-            </div>
-          </div>
+          </>
         )}
       </div>
 
-      <div
-        class="wide:absolute wide:right-[-8px] wide:bottom-[12%] wide:mt-0 wide:w-52.5 wide:pr-0 mt-4.5 grid pr-7.5"
-        data-spot-meta
-      >
-        {slides.map((product, index) => {
-          const offer = productOffer(product, locale);
-          return (
-            <a
+      {slides.length > 1 && (
+        <div class="mt-1.5 flex justify-center gap-2" data-spot-dots>
+          {slides.map((_, index) => (
+            <button
+              type="button"
               class:list={[
-                'wide:mx-0 wide:max-w-none group/card invisible relative col-start-1 row-start-1 mx-auto w-full max-w-75 rounded-[20px] border border-[var(--color-line)] bg-white px-5 pt-6 pb-5.5 text-center no-underline [&.is-active]:visible',
+                "relative size-2 min-h-0 min-w-0 rounded-full border-0 bg-[rgb(11_18_32/0.18)] p-0 transition-[width] duration-200 ease-out after:absolute after:-inset-x-1 after:-inset-y-3.5 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] [&.is-active]:w-5.5 [&.is-active]:bg-[var(--color-accent)]",
                 index === 0 && 'is-active',
               ]}
-              href={productPath(product.slug, {}, locale)}
-              aria-label={text('home.showcase.cardLabel', { title: product.title })}
-            >
-              <span class="absolute -top-6 -right-6.5 grid size-20.5 place-content-center rounded-full bg-[var(--color-accent)] text-[0.6875rem] leading-[1.25] font-[750] tracking-[0.02em] text-white uppercase">
-                {text('home.showcase.badge')}
-              </span>
-              {offer && (
-                <span class="block text-xs font-[650] tracking-[0.09em] text-[var(--color-ink-soft)] uppercase">
-                  {text('home.showcase.from')}
-                </span>
-              )}
-              <strong class="mt-1 block text-[clamp(1.875rem,calc(1.34vw+1.272rem),2.375rem)] leading-[1.1] font-[780] tracking-[-0.03em] text-[var(--color-ink)] tabular-nums">
-                {offer ? offer.money : text('home.showcase.onRequest')}
-              </strong>
-              {offer?.unit && (
-                <span class="mt-0.5 block text-[0.9375rem] font-bold tracking-[0.02em] text-[var(--color-accent)] uppercase">
-                  {offer.unit}
-                </span>
-              )}
-              <span class="mt-4 inline-block rounded-full bg-[var(--color-ink)] px-4 py-1.75 text-xs font-bold tracking-[0.06em] text-white uppercase group-hover/card:bg-[var(--color-accent)]">
-                {text('home.showcase.allIncluded')}
-              </span>
-            </a>
-          );
-        })}
+              aria-label={text('home.showcase.showSlide', {
+                index: index + 1,
+                total: slides.length,
+              })}
+            />
+          ))}
+        </div>
+      )}
+
+      <div class="mt-4 grid" data-spot-swap>
+        {slides.map((product, index) => (
+          <a
+            class:list={[
+              'group/card invisible col-start-1 row-start-1 flex items-center justify-between gap-5 no-underline [&.is-active]:visible',
+              index === 0 && 'is-active',
+            ]}
+            href={productPath(product.slug, {}, locale)}
+            aria-label={text('home.showcase.cardLabel', { title: product.title })}
+          >
+            <span class="text-ink line-clamp-4 min-w-0 text-[0.9063rem] leading-[1.4] font-semibold">
+              {product.title}
+            </span>
+            <span class="inline-flex flex-none items-center gap-1.5 text-[0.9375rem] font-semibold text-accent group-hover/card:underline">
+              {text('home.showcase.view')}
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4.5 12h15m0 0-6-6m6 6-6 6" />
+              </svg>
+            </span>
+          </a>
+        ))}
       </div>
     </section>
   )
 }
 
 <script>
-  // Embla core — same engine as the trending rail, loop on. Guarded: the spot
-  // section does not render at all when the catalogue read failed.
+  // Embla core — same engine as the trending rail, loop on — plus Embla's own
+  // autoplay plugin (owner, 2026-08-31), the one carousel add-on the "core
+  // only" rule admits: same author, same release train, no wrapper. Guarded:
+  // the spot section does not render at all when the catalogue read failed.
   import EmblaCarousel from 'embla-carousel';
+  import Autoplay from 'embla-carousel-autoplay';
 
   const spotRoot = document.querySelector<HTMLElement>('[data-carousel="spot"]');
   const viewport = spotRoot?.querySelector<HTMLElement>('[data-spot-viewport]');
 
   if (spotRoot && viewport && viewport.querySelectorAll('li').length > 1) {
-    const spot = EmblaCarousel(viewport, { loop: true });
-    // Jump instead of glide for people who asked the OS for less motion.
+    // Jump instead of glide for people who asked the OS for less motion —
+    // and for them the deck must not turn itself either, so no autoplay.
     const jump = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /* `duration` is Embla's unitless speed factor (default 25, higher = slower;
+       drag is unaffected). 15 because this stage is small — a slide only
+       travels ~400px, and the default glide reads as sluggish over that
+       distance (owner, 2026-08-31).
+
+       Autoplay: hover and keyboard focus PAUSE it (someone reading the price
+       must not have it swapped under them); arrows, dots and drags only reset
+       the timer instead of killing the rotation. */
+    const spot = EmblaCarousel(viewport, { loop: true, duration: 15 }, [
+      Autoplay({
+        playOnInit: !jump,
+        delay: 5000,
+        stopOnInteraction: false,
+        stopOnMouseEnter: true,
+        stopOnFocusIn: true,
+      }),
+    ]);
+
     const dots = [...spotRoot.querySelectorAll<HTMLButtonElement>('[data-spot-dots] button')];
-    const metas = [...spotRoot.querySelectorAll<HTMLElement>('[data-spot-meta] > a')];
+    // Both per-slide stacks — the price pill and the footer row.
+    const decks = [...spotRoot.querySelectorAll<HTMLElement>('[data-spot-swap]')].map((deck) => [
+      ...deck.children,
+    ]);
 
     const syncSpot = () => {
       const selected = spot.selectedScrollSnap();
       dots.forEach((dot, index) => dot.classList.toggle('is-active', index === selected));
-      metas.forEach((meta, index) => meta.classList.toggle('is-active', index === selected));
+      decks.forEach((items) =>
+        items.forEach((item, index) => item.classList.toggle('is-active', index === selected)),
+      );
     };
 
     spotRoot

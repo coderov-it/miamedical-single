@@ -77,26 +77,28 @@ export function routePath(locale: SiteLocale, key: RouteKey): string {
 }
 
 /**
- * The home search's two answers — where, and from when — carried through
- * browsing. They are NOT filters: the catalogue echoes them back and the
- * product page prints the city and prefills its start date from them. They ride
- * the query string because the storefront is server-rendered and has no session
- * to keep them in, and every browse link has to hand them on or the funnel
- * forgets what the customer already told it.
+ * The home search's answers — where, from when, and roughly how long — carried
+ * through browsing. They are NOT filters: the catalogue echoes them back and
+ * the product page prints the city and prefills its start date from them. They
+ * ride the query string because the storefront is server-rendered and has no
+ * session to keep them in, and every browse link has to hand them on or the
+ * funnel forgets what the customer already told it.
  *
- * A `duration` used to ride along too, for a sentence the catalogue printed
- * back. It is gone with that sentence (owner, 2026-08-30): the search page asks
- * "da quando", not "per quanto", because a rental is priced by a package and
- * "30 giorni" from a home selector is not one of any product's packages.
+ * `for` is the duration, back by the owner's hero reference (2026-08-31) after
+ * leaving on 2026-08-30. What changed: it no longer pretends to be a package
+ * ("30 giorni"), it is a fuzzy intent bucket ('1w'…'2m', 'unsure') that rides
+ * as context only — nothing prices from it, nothing filters by it.
  */
 export interface BrowseContext {
   area?: string;
   from?: string;
+  for?: string;
 }
 
 function appendContext(search: URLSearchParams, context: BrowseContext): void {
   if (context.area) search.set('area', context.area);
   if (context.from) search.set('from', context.from);
+  if (context.for) search.set('for', context.for);
 }
 
 /**

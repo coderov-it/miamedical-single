@@ -1,22 +1,25 @@
 ---
 /**
- * Home hero — one pale band carrying the copy on the left and the featured
- * product on the right, with the booking card straddling the band's bottom
- * edge and the trust strip closing underneath.
+ * Home hero — the owner's reference, miamedicalitalia.it (2026-08-31): a white
+ * band carrying the copy on the left and the showcase card on the right, then
+ * a pale band that the booking card straddles, with the trust strip on it.
  *
- * The layout is the owner's reference (2026-08-27): kicker with a rule →
- * display headline → one paragraph → three service facts, and NO button in the
- * copy column. The hero's action is the booking card; a second CTA above it
- * only splits the click.
+ * The copy column reads: location pill → two-line headline → one paragraph →
+ * the two CTAs ("rent now" + WhatsApp) → three green-check assurances. This
+ * supersedes the 2026-08-27 no-button rule: the reference puts the primary
+ * action back in the copy, and the booking card below keeps the search.
  *
- * The band's bottom padding and `.hero-foot`'s negative margin are one number
- * seen twice — that overlap is the whole composition, so change them together.
+ * The white band's bottom padding and the pale band's negative margin are
+ * one number seen twice — that overlap is the whole composition, so change
+ * them together.
  */
 import HomeBooking from '~/components/home/HomeBooking.astro';
 import HomeShowcase from '~/components/home/HomeShowcase.astro';
 import HomeTrustBar from '~/components/home/HomeTrustBar.astro';
 import type { ProductSummary } from '~/lib/catalog';
 import { localeForRequest, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
+import { whatsappUrl } from '~/lib/site';
 import { EDITORIAL_CONTAINER, EDITORIAL_THEME } from '~/styles/editorial';
 
 interface Props {
@@ -26,101 +29,121 @@ interface Props {
 const { products } = Astro.props;
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
+
+const checks = [
+  text('home.hero.check.pay'),
+  text('home.hero.check.sanitized'),
+  text('home.hero.check.pickup'),
+];
 ---
 
 <section
-  class:list={[
-    EDITORIAL_THEME,
-    '[--hero-overlap:clamp(64px,calc(3.57vw+38.3px),84px)] [--spot-control-size:46px]',
-  ]}
+  class:list={[EDITORIAL_THEME, '[--hero-overlap:clamp(64px,calc(3.57vw+38.3px),84px)]']}
   aria-labelledby="home-title"
 >
-  <div
-    class="bg-[var(--color-surface)] pt-[clamp(40px,calc(3.57vw+14.3px),60px)] pb-[calc(var(--hero-overlap)+18px)]"
-  >
+  <div class="bg-white pt-[clamp(36px,calc(3.57vw+10.3px),56px)] pb-[calc(var(--hero-overlap)+18px)]">
     <div
       class:list={[
         EDITORIAL_CONTAINER,
-        'wide:grid-cols-[minmax(0,1fr)_minmax(440px,1.06fr)] wide:gap-x-11 grid items-center gap-10',
+        'wide:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)] wide:gap-x-14 grid items-center gap-10',
       ]}
     >
-      <div class="wide:mb-[var(--spot-control-size)]">
+      <div>
         <p
-          class="mb-4.5 flex items-center gap-3.5 text-[0.8125rem] font-[650] tracking-[0.11em] text-[var(--color-ink-soft)] uppercase before:h-0.75 before:w-8.5 before:flex-none before:rounded-[3px] before:bg-[var(--color-accent)] before:content-['']"
+          class="inline-flex items-center gap-2 rounded-full bg-accent-tint px-4 py-2 text-[0.9375rem] leading-[1.35] font-bold text-[var(--color-accent)]"
         >
+          <svg
+            class="flex-none"
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
+            <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+            ></path>
+          </svg>
           {text('home.hero.kicker')}
         </p>
 
         <h1
-          class="text-[clamp(2.5rem,4.6vw,3.875rem)] leading-[1.04] font-[550] tracking-[-0.032em] text-balance [&_strong]:font-[760]"
+          class="mt-5 text-[clamp(2.125rem,3.3vw,2.625rem)] leading-[1.14] font-[760] tracking-[-0.028em]"
           id="home-title"
         >
           {text('home.hero.line1')}<br />
-          {text('home.hero.line2')}<br />
-          <strong>{text('home.hero.line3')}</strong>
+          {text('home.hero.line2')}
         </h1>
 
-        <p class="mt-5.5 max-w-[52ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
+        <p class="mt-5 max-w-[52ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
           {text('home.hero.sub')}
         </p>
 
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <a
+            class="inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-7 text-[1.0625rem] font-semibold text-white no-underline hover:bg-[var(--color-accent-deep)]"
+            href={routePath(locale, 'catalogRental')}
+          >
+            {text('home.hero.rentNow')}
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4.5 12h15m0 0-6-6m6 6-6 6"></path>
+            </svg>
+          </a>
+          <a
+            class="inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] bg-[var(--color-phone-tint)] px-6 text-[1.0625rem] font-semibold text-[var(--color-phone-ink)] no-underline hover:bg-[#d3ecdd]"
+            href={whatsappUrl()}
+            target="_blank"
+            rel="noopener"
+            data-analytics="whatsapp"
+          >
+            <svg class="flex-none" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"
+              ></path>
+            </svg>
+            {text('home.hero.whatsapp')}
+          </a>
+        </div>
+
         <ul
-          class="mt-7.5 flex list-none flex-wrap gap-x-6 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2.25 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-accent)]"
+          class="mt-6 flex list-none flex-wrap gap-x-5 gap-y-3 [&_li]:flex [&_li]:items-center [&_li]:gap-2 [&_li]:text-sm [&_li]:font-semibold [&_svg]:flex-none [&_svg]:text-[var(--color-live)]"
         >
-          <li>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path
-                d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
-              ></path>
-            </svg>
-            {text('home.hero.feature.delivery')}
-          </li>
-          <li>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path
-                d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
-              ></path>
-            </svg>
-            {text('home.hero.feature.phone')}
-          </li>
-          <li>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path
-                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-              ></path>
-            </svg>
-            {text('home.hero.feature.collection')}
-          </li>
+          {
+            checks.map((check) => (
+              <li>
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9.25" />
+                  <path d="m8.5 12.2 2.4 2.4 4.6-4.9" />
+                </svg>
+                {check}
+              </li>
+            ))
+          }
         </ul>
       </div>
 
@@ -128,8 +151,17 @@ const text = (key: string) => translate(locale, key);
     </div>
   </div>
 
-  <div class:list={[EDITORIAL_CONTAINER, 'relative -mt-[var(--hero-overlap)] pb-9']}>
-    <HomeBooking />
-    <HomeTrustBar />
+  {
+    /*
+      `flow-root` matters: without it the container's negative margin collapses
+      through this wrapper and drags the pale background up over the card. A
+      new formatting context blocks the collapse without clipping the overlap.
+    */
+  }
+  <div class="flow-root bg-[var(--color-page)]">
+    <div class:list={[EDITORIAL_CONTAINER, 'relative -mt-[var(--hero-overlap)] pb-9']}>
+      <HomeBooking />
+      <HomeTrustBar />
+    </div>
   </div>
 </section>

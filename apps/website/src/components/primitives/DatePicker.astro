@@ -42,21 +42,31 @@ const valueId = `${id}-value`;
 const dialogId = `${id}-dialog`;
 const hasIcon = Astro.slots.has('icon');
 const nativeMin = min === 'today' ? undefined : min;
+/* `hero` renders no box of its own: the booking bar's grey segment is the
+   consumer's wrapper, the label sits inside it and the control is transparent
+   (owner's hero reference, 2026-08-31). The box states — hover, expanded —
+   belong to that wrapper, which is why they live only in default/compact. The
+   hero icon also flips to the RIGHT edge, where the reference keeps it. */
 const labelVariants = {
   default: 'mb-2.25 text-ui',
   compact: 'mb-1.5 text-[14px]',
-  hero: 'mb-0 text-xs font-[650] tracking-[0.07em] text-[var(--color-ink-soft)] uppercase',
+  hero: 'mb-0.5 text-[0.6875rem] font-[650] tracking-[0.08em] text-[var(--color-ink-soft)] uppercase',
 } as const;
 const controlVariants = {
-  default: 'min-h-14.5 border border-hair rounded-field bg-tint font-display text-body',
-  compact: 'min-h-12 border border-hair rounded-field bg-tint font-display text-body',
-  hero: 'min-h-13.5 border-0 rounded-[var(--radius-control)] bg-[var(--color-surface)] font-[inherit] text-[1.0625rem] hover:bg-[var(--color-surface-2)] focus-visible:bg-white',
+  default:
+    'min-h-14.5 px-3.5 border border-hair rounded-field bg-tint font-display text-body ' +
+    'focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white',
+  compact:
+    'min-h-12 px-3.5 border border-hair rounded-field bg-tint font-display text-body ' +
+    'focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white',
+  hero: 'min-h-7 px-0 border-0 rounded-none bg-transparent font-[inherit] text-[1rem]',
 } as const;
 const controlClass =
   `w-full min-w-0 text-ink font-semibold leading-[1.2] hover:border-hair-strong ` +
   `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ` +
-  `focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white ` +
   controlVariants[variant];
+const iconSide = variant === 'hero' ? 'right-0' : 'left-3.5';
+const iconPad = variant === 'hero' ? 'pe-7' : 'ps-11';
 ---
 
 <div
@@ -66,8 +76,10 @@ const controlClass =
   data-max={max}
   data-has-icon={hasIcon ? '' : undefined}
 >
+  {/* `core-date-label` is the mount script's hook — it retargets the label to
+      the enhanced trigger. Without it enhancement silently bails. */}
   <label
-    class:list={['font-display text-ink-2 block font-bold', labelVariants[variant]]}
+    class:list={['core-date-label font-display text-ink-2 block font-bold', labelVariants[variant]]}
     id={labelId}
     for={id}>{label}</label
   >
@@ -76,7 +88,10 @@ const controlClass =
     {
       hasIcon && (
         <span
-          class="text-ink-2 pointer-events-none absolute top-1/2 left-3.5 z-1 grid size-4.5 -translate-y-1/2 place-items-center [&_img]:block [&_img]:size-4.5 [&_svg]:block [&_svg]:size-4.5"
+          class:list={[
+            'text-ink-2 pointer-events-none absolute top-1/2 z-1 grid size-4.5 -translate-y-1/2 place-items-center [&_img]:block [&_img]:size-4.5 [&_svg]:block [&_svg]:size-4.5',
+            iconSide,
+          ]}
           aria-hidden="true"
         >
           <slot name="icon" />
@@ -85,7 +100,7 @@ const controlClass =
     }
 
     <input
-      class:list={[controlClass, 'px-3.5', hasIcon && 'ps-11']}
+      class:list={[controlClass, hasIcon && iconPad]}
       {id}
       {name}
       type="date"
@@ -99,7 +114,7 @@ const controlClass =
     />
 
     <button
-      class:list={[controlClass, 'flex items-center gap-2.5 px-3.5 text-left', hasIcon && 'ps-11']}
+      class:list={[controlClass, 'flex items-center gap-2.5 text-left', hasIcon && iconPad]}
       id={`${id}-trigger`}
       type="button"
       hidden
@@ -109,10 +124,14 @@ const controlClass =
       aria-labelledby={`${labelId} ${valueId}`}
       data-date-trigger
     >
+      {/* Placeholder paint rides `.is-empty`, which the mount script keeps in
+          sync — a static conditional would style the VALUE as a placeholder
+          forever after the first pick. */}
       <span
         class:list={[
           'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
-          !value && 'text-ink-2 font-medium',
+          '[&.is-empty]:font-normal [&.is-empty]:text-ink-placeholder',
+          !value && 'is-empty',
         ]}
         id={valueId}
         data-date-value

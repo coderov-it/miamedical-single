@@ -15,6 +15,19 @@ export const EDITORIAL_THEME =
 
 export const EDITORIAL_CONTAINER = 'mx-auto w-full max-w-page px-gutter';
 
+/*
+ * The home page's section rhythm and headers, matched to the reference site
+ * (miamedicalitalia.it, measured 2026-08-31): sections sit on the page's grey
+ * ground with white cards, each opening with 92px of air at full width, a
+ * plain 30px bold title and an 18.5px soft lede — no rules, no arrow glyphs.
+ */
+export const HOME_BAND = 'pt-[clamp(56px,calc(5vw+20px),92px)]';
+export const HOME_TITLE = 'text-[clamp(1.5rem,2.08vw,1.875rem)] font-bold tracking-[-0.01em]';
+export const HOME_LEAD =
+  'mt-1.5 text-[clamp(1rem,1.28vw,1.15625rem)] leading-[1.55] text-[var(--color-ink-soft)]';
+export const HOME_SEE_ALL =
+  'text-[1.0625rem] font-semibold whitespace-nowrap text-[var(--color-accent)] no-underline hover:underline';
+
 export const EDITORIAL_BUTTON =
   'inline-flex min-h-13.5 items-center justify-center rounded-[var(--radius-control)] border-0 ' +
   'bg-[var(--color-accent)] px-8 text-[1.0625rem] font-semibold text-white no-underline ' +

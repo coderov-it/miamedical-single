@@ -1,20 +1,18 @@
 /* Tailwind v4 CSS-first theme tokens and local font faces. */
 /* ---------------------------------------------------------------- fonts --- */
 /*
- * THREE faces: Lexend for headings, Atkinson Hyperlegible for prose, Inter for
- * the chrome and the cards.
+ * ONE face: Lexend everywhere — headings, prose, chrome, cards.
  *
- * REVERTED 2026-08-30, restoring the pairing this file shipped before the
- * 2026-08-10 single-face override — it is what miamedicalitalia.it renders, and
- * matching it is the owner's decision. Atkinson is the Braille Institute's
- * low-vision face and was chosen for this audience on purpose; it also ships a
- * real italic, so prose <em> stops being a synthesised oblique.
+ * Owner decision 2026-08-31: miamedicalitalia.it sets Lexend on everything,
+ * and matching the reference site is the brief. This supersedes the 2026-08-30
+ * three-face pairing (Lexend / Atkinson / Inter). The cost it re-accepts is
+ * the one that pairing existed to avoid: Lexend ships no italic, so prose
+ * <em> is a synthesised oblique again.
  *
- * The revert cost nothing in markup: the four seams below (`--font-display`,
- * `--font-body`, `--font-card`, `--font-pdp`) were kept pointing at one stack
- * precisely so going back would be re-pointing them, and `instrument-sans-*`
- * stays in public/fonts/ on the same terms.
- *
+ * The change is the seams alone: `--font-ui`, `--font-display`, `--font-body`
+ * point at Lexend and `--font-card` / `--font-pdp` follow them. The Atkinson
+ * and Inter @font-face rules and files stay below on the usual terms — an
+ * unreferenced face downloads nothing, and reverting is re-pointing the seams.
  */
 @font-face {
   font-family: 'Lexend';
@@ -74,15 +72,14 @@
 
 @theme {
   /* -- typefaces ---------------------------------------------------------- */
-  /* Three faces, one seam each. `--font-ui` is the chrome and the controls;
+  /* One face, still one seam each. `--font-ui` is the chrome and the controls;
      `--font-display` every heading; `--font-body` running prose; `--font-card`
-     the product and blog cards, which the locked card design pins to Inter by
-     hand. `--font-pdp` follows the body. Re-pointing these four is the whole of
-     a face change — no markup moves, which is how the 2026-08-10 override went
-     in and how this revert came back out. */
-  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Lexend', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-body: 'Atkinson Hyperlegible', 'Inter', system-ui, -apple-system, sans-serif;
+     the product and blog cards; `--font-pdp` follows the body. Re-pointing
+     these is the whole of a face change — no markup moves, which is how every
+     face decision (2026-08-10, -30, -31) has gone in and out. */
+  --font-ui: 'Lexend', system-ui, -apple-system, sans-serif;
+  --font-display: 'Lexend', system-ui, -apple-system, sans-serif;
+  --font-body: 'Lexend', system-ui, -apple-system, sans-serif;
   --font-card: var(--font-ui);
   --font-pdp: var(--font-body);
 

@@ -9,7 +9,7 @@
  */
 import { homeTestimonials, TESTIMONIAL_RATING, type TestimonialSource } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
-import { EDITORIAL_CONTAINER, EDITORIAL_THEME } from '~/styles/editorial';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME, HOME_BAND } from '~/styles/editorial';
 
 const rating = TESTIMONIAL_RATING;
 const locale = localeForRequest();
@@ -35,13 +35,9 @@ const sourceChipClass =
 const starsClass = 'inline-flex gap-0.75 text-[#f5a623]';
 ---
 
-<section
-  class:list={[
-    EDITORIAL_THEME,
-    'border-t border-[var(--color-line)] bg-[var(--color-surface-2)] pt-[var(--band-1)] pb-[var(--band-4)]',
-  ]}
-  aria-labelledby="testimonials-title"
->
+{/* Transparent since 2026-08-31: the section sits on the home page's one grey
+    ground and its white cards raise off it, like every section around it. */}
+<section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="testimonials-title">
   <div class={EDITORIAL_CONTAINER}>
     <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
       <div>
