@@ -1,18 +1,34 @@
 ---
 /**
- * Product card — the locked round-4 design. Zero JavaScript.
+ * The product card — one component for every grid and rail on the site.
  *
- * Anatomy: clean 4:3 tint stage (nothing overlaid) → name → two-line blurb →
- * spec tags (one line, cropped) → full-bleed hairline → price + quiet accent
- * fill button (borderless — the 2026-08-19 control rule in app.css). Out of
- * stock renders dead: no price, a flat "Esaurito" plate, muted art, no hover.
- * Full spec: docs/code/storefront-design-system.md, reference at
- * docs/visual/examples/product-card/reference.html.
+ * FOUR PARTS, in the owner's own design (2026-08-31, chosen over the reference
+ * site's card): an inset tint well for the photo, a quiet two-line name, ONE
+ * loud dark price, and one soft accent action. Nothing else — no blurb, no spec
+ * chips, no divider rule, no availability dot. Those were the five competing
+ * blocks that made a grid of these read as cluttered; the shortlist is the
+ * design, and the hierarchy is deliberate: the price is the loudest thing on
+ * the card and the name sits under it at 650, not bold.
  *
- * The card is the one place the 16px type floor bends (14/15px data rows) and
- * the one Inter surface — both locked design decisions, not drift.
+ * The price is the FIGURE, big and in ink — the accent belongs to the action,
+ * and two accent elements on a card fight. A rental hangs its unit off the
+ * figure in small soft type ("12,00 €" + "al giorno"); a sale price stands
+ * alone. No "da" prefix: the packages on the product page are the real price,
+ * and the card says so by not pretending to be exact.
+ *
+ * Out of stock renders as one change, not five: the action becomes a flat grey
+ * "Esaurito" plate and the photo dims. The price stays — hiding it makes a
+ * customer open the page to learn what they already wanted to know.
+ *
+ * `min-h-[2.7em]` on the name is two lines of its own type, so a one-line name
+ * still reserves two and every price in a row lands on one baseline. Zero
+ * JavaScript.
+ *
+ * Photos never crop: `object-contain` letterboxes anything that is not the
+ * house 3:2.
  */
 import { perUnitLabel } from '@mia/i18n';
+
 import { formatMoney, mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
 import { localeForRequest, localeTag, translate } from '~/lib/i18n';
@@ -31,65 +47,41 @@ interface Props {
 }
 
 const { product, priority = false, headingLevel = 3, displayTitle, context = {} } = Astro.props;
+
 const locale = localeForRequest();
-
-const href = productPath(product.slug, context, locale);
-const image = product.thumbnail;
-const out = !product.inStock;
+const text = (key: string) => translate(locale, key);
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const href = productPath(product.slug, context, locale);
+const out = !product.inStock;
 
-/* Big amount + small unit on one baseline — no "da" prefix, per the locked
-   design. On a rental the amount is the MARKETING rate, which is copy the back
-   office typed; with none set it falls back to the cheapest package's total, so
-   a card never renders with no price. */
+/* On a rental the figure is the back office's MARKETING rate and carries its
+   unit; with none typed it falls back to the cheapest package's total, which is
+   a total and takes no unit. A card never renders with no figure at all. */
 const amount = product.pricing.marketingRate ?? product.pricing.fromPrice;
+const price =
+  amount === null ? null : formatMoney(amount, product.pricing.currency, localeTag(locale));
 const unit =
   product.pricing.mode === 'rental' && product.pricing.marketingRate !== null
     ? perUnitLabel(product.pricing.rentalUnit, locale)
     : null;
-const priceLabel =
-  amount === null ? null : formatMoney(amount, product.pricing.currency, localeTag(locale));
-const ctaLabel = translate(locale, product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy');
 
-/* Borderless per the control rule (see app.css § components): the action is a
-   quiet accent fill, and the group hover paints it the full theme. */
-const btnBase =
-  'inline-flex min-h-12 items-center justify-center rounded-field px-5 ' +
-  'text-[16px] font-semibold whitespace-nowrap transition-colors duration-150';
+/* `mt-auto`, so the action sits on the card's floor and every action in a row
+   lines up even when one product carries no figure to print. */
+const actionClass =
+  'mt-auto font-ui inline-flex min-h-12 items-center justify-center rounded-xl ' +
+  'text-base font-semibold';
 ---
 
-{
-  /*
-    The whole card is one link: one destination gets one tab stop. The button is
-    a styled span, never a nested <a>. Every hover affordance is conditional on
-    stock — a dead card must not breathe.
-  */
-}
 <a
-  class:list={[
-    'group rounded-card border-hair font-card flex h-full w-full min-w-0 flex-col overflow-hidden border bg-white no-underline',
-    !out &&
-      'hover:border-hair-strong transition-[border-color,box-shadow,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[3px] hover:shadow-[0_18px_40px_-26px_rgb(19_29_64/0.4)]',
-  ]}
+  class="group/product rounded-card border-hair hover:border-hair-strong flex h-full w-full min-w-0 flex-col border bg-white p-3.5 no-underline"
   href={href}
 >
-  {
-    /* ONE RATIO EVERYWHERE: the media well is 4:3 at any card width, and the
-      stage carries nothing but the product — no chip, no flag, no text. */
-  }
-  <span
-    class="border-hair to-tint relative grid aspect-4/3 flex-none place-items-center border-b bg-linear-to-b from-[#f7f9fd]"
-  >
+  <span class="bg-tint mid:h-46 block h-38 flex-none rounded-[14px] p-3.5">
     {
-      image && (
+      product.thumbnail && (
         <img
-          class:list={[
-            'absolute inset-0 size-full object-contain px-4.5 pt-3.5 pb-5 mix-blend-multiply',
-            out
-              ? 'opacity-55'
-              : 'transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1',
-          ]}
-          src={mediaUrl(image.path)}
+          class:list={['block size-full object-contain mix-blend-multiply', out && 'opacity-55']}
+          src={mediaUrl(product.thumbnail.path)}
           alt=""
           loading={priority ? 'eager' : 'lazy'}
           fetchpriority={priority ? 'high' : 'auto'}
@@ -99,78 +91,40 @@ const btnBase =
     }
   </span>
 
-  <span class="flex flex-1 flex-col px-5 pt-4">
-    {/* Clamped, no minimum height: feet align via the auto margin on the rule. */}
-    <Heading
-      class:list={[
-        'font-card line-clamp-2 text-[18px]/[1.3] font-bold tracking-[-0.01em] text-wrap',
-        out && 'text-ink-2',
-      ]}
-    >
-      {displayTitle ?? product.title}
-    </Heading>
-
-    {
-      product.shortDescription && (
-        <span class="text-ink-2 mt-1.5 line-clamp-2 text-[15px]/[1.5]">
-          {product.shortDescription}
-        </span>
-      )
-    }
-
-    {
-      /* Chips dress like tags: quiet tint pills, ONE line only — a chip that does
-        not fit is cropped, never wrapped. That crop is why the admin caps chip
-        text at 20 characters. The full spec sheet lives on the detail page. */
-    }
-    {
-      product.chips.length > 0 && (
-        <span class="mt-3.5 flex h-7.5 flex-wrap gap-1.5 overflow-hidden">
-          {product.chips.map((tag) => (
-            <span class="bg-tint text-ink-2 rounded-full px-[11px] py-1 text-[14px]/[1.4] font-medium whitespace-nowrap">
-              {tag}
-            </span>
-          ))}
-        </span>
-      )
-    }
-  </span>
+  {
+    /* `text-ink` on the name, not on the link: with `a { color: inherit }` in
+       app.css § base a colour utility on the anchor loses to the inherited
+       scope colour, and the editorial home sections set their own. */
+  }
+  <Heading
+    class="font-ui text-ink mt-4 mb-2.5 line-clamp-2 min-h-[2.7em] text-[1rem]/[1.35] font-[650] group-hover/product:text-accent"
+  >
+    {displayTitle ?? product.title}
+  </Heading>
 
   {
-    /* A divider is a divider: one hairline, edge to edge, outside the padding.
-      The auto top margin pins the foot so every foot in a row aligns. */
+    price && (
+      <p class="text-ink-2 mb-3.5 flex flex-wrap items-baseline gap-x-1.5 text-[0.8438rem]">
+        <b class="font-ui text-ink text-[1.25rem]/[1.15] font-bold tracking-[-0.01em] tabular-nums">
+          {price}
+        </b>
+        {unit}
+      </p>
+    )
   }
-  <span class="border-hair mt-auto border-b pt-4" aria-hidden="true"></span>
 
   {
-    /* flex-wrap: on a very narrow card the button drops below the price instead
-      of squeezing — the demo's four-up rule, kept as insurance. */
+    out ? (
+      <span class:list={[actionClass, 'bg-tint-2 text-ink-2']}>{text('card.outOfStock')}</span>
+    ) : (
+      <span
+        class:list={[
+          actionClass,
+          'bg-accent-tint text-accent group-hover/product:bg-accent group-hover/product:text-white',
+        ]}
+      >
+        {text(product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy')}
+      </span>
+    )
   }
-  <span class="flex flex-wrap items-center justify-between gap-3.5 px-5 pt-3.5 pb-4.5">
-    {
-      out ? (
-        <span class:list={[btnBase, 'bg-tint-2 text-ink-2 flex-1']}>
-          {translate(locale, 'card.outOfStock')}
-        </span>
-      ) : (
-        <>
-          <span class="text-ink-2 flex items-baseline gap-1.5 text-[14px] whitespace-nowrap">
-            <b class="text-ink text-[24px]/[1.1] font-bold tracking-[-0.01em] lining-nums tabular-nums">
-              {priceLabel}
-            </b>
-            {unit}
-          </span>
-          <span
-            class:list={[
-              btnBase,
-              'bg-accent-tint flex-none text-accent',
-              'group-hover:bg-accent group-hover:text-white',
-            ]}
-          >
-            {ctaLabel}
-          </span>
-        </>
-      )
-    }
-  </span>
 </a>

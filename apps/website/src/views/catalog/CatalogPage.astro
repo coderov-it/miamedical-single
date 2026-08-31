@@ -6,12 +6,14 @@
  * are always product listings. All three share one masthead and one pill row,
  * so moving between them never changes the furniture, only the body.
  *
+ * Matched section for section to the owner's reference (miamedicalitalia.it,
+ * measured 2026-08-31), which is also where the page's grey ground and white
+ * cards come from — the same pattern as the home page below its hero.
+ *
  * Rendered on demand: search, the category filter and stock are always live,
  * and a deep link like `?category=carrozzine&page=2` is a real URL.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
-import PhoneCta from '~/components/global/PhoneCta.astro';
-import SectionHeading from '~/components/primitives/SectionHeading.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import {
   buildCategoryTiles,
@@ -25,7 +27,6 @@ import {
 import { listCategories, listProducts, safely } from '~/lib/catalog';
 import { localeFromLocals, translate } from '~/lib/i18n';
 import { catalogPath, routePath } from '~/lib/routes';
-import { CONTACT } from '~/lib/site';
 import CatalogFilters from './CatalogFilters.astro';
 import CatalogHead from './CatalogHead.astro';
 import CatalogListing from './CatalogListing.astro';
@@ -113,48 +114,46 @@ const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.
     {nextUrl && <link rel="next" href={nextUrl} />}
   </Fragment>
 
-  <div class="max-w-page px-gutter pb-section-sm mid:pb-section mx-auto w-full pt-6">
-    {
-      /* The masthead is the whole crumb trail on the bare surfaces — a single
-         "Home › Catalogo" row above an h1 that says the same word twice is
-         noise. It earns its place once a category is the page's real subject. */
-    }
-    {
-      activeCategory && (
-        <Breadcrumbs
-          items={[
-            { label: translate(locale, 'home'), href: routePath(locale, 'home') },
-            { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
-            { label: activeCategory.name },
-          ]}
-        />
-      )
-    }
+  {
+    /* ONE grey ground with white cards on it, the reference's page and the home
+       page's — which is why nothing inside paints a ground of its own. The
+       wrapper's air is theirs too: 34px above the title, 60px under the last
+       row before the footer. */
+  }
+  <div class="bg-page">
+    <div
+      class="max-w-page px-gutter mx-auto w-full pt-[clamp(22px,2.4vw,34px)] pb-[clamp(40px,4.2vw,60px)]"
+    >
+      {
+        /* The masthead is the whole crumb trail on the bare surfaces — a single
+           "Home › Catalogo" row above an h1 that says the same word twice is
+           noise. It earns its place once a category is the page's real subject. */
+      }
+      {
+        activeCategory && (
+          <Breadcrumbs
+            items={[
+              { label: translate(locale, 'home'), href: routePath(locale, 'home') },
+              { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
+              { label: activeCategory.name },
+            ]}
+          />
+        )
+      }
 
-    <CatalogHead heading={copy.heading} lede={copy.lede} context={query.context} />
+      <CatalogHead heading={copy.heading} lede={copy.lede} />
 
-    <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
+      <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
 
-    {showDirectory && <CategoryDirectory {tiles} />}
+      {showDirectory && <CategoryDirectory {tiles} />}
 
-    <CatalogListing
-      products={result.data}
-      meta={result.meta}
-      heading={showDirectory ? translate(locale, 'catalog.allProducts') : undefined}
-      context={query.context}
-      pageHref={pageLink}
-    />
-
-    <section class="mt-section-sm mid:mt-section" aria-labelledby="help-title">
-      <SectionHeading
-        id="help"
-        heading={translate(locale, 'catalog.help')}
-        lede={translate(locale, 'catalog.helpDetail')}
+      <CatalogListing
+        products={result.data}
+        meta={result.meta}
+        heading={showDirectory ? translate(locale, 'catalog.allProducts') : undefined}
+        context={query.context}
+        pageHref={pageLink}
       />
-      <div class="rounded-card bg-tint mid:p-8 flex flex-wrap items-center gap-4 p-6">
-        <PhoneCta variant="primary" />
-        <p class="text-ui text-ink-2">{CONTACT.hours[locale]}</p>
-      </div>
-    </section>
+    </div>
   </div>
 </BaseLayout>

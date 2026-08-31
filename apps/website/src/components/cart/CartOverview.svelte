@@ -43,7 +43,7 @@
   <div class="border-hair flex items-baseline justify-between gap-3 border-t pt-4.5">
     <span class="text-[16px] font-semibold">{copy.total}</span>
     <span class="flex flex-col items-end gap-0.5">
-      <strong class="text-[28px]/[1.1] tracking-[-0.015em] tabular-nums">{total}</strong>
+      <strong class="font-ui text-[28px]/[1.1] tracking-[-0.015em] tabular-nums">{total}</strong>
       <span class="text-ink-2 text-[14px]">
         {noPackage ? copy.noPackageNote : copy.vatIncluded}
       </span>

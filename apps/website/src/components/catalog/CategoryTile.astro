@@ -1,10 +1,12 @@
 ---
 /**
- * One category tile — quiet white card, one hairline, a pale well for the art.
+ * One category tile — quiet white card, one hairline, the art on the card.
  *
  * Shared by the home grid and the catalogue directory so the two can never
- * drift. It paints from the blueprint tokens carried by the region around it
- * through the editorial Tailwind token class, so each host carries that theme.
+ * drift, in the reference's two sizes (miamedicalitalia.it, measured
+ * 2026-08-31): the home tile is 18px of padding around 104px of art, the
+ * catalogue's `compact` tile 14px around 82px, and both centre a bold name over
+ * the accent offer line.
  */
 import { mediaUrl } from '~/lib/api';
 import type { CategoryTile } from '~/lib/catalog-page';
@@ -13,19 +15,32 @@ interface Props {
   tile: CategoryTile;
   /** Heading level, so the tile fits the host page's outline. */
   headingLevel?: 2 | 3;
+  /** The catalogue directory's tighter tile — smaller art, less padding. */
+  compact?: boolean;
 }
 
-const { tile, headingLevel = 3 } = Astro.props;
+const { tile, headingLevel = 3, compact = false } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 ---
 
-{/* Centered composition since 2026-08-31, matching the reference tiles:
-    the art well on top, the name and the offer centered under it. */}
+{
+  /* Centered composition since 2026-08-31, matching the reference tiles:
+    the art on top, the name and the offer centered under it. */
+}
 <a
-  class="group/category rounded-card block h-full border border-[var(--color-line)] bg-white px-4 pt-4 pb-4.5 text-center no-underline hover:border-[#ccd2e2]"
+  class:list={[
+    'group/category border-hair hover:border-hair-strong block h-full w-full border bg-white text-center no-underline',
+    compact ? 'rounded-2xl px-3 pt-3.5 pb-3.5' : 'rounded-card px-3.5 pt-4.5 pb-4.5',
+  ]}
   href={tile.href}
 >
-  <span class="mb-3 block h-24 rounded-xl bg-[var(--color-surface-2)] p-1.5">
+  {
+    /* The art sits straight on the card, as it does on the reference tiles —
+       no tint well. The category icons carry their own white ground, so a well
+       here would frame a white rectangle in a grey box; `mix-blend-multiply`
+       makes that ground disappear into the card instead. */
+  }
+  <span class:list={['block', compact ? 'mb-2 h-20.5' : 'mb-2.25 h-26']}>
     {
       tile.imagePath && (
         <img
@@ -37,15 +52,23 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
       )
     }
   </span>
+  {/* Lexend on the name, Atkinson on the offer — the reference's own split. */}
   <Heading
-    class="text-[1.0625rem] leading-[1.35] font-bold group-hover/category:text-[var(--color-accent)]"
-    >{tile.name}</Heading
+    class:list={[
+      'font-ui font-bold group-hover/category:text-accent',
+      compact ? 'text-base/[1.28]' : 'text-[1.0313rem]/[1.28]',
+    ]}>{tile.name}</Heading
   >
-  {/* A price is an offer and a count is inventory — same slot, different ink. */}
+  {
+    /* A price is an offer and a count is inventory — same slot, different ink.
+       One class or the other, never both: two colour utilities on one element
+       is a coin toss decided by the stylesheet's order, not by this file. */
+  }
   <p
     class:list={[
-      'mt-1 text-sm text-[var(--color-ink-soft)] tabular-nums',
-      tile.isPriced && 'font-[650] text-[var(--color-accent)]',
+      'font-body text-base/[1.25] tabular-nums',
+      compact ? 'mt-2' : 'mt-2.25',
+      tile.isPriced ? 'font-bold text-accent' : 'text-ink-2',
     ]}
   >
     {tile.detail}

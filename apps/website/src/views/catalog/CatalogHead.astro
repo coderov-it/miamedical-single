@@ -1,83 +1,22 @@
 ---
 /**
- * The catalogue masthead: what this surface is, on the left, and one minimal
- * search field on the right.
+ * The catalogue masthead: what this surface is, and nothing else.
  *
- * Compact by design: the field, its button and the pills below all share
- * `--spacing-control-sm`, so the masthead reads as one band rather than a stack
- * of mismatched rows — and stays one band at every width, which a set of three
- * separately-pinned heights did not.
- *
- * The field does not search this page. It posts to the search route, which is
- * the site's one place for a typed query — sorting, the category filter and the
- * result count all live there, and duplicating a half of that here would give a
- * customer two search boxes that answer differently. The browse context rides
- * along as hidden inputs so the funnel does not forget where and when.
+ * Matched to the reference site (miamedicalitalia.it, measured 2026-08-31):
+ * a 34px/800 title, 6px of air, a 18.5px soft lede, 20px of air, then the
+ * filter row. No search field — the reference puts typed search behind its own
+ * "Cerca" destination, and so does our header, so a second search box here
+ * would give the customer two fields that answer differently.
  */
-import { localeForRequest, translate } from '~/lib/i18n';
-import { routePath, type BrowseContext } from '~/lib/routes';
-
 interface Props {
   heading: string;
   lede: string;
-  context?: BrowseContext;
 }
 
-const { heading, lede, context = {} } = Astro.props;
-const locale = localeForRequest();
+const { heading, lede } = Astro.props;
 ---
 
-<header class="mid:flex-row mid:items-end mid:justify-between flex flex-col gap-4 pb-5">
-  <div class="min-w-0">
-    <h1 class="text-[clamp(1.75rem,3.2vw,2.125rem)]/[1.16]">{heading}</h1>
-    <p class="text-lead text-ink-2 mt-1 max-w-[56ch]">{lede}</p>
-  </div>
-
-  <form
-    class="mid:w-84 flex w-full flex-none gap-2"
-    method="get"
-    action={routePath(locale, 'search')}
-    role="search"
-    aria-label={translate(locale, 'catalog.search')}
-  >
-    {context.area && <input type="hidden" name="area" value={context.area} />}
-    {context.from && <input type="hidden" name="from" value={context.from} />}
-
-    {
-      /* The well itself is the label, so the padding and the icon beside the
-         caret focus the field instead of swallowing the click. */
-    }
-    <label
-      class="rounded-field min-h-control-sm bg-tint relative flex min-w-0 flex-1 cursor-text items-stretch gap-3 border border-transparent px-4 transition-[border-color,box-shadow,background-color] duration-150 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] focus-within:border-accent focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]"
-      for="catalog-search"
-    >
-      <span class="sr-only">{translate(locale, 'catalog.searchLabel')}</span>
-      <svg
-        class="text-ink-2 pointer-events-none size-4.75 flex-none self-center"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="6.5"></circle>
-        <path d="m20 20-4.2-4.2"></path>
-      </svg>
-      <input
-        id="catalog-search"
-        class="font-display text-body -ms-4 -me-4 min-h-0 min-w-0 flex-1 self-stretch border-0 bg-transparent p-0 ps-4 pe-4 font-semibold focus-visible:shadow-none focus-visible:outline-none"
-        type="search"
-        name="q"
-        placeholder={translate(locale, 'catalog.searchPlaceholder')}
-      />
-    </label>
-
-    <button
-      class="rounded-field font-display text-ui hover:bg-accent-deep min-h-control-sm relative inline-flex flex-none items-center justify-center border-0 bg-accent px-4.5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
-      type="submit"
-    >
-      {translate(locale, 'catalog.searchAction')}
-    </button>
-  </form>
+<header class="pb-5">
+  <h1 class="text-[clamp(1.75rem,2.36vw,2.125rem)]/[1.26] font-extrabold">{heading}</h1>
+  <p class="text-ink-2 mt-1.5 max-w-[56ch] text-[1.15625rem]/[1.25]">{lede}</p>
 </header>

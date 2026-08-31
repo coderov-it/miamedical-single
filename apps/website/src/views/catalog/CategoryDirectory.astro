@@ -2,16 +2,17 @@
 /**
  * "Sfoglia per categoria" — the whole-catalogue surface's body.
  *
- * A wrapped grid of tiles, deliberately NOT a horizontal overflow scroller: at
- * 200% zoom and 400% reflow the right-hand items become undiscoverable, and it
- * reintroduces horizontal scrolling.
+ * The reference's directory (miamedicalitalia.it, measured 2026-08-31): a 22px
+ * bold title, 14px of air, four compact tiles across on a 14px gutter, 34px of
+ * air before the listing under it.
  *
- * The section carries the shared editorial Tailwind tokens the tiles paint from.
+ * A wrapped grid, deliberately NOT a horizontal overflow scroller: at 200% zoom
+ * and 400% reflow the right-hand items become undiscoverable, and it
+ * reintroduces horizontal scrolling.
  */
 import CategoryTile from '~/components/catalog/CategoryTile.astro';
 import type { CategoryTile as CategoryTileModel } from '~/lib/catalog-page';
 import { localeForRequest, translate } from '~/lib/i18n';
-import { CATEGORY_GRID, EDITORIAL_THEME } from '~/styles/editorial';
 
 interface Props {
   tiles: CategoryTileModel[];
@@ -21,14 +22,18 @@ const { tiles } = Astro.props;
 const locale = localeForRequest();
 ---
 
-<section class:list={[EDITORIAL_THEME, 'mb-10']} aria-labelledby="browse-title">
-  <h2 id="browse-title" class="text-h3 mb-5">{translate(locale, 'catalog.browse')}</h2>
+<section class="mb-8.5" aria-labelledby="browse-title">
+  <h2 class="text-[1.375rem]/[1.28] font-bold" id="browse-title">
+    {translate(locale, 'catalog.browse')}
+  </h2>
 
-  <ul class={CATEGORY_GRID}>
+  <ul
+    class="wide:grid-cols-4 mid:grid-cols-3 mt-3.5 grid grid-cols-2 gap-3.5 [&>li]:flex [&>li]:min-w-0"
+  >
     {
       tiles.map((tile) => (
         <li>
-          <CategoryTile {tile} headingLevel={3} />
+          <CategoryTile {tile} headingLevel={3} compact />
         </li>
       ))
     }

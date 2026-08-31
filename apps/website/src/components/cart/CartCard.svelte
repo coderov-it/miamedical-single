@@ -104,7 +104,7 @@
       onChange={onQuantityChange}
     />
 
-    <strong class="flex-none text-right text-[20px]/[1.2] tracking-[-0.015em] tabular-nums">
+    <strong class="font-ui flex-none text-right text-[20px]/[1.2] tracking-[-0.015em] tabular-nums">
       {amount}
     </strong>
 

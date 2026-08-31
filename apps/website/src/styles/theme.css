@@ -1,18 +1,31 @@
 /* Tailwind v4 CSS-first theme tokens and local font faces. */
 /* ---------------------------------------------------------------- fonts --- */
 /*
- * ONE face: Lexend everywhere — headings, prose, chrome, cards.
+ * TWO faces, the way the reference site actually pairs them: Lexend for
+ * display and chrome, Atkinson Hyperlegible for prose.
  *
- * Owner decision 2026-08-31: miamedicalitalia.it sets Lexend on everything,
- * and matching the reference site is the brief. This supersedes the 2026-08-30
- * three-face pairing (Lexend / Atkinson / Inter). The cost it re-accepts is
- * the one that pairing existed to avoid: Lexend ships no italic, so prose
- * <em> is a synthesised oblique again.
+ * MEASURED, not guessed (2026-08-31, computed styles off miamedicalitalia.it's
+ * own catalogue DOM):
  *
- * The change is the seams alone: `--font-ui`, `--font-display`, `--font-body`
- * point at Lexend and `--font-card` / `--font-pdp` follow them. The Atkinson
- * and Inter @font-face rules and files stay below on the usual terms — an
- * unreferenced face downloads nothing, and reverting is re-pointing the seams.
+ *   Lexend    34/800 page title · 17.5/700 card name · 17/700 price ·
+ *             16.5/700 card action · 16/700 nav · 15.5/700 filter pills
+ *   Atkinson  18.5/400 page lede · 16/400 card blurb · 16/700 "Disponibile" ·
+ *             17.5/400 running prose
+ *
+ * That supersedes the "Lexend for everything" reading of 2026-08-31: the site
+ * sets Lexend on its headings and controls only. Using a display face for
+ * prose was what made our catalogue cards read as a wall of text — at the same
+ * 16px, Lexend runs ~10% wider per line and carries a much larger x-height
+ * than Atkinson, so a two-line blurb had the presence of a heading.
+ *
+ * Atkinson is also the Braille Institute's low-vision face, which is the
+ * audience this shop serves, and it ships a real italic — so prose <em> stops
+ * being a synthesised oblique.
+ *
+ * The change is the seams alone: `--font-display` and `--font-ui` are Lexend,
+ * `--font-body` is Atkinson, `--font-card` / `--font-pdp` follow them. Inter's
+ * @font-face stays below on the usual terms — an unreferenced face downloads
+ * nothing, and a face change is re-pointing a seam.
  */
 @font-face {
   font-family: 'Lexend';
@@ -72,14 +85,14 @@
 
 @theme {
   /* -- typefaces ---------------------------------------------------------- */
-  /* One face, still one seam each. `--font-ui` is the chrome and the controls;
-     `--font-display` every heading; `--font-body` running prose; `--font-card`
-     the product and blog cards; `--font-pdp` follows the body. Re-pointing
-     these is the whole of a face change — no markup moves, which is how every
-     face decision (2026-08-10, -30, -31) has gone in and out. */
+  /* One seam each. `--font-ui` is the chrome and the controls; `--font-display`
+     every heading; `--font-body` running prose and card blurbs; `--font-card`
+     the product and blog cards' own furniture; `--font-pdp` follows the body.
+     Re-pointing these is the whole of a face change — no markup moves, which is
+     how every face decision (2026-08-10, -30, -31) has gone in and out. */
   --font-ui: 'Lexend', system-ui, -apple-system, sans-serif;
   --font-display: 'Lexend', system-ui, -apple-system, sans-serif;
-  --font-body: 'Lexend', system-ui, -apple-system, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', 'Lexend', system-ui, -apple-system, sans-serif;
   --font-card: var(--font-ui);
   --font-pdp: var(--font-body);
 
