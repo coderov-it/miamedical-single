@@ -10,7 +10,7 @@
     CartContainer          ← this file: form, layout, notices, state wiring
     ├── CartLoadingCard    ← the first paint, until storage has been read
     ├── CartEmptyState     ← nothing in the cart
-    ├── CartCard × n       ← one line each: head always, panel on request
+    ├── CartCard × n       ← one line each, flat: nothing opens, nothing hides
     │   └── CartQuantityStepper
     └── CartOverview       ← the totals and the way to the checkout
 
@@ -72,19 +72,27 @@
     <input type="hidden" name={field.name} value={field.value} />
   {/each}
 
-  <!-- `pt-*`: with the title unpainted the card used to sit 23px under the
-       breadcrumb, close enough to read as attached to it (owner, 2026-08-20). -->
-  <div class="mid:gap-12 mid:pt-7 flex flex-wrap items-start gap-8 pt-5">
+  <!--
+    The page title is PAINTED again (owner, 2026-08-31). It was `sr-only` on the
+    reasoning that the breadcrumb directly above already reads "Home › La tua
+    richiesta"; the reference site opens its cart on a title and a line of
+    reassurance, and without them the first thing on the page was a product card
+    hanging off a breadcrumb.
+  -->
+  <header class="mid:pt-7 flex flex-col gap-1.5 pt-5">
+    <h1 class="mid:text-[34px]/[1.1] m-0 text-[26px]/[1.15]">{copy.heading}</h1>
+    <!-- "Controlla gli ausili e vai avanti" is an instruction, and an empty cart
+         has nothing to check and nowhere to go. It holds while `booting`, when the
+         page does not yet know which of the two states it is in. -->
+    {#if cart.booting || !cart.empty}
+      <p class="text-ink-2 mid:text-lead m-0">{copy.lead}</p>
+    {/if}
+  </header>
+
+  <div class="mid:gap-8 mid:pt-8 flex flex-wrap items-start gap-8 pt-6">
     <!-- ------------------------------------------------------ the rows -->
     <main class="mid:gap-5.5 flex min-w-0 flex-[1_1_34rem] flex-col gap-4">
-      <!--
-        The title is not painted (owner, 2026-08-20): the breadcrumb immediately
-        above already reads "Home › La tua richiesta", so an h1 a line below said the
-        page's name twice. It stays in the document for the outline and for screen
-        readers, and the count stays with it — announced, not printed, since the rows
-        themselves are the count.
-      -->
-      <h1 class="sr-only">{copy.heading}</h1>
+      <!-- The count is announced, not printed: the rows themselves are the count. -->
       {#if !cart.empty}
         <span class="sr-only" aria-live="polite">{cart.countLabel}</span>
       {/if}
@@ -112,13 +120,10 @@
             <CartCard
               view={row.view}
               quantity={row.line.quantity}
-              open={cart.isOpen(row.line.id)}
-              panelId={`cart-row-${row.line.id}`}
               amount={cart.rowAmount(row)}
               unitPrice={cart.rowUnitPrice(row)}
               labels={cart.rowLabels(row.view)}
               removeText={copy.remove}
-              onToggle={() => cart.toggle(row.line.id)}
               onQuantityChange={(quantity) => cart.setQuantity(row.line.id, quantity)}
               onRemove={() => cart.remove(row.line.id)}
             />
@@ -151,6 +156,7 @@
       <CartOverview
         {copy}
         total={cart.money(cart.optimisticTotal)}
+        dueToday={cart.money(0)}
         noPackage={cart.view.noPackage}
       />
     {/if}

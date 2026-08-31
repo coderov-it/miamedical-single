@@ -7,8 +7,8 @@
  * the cart contains, and the components under `components/cart/` decide only how
  * that looks. Nothing here touches the DOM.
  *
- * WHAT IT OWNS: which lines exist, how many of each, which rows are open, and
- * whether a price request is in flight. It owns no price, no title and no label —
+ * WHAT IT OWNS: which lines exist, how many of each, and whether a price request
+ * is in flight. It owns no price, no title and no label —
  * those arrive from `/api/cart/resolve` already formatted, and the only
  * arithmetic is `unitTotal × quantity`, to repaint a stepper press before the
  * response lands.
@@ -58,7 +58,6 @@ export interface CartRowLabels {
   decrease: string;
   increase: string;
   quantity: string;
-  details: string;
   remove: string;
 }
 
@@ -94,14 +93,6 @@ export class CartState {
   lines = $state<CartLine[]>([]);
   /** The last thing the SERVER said about those lines. */
   view = $state<CartView>(emptyView());
-  /**
-   * Row ids that are open. Several may be, unlike the reference's single mode —
-   * and NONE is the default (owner, 2026-08-20). The first row used to open
-   * itself, which made a two-line cart taller than a screen before the customer
-   * asked for any detail. A row's head already carries the package, its unit
-   * price and the amount; the panel is for the dates.
-   */
-  openIds = $state<Set<string>>(new Set());
   /** A resolve request is in flight. */
   pricing = $state(false);
   /** The last resolve failed: the figures on screen are the previous answer. */
@@ -227,10 +218,6 @@ export class CartState {
 
   /* ------------------------------------------------------------- reading --- */
 
-  isOpen(id: string): boolean {
-    return this.openIds.has(id);
-  }
-
   /** Every spoken label one row needs, with its product name already in place. */
   rowLabels(view: CartLineView): CartRowLabels {
     const title = view.title;
@@ -238,7 +225,6 @@ export class CartState {
       decrease: fill(this.#copy.decrease, { title }),
       increase: fill(this.#copy.increase, { title }),
       quantity: fill(this.#copy.quantityOf, { title }),
-      details: fill(this.#copy.showDetailsOf, { title }),
       remove: fill(this.#copy.removeNamed, { title }),
     };
   }
@@ -259,13 +245,6 @@ export class CartState {
   }
 
   /* ------------------------------------------------------------- writing --- */
-
-  toggle(id: string): void {
-    const next = new Set(this.openIds);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    this.openIds = next;
-  }
 
   setQuantity(id: string, quantity: number): void {
     const clamped = clampQuantity(quantity);

@@ -118,10 +118,7 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
           id="order"
           class="bg-tint flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-4 rounded-2xl p-6"
         >
-          <p class="m-0">
-            Questo ausilio è momentaneamente esaurito. Chiamaci: spesso abbiamo un modello
-            equivalente disponibile subito.
-          </p>
+          <p class="m-0">{translate(locale, 'product.outOfStock')}</p>
           <PhoneCta variant="primary" />
         </aside>
       </div>

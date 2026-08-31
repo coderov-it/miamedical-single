@@ -13,6 +13,7 @@
  */
 import type { ProductDetail } from '~/lib/catalog';
 import { localeForRequest, translate } from '~/lib/i18n';
+import { contentLang } from '~/lib/product-page';
 
 interface Props {
   product: ProductDetail;
@@ -21,6 +22,8 @@ interface Props {
 const { product } = Astro.props;
 const isRental = product.pricing.mode === 'rental';
 const locale = localeForRequest();
+/* The description is the back office's words, not the page's — see `contentLocale`. */
+const productLang = contentLang(product, locale);
 const text = (key: string) => translate(locale, key);
 
 const includes = [
@@ -123,7 +126,9 @@ const proseClass =
     {
       tabs.map((tab, index) => (
         <div class={`pdp-panel-${index} hidden`}>
-          {tab.key === 'description' && <div class={proseClass} set:html={product.description} />}
+          {tab.key === 'description' && (
+            <div class={proseClass} lang={productLang} set:html={product.description} />
+          )}
 
           {tab.key === 'faq' && (
             <div class="flex max-w-180 flex-col">

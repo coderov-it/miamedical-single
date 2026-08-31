@@ -19,8 +19,10 @@
 >
   <h2 class="m-0 text-[19px] font-bold">{copy.emptyTitle}</h2>
   <p class="text-ink-2 m-0 text-[16px] leading-[1.55]">{copy.emptyDetail}</p>
+  <!-- The accent fill, not the quiet grey the rows' "continua a sfogliare" wears:
+       with nothing in the cart this IS the page's primary action. -->
   <a
-    class="bg-tint font-display text-ink hover:bg-tint-2 inline-flex min-h-12 cursor-pointer items-center justify-center gap-2.5 rounded-full px-6 text-[16px] font-semibold no-underline"
+    class="font-display hover:bg-accent-deep inline-flex min-h-13 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-7 text-[16px] font-semibold text-white no-underline"
     href={catalogPath}>{copy.goToCatalog}</a
   >
 </div>

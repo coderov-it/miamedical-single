@@ -107,7 +107,7 @@ components/cart/
   CartContainer.svelte     the island root: <form>, the two columns, state wiring
   ├── CartLoadingCard      the first paint, until storage has been read
   ├── CartEmptyState       nothing in the cart
-  ├── CartCard × n         one line: head always, panel on request
+  ├── CartCard × n         one line, flat: nothing opens, nothing hides
   │   └── CartQuantityStepper
   └── CartOverview         the totals and the way to the checkout
 ```
@@ -129,10 +129,11 @@ expression reads a `#private` field must be written `$derived.by(() => …)`. Th
 evaluates lazily, so the field IS assigned by the time it runs, but a bare
 `$derived(...)` is a field initializer and TypeScript reads it as use-before-init.
 
-## The island owns three things
+## The island owns two things
 
-Which lines exist, how many of each, and which rows are open. That is all — and
-`CartState` owns all three; no component holds cart state of its own.
+Which lines exist and how many of each. That is all — and `CartState` owns both;
+no component holds cart state of its own. It used to own a third, the set of open
+row ids, and that went with the disclosure (see the 2026-08-31 pass below).
 
 **The one piece of client arithmetic is `unitTotal × quantity`**, to repaint a
 stepper press before the response lands. A plain multiply is not a pricing rule —
@@ -183,50 +184,48 @@ identically, because `splitItemParams()` already accepts both.
 - **The total is `Totale indicativo`, and the CTA is `Vai alla conferma`.** The
   reference closes with a payable total and "Proceed to checkout". Nothing is
   payable here: no payment is taken online and the phone call settles the price.
-- **An empty state exists.** The reference always has a cart behind it.
+- **An empty state exists.** The reference always has a cart behind it. Its
+  "Vai al catalogo" wears the ACCENT fill rather than the quiet grey the rows'
+  "continua a sfogliare" wears: with nothing in the cart, the catalogue is the
+  page's primary action rather than an aside to it.
 - **A row that stopped resolving is reported, not silently dropped.** The checkout
   drops these on the reasoning that a product we cannot rent is worse than one fewer
   row. The cart cannot: this is the page where the customer can still act, and a row
   that vanishes with no explanation reads as the site losing their choice. Hence
   `CartView.droppedIds` and the notice above the list.
-- **Every row starts CLOSED, and several may be open at once.** The reference
-  defaults to a single-open accordion with the first row expanded. Neither holds
-  here: comparing two configurations is the whole reason a cart has more than one
-  row, and a row's head already states the package, its unit price and the amount —
-  so nothing has to be expanded to read the cart (owner, 2026-08-20). The panel is
-  for the dates.
-- **The disclosure is one real `<button>`, not a clickable `<div>`.** The reference
-  nests its stepper inside the clickable row and stops propagation, which in HTML
-  would be a button inside a button. The stepper is a sibling lifted above the
-  toggle's stretched `::before` with `relative z-1`, so the whole row is still
-  clickable and the stepper still works.
+- **There is no disclosure at all.** The reference defaults to a single-open
+  accordion with the first row expanded. See the 2026-08-31 pass below: the rows
+  are flat.
 - **The phone card is outside the island.** A phone call is a successful conversion,
   not a fallback for a cart that failed, so the number is server-rendered and
   present whether or not the island ever mounts.
-- **Stepper keys are 44px painted, 48px to the finger** (`.target-48`), and so are
-  the two row actions. The project's 48px target rule is not dropped to match a mock
+- **Stepper keys are 44px painted, 48px to the finger** (`.target-48`), and so is
+  Rimuovi. The project's 48px target rule is not dropped to match a mock
   — see the design-system doc. Note the shape of that deal: `.target-48` is what
   zeroes `min-height`, so a control wearing it asks for its paint with `h-*`, never
   `min-h-*`.
 
 ## The 2026-08-20 pass: skin, controls, and a first paint that promises nothing
 
+Two of the four notes below were superseded on 2026-08-31 and are marked; the rest
+still describes the page.
+
 The layout is still the reference's. Three things about it are not:
 
 - **Type is the site's scale.** The reference's 12.5/13/13.5px asides are gone; the
   page floors at 16px, row titles are 17, a row's amount is 20 and the summary total 28. The one sub-16 use left is the two 14px notes under the total.
 - **Controls are fills at honest sizes.** "Modifica la scelta" and "Rimuovi" were
-  13px text links; they are 44px pills now — quiet accent and grey — each with its
-  Heroicons glyph, right-aligned under the amounts they act on. The disclosure
-  chevron is a 48px round key rather than a floating 24px glyph, and the CTA is the
-  site's own `.btn .btn-primary` pill.
-- **The page title is not painted.** The breadcrumb directly above already reads
-  "Home › La tua richiesta". The `<h1>` and the line count are `sr-only`: still in
-  the outline, still announced, not printed twice.
+  13px text links; they are 48px-target controls now, each with its Heroicons
+  glyph. _(Superseded in part, 2026-08-31: the disclosure chevron is gone with the
+  panel, and Rimuovi moved from a right-aligned danger pill to a ranged-left danger
+  control that fills on hover.)_
+- ~~**The page title is not painted.**~~ _Superseded 2026-08-31 — it is painted
+  again, with a lead line under it. The line count stays `sr-only`._
 
-A booking used to read as one run-on sentence of middot-joined dates. Same words,
-now a `<dl>` strip — label above value, `auto-fit` columns that stack on a phone —
-ruled off from the amounts below it.
+A booking used to read as one run-on sentence of middot-joined dates, then as a
+`<dl>` strip in the panel. _Superseded 2026-08-31: it is one flowing line on the
+card — "Ritiro 10/09/2026 → Riconsegna 10/10/2026" — with the arrow travelling with
+the second date so a narrow column breaks BETWEEN the dates._
 
 **And the first paint no longer guesses.** The lines live in `localStorage`, so the
 server cannot know whether the cart has rows; it used to render the empty state and
@@ -244,6 +243,91 @@ The no-JavaScript case is handled where a stylesheet cannot reach: the plate car
 paragraph saying why the cart cannot be read. Both only when the URL carried no line
 — on the hand-off path the page works without a byte of JavaScript and neither
 should appear.
+
+## The 2026-08-31 pass: the row is flat, and the summary states one figure
+
+Three changes, all the owner's, all on the same complaint — the page did not say
+what was in it.
+
+### The row does not open, because it has nothing left to hide
+
+`CartCard` was a disclosure: a head carrying the product, the package, the stepper
+and the amount, and a panel underneath holding the dates. The reasoning in the
+2026-08-20 pass was that the head already stated everything needed to READ the
+cart. It did not: it stated everything needed to read the PRICE. What a customer
+comes to this page to check is which aid, from when, until when — and every one of
+those was behind a chevron. "They can't determine what the user added at first
+glance" (owner, 2026-08-31).
+
+So the card is four short lines and nothing folds:
+
+```
+[ photo ]  Noleggio Materasso Antidecubito 120cm …
+           Ritiro 10/09/2026 → Riconsegna 10/10/2026
+           30 giorni = 210,00 €
+           Rimuovi                    [ − 1 + ]     210,00 €
+```
+
+What that deleted, in order:
+
+| Gone                                     | Where it went                           |
+| ---------------------------------------- | --------------------------------------- |
+| `CartState.openIds` / `toggle()`         | nothing to track                        |
+| `CartRowLabels.details`, `showDetailsOf` | no key to speak                         |
+| the panel's `LABEL`/`VALUE` tiers        | one `DETAIL` tier on the card           |
+| the stepper's `relative z-1`             | there is no toggle overlay to sit above |
+
+The stepper's lift and the head's stretched `::before` existed only to make a
+whole row clickable without nesting a button in a button. With no toggle, both go,
+and the card is ordinary flow again.
+
+The row also **gained the product link** — the title is an `<a href>` to the
+product page. `CartLineView.href` had been resolved server-side since the first
+version and never rendered.
+
+The photo is **100px from `mid` up and 80 on a phone**, roughly double the 54 it
+was, and the reference site's own figure. `object-contain` inside its own padding,
+per the project's never-crop-a-product-photo rule.
+
+### The quantity fact is gone from `facts`
+
+`toView()` now filters it out along with pickup, return and duration. The stepper
+sits beside the amount it multiplies and states the quantity as a control; the
+`<dl>` said it a second time. `CartLineView.facts` is consequently **empty in every
+case today** — it stays in the shape as the slot a future per-line fact arrives in,
+and the card renders whatever is in it generically.
+
+### The summary states the estimate once, and closes on what is due
+
+It printed `Totale indicativo 730,00 €` and then `Totale 730,00 €` — the identical
+number twice, because nothing sits between them: no tax line, no shipping, no
+discount. The estimate is now stated once, at the size the duplicate wore, and the
+closing figure is the one that is actually different:
+
+```
+Riepilogo
+Totale indicativo                    730,00 €
+                                   IVA inclusa
+Consegna                         da concordare
+───────────────────────────────────────────────
+Da pagare oggi                         0,00 €     ← --color-ok
+Invia la richiesta: ti chiamiamo per concordare …
+[ Vai alla conferma → ]
+```
+
+`Da pagare oggi` is the reference site's own move and the strongest thing on their
+cart. It is `--color-ok`, not the accent: it is reassurance, not a call to act. It
+replaces the old `cartNoChargeYet` footnote, which said the same thing in prose
+under the button.
+
+### And the page title is painted again
+
+It was `sr-only` from 2026-08-20 on the reasoning that the breadcrumb directly above
+already reads "Home › La tua richiesta". The reference opens its cart on a title and
+a line of reassurance; without them the first thing on the page was a product card
+hanging off a breadcrumb. Both are painted, above BOTH columns rather than inside
+the rows column. The lead line is an instruction ("controlla gli ausili e vai
+avanti"), so it is suppressed when the cart is empty — there is nothing to check.
 
 ## Where the accessibility work is
 
