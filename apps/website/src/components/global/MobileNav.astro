@@ -1,11 +1,25 @@
 ---
 /**
- * Persistent bottom navigation, phones only.
+ * Persistent bottom tab bar, phones only — the app's primary navigation.
  *
- * The approved design hides the inline navigation below 720px and shows no
- * mobile alternative. Leaving phone users with no navigation at all is not an
- * option for this audience, so the bottom bar stays — restyled to the same
- * hairline-and-tint vocabulary as the rest of the page.
+ * Matched to the reference site's own tab bar (miamedicalitalia.it at 390px,
+ * measured 2026-08-31): a sticky white bar that LIFTS off the page on a soft
+ * upward shadow rather than ruling itself off it, `6px 8px 8px+safe-area` of
+ * padding, and equal-width tabs of a pill-backed icon over its label. The
+ * selected tab is marked by filling that pill with `accent-tint` and turning
+ * the whole tab accent — a fill, never a border (CLAUDE.md § controls).
+ *
+ * FOUR TABS, NOT THE REFERENCE'S FIVE, and the difference is the type floor.
+ * They set their tab labels at 13.3px; this project has no token below 16px and
+ * that floor is not negotiable for an audience that reads magnified. Four
+ * 16px labels fit a 390px viewport; five clip. The dropped slot is their
+ * "Aiuto", which the support launcher already reaches from every screen.
+ *
+ * WHAT THE FOUR ARE is the reference's information architecture, not the
+ * header's list in miniature: browse (home, catalogue) and the two things a
+ * customer actually chooses between (noleggio, vendita). Search moved UP into
+ * the header as an icon on 2026-08-31, following the reference, which is what
+ * freed the slot; the cart lives in the header too, badge and all.
  *
  * Deliberately static: every item is a real route link and the active route is
  * derived on the server, so there is no menu state and no client JavaScript.
@@ -20,24 +34,26 @@ interface Props {
 const { locale } = Astro.props;
 const text = (key: string) => translate(locale, key);
 
-/**
- * Four slots for six nav items, so this is not the header's list in miniature.
- * Support left it because the launcher pinned above this bar already reaches a
- * person; search took the slot, since it is the one thing a phone cannot do by
- * scanning a row of pills. Rental and sale are one tap inside the catalogue.
- */
 const items = [
   { href: routePath(locale, 'home'), label: text('header.home'), exact: true, icon: 'home' },
   {
     href: routePath(locale, 'catalog'),
     label: text('header.catalog'),
-    exact: false,
+    exact: true,
     icon: 'catalog',
   },
-  { href: routePath(locale, 'search'), label: text('header.browse'), exact: false, icon: 'search' },
-  /* `header.cart` is the icon's aria-label — "Apri il carrello" — and reads as
-     an instruction, not a destination, under a bar icon. */
-  { href: routePath(locale, 'cart'), label: text('nav.cart'), exact: false, icon: 'cart' },
+  {
+    href: routePath(locale, 'catalogRental'),
+    label: text('header.rental'),
+    exact: false,
+    icon: 'rental',
+  },
+  {
+    href: routePath(locale, 'catalogSale'),
+    label: text('header.sale'),
+    exact: false,
+    icon: 'sale',
+  },
 ] as const;
 
 const path = Astro.locals.publicPath ?? publicPathForRequest() ?? Astro.url.pathname;
@@ -47,23 +63,25 @@ const isActive = (item: (typeof items)[number]) =>
 
 <nav
   id="mobile-nav"
-  class="border-hair mid:hidden sticky bottom-0 z-70 grid grid-cols-4 gap-2 border-t bg-white px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
+  class="border-hair mid:hidden shadow-tabbar sticky bottom-0 z-70 flex border-t bg-white px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
   aria-label={text('navigation.primary')}
 >
   {
     items.map((item) => (
       <a
         class:list={[
-          'rounded-field font-display text-ui flex min-h-14.5 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1 font-bold no-underline',
+          'rounded-field font-display flex min-h-15.25 flex-1 basis-0 flex-col items-center justify-center gap-0.75 px-0.5 py-1.25 text-base/[1.15] font-bold no-underline',
           isActive(item) ? 'text-accent' : 'text-ink-2',
         ]}
         href={item.href}
         aria-current={isActive(item) ? 'page' : undefined}
       >
+        {/* 52×30 pill, the reference's own tab marker: it is wider than the
+            icon so the fill reads as a selected SLOT rather than a badge. */}
         <span
           class:list={[
-            'grid h-6 w-6 place-items-center',
-            isActive(item) && 'bg-tint h-7.5 w-13 rounded-full',
+            'grid h-7.5 w-13 place-items-center rounded-[10px]',
+            isActive(item) && 'bg-accent-tint',
           ]}
           aria-hidden="true"
         >
@@ -96,7 +114,10 @@ const isActive = (item: (typeof items)[number]) =>
               <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           )}
-          {item.icon === 'cart' && (
+          {/* Rental is a calendar and sale is a price tag — the reference's own
+              two glyphs, and the only pair that says "for a while" against
+              "to keep" without a word. */}
+          {item.icon === 'rental' && (
             <svg
               class="size-5.5"
               viewBox="0 0 24 24"
@@ -106,12 +127,11 @@ const isActive = (item: (typeof items)[number]) =>
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M4 5h2l2.2 10.2a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.5L21 8H6.4" />
-              <circle cx="10.5" cy="20" r="1.4" />
-              <circle cx="17.5" cy="20" r="1.4" />
+              <rect x="3" y="5" width="18" height="16" rx="2.5" />
+              <path d="M3 10h18M8 3v4M16 3v4" />
             </svg>
           )}
-          {item.icon === 'search' && (
+          {item.icon === 'sale' && (
             <svg
               class="size-5.5"
               viewBox="0 0 24 24"
@@ -121,8 +141,8 @@ const isActive = (item: (typeof items)[number]) =>
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <circle cx="11" cy="11" r="6.5" />
-              <path d="m20 20-4.2-4.2" />
+              <path d="M3.5 12.6V4.5a1 1 0 0 1 1-1h8.1a1 1 0 0 1 .7.3l7 7a1 1 0 0 1 0 1.4l-8.1 8.1a1 1 0 0 1-1.4 0l-7-7a1 1 0 0 1-.3-.7Z" />
+              <circle cx="8" cy="8" r="1.4" />
             </svg>
           )}
         </span>

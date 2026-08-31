@@ -3,10 +3,20 @@
  * Sticky site header — the editorial design system's quiet, typographic bar,
  * ported 1:1 from docs/blueprint/home.html with Tailwind utilities.
  *
- * Anatomy: text brand · plain-text nav (≥1100px) · green phone pill · two
- * ink-tile icons (cart with badge, account). No pills, no hamburger — below
- * 1100px navigation belongs to MobileNav's bottom bar, and below 560px the
- * phone pill collapses to its glyph.
+ * Anatomy: text brand · plain-text nav (≥720px) · green phone pill · three
+ * ink-tile icons (search, cart with badge, account). No pills, no hamburger —
+ * below 720px navigation belongs to MobileNav's bottom bar.
+ *
+ * THE PHONE HEADER IS THE REFERENCE'S (miamedicalitalia.it at 390px, measured
+ * 2026-08-31): brand, then icons only. Two swaps happen at `mid`, and they are
+ * one trade:
+ *
+ *   search  hidden ≥720   the tab bar has four slots and the type floor keeps
+ *                         it to four; search gives up its slot to Noleggio and
+ *                         Vendita and comes up here, where the reference has it
+ *   phone   hidden <720   its replacement, and the reason the swap is even —
+ *                         the support launcher is pinned to every phone screen
+ *                         with the same number one tap inside it
  *
  * The header's one script paints the cart badge; every link works without it.
  */
@@ -141,7 +151,7 @@ const headerIconClass =
       </details>
 
       <a
-        class="mid:max-wide:w-11 mid:max-wide:justify-center mid:max-wide:px-0 relative inline-flex min-h-11 items-center gap-2.25 rounded-xl bg-[var(--color-phone-tint)] px-3.75 text-base font-[650] whitespace-nowrap text-[var(--color-phone-ink)] tabular-nums no-underline hover:bg-[#d3ecdd] max-[559px]:w-11 max-[559px]:justify-center max-[559px]:px-0"
+        class="mid:max-wide:w-11 mid:max-wide:justify-center mid:max-wide:px-0 max-mid:hidden relative inline-flex min-h-11 items-center gap-2.25 rounded-xl bg-[var(--color-phone-tint)] px-3.75 text-base font-[650] whitespace-nowrap text-[var(--color-phone-ink)] tabular-nums no-underline hover:bg-[#d3ecdd]"
         href={`tel:${CONTACT.phoneE164}`}
         aria-label={text('header.call', { phone: CONTACT.phoneDisplay })}
         data-analytics="phone-call"
@@ -161,7 +171,7 @@ const headerIconClass =
             d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
           ></path>
         </svg>
-        <span class="mid:max-wide:hidden max-[559px]:hidden">{CONTACT.phoneDisplay}</span>
+        <span class="mid:max-wide:hidden">{CONTACT.phoneDisplay}</span>
       </a>
 
       {
@@ -173,6 +183,31 @@ const headerIconClass =
           count; two announcements of one number is worse than one.
         */
       }
+      {
+        /* Phones only: the tab bar spent its search slot on Noleggio/Vendita,
+           so typed search lives here — the reference's own arrangement. */
+      }
+      <a
+        class:list={[headerIconClass, 'mid:hidden']}
+        href={routePath(locale, 'search')}
+        aria-label={text('header.searchAction')}
+      >
+        <svg
+          width="21"
+          height="21"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="m20 20-4.2-4.2"></path>
+        </svg>
+      </a>
+
       <a
         class={headerIconClass}
         href={routePath(locale, 'cart')}

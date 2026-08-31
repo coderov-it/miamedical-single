@@ -14,6 +14,29 @@
  * so nothing here blocks SSR. When `total` is given the last slide is not a
  * product — it is the invitation into the full catalogue.
  *
+ * BELOW `mid` THERE IS NO CAROUSEL. The reference site lists its phone rails
+ * vertically — four rows, then a full-width outlined "Vedi tutto il catalogo"
+ * (miamedicalitalia.it at 390px, measured 2026-08-31) — and it is the better
+ * pattern for the audience: a swipe deck hides two thirds of what it holds
+ * behind a gesture, and `ProductCard`'s phone row is short enough that four of
+ * them cost less height than one slide used to.
+ *
+ * Which means the Embla instance must not exist on a phone, and the script
+ * below gates on the same 45rem the `mid` variant uses. Nothing is duplicated
+ * to get there: the same `<ul>` is a flex track above the breakpoint and a
+ * column below it, and the browse tile is the same `<a>` painted as a slide or
+ * as a full-width button.
+ *
+ * FOUR ROWS ON A PHONE, NOT EIGHT — the reference's own count. A deck of eight
+ * costs nothing to swipe past and a column of eight costs 1000px of scrolling,
+ * so below `mid` the rail shows four and hands the rest to the button under
+ * them, which is the whole point of the button being there.
+ *
+ * They are HIDDEN, not dropped: rows five to eight render on the server and CSS
+ * takes them out of the phone's paint. The mobile page is the indexed page, so
+ * cutting them from the markup would cut four product links out of the home
+ * page's link graph to save height that `display:none` already saves.
+ *
  * The API has no popularity signal yet, so the parent supplies the selection
  * from `home-content.ts` — editorially featured products first.
  */
@@ -121,23 +144,25 @@ const arrowClass =
         </div>
 
         <div
-          class="wide:[--slide-size:25%] mt-6 [--slide-size:78%] [--slide-spacing:16px] min-[900px]:[--slide-size:33.3333%] sm:[--slide-size:50%]"
+          class="wide:[--slide-size:25%] max-mid:mt-4 mt-6 [--slide-size:78%] [--slide-spacing:16px] min-[900px]:[--slide-size:33.3333%] sm:[--slide-size:50%]"
           data-carousel-rail={id}
         >
-          <div class="rail-viewport overflow-hidden">
-            <ul class="-ms-(--slide-spacing) flex touch-pan-y touch-pinch-zoom">
+          <div class="rail-viewport mid:overflow-hidden">
+            <ul class="mid:-ms-(--slide-spacing) mid:flex mid:flex-row max-mid:flex-col max-mid:gap-3 max-mid:[&>li:nth-child(n+5):not(:last-child)]:hidden flex touch-pan-y touch-pinch-zoom">
               {products.map((product) => (
-                <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
+                <li class="mid:flex-[0_0_var(--slide-size)] mid:ps-[var(--slide-spacing)] flex min-w-0 flex-none">
                   <ProductCard {product} headingLevel={3} />
                 </li>
               ))}
               {total !== undefined && (
-                <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
+                <li class="mid:flex-[0_0_var(--slide-size)] mid:ps-[var(--slide-spacing)] flex min-w-0 flex-none">
+                  {/* A slide in the deck above `mid`; the reference's
+                      full-width outlined button below it. */}
                   <a
-                    class="group/browse rounded-card flex w-full flex-col items-center justify-center gap-4.5 border border-[#d5dcf0] bg-[#e7ebf8] p-6 text-center text-[var(--color-ink)] no-underline hover:border-[#b9c3e4]"
+                    class="group/browse rounded-card mid:flex-col mid:gap-4.5 mid:bg-[#e7ebf8] mid:p-6 max-mid:min-h-14 max-mid:gap-2.5 max-mid:rounded-[14px] max-mid:bg-white flex w-full flex-row items-center justify-center gap-4.5 border border-[#d5dcf0] p-6 text-center text-[var(--color-ink)] no-underline hover:border-[#b9c3e4]"
                     href={seeAllHref}
                   >
-                    <span class="grid size-14 place-items-center rounded-full border border-[#d5dcf0] bg-white text-[var(--color-ink)] group-hover/browse:border-[var(--color-accent)] group-hover/browse:bg-[var(--color-accent)] group-hover/browse:text-white">
+                    <span class="mid:size-14 mid:border mid:bg-white max-mid:order-2 max-mid:size-6 max-mid:border-0 grid size-14 place-items-center rounded-full border border-[#d5dcf0] text-[var(--color-ink)] group-hover/browse:border-[var(--color-accent)] group-hover/browse:bg-[var(--color-accent)] group-hover/browse:text-white">
                       <svg
                         width="24"
                         height="24"
@@ -153,11 +178,11 @@ const arrowClass =
                         <path d="m14 6 6 6-6 6" />
                       </svg>
                     </span>
-                    <span>
-                      <span class="block text-[1.0625rem] leading-[1.35] font-[650]">
+                    <span class="max-mid:order-1">
+                      <span class="max-mid:text-accent block text-[1.0625rem] leading-[1.35] font-[650]">
                         {text('home.rail.browseTitle')}
                       </span>
-                      <span class="mt-1 block text-[0.9375rem] text-[var(--color-ink-soft)]">
+                      <span class="max-mid:hidden mt-1 block text-[0.9375rem] text-[var(--color-ink-soft)]">
                         {browseCount}
                       </span>
                     </span>
@@ -173,10 +198,24 @@ const arrowClass =
 }
 
 <script>
-  // Embla core — the slides are server-rendered above; this only attaches
-  // scrolling behavior, once per rail on the page. Guarded: a rail does not
-  // render at all when its selection is empty.
+  /*
+   * Embla core — the slides are server-rendered above; this only attaches
+   * scrolling behavior, once per rail on the page. Guarded: a rail does not
+   * render at all when its selection is empty.
+   *
+   * DESKTOP ONLY. Below `mid` the rail is a plain vertical list (see the
+   * component doc), and Embla would fight it: it transforms the track and
+   * pins each slide's width, which is exactly what the phone layout undoes.
+   * So the instance is created when the query matches and DESTROYED when it
+   * stops matching — the same thing Astro's `client:media` does for an island,
+   * done by hand because these slides are markup, not a component.
+   *
+   * `45rem` is `--breakpoint-mid`. If that token moves, this moves with it.
+   */
   import EmblaCarousel from 'embla-carousel';
+  import type { EmblaCarouselType } from 'embla-carousel';
+
+  const desktop = matchMedia('(min-width: 45rem)');
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-carousel-rail]')) {
     const id = root.dataset.carouselRail ?? '';
@@ -185,24 +224,35 @@ const arrowClass =
     const nextButton = document.querySelector<HTMLButtonElement>(`[data-carousel-next="${id}"]`);
     if (!viewport || !prevButton || !nextButton) continue;
 
-    const embla = EmblaCarousel(viewport, {
-      align: 'start',
-      containScroll: 'trimSnaps',
-    });
+    let embla: EmblaCarouselType | null = null;
 
     const syncArrows = () => {
+      if (!embla) return;
       prevButton.toggleAttribute('disabled', !embla.canScrollPrev());
       nextButton.toggleAttribute('disabled', !embla.canScrollNext());
     };
 
-    prevButton.addEventListener('click', () => embla.scrollPrev());
-    nextButton.addEventListener('click', () => embla.scrollNext());
-    embla.on('select', syncArrows);
-    embla.on('reInit', syncArrows);
-    // On a window resize embla re-inits itself but emits only 'resize' — not
-    // 'reInit' — and emits it BEFORE the internal re-init: sync a frame later
-    // or the arrows go stale when the breakpoint changes.
-    embla.on('resize', () => requestAnimationFrame(syncArrows));
-    syncArrows();
+    prevButton.addEventListener('click', () => embla?.scrollPrev());
+    nextButton.addEventListener('click', () => embla?.scrollNext());
+
+    const apply = () => {
+      if (!desktop.matches) {
+        embla?.destroy();
+        embla = null;
+        return;
+      }
+      if (embla) return;
+      embla = EmblaCarousel(viewport, { align: 'start', containScroll: 'trimSnaps' });
+      embla.on('select', syncArrows);
+      embla.on('reInit', syncArrows);
+      // On a window resize embla re-inits itself but emits only 'resize' — not
+      // 'reInit' — and emits it BEFORE the internal re-init: sync a frame later
+      // or the arrows go stale when the breakpoint changes.
+      embla.on('resize', () => requestAnimationFrame(syncArrows));
+      syncArrows();
+    };
+
+    apply();
+    desktop.addEventListener('change', apply);
   }
 </script>

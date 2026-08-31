@@ -5,9 +5,31 @@
  * (miamedicalitalia.it, 2026-08-31): 30px title, soft lede, cards of
  * chip + title + text, then the "you pay nothing today" strip. Static by
  * design: this copy is the offer, not data.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * THE CARDS ARE DRAWN AT DESKTOP SIZE BELOW `mid` UNLESS THEY ARE TOLD NOT TO,
+ * and this section is where that cost most: 22px of padding around a 17px title
+ * over 15.5px/1.6 body made each card 140px and the section 701px — a full
+ * phone screen of three sentences (owner, 2026-08-31). Every number below is
+ * halved or near it, and the body drops to the phone token:
+ *
+ *   card padding   22px → 14px      chip     38px → 32px
+ *   card title     17px → 16px      gap      10px → 8px
+ *   card text      15.5/1.6 → 14/1.45
+ *
+ * which brings the section to ~500px without dropping a word of the copy. If
+ * you add a fourth step, keep it in the same `max-mid:` pairs — a bare
+ * `px-5.5` here silently reintroduces the whole 200px.
  */
 import { localeForRequest, translate } from '~/lib/i18n';
-import { EDITORIAL_CONTAINER, EDITORIAL_THEME, HOME_BAND, HOME_LEAD, HOME_TITLE } from '~/styles/editorial';
+import {
+  EDITORIAL_CONTAINER,
+  EDITORIAL_THEME,
+  HOME_BAND,
+  HOME_LEAD,
+  HOME_TITLE,
+} from '~/styles/editorial';
 
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
@@ -23,18 +45,20 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
     <h2 class={HOME_TITLE} id="how-title">{text('home.how.title')}</h2>
     <p class={HOME_LEAD}>{text('home.how.lede')}</p>
 
-    <ol class="mt-6 grid list-none grid-cols-1 gap-4.5 min-[900px]:grid-cols-3">
+    <ol
+      class="mid:mt-6 mid:gap-4.5 max-mid:mt-3 max-mid:gap-2 grid list-none grid-cols-1 min-[900px]:grid-cols-3"
+    >
       {
         steps.map((step, index) => (
-          <li class="grid grid-cols-[auto_1fr] content-start items-center gap-x-4 gap-y-1.5 rounded-card border border-[var(--color-line)] bg-white px-5.5 py-5.5">
+          <li class="rounded-card mid:gap-x-4 mid:gap-y-1.5 mid:px-5.5 mid:py-5.5 max-mid:gap-x-3.5 max-mid:gap-y-1 max-mid:px-3.5 max-mid:py-3.5 grid grid-cols-[auto_1fr] content-start items-center border border-[var(--color-line)] bg-white">
             <span
-              class="bg-accent-tint grid size-11 place-items-center rounded-[12px] text-[1.0625rem] font-bold text-[var(--color-accent)] tabular-nums"
+              class="bg-accent-tint mid:size-11 mid:text-[1.0625rem] max-mid:size-8 max-mid:rounded-[10px] max-mid:text-base grid place-items-center rounded-[12px] font-bold text-[var(--color-accent)] tabular-nums"
               aria-hidden="true"
             >
               {index + 1}
             </span>
-            <h3 class="text-[1.0625rem] font-bold">{step.name}</h3>
-            <p class="col-start-2 text-[0.9688rem] leading-[1.6] text-[var(--color-ink-soft)]">
+            <h3 class="mid:text-[1.0625rem] max-mid:text-base font-bold">{step.name}</h3>
+            <p class="mid:text-[0.9688rem] mid:leading-[1.6] max-mid:text-(length:--text-phone-body) max-mid:leading-[1.45] col-start-2 text-[var(--color-ink-soft)]">
               {step.text}
             </p>
           </li>
@@ -43,7 +67,7 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
     </ol>
 
     <p
-      class="mt-4.5 flex items-center gap-3 rounded-[14px] bg-[var(--color-phone-tint)] px-5.5 py-4 text-[0.9688rem] leading-[1.6] text-[var(--color-phone-ink)]"
+      class="mid:mt-4.5 mid:px-5.5 mid:py-4 mid:text-[0.9688rem] mid:leading-[1.6] max-mid:mt-2 max-mid:gap-2.5 max-mid:px-3.5 max-mid:py-3 max-mid:text-(length:--text-phone-body) max-mid:leading-[1.45] flex items-center gap-3 rounded-[14px] bg-[var(--color-phone-tint)] text-[var(--color-phone-ink)]"
     >
       <svg
         class="flex-none"

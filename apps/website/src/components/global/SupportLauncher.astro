@@ -12,7 +12,17 @@
  * at all. The only script closes it on Escape and on an outside click — two
  * conveniences, never the mechanism.
  *
- * It sits above the phone's bottom navigation, never over it — see
+ * ON A PHONE IT IS A CIRCLE, NOT A PILL (2026-08-31). The wide "Assistenza"
+ * pill was 220px of opaque paint parked over the bottom-right of every phone
+ * screen — it covered a category tile on the home page, a product tile on the
+ * catalogue, and a review card, in that order, on the three screens it was
+ * checked against. The reference site solves the same problem with a 52px
+ * floating circle at `bottom: 92px` (its tab bar plus 16px), so that is what
+ * this is below `mid`: the label goes `sr-only`, the summary becomes a circle,
+ * and the panel it opens is unchanged. The desktop pill keeps its label.
+ *
+ * It sits above the phone's bottom navigation, never over it — the offset is
+ * `--spacing-mobile-nav` plus a 16px gap, which is the reference's 92px.
  * Its Tailwind classes also stand it down on the product page, where the price
  * bar already fills that corner.
  */
@@ -28,11 +38,11 @@ const itemClass =
 ---
 
 <details
-  class="mid:right-6 mid:bottom-6 max-mid:[body:has([data-pdp-price-bar])_&]:hidden fixed right-4 bottom-[calc(var(--spacing-mobile-nav)+12px+env(safe-area-inset-bottom,0px))] z-60"
+  class="mid:right-6 mid:bottom-6 max-mid:[body:has([data-pdp-price-bar])_&]:hidden fixed right-5 bottom-[calc(var(--spacing-mobile-nav)+16px+env(safe-area-inset-bottom,0px))] z-60"
   data-support-launcher
 >
   <summary
-    class="rounded-field font-display text-ui-strong hover:bg-accent-deep flex min-h-13 cursor-pointer list-none items-center gap-2.5 border-0 bg-accent px-5 font-semibold text-white shadow-[0_14px_34px_-14px_rgb(11_18_32/0.55)] [&::-webkit-details-marker]:hidden"
+    class="font-display text-ui-strong hover:bg-accent-deep max-mid:size-13 max-mid:min-w-0 max-mid:justify-center max-mid:rounded-2xl max-mid:px-0 mid:rounded-field mid:px-5 flex min-h-13 cursor-pointer list-none items-center gap-2.5 border-0 bg-accent font-semibold text-white shadow-[0_14px_34px_-14px_rgb(11_18_32/0.55)] [&::-webkit-details-marker]:hidden"
     aria-label={text('support.launcher.open')}
   >
     <svg
@@ -49,7 +59,7 @@ const itemClass =
         d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.4-.7L3 21l1.8-5.1A8.3 8.3 0 0 1 4 11.5 8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5Z"
       ></path>
     </svg>
-    <span>{text('support.launcher.label')}</span>
+    <span class="max-mid:sr-only">{text('support.launcher.label')}</span>
   </summary>
 
   <div

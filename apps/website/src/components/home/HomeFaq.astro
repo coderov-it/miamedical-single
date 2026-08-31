@@ -7,6 +7,18 @@
  * The TRIGGER carries the layering (a gray bar); the answer is plain text, so
  * what you press and what you read never blur. First item ships open so the
  * pattern explains itself. Zero JavaScript.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * Below `mid` the six separate bars become ONE white card with hairline-ruled
+ * rows — the settings-list pattern, and the reference site's own phone FAQ
+ * (miamedicalitalia.it at 390px, measured 2026-08-31). Six cards each carrying
+ * their own border and 10px of air between them read as six things on a phone;
+ * one card with five rules in it reads as one list of six questions.
+ *
+ * Same `<details>` elements, same order, same open state: the card is drawn by
+ * moving the border from each item onto their wrapper and turning the gaps into
+ * dividers.
  */
 import { homeFaq } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
@@ -28,7 +40,7 @@ const quietLinkClass =
 <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="faq-title">
   <div class={EDITORIAL_CONTAINER}>
     <div
-      class="wide:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] wide:gap-22 grid grid-cols-1 gap-10"
+      class="wide:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] wide:gap-22 mid:gap-10 max-mid:gap-6 grid grid-cols-1"
     >
       <div>
         <h2 class={HOME_TITLE} id="faq-title">
@@ -37,7 +49,7 @@ const quietLinkClass =
         <p class="mt-4 max-w-[34ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
           {text('home.faq.lede')}
         </p>
-        <div class="mt-7 flex flex-wrap gap-2.5">
+        <div class="mid:mt-7 max-mid:mt-5 flex flex-wrap gap-2.5">
           {/* /chi-siamo/ does not exist yet — flagged as a pending route. */}
           <a class={quietLinkClass} href="/chi-siamo/">
             <svg
@@ -78,11 +90,13 @@ const quietLinkClass =
         </div>
       </div>
 
-      <div class="[&>details+details]:mt-2.5">
+      <div
+        class="mid:border-0 mid:bg-transparent mid:[&>details+details]:mt-2.5 max-mid:rounded-[16px] max-mid:border max-mid:border-[var(--color-line)] max-mid:bg-white"
+      >
         {
           faq.map((item, index) => (
             <details class="group/faq" open={index === 0}>
-              <summary class="flex min-h-15.5 cursor-pointer list-none items-center justify-between gap-6 rounded-[14px] border border-[var(--color-line)] bg-white px-5 py-4 text-[1.0625rem] font-[650] group-open/faq:border-[#ccd2e2] hover:border-[#ccd2e2] [&::-webkit-details-marker]:hidden">
+              <summary class="mid:rounded-[14px] mid:border mid:border-[var(--color-line)] mid:bg-white mid:group-open/faq:border-[#ccd2e2] mid:hover:border-[#ccd2e2] max-mid:border-0 max-mid:[details+details>&]:border-t max-mid:[details+details>&]:border-[var(--color-line)] mid:px-5 max-mid:px-4.5 flex min-h-15.5 cursor-pointer list-none items-center justify-between gap-6 py-4 text-[1.0625rem] font-[650] [&::-webkit-details-marker]:hidden">
                 {item.question}
                 <svg
                   class="flex-none text-[var(--color-ink-soft)] transition-transform duration-200 ease-out group-open/faq:rotate-45"
@@ -98,7 +112,7 @@ const quietLinkClass =
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </summary>
-              <p class="max-w-[62ch] px-5 pt-4 pb-2.5 text-[0.9688rem] leading-[1.65] text-[var(--color-ink-soft)]">
+              <p class="mid:px-5 mid:pt-4 max-mid:px-4.5 max-mid:pt-1 max-w-[62ch] pb-4 text-[0.9688rem] leading-[1.65] text-[var(--color-ink-soft)]">
                 {item.answer}
               </p>
             </details>

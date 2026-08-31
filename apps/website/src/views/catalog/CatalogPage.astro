@@ -118,33 +118,45 @@ const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.
     /* ONE grey ground with white cards on it, the reference's page and the home
        page's — which is why nothing inside paints a ground of its own. The
        wrapper's air is theirs too: 34px above the title, 60px under the last
-       row before the footer. */
+       row before the footer.
+       
+       ON A PHONE THE MASTHEAD IS A WHITE TOOLBAR and the body is the grey
+       ground under it (owner, 2026-08-31). It is the same two blocks at every
+       width — above `mid` both are transparent and the split is invisible —
+       but below it the title, the search field and the control strip need to
+       read as ONE object rather than as three controls scattered on the page,
+       and a ground change plus a hairline is what says so. This is also why the
+       block bleeds past the gutter: a toolbar that stops short of the screen
+       edge reads as a card, not as chrome. */
   }
   <div class="bg-page">
-    <div
-      class="max-w-page px-gutter mx-auto w-full pt-[clamp(22px,2.4vw,34px)] pb-[clamp(40px,4.2vw,60px)]"
-    >
-      {
-        /* The masthead is the whole crumb trail on the bare surfaces — a single
-           "Home › Catalogo" row above an h1 that says the same word twice is
-           noise. It earns its place once a category is the page's real subject. */
-      }
-      {
-        activeCategory && (
-          <Breadcrumbs
-            items={[
-              { label: translate(locale, 'home'), href: routePath(locale, 'home') },
-              { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
-              { label: activeCategory.name },
-            ]}
-          />
-        )
-      }
+    <div class="max-mid:border-hair max-mid:border-b max-mid:bg-white">
+      <div class="max-w-page px-gutter max-mid:pt-3 mx-auto w-full pt-[clamp(22px,2.4vw,34px)]">
+        {
+          /* The masthead is the whole crumb trail on the bare surfaces — a
+             single "Home › Catalogo" row above an h1 that says the same word
+             twice is noise. It earns its place once a category is the page's
+             real subject. */
+        }
+        {
+          activeCategory && (
+            <Breadcrumbs
+              items={[
+                { label: translate(locale, 'home'), href: routePath(locale, 'home') },
+                { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
+                { label: activeCategory.name },
+              ]}
+            />
+          )
+        }
 
-      <CatalogHead heading={copy.heading} lede={copy.lede} />
+        <CatalogHead heading={copy.heading} lede={copy.lede} />
 
-      <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
+        <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
+      </div>
+    </div>
 
+    <div class="max-w-page px-gutter max-mid:pt-5 mx-auto w-full pb-[clamp(40px,4.2vw,60px)]">
       {showDirectory && <CategoryDirectory {tiles} />}
 
       <CatalogListing

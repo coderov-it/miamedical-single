@@ -30,13 +30,21 @@ export const EDITORIAL_CONTAINER = 'mx-auto w-full max-w-page px-gutter';
  * ground with white cards, each opening with 92px of air at full width, a
  * plain 30px bold title and an 18.5px soft lede — no rules, no arrow glyphs.
  */
-export const HOME_BAND = 'pt-[clamp(56px,calc(5vw+20px),92px)]';
-export const HOME_TITLE = 'text-[clamp(1.5rem,2.08vw,1.875rem)] font-bold tracking-[-0.01em]';
+/*
+ * Section rhythm. The clamp is solved for 720→1280 and HOLDS FLAT below 720,
+ * which is the ramp's blind spot: a phone was getting the 720px design's 56px
+ * of air between every section, and over nine sections that is half a screen of
+ * nothing. `max-mid` anchors the phone end at the reference site's own 40px
+ * (miamedicalitalia.it at 390px, measured 2026-08-31).
+ */
+export const HOME_BAND = 'max-mid:pt-10 pt-[clamp(56px,calc(5vw+20px),92px)]';
+export const HOME_TITLE =
+  'max-mid:text-[1.375rem] max-mid:leading-[1.25] text-[clamp(1.5rem,2.08vw,1.875rem)] font-bold tracking-[-0.01em]';
 export const HOME_LEAD =
-  'mt-1.5 text-[clamp(1rem,1.28vw,1.15625rem)] leading-[1.55] text-[var(--color-ink-soft)]';
+  'mt-1.5 max-mid:text-(length:--text-phone-lead) max-mid:leading-[1.4] text-[clamp(1rem,1.28vw,1.15625rem)] leading-[1.55] text-[var(--color-ink-soft)]';
 export const HOME_SEE_ALL =
-  'font-ui text-[1.0625rem] font-semibold whitespace-nowrap text-[var(--color-accent)] ' +
-  'no-underline hover:underline';
+  'font-ui max-mid:text-(length:--text-phone-lead) text-[1.0625rem] font-semibold ' +
+  'whitespace-nowrap text-[var(--color-accent)] no-underline hover:underline';
 
 export const EDITORIAL_BUTTON =
   'font-ui inline-flex min-h-13.5 items-center justify-center rounded-[var(--radius-control)] ' +

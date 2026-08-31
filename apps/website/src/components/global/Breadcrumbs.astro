@@ -35,14 +35,25 @@ const jsonLd = {
 };
 ---
 
-<nav class="pb-4" aria-label={translate(locale, 'breadcrumbs.label')}>
+<nav class="mid:pb-4 max-mid:pb-2" aria-label={translate(locale, 'breadcrumbs.label')}>
   {
     /* 14px, regular, muted — a trail kept for structured data and orientation,
        not a second heading. It used to render 16px/600 with a bold near-black
        current item, so a category page opened with the same word twice: once in
-       the trail and once as the h1 under it (owner, 2026-08-30). */
+       the trail and once as the h1 under it (owner, 2026-08-30).
+       
+       11px AND LIGHT ON A PHONE (owner, 2026-08-31). This is the one place on
+       the site that deliberately sits under the phone's 14px step, and the
+       reason is what the trail is FOR here: nobody navigates by it on a 390px
+       screen — it is kept for the BreadcrumbList structured data below and for
+       orientation at a glance. It is not body copy, and the JSON-LD carries the
+       same strings at full fidelity whatever this renders at, so search engines
+       and assistive technology lose nothing. It stays a real, focusable link
+       with the full 48px hit area; only the paint shrinks. */
   }
-  <ol class="flex flex-wrap items-center gap-2 text-[14px]">
+  <ol
+    class="mid:gap-2 mid:text-[14px] max-mid:gap-1.5 max-mid:text-[11px] max-mid:font-light flex flex-wrap items-center"
+  >
     {
       items.map((crumb, index) => (
         <li class="flex items-center gap-2">
@@ -62,7 +73,7 @@ const jsonLd = {
               {crumb.label}
             </a>
           ) : (
-            <span class="text-ink-2 font-bold" aria-current="page">
+            <span class="text-ink-2 mid:font-bold max-mid:font-normal" aria-current="page">
               {crumb.label}
             </span>
           )}

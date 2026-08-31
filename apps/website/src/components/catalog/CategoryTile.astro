@@ -30,7 +30,9 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
 <a
   class:list={[
     'group/category border-hair hover:border-hair-strong block h-full w-full border bg-white text-center no-underline',
-    compact ? 'rounded-2xl px-3 pt-3.5 pb-3.5' : 'rounded-card px-3.5 pt-4.5 pb-4.5',
+    compact
+      ? 'rounded-2xl px-3 pt-3.5 pb-3.5'
+      : 'rounded-card mid:pt-4.5 mid:pb-4.5 max-mid:pt-3.5 max-mid:pb-3.5 px-3.5',
   ]}
   href={tile.href}
 >
@@ -40,7 +42,11 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
        here would frame a white rectangle in a grey box; `mix-blend-multiply`
        makes that ground disappear into the card instead. */
   }
-  <span class:list={['block', compact ? 'mb-2 h-20.5' : 'mb-2.25 h-26']}>
+  {
+    /* The art is a desktop 104px; a phone grid of eight of these paid 1047px
+      for it, so it comes down a step below `mid`. */
+  }
+  <span class:list={['block', compact ? 'mb-2 h-20.5' : 'mid:h-26 max-mid:h-20 mb-2.25']}>
     {
       tile.imagePath && (
         <img
