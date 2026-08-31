@@ -1,12 +1,9 @@
 ---
 /**
- * The booking card — the hero's one action: a white card straddling the pale
- * band's bottom edge, holding its own question and the search bar. It carries
- * the page's only resting shadow.
- *
- * The question has no sub-line under it. It used to say where we deliver, which
- * the hero kicker and the trust strip below already say twice — 30px of card
- * height for a third telling (owner, 2026-08-27).
+ * The booking card — the white bar straddling the hero's bottom edge, restyled
+ * to the owner's hero reference (2026-08-31): a title with a reassurance note
+ * on its right, then four grey SEGMENTS — each a box carrying its own label —
+ * and the search button closing the row.
  *
  * Rendered by `HomeHero`, not by the page: the overlap is part of the hero's
  * composition, and there is exactly one search bar on the site.
@@ -14,19 +11,19 @@
  * A native GET form landing on the SEARCH page, not the catalogue (owner,
  * 2026-08-30): the customer has typed a query and picked a date, and search is
  * the one surface that answers a typed query — it owns the sort, the category
- * filter and the result count. `area` and `from` are carried, not filters: they
- * are echoed back and the product page prefills from them (see routes.ts §
- * BrowseContext).
+ * filter and the result count. `area`, `from` and `for` are carried, not
+ * filters: they ride the query string so the funnel remembers them (see
+ * routes.ts § BrowseContext). `for` is a fuzzy duration bucket, never a package.
  *
  * The zone and date use the storefront's reusable progressive-enhancement
  * primitives. Both render native form controls first; the dropdown behavior
  * and Cally calendar replace only their paint after JavaScript is ready, while
  * every choice continues to write through the native control.
  *
- * The zone is NOT `required`. It used to be, and it cannot stay: a hidden
+ * No segment is `required`. The zone used to be, and it cannot be: a hidden
  * `required` control is unfocusable, so Chrome would refuse the submit with no
- * message anywhere on screen — the silent block CLAUDE.md forbids. The zone is
- * carried context, not a filter, and the catalogue is complete without it.
+ * message anywhere on screen — the silent block CLAUDE.md forbids. Everything
+ * here is carried context, and the catalogue is complete without it.
  */
 import DatePicker from '~/components/primitives/DatePicker.astro';
 import Dropdown from '~/components/primitives/Dropdown.astro';
@@ -37,59 +34,64 @@ import { SERVICE_AREAS } from '~/lib/site';
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
 
-/* The zone options: `value` is the wire key, the label is UI copy — so the
-   label is translated and the value never is. */
+/* Option `value`s are the wire keys, the labels are UI copy — so the label is
+   translated and the value never is. */
 const areaOptions = SERVICE_AREAS.map((area) => ({
   value: area.value,
   label: text(`area.${area.value}`),
 }));
+const durationOptions = ['1w', '2w', '1m', '2m', 'unsure'].map((value) => ({
+  value,
+  label: text(`home.booking.for.${value}`),
+}));
+
+/* One grey segment of the bar: the box carries the label INSIDE it, and the
+   primitives' `hero` variant renders a transparent control to sit in it. */
+const segmentClass =
+  'grid min-w-0 content-center rounded-[var(--radius-control)] bg-[var(--color-surface)] ' +
+  'px-3.5 py-2.5 hover:bg-[var(--color-surface-2)]';
 ---
 
 <section
   class="relative rounded-[var(--radius-bar)] border border-[var(--color-line)] bg-white px-6 pt-5.5 pb-6 shadow-[var(--shadow-whisper)]"
   aria-labelledby="booking-title"
 >
-  <h2 class="text-[clamp(1.25rem,2vw,1.5rem)] font-bold tracking-[-0.02em]" id="booking-title">
-    {text('home.booking.title')}
-  </h2>
+  <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+    <h2 class="text-[clamp(1.25rem,2vw,1.5rem)] font-bold tracking-[-0.02em]" id="booking-title">
+      {text('home.booking.title')}
+    </h2>
+    <p class="text-sm text-[var(--color-ink-soft)] max-mid:hidden">
+      {text('home.booking.note')}
+    </p>
+  </div>
 
   <form
-    class="mt-4.5 grid gap-3 text-left min-[1020px]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_auto] min-[1020px]:items-end min-[1020px]:gap-3.5"
+    class="mt-4 grid gap-3 text-left min-[1020px]:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] min-[1020px]:items-stretch"
     method="get"
     action={routePath(locale, 'search')}
     role="search"
     aria-label={text('home.booking.formLabel')}
   >
-    <label class="grid min-w-0 content-start gap-1.75" for="booking-product">
-      <span class="text-xs font-[650] tracking-[0.07em] text-[var(--color-ink-soft)] uppercase"
+    <label
+      class:list={[
+        segmentClass,
+        'cursor-text has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--color-accent)]',
+      ]}
+      for="booking-product"
+    >
+      <span
+        class="mb-0.5 text-[0.6875rem] font-[650] tracking-[0.08em] text-[var(--color-ink-soft)] uppercase"
         >{text('home.booking.query')}</span
       >
-      <span
-        class="flex min-h-13.5 w-full cursor-text items-center gap-2.5 rounded-[var(--radius-control)] border-0 bg-[var(--color-surface)] px-3.5 text-left text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] has-focus-visible:bg-white has-focus-visible:shadow-[0_0_0_2px_#fff] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--color-accent)]"
-      >
-        <svg
-          class="size-4.5 flex-none text-[var(--color-ink-soft)]"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-          ></path>
-        </svg>
-        <input
-          class="font-ui min-h-0 min-w-0 flex-1 overflow-hidden border-0 bg-transparent p-0 text-[1.0625rem] font-semibold text-ellipsis whitespace-nowrap placeholder:font-medium placeholder:text-[var(--color-ink-soft)] placeholder:opacity-100 focus-visible:shadow-none focus-visible:outline-none"
-          data-focus-owner
-          id="booking-product"
-          name="q"
-          type="search"
-          autocomplete="off"
-          placeholder={text('home.booking.queryPlaceholder')}
-        />
-      </span>
+      <input
+        class="placeholder:text-ink-placeholder min-h-7 w-full min-w-0 overflow-hidden border-0 bg-transparent p-0 text-[1rem] font-semibold text-[var(--color-ink)] text-ellipsis whitespace-nowrap placeholder:font-normal placeholder:opacity-100 focus-visible:shadow-none focus-visible:outline-none"
+        data-focus-owner
+        id="booking-product"
+        name="q"
+        type="search"
+        autocomplete="off"
+        placeholder={text('home.booking.queryPlaceholder')}
+      />
     </label>
 
     <Dropdown
@@ -99,22 +101,8 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
       options={areaOptions}
       placeholder={text('home.booking.areaPlaceholder')}
       variant="hero"
-      class="grid min-w-0 content-start gap-1.75"
-    >
-      <svg
-        slot="icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.8"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-        <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-        ></path>
-      </svg>
-    </Dropdown>
+      class={segmentClass}
+    />
 
     <DatePicker
       id="booking-start"
@@ -122,7 +110,7 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
       label={text('home.booking.startDate')}
       min="today"
       variant="hero"
-      class="grid min-w-0 content-start gap-1.75"
+      class={segmentClass}
     >
       <svg
         slot="icon"
@@ -138,8 +126,18 @@ const areaOptions = SERVICE_AREAS.map((area) => ({
       </svg>
     </DatePicker>
 
+    <Dropdown
+      id="booking-for"
+      name="for"
+      label={text('home.booking.for')}
+      options={durationOptions}
+      placeholder={text('home.booking.forPlaceholder')}
+      variant="hero"
+      class={segmentClass}
+    />
+
     <button
-      class="inline-flex min-h-13.5 items-center justify-center gap-2.5 rounded-[var(--radius-control)] border-0 bg-[var(--color-accent)] px-7.5 text-[1.0625rem] font-semibold text-white hover:bg-[var(--color-accent-deep)] min-[1020px]:ms-1"
+      class="inline-flex min-h-15 items-center justify-center gap-2.5 rounded-[var(--radius-control)] border-0 bg-[var(--color-accent)] px-7 text-[1.0625rem] font-semibold text-white hover:bg-[var(--color-accent-deep)]"
       type="submit"
     >
       <svg

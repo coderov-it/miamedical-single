@@ -11,45 +11,28 @@
 import { homeFaq } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
-import { EDITORIAL_CONTAINER, EDITORIAL_THEME, SECTION_TITLE } from '~/styles/editorial';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME, HOME_BAND, HOME_TITLE } from '~/styles/editorial';
 
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
 const faq = homeFaq(locale);
+/* White fills since the section moved onto the grey ground (2026-08-31) —
+   the pattern's white-on-grey inversion of its old grey-on-white bars. */
 const quietLinkClass =
-  'inline-flex min-h-12 items-center gap-2.25 rounded-[14px] bg-[#f4f5f7] px-4.5 ' +
+  'inline-flex min-h-12 items-center gap-2.25 rounded-[14px] border border-[var(--color-line)] bg-white px-4.5 ' +
   'text-[0.9688rem] font-[650] whitespace-nowrap text-[var(--color-ink)] no-underline ' +
-  'hover:bg-[#eceef1] hover:text-[var(--color-accent)] [&_svg]:flex-none ' +
+  'hover:border-[#ccd2e2] hover:text-[var(--color-accent)] [&_svg]:flex-none ' +
   '[&_svg]:text-[var(--color-ink-soft)] hover:[&_svg]:text-current';
 ---
 
-<section
-  class:list={[
-    EDITORIAL_THEME,
-    'border-t border-[var(--color-line)] bg-white pt-[var(--band-1)] pb-[var(--band-3)]',
-  ]}
-  aria-labelledby="faq-title"
->
+<section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="faq-title">
   <div class={EDITORIAL_CONTAINER}>
     <div
       class="wide:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] wide:gap-22 grid grid-cols-1 gap-10"
     >
       <div>
-        <h2 class={SECTION_TITLE} id="faq-title">
+        <h2 class={HOME_TITLE} id="faq-title">
           {text('home.faq.title')}
-          <svg
-            width="44"
-            height="16"
-            viewBox="0 0 44 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M1 8h41M35 1.5 42.5 8 35 14.5"></path>
-          </svg>
         </h2>
         <p class="mt-4 max-w-[34ch] text-[1.0625rem] leading-[1.65] text-[var(--color-ink-soft)]">
           {text('home.faq.lede')}
@@ -99,7 +82,7 @@ const quietLinkClass =
         {
           faq.map((item, index) => (
             <details class="group/faq" open={index === 0}>
-              <summary class="flex min-h-15.5 cursor-pointer list-none items-center justify-between gap-6 rounded-[14px] bg-[#f4f5f7] px-5 py-4 text-[1.0625rem] font-[650] group-open/faq:bg-[#eceef1] hover:bg-[#eceef1] [&::-webkit-details-marker]:hidden">
+              <summary class="flex min-h-15.5 cursor-pointer list-none items-center justify-between gap-6 rounded-[14px] border border-[var(--color-line)] bg-white px-5 py-4 text-[1.0625rem] font-[650] group-open/faq:border-[#ccd2e2] hover:border-[#ccd2e2] [&::-webkit-details-marker]:hidden">
                 {item.question}
                 <svg
                   class="flex-none text-[var(--color-ink-soft)] transition-transform duration-200 ease-out group-open/faq:rotate-45"

@@ -1,47 +1,69 @@
 ---
 /**
- * "I più noleggiati" — white cards on the whisper-gray band, ported 1:1 from
- * docs/blueprint/home.html with Tailwind utilities.
+ * A product rail section — "I più noleggiati" and "In vendita" are the same
+ * component instantiated twice, matched to the reference sections
+ * (miamedicalitalia.it, 2026-08-31): plain 30px title with the see-all link on
+ * its right, four white cards across at full width, each an image well, a
+ * two-line title, an accent price beside a green availability dot, and one
+ * quiet action.
  *
  * An Embla core carousel (the project-wide engine): the slides are plain
  * server-rendered HTML and the script below only attaches scrolling behavior,
- * so nothing here blocks SSR. The last slide is never a product — it is the
- * invitation into the full catalogue.
+ * so nothing here blocks SSR. When `total` is given the last slide is not a
+ * product — it is the invitation into the full catalogue.
  *
  * The API has no popularity signal yet, so the parent supplies the selection
  * from `home-content.ts` — editorially featured products first.
  */
+import { unitLabel } from '@mia/i18n';
+
 import { mediaUrl } from '~/lib/api';
 import type { ProductSummary } from '~/lib/catalog';
 import { productOffer } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
-import { productPath, routePath } from '~/lib/routes';
+import { productPath } from '~/lib/routes';
 import {
   EDITORIAL_CONTAINER,
   EDITORIAL_THEME,
+  HOME_BAND,
+  HOME_SEE_ALL,
+  HOME_TITLE,
   INVISIBLE_48,
-  SECTION_TITLE,
 } from '~/styles/editorial';
 
 interface Props {
+  /** Distinguishes the page's rails — also the carousel's wiring key. */
+  id: string;
+  title: string;
+  seeAllLabel: string;
+  seeAllHref: string;
   products: ProductSummary[];
-  /** Whole-catalogue size, for the browse tile's count line. */
-  total: number;
+  /** Whole-catalogue size; when given, the rail closes with the browse tile. */
+  total?: number | undefined;
 }
 
-const { products, total } = Astro.props;
+const { id, title, seeAllLabel, seeAllHref, products, total } = Astro.props;
 const locale = localeForRequest();
 const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
 
+/* "da 12,00 €/giorno" for a rental rate, the bare figure for a sale price —
+   the reference's compact price line, in our money format. */
+function priceLabel(product: ProductSummary): string | null {
+  const offer = productOffer(product, locale);
+  if (!offer) return null;
+  if (!offer.unit || !product.pricing.rentalUnit) return offer.money;
+  return `${text('home.showcase.from')} ${offer.money}/${unitLabel(product.pricing.rentalUnit, locale, 'one')}`;
+}
+
 /* "Oltre 60 ausili a noleggio" — rounded DOWN so the claim is never a lie.
    Below ten products a rounded figure would read as zero, so the tile says
    the exact count instead. */
-const roundedTotal = Math.floor(total / 10) * 10;
+const roundedTotal = total === undefined ? 0 : Math.floor(total / 10) * 10;
 const browseCount =
-  total > 10
+  total !== undefined && total > 10
     ? text('home.rail.countOver', { count: roundedTotal })
-    : text(total === 1 ? 'home.rail.countOne' : 'home.rail.countMany', { count: total });
+    : text(total === 1 ? 'home.rail.countOne' : 'home.rail.countMany', { count: total ?? 0 });
 
 const arrowClass =
   `${INVISIBLE_48} grid size-11 min-h-0 min-w-0 place-items-center rounded-full border ` +
@@ -52,43 +74,22 @@ const arrowClass =
 
 {
   products.length > 0 && (
-    <section
-      class:list={[
-        EDITORIAL_THEME,
-        'border-t border-[var(--color-line)] bg-[#f6f7f9] pt-[var(--band-1)] pb-[var(--band-3)]',
-      ]}
-      aria-labelledby="trending-title"
-    >
+    <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby={`${id}-title`}>
       <div class={EDITORIAL_CONTAINER}>
         <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
-          <h2 class={SECTION_TITLE} id="trending-title">
-            {text('home.rail.title')}
-            <svg
-              width="44"
-              height="16"
-              viewBox="0 0 44 16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M1 8h41M35 1.5 42.5 8 35 14.5" />
-            </svg>
+          <h2 class={HOME_TITLE} id={`${id}-title`}>
+            {title}
           </h2>
           <div class="flex items-center gap-6">
-            <a
-              class="border-b border-[var(--color-line)] pb-0.5 text-[1.0625rem] font-semibold whitespace-nowrap text-[var(--color-ink)] no-underline hover:border-current hover:text-[var(--color-accent)]"
-              href={routePath(locale, 'catalog')}
-            >
-              {text('home.rail.seeAll')}
+            <a class={HOME_SEE_ALL} href={seeAllHref}>
+              {seeAllLabel}
             </a>
-            <div class="flex gap-2">
+            {/* Phones swipe the rail; the arrows would overflow the header row. */}
+            <div class="mid:flex hidden gap-2">
               <button
                 class={arrowClass}
                 type="button"
-                data-carousel-prev="trending"
+                data-carousel-prev={id}
                 aria-label={text('home.rail.previous')}
                 disabled
               >
@@ -109,7 +110,7 @@ const arrowClass =
               <button
                 class={arrowClass}
                 type="button"
-                data-carousel-next="trending"
+                data-carousel-next={id}
                 aria-label={text('home.rail.next')}
               >
                 <svg
@@ -131,19 +132,19 @@ const arrowClass =
         </div>
 
         <div
-          class="wide:[--slide-size:25%] mt-7.5 [--slide-size:78%] [--slide-spacing:14px] min-[900px]:[--slide-size:33.3333%] sm:[--slide-size:50%]"
-          data-carousel="trending"
+          class="wide:[--slide-size:25%] mt-6 [--slide-size:78%] [--slide-spacing:16px] min-[900px]:[--slide-size:33.3333%] sm:[--slide-size:50%]"
+          data-carousel-rail={id}
         >
-          <div class="trend-viewport overflow-hidden">
-            <ul class="-ms-[var(--slide-spacing)] flex touch-pan-y touch-pinch-zoom">
+          <div class="rail-viewport overflow-hidden">
+            <ul class="-ms-(--slide-spacing) flex touch-pan-y touch-pinch-zoom">
               {products.map((product) => {
-                const offer = productOffer(product, locale);
+                const price = priceLabel(product);
                 const href = productPath(product.slug, {}, locale);
                 return (
                   <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
-                    <article class="group/product flex w-full flex-col rounded-[20px] border border-[var(--color-line)] bg-white px-3 pt-3 pb-4 hover:border-[#ccd2e2]">
+                    <article class="group/product rounded-card flex w-full flex-col border border-[var(--color-line)] bg-white px-3.5 pt-3.5 pb-4 hover:border-[#ccd2e2]">
                       <a class="block no-underline" href={href}>
-                        <span class="mb-4 block h-44.5 rounded-xl bg-[var(--color-surface-2)] p-3.5">
+                        <span class="mb-3.5 block h-44.5 rounded-xl bg-[var(--color-surface-2)] p-3.5">
                           {product.thumbnail && (
                             <img
                               class="block size-full object-contain mix-blend-multiply"
@@ -153,59 +154,73 @@ const arrowClass =
                             />
                           )}
                         </span>
-                        <h3 class="line-clamp-2 min-h-[calc(2*1.35em)] px-2 text-[1.0625rem] leading-[1.35] font-[650] group-hover/product:text-[var(--color-accent)]">
+                        <h3 class="line-clamp-2 min-h-[calc(2*1.35em)] px-1.5 text-[1.0625rem] leading-[1.35] font-bold group-hover/product:text-[var(--color-accent)]">
                           {product.title}
                         </h3>
                       </a>
-                      {offer && (
-                        <p class="mt-3 mb-4 px-2 text-[0.9375rem] text-[var(--color-ink-soft)]">
-                          <strong class="me-1.25 text-[1.375rem] font-[750] tracking-[-0.01em] text-[var(--color-ink)] tabular-nums">
-                            {offer.money}
+                      <p class="mt-2.5 mb-3.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 px-1.5">
+                        {price && (
+                          <strong class="text-[1.0313rem] font-[750] tracking-[-0.01em] text-[var(--color-accent)] tabular-nums">
+                            {price}
                           </strong>
-                          {offer.unit}
-                        </p>
-                      )}
+                        )}
+                        <span
+                          class:list={[
+                            'inline-flex items-center gap-1.5 text-sm font-semibold',
+                            product.inStock
+                              ? 'text-[var(--color-live)]'
+                              : 'text-[var(--color-ink-soft)]',
+                          ]}
+                        >
+                          <span class="size-1.75 rounded-full bg-current" aria-hidden="true" />
+                          {text(product.inStock ? 'card.available' : 'card.outOfStock')}
+                        </span>
+                      </p>
                       <a
-                        class="mt-auto inline-flex min-h-12 items-center justify-center rounded-xl border-0 bg-[#eef0fb] text-base font-semibold text-[var(--color-accent)] no-underline hover:bg-[var(--color-accent)] hover:text-white"
+                        class="bg-accent-tint mt-auto inline-flex min-h-12 items-center justify-center rounded-xl border-0 text-base font-semibold text-[var(--color-accent)] no-underline hover:bg-[var(--color-accent)] hover:text-white"
                         href={href}
                       >
-                        {text(product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy')}
+                        {text(
+                          product.pricing.mode === 'rental' ? 'card.viewRent' : 'card.viewProduct',
+                        )}
                       </a>
                     </article>
                   </li>
                 );
               })}
-              <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
-                <a
-                  class="group/browse flex w-full flex-col items-center justify-center gap-4.5 rounded-[20px] border border-[#d5dcf0] bg-[#e7ebf8] p-6 text-center text-[var(--color-ink)] no-underline hover:border-[#b9c3e4]"
-                  href={routePath(locale, 'catalog')}
-                >
-                  <span class="grid size-14 place-items-center rounded-full border border-[#d5dcf0] bg-white text-[var(--color-ink)] group-hover/browse:border-[var(--color-accent)] group-hover/browse:bg-[var(--color-accent)] group-hover/browse:text-white">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M4 12h16" />
-                      <path d="m14 6 6 6-6 6" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span class="block text-[1.0625rem] leading-[1.35] font-[650]">
-                      {text('home.rail.browseTitle')}
+              {total !== undefined && (
+                <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
+                  <a
+                    class="group/browse rounded-card flex w-full flex-col items-center justify-center gap-4.5 border border-[#d5dcf0] bg-[#e7ebf8] p-6 text-center text-[var(--color-ink)] no-underline hover:border-[#b9c3e4]"
+                    href={seeAllHref}
+                  >
+                    <span class="grid size-14 place-items-center rounded-full border border-[#d5dcf0] bg-white text-[var(--color-ink)] group-hover/browse:border-[var(--color-accent)] group-hover/browse:bg-[var(--color-accent)] group-hover/browse:text-white">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M4 12h16" />
+                        <path d="m14 6 6 6-6 6" />
+                      </svg>
                     </span>
-                    <span class="mt-1 block text-[0.9375rem] text-[var(--color-ink-soft)]">
-                      {browseCount}
+                    <span>
+                      <span class="block text-[1.0625rem] leading-[1.35] font-[650]">
+                        {text('home.rail.browseTitle')}
+                      </span>
+                      <span class="mt-1 block text-[0.9375rem] text-[var(--color-ink-soft)]">
+                        {browseCount}
+                      </span>
                     </span>
-                  </span>
-                </a>
-              </li>
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -216,16 +231,17 @@ const arrowClass =
 
 <script>
   // Embla core — the slides are server-rendered above; this only attaches
-  // scrolling behavior. Guarded: the section does not render when the
-  // catalogue read failed.
+  // scrolling behavior, once per rail on the page. Guarded: a rail does not
+  // render at all when its selection is empty.
   import EmblaCarousel from 'embla-carousel';
 
-  const trendingRoot = document.querySelector<HTMLElement>('[data-carousel="trending"]');
-  const viewport = trendingRoot?.querySelector<HTMLElement>('.trend-viewport');
-  const prevButton = document.querySelector<HTMLButtonElement>('[data-carousel-prev="trending"]');
-  const nextButton = document.querySelector<HTMLButtonElement>('[data-carousel-next="trending"]');
+  for (const root of document.querySelectorAll<HTMLElement>('[data-carousel-rail]')) {
+    const id = root.dataset.carouselRail ?? '';
+    const viewport = root.querySelector<HTMLElement>('.rail-viewport');
+    const prevButton = document.querySelector<HTMLButtonElement>(`[data-carousel-prev="${id}"]`);
+    const nextButton = document.querySelector<HTMLButtonElement>(`[data-carousel-next="${id}"]`);
+    if (!viewport || !prevButton || !nextButton) continue;
 
-  if (viewport && prevButton && nextButton) {
     const embla = EmblaCarousel(viewport, {
       align: 'start',
       containScroll: 'trimSnaps',

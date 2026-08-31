@@ -33,6 +33,7 @@ catalog:
   # Pinned to v8: the project-wide carousel engine (SSR-safe, vanilla JS).
   # v9 renames the scroll API (scrollPrev -> goToPrev) — do not mix.
   embla-carousel: ^8.6.0
+  embla-carousel-autoplay: ^8.6.0
   '@astrojs/node': ^11.1.0
   '@astrojs/svelte': ^9.0.1
   '@astrojs/check': ^0.9.10

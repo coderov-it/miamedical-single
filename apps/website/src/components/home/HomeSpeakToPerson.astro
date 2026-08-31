@@ -1,0 +1,51 @@
+---
+/**
+ * The closing "prefer to speak to a person?" band, matched to the reference
+ * (miamedicalitalia.it, 2026-08-31): one rounded band on the page's dark
+ * accent step, the promise on the left, a single white WhatsApp pill on the
+ * right. It is the home page's last word before the footer, which is why it
+ * carries the page's closing bottom padding.
+ */
+import { localeForRequest, translate } from '~/lib/i18n';
+import { whatsappUrl } from '~/lib/site';
+import { EDITORIAL_CONTAINER, EDITORIAL_THEME, HOME_BAND } from '~/styles/editorial';
+
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+---
+
+<section
+  class:list={[EDITORIAL_THEME, HOME_BAND, 'pb-[clamp(56px,calc(5vw+20px),92px)]']}
+  aria-labelledby="speak-title"
+>
+  <div class={EDITORIAL_CONTAINER}>
+    <div
+      class="flex flex-wrap items-center justify-between gap-x-10 gap-y-6 rounded-[var(--radius-bar)] bg-[var(--color-accent-deep)] px-[clamp(24px,calc(2.5vw+12px),48px)] py-[clamp(28px,calc(1.7vw+20px),44px)]"
+    >
+      <div class="min-w-0">
+        <h2 class="text-[clamp(1.375rem,1.81vw,1.625rem)] font-bold text-white" id="speak-title">
+          {text('home.speak.title')}
+        </h2>
+        <p class="mt-2 text-[1.0313rem] leading-[1.55] text-[var(--color-on-deep)]">
+          {text('home.speak.text')}
+        </p>
+      </div>
+
+      <a
+        class="inline-flex min-h-13.5 flex-none items-center gap-2.5 rounded-[14px] bg-white px-6 text-[1.0625rem] font-semibold text-[var(--color-live)] no-underline hover:bg-[var(--color-phone-tint)]"
+        href={whatsappUrl()}
+        target="_blank"
+        rel="noopener"
+        data-analytics="whatsapp"
+      >
+        <svg class="flex-none" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"
+          ></path>
+        </svg>
+        {text('support.launcher.whatsapp')}
+      </a>
+    </div>
+  </div>
+</section>

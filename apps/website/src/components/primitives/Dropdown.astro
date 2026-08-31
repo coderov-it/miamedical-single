@@ -50,20 +50,27 @@ const displayValue = selected?.label ?? placeholder ?? options[0]?.label ?? '';
 const isEmpty = selected === undefined && placeholder !== undefined;
 const hasIcon = Astro.slots.has('icon');
 
+/* `hero` renders no box of its own: the booking bar's grey segment is the
+   consumer's wrapper, the label sits inside it and the control is transparent
+   (owner's hero reference, 2026-08-31). The box states — hover, expanded —
+   belong to that wrapper, which is why they live only in default/compact. */
 const labelVariants = {
   default: 'mb-2.25 text-ui',
   compact: 'mb-1.5 text-[14px]',
-  hero: 'mb-0 text-xs font-[650] tracking-[0.07em] text-[var(--color-ink-soft)] uppercase',
+  hero: 'mb-0.5 text-[0.6875rem] font-[650] tracking-[0.08em] text-[var(--color-ink-soft)] uppercase',
 } as const;
 const controlVariants = {
-  default: 'min-h-14.5 border border-hair rounded-field bg-tint font-display text-body',
-  compact: 'min-h-12 border border-hair rounded-field bg-tint font-display text-body',
-  hero: 'min-h-13.5 border-0 rounded-[var(--radius-control)] bg-[var(--color-surface)] font-inherit text-[1.0625rem] hover:bg-[var(--color-surface-2)] focus-visible:bg-white',
+  default:
+    'min-h-14.5 px-3.5 border border-hair rounded-field bg-tint font-display text-body ' +
+    'focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white',
+  compact:
+    'min-h-12 px-3.5 border border-hair rounded-field bg-tint font-display text-body ' +
+    'focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white',
+  hero: 'min-h-7 px-0 border-0 rounded-none bg-transparent font-inherit text-[1rem]',
 } as const;
 const controlClass =
   `w-full min-w-0 text-ink font-semibold leading-[1.2] hover:border-hair-strong ` +
   `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ` +
-  `focus-visible:shadow-[0_0_0_2px_#fff] aria-expanded:border-accent aria-expanded:bg-white ` +
   controlVariants[variant];
 ---
 
@@ -72,9 +79,11 @@ const controlClass =
   data-core-dropdown
   data-has-icon={hasIcon ? '' : undefined}
 >
+  {/* `core-dropdown-label` is the mount script's hook — it retargets the
+      label to the enhanced trigger. Without it enhancement silently bails. */}
   <label
     class:list={[
-      'font-display text-ink-2 block font-bold',
+      'core-dropdown-label font-display text-ink-2 block font-bold',
       labelVariants[variant],
       hideLabel && 'sr-only',
     ]}
@@ -97,7 +106,7 @@ const controlClass =
     }
 
     <select
-      class:list={[controlClass, 'px-3.5', hasIcon && 'ps-11']}
+      class:list={[controlClass, hasIcon && 'ps-11']}
       {id}
       {name}
       aria-labelledby={labelId}
@@ -123,7 +132,7 @@ const controlClass =
     <button
       class:list={[
         controlClass,
-        'group/trigger flex items-center gap-2.5 px-3.5 text-left',
+        'group/trigger flex items-center gap-2.5 text-left',
         hasIcon && 'ps-11',
       ]}
       id={`${id}-trigger`}
@@ -135,10 +144,14 @@ const controlClass =
       aria-labelledby={`${labelId} ${valueId}`}
       data-dropdown-trigger
     >
+      {/* Placeholder paint rides `.is-empty`, which the mount script keeps in
+          sync — a static conditional would style the VALUE as a placeholder
+          forever after the first pick. */}
       <span
         class:list={[
           'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
-          isEmpty && 'text-ink-2 font-medium',
+          '[&.is-empty]:font-normal [&.is-empty]:text-ink-placeholder',
+          isEmpty && 'is-empty',
         ]}
         id={valueId}
         data-dropdown-value

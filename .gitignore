@@ -63,8 +63,7 @@ logs/
 # Agent / assistant tooling (local, not project source)
 # Delete these two lines if you want the team to share them.
 # ---------------------------------------------------------------------------
-.agents/
-skills-lock.json
+.agents/skills
 .claude/settings.local.json
 # Symlink into .agents/ — would dangle for anyone who clones.
 .claude/skills/
