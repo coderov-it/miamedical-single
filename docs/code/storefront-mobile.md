@@ -136,6 +136,80 @@ wrapping column flex container, which sized the `overflow-x:auto` child to its
 content (472px) instead of to the viewport, and the document scrolled sideways
 instead of the row.
 
+## A dropdown is a modal on a phone, not a popover
+
+The catalogue's category list is 17–20 entries. Anchored under its filter pill
+it covered the pills it was narrowing, ran off the bottom of the screen, and
+each row was a rounded chip on its own fill — "messy, spread out rather than
+organised" and then, on the second pass, "green pills type background" (owner,
+2026-08-31). Below `mid` it is now a centred sheet:
+
+```
+box       90vw, centred, rounded-card, over a 42%-ink scrim
+height    ITS ITEMS. `max-h: 72dvh` is a cap, not a height —
+          a four-option list is four options tall, and only past
+          the cap does the list scroll
+rows      full-bleed white, 44px, 14px, 14px side padding,
+          one hairline between them and no fill at all
+selected  accent ink + a tick at the trailing edge
+header    sticky caption bar — grey ground, 11px uppercase label,
+          48px close; the scrim closes it too
+```
+
+The hairline is what buys the separation, which is why the padding does not
+have to and why the rows carry no fill. The desktop popover is unchanged —
+there the rows ARE floating chips in an 8px-padded box, and the `accent-tint`
+fill is the only thing that could mark one.
+
+**The title is not an item**, so it does not look like one: the caption bar sits
+on the grey ground while every row is white, and takes the 11px uppercase
+tracked tier rather than the row's 14px semibold ink (owner, 2026-08-31). It is
+sticky, so it keeps naming the list once the rows scroll under it.
+
+**The 44px row is the site's one exception to the 48px target floor**, taken
+deliberately (owner, 2026-08-31, over the objection). It survives the reasoning
+behind that floor because the target is 450x44: only the short side gives way,
+an imprecise tap still cannot confuse two rows, and it is nearly twice WCAG
+2.5.8's 24px. The caption bar's close button keeps 48, because a small icon
+target is exactly what the floor is for. `app.css` records the exception beside
+the rule.
+
+### The three concerns, kept apart
+
+The previous version had them tangled, and grew a `data-mobile-fullscreen`
+attribute that nothing in the repo ever styled. They are now:
+
+```
+shape         Dropdown.astro — max-mid: classes, beside the desktop shape
+presentation  scripts/primitives/surface.ts — anchored, or a locked sheet
+position      scripts/primitives/floating.ts — anchored only, nothing else
+```
+
+`surface.ts` owns the one decision CSS cannot make: at this width, is this
+surface tied to a trigger or is it a sheet? Both answers stay live while the
+surface is open, so rotating the phone or dragging a desktop window narrow swaps
+between them instead of leaving a popover pinned at coordinates that stopped
+meaning anything. `DatePicker` runs on the same controller (`phoneSheet: true`)
+and paints its own full-screen shape.
+
+The scrim is server-rendered inside the dropdown and derived from
+`aria-expanded`, which is already the single source of truth for open — no
+second flag to keep in sync. Being inside the dropdown, it fails the
+outside-click test, so `dropdown.ts` closes on it explicitly.
+
+### `[&_button]` reaches the listbox
+
+The catalogue was sizing its trigger with `max-mid:[&_button]:min-h-11
+max-mid:[&_button]:rounded-field max-mid:[&_button]:px-3.5` and filling it with
+`[&_button]:bg-accent-tint`. The `class` prop lands on the WRAPPER, so all four
+also hit every option inside the listbox: the modal's rows came out 44px,
+pill-cornered and accent-tinted while their own classes said 48px, square and
+white. That is what the first screenshot was showing, not the row styles.
+
+The shape moved into the `pill` variant, where it belongs — it is true of that
+control at every width. What is genuinely the consumer's (the selected fill)
+now addresses the control: `[&_[data-dropdown-trigger]]:`, never `[&_button]:`.
+
 ## Two shape rules the phone does not share with desktop
 
 **The pill is a desktop shape.** Below `mid` every control that wore

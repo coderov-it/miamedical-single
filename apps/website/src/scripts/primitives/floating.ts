@@ -1,32 +1,37 @@
 import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
 
-interface FloatingOptions {
+export interface FloatingOptions {
   matchReferenceWidth?: boolean;
-  fullScreenOnPhone?: boolean;
 }
 
-interface FloatingController {
+export interface FloatingController {
   start: () => void;
   stop: () => void;
 }
 
-const PHONE = '(max-width: 719px)';
 const VIEWPORT_PADDING = 16;
 
 /**
- * Anchors a temporary surface without changing document height. Desktop uses
- * the best of bottom/top and constrains overflow to the viewport; phone
- * calendars can opt into a fixed full-screen surface.
+ * ANCHORED POSITIONING, AND NOTHING ELSE. Ties a temporary surface to its
+ * trigger without changing document height: the best of bottom/top, shifted
+ * back inside the viewport, and capped so a long list scrolls rather than
+ * running off the screen.
+ *
+ * It used to also carry a `fullScreenOnPhone` flag that locked the body and set
+ * a `data-mobile-fullscreen` attribute nothing in the repo styled. Deciding
+ * WHETHER a surface is anchored at all is a different question from WHERE an
+ * anchored one goes, and it now lives in `surface.ts`.
  */
 export function createFloating(
   reference: HTMLElement,
   floating: HTMLElement,
   options: FloatingOptions = {},
 ): FloatingController {
-  const phone = window.matchMedia(PHONE);
   let stopAutoUpdate: (() => void) | undefined;
-  let previousBodyOverflow = '';
 
+  /* Everything this module writes, it writes inline — so everything it writes,
+     it takes back. Leave one behind and the phone sheet inherits a `top` or a
+     `max-width` from the last time the surface was anchored. */
   function clearInlinePosition(): void {
     floating.style.removeProperty('left');
     floating.style.removeProperty('top');
@@ -36,26 +41,7 @@ export function createFloating(
     floating.style.removeProperty('overflow-y');
   }
 
-  function setPhoneMode(enabled: boolean): void {
-    floating.toggleAttribute('data-mobile-fullscreen', enabled);
-    if (enabled) {
-      clearInlinePosition();
-      if (document.body.style.overflow !== 'hidden') {
-        previousBodyOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-      }
-      return;
-    }
-    if (document.body.style.overflow === 'hidden') {
-      document.body.style.overflow = previousBodyOverflow;
-    }
-  }
-
   async function update(): Promise<void> {
-    const fullScreen = options.fullScreenOnPhone === true && phone.matches;
-    setPhoneMode(fullScreen);
-    if (fullScreen) return;
-
     const result = await computePosition(reference, floating, {
       strategy: 'fixed',
       placement: 'bottom-start',
@@ -83,15 +69,12 @@ export function createFloating(
 
   function start(): void {
     if (stopAutoUpdate) return;
-    phone.addEventListener('change', update);
     stopAutoUpdate = autoUpdate(reference, floating, update);
   }
 
   function stop(): void {
     stopAutoUpdate?.();
     stopAutoUpdate = undefined;
-    phone.removeEventListener('change', update);
-    setPhoneMode(false);
     clearInlinePosition();
   }
 

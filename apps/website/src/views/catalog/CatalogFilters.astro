@@ -94,17 +94,29 @@ const locale = localeForRequest();
  * the accent fill, the category that narrows it takes the tint. Fills, never
  * borders, and at both widths — the resting fill is the one that flips with the
  * ground.
+ *
+ * IT TARGETS THE CONTROL, NOT EVERY BUTTON IN THE DROPDOWN. `[&_button]` also
+ * matches the 17 options inside the listbox, which is how the phone modal's
+ * rows came out accent-tinted, 44px tall and pill-cornered while their own
+ * classes said otherwise.
  */
 const categoryFill = query.category
-  ? '[&_button]:bg-accent-tint [&_select]:bg-accent-tint'
-  : 'mid:[&_button]:bg-white mid:[&_select]:bg-white max-mid:[&_button]:bg-tint max-mid:[&_select]:bg-tint';
+  ? '[&_[data-dropdown-trigger]]:bg-accent-tint [&_select]:bg-accent-tint'
+  : 'mid:[&_[data-dropdown-trigger]]:bg-white mid:[&_select]:bg-white ' +
+    'max-mid:[&_[data-dropdown-trigger]]:bg-tint max-mid:[&_select]:bg-tint';
 
 /* 46px paint, 48px target: the invisible overlay is what a finger hits, and it
    overhangs the pill by a single pixel per side, so the 9px gutter never lets
-   two targets touch. */
+   two targets touch.
+
+   `rounded-field` AT EVERY WIDTH, not just below `mid` (owner, 2026-08-31). The
+   filter row was the last place on the catalogue still wearing the full pill on
+   a desktop, next to a header whose own buttons are 12px, and the owner wants
+   the header's shape. So this is no longer a phone step over a desktop pill —
+   it is one radius, and the `mid:` half is gone rather than made to agree. */
 const pillClass =
   'relative inline-flex mid:min-h-11.5 max-mid:min-h-11 items-center ' +
-  'mid:rounded-full max-mid:rounded-field mid:px-4.75 max-mid:px-4 font-display ' +
+  'rounded-field mid:px-4.75 max-mid:px-4 font-display ' +
   'text-[0.9688rem] font-bold no-underline after:absolute after:top-1/2 after:left-1/2 ' +
   'after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 ' +
   "after:-translate-y-1/2 after:content-['']";
@@ -217,12 +229,12 @@ const pillClass =
         placeholder={translate(locale, 'catalog.allCategories')}
         hideLabel
         variant="pill"
-        class={`mid:flex-1 max-mid:w-auto max-mid:flex-none max-mid:[&_button]:min-h-11 max-mid:[&_button]:rounded-field max-mid:[&_button]:px-3.5 max-mid:[&_select]:min-h-11 max-mid:[&_select]:rounded-field max-mid:[&_select]:px-3.5 min-w-0 ${categoryFill}`}
+        class={`mid:flex-1 max-mid:w-auto max-mid:flex-none min-w-0 ${categoryFill}`}
       />
 
       <noscript>
         <button
-          class="font-display text-ui-strong hover:bg-accent-deep mid:rounded-full max-mid:rounded-field relative inline-flex min-h-11.5 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
+          class="font-display text-ui-strong hover:bg-accent-deep rounded-field relative inline-flex min-h-11.5 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
           type="submit"
         >
           {translate(locale, 'catalog.apply')}

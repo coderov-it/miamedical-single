@@ -1,4 +1,4 @@
-import { createFloating } from './floating';
+import { createSurface } from './surface';
 
 /** Progressive enhancement for every `Dropdown.astro` instance on the page. */
 export function mountDropdowns(root: ParentNode = document): void {
@@ -13,11 +13,13 @@ function mountDropdown(dropdown: HTMLElement): void {
   const trigger = dropdown.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
   const popover = dropdown.querySelector<HTMLElement>('[data-dropdown-popover]');
   const value = dropdown.querySelector<HTMLElement>('[data-dropdown-value]');
+  const scrim = dropdown.querySelector<HTMLElement>('[data-dropdown-scrim]');
+  const dismiss = dropdown.querySelector<HTMLButtonElement>('[data-dropdown-dismiss]');
 
   if (!label || !select || !trigger || !popover || !value) return;
 
   const options = [...popover.querySelectorAll<HTMLButtonElement>('[role="option"]')];
-  const floating = createFloating(trigger, popover, { matchReferenceWidth: true });
+  const surface = createSurface(trigger, popover, { matchReferenceWidth: true, phoneSheet: true });
 
   function sync(): void {
     const selected = options.find((option) => option.dataset.value === select!.value);
@@ -37,10 +39,10 @@ function mountDropdown(dropdown: HTMLElement): void {
     popover!.hidden = !open;
     trigger!.setAttribute('aria-expanded', String(open));
     if (!open) {
-      floating.stop();
+      surface.stop();
       return;
     }
-    floating.start();
+    surface.start();
     const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
     (selected ?? options[0])?.focus();
   }
@@ -60,6 +62,15 @@ function mountDropdown(dropdown: HTMLElement): void {
   options.forEach((option, index) => {
     option.addEventListener('click', () => choose(option));
     option.addEventListener('keydown', (event) => {
+      /* Below `mid` this list is a modal over a dimmed page, so tabbing out of
+         it would put focus somewhere the customer cannot see. Tab closes and
+         hands focus back to the trigger, which is the listbox pattern's own
+         answer and is no worse on a desktop popover. */
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        close(true);
+        return;
+      }
       if (event.key === 'Home' || event.key === 'End') {
         event.preventDefault();
         options[event.key === 'Home' ? 0 : options.length - 1]?.focus();
@@ -80,6 +91,12 @@ function mountDropdown(dropdown: HTMLElement): void {
   });
   select.addEventListener('change', sync);
   select.form?.addEventListener('reset', () => window.setTimeout(sync));
+
+  /* The scrim is rendered INSIDE the dropdown so its paint lives beside the
+     surface it dims, which means the outside-click test below never sees it.
+     Closing on it is therefore explicit rather than incidental. */
+  scrim?.addEventListener('click', () => close(true));
+  dismiss?.addEventListener('click', () => close(true));
 
   document.addEventListener('click', (event) => {
     if (!popover.hidden && !dropdown.contains(event.target as Node)) close(false);
