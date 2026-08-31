@@ -1,0 +1,209 @@
+{
+  "code": "carrozzine",
+  "name": { "it": "Carrozzine", "en": "Wheelchairs" },
+  "slug": { "it": "carrozzine", "en": "wheelchairs" },
+  "description": {
+    "it": "Carrozzine pieghevoli, da transito ed elettriche, a noleggio in tutta Italia.",
+    "en": "Folding, transit and electric wheelchairs for rent across Italy."
+  },
+  "metaTitle": { "it": "Noleggio carrozzine | Mia Medical" },
+  "metaDescription": {
+    "it": "Noleggia una carrozzina pieghevole, da transito o elettrica. Consegna in tutta Italia."
+  },
+  "icon": "carrozzine.svg",
+  "position": 0,
+  "isActive": true,
+  "requiresDeposit": false,
+
+  "specs": [
+    {
+      "key": "seat-width",
+      "label": { "it": "Larghezza seduta", "en": "Seat width" },
+      "valueType": "number",
+      "unit": "cm",
+      "isFilterable": true,
+      "isComparable": true
+    },
+    {
+      "key": "max-load",
+      "label": { "it": "Portata massima", "en": "Maximum load" },
+      "valueType": "number",
+      "unit": "kg",
+      "isFilterable": true,
+      "isComparable": true
+    },
+    {
+      "key": "weight",
+      "label": { "it": "Peso", "en": "Weight" },
+      "valueType": "number_range",
+      "unit": "kg",
+      "isFilterable": true
+    },
+    {
+      "key": "frame-material",
+      "label": { "it": "Materiale telaio", "en": "Frame material" },
+      "helpText": { "it": "L'alluminio pesa meno, l'acciaio costa meno." },
+      "valueType": "single_select",
+      "isFilterable": true,
+      "isComparable": true,
+      "options": [
+        { "value": "aluminium", "label": { "it": "Alluminio", "en": "Aluminium" } },
+        { "value": "steel", "label": { "it": "Acciaio", "en": "Steel" } }
+      ]
+    },
+    {
+      "key": "features",
+      "label": { "it": "Dotazioni", "en": "Features" },
+      "valueType": "multi_select",
+      "isFilterable": true,
+      "options": [
+        { "value": "removable-armrests", "label": { "it": "Braccioli estraibili" } },
+        { "value": "elevating-legrests", "label": { "it": "Pedane elevabili" } },
+        { "value": "anti-tip-wheels", "label": { "it": "Ruotine antiribaltamento" } }
+      ]
+    },
+    {
+      "key": "foldable",
+      "label": { "it": "Pieghevole", "en": "Foldable" },
+      "valueType": "boolean",
+      "isFilterable": true
+    },
+    {
+      "key": "upholstery-colour",
+      "label": { "it": "Colore rivestimento", "en": "Upholstery colour" },
+      "valueType": "string"
+    }
+  ],
+
+  "products": [
+    {
+      "code": "carrozzina-pieghevole-autospinta",
+      "status": "active",
+      "brand": "Mobiclinic",
+      "pricingMode": "rental",
+      "rentalUnit": "day",
+      "marketingRate": "1.10",
+      "rentalPackages": [
+        {
+          "code": "7-giorni",
+          "name": { "it": "7 giorni", "en": "7 days" },
+          "price": "45.00",
+          "duration": 7,
+          "unit": "day"
+        },
+        {
+          "code": "30-giorni",
+          "name": { "it": "30 giorni", "en": "30 days" },
+          "price": "99.00",
+          "duration": 30,
+          "unit": "day"
+        }
+      ],
+      "stock": 12,
+      "isFeatured": true,
+      "chips": [{ "it": "Portata 120 kg" }, { "it": "Pieghevole" }, { "it": "Solo 15 kg" }],
+
+      "title": {
+        "it": "Carrozzina pieghevole ad autospinta",
+        "en": "Self-propelled folding wheelchair"
+      },
+      "slug": {
+        "it": "carrozzina-pieghevole-ad-autospinta",
+        "en": "self-propelled-folding-wheelchair"
+      },
+      "shortDescription": {
+        "it": "Telaio in alluminio, ruote posteriori grandi, si piega in pochi secondi.",
+        "en": "Aluminium frame, large rear wheels, folds in seconds."
+      },
+      "description": {
+        "it": "<p>Carrozzina ad autospinta con telaio in alluminio verniciato.</p><ul><li>Braccioli estraibili</li><li>Pedane elevabili</li></ul>"
+      },
+
+      "specs": {
+        "seat-width": 45,
+        "max-load": 120,
+        "weight": { "min": 14, "max": 16 },
+        "frame-material": "aluminium",
+        "features": ["removable-armrests", "elevating-legrests"],
+        "foldable": true,
+        "upholstery-colour": { "it": "Nero", "en": "Black" }
+      },
+
+      "media": {
+        "thumbnail": "carrozzina-pieghevole-1.jpg",
+        "cleanPng": "carrozzina-pieghevole-scontornata.png",
+        "gallery": [
+          "carrozzina-pieghevole-2.jpg",
+          { "file": "carrozzina-pieghevole-3.jpg", "alt": { "it": "Carrozzina ripiegata" } }
+        ],
+        "documents": ["scheda-tecnica-carrozzina-pieghevole.pdf"]
+      },
+
+      "addons": [
+        {
+          "name": { "it": "Consegna e ritiro a domicilio", "en": "Home delivery and collection" },
+          "pricingMode": "fixed",
+          "price": "35.00",
+          "maxQuantity": 1,
+          "icon": "consegna.svg"
+        },
+        {
+          "name": { "it": "Cuscino antidecubito", "en": "Pressure-relief cushion" },
+          "description": { "it": "Cuscino in memory foam, sfoderabile." },
+          "pricingMode": "rental",
+          "price": "1.50",
+          "maxQuantity": 1
+        }
+      ],
+
+      "faqs": [
+        {
+          "question": { "it": "La carrozzina entra nel bagagliaio di un'utilitaria?" },
+          "answer": { "it": "Sì. Ripiegata misura 78 × 30 × 90 cm." }
+        }
+      ],
+
+      "questions": [
+        {
+          "key": "floor",
+          "prompt": { "it": "A che piano abita?" },
+          "helpText": { "it": "Serve a sapere se portare il montascale." },
+          "questionValueType": "number",
+          "isRequired": true,
+          "minValue": 0,
+          "maxValue": 30
+        },
+        {
+          "key": "lift",
+          "prompt": { "it": "C'è l'ascensore?" },
+          "questionValueType": "single_select",
+          "isRequired": true,
+          "options": [
+            { "value": "yes", "label": { "it": "Sì" } },
+            { "value": "no", "label": { "it": "No" } }
+          ]
+        }
+      ]
+    },
+
+    {
+      "code": "carrozzina-da-transito",
+      "status": "active",
+      "pricingMode": "rental",
+      "rentalUnit": "day",
+      "rentalPackages": [
+        {
+          "code": "7-giorni",
+          "name": { "it": "7 giorni" },
+          "price": "39.00",
+          "duration": 7,
+          "unit": "day"
+        }
+      ],
+      "stock": 6,
+      "title": { "it": "Carrozzina da transito" },
+      "specs": { "seat-width": 43, "max-load": 100, "frame-material": "steel", "foldable": true },
+      "media": { "thumbnail": "carrozzina-transito-1.jpg" }
+    }
+  ]
+}

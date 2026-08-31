@@ -81,11 +81,18 @@ const socialLinkClass =
   <div class={EDITORIAL_CONTAINER}>
     <div class="wide:flex wide:items-start wide:gap-22 grid gap-11 min-[760px]:grid-cols-2">
       <div class="wide:me-auto wide:max-w-100">
+        {
+          /* The wordmark and its line are display type, like the reference's
+             footer column titles; the links and contact lines below stay in the
+             body face, which is what the reference sets on them. */
+        }
         <a
-          class="flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] text-white no-underline"
+          class="font-ui flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] text-white no-underline"
           href={routePath(locale, 'home')}>MIA-MEDICAL</a
         >
-        <p class="mt-1.5 text-[0.8125rem] font-semibold tracking-[0.09em] text-[#8b94a8] uppercase">
+        <p
+          class="font-ui mt-1.5 text-[0.8125rem] font-semibold tracking-[0.09em] text-[#8b94a8] uppercase"
+        >
           Moving in autonomy
         </p>
         <p class="mt-4.5 max-w-[34ch] text-base leading-[1.6]">

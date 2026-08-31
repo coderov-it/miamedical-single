@@ -111,7 +111,8 @@ const hasChips = product.chips.length > 0 || specChips.length > 0;
       price && (
         <p class="m-0 flex flex-wrap items-baseline gap-2">
           {price.prefix && <span class="text-ink-2 text-[14px]">{price.prefix}</span>}
-          <span class="text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
+          {/* Money is display type, like every price on the reference site. */}
+          <span class="font-ui text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
             {price.text}
           </span>
           <span class="text-ink-2 text-[14px]">{text('vatIncluded')}</span>

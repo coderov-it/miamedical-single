@@ -146,7 +146,7 @@ const chipClass =
             <p>{translate(locale, 'blog.empty.detail')}</p>
           </div>
         ) : (
-          <ul class="card-grid">
+          <ul class="wide:grid-cols-3 mid:grid-cols-2 grid grid-cols-1 gap-5">
             {posts.map((post, index) => (
               <li class="flex">
                 <BlogPostCard {post} priority={isFirstPage && index === 0} headingLevel={3} />

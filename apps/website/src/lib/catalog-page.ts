@@ -7,7 +7,7 @@
  * and a page file is a route declaration first — see the file-size and
  * page-file rules in CLAUDE.md.
  */
-import { perUnitLabel } from '@mia/i18n';
+import { unitLabel } from '@mia/i18n';
 
 import { formatMoney } from './api.ts';
 import type { Category } from './catalog.ts';
@@ -177,13 +177,15 @@ function tileDetail(
   }
 
   const money = formatMoney(fromPrice, currency, localeTag(locale));
-  if (pricingMode !== 'rental') {
+  if (pricingMode !== 'rental' || rentalUnit === null) {
     return { detail: t('catalog.tile.from', { price: money }, locale), isPriced: true };
   }
+  /* "da 1,11 €/giorno" — the compact rate the cards and the reference tiles
+     both print, not the sentence form ("al giorno") a body of text would use. */
   return {
     detail: t(
       'catalog.tile.fromRate',
-      { price: money, unit: perUnitLabel(rentalUnit, locale) },
+      { price: money, unit: unitLabel(rentalUnit, locale, 'one') },
       locale,
     ),
     isPriced: true,

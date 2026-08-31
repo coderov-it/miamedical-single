@@ -1,9 +1,14 @@
 ---
 /**
  * The one filter row, identical on all three catalogue surfaces: four fixed
- * pills, then every category in a select. Everything in it stands 48px — the
- * project's target floor — so the row reads as one band rather than a pill row
- * with a taller control parked beside it.
+ * pills, then every category in a select — one 46px row with a 9px gutter and
+ * 26px of air under it, the reference site's row (miamedicalitalia.it, measured
+ * 2026-08-31) at its measured widths.
+ *
+ * Fills, not borders (CLAUDE.md § controls): on the page's grey ground an
+ * unselected pill is a WHITE fill with accent ink and the selected one is the
+ * accent fill. The reference outlines its unselected pills instead; that is the
+ * one thing here we do our way.
  *
  * The select is a GET form pointed at the surface it sits on, so choosing a
  * category narrows the page you are already on rather than throwing you back to
@@ -25,22 +30,18 @@ interface Props {
 const { pills, categories, query } = Astro.props;
 const locale = localeForRequest();
 
-/* The reference's pill height, followed 1:1 through `--spacing-control-sm` —
-   37px on a half-screen window, 46px on a full one — with the 48px target
-   restored by Tailwind pseudo-element utilities. An unselected pill is
-   WHITE, not tinted: on the muted page ground white is what raises it, and a
-   tint fill there would sit a percent away from the field behind it. */
+/* 46px paint, 48px target: the invisible overlay is what a finger hits, and it
+   overhangs the pill by a single pixel per side, so the 9px gutter never lets
+   two targets touch. */
 const pillClass =
-  "relative inline-flex min-h-control-sm items-center rounded-full px-4.5 font-display text-ui font-semibold no-underline transition-colors duration-150 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']";
+  'relative inline-flex min-h-11.5 items-center rounded-full px-4.75 font-display ' +
+  'text-[0.9688rem] font-bold no-underline after:absolute after:top-1/2 after:left-1/2 ' +
+  'after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 ' +
+  "after:-translate-y-1/2 after:content-['']";
 ---
 
-<div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-2.5 pb-6">
-  {
-    /* 12px, not 8px: the hit overlay overhangs a 37px pill by 5.5px on
-       each side, so a narrower gap would let two invisible targets overlap and
-       a tap in the seam would pick the wrong filter. */
-  }
-  <ul class="flex flex-wrap items-center gap-3">
+<div class="mid:flex-row mid:items-center flex flex-col flex-wrap gap-2.25 pb-6.5">
+  <ul class="flex flex-wrap items-center gap-2.25">
     {
       pills.map((pill) => (
         <li>
@@ -49,7 +50,7 @@ const pillClass =
               pillClass,
               pill.isActive
                 ? 'hover:bg-accent-deep bg-accent text-white'
-                : 'border-hair text-ink hover:bg-tint border bg-white',
+                : 'hover:bg-accent-tint bg-white text-accent',
             ]}
             href={pill.href}
             aria-current={pill.isActive ? 'true' : undefined}
@@ -62,7 +63,7 @@ const pillClass =
   </ul>
 
   <form
-    class="mid:w-64 flex w-full items-center gap-2.5"
+    class="mid:w-107 flex w-full items-center gap-2.25"
     method="get"
     action={catalogRoot(query.view, locale)}
     data-catalog-category-form
@@ -71,6 +72,7 @@ const pillClass =
     {query.q && <input type="hidden" name="q" value={query.q} />}
     {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
     {query.context.from && <input type="hidden" name="from" value={query.context.from} />}
+    {query.context.for && <input type="hidden" name="for" value={query.context.for} />}
 
     <Dropdown
       id="catalog-category"
@@ -80,13 +82,13 @@ const pillClass =
       value={query.category}
       placeholder={translate(locale, 'catalog.allCategories')}
       hideLabel
-      variant="compact"
+      variant="pill"
       class="min-w-0 flex-1"
     />
 
     <noscript>
       <button
-        class="rounded-field font-display text-ui-strong hover:bg-accent-deep min-h-control-sm relative inline-flex flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
+        class="font-display text-ui-strong hover:bg-accent-deep relative inline-flex min-h-11.5 flex-none items-center justify-center rounded-full border-0 bg-accent px-5 font-semibold text-white after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
         type="submit"
       >
         {translate(locale, 'catalog.apply')}

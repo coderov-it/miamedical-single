@@ -57,8 +57,17 @@ const headerIconClass =
   'text-[var(--color-ink)] hover:bg-[rgb(11_18_32_/_0.09)] hover:text-[var(--color-accent)]';
 ---
 
+{
+  /* `font-ui` because the chrome is not prose: the reference site sets its nav
+     in the display face (Lexend 16/700) and keeps its text face for running
+     copy, so the header names the face rather than inheriting the editorial
+     theme's body face. */
+}
 <header
-  class:list={[EDITORIAL_THEME, 'sticky top-0 z-50 border-b border-[var(--color-line)] bg-white']}
+  class:list={[
+    EDITORIAL_THEME,
+    'font-ui sticky top-0 z-50 border-b border-[var(--color-line)] bg-white',
+  ]}
 >
   <div
     class:list={[

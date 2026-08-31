@@ -3,9 +3,11 @@
  * A product rail section — "I più noleggiati" and "In vendita" are the same
  * component instantiated twice, matched to the reference sections
  * (miamedicalitalia.it, 2026-08-31): plain 30px title with the see-all link on
- * its right, four white cards across at full width, each an image well, a
- * two-line title, an accent price beside a green availability dot, and one
- * quiet action.
+ * its right and four cards across at full width.
+ *
+ * The card is `components/catalog/ProductCard` — the same one the listings use,
+ * minus the blurb, exactly as on the reference site. The rail owns the rhythm
+ * and the scrolling; it says nothing about what a product card looks like.
  *
  * An Embla core carousel (the project-wide engine): the slides are plain
  * server-rendered HTML and the script below only attaches scrolling behavior,
@@ -15,13 +17,9 @@
  * The API has no popularity signal yet, so the parent supplies the selection
  * from `home-content.ts` — editorially featured products first.
  */
-import { unitLabel } from '@mia/i18n';
-
-import { mediaUrl } from '~/lib/api';
+import ProductCard from '~/components/catalog/ProductCard.astro';
 import type { ProductSummary } from '~/lib/catalog';
-import { productOffer } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
-import { productPath } from '~/lib/routes';
 import {
   EDITORIAL_CONTAINER,
   EDITORIAL_THEME,
@@ -46,15 +44,6 @@ const { id, title, seeAllLabel, seeAllHref, products, total } = Astro.props;
 const locale = localeForRequest();
 const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
-
-/* "da 12,00 €/giorno" for a rental rate, the bare figure for a sale price —
-   the reference's compact price line, in our money format. */
-function priceLabel(product: ProductSummary): string | null {
-  const offer = productOffer(product, locale);
-  if (!offer) return null;
-  if (!offer.unit || !product.pricing.rentalUnit) return offer.money;
-  return `${text('home.showcase.from')} ${offer.money}/${unitLabel(product.pricing.rentalUnit, locale, 'one')}`;
-}
 
 /* "Oltre 60 ausili a noleggio" — rounded DOWN so the claim is never a lie.
    Below ten products a rounded figure would read as zero, so the tile says
@@ -137,57 +126,11 @@ const arrowClass =
         >
           <div class="rail-viewport overflow-hidden">
             <ul class="-ms-(--slide-spacing) flex touch-pan-y touch-pinch-zoom">
-              {products.map((product) => {
-                const price = priceLabel(product);
-                const href = productPath(product.slug, {}, locale);
-                return (
-                  <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
-                    <article class="group/product rounded-card flex w-full flex-col border border-[var(--color-line)] bg-white px-3.5 pt-3.5 pb-4 hover:border-[#ccd2e2]">
-                      <a class="block no-underline" href={href}>
-                        <span class="mb-3.5 block h-44.5 rounded-xl bg-[var(--color-surface-2)] p-3.5">
-                          {product.thumbnail && (
-                            <img
-                              class="block size-full object-contain mix-blend-multiply"
-                              src={mediaUrl(product.thumbnail.path)}
-                              alt=""
-                              loading="lazy"
-                            />
-                          )}
-                        </span>
-                        <h3 class="line-clamp-2 min-h-[calc(2*1.35em)] px-1.5 text-[1.0625rem] leading-[1.35] font-bold group-hover/product:text-[var(--color-accent)]">
-                          {product.title}
-                        </h3>
-                      </a>
-                      <p class="mt-2.5 mb-3.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 px-1.5">
-                        {price && (
-                          <strong class="text-[1.0313rem] font-[750] tracking-[-0.01em] text-[var(--color-accent)] tabular-nums">
-                            {price}
-                          </strong>
-                        )}
-                        <span
-                          class:list={[
-                            'inline-flex items-center gap-1.5 text-sm font-semibold',
-                            product.inStock
-                              ? 'text-[var(--color-live)]'
-                              : 'text-[var(--color-ink-soft)]',
-                          ]}
-                        >
-                          <span class="size-1.75 rounded-full bg-current" aria-hidden="true" />
-                          {text(product.inStock ? 'card.available' : 'card.outOfStock')}
-                        </span>
-                      </p>
-                      <a
-                        class="bg-accent-tint mt-auto inline-flex min-h-12 items-center justify-center rounded-xl border-0 text-base font-semibold text-[var(--color-accent)] no-underline hover:bg-[var(--color-accent)] hover:text-white"
-                        href={href}
-                      >
-                        {text(
-                          product.pricing.mode === 'rental' ? 'card.viewRent' : 'card.viewProduct',
-                        )}
-                      </a>
-                    </article>
-                  </li>
-                );
-              })}
+              {products.map((product) => (
+                <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
+                  <ProductCard {product} headingLevel={3} />
+                </li>
+              ))}
               {total !== undefined && (
                 <li class="flex min-w-0 flex-[0_0_var(--slide-size)] ps-[var(--slide-spacing)]">
                   <a

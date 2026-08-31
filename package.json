@@ -26,7 +26,8 @@
     "db:push": "pnpm --filter @mia/db run push",
     "db:studio": "pnpm --filter @mia/db run studio",
     "db:seed": "pnpm --filter @mia/server run seed",
-    "admin:seed": "pnpm --filter @mia/server run admin:seed"
+    "admin:seed": "pnpm --filter @mia/server run admin:seed",
+    "catalog:import": "pnpm --filter @mia/server run catalog:import"
   },
   "devDependencies": {
     "@types/node": "catalog:",

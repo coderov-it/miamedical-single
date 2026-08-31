@@ -1,6 +1,12 @@
 /** Shared Tailwind utilities for the editorial home page and site chrome. */
+/*
+ * `--color-ink` is the reference site's own measured ink (rgb(27,36,55)) since
+ * 2026-08-31, not the near-black #0b1220 this scope used to invent: at 700
+ * weight that black made every card name and section title read heavier than
+ * theirs. `--color-ink-soft` is their secondary, rgb(94,104,120)-ish.
+ */
 export const EDITORIAL_THEME =
-  '[--color-ink:#0b1220] [--color-ink-soft:#5e6878] [--color-surface:#f0f2fa] ' +
+  '[--color-ink:#1b2437] [--color-ink-soft:#5e6878] [--color-surface:#f0f2fa] ' +
   '[--color-surface-2:#f5f6fb] [--color-line:#e7e9ef] [--color-accent:#3846b1] ' +
   '[--color-accent-deep:#262d97] [--color-live:#12924f] [--color-phone-tint:#e1f3e8] ' +
   '[--color-phone-ink:#0b5c39] [--radius-stage:32px] [--radius-bar:24px] ' +
@@ -9,7 +15,10 @@ export const EDITORIAL_THEME =
   '[--band-2:clamp(56px,calc(5vw+20px),84px)] ' +
   '[--band-3:clamp(64px,calc(5.71vw+23px),96px)] ' +
   '[--band-4:clamp(76px,calc(7.14vw+24.6px),116px)] ' +
-  'font-ui text-[1.0625rem] leading-[1.6] text-[#0b1220] ' +
+  /* Prose in the reference's text face, headings in its display face — the
+     pairing measured off miamedicalitalia.it on 2026-08-31 (see theme.css §
+     fonts). Controls and buttons name `font-ui` for themselves. */
+  'font-body text-[1.0625rem] leading-[1.6] text-ink ' +
   '[&_h1]:font-ui [&_h1]:tracking-normal [&_h2]:font-ui [&_h2]:tracking-normal ' +
   '[&_h3]:font-ui [&_h3]:tracking-normal [&_button]:cursor-pointer';
 
@@ -26,12 +35,13 @@ export const HOME_TITLE = 'text-[clamp(1.5rem,2.08vw,1.875rem)] font-bold tracki
 export const HOME_LEAD =
   'mt-1.5 text-[clamp(1rem,1.28vw,1.15625rem)] leading-[1.55] text-[var(--color-ink-soft)]';
 export const HOME_SEE_ALL =
-  'text-[1.0625rem] font-semibold whitespace-nowrap text-[var(--color-accent)] no-underline hover:underline';
+  'font-ui text-[1.0625rem] font-semibold whitespace-nowrap text-[var(--color-accent)] ' +
+  'no-underline hover:underline';
 
 export const EDITORIAL_BUTTON =
-  'inline-flex min-h-13.5 items-center justify-center rounded-[var(--radius-control)] border-0 ' +
-  'bg-[var(--color-accent)] px-8 text-[1.0625rem] font-semibold text-white no-underline ' +
-  'hover:bg-[var(--color-accent-deep)]';
+  'font-ui inline-flex min-h-13.5 items-center justify-center rounded-[var(--radius-control)] ' +
+  'border-0 bg-[var(--color-accent)] px-8 text-[1.0625rem] font-semibold text-white ' +
+  'no-underline hover:bg-[var(--color-accent-deep)]';
 
 export const INVISIBLE_48 =
   'relative after:absolute after:top-1/2 after:left-1/2 after:size-12 ' +
