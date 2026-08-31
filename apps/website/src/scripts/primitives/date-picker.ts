@@ -1,6 +1,6 @@
 import 'cally';
 import { documentLocale } from '../locale';
-import { createFloating } from './floating';
+import { createSurface } from './surface';
 
 type CalendarElement = HTMLElement & {
   value: string;
@@ -48,7 +48,7 @@ function mountDatePicker(picker: HTMLElement): void {
   const min = configuredMin === 'today' ? toIsoDate(new Date()) : (configuredMin ?? '');
   const max = picker.dataset.max ?? '';
   const placeholder = value.dataset.placeholder ?? '';
-  const floating = createFloating(trigger, popover, { fullScreenOnPhone: true });
+  const floating = createSurface(trigger, popover, { phoneSheet: true });
 
   input.min = min;
   input.max = max;

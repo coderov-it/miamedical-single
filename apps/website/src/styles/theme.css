@@ -276,18 +276,20 @@
   /* One generous radius plus the pill for buttons. --radius-field is the only
      smaller step, for controls and wells inside a card.
 
-     THE PILL IS A DESKTOP SHAPE (owner, 2026-08-31). Below `mid` every control
-     that wore `rounded-full` — filter pills, the category dropdown, the row's
-     action, the pager, the phone CTA, the booking submit, the carousel arrows —
-     takes `--radius-field` instead, and the two smallest (the tab bar's active
-     marker and the product row's action) take 10px. Circles stay circles only
-     where the shape IS the meaning: the carousel dots, the cart badge, the
-     review avatars and the source chips.
+     THE PILL WAS A DESKTOP SHAPE FOR ONE DAY. On 2026-08-31 the owner took
+     every control that wore `rounded-full` below `mid` to `--radius-field`, and
+     then, the same day, took the catalogue's filter row and pager there at
+     EVERY width: they sit under a header whose own buttons are 12px, and one
+     page carrying both shapes reads as two unrelated decisions.
 
-     There is no `--radius-*` token for the phone step because there is nothing
-     to choose: it is `rounded-field` on a control and `rounded-[10px]` on the
-     two that are shorter than 40px. Write it as `mid:rounded-full
-     max-mid:rounded-field` so both shapes stay visible in the markup. */
+     So the rule is now the simpler one — a control is `--radius-field`, and the
+     two shorter than 40px (the tab bar's active marker, the product row's
+     action) are 10px. Write it plainly as `rounded-field`; a surviving
+     `mid:rounded-full max-mid:rounded-field` pair is a control that has not
+     been swept yet, not a decision.
+
+     Circles stay circles only where the shape IS the meaning: the carousel
+     dots, the cart badge, the review avatars and the source chips. */
   --radius-field: 12px;
   --radius-card: 18px;
   --radius-panel: 22px;

@@ -199,6 +199,12 @@
     min-width: 48px;
   }
 
+  /* The one deliberate exception, and it is narrow: the phone dropdown sheet's
+     full-bleed option rows take 44px (Dropdown.astro, owner 2026-08-31). A
+     450x44 row is not what this rule guards against — it guards against small
+     icon targets sitting next to each other, which is why the sheet's own close
+     button still takes the full 48. Do not read it as a general licence. */
+
   /* Links inside running prose keep the WCAG 2.5.8 inline exception; a
      paragraph link must not become a 48px block. */
   p a,
