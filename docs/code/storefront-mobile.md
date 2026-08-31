@@ -98,6 +98,22 @@ booking card nested inside the grey field could not have been lifted without a
 second copy. Desktop composition is unchanged — children two and three both
 paint `--color-page`, so the field still reads as one ground.
 
+Splitting that field in two cost the page a **white stripe** across the seam,
+and it is the failure mode to watch for every time this pattern is used: the
+trust strip's own top margin had nothing above it to collapse against, escaped
+both wrappers, and turned 34px of grey into 34px of nothing between two grey
+blocks. Each child of a shared ground carries its own `flow-root`. A margin that
+leaves a painted box takes the paint with it.
+
+The assurances list under the CTAs reads after the showcase card on a phone, and
+that reorder is **`display: contents` again, not a lifted grid child.** Lifting
+it out of the copy column made it row two of a two-row grid, where `items-center`
+paid the showcase card's surplus height out as 66px of nothing between the CTAs
+and the list — a grid row cannot hug the row above it. `max-wide:contents` on the
+copy wrapper gets the same phone order out of a block that still sits inside the
+column above `wide`. The reorder is visual only: the list stays ahead of the card
+in the DOM, which is safe while it holds nothing focusable.
+
 **`components/home/HomeBooking.astro`** — one field below `mid`. The three
 context segments stand down (nothing here is `required`, so a search without
 them is complete); the submit does not, because a search box whose only way
