@@ -15,9 +15,7 @@
     "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
     "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts",
     "admin:seed": "tsx --env-file-if-exists=../../.env script/seed-superadmin.ts",
-    "catalog:import": "tsx --env-file-if-exists=../../.env script/catalog/import.ts",
-    "wp:extract": "tsx --env-file-if-exists=../../.env script/wp-migrate/extract.ts",
-    "wp:load": "tsx --env-file-if-exists=../../.env script/wp-migrate/load.ts"
+    "catalog:import": "tsx --env-file-if-exists=../../.env script/catalog/import.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:",
@@ -42,7 +40,6 @@
     "@mia/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/sanitize-html": "^2.16.1",
-    "mysql2": "catalog:",
     "rolldown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

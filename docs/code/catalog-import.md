@@ -68,7 +68,7 @@ rewritten for SEO, and rewriting one must never mint a second product.
   behind. Don't, unless that is what you meant.
 - **Rename a `slug`** and the same row keeps its identity and changes its URL.
 - A category or product that already exists in the database under a different
-  id (anything the WordPress migration loaded) collides on `categories.code` or
+  id — any row this pipeline did not write — collides on `categories.code` or
   on `(language_code, slug)`. The run stops before writing anything and prints
   the id to adopt:
 
@@ -183,10 +183,10 @@ thrown, so one run reports every bad row in every file.
 The only checks that need the database open are the identity collisions and the
 orphan report (`conflicts.ts`). Everything else runs on the files alone.
 
-## Not this pipeline
+## Rows this pipeline did not write
 
-`apps/server/script/wp-migrate/` is the one-shot WordPress import and shares no
-code with this. Its ids come from `wp_posts.ID`, this one's from the codes you
-write, and the two namespaces are deliberately separate — which is exactly why
-a category loaded by that pipeline and re-authored here collides on its code and
-has to adopt the existing id.
+A row already in the database that this pipeline did not put there has an id
+from somewhere else, so a file claiming its `code` or its slug collides rather
+than silently taking it over. `conflicts.ts` reports both, names the row, and
+writes nothing — either adopt it with `"id": "<uuid>"` in the file, or clear the
+row first.

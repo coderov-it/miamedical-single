@@ -4,7 +4,7 @@
  *
  * They exist because ids here are derived from codes while the database also
  * enforces uniqueness on `categories.code` and on `(language_code, slug)`. A
- * category loaded once by the WordPress migration and now hand-written under
+ * category already in the table under some other id and now hand-written under
  * the same code holds a DIFFERENT uuid, so the insert would collide on the code
  * halfway through a run. Caught here, it is one line telling the author to pin
  * `"id"`; caught by PostgreSQL, it is a half-written catalogue.
