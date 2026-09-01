@@ -13,9 +13,8 @@
  * it does not reconcile the table.
  *
  * The three variables are read straight from `process.env`, not through
- * `config/env.ts`, for the same reason the WordPress migration's are: the
- * running server never touches them, so a missing value must not be able to
- * stop the API from booting.
+ * `config/env.ts`: the running server never touches them, so a missing value
+ * must not be able to stop the API from booting.
  */
 import { MIN_PASSWORD_LENGTH, upsertAdminAccount } from './admin-account.ts';
 

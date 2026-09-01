@@ -64,16 +64,8 @@ for why it cannot be a generated column), and it now runs the description throug
    token, and both real words disappear from the index. `richTextToPlain` turns
    block ends into spaces before stripping, exactly to avoid that.
 
-Every writer has to do this: the API path (`catalog/repo.ts`) and the WordPress
-loader (`script/wp-migrate/load.ts`), which builds its own vector.
-
-## The WordPress migration
-
-`extract.ts` sanitises `post_content` as it extracts, so the reviewable JSON in
-between the two phases already contains the final HTML — what a reviewer reads is
-what the loader stores. It has to happen somewhere: the loader writes to
-`product_translations` directly, bypassing the service, so the service's
-sanitiser never sees migrated copy.
+Every writer has to do this. Today that is the API path (`catalog/repo.ts`);
+anything else that builds a vector has to call `richTextToPlain` first.
 
 ## Storefront rendering
 

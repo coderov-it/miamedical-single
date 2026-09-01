@@ -8,10 +8,9 @@ import { createHash } from 'node:crypto';
  * same uuid, so editing a file and running again changes only what changed —
  * which also makes an interrupted run resumable by repeating it.
  *
- * Deliberately not shared with `wp-migrate/ids.ts`. That one is a throwaway
- * WordPress import keyed on `wp_posts.ID`; this is the permanent catalogue
- * pipeline keyed on hand-written codes, and a permanent tool does not depend on
- * a folder that exists to be deleted.
+ * Keyed on the hand-written `code` in the JSON, never on an id from anywhere
+ * else — which is what lets a category file be renamed, reordered or rewritten
+ * without renumbering the catalogue.
  *
  * RFC 4122 §4.3: sha1 over namespace bytes + name, then stamp version 5 and the
  * RFC variant.

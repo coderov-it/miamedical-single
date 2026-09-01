@@ -85,6 +85,17 @@ Thumbs.db
 /docs/migration/wp
 
 # ---------------------------------------------------------------------------
+# Catalogue
+#
+# docs/catalog/*.json is hand-authored and COMMITTED — it is the catalogue's
+# source of truth, loaded by `pnpm catalog:import`.
+#
+# docs/assets/catalog/ holds the photos those files name. Not committed: after
+# an import they live in R2 as WebP, which is the copy the storefront serves.
+# ---------------------------------------------------------------------------
+/docs/assets/catalog/
+
+# ---------------------------------------------------------------------------
 # NOT ignored, on purpose:
 #   packages/db/drizzle/   — migrations are source of truth, must be committed
 #   pnpm-lock.yaml         — reproducible installs
