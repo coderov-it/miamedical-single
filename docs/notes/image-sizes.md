@@ -54,7 +54,7 @@ Layout: `products/<id>/…`, `categories/<id>/icon-<n>.webp`,
 The profile permits any aspect for a product photo. The migrated WooCommerce
 data uses exactly one:
 
-```
+```txt
 59 product photos sampled across /catalogo/, /catalogo-noleggio/, /catalogo-vendita/
 
   51 x  1000x1000   ratio 1.00
@@ -73,7 +73,7 @@ new stage on the assumption that a photo fills it.
 
 Category icons, all 17:
 
-```
+```txt
 17 / 17   256x256 WebP, and all 17 carry a blue frame baked into the pixels
           2–3px at 256², rgb(~2,0,162) ≈ #0200a2 — NOT our accent #3846b1
 
@@ -149,7 +149,7 @@ per page from the product hero or the blog cover, and is absent elsewhere.
 
 The gap between the box and the paint, since every photo is 1:1 and no box is:
 
-```
+```txt
 product card   382.7 x 370.4
   well         352.7 x 184     padding 14px
   image box    324.7 x 156     natural 1000x1000
