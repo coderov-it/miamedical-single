@@ -14,7 +14,7 @@
 // --- the authoring API ------------------------------------------------------
 export { defineCategory, defineTerms, type CategoryBuilder } from './lib/define.ts';
 export { defineSpec, spec, specGroup } from './lib/spec.ts';
-export { tiers, type Durations, type TierDefinition } from './lib/tiers.ts';
+export { parseDecimal, parseMoney, parseSpecNumber } from './lib/money.ts';
 export type * from './lib/types.ts';
 
 // --- the catalogue ----------------------------------------------------------

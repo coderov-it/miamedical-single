@@ -5,7 +5,7 @@
  * `stock` is 0, `isFeatured` is false, `chips` and `media` are empty. A product
  * with no photo still imports; it falls back to the category icon on the card.
  */
-import { shortStay } from '../shared/tiers.ts';
+import { days } from '../shared/packages.ts';
 import { wheelchairs } from './category.ts';
 
 export const transitFolding = wheelchairs.rental({
@@ -15,7 +15,7 @@ export const transitFolding = wheelchairs.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: shortStay(['25.00', '30.00', '35.00', '50.00', '65.00']),
+  packages: [days(3, 25), days(7, 30), days(15, 35), days(30, 50), days(45, 65)],
 
   translations: {
     it: {

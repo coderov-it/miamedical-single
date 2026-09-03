@@ -7,10 +7,10 @@
  * `products_rental_unit_check`, `products_rental_packages_check` and
  * `products_base_price_check` made unrepresentable rather than merely rejected.
  */
-import { homeDelivery, pressureReliefCushion } from '../shared/addons.ts';
+import { pressureReliefCushion } from '../shared/addons.ts';
 import { deliveryAccess } from '../shared/questions.ts';
 import { generalRental } from '../shared/terms.ts';
-import { longStay } from '../shared/tiers.ts';
+import { days } from '../shared/packages.ts';
 import { wheelchairs } from './category.ts';
 
 export const slimSelfPropelled = wheelchairs.rental({
@@ -27,9 +27,30 @@ export const slimSelfPropelled = wheelchairs.rental({
   pricingMode: 'rental',
   rentalUnit: 'day',
   /** Display copy — "da 1,10 € al giorno". No total ever reads it. */
-  marketingRate: '1.10',
-  /** Six durations from `longStay`, so exactly six prices, in that order. */
-  packages: longStay(['30.00', '35.00', '50.00', '65.00', '80.00', '110.00']),
+  marketingRate: 1.1,
+  /**
+   * THE price of the product. Not a rate times a duration — the shop means
+   * every one of these amounts separately, which is why each is typed.
+   */
+  packages: [
+    /**
+     * Named for what it is rather than for how long it runs, so it carries its
+     * own code and its own copy instead of going through `days()`.
+     */
+    {
+      duration: 2,
+      unit: 'day',
+      price: 20,
+      code: 'weekend',
+      name: { it: 'Weekend', en: 'Weekend' },
+    },
+    days(7, 30),
+    days(15, 35),
+    days(30, 50),
+    days(45, 65),
+    days(60, 80),
+    days(90, 110),
+  ],
 
   chips: [{ it: 'Portata 100 kg' }, { it: 'Pieghevole' }, { it: 'Solo 13 kg' }],
 
@@ -69,12 +90,12 @@ export const slimSelfPropelled = wheelchairs.rental({
   },
 
   /** A rental product may carry both add-on modes. A fixed one may not. */
-  addons: [homeDelivery, pressureReliefCushion],
+  addons: [pressureReliefCushion],
 
   faqs: [
     {
       question: { it: "La carrozzina entra nel bagagliaio di un'utilitaria?" },
-      answer: { it: 'Sì. Ripiegata misura 78 × 26 × 90 cm.' },
+      answer: { it: 'Sì. Ripiegata misura 78 x 26 x 90 cm.' },
     },
   ],
 

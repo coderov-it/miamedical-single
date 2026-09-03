@@ -8,6 +8,7 @@
  */
 import { wheelchairs } from './category.ts';
 import { slimSelfPropelled } from './slim-self-propelled.ts';
+import { slimTransit } from './slim-transit.ts';
 import { transitFolding } from './transit-folding.ts';
 
-export default wheelchairs.withProducts([slimSelfPropelled, transitFolding]);
+export default wheelchairs.withProducts([slimSelfPropelled, slimTransit, transitFolding]);
