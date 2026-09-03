@@ -21,7 +21,15 @@ export const wheelchairs = defineCategory({
       metaDescription:
         'Noleggia una carrozzina pieghevole, da transito o elettrica. Consegna in tutta Italia.',
     },
-    en: { name: 'Wheelchairs', slug: 'wheelchairs' },
+    en: {
+      name: 'Wheelchairs',
+      slug: 'wheelchairs',
+      description:
+        'Wheelchair hire — self-propelled, transit, reclining, bariatric and pediatric. Certified, sanitized and ready to use, with free warehouse collection or home delivery in Rome and Florence.',
+      metaTitle: 'Wheelchair hire | Mia Medical',
+      metaDescription:
+        'Hire a folding, transit or electric wheelchair. Delivery across Italy.',
+    },
   },
   icon: 'carrozzine.png',
 

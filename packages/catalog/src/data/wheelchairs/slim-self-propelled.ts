@@ -52,7 +52,11 @@ export const slimSelfPropelled = wheelchairs.rental({
     days(90, 110),
   ],
 
-  chips: [{ it: 'Portata 100 kg' }, { it: 'Pieghevole' }, { it: 'Solo 13 kg' }],
+  chips: [
+    { it: 'Portata 100 kg', en: '100 kg capacity' },
+    { it: 'Pieghevole', en: 'Folding' },
+    { it: 'Solo 13 kg', en: 'Only 13 kg' },
+  ],
 
   translations: {
     it: {
@@ -66,6 +70,15 @@ export const slimSelfPropelled = wheelchairs.rental({
       metaTitle: 'Noleggio carrozzina piccola SLIM | Mia Medical',
       metaDescription:
         'Carrozzina ad autospinta di piccole dimensioni, ideale per passaggi stretti.',
+    },
+    en: {
+      title: 'Small self-propelled wheelchair for hire - SLIM',
+      shortDescription:
+        'Small wheelchair, ideal where space is tight. Free collection and return at the warehouse.',
+      description:
+        '<p>Self-propelled wheelchair with a painted aluminium frame.</p><ul><li>Removable armrests</li><li>Elevating leg rests</li></ul>',
+      metaTitle: 'Small SLIM wheelchair hire | Mia Medical',
+      metaDescription: 'Small self-propelled wheelchair, ideal for narrow passages.',
     },
   },
 
@@ -84,7 +97,7 @@ export const slimSelfPropelled = wheelchairs.rental({
     thumbnail: 'slim-self-propelled-1.jpg',
     gallery: [
       'slim-self-propelled-2.jpg',
-      { file: 'slim-self-propelled-folded.jpg', alt: { it: 'Carrozzina ripiegata' } },
+      { file: 'slim-self-propelled-folded.jpg', alt: { it: 'Carrozzina ripiegata', en: 'Folded wheelchair' } },
     ],
     documents: ['slim-self-propelled-datasheet.pdf'],
   },
@@ -94,8 +107,8 @@ export const slimSelfPropelled = wheelchairs.rental({
 
   faqs: [
     {
-      question: { it: "La carrozzina entra nel bagagliaio di un'utilitaria?" },
-      answer: { it: 'Sì. Ripiegata misura 78 x 26 x 90 cm.' },
+      question: { it: "La carrozzina entra nel bagagliaio di un'utilitaria?", en: 'Does it fit in a small car boot?' },
+      answer: { it: 'Sì. Ripiegata misura 78 x 26 x 90 cm.', en: 'Yes. Folded it measures 78 x 26 x 90 cm.' },
     },
   ],
 

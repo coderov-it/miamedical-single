@@ -26,7 +26,11 @@ export const slimTransit = wheelchairs.rental({
     days(90, 100),
   ],
 
-  chips: [{ it: 'Per passaggi stretti' }, { it: 'Pieghevole' }, { it: 'Portata 100 kg' }],
+  chips: [
+    { it: 'Per passaggi stretti', en: 'For narrow passages' },
+    { it: 'Pieghevole', en: 'Folding' },
+    { it: 'Portata 100 kg', en: '100 kg capacity' },
+  ],
 
   translations: {
     it: {
@@ -39,6 +43,16 @@ export const slimTransit = wheelchairs.rental({
       metaTitle: 'Affitto carrozzina per disabili di piccole dimensioni - SLIM',
       metaDescription:
         'Affitto carrozzina per disabili di piccole dimensioni - SLIM. Disponibilità immediata. Possibilità di consegna a domicilio! Chiamaci al +393926509237',
+    },
+    en: {
+      title: 'Small transit wheelchair for hire – SLIM',
+      shortDescription:
+        'SLIM transit wheelchair hire. Home delivery and collection in Rome and Florence from €30. One-day hire: €15 with warehouse collection only. Free warehouse collection! Immediate availability.',
+      description:
+        '<p>Hiring a <strong>small transit wheelchair</strong> is the answer when space is tight and you need a nimble, practical chair.</p><p>The <strong>SLIM</strong> is built for narrow passages such as bathrooms, lifts and corridors.</p><h2><strong>Who it suits</strong></h2><p>Recommended for older people, disabled people, and anyone struggling to walk after injury, illness or disability.</p><h2><strong>Key features</strong></h2><ul><li><strong>Folding frame</strong> for easy transport and storage</li><li><strong>Footrests and armrests</strong>, both quickly removable</li><li><strong>Two brakes</strong> locking the wheels</li></ul><h2><strong>Seat sizes</strong></h2><ul><li><strong>40 or 43 cm</strong> seat</li><li>Very narrow chair, ideal for small spaces</li><li>Not suitable above <strong>80 kg</strong></li></ul><h2><strong>Hygiene</strong></h2><p>Every hire chair is <strong>thoroughly cleaned and sanitized</strong> throughout.</p>',
+      metaTitle: 'Small wheelchair for hire - SLIM',
+      metaDescription:
+        'Small wheelchair for hire - SLIM. Immediate availability. Home delivery available! Call us on +393926509237',
     },
   },
 
@@ -56,7 +70,7 @@ export const slimTransit = wheelchairs.rental({
     gallery: [
       {
         file: 'shared/pedane-elevabile-1.jpg',
-        alt: { it: 'Pedane elevabili estraibili' },
+        alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' },
       },
     ],
   },
@@ -65,8 +79,8 @@ export const slimTransit = wheelchairs.rental({
 
   faqs: [
     {
-      question: { it: 'Il paziente ha il gesso o deve tenere la gamba sollevata?' },
-      answer: { it: "L'alzata gamba è gratuita: basta comunicarlo al momento della prenotazione." },
+      question: { it: 'Il paziente ha il gesso o deve tenere la gamba sollevata?', en: 'Does the patient have a cast or need to keep a leg raised?' },
+      answer: { it: "L'alzata gamba è gratuita: basta comunicarlo al momento della prenotazione.", en: 'The leg rest is free: just tell us when booking.' },
     },
   ],
 

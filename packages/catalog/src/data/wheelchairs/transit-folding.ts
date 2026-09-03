@@ -22,6 +22,9 @@ export const transitFolding = wheelchairs.rental({
       title: 'Carrozzina pieghevole da transito',
       slug: 'noleggio-carrozzina-pieghevole-da-transito',
     },
+    en: {
+      title: 'Folding transit wheelchair',
+    },
   },
 
   specs: {
