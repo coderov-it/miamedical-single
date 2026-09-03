@@ -7,12 +7,14 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "media": "tsx --env-file-if-exists=../../.env src/script/media.ts",
     "check": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules"
   },
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {

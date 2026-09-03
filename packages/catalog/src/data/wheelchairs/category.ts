@@ -1,19 +1,12 @@
 /**
- * The wheelchair category: its own row, its translations, and the specs every
- * product in it may set.
- *
- * Specs are declared HERE and nowhere else. A product in a sibling file can
- * only set a key that appears below, with the value type the spec declares —
- * that is the whole point of defining the category first and adding products
- * second.
- *
- * Adding a spec is safe. Removing one breaks every product still setting it,
- * which is the error you want: a spec value with no spec is a row the database
- * would refuse.
+ * Wheelchair specs, chosen from the 15 WordPress products: the migration's
+ * spec rows are Italian free text and formulae, so only the measurable facts
+ * below survived. `foldable` is required — chairs and ramps fold, both
+ * seggioloni state they do not, and each combo ships a folding chair.
  */
 import { defineCategory } from '../../lib/define.ts';
 import { spec } from '../../lib/spec.ts';
-import { foldable, mobilityBasics } from '../shared/specs.ts';
+import { foldable, mobilityBasics, recliningBackrest } from '../shared/specs.ts';
 
 export const wheelchairs = defineCategory({
   code: 'wheelchairs',
@@ -22,21 +15,20 @@ export const wheelchairs = defineCategory({
     it: {
       name: 'Carrozzine',
       slug: 'carrozzine',
-      description: 'Carrozzine pieghevoli, da transito ed elettriche, a noleggio in tutta Italia.',
+      description:
+        'Noleggio carrozzine ad autospinta, da transito, reclinabili, bariatriche e pediatriche. Certificate, sanificate e pronte all\u2019uso, con ritiro gratuito in sede o consegna a domicilio a Roma e Firenze.',
       metaTitle: 'Noleggio carrozzine | Mia Medical',
       metaDescription:
         'Noleggia una carrozzina pieghevole, da transito o elettrica. Consegna in tutta Italia.',
     },
     en: { name: 'Wheelchairs', slug: 'wheelchairs' },
   },
-  icon: 'wheelchair.svg',
+  icon: 'carrozzine.png',
 
   specs: {
-    // Four shared specs, spread in as one group.
     ...mobilityBasics,
-    // One more shared spec, on its own.
-    ...foldable,
-    // And two this category alone cares about, declared inline.
+    foldable: { ...foldable.foldable, isRequired: true },
+    ...recliningBackrest,
     propulsion: spec.select({
       label: { it: 'Tipo di spinta', en: 'Propulsion' },
       isFilterable: true,

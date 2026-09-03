@@ -53,6 +53,15 @@ export const foldable = defineSpec(
   spec.boolean({ label: { it: 'Pieghevole', en: 'Foldable' }, isFilterable: true }),
 );
 
+export const recliningBackrest = defineSpec(
+  'reclining-backrest',
+  spec.boolean({
+    label: { it: 'Schienale reclinabile', en: 'Reclining backrest' },
+    isFilterable: true,
+    isComparable: true,
+  }),
+);
+
 export const condition = defineSpec(
   'condition',
   spec.select({

@@ -17,7 +17,7 @@ export const usedFantastica = usedEquipment.fixed({
   stock: 1,
 
   pricingMode: 'fixed',
-  basePrice: '539.00',
+  basePrice: 539,
 
   translations: {
     it: {

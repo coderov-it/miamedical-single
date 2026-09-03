@@ -23,15 +23,10 @@
  */
 import type { LanguageCode, Localized, MediaAlt } from '@mia/db/schema';
 
-export type { LanguageCode, Localized };
+import type { Amount } from './money.ts';
 
-/**
- * `numeric(12, 2)` as the string Drizzle wants. The template type rejects the
- * three mistakes that actually happen: `'45'` (no decimals), `'45,00'` (the
- * Italian display separator) and anything non-numeric. It cannot count decimal
- * places, so three-place amounts still reach the runtime check.
- */
-export type Money = `${number}.${number}`;
+export type { LanguageCode, Localized };
+export type { Amount, Money } from './money.ts';
 
 /** At least one element, enforced at compile time. */
 export type NonEmpty<T> = readonly [T, ...T[]];
@@ -115,18 +110,32 @@ export type SpecsOf<S extends SpecMap> = { [K in keyof S]?: SpecValue<S[K]> };
 
 // --- rental packages --------------------------------------------------------
 
+/**
+ * One package, as a data file writes it: a duration, the unit it is counted in,
+ * its price and the name a customer reads. All four are given — nothing here is
+ * inferred from anything else, because none of it is derivable. The same
+ * product advertised at 1,10 € a day sells three days for 25,00 €, and a
+ * package named "Weekend" runs two days without either word appearing in the
+ * other.
+ */
 export interface RentalPackageInput {
+  /** How long it runs, counted in `unit`. */
+  duration: number;
   /**
-   * Stable English handle an order line records — `7-days`, never `7-giorni`.
-   * A renamed package must not rewrite order history, and the name a customer
-   * reads lives in `name`.
+   * Its own unit, never inherited from the product: a per-day product may still
+   * offer a 12-hour package.
+   */
+  unit: 'hour' | 'day';
+  price: Amount;
+  /** What the customer reads — `7 giorni`, or `Weekend`. */
+  name: Localized;
+  /**
+   * The English handle an order line records — `7-days`, `12-hours`, `weekend`.
+   * Unique within the product. Renaming a package must not rewrite order
+   * history, which is why this is separate from `name` and why it is written
+   * rather than derived from it.
    */
   code: string;
-  name: Localized;
-  price: Money;
-  duration: number;
-  /** Its own unit: a per-day product may still offer a 12-hour package. */
-  unit: 'hour' | 'day';
 }
 
 // --- add-ons ----------------------------------------------------------------
@@ -143,13 +152,13 @@ interface AddonBase {
 /** Billed once. The only kind a fixed-price product may carry. */
 export interface FixedAddon extends AddonBase {
   pricingMode: 'fixed';
-  price: Money;
+  price: Amount;
 }
 
 /** Billed per `rentalUnit`. Only a rental product may carry one. */
 export interface RentalAddon extends AddonBase {
   pricingMode: 'rental';
-  price: Money;
+  price: Amount;
   rentalUnit: 'hour' | 'day';
 }
 
@@ -281,14 +290,14 @@ export interface RentalProductInput<S extends SpecMap> extends ProductBase<S> {
   rentalUnit: 'hour' | 'day';
   packages: NonEmpty<RentalPackageInput>;
   /** Display copy — "da 1,10 € al giorno". No total ever reads it. */
-  marketingRate?: Money;
+  marketingRate?: Amount;
   addons?: readonly (FixedAddon | RentalAddon)[];
 }
 
 /** Bought outright. No packages, no rental unit, no marketing rate. */
 export interface FixedProductInput<S extends SpecMap> extends ProductBase<S> {
   pricingMode: 'fixed';
-  basePrice: Money;
+  basePrice: Amount;
   /** A rental add-on on a sold product has no period to bill against. */
   addons?: readonly FixedAddon[];
 }
