@@ -7,8 +7,36 @@
  * without being deleted.
  */
 import { wheelchairs } from './category.ts';
+import { bariatricWheelchair } from './bariatric-wheelchair.ts';
+import { kinetecWheelchairBundle } from './kinetec-wheelchair-bundle.ts';
+import { magnetotherapyWheelchairBundle } from './magnetotherapy-wheelchair-bundle.ts';
+import { pediatricWheelchair } from './pediatric-wheelchair.ts';
+import { recliningWheelchair } from './reclining-wheelchair.ts';
+import { selfPropelledFolding } from './self-propelled-folding.ts';
 import { slimSelfPropelled } from './slim-self-propelled.ts';
 import { slimTransit } from './slim-transit.ts';
+import { superwheelElectric } from './superwheel-electric.ts';
+import { tiltingChairElectric } from './tilting-chair-electric.ts';
+import { tiltingChairManual } from './tilting-chair-manual.ts';
 import { transitFolding } from './transit-folding.ts';
+import { walkerWheelchairBundle } from './walker-wheelchair-bundle.ts';
+import { wheelchairRamp } from './wheelchair-ramp.ts';
+import { wheelchairRampShort } from './wheelchair-ramp-short.ts';
 
-export default wheelchairs.withProducts([slimSelfPropelled, slimTransit, transitFolding]);
+export default wheelchairs.withProducts([
+  slimSelfPropelled,
+  slimTransit,
+  wheelchairRamp,
+  recliningWheelchair,
+  tiltingChairManual,
+  bariatricWheelchair,
+  transitFolding,
+  selfPropelledFolding,
+  kinetecWheelchairBundle,
+  walkerWheelchairBundle,
+  magnetotherapyWheelchairBundle,
+  pediatricWheelchair,
+  wheelchairRampShort,
+  tiltingChairElectric,
+  superwheelElectric,
+]);
