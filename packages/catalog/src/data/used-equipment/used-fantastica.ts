@@ -33,7 +33,7 @@ export const usedFantastica = usedEquipment.fixed({
     condition: 'used',
     'max-load': 130,
     'seat-width': 45,
-    warrantyMonths: 12,
+    'warranty-months': 12,
   },
 
   media: { thumbnail: 'used-fantastica-1.jpg', gallery: ['used-fantastica-2.jpg'] },

@@ -30,10 +30,8 @@ export const EXTERNAL_APIS = {
    * Cloudflare's REST API, version pinned in the path as Cloudflare pins it.
    *
    * Shared by anything account-scoped we call there — today only Email Sending.
-   * R2 is not one of them: its host is per-account and S3-shaped, below.
+   * R2 is not one of them: its host is per-account and S3-shaped, so it is
+   * assembled by the adapter that needs it — `r2Endpoint` in `@mia/media`.
    */
   cloudflareApiBaseUrl: 'https://api.cloudflare.com/client/v4',
-
-  /** Cloudflare R2 over its S3-compatible API. The account id is the subdomain. */
-  r2Endpoint: (accountId: string) => `https://${accountId}.r2.cloudflarestorage.com`,
 } as const;

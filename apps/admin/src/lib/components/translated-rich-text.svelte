@@ -89,7 +89,7 @@
           <!-- The Italian side, rendered so the translator sees the structure they
                are translating. Not arbitrary input: this is the value the API
                returned, and the server sanitises description HTML against an
-               allowlist on write (shared/html/rich-text.ts). -->
+               allowlist on write (packages/validators/src/rich-text.ts). -->
           <!-- eslint-disable-next-line svelte/no-at-html-tags -->
           {@html value.it}
         </div>

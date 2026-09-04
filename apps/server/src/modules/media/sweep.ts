@@ -1,6 +1,5 @@
 import { env } from '../../config/env.ts';
-import type { FileUploader } from '../../infra/storage/port.ts';
-import { STAGING_PREFIX } from '../../infra/storage/port.ts';
+import { STAGING_PREFIX, type FileUploader } from '@mia/media';
 
 /**
  * Orphaned-upload cleanup. Every upload lands in `_staging/` and only leaves

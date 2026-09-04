@@ -16,17 +16,10 @@ export const walkerWheelchairBundle = wheelchairs.rental({
   pricingMode: 'rental',
   rentalUnit: 'day',
   marketingRate: 2,
-  packages: [
-    days(7, 55),
-    days(15, 64),
-    days(30, 90),
-    days(45, 120),
-    days(60, 145),
-    days(90, 180),
-  ],
+  packages: [days(7, 55), days(15, 64), days(30, 90), days(45, 120), days(60, 145), days(90, 180)],
 
   chips: [
-    { it: 'Deambulatore + carrozzina', en: 'Walker + wheelchair' },
+    { it: 'Deambulatore incluso', en: 'Walker included' },
     { it: 'Recupero progressivo', en: 'Gradual recovery' },
     { it: 'Consulenza inclusa', en: 'Advice included' },
   ],
@@ -66,7 +59,10 @@ export const walkerWheelchairBundle = wheelchairs.rental({
   faqs: [
     {
       question: { it: 'Quale deambulatore ricevo?', en: 'Which walker will I receive?' },
-      answer: { it: 'Quello adatto al paziente: peso, equilibrio, autonomia residua e spazi di casa decidono il modello.', en: 'The right one for the patient: weight, balance, remaining independence and home spaces decide the model.' },
+      answer: {
+        it: 'Quello adatto al paziente: peso, equilibrio, autonomia residua e spazi di casa decidono il modello.',
+        en: 'The right one for the patient: weight, balance, remaining independence and home spaces decide the model.',
+      },
     },
   ],
 

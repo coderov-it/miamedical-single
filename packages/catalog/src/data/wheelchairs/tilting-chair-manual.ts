@@ -20,8 +20,8 @@ export const tiltingChairManual = wheelchairs.rental({
 
   chips: [
     { it: 'Seduta basculante', en: 'Tilting seat' },
-    { it: 'Schienale reclinabile', en: 'Reclining backrest' },
-    { it: 'Cuscini antidecubito', en: 'Anti-decubitus cushions' },
+    { it: 'Reclinabile', en: 'Reclining' },
+    { it: 'Cuscini antidecubito', en: 'Anti-decubitus pads' },
   ],
 
   translations: {
@@ -55,13 +55,21 @@ export const tiltingChairManual = wheelchairs.rental({
 
   media: {
     thumbnail: 'tilting-chair-manual-1.jpg',
-    gallery: [{ file: 'shared/seggiolone-inovis-2.jpg', alt: { it: 'Seggiolone polifunzionale', en: 'Posture chair' } }],
+    gallery: [
+      {
+        file: 'shared/seggiolone-inovis-2.jpg',
+        alt: { it: 'Seggiolone polifunzionale', en: 'Posture chair' },
+      },
+    ],
   },
 
   faqs: [
     {
       question: { it: 'È richiesto un deposito?', en: 'Is a deposit required?' },
-      answer: { it: 'Sì, per questo articolo è richiesto un deposito di 300 €.', en: 'Yes, a €300 deposit is required for this item.' },
+      answer: {
+        it: 'Sì, per questo articolo è richiesto un deposito di 300 €.',
+        en: 'Yes, a €300 deposit is required for this item.',
+      },
     },
   ],
 

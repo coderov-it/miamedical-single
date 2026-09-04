@@ -1,11 +1,16 @@
 import type { Database } from '@mia/db';
 import type { LanguageCode } from '@mia/db/schema';
 import { P, can } from '@mia/permissions';
-import type { CreateProductInput, ProductQuery, UpdateProductInput } from '@mia/validators';
+import {
+  sanitizeRichText,
+  type CreateProductInput,
+  type ProductQuery,
+  type UpdateProductInput,
+} from '@mia/validators';
 
-import type { FileUploader } from '../../../infra/storage/port.ts';
+import type { FileUploader } from '@mia/media';
 import type { SessionUser } from '../../../shared/http/context.ts';
-import { sanitizeRichText } from '../../../shared/html/rich-text.ts';
+
 import { conflict, httpError, notFound } from '../../../shared/http/errors.ts';
 import { pick } from '../i18n.ts';
 import type { FacetDto } from '../dto.ts';

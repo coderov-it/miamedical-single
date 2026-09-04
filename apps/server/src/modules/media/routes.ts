@@ -13,10 +13,9 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import * as v from 'valibot';
 
-import { imageConverter } from '../../infra/convert/sharp.ts';
-import { UnreadableImageError } from '../../infra/convert/port.ts';
-import { r2FileUploader } from '../../infra/storage/r2.ts';
-import { STAGING_PREFIX } from '../../infra/storage/port.ts';
+import { STAGING_PREFIX, UnreadableImageError } from '@mia/media';
+
+import { imageConverter, r2FileUploader } from '../../infra/media.ts';
 import { requirePermission } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
 import { httpError } from '../../shared/http/errors.ts';

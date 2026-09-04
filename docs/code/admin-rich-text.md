@@ -17,7 +17,7 @@ tree for the sake of one field.
 | Layer                                                   | What it is                                          |
 | ------------------------------------------------------- | --------------------------------------------------- |
 | `apps/admin/src/lib/components/rich-text-editor.svelte` | The editor's extension list — a usability guarantee |
-| `apps/server/src/shared/html/rich-text.ts`              | `sanitizeRichText()` — the security boundary        |
+| `packages/validators/src/rich-text.ts`                  | `sanitizeRichText()` — the security boundary        |
 
 The editor's copy is the reason a paste from Word arrives clean: ProseMirror
 parses incoming HTML against its schema and drops every node and mark it has no

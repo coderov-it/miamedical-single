@@ -62,7 +62,7 @@ failures are the quietest kind — a link nobody receives produces no error anyw
 and `sendQuietly` is built to log and carry on — so the cheap cases are caught at
 startup, where a refusal to start is unmissable.
 
-Each provider's variables are optional as a group, following `infra/storage/r2.ts`: the
+Each provider's variables are optional as a group, following `R2FileUploader` in `@mia/media`: the
 server starts without them and the adapter fails on first send, naming what is missing,
 so a misconfigured mail provider never keeps the rest of the API down.
 

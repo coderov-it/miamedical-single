@@ -20,7 +20,7 @@ export const tiltingChairElectric = wheelchairs.rental({
   chips: [
     { it: 'Basculante elettrica', en: 'Electric tilt' },
     { it: 'Telecomando', en: 'Remote control' },
-    { it: 'Cuscini antidecubito', en: 'Anti-decubitus cushions' },
+    { it: 'Cuscini antidecubito', en: 'Anti-decubitus pads' },
   ],
 
   translations: {
@@ -56,7 +56,10 @@ export const tiltingChairElectric = wheelchairs.rental({
     thumbnail: 'tilting-chair-electric-1.png',
     gallery: [
       { file: 'tilting-chair-electric-2.jpeg', alt: { it: 'Telecomando', en: 'Remote control' } },
-      { file: 'shared/seggiolone-inovis-2.jpg', alt: { it: 'Seggiolone polifunzionale', en: 'Posture chair' } },
+      {
+        file: 'shared/seggiolone-inovis-2.jpg',
+        alt: { it: 'Seggiolone polifunzionale', en: 'Posture chair' },
+      },
       { file: 'tilting-chair-manual-1.jpg', alt: { it: 'Versione manuale', en: 'Manual version' } },
     ],
   },
@@ -64,7 +67,10 @@ export const tiltingChairElectric = wheelchairs.rental({
   faqs: [
     {
       question: { it: 'È richiesto un deposito?', en: 'Is a deposit required?' },
-      answer: { it: 'Sì, per questo articolo è richiesto un deposito di 300 €.', en: 'Yes, a €300 deposit is required for this item.' },
+      answer: {
+        it: 'Sì, per questo articolo è richiesto un deposito di 300 €.',
+        en: 'Yes, a €300 deposit is required for this item.',
+      },
     },
   ],
 

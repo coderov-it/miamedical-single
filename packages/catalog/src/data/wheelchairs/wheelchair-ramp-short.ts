@@ -65,15 +65,24 @@ export const wheelchairRampShort = wheelchairs.rental({
     thumbnail: 'wheelchair-ramp-short-1.jpg',
     gallery: [
       { file: 'wheelchair-ramp-short-2.jpg', alt: { it: 'Rampa corta', en: 'Short ramp' } },
-      { file: 'shared/rampa-pendenze.jpg', alt: { it: 'Pendenze consigliate', en: 'Recommended gradients' } },
-      { file: 'shared/rampa-pendenze-2.png', alt: { it: 'Pendenze consigliate', en: 'Recommended gradients' } },
+      {
+        file: 'shared/rampa-pendenze.jpg',
+        alt: { it: 'Pendenze consigliate', en: 'Recommended gradients' },
+      },
+      {
+        file: 'shared/rampa-pendenze-2.png',
+        alt: { it: 'Pendenze consigliate', en: 'Recommended gradients' },
+      },
     ],
   },
 
   faqs: [
     {
       question: { it: 'Quanto misura la rampa aperta?', en: 'What size is the ramp when open?' },
-      answer: { it: '91 × 73 cm. Chiusa diventa una valigia con maniglia, facile da caricare in auto.', en: '91 × 73 cm. Folded it becomes a suitcase with a handle, easy to load into a car.' },
+      answer: {
+        it: '91 × 73 cm. Chiusa diventa una valigia con maniglia, facile da caricare in auto.',
+        en: '91 × 73 cm. Folded it becomes a suitcase with a handle, easy to load into a car.',
+      },
     },
   ],
 

@@ -25,7 +25,7 @@ export const usedEquipment = defineCategory({
     ...condition,
     ...maxLoad,
     ...seatWidth,
-    warrantyMonths: spec.number({
+    'warranty-months': spec.number({
       label: { it: 'Garanzia', en: 'Warranty' },
       unit: 'mesi',
       isComparable: true,

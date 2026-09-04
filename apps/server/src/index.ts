@@ -3,7 +3,7 @@ import { serve } from '@hono/node-server';
 import { app } from './app.ts';
 import { env } from './config/env.ts';
 import { logFeatureSummary } from './config/features.ts';
-import { r2FileUploader } from './infra/storage/r2.ts';
+import { r2FileUploader } from './infra/media.ts';
 import { startStagingSweep } from './modules/media/sweep.ts';
 
 const server = serve({ fetch: app.fetch, port: env.API_PORT, hostname: env.API_HOST }, (info) => {

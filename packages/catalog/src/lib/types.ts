@@ -78,8 +78,10 @@ export type AnySpec =
   NumberSpec | RangeSpec | BooleanSpec | TextSpec | SelectSpec | MultiSelectSpec;
 
 /**
- * Specs keyed by their machine key rather than listed with a `key` field. Two
- * reasons, one of them forced:
+ * Specs keyed by their machine key rather than listed with a `key` field. The
+ * key is lowercase with `-` or `_` between words — `seat-width`, never
+ * `seatWidth` — because `CodeSchema` in `@mia/validators` is what the sync
+ * checks it against. Two reasons for the shape, one of them forced:
  *
  *   1. A key cannot repeat, which is `category_specs_category_key_key`.
  *   2. TypeScript's `const` type parameter does NOT preserve a tuple when the
@@ -165,7 +167,11 @@ export interface RentalAddon extends AddonBase {
 // --- intake questions -------------------------------------------------------
 
 interface QuestionBase {
-  /** English machine key — `floor`, `hasLift`. Unique within a product. */
+  /**
+   * English machine key — `floor`, `has-lift`. Unique within a product.
+   * Lowercase, digits, `-` and `_` only: `CodeSchema` in `@mia/validators` is
+   * what the sync checks it against, and camelCase does not pass.
+   */
   key: string;
   prompt: Localized;
   helpText?: Localized;

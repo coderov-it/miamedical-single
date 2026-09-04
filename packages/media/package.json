@@ -1,0 +1,22 @@
+{
+  "name": "@mia/media",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
+    "sharp": "catalog:"
+  },
+  "devDependencies": {
+    "@mia/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}
