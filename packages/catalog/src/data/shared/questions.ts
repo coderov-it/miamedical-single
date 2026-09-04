@@ -18,7 +18,7 @@ export const floor: AnyQuestion = {
 };
 
 export const hasLift: AnyQuestion = {
-  key: 'hasLift',
+  key: 'has-lift',
   prompt: { it: "C'è l'ascensore?", en: 'Is there a lift?' },
   questionValueType: 'single_select',
   isRequired: true,

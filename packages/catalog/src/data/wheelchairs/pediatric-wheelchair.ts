@@ -15,14 +15,7 @@ export const pediatricWheelchair = wheelchairs.rental({
   pricingMode: 'rental',
   rentalUnit: 'day',
   marketingRate: 1.11,
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   chips: [
     { it: 'Jazz S50 Kids', en: 'Jazz S50 Kids' },
@@ -64,16 +57,28 @@ export const pediatricWheelchair = wheelchairs.rental({
   media: {
     thumbnail: 'pediatric-wheelchair-1.jpg',
     gallery: [
-      { file: 'pediatric-wheelchair-2.jpg', alt: { it: 'Carrozzina pediatrica', en: 'Pediatric wheelchair' } },
-      { file: 'pediatric-wheelchair-3.jpg', alt: { it: 'Carrozzina pediatrica di lato', en: 'Pediatric wheelchair from the side' } },
-      { file: 'shared/pedane-elevabile-1.jpg', alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' } },
+      {
+        file: 'pediatric-wheelchair-2.jpg',
+        alt: { it: 'Carrozzina pediatrica', en: 'Pediatric wheelchair' },
+      },
+      {
+        file: 'pediatric-wheelchair-3.jpg',
+        alt: { it: 'Carrozzina pediatrica di lato', en: 'Pediatric wheelchair from the side' },
+      },
+      {
+        file: 'shared/pedane-elevabile-1.jpg',
+        alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' },
+      },
     ],
   },
 
   faqs: [
     {
       question: { it: 'Il bambino ha il gesso?', en: 'Does the child have a cast?' },
-      answer: { it: 'È disponibile l’alzata per il gesso: basta comunicarlo al momento della prenotazione.', en: 'A cast leg rest is available: just tell us when booking.' },
+      answer: {
+        it: 'È disponibile l’alzata per il gesso: basta comunicarlo al momento della prenotazione.',
+        en: 'A cast leg rest is available: just tell us when booking.',
+      },
     },
   ],
 

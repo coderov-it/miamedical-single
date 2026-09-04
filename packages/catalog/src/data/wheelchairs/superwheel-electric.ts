@@ -58,9 +58,15 @@ export const superwheelElectric = wheelchairs.rental({
   media: {
     thumbnail: 'superwheel-electric-1.png',
     gallery: [
-      { file: 'superwheel-electric-2.png', alt: { it: 'Ruota Superwheel', en: 'Superwheel wheel' } },
+      {
+        file: 'superwheel-electric-2.png',
+        alt: { it: 'Ruota Superwheel', en: 'Superwheel wheel' },
+      },
       { file: 'superwheel-electric-3.png', alt: { it: 'Joystick', en: 'Joystick' } },
-      { file: 'superwheel-electric-4.png', alt: { it: 'Superwheel di lato', en: 'Superwheel from the side' } },
+      {
+        file: 'superwheel-electric-4.png',
+        alt: { it: 'Superwheel di lato', en: 'Superwheel from the side' },
+      },
       { file: 'superwheel-electric-5.png', alt: { it: 'Superwheel', en: 'Superwheel' } },
       { file: 'superwheel-electric-6.png', alt: { it: 'Cestino posteriore', en: 'Rear basket' } },
     ],
@@ -69,7 +75,10 @@ export const superwheelElectric = wheelchairs.rental({
   faqs: [
     {
       question: { it: 'È richiesto un deposito?', en: 'Is a deposit required?' },
-      answer: { it: 'Sì, per questo articolo è richiesto un deposito di 400 €.', en: 'Yes, a €400 deposit is required for this item.' },
+      answer: {
+        it: 'Sì, per questo articolo è richiesto un deposito di 400 €.',
+        en: 'Yes, a €400 deposit is required for this item.',
+      },
     },
   ],
 

@@ -22,3 +22,9 @@ export {
   or,
   sql,
 } from 'drizzle-orm';
+
+// The types a generic helper needs to take "some table, some column" — a
+// reconciling delete, a dynamic order-by. Same reason as the builders above:
+// writing one is not a reason to depend on the ORM directly.
+export type { SQL } from 'drizzle-orm';
+export type { AnyPgColumn, PgTable } from 'drizzle-orm/pg-core';

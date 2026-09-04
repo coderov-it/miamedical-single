@@ -52,16 +52,28 @@ export const magnetotherapyWheelchairBundle = wheelchairs.rental({
   media: {
     thumbnail: 'magnetotherapy-wheelchair-bundle-1.jpg',
     gallery: [
-      { file: 'magnetotherapy-wheelchair-bundle-2.jpg', alt: { it: 'Magnetoterapia CEMP Magnum 2500', en: 'CEMP Magnum 2500 magnetotherapy' } },
-      { file: 'self-propelled-folding-1.jpg', alt: { it: 'Carrozzina inclusa', en: 'Wheelchair included' } },
-      { file: 'shared/pedane-elevabile-1.jpg', alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' } },
+      {
+        file: 'magnetotherapy-wheelchair-bundle-2.jpg',
+        alt: { it: 'Magnetoterapia CEMP Magnum 2500', en: 'CEMP Magnum 2500 magnetotherapy' },
+      },
+      {
+        file: 'self-propelled-folding-1.jpg',
+        alt: { it: 'Carrozzina inclusa', en: 'Wheelchair included' },
+      },
+      {
+        file: 'shared/pedane-elevabile-1.jpg',
+        alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' },
+      },
     ],
   },
 
   faqs: [
     {
       question: { it: 'Quale carrozzina è inclusa?', en: 'Which wheelchair is included?' },
-      answer: { it: 'Quella adatta al paziente, scelta con il nostro team tra tutti i modelli a noleggio.', en: 'The right one for the patient, chosen with our team from every model for hire.' },
+      answer: {
+        it: 'Quella adatta al paziente, scelta con il nostro team tra tutti i modelli a noleggio.',
+        en: 'The right one for the patient, chosen with our team from every model for hire.',
+      },
     },
   ],
 

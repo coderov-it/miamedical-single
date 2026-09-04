@@ -20,7 +20,7 @@ export const kinetecWheelchairBundle = wheelchairs.rental({
 
   chips: [
     { it: 'Kinetec + carrozzina', en: 'Kinetec + wheelchair' },
-    { it: 'Riabilitazione a domicilio', en: 'Home rehabilitation' },
+    { it: 'Riabilitazione', en: 'Rehabilitation' },
     { it: 'Senza deposito', en: 'No deposit' },
   ],
 
@@ -55,16 +55,28 @@ export const kinetecWheelchairBundle = wheelchairs.rental({
   media: {
     thumbnail: 'kinetec-wheelchair-bundle-1.jpg',
     gallery: [
-      { file: 'kinetec-wheelchair-bundle-2.jpg', alt: { it: 'Kinetec per ginocchio e anca', en: 'Kinetec for knee and hip' } },
-      { file: 'self-propelled-folding-1.jpg', alt: { it: 'Carrozzina inclusa', en: 'Wheelchair included' } },
-      { file: 'shared/pedane-elevabile-1.jpg', alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' } },
+      {
+        file: 'kinetec-wheelchair-bundle-2.jpg',
+        alt: { it: 'Kinetec per ginocchio e anca', en: 'Kinetec for knee and hip' },
+      },
+      {
+        file: 'self-propelled-folding-1.jpg',
+        alt: { it: 'Carrozzina inclusa', en: 'Wheelchair included' },
+      },
+      {
+        file: 'shared/pedane-elevabile-1.jpg',
+        alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' },
+      },
     ],
   },
 
   faqs: [
     {
       question: { it: 'La consegna è gratuita?', en: 'Is delivery free?' },
-      answer: { it: 'Sì per i noleggi da 30 giorni; il ritiro in magazzino è sempre gratuito.', en: 'Yes for 30-day hires; warehouse collection is always free.' },
+      answer: {
+        it: 'Sì per i noleggi da 30 giorni; il ritiro in magazzino è sempre gratuito.',
+        en: 'Yes for 30-day hires; warehouse collection is always free.',
+      },
     },
   ],
 

@@ -20,7 +20,7 @@ admin uploader, save path). Nothing else may invent a geometry.
 | `document`      | unconverted                         | —                              | 15 MB       | pdf                               |
 
 Two behaviours that follow from `square` + `edge` vs `maxEdge` in
-`apps/server/src/infra/convert/sharp.ts`:
+`packages/media/src/convert/sharp.ts`:
 
 - **`edge` is exact and upscales.** `icon_256` always lands on 256², even from a
   100px source.

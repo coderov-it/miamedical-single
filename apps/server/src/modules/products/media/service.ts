@@ -1,8 +1,7 @@
 import type { MediaItem, ProductMedia } from '@mia/db/schema';
 import { MEDIA_PROFILES, type MediaProfileName } from '@mia/validators';
 
-import type { FileUploader } from '../../../infra/storage/port.ts';
-import { STAGING_PREFIX } from '../../../infra/storage/port.ts';
+import { STAGING_PREFIX, type FileUploader } from '@mia/media';
 import { httpError } from '../../../shared/http/errors.ts';
 
 /**

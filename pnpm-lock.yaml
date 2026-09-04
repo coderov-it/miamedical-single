@@ -321,6 +321,9 @@ importers:
       '@mia/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@mia/media':
+        specifier: workspace:*
+        version: link:../../packages/media
       '@mia/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
@@ -345,9 +348,6 @@ importers:
       postgres:
         specifier: 'catalog:'
         version: 3.4.9
-      sanitize-html:
-        specifier: ^2.17.6
-        version: 2.17.6
       sharp:
         specifier: 'catalog:'
         version: 0.35.3(@types/node@26.1.2)
@@ -361,9 +361,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.2
-      '@types/sanitize-html':
-        specifier: ^2.16.1
-        version: 2.16.1
       rolldown:
         specifier: 'catalog:'
         version: 1.2.3
@@ -443,6 +440,15 @@ importers:
       '@mia/db':
         specifier: workspace:*
         version: link:../db
+      '@mia/media':
+        specifier: workspace:*
+        version: link:../media
+      '@mia/validators':
+        specifier: workspace:*
+        version: link:../validators
+      valibot:
+        specifier: 'catalog:'
+        version: 1.4.2(typescript@6.0.3)
     devDependencies:
       '@mia/tsconfig':
         specifier: workspace:*
@@ -484,6 +490,25 @@ importers:
       '@mia/validators':
         specifier: workspace:*
         version: link:../validators
+    devDependencies:
+      '@mia/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/media:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: 'catalog:'
+        version: 3.1104.0
+      sharp:
+        specifier: 'catalog:'
+        version: 0.35.3(@types/node@26.1.2)
     devDependencies:
       '@mia/tsconfig':
         specifier: workspace:*
@@ -538,6 +563,9 @@ importers:
       '@mia/pricing':
         specifier: workspace:*
         version: link:../pricing
+      sanitize-html:
+        specifier: ^2.17.6
+        version: 2.17.6
       valibot:
         specifier: 'catalog:'
         version: 1.4.2(typescript@6.0.3)
@@ -548,6 +576,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.2
+      '@types/sanitize-html':
+        specifier: ^2.16.1
+        version: 2.16.1
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

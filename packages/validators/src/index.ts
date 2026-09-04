@@ -1,4 +1,5 @@
 export * from './common.ts';
+export * from './rich-text.ts';
 export * from './i18n.ts';
 export * from './media.ts';
 export * from './auth.ts';

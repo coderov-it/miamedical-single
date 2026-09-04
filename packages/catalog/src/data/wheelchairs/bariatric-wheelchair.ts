@@ -64,7 +64,9 @@ export const bariatricWheelchair = wheelchairs.rental({
 
   media: {
     thumbnail: 'bariatric-wheelchair-1.jpg',
-    gallery: [{ file: 'shared/pedane-elevabile.jpg', alt: { it: 'Alzata per gesso', en: 'Cast leg rest' } }],
+    gallery: [
+      { file: 'shared/pedane-elevabile.jpg', alt: { it: 'Alzata per gesso', en: 'Cast leg rest' } },
+    ],
   },
 
   addons: [pressureReliefCushion],
@@ -72,7 +74,10 @@ export const bariatricWheelchair = wheelchairs.rental({
   faqs: [
     {
       question: { it: 'Entra in macchina da chiusa?', en: 'Does it fit in a car when folded?' },
-      answer: { it: 'Sì: è pieghevole ed è pensata per essere caricata in auto, nonostante la struttura rinforzata.', en: 'Yes: it folds and is designed to load into a car, despite its reinforced build.' },
+      answer: {
+        it: 'Sì: è pieghevole ed è pensata per essere caricata in auto, nonostante la struttura rinforzata.',
+        en: 'Yes: it folds and is designed to load into a car, despite its reinforced build.',
+      },
     },
   ],
 

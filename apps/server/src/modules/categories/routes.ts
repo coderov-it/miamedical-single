@@ -9,7 +9,7 @@ import {
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { r2FileUploader } from '../../infra/storage/r2.ts';
+import { r2FileUploader } from '../../infra/media.ts';
 import { requirePermission } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
 import { validate } from '../../shared/http/validate.ts';

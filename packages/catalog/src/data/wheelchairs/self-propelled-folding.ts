@@ -67,8 +67,14 @@ export const selfPropelledFolding = wheelchairs.rental({
   media: {
     thumbnail: 'self-propelled-folding-1.jpg',
     gallery: [
-      { file: 'self-propelled-folding-2.jpg', alt: { it: 'Carrozzina ripiegata', en: 'Folded wheelchair' } },
-      { file: 'shared/pedane-elevabile-1.jpg', alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' } },
+      {
+        file: 'self-propelled-folding-2.jpg',
+        alt: { it: 'Carrozzina ripiegata', en: 'Folded wheelchair' },
+      },
+      {
+        file: 'shared/pedane-elevabile-1.jpg',
+        alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' },
+      },
     ],
   },
 
@@ -76,8 +82,14 @@ export const selfPropelledFolding = wheelchairs.rental({
 
   faqs: [
     {
-      question: { it: 'Il paziente ha il gesso o deve tenere la gamba sollevata?', en: 'Does the patient have a cast or need to keep a leg raised?' },
-      answer: { it: "L'alzata è gratuita: basta comunicarlo al momento della prenotazione.", en: 'The leg rest is free: just tell us when booking.' },
+      question: {
+        it: 'Il paziente ha il gesso o deve tenere la gamba sollevata?',
+        en: 'Does the patient have a cast or need to keep a leg raised?',
+      },
+      answer: {
+        it: "L'alzata è gratuita: basta comunicarlo al momento della prenotazione.",
+        en: 'The leg rest is free: just tell us when booking.',
+      },
     },
   ],
 

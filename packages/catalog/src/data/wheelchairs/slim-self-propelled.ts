@@ -90,16 +90,14 @@ export const slimSelfPropelled = wheelchairs.rental({
     'frame-material': 'aluminium',
     foldable: true,
     propulsion: 'self-propelled',
-    closedWidth: 26,
+    'closed-width': 26,
   },
 
   media: {
     thumbnail: 'slim-self-propelled-1.jpg',
     gallery: [
-      'slim-self-propelled-2.jpg',
-      { file: 'slim-self-propelled-folded.jpg', alt: { it: 'Carrozzina ripiegata', en: 'Folded wheelchair' } },
+      { file: 'slim-self-propelled-2.jpg', alt: { it: 'Vista posteriore', en: 'Rear view' } },
     ],
-    documents: ['slim-self-propelled-datasheet.pdf'],
   },
 
   /** A rental product may carry both add-on modes. A fixed one may not. */
@@ -107,8 +105,14 @@ export const slimSelfPropelled = wheelchairs.rental({
 
   faqs: [
     {
-      question: { it: "La carrozzina entra nel bagagliaio di un'utilitaria?", en: 'Does it fit in a small car boot?' },
-      answer: { it: 'Sì. Ripiegata misura 78 x 26 x 90 cm.', en: 'Yes. Folded it measures 78 x 26 x 90 cm.' },
+      question: {
+        it: "La carrozzina entra nel bagagliaio di un'utilitaria?",
+        en: 'Does it fit in a small car boot?',
+      },
+      answer: {
+        it: 'Sì. Ripiegata misura 78 x 26 x 90 cm.',
+        en: 'Yes. Folded it measures 78 x 26 x 90 cm.',
+      },
     },
   ],
 

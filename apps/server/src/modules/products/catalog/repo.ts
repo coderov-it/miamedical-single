@@ -18,8 +18,8 @@ import {
   searchQueryFor,
   searchVectorFor,
 } from '@mia/db/schema';
+import { richTextToPlain } from '@mia/validators';
 
-import { richTextToPlain } from '../../../shared/html/rich-text.ts';
 import type {
   ProductAggregate,
   ProductListFilters,

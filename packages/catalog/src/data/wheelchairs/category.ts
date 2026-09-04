@@ -27,11 +27,10 @@ export const wheelchairs = defineCategory({
       description:
         'Wheelchair hire — self-propelled, transit, reclining, bariatric and pediatric. Certified, sanitized and ready to use, with free warehouse collection or home delivery in Rome and Florence.',
       metaTitle: 'Wheelchair hire | Mia Medical',
-      metaDescription:
-        'Hire a folding, transit or electric wheelchair. Delivery across Italy.',
+      metaDescription: 'Hire a folding, transit or electric wheelchair. Delivery across Italy.',
     },
   },
-  icon: 'carrozzine.png',
+  icon: 'wheelchairs.png',
 
   specs: {
     ...mobilityBasics,
@@ -47,7 +46,7 @@ export const wheelchairs = defineCategory({
         electric: { it: 'Elettrica', en: 'Electric' },
       },
     }),
-    closedWidth: spec.number({
+    'closed-width': spec.number({
       label: { it: 'Ingombro da chiusa', en: 'Folded width' },
       unit: 'cm',
       isComparable: true,

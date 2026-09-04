@@ -79,8 +79,14 @@ export const slimTransit = wheelchairs.rental({
 
   faqs: [
     {
-      question: { it: 'Il paziente ha il gesso o deve tenere la gamba sollevata?', en: 'Does the patient have a cast or need to keep a leg raised?' },
-      answer: { it: "L'alzata gamba è gratuita: basta comunicarlo al momento della prenotazione.", en: 'The leg rest is free: just tell us when booking.' },
+      question: {
+        it: 'Il paziente ha il gesso o deve tenere la gamba sollevata?',
+        en: 'Does the patient have a cast or need to keep a leg raised?',
+      },
+      answer: {
+        it: "L'alzata gamba è gratuita: basta comunicarlo al momento della prenotazione.",
+        en: 'The leg rest is free: just tell us when booking.',
+      },
     },
   ],
 

@@ -3,7 +3,7 @@ import { eq, inArray } from '@mia/db';
 import { productAddons } from '@mia/db/schema';
 import type { AddonInput } from '@mia/validators';
 
-import type { FileUploader } from '../../../infra/storage/port.ts';
+import type { FileUploader } from '@mia/media';
 import { httpError, notFound } from '../../../shared/http/errors.ts';
 import { commitIcon } from '../media/service.ts';
 import * as catalogRepo from '../catalog/repo.ts';

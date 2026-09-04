@@ -11,7 +11,7 @@
   toolbar and the schema are configured in one place.
 
   It is NOT the security boundary: the server sanitises on write with the same
-  allowlist (`apps/server/src/shared/html/sanitize.ts`), because a client is a
+  allowlist (`packages/validators/src/rich-text.ts`), because a client is a
   client. Both lists have to move together — see docs/code/admin-rich-text.md.
 -->
 <script lang="ts">

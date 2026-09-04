@@ -14,8 +14,7 @@
     "clean": "rm -rf .turbo dist node_modules",
     "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
     "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts",
-    "admin:seed": "tsx --env-file-if-exists=../../.env script/seed-superadmin.ts",
-    "catalog:import": "tsx --env-file-if-exists=../../.env script/catalog/import.ts"
+    "admin:seed": "tsx --env-file-if-exists=../../.env script/seed-superadmin.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:",
@@ -24,6 +23,7 @@
     "@hono/valibot-validator": "catalog:",
     "@mia/db": "workspace:*",
     "@mia/i18n": "workspace:*",
+    "@mia/media": "workspace:*",
     "@mia/permissions": "workspace:*",
     "@mia/pricing": "workspace:*",
     "@mia/templates": "workspace:*",
@@ -32,14 +32,12 @@
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "postgres": "catalog:",
-    "sanitize-html": "^2.17.6",
     "sharp": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",
     "@types/node": "catalog:",
-    "@types/sanitize-html": "^2.16.1",
     "rolldown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

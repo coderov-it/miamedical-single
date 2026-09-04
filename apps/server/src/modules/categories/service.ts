@@ -4,7 +4,7 @@ import type { LanguageCode } from '@mia/db/schema';
 import { categorySpecOptions, categorySpecs } from '@mia/db/schema';
 import type { CreateCategoryInput, SpecInput, UpdateCategoryInput } from '@mia/validators';
 
-import type { FileUploader } from '../../infra/storage/port.ts';
+import type { FileUploader } from '@mia/media';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 import { commitIcon } from '../products/media/service.ts';
 import * as repo from './repo.ts';

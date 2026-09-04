@@ -27,7 +27,7 @@ export const recliningWheelchair = wheelchairs.rental({
   ],
 
   chips: [
-    { it: 'Schienale reclinabile', en: 'Reclining backrest' },
+    { it: 'Reclinabile', en: 'Reclining' },
     { it: 'Portata 120 kg', en: '120 kg capacity' },
     { it: 'Pieghevole', en: 'Folding' },
   ],
@@ -62,7 +62,7 @@ export const recliningWheelchair = wheelchairs.rental({
     weight: { min: 17.5, max: 17.5 },
     'frame-material': 'steel',
     foldable: true,
-    closedWidth: 28,
+    'closed-width': 28,
     'reclining-backrest': true,
     propulsion: 'self-propelled',
   },
@@ -70,8 +70,14 @@ export const recliningWheelchair = wheelchairs.rental({
   media: {
     thumbnail: 'reclining-wheelchair-1.jpg',
     gallery: [
-      { file: 'reclining-wheelchair-2.jpg', alt: { it: 'Schienale reclinabile', en: 'Reclining backrest' } },
-      { file: 'shared/pedane-elevabile-1.jpg', alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' } },
+      {
+        file: 'reclining-wheelchair-2.jpg',
+        alt: { it: 'Schienale reclinabile', en: 'Reclining backrest' },
+      },
+      {
+        file: 'shared/pedane-elevabile-1.jpg',
+        alt: { it: 'Pedane elevabili estraibili', en: 'Removable elevating leg rests' },
+      },
     ],
   },
 
@@ -79,8 +85,14 @@ export const recliningWheelchair = wheelchairs.rental({
 
   faqs: [
     {
-      question: { it: 'Può sostituire un seggiolone polifunzionale?', en: 'Can it replace a posture chair?' },
-      answer: { it: 'Sì: per lunghe permanenze sedute offre comfort e postura paragonabili, con in più la possibilità di spostarsi.', en: 'Yes: for long hours seated it offers comparable comfort and posture, with the bonus of mobility.' },
+      question: {
+        it: 'Può sostituire un seggiolone polifunzionale?',
+        en: 'Can it replace a posture chair?',
+      },
+      answer: {
+        it: 'Sì: per lunghe permanenze sedute offre comfort e postura paragonabili, con in più la possibilità di spostarsi.',
+        en: 'Yes: for long hours seated it offers comparable comfort and posture, with the bonus of mobility.',
+      },
     },
   ],
 
