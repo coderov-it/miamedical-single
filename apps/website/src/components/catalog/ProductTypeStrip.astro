@@ -1,0 +1,128 @@
+---
+/**
+ * The row of product-type tiles that leads the catalogue: "Tutti", then one
+ * tile per type the shop can answer.
+ *
+ * Matched to the reference site's own strip (miamedicalitalia.it, measured
+ * 2026-09-05, desktop and 390px): a picture over a bold name, tiles of equal
+ * width sharing the row, and the selected one filled rather than ticked.
+ *
+ * THE NAMES ARE INK AT `font-semibold`, going accent only on hover — one step
+ * under the category tiles below, which are content and stay bold. This strip
+ * is chrome that filters them, and chrome shouting as loudly as the thing it
+ * filters is what made the whole page read as bold (owner, 2026-09-05). The reference paints all
+ * nine accent-blue, and that is what made the strip shout over the directory
+ * three rows below it (owner, 2026-09-05) — nine blue headings above eight
+ * black ones reads as two competing shops. One tile carries accent ink here:
+ * the selected one, where the colour IS the marker.
+ *
+ * SELECTED IS THE `accent-tint` FILL, ACCENT INK, AND A SOFT ACCENT HAIRLINE —
+ * `border-accent/30`, not the solid accent the reference draws at 2px. The
+ * fill and the ink do the marking; the border only stops the tint from floating
+ * edgelessly among eight bordered cards. At full strength it read as a hard
+ * frame, which is not how anything else on this site marks a choice (owner,
+ * 2026-09-05).
+ *
+ * Unselected is a white fill on one hairline, the same card the category
+ * directory uses, so the two grids read as one family.
+ *
+ * NO TINT WELL. The art sits straight on the card, which is what the category
+ * tiles below already do and for the same reason: these icons carry their own
+ * white ground, and `mix-blend-multiply` drops it into the card. The reference
+ * frames each one in a bordered 64px well, and copying that put THREE nested
+ * rectangles in every tile — the card, the well, and the blue frame baked into
+ * the icon itself — nine times across one row. That is what made the strip look
+ * "messy, cards gathered" (owner, 2026-09-05). One border per tile.
+ *
+ * IT SCROLLS SIDEWAYS ON A PHONE AND SHARES THE ROW ON DESKTOP. Nine tiles wrap
+ * to three rows at 390px and stand 300px tall before a single product, so below
+ * `mid` this is one scrolling strip that bleeds to both screen edges — the clip
+ * at the viewport IS the affordance, exactly as the filter row's pills do it.
+ * The explicit width on the scroll port is load-bearing for the same reason it
+ * is there: this row's parent is a wrapping flex column, which would otherwise
+ * size the port to all nine tiles laid out flat and scroll the document
+ * sideways instead of the strip.
+ *
+ * Above `mid` the tiles take `flex-1` between a 112px floor and a 144px ceiling
+ * and the row WRAPS, so a shop that grows a tenth type gets a second row rather
+ * than nine tiles squeezed under their own labels.
+ *
+ * THE NAMES ARE 14px AT `font-medium` (owner, 2026-09-05, set in the browser
+ * and measured there). This strip is chrome, and it takes the header nav's
+ * scale rather than the body's — nine names in a row read as a legend under
+ * nine pictures, not as nine headings, and at 16px semibold they were louder
+ * than the category tiles they filter. Two lines are reserved either way, so a
+ * one-word type and a three-word one hang from the same baseline.
+ */
+import { mediaUrl } from '~/lib/api';
+import { localeForRequest, translate } from '~/lib/i18n';
+import type { ProductTypeTile } from '~/lib/product-type-nav';
+
+interface Props {
+  tiles: ProductTypeTile[];
+}
+
+const { tiles } = Astro.props;
+const locale = localeForRequest();
+---
+
+<nav
+  class="max-mid:-mx-gutter max-mid:w-[calc(100%+2*var(--spacing-gutter))] max-mid:px-gutter max-mid:overflow-x-auto mid:flex-wrap mid:pb-6.5 max-mid:pb-3 flex [scrollbar-width:none] gap-3.5 [&::-webkit-scrollbar]:hidden"
+  aria-label={translate(locale, 'catalog.type.filter')}
+>
+  {
+    tiles.map((tile) => (
+      <a
+        class:list={[
+          'group/type font-ui max-mid:w-31 mid:min-w-28 mid:max-w-36 mid:flex-1 mid:basis-0 rounded-field flex flex-none flex-col items-center gap-2.5 border px-3 pt-3.5 pb-3.5 text-center no-underline',
+          tile.isActive
+            ? 'bg-accent-tint border-accent/30 text-accent'
+            : 'border-hair hover:border-hair-strong text-ink bg-white',
+        ]}
+        href={tile.href}
+        aria-current={tile.isActive ? 'true' : undefined}
+      >
+        {/* A fixed height at every width, so the names below start on one line
+            across the row whatever shape the art inside turns out to be. */}
+        <span class="grid h-14 w-full flex-none place-items-center" aria-hidden="true">
+          {tile.imagePath ? (
+            /* CAPPED IN PIXELS, and `max-h-14` has to keep step with the `h-14`
+               above. Neither `size-full` nor `max-h-full` works here: a centred
+               grid item is sized by its CONTENT, so the row it sits in is
+               auto-sized, so a percentage against it is circular and resolves to
+               `auto` — which let a 500px icon draw at full size straight through
+               the label below. */
+            <img
+              class="block max-h-14 max-w-full object-contain mix-blend-multiply"
+              src={mediaUrl(tile.imagePath)}
+              alt=""
+              loading="lazy"
+            />
+          ) : (
+            /* "Tutti" has no category to borrow a picture from, and the grid
+               glyph is what the catalogue is marked with everywhere else. */
+            <svg
+              class="text-ink-2 size-7"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          )}
+        </span>
+        {/* Two lines reserved, as the product card reserves two for its name:
+            a one-word type and a three-word one then hang from the same
+            baseline instead of floating at different heights down the row. */}
+        <span class="min-h-[2.6em] text-sm/[1.3] font-medium group-hover/type:text-accent">
+          {tile.label}
+        </span>
+      </a>
+    ))
+  }
+</nav>

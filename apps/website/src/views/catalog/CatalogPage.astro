@@ -3,34 +3,68 @@
  * The catalogue, in its three forms — see `CatalogView` in lib/routes.ts.
  *
  * `all` is a category directory until something narrows it; `rental` and `sale`
- * are always product listings. All three share one masthead and one pill row,
- * so moving between them never changes the furniture, only the body.
+ * are always product listings. All three share one masthead, so moving between
+ * them never changes the furniture, only the body.
  *
  * Matched section for section to the owner's reference (miamedicalitalia.it,
- * measured 2026-08-31), which is also where the page's grey ground and white
- * cards come from — the same pattern as the home page below its hero.
+ * re-measured 2026-09-05): breadcrumb, a title with the mode segment beside it,
+ * a labelled search row, the product-type strip, the group pills of whichever
+ * type is selected, then the results under their own toolbar. The grey ground
+ * and white cards are theirs too — the same pattern as the home page below its
+ * hero.
  *
- * Rendered on demand: search, the category filter and stock are always live,
- * and a deep link like `?category=carrozzine&page=2` is a real URL.
+ * Rendered on demand: search, the filters and stock are always live, and a deep
+ * link like `?type=move&group=wheelchairs&page=2` is a real URL.
+ *
+ * ONE LIST, FILTERED AND PAGED HERE. Everything the customer can narrow by —
+ * pricing mode, product type, the group inside it, a single category, "solo
+ * disponibili" — is answered out of the catalogue this app already caches,
+ * because a type is a static set of categories only this app knows about
+ * (lib/product-types.ts) and `/api/products` filters by one category at a time.
+ * A typed query is the exception and stays with the API, which is the only
+ * thing here that can stem Italian.
+ *
+ * THE API STILL OWNS THE ORDER. Both reads ask for the sort the customer chose
+ * and the filters below only ever REMOVE rows, so every option in the sort
+ * dropdown keeps working — which matters, because "i più richiesti" and "più
+ * recenti" rank on columns the product summaries do not carry.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import FinderEntry from '~/components/global/FinderEntry.astro';
+import ProductTypeStrip from '~/components/catalog/ProductTypeStrip.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { cached, CATALOG_POLICY } from '~/lib/cache';
 import {
   buildCategoryTiles,
   buildPills,
   catalogCopy,
-  categoryOptions,
   MODE_FOR_VIEW,
   readCatalogQuery,
   type CatalogView,
 } from '~/lib/catalog-page';
-import { listCategories, listProducts, safely } from '~/lib/catalog';
+import {
+  listAllProducts,
+  listCategories,
+  listProducts,
+  MAX_PER_PAGE,
+  safely,
+  type ProductSummary,
+} from '~/lib/catalog';
 import { localeFromLocals, translate } from '~/lib/i18n';
+import { buildGroupPills, buildTypeTiles } from '~/lib/product-type-nav';
+import {
+  categorySlugs,
+  onPricingSurface,
+  productTypeLabel,
+  selectProducts,
+} from '~/lib/product-types';
 import { catalogPath, routePath } from '~/lib/routes';
-import CatalogFilters from './CatalogFilters.astro';
+import CatalogGroups from './CatalogGroups.astro';
 import CatalogHead from './CatalogHead.astro';
 import CatalogListing from './CatalogListing.astro';
+import CatalogSearch from './CatalogSearch.astro';
+import CatalogToolbar from './CatalogToolbar.astro';
+import CatalogViews from './CatalogViews.astro';
 import CategoryDirectory from './CategoryDirectory.astro';
 
 interface Props {
@@ -41,6 +75,7 @@ const PER_PAGE = 24;
 const { view } = Astro.props;
 const locale = localeFromLocals(Astro.locals);
 const query = readCatalogQuery(Astro.url, view);
+const mode = MODE_FOR_VIEW[view];
 
 /*
  * The whole catalogue leads with the directory, then lists everything under it —
@@ -48,60 +83,169 @@ const query = readCatalogQuery(Astro.url, view);
  * for someone who knows what kind of thing they want; the grid below is for
  * someone who would rather just look.
  *
- * The tiles drop away once anything narrows the page — a category, a typed
- * query — because a grid of category tiles is no answer to "show me the
+ * The tiles drop away once anything narrows the page — a type, a category, a
+ * typed query — because a grid of category tiles is no answer to "show me the
  * wheelchairs". They drop on page 2 as well: they are a landing device, and
  * repeating them above every page of results is furniture, not navigation.
  */
 const showDirectory = view === 'all' && !query.isNarrowed && query.page === 1;
 
-const mode = MODE_FOR_VIEW[view];
-const emptyResult = {
-  data: [],
-  meta: { page: query.page, perPage: PER_PAGE, total: 0, pageCount: 1 },
-  facets: { specs: [] },
-};
-
-const [categories, result] = await Promise.all([
-  safely(() => listCategories(locale), [], 'listCategories'),
-  safely(
-    () =>
-      listProducts(
-        {
-          page: query.page,
-          perPage: PER_PAGE,
-          sort: query.sort,
-          ...(query.q ? { q: query.q } : {}),
-          ...(query.category ? { category: query.category } : {}),
-          ...(mode ? { mode } : {}),
-        },
+/**
+ * A typed query, answered by Postgres.
+ *
+ * ONE OVERSIZED PAGE rather than the paged read this used to do, so that
+ * "solo disponibili" and the pager below can work on the whole answer instead
+ * of on whichever 24 rows came back. 100 is the API's ceiling and the catalogue
+ * holds ~110 products, so a query that overflows it has matched nearly
+ * everything — at which point it is not really a search.
+ */
+function readSearch(): Promise<ProductSummary[]> {
+  if (!query.q) return Promise.resolve([]);
+  return safely(
+    async () => {
+      const found = await listProducts(
+        { page: 1, perPage: MAX_PER_PAGE, sort: query.sort, q: query.q, ...(mode ? { mode } : {}) },
         locale,
-      ),
-    emptyResult,
+      );
+      return found.data;
+    },
+    [],
     'listProducts',
-  ),
+  );
+}
+
+/**
+ * The whole catalogue: what every other narrowing is taken out of, and what
+ * tells the strip which tiles this surface can actually answer.
+ *
+ * READ ON EVERY RENDER, not only under a selected type, because a tile is only
+ * honest if the strip knows what is behind it here — "Igiene e vita quotidiana"
+ * holds nothing on the rental catalogue, and the summaries the category
+ * endpoint returns count both pricing modes and so cannot say that.
+ *
+ * Keyed by sort as well as locale, because the order is the API's answer and not
+ * something this page can recompute. The home page and the guided selector hold
+ * their own key, so this is one more list of ~110 summaries in memory — paid
+ * once every four minutes, not once per visitor.
+ */
+function readWholeCatalogue(): Promise<ProductSummary[]> {
+  return safely(
+    async () => {
+      const all = await cached(
+        `catalog:products:${query.sort}:${locale}`,
+        () => listAllProducts({ sort: query.sort }, locale),
+        CATALOG_POLICY,
+      );
+      return all.items;
+    },
+    [],
+    'listAllProducts',
+  );
+}
+
+const [categories, searched, wholeCatalogue] = await Promise.all([
+  safely(() => listCategories(locale), [], 'listCategories'),
+  readSearch(),
+  readWholeCatalogue(),
 ]);
 
 const activeCategory = categories.find((candidate) => candidate.code === query.category);
-const copy = catalogCopy(view, activeCategory?.name ?? null, locale);
-const pills = buildPills(query, categories, locale);
+const surfaceProducts = onPricingSurface(wholeCatalogue, mode);
+
+/* Availability is applied BEFORE the type is broken into groups, so a pill's
+   count and the listing behind it are answering the same question — "Carrozzine
+   23" beside a stock-filtered grid holding nine of them is the same lie as a
+   rental count on a sale surface. */
+const stocked = query.inStock
+  ? surfaceProducts.filter((product) => product.inStock)
+  : surfaceProducts;
+
+/* The type first, then the group inside it: the pills need the type's own count
+   to say "Tutte 41", and the grid needs the narrower of the two. */
+const inType = query.type
+  ? selectProducts(stocked, categorySlugs(categories, query.type.categories))
+  : [];
+
+function narrowed(): ProductSummary[] {
+  if (query.q) {
+    return query.inStock ? searched.filter((product) => product.inStock) : searched;
+  }
+  if (query.group) return selectProducts(inType, categorySlugs(categories, query.group.categories));
+  if (query.type) return inType;
+  if (activeCategory) return selectProducts(stocked, new Set([activeCategory.slug]));
+  return stocked;
+}
+
+const listed = narrowed();
+
+/* Paging the filtered array. The requested page is CLAMPED to what exists —
+   `?type=used&page=9` is a stale link, and the last real page of results
+   answers it better than an empty grid does. */
+const total = listed.length;
+const pageCount = Math.max(1, Math.ceil(total / PER_PAGE));
+const current = Math.min(query.page, pageCount);
+const meta = { page: current, perPage: PER_PAGE, total, pageCount };
+const products = listed.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+
+const copy = catalogCopy(query, activeCategory?.name ?? null, locale);
+const pills = buildPills(query, locale);
+const typeTiles = buildTypeTiles(query, categories, locale, surfaceProducts);
+const groupPills = buildGroupPills(query, inType, categories, locale);
 const tiles = showDirectory
   ? buildCategoryTiles(categories, { locale, context: query.context })
   : [];
 
-const isFirstPage = result.meta.page <= 1;
+/* Home › Catalogo › … — earned once the page has a subject of its own: a
+   category, a type, or a type and one of its groups. The trail ends on the
+   thing the masthead is titled after, and only the steps above it are links. */
+const trail: { label: string; href?: string }[] = [
+  { label: translate(locale, 'home'), href: routePath(locale, 'home') },
+  /* "Catalogo", not the h1's "Catalogo prodotti" — a trail names the place, and
+     the reference's own crumb is the short form. */
+  { label: translate(locale, 'catalog.breadcrumb'), href: routePath(locale, 'catalog') },
+];
+if (query.type) {
+  const label = productTypeLabel(query.type, locale);
+  if (query.group) {
+    trail.push({
+      label,
+      href: catalogPath({ view, type: query.type.id, ...query.context }, locale),
+    });
+  } else {
+    trail.push({ label });
+  }
+}
+if (query.group) trail.push({ label: copy.heading });
+if (activeCategory) trail.push({ label: activeCategory.name });
+
+/* What the toolbar's count is about. A typed query is its own subject and the
+   bare catalogue has none, which is when the count reads "107 prodotti". */
+const subject = query.type || activeCategory ? copy.heading : null;
+
+const isFirstPage = meta.page <= 1;
 const title = isFirstPage
   ? `${copy.heading} | Roma e Firenze — Mia Medical Italia`
-  : `${copy.heading} — ${translate(locale, 'blog.pageTitle', { page: result.meta.page })} | Mia Medical Italia`;
+  : `${copy.heading} — ${translate(locale, 'blog.pageTitle', { page: meta.page })} | Mia Medical Italia`;
 
 /* One page-link builder for the head's rel=prev/next and the listing's pager. */
 const pageLink = (page: number) =>
   catalogPath(
-    { view, q: query.q, category: query.category, sort: query.sort, page, ...query.context },
+    {
+      view,
+      q: query.q,
+      category: query.category,
+      ...(query.type ? { type: query.type.id } : {}),
+      ...(query.group ? { group: query.group.id } : {}),
+      sort: query.sort,
+      inStock: query.inStock,
+      layout: query.layout,
+      page,
+      ...query.context,
+    },
     locale,
   );
-const prevUrl = result.meta.page > 1 ? pageLink(result.meta.page - 1) : null;
-const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.page + 1) : null;
+const prevUrl = meta.page > 1 ? pageLink(meta.page - 1) : null;
+const nextUrl = meta.page < meta.pageCount ? pageLink(meta.page + 1) : null;
 ---
 
 <BaseLayout
@@ -120,40 +264,49 @@ const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.
        page's — which is why nothing inside paints a ground of its own. The
        wrapper's air is theirs too: 34px above the title, 60px under the last
        row before the footer.
-       
+
        ON A PHONE THE MASTHEAD IS A WHITE TOOLBAR and the body is the grey
        ground under it (owner, 2026-08-31). It is the same two blocks at every
        width — above `mid` both are transparent and the split is invisible —
        but below it the title, the search field and the control strip need to
-       read as ONE object rather than as three controls scattered on the page,
-       and a ground change plus a hairline is what says so. This is also why the
-       block bleeds past the gutter: a toolbar that stops short of the screen
-       edge reads as a card, not as chrome. */
+       read as ONE object rather than as controls scattered on the page, and a
+       ground change plus a hairline is what says so. This is also why the block
+       bleeds past the gutter: a toolbar that stops short of the screen edge
+       reads as a card, not as chrome. */
   }
   <div class="bg-page">
     <div class="max-mid:border-hair max-mid:border-b max-mid:bg-white">
       <div class="max-w-page px-gutter max-mid:pt-3 mx-auto w-full pt-[clamp(22px,2.4vw,34px)]">
-        {
-          /* The masthead is the whole crumb trail on the bare surfaces — a
-             single "Home › Catalogo" row above an h1 that says the same word
-             twice is noise. It earns its place once a category is the page's
-             real subject. */
-        }
-        {
-          activeCategory && (
-            <Breadcrumbs
-              items={[
-                { label: translate(locale, 'home'), href: routePath(locale, 'home') },
-                { label: translate(locale, 'catalog.title'), href: routePath(locale, 'catalog') },
-                { label: activeCategory.name },
-              ]}
-            />
-          )
-        }
+        <Breadcrumbs items={trail} />
 
-        <CatalogHead heading={copy.heading} lede={copy.lede} />
+        {
+          /* THE MODE SEGMENT SITS ON THE TITLE'S LINE, hard right and bottom-
+             aligned to it (owner, 2026-09-05, and the reference's own
+             arrangement). "Which half of the shop" is a statement about the
+             page, so it belongs beside the page's name; the row below it is
+             for narrowing what is already on screen.
+             
+             What made this masthead unclean the first time was not the
+             position — it was a `bg-tint` search field with no edges on a grey
+             ground and a 149px caption repeating its own placeholder. Both are
+             fixed in CatalogSearch; this is the layout back where it belongs. */
+        }
+        <div
+          class="mid:flex-row mid:items-end mid:justify-between mid:gap-8 mid:pb-5 max-mid:gap-3 max-mid:pb-3.5 flex flex-col"
+        >
+          <CatalogHead heading={copy.heading} lede={copy.lede} />
+          <CatalogViews {pills} />
+        </div>
 
-        <CatalogFilters {pills} categories={categoryOptions(categories)} {query} />
+        <div class="mid:pb-6.5 max-mid:pb-3"><CatalogSearch {query} /></div>
+
+        {
+          /* The strip sits under the search row and above the body, which is
+             the reference's own order: the segment says which half of the shop,
+             the strip says which corner of it. */
+        }
+        <ProductTypeStrip tiles={typeTiles} />
+        <CatalogGroups pills={groupPills} />
       </div>
     </div>
 
@@ -161,9 +314,12 @@ const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.
       {showDirectory && <CategoryDirectory {tiles} />}
       {showDirectory && <FinderEntry class="mb-8.5" />}
 
+      {!showDirectory && <CatalogToolbar {query} {total} {subject} />}
+
       <CatalogListing
-        products={result.data}
-        meta={result.meta}
+        {products}
+        {meta}
+        layout={query.layout}
         heading={showDirectory ? translate(locale, 'catalog.allProducts') : undefined}
         context={query.context}
         pageHref={pageLink}

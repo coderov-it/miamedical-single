@@ -16,9 +16,24 @@
  */
 import type { Category, ProductSummary } from './catalog.ts';
 import type { SiteLocale } from './i18n.ts';
+import {
+  categorySlugs,
+  findProductType,
+  productTypeImage,
+  type ProductTypeId,
+} from './product-types.ts';
 import { routePath } from './routes.ts';
 
-export type FinderActivity = 'move' | 'walk' | 'bed' | 'transfer' | 'therapy' | 'stairs';
+/**
+ * The six questions the live site asks, which are the first six product types.
+ *
+ * The catalogue's strip carries two more — daily living and second-hand — and
+ * they stay out of here on purpose: this flow is three questions ported from the
+ * live site, and neither is an answer to "what does the person need to do".
+ */
+const FINDER_ACTIVITIES = ['move', 'walk', 'bed', 'transfer', 'therapy', 'stairs'] as const;
+
+export type FinderActivity = (typeof FINDER_ACTIVITIES)[number];
 export type FinderPlace = 'home' | 'outdoors' | 'both';
 export type FinderDuration = 'weeks' | 'months' | 'long' | 'unsure';
 
@@ -37,20 +52,18 @@ export interface FinderAnswers {
 /**
  * An activity, and the categories it means.
  *
- * `categories` NAMES CODES FROM BOTH TAXONOMIES ON PURPOSE. The database still
- * carries the eighteen Italian-coded categories the site launched with, while
- * `packages/catalog` has been rebuilt as thirty-four English-coded ones that
- * nothing has synced yet. A code that is not in the catalogue costs nothing —
- * `categorySlugs()` keeps only what the API actually returned — so this table
- * answers correctly today and keeps answering correctly the day the sync runs.
- * Drop the Italian half once that has happened.
+ * `categories` IS NOT WRITTEN HERE ANY MORE. An activity is one of the
+ * catalogue's product types, so the category sets live once in
+ * `product-types.ts` and this flow reads them — the shortlist for "spostarsi"
+ * and the listing behind the "Muoversi" tile can no longer answer differently.
  *
  * `byPlace` is the second question's narrowing, and only mobility has one:
- * indoors means a manual chair and outdoors means a powered one. Every other
- * activity ignores the answer, exactly as the live site does — the question is
- * asked of everyone because the flow is three questions, and dropping it for
- * five of six activities would make the step bar lie about how far along the
- * customer is.
+ * indoors means a manual chair and outdoors means a powered one, which is
+ * exactly the split the `move` type already draws between its two groups. Every
+ * other activity ignores the answer, exactly as the live site does — the
+ * question is asked of everyone because the flow is three questions, and
+ * dropping it for five of six activities would make the step bar lie about how
+ * far along the customer is.
  */
 interface ActivityRule {
   id: FinderActivity;
@@ -58,72 +71,21 @@ interface ActivityRule {
   byPlace?: Partial<Record<FinderPlace, readonly string[]>>;
 }
 
-const WHEELCHAIRS = ['carrozzine', 'wheelchairs-hire', 'wheelchairs-sale'] as const;
-const POWERED = [
-  'carrozzine-elettriche-e-scooter',
-  'electric-wheelchairs-and-scooters-hire',
-  'electric-wheelchairs-sale',
-  'mobility-scooters-sale',
-] as const;
+const groupCategories = (typeId: ProductTypeId, groupId: string): readonly string[] =>
+  findProductType(typeId)?.groups.find((group) => group.id === groupId)?.categories ?? [];
 
-export const ACTIVITY_RULES: readonly ActivityRule[] = [
-  {
-    id: 'move',
-    categories: [...WHEELCHAIRS, ...POWERED, 'ausili-per-la-mobilita'],
-    byPlace: { home: WHEELCHAIRS, outdoors: POWERED },
+const PLACE_NARROWING: Partial<Record<FinderActivity, ActivityRule['byPlace']>> = {
+  move: {
+    home: groupCategories('move', 'wheelchairs'),
+    outdoors: groupCategories('move', 'powered-wheelchairs'),
   },
-  { id: 'walk', categories: ['deambulatori-e-rollatori', 'walkers-hire', 'walkers-sale'] },
-  {
-    id: 'bed',
-    categories: [
-      'letti-ortopedici-ospedalieri',
-      'materassi-antidecubito-ad-alto-rischio',
-      'hospital-beds-hire',
-      'hospital-beds-sale',
-      'pressure-relief-mattresses-hire',
-      'pressure-relief-mattresses-sale',
-      'recliner-armchairs-sale',
-    ],
-  },
-  {
-    id: 'transfer',
-    categories: [
-      'sollevatori',
-      'verticalizzatori',
-      'patient-lifts-hire',
-      'patient-lifts-sale',
-      'standing-frames-hire',
-      'standing-frames-sale',
-    ],
-  },
-  {
-    id: 'therapy',
-    categories: [
-      'magnetoterapia',
-      'kinetec',
-      'tens-elettrostimolatore',
-      'ultrasuono',
-      'cryoterapia',
-      'criomagnetoterapia',
-      'pressoterapia',
-      'elettromedicali',
-      'magnetotherapy-hire',
-      'magnetotherapy-sale',
-      'kinetec-hire',
-      'tens-hire',
-      'tens-sale',
-      'ultrasound-hire',
-      'ultrasound-sale',
-      'cryotherapy-hire',
-      'cryotherapy-sale',
-      'cryomagnetotherapy-hire',
-      'pressotherapy-hire',
-      'pressotherapy-sale',
-      'electromedical-sale',
-    ],
-  },
-  { id: 'stairs', categories: ['montascale', 'stairlifts-hire', 'stairlifts-sale'] },
-];
+};
+
+export const ACTIVITY_RULES: readonly ActivityRule[] = FINDER_ACTIVITIES.map((id) => {
+  const categories = findProductType(id)?.categories ?? [];
+  const byPlace = PLACE_NARROWING[id];
+  return byPlace ? { id, categories, byPlace } : { id, categories };
+});
 
 export const PLACE_IDS: readonly FinderPlace[] = ['home', 'outdoors', 'both'];
 export const DURATION_IDS: readonly FinderDuration[] = ['weeks', 'months', 'long', 'unsure'];
@@ -213,20 +175,6 @@ export function previousPath(locale: SiteLocale, answers: FinderAnswers): string
 
 // --- matching -----------------------------------------------------------------
 
-/**
- * Group codes resolved to the category slugs a product summary carries.
- *
- * A summary names its category by SLUG, not by code, and the slug is localized —
- * so the codes are translated through the categories the API returned for this
- * same request rather than assumed to be spelled the same.
- */
-function categorySlugs(categories: Category[], codes: readonly string[]): Set<string> {
-  const wanted = new Set(codes);
-  return new Set(
-    categories.filter((category) => wanted.has(category.code)).map((category) => category.slug),
-  );
-}
-
 export interface FinderMatch {
   /** Every product that matched, in catalogue order — in stock first. */
   items: ProductSummary[];
@@ -287,31 +235,14 @@ export function matchProducts(
 }
 
 /**
- * The image beside an activity — its leading category's icon.
- *
- * Icons are tried in the order the rule lists its categories, so an activity is
- * pictured by the thing it mostly means: mobility by a wheelchair, not by a
- * scooter. A category with no icon falls back to a product photo from inside
- * the group, which is what the live site does; an activity with neither renders
- * text only rather than an empty well.
+ * The image beside an activity — the same picture its tile wears in the
+ * catalogue's type strip, because it is the same set of categories.
  */
 export function activityImage(
   products: ProductSummary[],
   categories: Category[],
   activity: FinderActivity,
 ): string | null {
-  const rule = ACTIVITY_RULES.find((candidate) => candidate.id === activity);
-  if (!rule) return null;
-
-  const byCode = new Map(categories.map((category) => [category.code, category]));
-  for (const code of rule.categories) {
-    const icon = byCode.get(code)?.icon;
-    if (icon) return icon;
-  }
-
-  const slugs = categorySlugs(categories, rule.categories);
-  const found = products.find(
-    (product) => slugs.has(product.category.slug) && product.thumbnail !== null,
-  );
-  return found?.thumbnail?.path ?? null;
+  const type = findProductType(activity);
+  return type ? productTypeImage(type, categories, products) : null;
 }

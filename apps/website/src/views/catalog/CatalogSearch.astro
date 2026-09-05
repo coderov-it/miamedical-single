@@ -1,0 +1,97 @@
+---
+/**
+ * The catalogue's own search field, and the accent submit beside it.
+ *
+ * THE LABEL IS `sr-only` AND THE FIELD IS A WHITE FILL. The reference site sets
+ * a 149px "Cerca un prodotto" caption on the row and leaves the field the same
+ * grey as the page; both were copied here first and both were wrong for this
+ * project (owner, 2026-09-05). A caption beside a field whose placeholder says
+ * the same words is a duplicate, and a `bg-tint` field on the catalogue's grey
+ * ground has no edges at all — it read as a stray glyph floating in the
+ * masthead. On grey the resting fill is WHITE, which is the rule the filter
+ * pills already follow, read from the other side.
+ *
+ * The shape is the home search bar's, because that is this project's search:
+ * one field with the glyph inside it, one accent button, both 48px, no caption.
+ *
+ * It narrows THIS surface rather than bouncing to /cerca/: same GET form,
+ * pointed at the page it sits on, and `q` is already part of the catalogue
+ * query (see readCatalogQuery). So typing "carrozzina" on /catalogo-noleggio/
+ * keeps you in the rental catalogue, which is what the segment beside it just
+ * promised.
+ *
+ * A TYPED QUERY REPLACES THE TYPE, which is why no type or group rides along as
+ * a hidden field: `readCatalogQuery` gives `q` precedence over both, because
+ * search is answered by Postgres over the whole catalogue and there is no
+ * honest way to run it inside a set of categories. Carrying them here would put
+ * a lie in the URL. The browse context rides along because it is not a filter.
+ *
+ * The submit stands down on a phone, as it does on the home bar: `q` is the
+ * form's only submittable field, so Enter submits and the OS labels that key
+ * "Search". Two magnifiers on one 350px row is one too many.
+ */
+import { localeForRequest, translate } from '~/lib/i18n';
+import type { CatalogQuery } from '~/lib/catalog-page';
+import { catalogRoot } from '~/lib/routes';
+
+interface Props {
+  query: CatalogQuery;
+}
+
+const { query } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+---
+
+<form
+  class="mid:flex-1 flex min-w-0 items-center gap-2.5"
+  method="get"
+  action={catalogRoot(query.view, locale)}
+  role="search"
+>
+  {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
+  {query.context.from && <input type="hidden" name="from" value={query.context.from} />}
+  {query.context.for && <input type="hidden" name="for" value={query.context.for} />}
+
+  {
+    /* The wrapper owns the focus ring and the field inside it draws nothing —
+       see app.css § smooth text-field and the `data-focus-owner` opt-out. */
+  }
+  <label
+    class="rounded-field border-hair flex min-h-12 min-w-0 flex-1 cursor-text items-center gap-3 border bg-white px-4 transition-[border-color,box-shadow] duration-150 focus-within:border-accent focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]"
+    for="catalog-search"
+  >
+    <span class="sr-only">{text('catalog.searchLabel')}</span>
+    <svg
+      class="text-ink-2 pointer-events-none size-5 flex-none"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="6.5"></circle>
+      <path d="m20 20-4.2-4.2"></path>
+    </svg>
+    <input
+      class="placeholder:text-ink-placeholder font-ui text-ink min-h-0 w-full min-w-0 self-stretch border-0 bg-transparent p-0 text-base font-semibold placeholder:font-normal placeholder:opacity-100"
+      id="catalog-search"
+      name="q"
+      type="search"
+      value={query.q}
+      autocomplete="off"
+      enterkeyhint="search"
+      placeholder={text('catalog.searchPlaceholder')}
+      data-focus-owner
+    />
+  </label>
+
+  <button
+    class="font-display hover:bg-accent-deep rounded-field max-mid:hidden inline-flex min-h-12 flex-none items-center justify-center border-0 bg-accent px-6 text-base font-semibold text-white"
+    type="submit"
+  >
+    {text('catalog.search.submit')}
+  </button>
+</form>

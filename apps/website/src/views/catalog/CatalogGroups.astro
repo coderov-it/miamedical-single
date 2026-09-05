@@ -1,0 +1,69 @@
+---
+/**
+ * The row that opens under a selected product type: the categories inside it,
+ * each carrying how many products it holds on this surface.
+ *
+ * OUTLINED, which is the reference's own treatment (measured 2026-09-05) and
+ * the owner's instruction for this row specifically. It is the exception to
+ * CLAUDE.md § controls rather than a break with it: these pills sit directly
+ * under a strip of bordered tiles and directly above the results, and a white
+ * fill on white in that sandwich is not a control at all. The selected one is
+ * still the accent FILL, so selection is read the same way as everywhere else.
+ *
+ * The radius is `rounded-field`, not the reference's full pill: the owner swept
+ * every control to 12px on 2026-08-31, this row included (see theme.css
+ * § shape). Outline is the reference's, shape is ours.
+ *
+ * The count is part of the label, not a badge: it is the reason to tap or not
+ * tap, so it reads inline in lighter ink rather than sitting in a bubble.
+ *
+ * Scrolls sideways below `mid` and wraps above it, like the filter row, and the
+ * component renders nothing at all when there is no row to draw — a type the
+ * merchant does not subdivide has no pills, and `buildGroupPills` hands back an
+ * empty list rather than a row of one.
+ */
+import type { ProductGroupPill } from '~/lib/product-type-nav';
+
+interface Props {
+  pills: ProductGroupPill[];
+}
+
+const { pills } = Astro.props;
+
+/* 48px of paint, so the pill IS the target and needs no overlay to reach the
+   project's minimum. */
+const pillClass =
+  'relative inline-flex min-h-12 items-center gap-2 border ' +
+  'rounded-field px-4 font-display text-base font-semibold no-underline';
+---
+
+{
+  pills.length > 0 && (
+    <ul class="max-mid:-mx-gutter max-mid:w-[calc(100%+2*var(--spacing-gutter))] max-mid:px-gutter max-mid:flex-nowrap max-mid:overflow-x-auto mid:flex-wrap mid:pb-6.5 max-mid:pb-3 flex [scrollbar-width:none] items-center gap-2.25 [&::-webkit-scrollbar]:hidden">
+      {pills.map((pill) => (
+        <li class="flex-none">
+          <a
+            class:list={[
+              pillClass,
+              pill.isActive
+                ? 'hover:bg-accent-deep border-accent bg-accent text-white'
+                : 'hover:bg-accent-tint border-hair-strong bg-white text-accent',
+            ]}
+            href={pill.href}
+            aria-current={pill.isActive ? 'true' : undefined}
+          >
+            {pill.label}
+            <span
+              class:list={[
+                'font-ui font-normal tabular-nums',
+                pill.isActive ? 'text-white/70' : 'text-ink-2',
+              ]}
+            >
+              {pill.count}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

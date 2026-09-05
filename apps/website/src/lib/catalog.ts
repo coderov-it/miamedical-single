@@ -71,6 +71,13 @@ export async function listProducts(
  * `perPage` is capped at 100 by the API, so one oversized request would return
  * a silently short list. `maxPages` is a guard, not a limit to tune casually:
  * it throws rather than shipping a truncated catalogue.
+ *
+ * ⚠️ THE WALK IS ONLY AS STABLE AS THE SORT IT ASKS FOR. `sort=newest` orders by
+ * `created_at` alone and the catalogue was seeded in bulk, so rows sharing a
+ * timestamp can move between page 1 and page 2 — 107 products currently come
+ * back as 101 unique plus 6 repeats. De-duplicating below stops the repeats
+ * reaching a rail; the rows they displaced are still missing, and that needs an
+ * id tiebreak in the server's `orderBy`. Every other sort walks cleanly.
  */
 export async function listAllProducts(
   opts: { maxPages?: number; sort?: ProductSort } = {},
@@ -93,7 +100,14 @@ export async function listAllProducts(
     items.push(...next.data);
   }
 
-  return { items, total: first.meta.total };
+  const seen = new Set<string>();
+  const unique = items.filter((product) => {
+    if (seen.has(product.id)) return false;
+    seen.add(product.id);
+    return true;
+  });
+
+  return { items: unique, total: first.meta.total };
 }
 
 export async function listCategories(locale: SiteLocale = localeForRequest()): Promise<Category[]> {
