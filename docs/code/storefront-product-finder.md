@@ -5,13 +5,13 @@ it's called" into a shortlist of real products. Ported from the live site's
 `/aiutami-a-scegliere/`, which is where the copy, the questions and the fallback
 behaviour come from.
 
-|              |                                                                                |
-| ------------ | ------------------------------------------------------------------------------ |
-| Route        | `/aiutami-a-scegliere/` · `/en/help-me-choose/`                                |
-| Page         | `apps/website/src/pages/aiutami-a-scegliere.astro` (route shim)                |
-| View         | `apps/website/src/views/finder/`                                               |
-| Rules        | `apps/website/src/lib/product-finder.ts`                                       |
-| Entry points | home page, catalogue directory (`components/global/FinderEntry.astro`), footer |
+|              |                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| Route        | `/aiutami-a-scegliere/` · `/en/help-me-choose/`                                                        |
+| Page         | `apps/website/src/pages/aiutami-a-scegliere.astro` (route shim)                                        |
+| View         | `apps/website/src/views/finder/`                                                                       |
+| Rules        | `apps/website/src/lib/product-finder.ts`                                                               |
+| Entry points | home hero search card, home band + catalogue directory (`components/global/FinderEntry.astro`), footer |
 
 ## The flow is the URL
 
@@ -158,7 +158,8 @@ it.
 
 - **The header nav does not carry the finder.** A seventh item overflows the bar
   by ~69px between 720 and 1100, where the icon cluster has no slack. It is
-  reached from the home band, the catalogue directory band and the footer. Making
+  reached from the hero search card ("Non sai cosa ti serve?"), the home band,
+  the catalogue directory band and the footer. Making
   it a nav item means giving up one of the six slots — an owner decision.
 - **"Dove" only narrows mobility**, inherited from the live site. If the
   catalogue ever splits stairlifts from ramps, that is the second rule to add.

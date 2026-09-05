@@ -40,9 +40,9 @@
  * and an app.
  *
  * That is why this section has THREE direct children rather than two: the
- * booking card, the white band and the trust strip are siblings, and `order`
- * puts the booking card first below `mid`. Order only sorts siblings, so a
- * booking card nested two levels down — where it used to sit, inside the grey
+ * search card, the white band and the trust strip are siblings, and `order`
+ * puts the search card first below `mid`. Order only sorts siblings, so a
+ * search card nested two levels down — where it used to sit, inside the grey
  * field with the trust bar — could not have been lifted without a second copy
  * of it for phones. Flattening it is what keeps this one component.
  *
@@ -53,10 +53,11 @@
  * negative margin and one against the trust strip's top margin — a margin that
  * escapes either child lands between two grey blocks as a white stripe.
  */
-import HomeBooking from '~/components/home/HomeBooking.astro';
+import HomeSearch from '~/components/home/HomeSearch.astro';
 import HomeShowcase from '~/components/home/HomeShowcase.astro';
 import HomeTrustBar from '~/components/home/HomeTrustBar.astro';
 import type { ProductSummary } from '~/lib/catalog';
+import type { SuggestItem } from '~/lib/search-suggest';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
 import { whatsappUrl } from '~/lib/site';
@@ -64,9 +65,11 @@ import { EDITORIAL_CONTAINER, EDITORIAL_THEME } from '~/styles/editorial';
 
 interface Props {
   products: ProductSummary[];
+  /** What the search field suggests. Built by the page, which holds the reads. */
+  suggestItems: SuggestItem[];
 }
 
-const { products } = Astro.props;
+const { products, suggestItems } = Astro.props;
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
 
@@ -254,7 +257,7 @@ const checks = [
     <div
       class:list={[EDITORIAL_CONTAINER, 'mid:relative mid:-mt-[var(--hero-overlap)] max-mid:px-0']}
     >
-      <HomeBooking />
+      <HomeSearch items={suggestItems} />
     </div>
   </div>
 

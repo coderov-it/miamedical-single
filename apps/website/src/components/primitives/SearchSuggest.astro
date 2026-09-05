@@ -1,0 +1,125 @@
+---
+/**
+ * A search field that suggests as you type — categories first, then products.
+ *
+ * The server renders a plain `<input name="q">` inside whatever form the caller
+ * puts it in, plus the suggestion index as inert JSON and an empty listbox.
+ * `scripts/primitives/search-suggest.ts` fills the listbox once it runs; before
+ * that, and forever if it never runs, this is an ordinary search box that
+ * submits. Nothing here is disabled waiting on script (CLAUDE.md § form gates).
+ *
+ * THE FIELD IS A FILL, NOT A BORDER. Grey on white at rest with a transparent
+ * border held in reserve, and the accent appears only on focus — the project's
+ * control rule, and deliberately not the reference's resting accent outline.
+ * The border is transparent rather than absent so focusing does not move the
+ * text by a pixel.
+ *
+ * THE WRAPPER OWNS THE FOCUS RING, WHICH IS WHAT `data-focus-owner` SAYS. The
+ * label draws it via `focus-within`; the input must draw nothing, or the field
+ * gets two — an accent border round the well and a second sharp-cornered halo
+ * hugging the text, because the input has no radius of its own to round it
+ * (owner, 2026-09-05). Tailwind cannot switch this off: app.css § smooth
+ * text-field focus is UNLAYERED so it can outrank the utility fills, which
+ * means it also outranks `focus-visible:outline-none` and
+ * `focus-visible:shadow-none` no matter how they are written. This attribute is
+ * that rule's own opt-out and the only thing that works. Do not swap it back.
+ *
+ * The listbox is absolutely positioned and the wrapper is the containing block,
+ * so the caller can put this in a flex row beside a submit button without the
+ * popover inheriting the row's layout.
+ */
+import { localeForRequest, translate } from '~/lib/i18n';
+import type { SuggestItem } from '~/lib/search-suggest';
+
+interface Props {
+  id: string;
+  /**
+   * Right padding, in the caller's own units, for a submit button the caller
+   * overlays on the field's end. The field cannot know the button is there —
+   * without it the placeholder runs under it on a phone.
+   */
+  endInset?: string | undefined;
+  /** Form field name. `q` everywhere the search page is the destination. */
+  name?: string | undefined;
+  label: string;
+  placeholder: string;
+  value?: string | undefined;
+  items: SuggestItem[];
+}
+
+const { id, name = 'q', label, placeholder, value = '', items, endInset = '' } = Astro.props;
+
+const locale = localeForRequest();
+const listboxId = `${id}-listbox`;
+---
+
+<div class="relative min-w-0 flex-1" data-search-suggest>
+  <label
+    class:list={[
+      'rounded-field bg-tint mid:min-h-15 flex min-h-14 cursor-text items-center gap-3 border border-transparent px-4 transition-[border-color,background-color,box-shadow] duration-150 focus-within:border-accent focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]',
+      endInset,
+    ]}
+    for={id}
+  >
+    <span class="sr-only">{label}</span>
+    <svg
+      class="text-ink-2 pointer-events-none size-5.5 flex-none"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="6.5"></circle>
+      <path d="m20 20-4.2-4.2"></path>
+    </svg>
+    {
+      /* `role="combobox"` on the input itself is the ARIA 1.2 shape — the older
+         pattern wrapped it in a combobox div, which screen readers now read as
+         two controls. `aria-expanded` starts false and the script owns it. */
+    }
+    <input
+      class="placeholder:text-ink-placeholder font-ui text-ink mid:text-[1.0625rem] min-h-0 w-full min-w-0 self-stretch border-0 bg-transparent p-0 text-[1.0313rem] font-semibold placeholder:font-normal placeholder:opacity-100"
+      {id}
+      {name}
+      {value}
+      {placeholder}
+      type="search"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+      enterkeyhint="search"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls={listboxId}
+      aria-autocomplete="list"
+      aria-haspopup="listbox"
+      data-focus-owner
+      data-suggest-input
+    />
+  </label>
+
+  {
+    /* Rendered empty and hidden. The script owns its children, so there is no
+       server-rendered list to keep in step with the client's filtering. */
+  }
+  <div
+    class="rounded-card border-hair absolute inset-x-0 top-[calc(100%+8px)] z-40 max-h-[min(60vh,26rem)] overflow-y-auto border bg-white p-1.5 shadow-[0_18px_44px_rgb(11_18_32_/_0.16)]"
+    id={listboxId}
+    role="listbox"
+    aria-label={translate(locale, 'search.suggest.label')}
+    data-suggest-listbox
+    hidden
+  >
+  </div>
+
+  <script type="application/json" data-suggest-index set:html={JSON.stringify(items)} is:inline />
+</div>
+
+<script>
+  import { mountSearchSuggest } from '~/scripts/primitives/search-suggest';
+
+  mountSearchSuggest();
+</script>

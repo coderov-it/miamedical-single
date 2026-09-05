@@ -261,6 +261,26 @@
   box-shadow: 0 0 0 4px rgb(56 70 177 / 0.12);
 }
 
+/*
+ * ...and `data-focus-owner` SURRENDERS BOTH PAINTS, which is the whole point of
+ * the hook: the wrapper draws the indicator, the control inside it draws
+ * nothing. Excluding it from the rule above is only half — what is left is the
+ * base layer's two-paint ring, so a field that handed its ring to a wrapper got
+ * a hard accent fence around its text instead of a soft halo around the well.
+ *
+ * This has to live here, un-layered, rather than as `focus-visible:outline-none
+ * focus-visible:shadow-none` on the control. Those utilities beat @layer base
+ * but lose to the un-layered rule above, so the pair only ever worked by
+ * accident of which rule it was fighting — SearchSuggest and the search page
+ * both carried them for weeks while the halo they were meant to remove was
+ * being painted twice (owner, 2026-09-05). One attribute, both paints, no
+ * ordering to reason about.
+ */
+[data-focus-owner]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 /* ------------------------------------ reference design page face --- */
 
 /*

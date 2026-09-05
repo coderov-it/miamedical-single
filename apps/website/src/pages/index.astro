@@ -41,6 +41,7 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import { cached, CATALOG_POLICY } from '~/lib/cache';
 import { listAllProducts, listCategories, safely, type ProductSummary } from '~/lib/catalog';
 import { buildHomeCategories, homeFaq, selectHomeFeatured } from '~/lib/home-content';
+import { buildSuggestIndex } from '~/lib/search-suggest';
 import { cacheHtml } from '~/lib/http-cache';
 import { localeFromLocals, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
@@ -84,6 +85,9 @@ const forSale = selectHomeFeatured(
   8,
 );
 const categoryCards = buildHomeCategories(categories, products.items, 8, locale);
+/* The hero's search field suggests from the same two reads the rails use, so
+   the index costs a pass over memory rather than a request. */
+const suggestItems = buildSuggestIndex(products.items, categories, locale);
 
 const jsonLd = [
   {
@@ -104,7 +108,7 @@ const jsonLd = [
   jsonLd={jsonLd}
   ground="white"
 >
-  <HomeHero products={spotlight} />
+  <HomeHero products={spotlight} {suggestItems} />
   {/* One grey ground under everything below the hero — the reference's body. */}
   <div class="bg-page">
     <HomeHowItWorks />

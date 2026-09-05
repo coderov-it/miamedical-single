@@ -9,17 +9,22 @@
  * selected tab is marked by filling that pill with `accent-tint` and turning
  * the whole tab accent — a fill, never a border (CLAUDE.md § controls).
  *
- * FOUR TABS, NOT THE REFERENCE'S FIVE, and the difference is the type floor.
- * They set their tab labels at 13.3px; this project has no token below 16px and
- * that floor is not negotiable for an audience that reads magnified. Four
- * 16px labels fit a 390px viewport; five clip. The dropped slot is their
- * "Aiuto", which the support launcher already reaches from every screen.
+ * FOUR TABS: home, catalogue, the guided selector, support. This follows the
+ * reference's own re-cut (re-measured 2026-09-05, 390px) — it used to run
+ * noleggio/vendita in the last two slots and now runs "Aiutami"/"Aiuto", which
+ * is the right trade on a phone. Noleggio and vendita are a MODE, not a
+ * destination: the catalogue's own pills carry both, so they cost one extra tap
+ * and lose nothing. What they were displacing is the two things a customer who
+ * cannot name the aid actually needs, and neither had a phone entry point —
+ * the selector had none at all, and support only had the floating launcher.
  *
- * WHAT THE FOUR ARE is the reference's information architecture, not the
- * header's list in miniature: browse (home, catalogue) and the two things a
- * customer actually chooses between (noleggio, vendita). Search moved UP into
- * the header as an icon on 2026-08-31, following the reference, which is what
- * freed the slot; the cart lives in the header too, badge and all.
+ * The type floor is why this stays four and not their earlier five: they set
+ * tab labels at 11px, and this project has no token below 16px for an audience
+ * that reads magnified. Four 16px labels fit 390px; five clip. Both new labels
+ * are shorter than the ones they replace, so the fit got easier, not tighter.
+ *
+ * Search moved UP into the header as an icon on 2026-08-31, following the
+ * reference; the cart lives in the header too, badge and all.
  *
  * Deliberately static: every item is a real route link and the active route is
  * derived on the server, so there is no menu state and no client JavaScript.
@@ -42,17 +47,20 @@ const items = [
     exact: true,
     icon: 'catalog',
   },
+  /* Both are `exact`: the selector keeps its own path through all three steps
+     (the answers are query parameters), so the tab stays lit while the customer
+     is inside it. */
   {
-    href: routePath(locale, 'catalogRental'),
-    label: text('header.rental'),
-    exact: false,
-    icon: 'rental',
+    href: routePath(locale, 'productFinder'),
+    label: text('navigation.finder'),
+    exact: true,
+    icon: 'finder',
   },
   {
-    href: routePath(locale, 'catalogSale'),
-    label: text('header.sale'),
-    exact: false,
-    icon: 'sale',
+    href: routePath(locale, 'support'),
+    label: text('navigation.help'),
+    exact: true,
+    icon: 'help',
   },
 ] as const;
 
@@ -114,10 +122,10 @@ const isActive = (item: (typeof items)[number]) =>
               <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           )}
-          {/* Rental is a calendar and sale is a price tag — the reference's own
-              two glyphs, and the only pair that says "for a while" against
-              "to keep" without a word. */}
-          {item.icon === 'rental' && (
+          {/* The compass is the selector's mark everywhere it appears — the
+              home search card and the catalogue entry band use this exact
+              glyph, so the tab is recognisably the same door. */}
+          {item.icon === 'finder' && (
             <svg
               class="size-5.5"
               viewBox="0 0 24 24"
@@ -127,11 +135,13 @@ const isActive = (item: (typeof items)[number]) =>
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <rect x="3" y="5" width="18" height="16" rx="2.5" />
-              <path d="M3 10h18M8 3v4M16 3v4" />
+              <circle cx="12" cy="12" r="9" />
+              <path d="m15.5 8.5-2 5-5 2 2-5Z" />
             </svg>
           )}
-          {item.icon === 'sale' && (
+          {/* A headset, not a question mark: it promises a person on the phone,
+              which is what this page is, and it is the reference's own glyph. */}
+          {item.icon === 'help' && (
             <svg
               class="size-5.5"
               viewBox="0 0 24 24"
@@ -141,8 +151,9 @@ const isActive = (item: (typeof items)[number]) =>
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M3.5 12.6V4.5a1 1 0 0 1 1-1h8.1a1 1 0 0 1 .7.3l7 7a1 1 0 0 1 0 1.4l-8.1 8.1a1 1 0 0 1-1.4 0l-7-7a1 1 0 0 1-.3-.7Z" />
-              <circle cx="8" cy="8" r="1.4" />
+              <path d="M4 18v-6a8 8 0 0 1 16 0v6" />
+              <path d="M2.5 14.5h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1a2 2 0 0 1-2-2Z" />
+              <path d="M21.5 14.5h-3a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 0 2-2Z" />
             </svg>
           )}
         </span>
