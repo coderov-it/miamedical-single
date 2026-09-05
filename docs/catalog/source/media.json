@@ -1,0 +1,2468 @@
+{
+ "_source": "https://www.miamedicalitalia.it",
+ "_crawled": "2026-09-04",
+ "_note": "Every product image: WordPress id, full-size URL, pixel size and the shop's own alt text.",
+ "requested": 247,
+ "media": [
+  {
+   "id": 15789,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-7.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 236319,
+   "file": "2026/03/Vendita-easystep-7.png"
+  },
+  {
+   "id": 15788,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-6-e1778769804475.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 938,
+   "h": 692,
+   "filesize": 403562,
+   "file": "2026/03/Vendita-easystep-6-e1778769804475.png"
+  },
+  {
+   "id": 15787,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-5.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 237491,
+   "file": "2026/03/Vendita-easystep-5.png"
+  },
+  {
+   "id": 15786,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-4.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 228368,
+   "file": "2026/03/Vendita-easystep-4.png"
+  },
+  {
+   "id": 15785,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 250947,
+   "file": "2026/03/Vendita-easystep-3.png"
+  },
+  {
+   "id": 15784,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 304216,
+   "file": "2026/03/Vendita-easystep-2.png"
+  },
+  {
+   "id": 15783,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-1.png",
+   "alt": "Noleggio sedia motorizzata montascale",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 361988,
+   "file": "2026/03/Vendita-easystep-1.png"
+  },
+  {
+   "id": 12524,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2017/06/Cuscino-antidecubito-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 65147,
+   "file": "2017/06/Cuscino-antidecubito-1.jpg"
+  },
+  {
+   "id": 12523,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/11/Materasso-antidecubito-Polyplot-Wimed-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 85464,
+   "file": "2022/11/Materasso-antidecubito-Polyplot-Wimed-1.jpg"
+  },
+  {
+   "id": 12518,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2017/06/Rialzo-per-wc-delfin-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 41683,
+   "file": "2017/06/Rialzo-per-wc-delfin-2.jpg"
+  },
+  {
+   "id": 12517,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2017/06/MISURE20ALZAW_11-600x509-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 72022,
+   "file": "2017/06/MISURE20ALZAW_11-600x509-1-1.jpg"
+  },
+  {
+   "id": 12514,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/11/comoda-vermeiren-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 98602,
+   "file": "2022/11/comoda-vermeiren-1.jpg"
+  },
+  {
+   "id": 12510,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/materasso-antidecubito-alto-rischio.-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 106536,
+   "file": "2022/12/materasso-antidecubito-alto-rischio.-1-1.jpg"
+  },
+  {
+   "id": 12503,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 138354,
+   "file": "2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg"
+  },
+  {
+   "id": 12501,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1148.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 122409,
+   "file": "2022/12/DSC_1148.jpg"
+  },
+  {
+   "id": 12500,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1146.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 192372,
+   "file": "2022/12/DSC_1146.jpg"
+  },
+  {
+   "id": 12498,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1142.jpg",
+   "alt": "deambulatore rollatore de interno/esterno",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 143827,
+   "file": "2022/12/DSC_1142.jpg"
+  },
+  {
+   "id": 12360,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/modalita-uso-rampa-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 329393,
+   "file": "2022/12/modalita-uso-rampa-.jpg"
+  },
+  {
+   "id": 12359,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-213cm-pieghevole-.jpg",
+   "alt": "rampa per disabili",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 98874,
+   "file": "2022/12/rampa-213cm-pieghevole-.jpg"
+  },
+  {
+   "id": 12306,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-4R-piegato-150x150-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 112334,
+   "file": "2022/12/deambulatore-4R-piegato-150x150-1.jpg"
+  },
+  {
+   "id": 12305,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-4R-jpg-150x150-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 66332,
+   "file": "2022/12/deambulatore-4R-jpg-150x150-1.jpg"
+  },
+  {
+   "id": 12272,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DEAMBULATORE-CON-TAVOLETTA-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 137042,
+   "file": "2022/12/DEAMBULATORE-CON-TAVOLETTA-1-1.jpg"
+  },
+  {
+   "id": 12232,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-transito-1-1.jpg",
+   "alt": "Affitto carrozzina per disabili di piccole dimensioni",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 118801,
+   "file": "2022/12/carrozzina-slim-transito-1-1.jpg"
+  },
+  {
+   "id": 12229,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-2-MIA-MEDICAL-ITALIA-150x150-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 104802,
+   "file": "2022/12/carrozzina-slim-2-MIA-MEDICAL-ITALIA-150x150-1.jpg"
+  },
+  {
+   "id": 12228,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-MIA-MEDICAL-ITALIA-150x150-1.jpg",
+   "alt": "carrozzina per disabili piccola ad autospinta SLIM",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 135909,
+   "file": "2022/12/carrozzina-slim-MIA-MEDICAL-ITALIA-150x150-1.jpg"
+  },
+  {
+   "id": 12225,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-piegata-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 84630,
+   "file": "2022/12/rampa-piegata-.jpg"
+  },
+  {
+   "id": 12224,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-pendenze-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 129824,
+   "file": "2022/12/rampa-pendenze-.jpg"
+  },
+  {
+   "id": 12223,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-pendenze-2-.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 608026,
+   "file": "2022/12/rampa-pendenze-2-.png"
+  },
+  {
+   "id": 12205,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2000,
+   "h": 2000,
+   "filesize": 314058,
+   "file": "2022/12/pedane-elevabile-1.jpg"
+  },
+  {
+   "id": 12201,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/letto-120-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 105578,
+   "file": "2022/12/letto-120-1.jpg"
+  },
+  {
+   "id": 12199,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/letto-120.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 104495,
+   "file": "2022/12/letto-120.jpg"
+  },
+  {
+   "id": 12198,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-ALTO-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 157885,
+   "file": "2022/12/LUNA-ALTO-1.jpg"
+  },
+  {
+   "id": 12197,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Materasso-preventivo-antidecubiot-MIA-MEDICAL-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 111821,
+   "file": "2022/12/Materasso-preventivo-antidecubiot-MIA-MEDICAL-.jpg"
+  },
+  {
+   "id": 12190,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Kinetec-ginocchio-anca-artromot-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 109482,
+   "file": "2022/12/Kinetec-ginocchio-anca-artromot-.jpg"
+  },
+  {
+   "id": 12175,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/pressoterapia-POWER-1-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 405977,
+   "file": "2023/02/pressoterapia-POWER-1-1-1.jpg"
+  },
+  {
+   "id": 12140,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/verticallizzatore-mia-medical-150x150-1.jpg",
+   "alt": "Noleggio Verticalizzatore elettrico",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 78610,
+   "file": "2022/12/verticallizzatore-mia-medical-150x150-1.jpg"
+  },
+  {
+   "id": 12139,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELETTRICO-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 900,
+   "h": 900,
+   "filesize": 99866,
+   "file": "2022/12/SOLLEVATORE-ELETTRICO-.jpg"
+  },
+  {
+   "id": 12138,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELTTRICO-DA-TERRA-.jpg",
+   "alt": "Sollevatore elettrico con asta MUEVO",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 68015,
+   "file": "2022/12/SOLLEVATORE-ELTTRICO-DA-TERRA-.jpg"
+  },
+  {
+   "id": 11604,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-2-BASIC-letto-elettrico-2.jpg",
+   "alt": "letto a noleggio electrico",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 88084,
+   "file": "2022/12/LUNA-2-BASIC-letto-elettrico-2.jpg"
+  },
+  {
+   "id": 11103,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/kinetec-ginocchio-anca-.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 427,
+   "h": 355,
+   "filesize": 116059,
+   "file": "2022/12/kinetec-ginocchio-anca-.png"
+  },
+  {
+   "id": 9354,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/materasso-antidecubito-con-compressore.jpg",
+   "alt": "materasso-antidecubito-con-compressore",
+   "mime": "image/jpeg",
+   "w": 800,
+   "h": 800,
+   "filesize": 13924,
+   "file": "2022/12/materasso-antidecubito-con-compressore.jpg"
+  },
+  {
+   "id": 9059,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-3-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 381,
+   "h": 492,
+   "filesize": 23223,
+   "file": "2022/12/alto-decubito-3-1.jpeg"
+  },
+  {
+   "id": 9058,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-4-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 381,
+   "h": 492,
+   "filesize": 22125,
+   "file": "2022/12/alto-decubito-4-1.jpeg"
+  },
+  {
+   "id": 9016,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/freno-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 300,
+   "h": 300,
+   "filesize": 124620,
+   "file": "2022/12/freno-1.png"
+  },
+  {
+   "id": 8905,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/VERTICALIZZATORE-NOLEGGIO-MIA-MEDICAL-ITALIA-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 72385,
+   "file": "2022/12/VERTICALIZZATORE-NOLEGGIO-MIA-MEDICAL-ITALIA-.jpg"
+  },
+  {
+   "id": 8893,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/download-3-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 225,
+   "h": 224,
+   "filesize": 7161,
+   "file": "2022/12/download-3-1.jpg"
+  },
+  {
+   "id": 8892,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/download-2-1-e1680948676298.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 286,
+   "h": 176,
+   "filesize": 10239,
+   "file": "2022/12/download-2-1-e1680948676298.jpg"
+  },
+  {
+   "id": 8886,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-mia-medical-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 239,
+   "h": 211,
+   "filesize": 10122,
+   "file": "2022/12/carrozzina-mia-medical-1-1.jpg"
+  },
+  {
+   "id": 8887,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-mia-medical-italia-jpg-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 194,
+   "h": 259,
+   "filesize": 4989,
+   "file": "2022/12/carrozzina-mia-medical-italia-jpg-1.jpg"
+  },
+  {
+   "id": 16003,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/WP-Miamedical.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 467482,
+   "file": "2023/02/WP-Miamedical.png"
+  },
+  {
+   "id": 16002,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/s19-pieghevole.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 440491,
+   "file": "2023/02/s19-pieghevole.png"
+  },
+  {
+   "id": 14545,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/Scooter-Maximo.png",
+   "alt": "Vendita Scooter Elettrico Maximo",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 598294,
+   "file": "2024/01/Scooter-Maximo.png"
+  },
+  {
+   "id": 14437,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/Scooter-pieghevole-con-braccioli.png",
+   "alt": "Noleggio scooter pieghevole con braccioli",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 597005,
+   "file": "2024/04/Scooter-pieghevole-con-braccioli.png"
+  },
+  {
+   "id": 14432,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/Scooter-elettrico-pieghevole.png",
+   "alt": "Noleggio Scooter elettrico pieghevole, scooter elettrico per anziani e per disabili",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 610068,
+   "file": "2023/02/Scooter-elettrico-pieghevole.png"
+  },
+  {
+   "id": 12528,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-2.jpg",
+   "alt": "Noleggio ausili per terapia a domicilio",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 103934,
+   "file": "2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-2.jpg"
+  },
+  {
+   "id": 12504,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1140.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 131658,
+   "file": "2022/12/DSC_1140.jpg"
+  },
+  {
+   "id": 12461,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/Blank-2-Grids-Collage.jpg",
+   "alt": "COMBO CARROZZINA + MAGNETOTERAPIA",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 172311,
+   "file": "2023/02/Blank-2-Grids-Collage.jpg"
+  },
+  {
+   "id": 12454,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combo-magneto-tens-.jpg",
+   "alt": "combo magneto + tens",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 168140,
+   "file": "2023/02/combo-magneto-tens-.jpg"
+  },
+  {
+   "id": 12424,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/elettrodi-2-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 115406,
+   "file": "2024/06/elettrodi-2-.jpg"
+  },
+  {
+   "id": 12423,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/TENS-PREMINUM-400-.jpg",
+   "alt": "Noleggio ausili per terapia a domicilio",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 75559,
+   "file": "2024/06/TENS-PREMINUM-400-.jpg"
+  },
+  {
+   "id": 12377,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-reclinabile-1-1-1.jpg",
+   "alt": "carrozzina con schienale reclinabile",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 128991,
+   "file": "2022/12/carrozzina-reclinabile-1-1-1.jpg"
+  },
+  {
+   "id": 12301,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combinati-4-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 151529,
+   "file": "2023/02/combinati-4-.jpg"
+  },
+  {
+   "id": 12297,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/elettrostimoltore-1-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 146836,
+   "file": "2023/02/elettrostimoltore-1-.jpg"
+  },
+  {
+   "id": 12295,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combinati-3-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 199792,
+   "file": "2023/02/combinati-3-.jpg"
+  },
+  {
+   "id": 12293,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combinati-2-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 218336,
+   "file": "2023/02/combinati-2-.jpg"
+  },
+  {
+   "id": 12291,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combimato-1-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 134772,
+   "file": "2023/02/combimato-1-.jpg"
+  },
+  {
+   "id": 12236,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/KINETEC-ADVANCE-CPM-fotor-20240511184446.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 352540,
+   "file": "2024/05/KINETEC-ADVANCE-CPM-fotor-20240511184446.jpg"
+  },
+  {
+   "id": 12234,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-ascellare-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 72719,
+   "file": "2022/12/deambulatore-ascellare-.jpg"
+  },
+  {
+   "id": 12212,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/seggiolone-polifunzionale-di-transito-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 190588,
+   "file": "2022/12/seggiolone-polifunzionale-di-transito-1-1.jpg"
+  },
+  {
+   "id": 12210,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-ad-autospinta-piegata-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 162793,
+   "file": "2022/12/carrozzina-ad-autospinta-piegata-.jpg"
+  },
+  {
+   "id": 12209,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg",
+   "alt": "Affitto carrozzina pieghevole ad autospinta",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 103934,
+   "file": "2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg"
+  },
+  {
+   "id": 12204,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-di-transito-MIA-MEDICAL-150x150-1.jpg",
+   "alt": "Carrozzina da transito o da autospinta",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 135478,
+   "file": "2022/12/carrozzina-di-transito-MIA-MEDICAL-150x150-1.jpg"
+  },
+  {
+   "id": 12177,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/IMG_0313-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 170340,
+   "file": "2023/02/IMG_0313-1.jpeg"
+  },
+  {
+   "id": 12176,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/IMG_0356-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 111863,
+   "file": "2023/02/IMG_0356-1.jpeg"
+  },
+  {
+   "id": 12168,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/MONTASCALE-A-CINGOLI-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 269110,
+   "file": "2023/02/MONTASCALE-A-CINGOLI-.jpg"
+  },
+  {
+   "id": 12167,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/MONTASCALE-T09-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 95237,
+   "file": "2023/02/MONTASCALE-T09-.jpg"
+  },
+  {
+   "id": 12166,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/MONTASCALE-VIMEC-T09-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 80789,
+   "file": "2023/02/MONTASCALE-VIMEC-T09-1.jpg"
+  },
+  {
+   "id": 12134,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/magnetoterapia-itech-mag-2000.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 64286,
+   "file": "2023/02/magnetoterapia-itech-mag-2000.jpg"
+  },
+  {
+   "id": 12133,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/magnetoterapia-i-tech-mag-2000-plus-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1020,
+   "h": 1020,
+   "filesize": 103228,
+   "file": "2023/02/magnetoterapia-i-tech-mag-2000-plus-1.jpg"
+  },
+  {
+   "id": 12132,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/mag2000plus-2-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 142591,
+   "file": "2023/02/mag2000plus-2-1.jpg"
+  },
+  {
+   "id": 12126,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/scooter-pieghevole-con-braccioli-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 127160,
+   "file": "2024/04/scooter-pieghevole-con-braccioli-.jpg"
+  },
+  {
+   "id": 12119,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/scooter-S19-pieghevole-3.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 207264,
+   "file": "2023/02/scooter-S19-pieghevole-3.jpg"
+  },
+  {
+   "id": 12115,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollevatore-con-seduta-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 111694,
+   "file": "2023/04/sollevatore-con-seduta-.jpg"
+  },
+  {
+   "id": 12114,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollievo-con-seduta-muevo-home-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 217536,
+   "file": "2023/04/sollievo-con-seduta-muevo-home-.jpg"
+  },
+  {
+   "id": 12113,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollevatore-con-seduta-muevo-home-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 589408,
+   "file": "2023/04/sollevatore-con-seduta-muevo-home-1.png"
+  },
+  {
+   "id": 12112,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollevatore-con-seduta-elettrico.jpg",
+   "alt": "noleggio sollevatore elettrico con seduta MUEVO HOME",
+   "mime": "image/jpeg",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 135044,
+   "file": "2023/04/sollevatore-con-seduta-elettrico.jpg"
+  },
+  {
+   "id": 12111,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/globus-magnetoterapia-solenoidi-dorso-applicazioni.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1049,
+   "h": 1049,
+   "filesize": 318342,
+   "file": "2023/10/globus-magnetoterapia-solenoidi-dorso-applicazioni.jpeg"
+  },
+  {
+   "id": 12110,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/magnetoterapia-applicazioni-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 133361,
+   "file": "2023/10/magnetoterapia-applicazioni-.jpg"
+  },
+  {
+   "id": 12108,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 101291,
+   "file": "2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg"
+  },
+  {
+   "id": 12107,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/seggiolone-polifunzionale-Inovis-2-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 990,
+   "h": 600,
+   "filesize": 101674,
+   "file": "2022/12/seggiolone-polifunzionale-Inovis-2-.jpg"
+  },
+  {
+   "id": 12095,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/scooter-MAXIMO-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 161786,
+   "file": "2024/01/scooter-MAXIMO-.jpg"
+  },
+  {
+   "id": 11863,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/scooter-Maximo-batteria-MIA-MEDICAL.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 600,
+   "h": 600,
+   "filesize": 50767,
+   "file": "2024/01/scooter-Maximo-batteria-MIA-MEDICAL.jpg"
+  },
+  {
+   "id": 11669,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/mag-200-MIA-MEDICAL-ITALIA.jpg",
+   "alt": "APPLICAZIONI MAGNETOTERAPIA",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 151330,
+   "file": "2023/02/mag-200-MIA-MEDICAL-ITALIA.jpg"
+  },
+  {
+   "id": 9706,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/materasso-antidecubito-alto-rischio.-1.jpg",
+   "alt": "materasso-antidecubito-alto-rischio.",
+   "mime": "image/jpeg",
+   "w": 800,
+   "h": 800,
+   "filesize": 28009,
+   "file": "2023/02/materasso-antidecubito-alto-rischio.-1.jpg"
+  },
+  {
+   "id": 9072,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile.jpg",
+   "alt": "Alzata per gesso carrozzina SLIM autospinta",
+   "mime": "image/jpeg",
+   "w": 500,
+   "h": 500,
+   "filesize": 26837,
+   "file": "2022/12/pedane-elevabile.jpg"
+  },
+  {
+   "id": 9068,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-bariatrica_3.jpg",
+   "alt": "Carrozzina bariatrica pieghevole",
+   "mime": "image/jpeg",
+   "w": 700,
+   "h": 700,
+   "filesize": 53844,
+   "file": "2022/12/carrozzina-bariatrica_3.jpg"
+  },
+  {
+   "id": 9065,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/schienale-reclinabile-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 450,
+   "h": 450,
+   "filesize": 21229,
+   "file": "2022/12/schienale-reclinabile-.jpg"
+  },
+  {
+   "id": 9060,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-2-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 381,
+   "h": 492,
+   "filesize": 24741,
+   "file": "2022/12/alto-decubito-2-1.jpeg"
+  },
+  {
+   "id": 9061,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-1-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 381,
+   "h": 492,
+   "filesize": 22125,
+   "file": "2022/12/alto-decubito-1-1.jpeg"
+  },
+  {
+   "id": 16165,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/IMG_8603.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1024,
+   "h": 1024,
+   "filesize": 1183064,
+   "file": "2024/06/IMG_8603.png"
+  },
+  {
+   "id": 16164,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/48.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 489636,
+   "file": "2024/06/48.png"
+  },
+  {
+   "id": 16163,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/47.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 288396,
+   "file": "2024/06/47.png"
+  },
+  {
+   "id": 16162,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/46.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 485336,
+   "file": "2024/06/46.png"
+  },
+  {
+   "id": 16161,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/45.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 516587,
+   "file": "2024/06/45.png"
+  },
+  {
+   "id": 16160,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/44.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 506689,
+   "file": "2024/06/44.png"
+  },
+  {
+   "id": 16159,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/43.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 428433,
+   "file": "2024/06/43.png"
+  },
+  {
+   "id": 16158,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/42.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 349676,
+   "file": "2024/06/42.png"
+  },
+  {
+   "id": 16157,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/41.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 219600,
+   "file": "2024/06/41.png"
+  },
+  {
+   "id": 16156,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/39.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 500359,
+   "file": "2024/06/39.png"
+  },
+  {
+   "id": 16155,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/40.png",
+   "alt": "Vendita crioterapia compressiva",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 204786,
+   "file": "2024/06/40.png"
+  },
+  {
+   "id": 14623,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/Rollator.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 369741,
+   "file": "2024/05/Rollator.png"
+  },
+  {
+   "id": 14438,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/Seggiolone-elettrico-polifunzionale.png",
+   "alt": "Noleggio seggiolone polifunzionale basculante",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 741957,
+   "file": "2024/06/Seggiolone-elettrico-polifunzionale.png"
+  },
+  {
+   "id": 14433,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Scooter-One.png",
+   "alt": "Scooter elettrico One",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 483282,
+   "file": "2025/07/Scooter-One.png"
+  },
+  {
+   "id": 14128,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 39039,
+   "file": "2025/07/1.jpg"
+  },
+  {
+   "id": 14127,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/2.jpg",
+   "alt": "Noleggio sollevatore elettrico da bagno per anziani e disabili",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 54433,
+   "file": "2025/07/2.jpg"
+  },
+  {
+   "id": 14106,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4188.jpeg",
+   "alt": "Vendita e noleggio sollevatore elettrico GO UP",
+   "mime": "image/jpeg",
+   "w": 809,
+   "h": 809,
+   "filesize": 80669,
+   "file": "2025/07/IMG_4188.jpeg"
+  },
+  {
+   "id": 14105,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4189.jpeg",
+   "alt": "Vendita e Noleggio sollevatore elettrico GO UP",
+   "mime": "image/jpeg",
+   "w": 1034,
+   "h": 1034,
+   "filesize": 91862,
+   "file": "2025/07/IMG_4189.jpeg"
+  },
+  {
+   "id": 14104,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4186.png",
+   "alt": "Noleggio Sollevatore Elettrico GO UP",
+   "mime": "image/png",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 458138,
+   "file": "2025/07/IMG_4186.png"
+  },
+  {
+   "id": 14103,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4185.jpeg",
+   "alt": "Noleggio Sollevatore Elettrico Go Up",
+   "mime": "image/jpeg",
+   "w": 1354,
+   "h": 1354,
+   "filesize": 141219,
+   "file": "2025/07/IMG_4185.jpeg"
+  },
+  {
+   "id": 13776,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/04/IMG_6169-scaled.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2560,
+   "h": 2560,
+   "filesize": 408551,
+   "file": "2025/04/IMG_6169-scaled.jpeg"
+  },
+  {
+   "id": 13770,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/04/IMG_6155-scaled.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2560,
+   "h": 2560,
+   "filesize": 331160,
+   "file": "2025/04/IMG_6155-scaled.jpeg"
+  },
+  {
+   "id": 13545,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-MANICO-PIEGATO.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 1203707,
+   "file": "2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-MANICO-PIEGATO.png"
+  },
+  {
+   "id": 13544,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/IMG_0279.png",
+   "alt": "carrozzina ultra leggera con schienale pieghevole",
+   "mime": "image/png",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 346643,
+   "file": "2025/02/IMG_0279.png"
+  },
+  {
+   "id": 13543,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-CONTROLLER.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 768926,
+   "file": "2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-CONTROLLER.png"
+  },
+  {
+   "id": 13542,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/IMG_0278-2.png",
+   "alt": "joystick accompagnatore",
+   "mime": "image/png",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 479020,
+   "file": "2025/02/IMG_0278-2.png"
+  },
+  {
+   "id": 13541,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/IMG_0228-2-2-2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 601904,
+   "file": "2025/02/IMG_0228-2-2-2.png"
+  },
+  {
+   "id": 13492,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/Carrozzina-elettrica-leggera-STARLIGHT.jpg",
+   "alt": "carrozzina elettrica da esterno",
+   "mime": "image/jpeg",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 372696,
+   "file": "2025/02/Carrozzina-elettrica-leggera-STARLIGHT.jpg"
+  },
+  {
+   "id": 13488,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-CHIUSA.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1080,
+   "h": 1080,
+   "filesize": 251751,
+   "file": "2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-CHIUSA.jpeg"
+  },
+  {
+   "id": 13405,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2617-1.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 893,
+   "h": 1079,
+   "filesize": 100343,
+   "file": "2024/12/IMG_2617-1.jpeg"
+  },
+  {
+   "id": 13404,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2616-2.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 660,
+   "h": 425,
+   "filesize": 35584,
+   "file": "2024/12/IMG_2616-2.jpeg"
+  },
+  {
+   "id": 13354,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2617.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 893,
+   "h": 1079,
+   "filesize": 100343,
+   "file": "2024/12/IMG_2617.jpeg"
+  },
+  {
+   "id": 13341,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2624.png",
+   "alt": "terapia del freddo con compressione",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 550860,
+   "file": "2024/12/IMG_2624.png"
+  },
+  {
+   "id": 13283,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/Cryopush-MIA-MEDICAL-3.jpeg",
+   "alt": "CRYOPUSH MIA MEDICAL",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 49475,
+   "file": "2024/12/Cryopush-MIA-MEDICAL-3.jpeg"
+  },
+  {
+   "id": 13282,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/Cryopusch-MIA-MEDICAL-4-CAVIGLIA.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 44572,
+   "file": "2024/12/Cryopusch-MIA-MEDICAL-4-CAVIGLIA.jpeg"
+  },
+  {
+   "id": 12425,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/elettrodi-posizionamento-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 130138,
+   "file": "2024/06/elettrodi-posizionamento-.jpg"
+  },
+  {
+   "id": 12415,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/telecomando-Inovys-EVO-.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 77782,
+   "file": "2024/06/telecomando-Inovys-EVO-.jpeg"
+  },
+  {
+   "id": 12368,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/prodotti-CR509-x_1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 145260,
+   "file": "2024/05/prodotti-CR509-x_1.jpg"
+  },
+  {
+   "id": 12367,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/prodotti-CR509-x.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 95346,
+   "file": "2024/05/prodotti-CR509-x.jpg"
+  },
+  {
+   "id": 12355,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/DSC_1181.jpg",
+   "alt": "sollevatore up soft mia medical",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 96583,
+   "file": "2024/05/DSC_1181.jpg"
+  },
+  {
+   "id": 12334,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/carrina-pediatrica-2-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 139204,
+   "file": "2024/05/carrina-pediatrica-2-.jpg"
+  },
+  {
+   "id": 12333,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/carrozzina-pediatrica-3-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 125969,
+   "file": "2024/05/carrozzina-pediatrica-3-.jpg"
+  },
+  {
+   "id": 12332,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/carrozzina-pediatrica-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 114462,
+   "file": "2024/05/carrozzina-pediatrica-.jpg"
+  },
+  {
+   "id": 12196,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/KINETEC-ADVANCE-CPM-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 107513,
+   "file": "2024/04/KINETEC-ADVANCE-CPM-.jpg"
+  },
+  {
+   "id": 12180,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/pressoterapi-2-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 500,
+   "h": 500,
+   "filesize": 72138,
+   "file": "2024/04/pressoterapi-2-1-1.jpg"
+  },
+  {
+   "id": 12178,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/pressoterapie-1-1-1.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 125802,
+   "file": "2024/04/pressoterapie-1-1-1.jpg"
+  },
+  {
+   "id": 12162,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/montascale-a-ruote-T10.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 111366,
+   "file": "2024/04/montascale-a-ruote-T10.jpg"
+  },
+  {
+   "id": 12161,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/montascale-a-ruote-T10-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 74637,
+   "file": "2024/04/montascale-a-ruote-T10-.jpg"
+  },
+  {
+   "id": 12160,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/montascale-a-ruote-T10.2-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 55639,
+   "file": "2024/04/montascale-a-ruote-T10.2-.jpg"
+  },
+  {
+   "id": 12127,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/scooter-S19-pieghevole-deluxe-.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2000,
+   "h": 2000,
+   "filesize": 334678,
+   "file": "2024/04/scooter-S19-pieghevole-deluxe-.jpg"
+  },
+  {
+   "id": 14990,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/venduto-4.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 899252,
+   "file": "2025/09/venduto-4.png"
+  },
+  {
+   "id": 14989,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/vendto-3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 890927,
+   "file": "2025/09/vendto-3.png"
+  },
+  {
+   "id": 14988,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Venduta-2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 903878,
+   "file": "2025/09/Venduta-2.png"
+  },
+  {
+   "id": 14987,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Venduta-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 890319,
+   "file": "2025/09/Venduta-1.png"
+  },
+  {
+   "id": 14625,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/SUPERWHEEL-1.png",
+   "alt": "Vendita carrozzina elettrica Superwheel",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 689628,
+   "file": "2025/09/SUPERWHEEL-1.png"
+  },
+  {
+   "id": 14601,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/21.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 815904,
+   "file": "2025/09/21.png"
+  },
+  {
+   "id": 14600,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/20.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 592713,
+   "file": "2025/09/20.png"
+  },
+  {
+   "id": 14599,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/19.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 656325,
+   "file": "2025/09/19.png"
+  },
+  {
+   "id": 14598,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/18.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 527126,
+   "file": "2025/09/18.png"
+  },
+  {
+   "id": 14597,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/17.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1112739,
+   "file": "2025/09/17.png"
+  },
+  {
+   "id": 14416,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-03.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 283816,
+   "file": "2025/09/PHOTO-2025-08-23-19-40-03.jpg"
+  },
+  {
+   "id": 14414,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02-4.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 413521,
+   "file": "2025/09/PHOTO-2025-08-23-19-40-02-4.jpg"
+  },
+  {
+   "id": 14413,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02-3.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 606294,
+   "file": "2025/09/PHOTO-2025-08-23-19-40-02-3.jpg"
+  },
+  {
+   "id": 14412,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 204590,
+   "file": "2025/09/PHOTO-2025-08-23-19-40-02-2.jpg"
+  },
+  {
+   "id": 14411,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 324999,
+   "file": "2025/09/PHOTO-2025-08-23-19-40-02.jpg"
+  },
+  {
+   "id": 14409,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Tommy-3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1340771,
+   "file": "2025/09/Tommy-3.png"
+  },
+  {
+   "id": 14408,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Tommy-2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1052508,
+   "file": "2025/09/Tommy-2.png"
+  },
+  {
+   "id": 14407,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-57.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 436121,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-57.jpg"
+  },
+  {
+   "id": 14405,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-56.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 477506,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-56.jpg"
+  },
+  {
+   "id": 14404,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-55-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 338514,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-55-2.jpg"
+  },
+  {
+   "id": 14403,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-55.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 431202,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-55.jpg"
+  },
+  {
+   "id": 14394,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Scooter-Tommy-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1200077,
+   "file": "2025/09/Scooter-Tommy-1.png"
+  },
+  {
+   "id": 14393,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-03.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 520994,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-03.jpg"
+  },
+  {
+   "id": 14391,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-02.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 397176,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-02.jpg"
+  },
+  {
+   "id": 14390,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-01.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 376318,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-01.jpg"
+  },
+  {
+   "id": 14389,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-00.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 470041,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-00.jpg"
+  },
+  {
+   "id": 14388,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-00-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 523845,
+   "file": "2025/09/PHOTO-2025-08-23-19-38-00-2.jpg"
+  },
+  {
+   "id": 14387,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-37-59.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 420990,
+   "file": "2025/09/PHOTO-2025-08-23-19-37-59.jpg"
+  },
+  {
+   "id": 14385,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Fantastica-3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1037701,
+   "file": "2025/09/Fantastica-3.png"
+  },
+  {
+   "id": 14384,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 415639,
+   "file": "2025/09/PHOTO-2025-08-23-19-36-19-2.jpg"
+  },
+  {
+   "id": 14383,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19-4.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 408547,
+   "file": "2025/09/PHOTO-2025-08-23-19-36-19-4.jpg"
+  },
+  {
+   "id": 14382,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 530107,
+   "file": "2025/09/PHOTO-2025-08-23-19-36-19.jpg"
+  },
+  {
+   "id": 14381,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19-3.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 427647,
+   "file": "2025/09/PHOTO-2025-08-23-19-36-19-3.jpg"
+  },
+  {
+   "id": 14378,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/fantastica-2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1193634,
+   "file": "2025/09/fantastica-2.png"
+  },
+  {
+   "id": 14377,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-44.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 408547,
+   "file": "2025/09/PHOTO-2025-08-23-19-34-44.jpg"
+  },
+  {
+   "id": 14375,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-42.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 496283,
+   "file": "2025/09/PHOTO-2025-08-23-19-34-42.jpg"
+  },
+  {
+   "id": 14374,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-42-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 419134,
+   "file": "2025/09/PHOTO-2025-08-23-19-34-42-2.jpg"
+  },
+  {
+   "id": 14373,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-41.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 441996,
+   "file": "2025/09/PHOTO-2025-08-23-19-34-41.jpg"
+  },
+  {
+   "id": 14372,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-40.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 441403,
+   "file": "2025/09/PHOTO-2025-08-23-19-34-40.jpg"
+  },
+  {
+   "id": 14370,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/fantastica-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 1131821,
+   "file": "2025/09/fantastica-1.png"
+  },
+  {
+   "id": 14368,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-56.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 441996,
+   "file": "2025/09/PHOTO-2025-08-23-19-31-56.jpg"
+  },
+  {
+   "id": 14367,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-56-3.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 500496,
+   "file": "2025/09/PHOTO-2025-08-23-19-31-56-3.jpg"
+  },
+  {
+   "id": 14366,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-56-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 389913,
+   "file": "2025/09/PHOTO-2025-08-23-19-31-56-2.jpg"
+  },
+  {
+   "id": 14365,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-55.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 441403,
+   "file": "2025/09/PHOTO-2025-08-23-19-31-55.jpg"
+  },
+  {
+   "id": 14364,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-55-2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 2048,
+   "h": 2048,
+   "filesize": 448305,
+   "file": "2025/09/PHOTO-2025-08-23-19-31-55-2.jpg"
+  },
+  {
+   "id": 14221,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Noleggio-combinato-Miamedical.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 518553,
+   "file": "2025/07/Noleggio-combinato-Miamedical.png"
+  },
+  {
+   "id": 14199,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Magnetocemp-Elite-Miamedical.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 348785,
+   "file": "2025/07/Magnetocemp-Elite-Miamedical.png"
+  },
+  {
+   "id": 14192,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Medisound-3000-Noleggio.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 526564,
+   "file": "2025/07/Medisound-3000-Noleggio.png"
+  },
+  {
+   "id": 13400,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2671.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 125338,
+   "file": "2024/12/IMG_2671.jpeg"
+  },
+  {
+   "id": 13401,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2672.jpeg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 141072,
+   "file": "2024/12/IMG_2672.jpeg"
+  },
+  {
+   "id": 15767,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-6.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 137943,
+   "file": "2026/05/bobby-evo-6.jpg"
+  },
+  {
+   "id": 15765,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo3.jpg",
+   "alt": "Carrozzina da transito Bobby EVO",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 128455,
+   "file": "2026/05/bobby-evo3.jpg"
+  },
+  {
+   "id": 15764,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo2.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 123425,
+   "file": "2026/05/bobby-evo2.jpg"
+  },
+  {
+   "id": 15763,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-4.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 123413,
+   "file": "2026/05/bobby-evo-4.jpg"
+  },
+  {
+   "id": 15762,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-.jpg",
+   "alt": "Noleggio carrozzina da transito Bobby",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 133857,
+   "file": "2026/05/bobby-evo-.jpg"
+  },
+  {
+   "id": 15748,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/joystick-.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 593744,
+   "file": "2026/04/joystick-.png"
+  },
+  {
+   "id": 15747,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/8-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 775133,
+   "file": "2026/04/8-1.png"
+  },
+  {
+   "id": 15745,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/3-2.png",
+   "alt": "Vendita Carrozzina Elettrica Nuvola in Carbonio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 673327,
+   "file": "2026/04/3-2.png"
+  },
+  {
+   "id": 15735,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/zaino-doppia-batteria-in-omaggio.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 913314,
+   "file": "2026/04/zaino-doppia-batteria-in-omaggio.png"
+  },
+  {
+   "id": 15734,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/jpystick-passepartout.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 651519,
+   "file": "2026/04/jpystick-passepartout.png"
+  },
+  {
+   "id": 15732,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/Carrozzina-passepartout.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 620065,
+   "file": "2026/04/Carrozzina-passepartout.png"
+  },
+  {
+   "id": 15731,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/20.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 343355,
+   "file": "2026/04/20.png"
+  },
+  {
+   "id": 15730,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/19.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 488697,
+   "file": "2026/04/19.png"
+  },
+  {
+   "id": 15729,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/18.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 553234,
+   "file": "2026/04/18.png"
+  },
+  {
+   "id": 15728,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/17.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 608840,
+   "file": "2026/04/17.png"
+  },
+  {
+   "id": 15721,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/passe-partout-ruote.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 951470,
+   "file": "2026/04/passe-partout-ruote.png"
+  },
+  {
+   "id": 15717,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/11-1.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 472919,
+   "file": "2026/04/11-1.png"
+  },
+  {
+   "id": 15715,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/9-1.png",
+   "alt": "Vendita carrozzina elettrica in magnesio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 688916,
+   "file": "2026/04/9-1.png"
+  },
+  {
+   "id": 15691,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/12.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 847922,
+   "file": "2026/04/12.png"
+  },
+  {
+   "id": 15683,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/5-1.png",
+   "alt": "Vendita Carrozzina Elettrica Nuvola in Carbonio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 643490,
+   "file": "2026/04/5-1.png"
+  },
+  {
+   "id": 15681,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/3-1.png",
+   "alt": "Vendita Carrozzina Elettrica Nuvola in Carbonio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 703711,
+   "file": "2026/04/3-1.png"
+  },
+  {
+   "id": 15679,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/2-1.png",
+   "alt": "Vendita Carrozzina Elettrica Nuvola in Carbonio",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 598073,
+   "file": "2026/04/2-1.png"
+  },
+  {
+   "id": 15568,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-ruote.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 779877,
+   "file": "2026/03/montascale-ruote.png"
+  },
+  {
+   "id": 15567,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-lato.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 834614,
+   "file": "2026/03/montascale-lato.png"
+  },
+  {
+   "id": 15566,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-retro.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 497503,
+   "file": "2026/03/montascale-retro.png"
+  },
+  {
+   "id": 15558,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/nuova-carrozzina-montascale.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 406522,
+   "file": "2026/03/nuova-carrozzina-montascale.png"
+  },
+  {
+   "id": 15550,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/11-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1875,
+   "h": 1875,
+   "filesize": 4411084,
+   "file": "2026/03/11-1.png"
+  },
+  {
+   "id": 15549,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/10-3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1875,
+   "h": 1875,
+   "filesize": 3457246,
+   "file": "2026/03/10-3.png"
+  },
+  {
+   "id": 15548,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/9-3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1875,
+   "h": 1875,
+   "filesize": 2045837,
+   "file": "2026/03/9-3.png"
+  },
+  {
+   "id": 15547,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/8-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1875,
+   "h": 1875,
+   "filesize": 1378586,
+   "file": "2026/03/8-1.png"
+  },
+  {
+   "id": 15546,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/7-1.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1875,
+   "h": 1875,
+   "filesize": 1664116,
+   "file": "2026/03/7-1.png"
+  },
+  {
+   "id": 15348,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Criomagnetoterapia.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 951545,
+   "file": "2026/03/Criomagnetoterapia.png"
+  },
+  {
+   "id": 15175,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/6.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 573044,
+   "file": "2026/01/6.png"
+  },
+  {
+   "id": 15174,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/4.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 632185,
+   "file": "2026/01/4.png"
+  },
+  {
+   "id": 15173,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/5.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 286117,
+   "file": "2026/01/5.png"
+  },
+  {
+   "id": 15095,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/Fantastica.png",
+   "alt": "Noleggio carrozzina elettrica pieghevole",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 466172,
+   "file": "2026/01/Fantastica.png"
+  },
+  {
+   "id": 15055,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/MAterasso-Anti-decubito-Hospital-Care-XL.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 448116,
+   "file": "2026/01/MAterasso-Anti-decubito-Hospital-Care-XL.png"
+  },
+  {
+   "id": 15010,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/12/poltrona-reclinabile-magic-up.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 268534,
+   "file": "2025/12/poltrona-reclinabile-magic-up.png"
+  },
+  {
+   "id": 14721,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/4.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 173682,
+   "file": "2025/10/4.png"
+  },
+  {
+   "id": 14720,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/3.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 78413,
+   "file": "2025/10/3.png"
+  },
+  {
+   "id": 14719,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 141334,
+   "file": "2025/10/2.png"
+  },
+  {
+   "id": 14649,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/rollatore-alluminio.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 68677,
+   "file": "2025/09/rollatore-alluminio.jpg"
+  },
+  {
+   "id": 14639,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Rollator-mini.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 465162,
+   "file": "2025/09/Rollator-mini.png"
+  },
+  {
+   "id": 14630,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Albatros-2.png",
+   "alt": "",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 334033,
+   "file": "2025/09/Albatros-2.png"
+  },
+  {
+   "id": 14629,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/ALBATROSII-verticalizzatore-disabili-utente.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1200,
+   "h": 1200,
+   "filesize": 99176,
+   "file": "2025/09/ALBATROSII-verticalizzatore-disabili-utente.jpg"
+  },
+  {
+   "id": 14628,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/ALBATROSII-verticalizzatore-disabili-pedane.jpg",
+   "alt": "",
+   "mime": "image/jpeg",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 117805,
+   "file": "2025/09/ALBATROSII-verticalizzatore-disabili-pedane.jpg"
+  },
+  {
+   "id": 14620,
+   "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Albatros-II.png",
+   "alt": "Noleggio verticalizzatore attivo Albatros2",
+   "mime": "image/png",
+   "w": 1000,
+   "h": 1000,
+   "filesize": 263434,
+   "file": "2025/09/Albatros-II.png"
+  }
+ ]
+}

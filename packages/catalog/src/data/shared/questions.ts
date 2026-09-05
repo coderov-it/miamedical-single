@@ -1,29 +1,23 @@
 /**
- * Intake questions asked at order time, shared by the products that need them.
+ * Intake questions asked at order time.
  *
- * Unlike an add-on, a question MAY be required — "which floor?" has to be
- * answered before a delivery can be planned. It constrains a choice, not a
- * purchase.
+ * There is exactly one, and it is the only one the live site asks. Every hire
+ * product carries the same WooCommerce field — a required date labelled
+ * "A partire dal giorno:" — and no product asks anything else: no floor, no
+ * lift, no measurements. Two hire products (the electric standing frames,
+ * 8853 and 14603) carry no field at all.
+ *
+ * Unlike an add-on, a question MAY be required: a hire cannot be planned
+ * without a start date. It constrains a choice, not a purchase.
  */
 import type { AnyQuestion } from '../../lib/types.ts';
 
-export const floor: AnyQuestion = {
-  key: 'floor',
-  prompt: { it: 'A che piano abita?', en: 'Which floor do you live on?' },
-  helpText: { it: 'Serve a sapere se portare il montascale.' },
-  questionValueType: 'number',
+export const startDate: AnyQuestion = {
+  key: 'start-date',
+  prompt: { it: 'A partire dal giorno:', en: 'Starting from:' },
+  questionValueType: 'date',
   isRequired: true,
-  minValue: 0,
-  maxValue: 30,
 };
 
-export const hasLift: AnyQuestion = {
-  key: 'has-lift',
-  prompt: { it: "C'è l'ascensore?", en: 'Is there a lift?' },
-  questionValueType: 'single_select',
-  isRequired: true,
-  options: { yes: { it: 'Sì', en: 'Yes' }, no: { it: 'No', en: 'No' } },
-};
-
-/** Every home delivery needs both. */
-export const deliveryAccess: readonly AnyQuestion[] = [floor, hasLift];
+/** What every hire product asks, spread as one: `...hireIntake`. */
+export const hireIntake: readonly AnyQuestion[] = [startDate];
