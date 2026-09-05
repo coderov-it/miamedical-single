@@ -37,25 +37,70 @@ const italianPath = languagePaths.it;
 const englishPath = languagePaths.en;
 
 /**
- * Support is deliberately absent: it lives in the support launcher pinned to
- * the bottom-right of every page (owner, 2026-08-30), which reaches a person
- * faster than a nav item and does not spend a slot the catalogue needs. The
- * footer still carries the link for anyone looking for it there.
+ * FIVE DESTINATIONS, ONE PER THING A CUSTOMER CAN WANT (owner, 2026-09-05):
+ * where they are, what is for sale, help choosing it, how the service works,
+ * and a person to talk to.
+ *
+ * NOLEGGIO AND VENDITA LEFT THIS ROW, and nothing was lost with them: they are
+ * a MODE, not a destination, and the catalogue's own segmented control now
+ * carries all four of them (Tutti · Noleggio · Acquisto · Usato). Two nav slots
+ * spent on one axis of one page is what they cost. `catalogRental` and
+ * `catalogSale` are still real, indexed URLs — they simply light "Catalogo"
+ * when you are on them, which is what `extra` below is for.
+ *
+ * CERCA AND BLOG LEFT TOO. Search is the header's own glyph two elements to the
+ * right, and the blog is a footer destination — neither earns a slot beside the
+ * five things the shop is actually for. Both stay in the footer.
+ *
+ * "Come funziona" is a SECTION of the home page rather than a page, so it is
+ * the only item here carrying a fragment.
  */
 const nav = [
   { href: routePath(locale, 'home'), label: text('header.home'), exact: true },
-  { href: routePath(locale, 'catalog'), label: text('header.catalog'), exact: true },
-  { href: routePath(locale, 'catalogRental'), label: text('header.rental'), exact: false },
-  { href: routePath(locale, 'catalogSale'), label: text('header.sale'), exact: false },
-  { href: routePath(locale, 'search'), label: text('header.browse'), exact: false },
-  { href: routePath(locale, 'blog'), label: text('header.blog'), exact: false },
+  {
+    href: routePath(locale, 'catalog'),
+    label: text('header.catalog'),
+    exact: true,
+    extra: [routePath(locale, 'catalogRental'), routePath(locale, 'catalogSale')],
+  },
+  /* `exact`: the selector keeps its own path through all three steps — the
+     answers are query parameters — so the item stays lit inside the flow.
+
+     `short` is what the row wears between `mid` and `wide`, and it is never
+     invented copy: it is the name the BOTTOM TAB BAR already gives the same
+     destination. Five Italian labels, the brand and four controls come to more
+     than a 720px tablet has, and these two are the long ones — "Aiutami a
+     scegliere" alone is 135px. Borrowing the tab bar's "Aiutami" and "Aiuto"
+     buys 92px without inventing a third name for anything. */
+  {
+    href: routePath(locale, 'productFinder'),
+    label: text('header.finder'),
+    short: text('navigation.finder'),
+    exact: true,
+  },
+  { href: `${routePath(locale, 'home')}#how-it-works`, label: text('header.howItWorks') },
+  {
+    href: routePath(locale, 'support'),
+    label: text('header.assistance'),
+    short: text('navigation.help'),
+    exact: true,
+  },
 ];
 
 const account = { href: routePath(locale, 'account'), label: text('header.account'), exact: false };
 
 const path = Astro.locals.publicPath ?? publicPathForRequest() ?? Astro.url.pathname;
-const isActive = (item: { href: string; exact: boolean }) =>
-  item.exact ? path === item.href : path.startsWith(item.href);
+
+/**
+ * A fragment link is never "the current page": `#how-it-works` lands on the home
+ * page, which already has its own item lit, so an item with no `exact` at all
+ * simply never marks itself.
+ */
+const isActive = (item: { href: string; exact?: boolean; extra?: string[] }) => {
+  if (item.exact === undefined) return false;
+  if (item.extra?.some((prefix) => path.startsWith(prefix))) return true;
+  return item.exact ? path === item.href : path.startsWith(item.href);
+};
 
 const navLinkClass =
   'text-[clamp(0.875rem,calc(0.268vw+0.7544rem),0.9688rem)] font-[550] whitespace-nowrap ' +
@@ -79,14 +124,23 @@ const headerIconClass =
     'font-ui sticky top-0 z-50 border-b border-[var(--color-line)] bg-white',
   ]}
 >
+  {
+    /* THE 720–1100 BAND IS THE TIGHT ONE, and everything below that is `mid:
+       max-wide:` exists for it: five text items, the brand and four controls
+       come to 682px of content, which does not fit a 720px tablet at the
+       container's usual 22px gutter. The gutter halves, the brand steps down
+       one size, the nav gap drops to 8px and the selector wears its short name
+       — each small, all confined to the band that needs them, and none of them
+       touching the full-width header (owner, 2026-09-05). */
+  }
   <div
     class:list={[
       EDITORIAL_CONTAINER,
-      'flex min-h-[clamp(52px,5.94vw,76px)] items-center gap-[clamp(12px,calc(2.86vw-8.6px),28px)]',
+      'mid:max-wide:px-3 mid:max-wide:gap-2.5 flex min-h-[clamp(52px,5.94vw,76px)] items-center gap-[clamp(12px,calc(2.86vw-8.6px),28px)]',
     ]}
   >
     <a
-      class="flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] no-underline"
+      class="mid:max-wide:text-[0.9375rem] flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] no-underline"
       href={routePath(locale, 'home')}
       aria-label={text('header.brand')}
     >
@@ -94,7 +148,7 @@ const headerIconClass =
     </a>
 
     <nav
-      class="mid:flex ms-[clamp(8px,calc(5vw-28px),36px)] me-auto hidden items-center gap-[clamp(10px,calc(4.29vw-20.9px),34px)]"
+      class="mid:flex mid:max-wide:ms-2 mid:max-wide:gap-2 ms-[clamp(8px,calc(5vw-28px),36px)] me-auto hidden items-center gap-[clamp(8px,calc(4.29vw-24.9px),34px)]"
       aria-label={text('navigation.primary')}
     >
       {
@@ -104,7 +158,18 @@ const headerIconClass =
             href={item.href}
             aria-current={isActive(item) ? 'page' : undefined}
           >
-            {item.label}
+            {item.short ? (
+              /* 1200, not `wide`: the full names need ~1120px of bar and the
+                 `wide` query fires at a 1100 VIEWPORT, which is 1085 of usable
+                 width once a scrollbar is out. The band gets its short names
+                 until they genuinely fit. */
+              <>
+                <span class="min-[1200px]:hidden">{item.short}</span>
+                <span class="max-[1199px]:hidden">{item.label}</span>
+              </>
+            ) : (
+              item.label
+            )}
           </a>
         ))
       }

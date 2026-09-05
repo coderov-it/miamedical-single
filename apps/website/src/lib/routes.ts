@@ -166,7 +166,13 @@ export function catalogPath(
     view?: CatalogView;
     q?: string;
     category?: string;
+    /** Product type, and the group inside it — see lib/product-types.ts. */
+    type?: string;
+    group?: string;
     sort?: string;
+    /** "Solo disponibili". Absent means both, so only `true` is ever written. */
+    inStock?: boolean;
+    layout?: string;
     page?: number;
   } & BrowseContext = {},
   locale: SiteLocale = 'it',
@@ -174,7 +180,15 @@ export function catalogPath(
   const search = new URLSearchParams();
   if (params.q) search.set('q', params.q);
   if (params.category) search.set('category', params.category);
+  if (params.type) search.set('type', params.type);
+  /* A group is a subdivision OF a type and means nothing on its own, so it
+     never rides alone — a hand-edited `?group=` is dropped, not guessed at. */
+  if (params.type && params.group) search.set('group', params.group);
   if (params.sort) search.set('sort', params.sort);
+  if (params.inStock) search.set('stock', '1');
+  /* `grid` is the default and never written — a URL should carry a choice, not
+     a restatement of what the page does anyway. */
+  if (params.layout === 'list') search.set('layout', 'list');
   if (params.page && params.page > 1) search.set('page', String(params.page));
   appendContext(search, params);
   const qs = search.toString();

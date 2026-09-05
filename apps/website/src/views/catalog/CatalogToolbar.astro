@@ -1,0 +1,239 @@
+---
+/**
+ * The row between the filters and the grid: how many answers came back, and the
+ * three ways to change what they look like.
+ *
+ * The reference site's own bar (miamedicalitalia.it, measured 2026-09-05): the
+ * count hard left in 17px Lexend, then "Solo disponibili", "Ordina per:" and a
+ * grid/list switch pushed right, all on one 48px line.
+ *
+ * THE RIGHT-HAND GROUP WRAPS, and the grid/list switch is gone below `wide`.
+ * Three controls plus the count do not fit a 760px tablet on one line, and the
+ * group used to be `flex-none` with no wrap, so it simply ran off the screen.
+ * The switch is the one that goes: below `wide` the card is already the list
+ * row at every width, so "Lista" would be choosing what is drawn anyway.
+ *
+ * THE COUNT NAMES THE SUBJECT — "37 prodotti in Muoversi", not "37 prodotti".
+ * It is the page's receipt for what the customer just tapped, and it is the one
+ * line that survives when the strip has scrolled off the top of a phone.
+ *
+ * EVERY CONTROL HERE IS A LINK EXCEPT THE SORT, so the whole bar works with no
+ * JavaScript: "Solo disponibili" is a link to the same page carrying `stock=1`,
+ * and the layout switch is two links. The sort is a native `<select>` in a GET
+ * form that submits on change, with the `noscript` button as its fallback —
+ * a select that only works with script is the silent block CLAUDE.md forbids.
+ *
+ * Every control carries the whole browse state and drops the page number,
+ * because narrowing or re-sorting a list invalidates where you were in it.
+ *
+ * WEIGHT IS HIERARCHY, NOT DECORATION. The count leads at `font-semibold`, the
+ * layout switch and the sort control are `font-semibold` like every other
+ * control on the site, and the two labels — "Solo disponibili", "Ordina per:" —
+ * are `font-medium`, because a label naming a control is not competing with it.
+ * This whole row used to be bold, which is how a page ends up looking as though
+ * bold were its body weight (owner, 2026-09-05).
+ */
+import Dropdown from '~/components/primitives/Dropdown.astro';
+import { sortOptions, type CatalogQuery } from '~/lib/catalog-page';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { catalogPath, catalogRoot } from '~/lib/routes';
+
+interface Props {
+  query: CatalogQuery;
+  /** How many products the current selection holds, across every page. */
+  total: number;
+  /** The type, group or category the page is about, when it is about one. */
+  subject: string | null;
+}
+
+const { query, total, subject } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+const state = {
+  view: query.view,
+  q: query.q,
+  category: query.category,
+  ...(query.type ? { type: query.type.id } : {}),
+  ...(query.group ? { group: query.group.id } : {}),
+  sort: query.sort,
+  ...query.context,
+};
+
+const countKey = total === 1 ? 'one' : 'many';
+const countLabel = subject
+  ? text(`catalog.countIn.${countKey}`, { count: total, name: subject })
+  : text(`catalog.count.${countKey}`, { count: total });
+
+const stockHref = catalogPath({ ...state, inStock: !query.inStock, layout: query.layout }, locale);
+
+const layoutClass =
+  'font-display inline-flex min-h-11 items-center gap-2 px-3.5 text-base font-semibold no-underline';
+const layouts = [
+  { id: 'grid', label: text('catalog.layout.grid') },
+  { id: 'list', label: text('catalog.layout.list') },
+] as const;
+---
+
+<div
+  class="mid:flex-row mid:items-center mid:justify-between mid:gap-4 mid:pb-5 max-mid:gap-2.5 max-mid:pb-4 flex flex-col"
+>
+  <p class="font-ui text-ink text-[1.0625rem] font-semibold tabular-nums">{countLabel}</p>
+
+  <div class="mid:justify-end flex flex-wrap items-center gap-2.5">
+    {
+      /* A real checkbox glyph, drawn rather than native, because the control is
+         a link — the tick has to follow the URL, not a form value. */
+    }
+    <a
+      class="font-display text-ink inline-flex min-h-12 items-center gap-2.25 px-1.5 text-base font-medium no-underline"
+      href={stockHref}
+      aria-pressed={query.inStock ? 'true' : 'false'}
+      role="switch"
+    >
+      <span
+        class:list={[
+          'grid size-5.5 flex-none place-items-center rounded-[6px] border',
+          query.inStock ? 'border-accent bg-accent text-white' : 'border-hair-strong bg-white',
+        ]}
+        aria-hidden="true"
+      >
+        {
+          query.inStock && (
+            <svg
+              class="size-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m5 12.5 5 5 9-11" />
+            </svg>
+          )
+        }
+      </span>
+      {text('catalog.inStockOnly')}
+    </a>
+
+    <form
+      class="flex flex-none items-center gap-2.25"
+      method="get"
+      action={catalogRoot(query.view, locale)}
+      data-catalog-sort-form
+      data-selected-sort={query.sort}
+    >
+      {query.q && <input type="hidden" name="q" value={query.q} />}
+      {query.category && <input type="hidden" name="category" value={query.category} />}
+      {query.type && <input type="hidden" name="type" value={query.type.id} />}
+      {query.group && <input type="hidden" name="group" value={query.group.id} />}
+      {query.inStock && <input type="hidden" name="stock" value="1" />}
+      {query.layout === 'list' && <input type="hidden" name="layout" value="list" />}
+      {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
+      {query.context.from && <input type="hidden" name="from" value={query.context.from} />}
+      {query.context.for && <input type="hidden" name="for" value={query.context.for} />}
+
+      <span class="font-ui text-ink-2 max-mid:hidden flex-none text-base font-medium">
+        {text('catalog.sortBy')}
+      </span>
+      <Dropdown
+        id="catalog-sort"
+        name="sort"
+        label={text('catalog.sortBy')}
+        options={sortOptions(locale)}
+        value={query.sort}
+        hideLabel
+        variant="compact"
+        class="min-w-0 flex-none"
+      />
+
+      <noscript>
+        <button
+          class="font-display hover:bg-accent-deep rounded-field inline-flex min-h-11.5 flex-none items-center justify-center border-0 bg-accent px-5 font-semibold text-white"
+          type="submit"
+        >
+          {text('catalog.apply')}
+        </button>
+      </noscript>
+    </form>
+
+    {
+      /* Two links in one well, the segment shape the mode control uses — same
+         question, same answer, one step quieter because it changes nothing
+         about WHAT is listed. */
+    }
+    <div
+      class="border-hair max-wide:hidden rounded-field inline-flex flex-none overflow-hidden border bg-white"
+      role="group"
+      aria-label={text('catalog.layoutFilter')}
+    >
+      {
+        layouts.map((option, index) => (
+          <a
+            class:list={[
+              layoutClass,
+              index > 0 && 'border-hair border-s',
+              query.layout === option.id
+                ? 'bg-accent-tint text-accent'
+                : 'hover:bg-accent-tint text-ink-2 bg-white',
+            ]}
+            href={catalogPath({ ...state, inStock: query.inStock, layout: option.id }, locale)}
+            aria-current={query.layout === option.id ? 'true' : undefined}
+          >
+            {option.id === 'grid' ? (
+              <svg
+                class="size-4.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            ) : (
+              <svg
+                class="size-4.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+            {option.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Choosing a sort IS the navigation — there is no "applica" to press. Bound to
+   * the native select, which the Dropdown primitive writes every choice through,
+   * so the enhanced listbox and the bare control behave alike.
+   *
+   * The value guard is not belt and braces: a browser restores form state when
+   * you come BACK to a page, and a restored value fires `change` like a click
+   * does, which would bounce the customer straight forward again and break the
+   * back button on this page.
+   */
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-catalog-sort-form]')) {
+    const rendered = form.dataset.selectedSort ?? '';
+    form.querySelector('select')?.addEventListener('change', (event) => {
+      if ((event.target as HTMLSelectElement).value === rendered) return;
+      form.submit();
+    });
+  }
+</script>

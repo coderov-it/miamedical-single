@@ -24,6 +24,7 @@
  */
 import ProductCard from '~/components/catalog/ProductCard.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
+import type { CatalogLayout } from '~/lib/catalog-page';
 import type { PageMeta, ProductSummary } from '~/lib/catalog';
 import { localeForRequest, translate } from '~/lib/i18n';
 import type { BrowseContext } from '~/lib/routes';
@@ -39,12 +40,28 @@ interface Props {
   heading?: string | undefined;
   /** Paint the count above the grid. Off on the catalogue, on for search. */
   showCount?: boolean | undefined;
+  /**
+   * "Griglia" or "Lista", the catalogue toolbar's switch. A list is one column
+   * of the card's row layout at every width — which is the phone treatment, and
+   * that is the point: someone asking for a list is asking to see more products
+   * and less of each one.
+   */
+  layout?: CatalogLayout | undefined;
   /** Carried, never a filter — handed on to every card so the funnel remembers. */
   context?: BrowseContext;
   pageHref: (page: number) => string;
 }
 
-const { products, meta, heading, showCount = false, context = {}, pageHref } = Astro.props;
+const {
+  products,
+  meta,
+  heading,
+  showCount = false,
+  layout = 'grid',
+  context = {},
+  pageHref,
+} = Astro.props;
+const asRow = layout === 'list';
 const locale = localeForRequest();
 
 const countLabel =
@@ -101,7 +118,8 @@ const bodyGap = heading || showCount ? 'mt-3.5' : '';
     ) : (
       <ul
         class:list={[
-          'wide:grid-cols-3 mid:grid-cols-2 mid:gap-4 max-mid:gap-3 grid grid-cols-1',
+          'mid:gap-4 max-mid:gap-3 grid grid-cols-1',
+          !asRow && 'wide:grid-cols-3 mid:grid-cols-2',
           bodyGap,
         ]}
       >
@@ -111,6 +129,7 @@ const bodyGap = heading || showCount ? 'mt-3.5' : '';
               {product}
               priority={meta.page === 1 && index === 0}
               headingLevel={3}
+              row={asRow}
               {context}
             />
           </li>

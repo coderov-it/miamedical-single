@@ -40,7 +40,11 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
 }));
 ---
 
-<section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="how-title">
+{
+  /* `id` is the header nav's target — "Come funziona" is a section of the
+    home page, not a page of its own, so the nav link is `/#how-it-works`. */
+}
+<section class:list={[EDITORIAL_THEME, HOME_BAND]} id="how-it-works" aria-labelledby="how-title">
   <div class={EDITORIAL_CONTAINER}>
     <h2 class={HOME_TITLE} id="how-title">{text('home.how.title')}</h2>
     <p class={HOME_LEAD}>{text('home.how.lede')}</p>

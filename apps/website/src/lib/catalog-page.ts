@@ -13,18 +13,18 @@ import { formatMoney } from './api.ts';
 import type { Category } from './catalog.ts';
 import { localeTag, type SiteLocale } from './i18n.ts';
 import { t } from './labels.ts';
+import {
+  findProductGroup,
+  findProductType,
+  productGroupLabel,
+  productTypeLabel,
+  productTypeLede,
+  type ProductGroup,
+  type ProductType,
+} from './product-types.ts';
 import { catalogPath, catalogRoot, type BrowseContext, type CatalogView } from './routes.ts';
 
 export type { CatalogView };
-
-/**
- * The one category promoted into the pill row.
- *
- * Static by decision (owner, 2026-08-30): the row is a fixed piece of
- * navigation, not a leaderboard, and a pill that moved as the catalogue grew
- * would change what the second item means between two visits. Change it here.
- */
-export const PINNED_CATEGORY_CODE = 'carrozzine';
 
 /** Which pricing mode a listing asks the API for. `all` asks for neither. */
 export const MODE_FOR_VIEW: Record<CatalogView, 'rental' | 'fixed' | undefined> = {
@@ -34,6 +34,9 @@ export const MODE_FOR_VIEW: Record<CatalogView, 'rental' | 'fixed' | undefined> 
 };
 
 export type CatalogSort = 'newest' | 'popular' | 'price_asc' | 'price_desc' | 'title';
+
+/** How the results are drawn. The reference's own two, and its default. */
+export type CatalogLayout = 'grid' | 'list';
 
 const SORTS: CatalogSort[] = ['popular', 'newest', 'price_asc', 'price_desc', 'title'];
 
@@ -53,7 +56,14 @@ export interface CatalogQuery {
   view: CatalogView;
   q: string;
   category: string;
+  /** The selected product type, and the group inside it. See lib/product-types.ts. */
+  type: ProductType | null;
+  group: ProductGroup | null;
   sort: CatalogSort;
+  /** "Solo disponibili" — hide what the shop cannot hand over today. */
+  inStock: boolean;
+  /** Cards in a grid, or one product per row. */
+  layout: CatalogLayout;
   page: number;
   /** Where and when, carried from the home booking bar. Never a filter. */
   context: BrowseContext;
@@ -62,12 +72,30 @@ export interface CatalogQuery {
   isNarrowed: boolean;
 }
 
+/**
+ * ONE NARROWING AT A TIME, decided here rather than by whichever component
+ * reads the URL last.
+ *
+ * A typed query beats a type: search is answered by Postgres over the whole
+ * catalogue, and there is no honest way to run it inside a set of categories
+ * without reimplementing the stemming in the browser. A type beats a lone
+ * category: the strip is on screen and the category dropdown is not, so the
+ * control the customer can see is the one that wins. And a group is read only
+ * when its type is, since it names nothing on its own.
+ *
+ * A parameter that loses is dropped from the model, not merely ignored, so no
+ * caller downstream can revive it and disagree with the page.
+ */
 export function readCatalogQuery(url: URL, view: CatalogView): CatalogQuery {
   const params = url.searchParams;
   const q = params.get('q')?.trim() ?? '';
-  const category = params.get('category')?.trim() ?? '';
+  const type = q ? null : findProductType(params.get('type')?.trim() ?? null);
+  const group = type ? findProductGroup(type, params.get('group')?.trim() ?? null) : null;
+  const category = q || type ? '' : (params.get('category')?.trim() ?? '');
   const requested = params.get('sort') ?? '';
   const sort = SORTS.find((candidate) => candidate === requested) ?? 'popular';
+  const inStock = params.get('stock') === '1';
+  const layout: CatalogLayout = params.get('layout') === 'list' ? 'list' : 'grid';
   const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
 
   const context: BrowseContext = {};
@@ -78,7 +106,19 @@ export function readCatalogQuery(url: URL, view: CatalogView): CatalogQuery {
   if (from) context.from = from;
   if (carriedFor) context.for = carriedFor;
 
-  return { view, q, category, sort, page, context, isNarrowed: Boolean(q || category) };
+  return {
+    view,
+    q,
+    category,
+    type,
+    group,
+    sort,
+    inStock,
+    layout,
+    page,
+    context,
+    isNarrowed: Boolean(q || category || type || inStock),
+  };
 }
 
 export interface CatalogPill {
@@ -88,38 +128,35 @@ export interface CatalogPill {
 }
 
 /**
- * The pill row: the whole catalogue, the pinned category, then one pill per
- * pricing mode. Four fixed destinations, identical on all three surfaces, so a
- * customer never has to find their way back to the row they came from.
+ * The segmented control beside the title: how the shop offers the thing, in the
+ * reference site's own four terms (miamedicalitalia.it, measured 2026-09-05) —
+ * everything, hire, buy, second-hand.
  *
- * The pinned pill is dropped when that category is not in the catalogue rather
- * than rendered as a link to an empty listing.
+ * "USATO" IS NOT A FOURTH PRICING MODE. Second-hand stock is a set of
+ * categories, not a way of paying, so that segment points at the `used` product
+ * type on the whole-catalogue surface. The reference draws the same conclusion
+ * from the other end: its own `?tipo=usato` and `?bisogno=usato` return the same
+ * six products. Which is also why the segment is only lit when nothing else is:
+ * "Noleggio" and "Usato" together would be a promise the catalogue cannot keep.
+ *
+ * The pinned category pill that used to sit in this row is gone: the type strip
+ * under it is the way into a category now, and "Carrozzine" was one category out
+ * of eighteen claiming a permanent seat beside three mode filters.
  */
-export function buildPills(
-  query: CatalogQuery,
-  categories: Category[],
-  locale: SiteLocale,
-): CatalogPill[] {
-  const { view, category, context } = query;
-  const pinned = categories.find((candidate) => candidate.code === PINNED_CATEGORY_CODE);
+export function buildPills(query: CatalogQuery, locale: SiteLocale): CatalogPill[] {
+  const { view, type, context } = query;
+  /* "Usato" is the only type that also answers this question, so it is the only
+     one that can take the light off "Tutti". Every other type leaves the
+     segment saying what it said before — a four-way control with nothing lit
+     reads as broken, which is exactly how it looked. */
+  const used = type?.id === 'used';
 
-  const pills: CatalogPill[] = [
+  return [
     {
       label: t('catalog.pill.all', undefined, locale),
       href: catalogPath({ view: 'all', ...context }, locale),
-      isActive: view === 'all' && category === '',
+      isActive: view === 'all' && !used,
     },
-  ];
-
-  if (pinned) {
-    pills.push({
-      label: pinned.name,
-      href: catalogPath({ view: 'all', category: pinned.code, ...context }, locale),
-      isActive: category === pinned.code,
-    });
-  }
-
-  pills.push(
     {
       label: t('catalog.pill.rental', undefined, locale),
       href: catalogPath({ view: 'rental', ...context }, locale),
@@ -130,9 +167,12 @@ export function buildPills(
       href: catalogPath({ view: 'sale', ...context }, locale),
       isActive: view === 'sale',
     },
-  );
-
-  return pills;
+    {
+      label: t('catalog.pill.used', undefined, locale),
+      href: catalogPath({ view: 'all', type: 'used', ...context }, locale),
+      isActive: view === 'all' && used,
+    },
+  ];
 }
 
 export interface CategoryTile {
@@ -231,6 +271,8 @@ export function categoryOptions(categories: Category[]): { value: string; label:
     .map((category) => ({ value: category.code, label: category.name }));
 }
 
+// --- page copy ----------------------------------------------------------------
+
 export interface CatalogCopy {
   heading: string;
   lede: string;
@@ -244,11 +286,30 @@ const HEADING_KEY: Record<CatalogView, Parameters<typeof t>[0]> = {
   sale: 'catalog.title.sale',
 };
 
+/**
+ * What the masthead says.
+ *
+ * The page is titled by the narrowest thing the customer has chosen — a group,
+ * then its type, then a category, then the surface itself — because that is the
+ * name they just tapped and expect to see confirmed. The lede follows the TYPE
+ * rather than the group, so the strip's promise ("Carrozzine manuali, elettriche
+ * e scooter") stays put while the pills below move around inside it.
+ */
 export function catalogCopy(
-  view: CatalogView,
+  query: CatalogQuery,
   activeCategoryName: string | null,
   locale: SiteLocale,
 ): CatalogCopy {
+  const { view, type, group } = query;
+
+  if (type) {
+    return {
+      heading: group ? productGroupLabel(group, locale) : productTypeLabel(type, locale),
+      lede: productTypeLede(type, locale),
+      canonical: catalogRoot(view, locale),
+    };
+  }
+
   return {
     heading: activeCategoryName ?? t(HEADING_KEY[view], undefined, locale),
     lede: t('catalog.lede', undefined, locale),

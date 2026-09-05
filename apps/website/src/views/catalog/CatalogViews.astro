@@ -1,0 +1,57 @@
+---
+/**
+ * "Tutti · Noleggio · Acquisto · Usato" — how the shop offers the thing.
+ *
+ * ONE SEGMENTED CONTROL, NOT FOUR PILLS. The reference site draws these as a
+ * single 48px well divided by hairlines (miamedicalitalia.it, measured
+ * 2026-09-05) and that is the right shape for the job: four mutually exclusive
+ * answers to one question read as one control, where four separate pills read
+ * as four independent switches. It sits on the title's own line, hard right,
+ * and drops under the title on a phone where there is no room beside it.
+ *
+ * The selected segment is the accent fill; the rest are the white well. Fills,
+ * never borders (CLAUDE.md § controls) — the hairlines here divide, they do not
+ * mark selection. The weight does not mark it either: every segment is
+ * `font-semibold`, the weight this project gives a control (see the dropdown
+ * trigger and the editorial CTA). Bold is for headings and prices.
+ *
+ * The 48px target rule is met by the segment itself, so there is no overlay
+ * pseudo-element as the pills carry: nothing here is smaller than it looks.
+ */
+import type { CatalogPill } from '~/lib/catalog-page';
+import { localeForRequest, translate } from '~/lib/i18n';
+
+interface Props {
+  pills: CatalogPill[];
+}
+
+const { pills } = Astro.props;
+const locale = localeForRequest();
+---
+
+<div
+  class="border-hair max-mid:w-full mid:w-auto rounded-field inline-flex flex-none overflow-hidden border bg-white"
+  role="group"
+  aria-label={translate(locale, 'catalog.viewFilter')}
+>
+  {
+    pills.map((pill, index) => (
+      <a
+        class:list={[
+          /* The padding halves on a phone. Four segments at the desktop 20px
+             ran 40px past a 390px screen and clipped "Usato" — a control that
+             hides one of its four answers. */
+          'font-display max-mid:flex-1 max-mid:min-w-0 max-mid:px-2 mid:px-5 inline-flex min-h-12 items-center justify-center text-center text-base font-semibold no-underline',
+          index > 0 && 'border-hair border-s',
+          pill.isActive
+            ? 'hover:bg-accent-deep bg-accent text-white'
+            : 'hover:bg-accent-tint text-ink-2 bg-white',
+        ]}
+        href={pill.href}
+        aria-current={pill.isActive ? 'true' : undefined}
+      >
+        {pill.label}
+      </a>
+    ))
+  }
+</div>
