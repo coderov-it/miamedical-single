@@ -1,0 +1,14 @@
+---
+/**
+ * `/aiutami-a-scegliere/` — the guided selector, three questions to a shortlist.
+ *
+ * The Italian slug is the live site's own and an indexed URL there; English is
+ * served at `/en/help-me-choose/` through the middleware's route map. A route
+ * declaration, nothing more — the page is `views/finder/FinderPage`.
+ */
+import FinderPage from '~/views/finder/FinderPage.astro';
+
+export const prerender = false;
+---
+
+<FinderPage />

@@ -14,6 +14,7 @@
  * and a deep link like `?category=carrozzine&page=2` is a real URL.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import FinderEntry from '~/components/global/FinderEntry.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import {
   buildCategoryTiles,
@@ -158,6 +159,7 @@ const nextUrl = result.meta.page < result.meta.pageCount ? pageLink(result.meta.
 
     <div class="max-w-page px-gutter max-mid:pt-5 mx-auto w-full pb-[clamp(40px,4.2vw,60px)]">
       {showDirectory && <CategoryDirectory {tiles} />}
+      {showDirectory && <FinderEntry class="mb-8.5" />}
 
       <CatalogListing
         products={result.data}

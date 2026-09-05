@@ -1,0 +1,110 @@
+---
+/**
+ * The guided selector's progress bar: four numbered steps, the answered ones
+ * links back to the question they answered.
+ *
+ * A step the customer has passed is a REAL LINK, not a button that needs
+ * script — going back to change "in casa" to "all'esterno" is one tap and one
+ * URL. A step still ahead is plain text: it has no URL to point at, because
+ * the answer before it is what decides what it asks.
+ *
+ * ON A PHONE THE CONNECTORS GO and the four steps become an equal-width row of
+ * a circle over its label — the reference's own arrangement at 390px. Four
+ * 16px labels fit; four labels with 28px of rule between them do not, and the
+ * rule is the part that carries no information.
+ */
+import { localeForRequest, translate } from '~/lib/i18n';
+import { FINDER_STEPS, type FinderStep } from '~/lib/product-finder';
+
+interface Props {
+  current: FinderStep;
+  /** The URL of each answered step, keyed by step. Absent = not reachable. */
+  hrefs: Partial<Record<FinderStep, string>>;
+}
+
+const { current, hrefs } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+
+const currentIndex = FINDER_STEPS.indexOf(current);
+const steps = FINDER_STEPS.map((step, index) => ({
+  step,
+  index,
+  label: text(`finder.step.${step}`),
+  isCurrent: index === currentIndex,
+  isDone: index < currentIndex,
+  href: index < currentIndex ? hrefs[step] : undefined,
+}));
+
+/* One class list for the marker at every state, so the three states cannot
+   drift apart: a filled accent disc once reached, a hairline ring before. */
+const markerClass =
+  'grid size-8 flex-none place-items-center rounded-full font-ui text-ui font-bold';
+const labelClass = 'font-ui text-ui-strong font-bold whitespace-nowrap';
+---
+
+<nav aria-label={text('finder.steps.label')}>
+  <ol class="mid:flex-wrap mid:gap-2.5 flex list-none items-center gap-1 p-0">
+    {
+      steps.map(({ index, label, isCurrent, isDone, href }) => (
+        <li class="max-mid:flex-1 max-mid:basis-0 flex min-w-0 items-center gap-2.5">
+          {/* The three states share one body so only the paint differs. */}
+          {href ? (
+            <a
+              class="max-mid:w-full max-mid:flex-col max-mid:gap-1 flex min-h-12 items-center gap-2.5 no-underline"
+              href={href}
+            >
+              <span class:list={[markerClass, 'bg-accent text-white']} aria-hidden="true">
+                ✓
+              </span>
+              <span class:list={[labelClass, 'text-ink max-mid:text-ui']}>{label}</span>
+              <span class="sr-only">— {text('finder.step.done')}</span>
+            </a>
+          ) : (
+            <span
+              class="max-mid:w-full max-mid:flex-col max-mid:gap-1 flex min-h-12 items-center gap-2.5"
+              aria-current={isCurrent ? 'step' : undefined}
+            >
+              <span
+                class:list={[
+                  markerClass,
+                  isCurrent || isDone
+                    ? 'bg-accent text-white'
+                    : 'border-hair text-ink-2 border-2 bg-white',
+                ]}
+                aria-hidden="true"
+              >
+                {isDone ? '✓' : index + 1}
+              </span>
+              <span
+                class:list={[
+                  labelClass,
+                  'max-mid:text-ui',
+                  isCurrent ? 'text-accent' : 'text-ink-2',
+                ]}
+              >
+                {label}
+              </span>
+            </span>
+          )}
+
+          {/* Decorative rule between steps, desktop only — it says nothing the
+              order of the list does not already say.
+
+              `hair-strong`, not `hair`: this is the one place the hairline has
+              to read as a LINE joining two markers rather than as an edge on a
+              surface, and at 28px of `hair` it disappeared between them
+              (owner, 2026-09-05). It grows with the room the bar has — 40px
+              from `mid`, 64px once the panel is wide enough that four steps and
+              three rules still fit on one line. */}
+          {index < steps.length - 1 && (
+            <span
+              class="bg-hair-strong max-mid:hidden wide:w-16 h-0.5 w-10 flex-none rounded-full"
+              aria-hidden="true"
+            />
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

@@ -1,0 +1,238 @@
+---
+/**
+ * "Aiutami a scegliere" — the guided selector, one screen per question.
+ *
+ * The page reads its whole state out of the URL (`lib/product-finder.ts`) and
+ * renders the first question that has no answer, or the results when all three
+ * do. Nothing here is client state, so the browser's back button, a bookmark
+ * and a shared link all behave, and the page ships no JavaScript of its own.
+ *
+ * Data is the SAME cached catalogue read the home page pays for — the two share
+ * `catalog:products:<locale>` and `catalog:categories:<locale>`, so adding this
+ * page cost the API nothing. Both reads go through `safely()`: with the API
+ * down the questions still render and the shortlist comes back empty with its
+ * "call us" card, which is a working page rather than a 500.
+ *
+ * `noindex` on every answered state. The bare page is one real destination and
+ * is indexed; the 96 combinations of answers under it are the same products in
+ * different order, and letting a crawler mint a URL per combination is how a
+ * catalogue of 100 products becomes 100 pages of duplicates.
+ */
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { cached, CATALOG_POLICY } from '~/lib/cache';
+import { listAllProducts, listCategories, safely } from '~/lib/catalog';
+import { cacheHtml } from '~/lib/http-cache';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import {
+  ACTIVITY_RULES,
+  activityImage,
+  currentStep,
+  DURATION_IDS,
+  finderPath,
+  matchProducts,
+  PLACE_IDS,
+  previousPath,
+  readFinderAnswers,
+  type FinderOption,
+  type FinderStep,
+} from '~/lib/product-finder';
+import { catalogPath, routePath, type CatalogView } from '~/lib/routes';
+import FinderOptions from './FinderOptions.astro';
+import FinderResults from './FinderResults.astro';
+import FinderSteps from './FinderSteps.astro';
+
+const RESULTS_PAGE_SIZE = 12;
+
+cacheHtml(Astro.response.headers);
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+const answers = readFinderAnswers(Astro.url);
+const step = currentStep(answers);
+
+const [products, categories] = await Promise.all([
+  safely(
+    () => cached(`catalog:products:${locale}`, () => listAllProducts({}, locale), CATALOG_POLICY),
+    { items: [], total: 0 },
+    'listAllProducts',
+  ),
+  safely(
+    () => cached(`catalog:categories:${locale}`, () => listCategories(locale), CATALOG_POLICY),
+    [],
+    'listCategories',
+  ),
+]);
+
+/* One builder for all three questions: the answer this option records, and the
+   URL that records it. Answers after the one being set are dropped, so
+   changing "dove" from the step bar re-asks "durata" instead of keeping a
+   reply that was given about a different chair. */
+const activityOptions: FinderOption[] = ACTIVITY_RULES.map((rule) => ({
+  id: rule.id,
+  label: text(`finder.activity.${rule.id}`),
+  hint: text(`finder.activity.${rule.id}.hint`),
+  imagePath: activityImage(products.items, categories, rule.id),
+  href: finderPath(locale, { activity: rule.id }),
+}));
+
+const placeOptions: FinderOption[] = PLACE_IDS.map((id) => ({
+  id,
+  label: text(`finder.place.${id}`),
+  hint: text(`finder.place.${id}.hint`),
+  href: finderPath(locale, { activity: answers.activity, place: id }),
+}));
+
+const durationOptions: FinderOption[] = DURATION_IDS.map((id) => ({
+  id,
+  label: text(`finder.duration.${id}`),
+  hint: text(`finder.duration.${id}.hint`),
+  href: finderPath(locale, { activity: answers.activity, place: answers.place, duration: id }),
+}));
+
+const QUESTIONS: Partial<Record<FinderStep, { key: string; options: FinderOption[] }>> = {
+  activity: { key: 'finder.q.activity', options: activityOptions },
+  place: { key: 'finder.q.place', options: placeOptions },
+  duration: { key: 'finder.q.duration', options: durationOptions },
+};
+const question = QUESTIONS[step];
+
+const match = step === 'results' ? matchProducts(products.items, categories, answers) : null;
+
+/* The receipt line on the results screen — the three answers in the order they
+   were given, in the customer's own language. */
+const summary = [
+  answers.activity && text(`finder.activity.${answers.activity}`),
+  answers.place && text(`finder.place.${answers.place}`),
+  answers.duration && text(`finder.duration.${answers.duration}`),
+].filter((label): label is string => Boolean(label));
+
+/* Only a rental-only or sale-only answer carries a view across; a shortlist
+   that had its mode relaxed sends the customer to the whole catalogue. */
+function catalogViewForMatch(): CatalogView {
+  if (match?.mode === 'rental') return 'rental';
+  if (match?.mode === 'fixed') return 'sale';
+  return 'all';
+}
+const catalogHref = catalogPath({ view: catalogViewForMatch() }, locale);
+
+const backHref = previousPath(locale, answers);
+const restartHref = finderPath(locale, {});
+const seeAllHref =
+  match && !answers.showAll && match.items.length > RESULTS_PAGE_SIZE
+    ? finderPath(locale, { ...answers, showAll: true })
+    : undefined;
+
+/* The step bar's back-links: an answered step points at the URL that re-asks
+   it, which is the state with that answer and everything after it dropped. */
+const stepHrefs: Partial<Record<FinderStep, string>> = {
+  activity: restartHref,
+  place: finderPath(locale, { activity: answers.activity }),
+  duration: finderPath(locale, { activity: answers.activity, place: answers.place }),
+};
+
+const quietButton =
+  'font-ui bg-tint text-ink hover:bg-tint-2 rounded-field inline-flex min-h-13 items-center ' +
+  'justify-center gap-2 px-6 text-[1.0313rem] font-semibold no-underline';
+---
+
+<BaseLayout
+  title={text('finder.metaTitle')}
+  description={text('finder.metaDescription')}
+  canonical={new URL(routePath(locale, 'productFinder'), Astro.site ?? Astro.url.origin).href}
+  noindex={step !== 'activity'}
+>
+  <div class="bg-page">
+    <div
+      class="max-w-page px-gutter mx-auto w-full pt-[clamp(18px,2.4vw,34px)] pb-[clamp(40px,4.2vw,60px)]"
+    >
+      <Breadcrumbs
+        items={[
+          { label: text('home'), href: routePath(locale, 'home') },
+          { label: text('finder.linkLabel') },
+        ]}
+      />
+
+      {
+        /* ONE white panel holds the whole flow, the reference's own shape: the
+           title, the progress bar, the question or the answer, and the actions
+           under them read as one object rather than four stacked cards.
+
+           THE PANEL IS A DESKTOP DEVICE AND STOPS AT `mid` — on a phone the
+           content sits straight on the grey ground, which is the reference's
+           own arrangement at 390px. It is not a style preference: the panel's
+           20px of inner padding came out of the 350px the option rows and the
+           product cards inside it have to share with the page gutter, and at
+           310px a card's price collides with its action pill. */
+      }
+      <div class="mid:rounded-panel mid:border-hair mid:p-8 wide:p-9 mid:border mid:bg-white">
+        <h1
+          class="font-ui text-[clamp(1.5rem,2.6vw,1.875rem)]/[1.2] font-extrabold tracking-[-0.01em]"
+        >
+          {text('finder.title')}
+        </h1>
+        <p class="text-ink-2 mt-1.5 text-[clamp(1rem,1.28vw,1.15625rem)]/[1.55]">
+          {text('finder.lede')}
+        </p>
+
+        <div class="mid:mt-7 mt-5">
+          <FinderSteps current={step} hrefs={stepHrefs} />
+        </div>
+
+        <div class="mid:mt-7 mt-6">
+          {question && <FinderOptions questionKey={question.key} options={question.options} />}
+          {
+            match && (
+              <FinderResults
+                {match}
+                {summary}
+                showAll={answers.showAll}
+                {seeAllHref}
+                {catalogHref}
+              />
+            )
+          }
+        </div>
+
+        {
+          (backHref || step === 'results') && (
+            <div class="mid:mt-7 mt-6 flex flex-wrap gap-2.5">
+              {backHref && (
+                <a class={quietButton} href={backHref}>
+                  <svg
+                    class="size-4.5 flex-none"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M19 12H5" />
+                    <path d="m11 18-6-6 6-6" />
+                  </svg>
+                  {text('finder.back')}
+                </a>
+              )}
+              {step === 'results' && (
+                <a class={quietButton} href={restartHref}>
+                  {text('finder.restart')}
+                </a>
+              )}
+            </div>
+          )
+        }
+
+        <p
+          class="border-hair text-ink-2 mid:mt-7 mt-6 flex flex-wrap items-baseline gap-x-1.5 gap-y-1 border-t pt-4.5 text-base/[1.55]"
+        >
+          {text('finder.help')}
+          <PhoneCta variant="inline" showFree={false} srHint={text('finder.helpHint')} />
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

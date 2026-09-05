@@ -20,6 +20,12 @@ export const routePaths = {
     catalogSale: '/catalogo-vendita/',
     product: '/prodotto/',
     search: '/cerca/',
+    /**
+     * The guided selector. Italian keeps the live site's own slug, which is an
+     * indexed URL there and stays one here; English gets a real English path
+     * because nothing links to `/en/aiutami-a-scegliere/` yet.
+     */
+    productFinder: '/aiutami-a-scegliere/',
     support: '/assistenza/',
     cart: '/carrello/',
     /* "Checkout" is the loanword Italian e-commerce actually uses, and it is what
@@ -50,6 +56,7 @@ export const routePaths = {
     catalogSale: '/en/sale-catalog/',
     product: '/en/product/',
     search: '/en/search/',
+    productFinder: '/en/help-me-choose/',
     support: '/en/support/',
     cart: '/en/cart/',
     checkout: '/en/checkout/',
