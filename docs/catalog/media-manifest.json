@@ -1,0 +1,3267 @@
+{
+ "_source": "https://www.miamedicalitalia.it",
+ "_crawled": "2026-09-04",
+ "_note": "Every product photo the catalogue names, and where it came from. The files themselves are NOT committed — docs/assets/catalog/ is gitignored, because after a sync they live in R2 as WebP and that is the copy the storefront serves. Re-fetch them with `pnpm --filter @mia/catalog media:fetch`, which reads this file.",
+ "files": 355,
+ "categories": {
+  "accessories-sale": {
+   "delfin-toilet-riser-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2017/06/Rialzo-per-wc-delfin-2.jpg",
+    "wordpressId": 12518,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 41683,
+    "product": 2341,
+    "productSlug": "rialzo-per-water-mia-medical"
+   },
+   "delfin-toilet-riser-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2017/06/MISURE20ALZAW_11-600x509-1-1.jpg",
+    "wordpressId": 12517,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 72022,
+    "product": 2341,
+    "productSlug": "rialzo-per-water-mia-medical"
+   },
+   "padded-commode-chair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/11/comoda-vermeiren-1.jpg",
+    "wordpressId": 12514,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 98602,
+    "product": 8793,
+    "productSlug": "vendita-sedia-comoda-imbottita"
+   },
+   "pressure-relief-cushion-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2017/06/Cuscino-antidecubito-1.jpg",
+    "wordpressId": 12524,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 65147,
+    "product": 2209,
+    "productSlug": "cuscino-antidecubito-in-fibra-cava-siliconata"
+   }
+  },
+  "cryomagnetotherapy-hire": {
+   "cryocemp-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Criomagnetoterapia.png",
+    "wordpressId": 15348,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 951545,
+    "product": 15347,
+    "productSlug": "noleggio-criomagnetoterapia"
+   }
+  },
+  "cryotherapy-hire": {
+   "cryo-cuff-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/5.png",
+    "wordpressId": 15173,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 286117,
+    "product": 15167,
+    "productSlug": "noleggio-cryo-cuff"
+   },
+   "cryo-cuff-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/6.png",
+    "wordpressId": 15175,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 573044,
+    "product": 15167,
+    "productSlug": "noleggio-cryo-cuff"
+   },
+   "cryo-cuff-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/4.png",
+    "wordpressId": 15174,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 632185,
+    "product": 15167,
+    "productSlug": "noleggio-cryo-cuff"
+   },
+   "cryopush-compression-alt-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2624.png",
+    "wordpressId": 13341,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 550860,
+    "product": 13274,
+    "productSlug": "noleggio-crioterapia-a-compressione-cryopush"
+   },
+   "cryopush-compression-alt-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/Cryopusch-MIA-MEDICAL-4-CAVIGLIA.jpeg",
+    "wordpressId": 13282,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 44572,
+    "product": 13274,
+    "productSlug": "noleggio-crioterapia-a-compressione-cryopush"
+   },
+   "cryopush-compression-alt-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/Cryopush-MIA-MEDICAL-3.jpeg",
+    "wordpressId": 13283,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 49475,
+    "product": 13274,
+    "productSlug": "noleggio-crioterapia-a-compressione-cryopush"
+   },
+   "cryopush-compression-alt-4.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2617.jpeg",
+    "wordpressId": 13354,
+    "width": 893,
+    "height": 1079,
+    "bytes": 100343,
+    "product": 13274,
+    "productSlug": "noleggio-crioterapia-a-compressione-cryopush"
+   },
+   "cryopush-compression-alt-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2624.png",
+    "wordpressId": 13341,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 550860,
+    "product": 13274,
+    "productSlug": "noleggio-crioterapia-a-compressione-cryopush"
+   },
+   "cryopush-compression-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/40.png",
+    "wordpressId": 16155,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 204786,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/39.png",
+    "wordpressId": 16156,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 500359,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/41.png",
+    "wordpressId": 16157,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 219600,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/42.png",
+    "wordpressId": 16158,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 349676,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/44.png",
+    "wordpressId": 16160,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 506689,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/43.png",
+    "wordpressId": 16159,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 428433,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/45.png",
+    "wordpressId": 16161,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 516587,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-8.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/46.png",
+    "wordpressId": 16162,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 485336,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-9.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/47.png",
+    "wordpressId": 16163,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 288396,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-10.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/48.png",
+    "wordpressId": 16164,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 489636,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-11.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/IMG_8603.png",
+    "wordpressId": 16165,
+    "width": 1024,
+    "height": 1024,
+    "bytes": 1183064,
+    "product": 12465,
+    "productSlug": "noleggio-cryoterapia-compressiva-cryopush"
+   }
+  },
+  "cryotherapy-sale": {
+   "cryopush-compression-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/40.png",
+    "wordpressId": 16155,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 204786,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/39.png",
+    "wordpressId": 16156,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 500359,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/41.png",
+    "wordpressId": 16157,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 219600,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/42.png",
+    "wordpressId": 16158,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 349676,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/44.png",
+    "wordpressId": 16160,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 506689,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/45.png",
+    "wordpressId": 16161,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 516587,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/46.png",
+    "wordpressId": 16162,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 485336,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-8.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/43.png",
+    "wordpressId": 16159,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 428433,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-9.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/47.png",
+    "wordpressId": 16163,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 288396,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-10.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/48.png",
+    "wordpressId": 16164,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 489636,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-compression-11.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/IMG_8603.png",
+    "wordpressId": 16165,
+    "width": 1024,
+    "height": 1024,
+    "bytes": 1183064,
+    "product": 14175,
+    "productSlug": "vendita-crioterapia-compressiva-cryopush"
+   },
+   "cryopush-dynamic-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2624.png",
+    "wordpressId": 13341,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 550860,
+    "product": 14182,
+    "productSlug": "vendita-crioterapia-dinamica-cryopush"
+   },
+   "cryopush-dynamic-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2617-1.jpeg",
+    "wordpressId": 13405,
+    "width": 893,
+    "height": 1079,
+    "bytes": 100343,
+    "product": 14182,
+    "productSlug": "vendita-crioterapia-dinamica-cryopush"
+   },
+   "cryopush-dynamic-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2616-2.jpeg",
+    "wordpressId": 13404,
+    "width": 660,
+    "height": 425,
+    "bytes": 35584,
+    "product": 14182,
+    "productSlug": "vendita-crioterapia-dinamica-cryopush"
+   }
+  },
+  "electric-wheelchairs-and-scooters-hire": {
+   "deluxe-folding-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/Scooter-pieghevole-con-braccioli.png",
+    "wordpressId": 14437,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 597005,
+    "product": 12120,
+    "productSlug": "scooter-elettrico-pieghevole-con-braccioli-deluxe"
+   },
+   "deluxe-folding-scooter-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/scooter-pieghevole-con-braccioli-.jpg",
+    "wordpressId": 12126,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 127160,
+    "product": 12120,
+    "productSlug": "scooter-elettrico-pieghevole-con-braccioli-deluxe"
+   },
+   "deluxe-folding-scooter-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/scooter-S19-pieghevole-deluxe-.jpg",
+    "wordpressId": 12127,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 334678,
+    "product": 12120,
+    "productSlug": "scooter-elettrico-pieghevole-con-braccioli-deluxe"
+   },
+   "fantastica-electric-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/Fantastica.png",
+    "wordpressId": 15095,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 466172,
+    "product": 15094,
+    "productSlug": "noleggio-carrozzina-elettrica-fantastica"
+   },
+   "folding-scooter-s19-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/Scooter-elettrico-pieghevole.png",
+    "wordpressId": 14432,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 610068,
+    "product": 9724,
+    "productSlug": "scooter-elettrico-pieghevole-s19"
+   },
+   "folding-scooter-s19-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/scooter-S19-pieghevole-3.jpg",
+    "wordpressId": 12119,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 207264,
+    "product": 9724,
+    "productSlug": "scooter-elettrico-pieghevole-s19"
+   },
+   "folding-scooter-s19-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/s19-pieghevole.png",
+    "wordpressId": 16002,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 440491,
+    "product": 9724,
+    "productSlug": "scooter-elettrico-pieghevole-s19"
+   },
+   "folding-scooter-s19-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/WP-Miamedical.png",
+    "wordpressId": 16003,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 467482,
+    "product": 9724,
+    "productSlug": "scooter-elettrico-pieghevole-s19"
+   },
+   "maximo-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/Scooter-Maximo.png",
+    "wordpressId": 14545,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 598294,
+    "product": 11856,
+    "productSlug": "scooter-elettrico-maximo-a-noleggio"
+   },
+   "maximo-scooter-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/scooter-MAXIMO-.jpg",
+    "wordpressId": 12095,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 161786,
+    "product": 11856,
+    "productSlug": "scooter-elettrico-maximo-a-noleggio"
+   },
+   "maximo-scooter-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/scooter-Maximo-batteria-MIA-MEDICAL.jpg",
+    "wordpressId": 11863,
+    "width": 600,
+    "height": 600,
+    "bytes": 50767,
+    "product": 11856,
+    "productSlug": "scooter-elettrico-maximo-a-noleggio"
+   },
+   "one-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Scooter-One.png",
+    "wordpressId": 14433,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 483282,
+    "product": 14117,
+    "productSlug": "scooter-elettrico-one-a-noleggio-per-disabili-ed-anziani"
+   },
+   "superwheel-electric-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/SUPERWHEEL-1.png",
+    "wordpressId": 14625,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 689628,
+    "product": 14542,
+    "productSlug": "carrozzina-elettrica-superwheel-a-noleggio"
+   },
+   "superwheel-electric-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/17.png",
+    "wordpressId": 14597,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1112739,
+    "product": 14542,
+    "productSlug": "carrozzina-elettrica-superwheel-a-noleggio"
+   },
+   "superwheel-electric-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/18.png",
+    "wordpressId": 14598,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 527126,
+    "product": 14542,
+    "productSlug": "carrozzina-elettrica-superwheel-a-noleggio"
+   },
+   "superwheel-electric-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/19.png",
+    "wordpressId": 14599,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 656325,
+    "product": 14542,
+    "productSlug": "carrozzina-elettrica-superwheel-a-noleggio"
+   },
+   "superwheel-electric-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/20.png",
+    "wordpressId": 14600,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 592713,
+    "product": 14542,
+    "productSlug": "carrozzina-elettrica-superwheel-a-noleggio"
+   },
+   "superwheel-electric-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/21.png",
+    "wordpressId": 14601,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 815904,
+    "product": 14542,
+    "productSlug": "carrozzina-elettrica-superwheel-a-noleggio"
+   }
+  },
+  "electric-wheelchairs-sale": {
+   "fantastica-power-smart-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/carrozzina-elettrica.jpg",
+    "wordpressId": 12096,
+    "width": null,
+    "height": null,
+    "bytes": null,
+    "product": 8801,
+    "productSlug": "vendita-carrozzina-elettrica-pieghevole-fantastica-mia-medical"
+   },
+   "fantastica-power-smart-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-mia-medical-italia-jpg-1.jpg",
+    "wordpressId": 8887,
+    "width": 194,
+    "height": 259,
+    "bytes": 4989,
+    "product": 8801,
+    "productSlug": "vendita-carrozzina-elettrica-pieghevole-fantastica-mia-medical"
+   },
+   "fantastica-power-smart-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-mia-medical-1-1.jpg",
+    "wordpressId": 8886,
+    "width": 239,
+    "height": 211,
+    "bytes": 10122,
+    "product": 8801,
+    "productSlug": "vendita-carrozzina-elettrica-pieghevole-fantastica-mia-medical"
+   },
+   "nuvola-carbon-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/3-2.png",
+    "wordpressId": 15745,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 673327,
+    "product": 15677,
+    "productSlug": "vendita-carrozzina-elettrica-nuvola-in-carbonio"
+   },
+   "nuvola-carbon-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/2-1.png",
+    "wordpressId": 15679,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 598073,
+    "product": 15677,
+    "productSlug": "vendita-carrozzina-elettrica-nuvola-in-carbonio"
+   },
+   "nuvola-carbon-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/8-1.png",
+    "wordpressId": 15747,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 775133,
+    "product": 15677,
+    "productSlug": "vendita-carrozzina-elettrica-nuvola-in-carbonio"
+   },
+   "nuvola-carbon-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/joystick-.png",
+    "wordpressId": 15748,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 593744,
+    "product": 15677,
+    "productSlug": "vendita-carrozzina-elettrica-nuvola-in-carbonio"
+   },
+   "nuvola-carbon-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/3-1.png",
+    "wordpressId": 15681,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 703711,
+    "product": 15677,
+    "productSlug": "vendita-carrozzina-elettrica-nuvola-in-carbonio"
+   },
+   "nuvola-carbon-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/5-1.png",
+    "wordpressId": 15683,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 643490,
+    "product": 15677,
+    "productSlug": "vendita-carrozzina-elettrica-nuvola-in-carbonio"
+   },
+   "passepartout-magnesium-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/Carrozzina-passepartout.png",
+    "wordpressId": 15732,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 620065,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/jpystick-passepartout.png",
+    "wordpressId": 15734,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 651519,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/zaino-doppia-batteria-in-omaggio.png",
+    "wordpressId": 15735,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 913314,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/passe-partout-ruote.png",
+    "wordpressId": 15721,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 951470,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/12.png",
+    "wordpressId": 15691,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 847922,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/9-1.png",
+    "wordpressId": 15715,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 688916,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/20.png",
+    "wordpressId": 15731,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 343355,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-8.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/11-1.png",
+    "wordpressId": 15717,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 472919,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-9.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/17.png",
+    "wordpressId": 15728,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 608840,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-10.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/18.png",
+    "wordpressId": 15729,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 553234,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "passepartout-magnesium-11.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/04/19.png",
+    "wordpressId": 15730,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 488697,
+    "product": 15685,
+    "productSlug": "vendita-carrozzina-elettrica-passepartout-in-magnesio"
+   },
+   "starlight-ultralight-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/Carrozzina-elettrica-leggera-STARLIGHT.jpg",
+    "wordpressId": 13492,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 372696,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "starlight-ultralight-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-CHIUSA.jpeg",
+    "wordpressId": 13488,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 251751,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "starlight-ultralight-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/IMG_0228-2-2-2.png",
+    "wordpressId": 13541,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 601904,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "starlight-ultralight-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/IMG_0278-2.png",
+    "wordpressId": 13542,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 479020,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "starlight-ultralight-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-CONTROLLER.png",
+    "wordpressId": 13543,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 768926,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "starlight-ultralight-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/IMG_0279.png",
+    "wordpressId": 13544,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 346643,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "starlight-ultralight-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/02/CARROZZINA-ELETTRICA-LEGGERA-STARLIGHT-MANICO-PIEGATO.png",
+    "wordpressId": 13545,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 1203707,
+    "product": 13504,
+    "productSlug": "vendita-carrozzina-elettrica-ultraleggera-pieghevole"
+   },
+   "superwheel-electric-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/SUPERWHEEL-1.png",
+    "wordpressId": 14625,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 689628,
+    "product": 14602,
+    "productSlug": "carrozzina-elettrica-superwheel-in-vendita"
+   },
+   "superwheel-electric-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/18.png",
+    "wordpressId": 14598,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 527126,
+    "product": 14602,
+    "productSlug": "carrozzina-elettrica-superwheel-in-vendita"
+   },
+   "superwheel-electric-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/17.png",
+    "wordpressId": 14597,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1112739,
+    "product": 14602,
+    "productSlug": "carrozzina-elettrica-superwheel-in-vendita"
+   },
+   "superwheel-electric-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/19.png",
+    "wordpressId": 14599,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 656325,
+    "product": 14602,
+    "productSlug": "carrozzina-elettrica-superwheel-in-vendita"
+   },
+   "superwheel-electric-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/20.png",
+    "wordpressId": 14600,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 592713,
+    "product": 14602,
+    "productSlug": "carrozzina-elettrica-superwheel-in-vendita"
+   },
+   "superwheel-electric-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/21.png",
+    "wordpressId": 14601,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 815904,
+    "product": 14602,
+    "productSlug": "carrozzina-elettrica-superwheel-in-vendita"
+   }
+  },
+  "hospital-beds-hire": {
+   "bariatric-electric-bed-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/letto-120-1.jpg",
+    "wordpressId": 12201,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 105578,
+    "product": 8946,
+    "productSlug": "letto-ortopedico-con-materasso-antidecubito-roma-firenze-300kg"
+   },
+   "bariatric-electric-bed-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Materasso-preventivo-antidecubiot-MIA-MEDICAL-.jpg",
+    "wordpressId": 12197,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 111821,
+    "product": 8946,
+    "productSlug": "letto-ortopedico-con-materasso-antidecubito-roma-firenze-300kg"
+   },
+   "electric-bed-120-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/letto-120.jpg",
+    "wordpressId": 12199,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 104495,
+    "product": 8849,
+    "productSlug": "noleggio-letto-ospedaliero-elettrico-120cm-per-disabili-e-anziani-a-domicilio"
+   },
+   "electric-bed-120-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Materasso-preventivo-antidecubiot-MIA-MEDICAL-.jpg",
+    "wordpressId": 12197,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 111821,
+    "product": 8849,
+    "productSlug": "noleggio-letto-ospedaliero-elettrico-120cm-per-disabili-e-anziani-a-domicilio"
+   },
+   "electric-bed-90-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-2-BASIC-letto-elettrico-2.jpg",
+    "wordpressId": 11604,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 88084,
+    "product": 8842,
+    "productSlug": "noleggio-letto-ospedaliero-elettrico-incluso-di-materasso-antidecubito"
+   },
+   "electric-bed-90-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Materasso-preventivo-antidecubiot-MIA-MEDICAL-.jpg",
+    "wordpressId": 12197,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 111821,
+    "product": 8842,
+    "productSlug": "noleggio-letto-ospedaliero-elettrico-incluso-di-materasso-antidecubito"
+   },
+   "electric-bed-90-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-ALTO-1.jpg",
+    "wordpressId": 12198,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 157885,
+    "product": 8842,
+    "productSlug": "noleggio-letto-ospedaliero-elettrico-incluso-di-materasso-antidecubito"
+   },
+   "walker-wheelchair-and-bed-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combimato-1-.jpg",
+    "wordpressId": 12291,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 134772,
+    "product": 9486,
+    "productSlug": "noleggio-deambulatore-carrozzina-e-letto"
+   },
+   "walker-wheelchair-and-bed-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-ALTO-1.jpg",
+    "wordpressId": 12198,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 157885,
+    "product": 9486,
+    "productSlug": "noleggio-deambulatore-carrozzina-e-letto"
+   },
+   "walker-wheelchair-and-bed-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg",
+    "wordpressId": 12209,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 103934,
+    "product": 9486,
+    "productSlug": "noleggio-deambulatore-carrozzina-e-letto"
+   },
+   "walker-wheelchair-and-bed-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-ascellare-.jpg",
+    "wordpressId": 12234,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 72719,
+    "product": 9486,
+    "productSlug": "noleggio-deambulatore-carrozzina-e-letto"
+   },
+   "walker-wheelchair-and-bed-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 9486,
+    "productSlug": "noleggio-deambulatore-carrozzina-e-letto"
+   }
+  },
+  "hospital-beds-sale": {
+   "three-joint-electric-bed-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-2-BASIC-letto-elettrico-2.jpg",
+    "wordpressId": 11604,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 88084,
+    "product": 8689,
+    "productSlug": "vendita-letto-elettrico-elevabile-3-snodi-per-disabili-e-anziani"
+   },
+   "three-joint-electric-bed-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/freno-1.png",
+    "wordpressId": 9016,
+    "width": 300,
+    "height": 300,
+    "bytes": 124620,
+    "product": 8689,
+    "productSlug": "vendita-letto-elettrico-elevabile-3-snodi-per-disabili-e-anziani"
+   },
+   "three-joint-electric-bed-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/LUNA-ALTO-1.jpg",
+    "wordpressId": 12198,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 157885,
+    "product": 8689,
+    "productSlug": "vendita-letto-elettrico-elevabile-3-snodi-per-disabili-e-anziani"
+   }
+  },
+  "kinetec-hire": {
+   "artromot-k1-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Kinetec-ginocchio-anca-artromot-.jpg",
+    "wordpressId": 12190,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 109482,
+    "product": 8936,
+    "productSlug": "noleggio-kinetec-artromot-k1-ginocchio-anca-riabilitazione"
+   },
+   "artromot-k1-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/kinetec-ginocchio-anca-.png",
+    "wordpressId": 11103,
+    "width": 427,
+    "height": 355,
+    "bytes": 116059,
+    "product": 8936,
+    "productSlug": "noleggio-kinetec-artromot-k1-ginocchio-anca-riabilitazione"
+   },
+   "cpm-advance-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/KINETEC-ADVANCE-CPM-.jpg",
+    "wordpressId": 12196,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 107513,
+    "product": 12192,
+    "productSlug": "noleggio-kinetec-cpm-advance-ginocchio-anca"
+   },
+   "cpm-advance-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/kinetec-ginocchio-anca-.png",
+    "wordpressId": 11103,
+    "width": 427,
+    "height": 355,
+    "bytes": 116059,
+    "product": 12192,
+    "productSlug": "noleggio-kinetec-cpm-advance-ginocchio-anca"
+   },
+   "kinetec-and-cryotherapy-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Noleggio-combinato-Miamedical.png",
+    "wordpressId": 14221,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 518553,
+    "product": 14204,
+    "productSlug": "noleggio-kinetec-ginocchio-e-crioterapia"
+   },
+   "kinetec-and-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combinati-2-.jpg",
+    "wordpressId": 12293,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 218336,
+    "product": 9444,
+    "productSlug": "noleggio-kinetec-carrozzina"
+   },
+   "kinetec-and-wheelchair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg",
+    "wordpressId": 12209,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 103934,
+    "product": 9444,
+    "productSlug": "noleggio-kinetec-carrozzina"
+   },
+   "kinetec-and-wheelchair-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 9444,
+    "productSlug": "noleggio-kinetec-carrozzina"
+   },
+   "kinetec-and-wheelchair-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Kinetec-ginocchio-anca-artromot-.jpg",
+    "wordpressId": 12190,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 109482,
+    "product": 9444,
+    "productSlug": "noleggio-kinetec-carrozzina"
+   }
+  },
+  "magnetotherapy-hire": {
+   "mag-2000-itech-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/magnetoterapia-itech-mag-2000.jpg",
+    "wordpressId": 12134,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 64286,
+    "product": 9611,
+    "productSlug": "magnetoterapia-cemp-mag-2000"
+   },
+   "mag-2000-itech-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/mag-200-MIA-MEDICAL-ITALIA.jpg",
+    "wordpressId": 11669,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 151330,
+    "product": 9611,
+    "productSlug": "magnetoterapia-cemp-mag-2000"
+   },
+   "mag-2000-itech-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/mag2000plus-2-1.jpg",
+    "wordpressId": 12132,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 142591,
+    "product": 9611,
+    "productSlug": "magnetoterapia-cemp-mag-2000"
+   },
+   "mag-2000-itech-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/magnetoterapia-i-tech-mag-2000-plus-1.jpg",
+    "wordpressId": 12133,
+    "width": 1020,
+    "height": 1020,
+    "bytes": 103228,
+    "product": 9611,
+    "productSlug": "magnetoterapia-cemp-mag-2000"
+   },
+   "magnetocemp-elite-globus-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Magnetocemp-Elite-Miamedical.png",
+    "wordpressId": 14199,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 348785,
+    "product": 14198,
+    "productSlug": "noleggio-magnetocemp-elite-globus"
+   },
+   "magnetotherapy-and-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/Blank-2-Grids-Collage.jpg",
+    "wordpressId": 12461,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 172311,
+    "product": 9461,
+    "productSlug": "noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina"
+   },
+   "magnetotherapy-and-wheelchair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg",
+    "wordpressId": 12108,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 101291,
+    "product": 9461,
+    "productSlug": "noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina"
+   },
+   "magnetotherapy-and-wheelchair-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg",
+    "wordpressId": 12209,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 103934,
+    "product": 9461,
+    "productSlug": "noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina"
+   },
+   "magnetotherapy-and-wheelchair-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 9461,
+    "productSlug": "noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina"
+   },
+   "magnum-2500-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg",
+    "wordpressId": 12108,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 101291,
+    "product": 11660,
+    "productSlug": "magnetoterapia-cemp-magnum-2500"
+   },
+   "magnum-2500-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/magnetoterapia-applicazioni-.jpg",
+    "wordpressId": 12110,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 133361,
+    "product": 11660,
+    "productSlug": "magnetoterapia-cemp-magnum-2500"
+   },
+   "magnum-2500-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/globus-magnetoterapia-solenoidi-dorso-applicazioni.jpeg",
+    "wordpressId": 12111,
+    "width": 1049,
+    "height": 1049,
+    "bytes": 318342,
+    "product": 11660,
+    "productSlug": "magnetoterapia-cemp-magnum-2500"
+   },
+   "therapist-150-plus-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/2.png",
+    "wordpressId": 14719,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 141334,
+    "product": 14712,
+    "productSlug": "magnetoterapia-therapist-150-plus"
+   },
+   "therapist-150-plus-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/3.png",
+    "wordpressId": 14720,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 78413,
+    "product": 14712,
+    "productSlug": "magnetoterapia-therapist-150-plus"
+   },
+   "therapist-150-plus-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/4.png",
+    "wordpressId": 14721,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 173682,
+    "product": 14712,
+    "productSlug": "magnetoterapia-therapist-150-plus"
+   }
+  },
+  "magnetotherapy-sale": {
+   "magnum-2500-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg",
+    "wordpressId": 12108,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 101291,
+    "product": 14176,
+    "productSlug": "magnetoterapia-cemp-magnum-2500-2"
+   },
+   "magnum-2500-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/magnetoterapia-applicazioni-.jpg",
+    "wordpressId": 12110,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 133361,
+    "product": 14176,
+    "productSlug": "magnetoterapia-cemp-magnum-2500-2"
+   },
+   "magnum-2500-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/globus-magnetoterapia-solenoidi-dorso-applicazioni.jpeg",
+    "wordpressId": 12111,
+    "width": 1049,
+    "height": 1049,
+    "bytes": 318342,
+    "product": 14176,
+    "productSlug": "magnetoterapia-cemp-magnum-2500-2"
+   },
+   "therapist-150-plus-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/2.png",
+    "wordpressId": 14719,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 141334,
+    "product": 14723,
+    "productSlug": "magnetoterapia-therapist-150-plus-vendita"
+   },
+   "therapist-150-plus-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/3.png",
+    "wordpressId": 14720,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 78413,
+    "product": 14723,
+    "productSlug": "magnetoterapia-therapist-150-plus-vendita"
+   },
+   "therapist-150-plus-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/10/4.png",
+    "wordpressId": 14721,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 173682,
+    "product": 14723,
+    "productSlug": "magnetoterapia-therapist-150-plus-vendita"
+   }
+  },
+  "mobility-scooters-sale": {
+   "deluxe-folding-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/Scooter-pieghevole-con-braccioli.png",
+    "wordpressId": 14437,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 597005,
+    "product": 15611,
+    "productSlug": "vendita-scooter-pieghevole-deluxe-con-braccioli"
+   },
+   "deluxe-folding-scooter-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/scooter-S19-pieghevole-deluxe-.jpg",
+    "wordpressId": 12127,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 334678,
+    "product": 15611,
+    "productSlug": "vendita-scooter-pieghevole-deluxe-con-braccioli"
+   },
+   "folding-scooter-s19-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/Scooter-elettrico-pieghevole.png",
+    "wordpressId": 14432,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 610068,
+    "product": 15604,
+    "productSlug": "vendita-scooter-elettrico-pieghevole-s19"
+   },
+   "folding-scooter-s19-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/s19-pieghevole.png",
+    "wordpressId": 16002,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 440491,
+    "product": 15604,
+    "productSlug": "vendita-scooter-elettrico-pieghevole-s19"
+   },
+   "folding-scooter-s19-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/WP-Miamedical.png",
+    "wordpressId": 16003,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 467482,
+    "product": 15604,
+    "productSlug": "vendita-scooter-elettrico-pieghevole-s19"
+   },
+   "folding-scooter-s19-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/scooter-S19-pieghevole-3.jpg",
+    "wordpressId": 12119,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 207264,
+    "product": 15604,
+    "productSlug": "vendita-scooter-elettrico-pieghevole-s19"
+   },
+   "kuarz-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/8-1.png",
+    "wordpressId": 15547,
+    "width": 1875,
+    "height": 1875,
+    "bytes": 1378586,
+    "product": 15545,
+    "productSlug": "vendita-scooter-elettrico-kuarz"
+   },
+   "kuarz-scooter-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/7-1.png",
+    "wordpressId": 15546,
+    "width": 1875,
+    "height": 1875,
+    "bytes": 1664116,
+    "product": 15545,
+    "productSlug": "vendita-scooter-elettrico-kuarz"
+   },
+   "kuarz-scooter-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/9-3.png",
+    "wordpressId": 15548,
+    "width": 1875,
+    "height": 1875,
+    "bytes": 2045837,
+    "product": 15545,
+    "productSlug": "vendita-scooter-elettrico-kuarz"
+   },
+   "kuarz-scooter-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/11-1.png",
+    "wordpressId": 15550,
+    "width": 1875,
+    "height": 1875,
+    "bytes": 4411084,
+    "product": 15545,
+    "productSlug": "vendita-scooter-elettrico-kuarz"
+   },
+   "kuarz-scooter-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/10-3.png",
+    "wordpressId": 15549,
+    "width": 1875,
+    "height": 1875,
+    "bytes": 3457246,
+    "product": 15545,
+    "productSlug": "vendita-scooter-elettrico-kuarz"
+   },
+   "maximo-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/01/Scooter-Maximo.png",
+    "wordpressId": 14545,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 598294,
+    "product": 15650,
+    "productSlug": "vendita-scooter-elettrico-maximo"
+   },
+   "one-scooter-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Scooter-One.png",
+    "wordpressId": 14433,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 483282,
+    "product": 15613,
+    "productSlug": "vendita-scooter-elettrico-one"
+   }
+  },
+  "patient-lifts-hire": {
+   "boom-hoist-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELTTRICO-DA-TERRA-.jpg",
+    "wordpressId": 12138,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 68015,
+    "product": 8852,
+    "productSlug": "sollevatore-elettrico-forfait-imbattibili"
+   },
+   "boom-hoist-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/SOLLEVATORE-ELETTRICO-.jpg",
+    "wordpressId": 12139,
+    "width": 900,
+    "height": 900,
+    "bytes": 99866,
+    "product": 8852,
+    "productSlug": "sollevatore-elettrico-forfait-imbattibili"
+   },
+   "seated-hoist-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollevatore-con-seduta-elettrico.jpg",
+    "wordpressId": 12112,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 135044,
+    "product": 11090,
+    "productSlug": "noleggio-sollevatore-elettrico-con-seduta-per-il-bagno"
+   },
+   "seated-hoist-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollevatore-con-seduta-muevo-home-1.png",
+    "wordpressId": 12113,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 589408,
+    "product": 11090,
+    "productSlug": "noleggio-sollevatore-elettrico-con-seduta-per-il-bagno"
+   },
+   "seated-hoist-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollievo-con-seduta-muevo-home-.jpg",
+    "wordpressId": 12114,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 217536,
+    "product": 11090,
+    "productSlug": "noleggio-sollevatore-elettrico-con-seduta-per-il-bagno"
+   },
+   "seated-hoist-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/04/sollevatore-con-seduta-.jpg",
+    "wordpressId": 12115,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 111694,
+    "product": 11090,
+    "productSlug": "noleggio-sollevatore-elettrico-con-seduta-per-il-bagno"
+   },
+   "soft-bath-hoist-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/2.jpg",
+    "wordpressId": 14127,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 54433,
+    "product": 12347,
+    "productSlug": "noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno"
+   },
+   "soft-bath-hoist-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/DSC_1181.jpg",
+    "wordpressId": 12355,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 96583,
+    "product": 12347,
+    "productSlug": "noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno"
+   },
+   "soft-bath-hoist-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/04/IMG_6169-scaled.jpeg",
+    "wordpressId": 13776,
+    "width": 2560,
+    "height": 2560,
+    "bytes": 408551,
+    "product": 12347,
+    "productSlug": "noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno"
+   },
+   "soft-bath-hoist-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/1.jpg",
+    "wordpressId": 14128,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 39039,
+    "product": 12347,
+    "productSlug": "noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno"
+   }
+  },
+  "patient-lifts-sale": {
+   "go-up-hoist-1.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4189.jpeg",
+    "wordpressId": 14105,
+    "width": 1034,
+    "height": 1034,
+    "bytes": 91862,
+    "product": 14107,
+    "productSlug": "vendita-sollevatore-elettrico-go-up"
+   },
+   "go-up-hoist-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4188.jpeg",
+    "wordpressId": 14106,
+    "width": 809,
+    "height": 809,
+    "bytes": 80669,
+    "product": 14107,
+    "productSlug": "vendita-sollevatore-elettrico-go-up"
+   },
+   "go-up-hoist-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4185.jpeg",
+    "wordpressId": 14103,
+    "width": 1354,
+    "height": 1354,
+    "bytes": 141219,
+    "product": 14107,
+    "productSlug": "vendita-sollevatore-elettrico-go-up"
+   },
+   "go-up-hoist-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/IMG_4186.png",
+    "wordpressId": 14104,
+    "width": 1080,
+    "height": 1080,
+    "bytes": 458138,
+    "product": 14107,
+    "productSlug": "vendita-sollevatore-elettrico-go-up"
+   },
+   "soft-bath-hoist-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/2.jpg",
+    "wordpressId": 14127,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 54433,
+    "product": 14126,
+    "productSlug": "vendita-sollevatore-elettrico-soft"
+   },
+   "soft-bath-hoist-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/1.jpg",
+    "wordpressId": 14128,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 39039,
+    "product": 14126,
+    "productSlug": "vendita-sollevatore-elettrico-soft"
+   },
+   "soft-bath-hoist-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/DSC_1181.jpg",
+    "wordpressId": 12355,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 96583,
+    "product": 14126,
+    "productSlug": "vendita-sollevatore-elettrico-soft"
+   },
+   "soft-bath-hoist-4.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/04/IMG_6155-scaled.jpeg",
+    "wordpressId": 13770,
+    "width": 2560,
+    "height": 2560,
+    "bytes": 331160,
+    "product": 14126,
+    "productSlug": "vendita-sollevatore-elettrico-soft"
+   }
+  },
+  "pressotherapy-hire": {
+   "powerpress-4-alt-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/pressoterapie-1-1-1.jpg",
+    "wordpressId": 12178,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 125802,
+    "product": 12141,
+    "productSlug": "noleggio-pressoterapia-professionale"
+   },
+   "powerpress-4-alt-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/pressoterapi-2-1-1.jpg",
+    "wordpressId": 12180,
+    "width": 500,
+    "height": 500,
+    "bytes": 72138,
+    "product": 12141,
+    "productSlug": "noleggio-pressoterapia-professionale"
+   },
+   "powerpress-4-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/pressoterapia-POWER-1-1-1.jpg",
+    "wordpressId": 12175,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 405977,
+    "product": 9603,
+    "productSlug": "pressoterapia-professionale-a-casa-tua"
+   },
+   "powerpress-4-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/IMG_0356-1.jpeg",
+    "wordpressId": 12176,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 111863,
+    "product": 9603,
+    "productSlug": "pressoterapia-professionale-a-casa-tua"
+   },
+   "powerpress-4-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/IMG_0313-1.jpeg",
+    "wordpressId": 12177,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 170340,
+    "product": 9603,
+    "productSlug": "pressoterapia-professionale-a-casa-tua"
+   }
+  },
+  "pressotherapy-sale": {
+   "q2200-power-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/pressoterapia-POWER-1-1-1.jpg",
+    "wordpressId": 12175,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 405977,
+    "product": 6600,
+    "productSlug": "vendita-pressoterapia-professionaleq2200-power"
+   },
+   "q2200-power-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/download-2-1-e1680948676298.jpg",
+    "wordpressId": 8892,
+    "width": 286,
+    "height": 176,
+    "bytes": 10239,
+    "product": 6600,
+    "productSlug": "vendita-pressoterapia-professionaleq2200-power"
+   },
+   "q2200-power-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/download-3-1.jpg",
+    "wordpressId": 8893,
+    "width": 225,
+    "height": 224,
+    "bytes": 7161,
+    "product": 6600,
+    "productSlug": "vendita-pressoterapia-professionaleq2200-power"
+   }
+  },
+  "pressure-relief-mattresses-hire": {
+   "high-cure-90-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/materasso-antidecubito-alto-rischio.-1.jpg",
+    "wordpressId": 9706,
+    "width": 800,
+    "height": 800,
+    "bytes": 28009,
+    "product": 9699,
+    "productSlug": "noleggio-materasso-antidecubito-ad-alto-rischio"
+   },
+   "hospital-care-xl-120-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/MAterasso-Anti-decubito-Hospital-Care-XL.png",
+    "wordpressId": 15055,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 448116,
+    "product": 15053,
+    "productSlug": "materasso-antidecubito-hospital-care-xl"
+   }
+  },
+  "pressure-relief-mattresses-sale": {
+   "easy-air-ii-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/materasso-antidecubito-con-compressore.jpg",
+    "wordpressId": 9354,
+    "width": 800,
+    "height": 800,
+    "bytes": 13924,
+    "product": 8940,
+    "productSlug": "vendita-materasso-antidecubito"
+   },
+   "high-risk-mattress-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/materasso-antidecubito-alto-rischio.-1-1.jpg",
+    "wordpressId": 12510,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 106536,
+    "product": 9030,
+    "productSlug": "vendita-materasso-antidecubito-ad-alto-rischio"
+   },
+   "high-risk-mattress-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-4-1.jpeg",
+    "wordpressId": 9058,
+    "width": 381,
+    "height": 492,
+    "bytes": 22125,
+    "product": 9030,
+    "productSlug": "vendita-materasso-antidecubito-ad-alto-rischio"
+   },
+   "high-risk-mattress-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-3-1.jpeg",
+    "wordpressId": 9059,
+    "width": 381,
+    "height": 492,
+    "bytes": 23223,
+    "product": 9030,
+    "productSlug": "vendita-materasso-antidecubito-ad-alto-rischio"
+   },
+   "high-risk-mattress-4.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-2-1.jpeg",
+    "wordpressId": 9060,
+    "width": 381,
+    "height": 492,
+    "bytes": 24741,
+    "product": 9030,
+    "productSlug": "vendita-materasso-antidecubito-ad-alto-rischio"
+   },
+   "high-risk-mattress-5.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/alto-decubito-1-1.jpeg",
+    "wordpressId": 9061,
+    "width": 381,
+    "height": 492,
+    "bytes": 22125,
+    "product": 9030,
+    "productSlug": "vendita-materasso-antidecubito-ad-alto-rischio"
+   },
+   "hospital-care-xl-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/01/MAterasso-Anti-decubito-Hospital-Care-XL.png",
+    "wordpressId": 15055,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 448116,
+    "product": 15077,
+    "productSlug": "vendita-materasso-antidecubito-alto-rischio-hospital-care-xl"
+   },
+   "polyplot-90-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/11/Materasso-antidecubito-Polyplot-Wimed-1.jpg",
+    "wordpressId": 12523,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 85464,
+    "product": 8800,
+    "productSlug": "vendita-materasso-antidecubito-polyplot-90cm"
+   }
+  },
+  "recliner-armchairs-sale": {
+   "lady-slim-plus-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/12/poltrona-reclinabile-magic-up.png",
+    "wordpressId": 15010,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 268534,
+    "product": 15005,
+    "productSlug": "poltrona-reclinabile-lady-slim-plus"
+   }
+  },
+  "stairlifts-hire": {
+   "easystep-motorised-chair-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-1.png",
+    "wordpressId": 15783,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 361988,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-motorised-chair-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-2.png",
+    "wordpressId": 15784,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 304216,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-motorised-chair-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-3.png",
+    "wordpressId": 15785,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 250947,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-motorised-chair-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-4.png",
+    "wordpressId": 15786,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 228368,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-motorised-chair-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-5.png",
+    "wordpressId": 15787,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 237491,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-motorised-chair-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-6-e1778769804475.png",
+    "wordpressId": 15788,
+    "width": 938,
+    "height": 692,
+    "bytes": 403562,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-motorised-chair-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-7.png",
+    "wordpressId": 15789,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 236319,
+    "product": 8999,
+    "productSlug": "noleggio-sedia-motorizzata-sali-scendiscale"
+   },
+   "easystep-wheelchair-stairlift-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/nuova-carrozzina-montascale.png",
+    "wordpressId": 15558,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 406522,
+    "product": 15557,
+    "productSlug": "noleggio-montascale-per-carrozzine-easystep"
+   },
+   "easystep-wheelchair-stairlift-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-retro.png",
+    "wordpressId": 15566,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 497503,
+    "product": 15557,
+    "productSlug": "noleggio-montascale-per-carrozzine-easystep"
+   },
+   "easystep-wheelchair-stairlift-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-lato.png",
+    "wordpressId": 15567,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 834614,
+    "product": 15557,
+    "productSlug": "noleggio-montascale-per-carrozzine-easystep"
+   },
+   "easystep-wheelchair-stairlift-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-ruote.png",
+    "wordpressId": 15568,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 779877,
+    "product": 15557,
+    "productSlug": "noleggio-montascale-per-carrozzine-easystep"
+   },
+   "short-ramp-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/prodotti-CR509-x.jpg",
+    "wordpressId": 12367,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 95346,
+    "product": 12361,
+    "productSlug": "noleggio-rampa-e-pedane-corta-per-disabili"
+   },
+   "short-ramp-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-pendenze-2-.png",
+    "wordpressId": 12223,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 608026,
+    "product": 12361,
+    "productSlug": "noleggio-rampa-e-pedane-corta-per-disabili"
+   },
+   "short-ramp-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-pendenze-.jpg",
+    "wordpressId": 12224,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 129824,
+    "product": 12361,
+    "productSlug": "noleggio-rampa-e-pedane-corta-per-disabili"
+   },
+   "short-ramp-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/prodotti-CR509-x_1.jpg",
+    "wordpressId": 12368,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 145260,
+    "product": 12361,
+    "productSlug": "noleggio-rampa-e-pedane-corta-per-disabili"
+   },
+   "track-stairlift-t09-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/MONTASCALE-VIMEC-T09-1.jpg",
+    "wordpressId": 12166,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 80789,
+    "product": 9707,
+    "productSlug": "noleggio-montascale-elettrico-a-cingoli-per-anziani-e-disabili-a-domicilio"
+   },
+   "track-stairlift-t09-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/MONTASCALE-T09-.jpg",
+    "wordpressId": 12167,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 95237,
+    "product": 9707,
+    "productSlug": "noleggio-montascale-elettrico-a-cingoli-per-anziani-e-disabili-a-domicilio"
+   },
+   "track-stairlift-t09-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/MONTASCALE-A-CINGOLI-.jpg",
+    "wordpressId": 12168,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 269110,
+    "product": 9707,
+    "productSlug": "noleggio-montascale-elettrico-a-cingoli-per-anziani-e-disabili-a-domicilio"
+   },
+   "wheeled-stairlift-t10-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/montascale-a-ruote-T10.2-.jpg",
+    "wordpressId": 12160,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 55639,
+    "product": 12152,
+    "productSlug": "noleggio-montascale-a-ruote-roma-e-firenze"
+   },
+   "wheeled-stairlift-t10-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/montascale-a-ruote-T10-.jpg",
+    "wordpressId": 12161,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 74637,
+    "product": 12152,
+    "productSlug": "noleggio-montascale-a-ruote-roma-e-firenze"
+   },
+   "wheeled-stairlift-t10-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/04/montascale-a-ruote-T10.jpg",
+    "wordpressId": 12162,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 111366,
+    "product": 12152,
+    "productSlug": "noleggio-montascale-a-ruote-roma-e-firenze"
+   }
+  },
+  "stairlifts-sale": {
+   "easystep-track-chair-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-1.png",
+    "wordpressId": 15783,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 361988,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-track-chair-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-2.png",
+    "wordpressId": 15784,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 304216,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-track-chair-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-3.png",
+    "wordpressId": 15785,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 250947,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-track-chair-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-4.png",
+    "wordpressId": 15786,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 228368,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-track-chair-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-5.png",
+    "wordpressId": 15787,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 237491,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-track-chair-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-6-e1778769804475.png",
+    "wordpressId": 15788,
+    "width": 938,
+    "height": 692,
+    "bytes": 403562,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-track-chair-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/Vendita-easystep-7.png",
+    "wordpressId": 15789,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 236319,
+    "product": 15102,
+    "productSlug": "vendita-montascale-easystep"
+   },
+   "easystep-wheelchair-climber-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/nuova-carrozzina-montascale.png",
+    "wordpressId": 15558,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 406522,
+    "product": 15569,
+    "productSlug": "vendita-montascale-per-carrozzine-easystep"
+   },
+   "easystep-wheelchair-climber-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-retro.png",
+    "wordpressId": 15566,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 497503,
+    "product": 15569,
+    "productSlug": "vendita-montascale-per-carrozzine-easystep"
+   },
+   "easystep-wheelchair-climber-3.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-lato.png",
+    "wordpressId": 15567,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 834614,
+    "product": 15569,
+    "productSlug": "vendita-montascale-per-carrozzine-easystep"
+   },
+   "easystep-wheelchair-climber-4.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/03/montascale-ruote.png",
+    "wordpressId": 15568,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 779877,
+    "product": 15569,
+    "productSlug": "vendita-montascale-per-carrozzine-easystep"
+   }
+  },
+  "standing-frames-hire": {
+   "albatros-2-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Albatros-II.png",
+    "wordpressId": 14620,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 263434,
+    "product": 14603,
+    "productSlug": "verticalizzatore-attivo-albatros-2-a-noleggio"
+   },
+   "albatros-2-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Albatros-2.png",
+    "wordpressId": 14630,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 334033,
+    "product": 14603,
+    "productSlug": "verticalizzatore-attivo-albatros-2-a-noleggio"
+   },
+   "albatros-2-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/ALBATROSII-verticalizzatore-disabili-utente.jpg",
+    "wordpressId": 14629,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 99176,
+    "product": 14603,
+    "productSlug": "verticalizzatore-attivo-albatros-2-a-noleggio"
+   },
+   "albatros-2-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/ALBATROSII-verticalizzatore-disabili-pedane.jpg",
+    "wordpressId": 14628,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 117805,
+    "product": 14603,
+    "productSlug": "verticalizzatore-attivo-albatros-2-a-noleggio"
+   },
+   "electric-standing-hoist-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/verticallizzatore-mia-medical-150x150-1.jpg",
+    "wordpressId": 12140,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 78610,
+    "product": 8853,
+    "productSlug": "noleggio-verticalizzatore-a-domicilio"
+   },
+   "electric-standing-hoist-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/VERTICALIZZATORE-NOLEGGIO-MIA-MEDICAL-ITALIA-.jpg",
+    "wordpressId": 8905,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 72385,
+    "product": 8853,
+    "productSlug": "noleggio-verticalizzatore-a-domicilio"
+   }
+  },
+  "standing-frames-sale": {
+   "albatros-2-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Albatros-II.png",
+    "wordpressId": 14620,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 263434,
+    "product": 14621,
+    "productSlug": "verticalizzatore-attivo-albatros-2-in-vendita"
+   },
+   "albatros-2-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Albatros-2.png",
+    "wordpressId": 14630,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 334033,
+    "product": 14621,
+    "productSlug": "verticalizzatore-attivo-albatros-2-in-vendita"
+   },
+   "albatros-2-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/ALBATROSII-verticalizzatore-disabili-utente.jpg",
+    "wordpressId": 14629,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 99176,
+    "product": 14621,
+    "productSlug": "verticalizzatore-attivo-albatros-2-in-vendita"
+   },
+   "albatros-2-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/ALBATROSII-verticalizzatore-disabili-pedane.jpg",
+    "wordpressId": 14628,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 117805,
+    "product": 14621,
+    "productSlug": "verticalizzatore-attivo-albatros-2-in-vendita"
+   }
+  },
+  "tens-hire": {
+   "globus-premium-400-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/TENS-PREMINUM-400-.jpg",
+    "wordpressId": 12423,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 75559,
+    "product": 12417,
+    "productSlug": "noleggio-tens-elettrostimolatore-globus-premium-400"
+   },
+   "globus-premium-400-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/elettrodi-2-.jpg",
+    "wordpressId": 12424,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 115406,
+    "product": 12417,
+    "productSlug": "noleggio-tens-elettrostimolatore-globus-premium-400"
+   },
+   "globus-premium-400-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/elettrodi-posizionamento-.jpg",
+    "wordpressId": 12425,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 130138,
+    "product": 12417,
+    "productSlug": "noleggio-tens-elettrostimolatore-globus-premium-400"
+   },
+   "kinetec-and-tens-or-magnetotherapy-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combinati-3-.jpg",
+    "wordpressId": 12295,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 199792,
+    "product": 9431,
+    "productSlug": "kinetec-elettrostimolatore-tens-o-magnetoterapia"
+   },
+   "kinetec-and-tens-or-magnetotherapy-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/KINETEC-ADVANCE-CPM-fotor-20240511184446.jpg",
+    "wordpressId": 12236,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 352540,
+    "product": 9431,
+    "productSlug": "kinetec-elettrostimolatore-tens-o-magnetoterapia"
+   },
+   "kinetec-and-tens-or-magnetotherapy-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/elettrostimoltore-1-.jpg",
+    "wordpressId": 12297,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 146836,
+    "product": 9431,
+    "productSlug": "kinetec-elettrostimolatore-tens-o-magnetoterapia"
+   },
+   "kinetec-and-tens-or-magnetotherapy-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg",
+    "wordpressId": 12108,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 101291,
+    "product": 9431,
+    "productSlug": "kinetec-elettrostimolatore-tens-o-magnetoterapia"
+   },
+   "tens-and-magnetotherapy-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combo-magneto-tens-.jpg",
+    "wordpressId": 12454,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 168140,
+    "product": 9455,
+    "productSlug": "elettrostimolatore-e-magnetoterapia"
+   },
+   "tens-and-magnetotherapy-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/TENS-PREMINUM-400-.jpg",
+    "wordpressId": 12423,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 75559,
+    "product": 9455,
+    "productSlug": "elettrostimolatore-e-magnetoterapia"
+   },
+   "tens-and-magnetotherapy-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/MAGNETOTERAPIA-CEMP-MAGNUM-2500.jpg",
+    "wordpressId": 12108,
+    "width": 1200,
+    "height": 1200,
+    "bytes": 101291,
+    "product": 9455,
+    "productSlug": "elettrostimolatore-e-magnetoterapia"
+   },
+   "tens-and-magnetotherapy-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/elettrodi-2-.jpg",
+    "wordpressId": 12424,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 115406,
+    "product": 9455,
+    "productSlug": "elettrostimolatore-e-magnetoterapia"
+   },
+   "tens-and-magnetotherapy-5.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/10/globus-magnetoterapia-solenoidi-dorso-applicazioni.jpeg",
+    "wordpressId": 12111,
+    "width": 1049,
+    "height": 1049,
+    "bytes": 318342,
+    "product": 9455,
+    "productSlug": "elettrostimolatore-e-magnetoterapia"
+   }
+  },
+  "tens-sale": {
+   "globus-premium-400-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/TENS-PREMINUM-400-.jpg",
+    "wordpressId": 12423,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 75559,
+    "product": 14188,
+    "productSlug": "vendita-tens-elettrostimolatore-globus-premium-400"
+   },
+   "globus-premium-400-2.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2672.jpeg",
+    "wordpressId": 13401,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 141072,
+    "product": 14188,
+    "productSlug": "vendita-tens-elettrostimolatore-globus-premium-400"
+   },
+   "globus-premium-400-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/12/IMG_2671.jpeg",
+    "wordpressId": 13400,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 125338,
+    "product": 14188,
+    "productSlug": "vendita-tens-elettrostimolatore-globus-premium-400"
+   }
+  },
+  "ultrasound-hire": {
+   "globus-medisound-3000-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Medisound-3000-Noleggio.png",
+    "wordpressId": 14192,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 526564,
+    "product": 14191,
+    "productSlug": "noleggio-ultrasuono-globus-medisound-3000"
+   }
+  },
+  "ultrasound-sale": {
+   "globus-medisound-3000-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/07/Medisound-3000-Noleggio.png",
+    "wordpressId": 14192,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 526564,
+    "product": 14197,
+    "productSlug": "acquista-ultrasuono-globus-medisound-3000"
+   }
+  },
+  "used-deals-sale": {
+   "used-fantastica-1-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Venduta-1.png",
+    "wordpressId": 14987,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 890319,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-1-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-55.jpg",
+    "wordpressId": 14365,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 441403,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-1-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-56-2.jpg",
+    "wordpressId": 14366,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 389913,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-1-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-56-3.jpg",
+    "wordpressId": 14367,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 500496,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-1-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-56.jpg",
+    "wordpressId": 14368,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 441996,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-1-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/fantastica-1.png",
+    "wordpressId": 14370,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1131821,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-1-7.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-31-55-2.jpg",
+    "wordpressId": 14364,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 448305,
+    "product": 14363,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-1"
+   },
+   "used-fantastica-2-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-42.jpg",
+    "wordpressId": 14375,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 496283,
+    "product": 14371,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2"
+   },
+   "used-fantastica-2-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-40.jpg",
+    "wordpressId": 14372,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 441403,
+    "product": 14371,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2"
+   },
+   "used-fantastica-2-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-42-2.jpg",
+    "wordpressId": 14374,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 419134,
+    "product": 14371,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2"
+   },
+   "used-fantastica-2-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-41.jpg",
+    "wordpressId": 14373,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 441996,
+    "product": 14371,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2"
+   },
+   "used-fantastica-2-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-34-44.jpg",
+    "wordpressId": 14377,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 408547,
+    "product": 14371,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2"
+   },
+   "used-fantastica-2-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/fantastica-2.png",
+    "wordpressId": 14378,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1193634,
+    "product": 14371,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2"
+   },
+   "used-fantastica-3-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Venduta-2.png",
+    "wordpressId": 14988,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 903878,
+    "product": 14380,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2-2"
+   },
+   "used-fantastica-3-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19.jpg",
+    "wordpressId": 14382,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 530107,
+    "product": 14380,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2-2"
+   },
+   "used-fantastica-3-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19-4.jpg",
+    "wordpressId": 14383,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 408547,
+    "product": 14380,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2-2"
+   },
+   "used-fantastica-3-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19-2.jpg",
+    "wordpressId": 14384,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 415639,
+    "product": 14380,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2-2"
+   },
+   "used-fantastica-3-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Fantastica-3.png",
+    "wordpressId": 14385,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1037701,
+    "product": 14380,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2-2"
+   },
+   "used-fantastica-3-6.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-36-19-3.jpg",
+    "wordpressId": 14381,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 427647,
+    "product": 14380,
+    "productSlug": "vendita-carrozzina-usata-modello-fantastica-2-2"
+   },
+   "used-tommy-1-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/vendto-3.png",
+    "wordpressId": 14989,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 890927,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-03.jpg",
+    "wordpressId": 14393,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 520994,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-02.jpg",
+    "wordpressId": 14391,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 397176,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-01.jpg",
+    "wordpressId": 14390,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 376318,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-00.jpg",
+    "wordpressId": 14389,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 470041,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-6.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-00-2.jpg",
+    "wordpressId": 14388,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 523845,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-7.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Scooter-Tommy-1.png",
+    "wordpressId": 14394,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1200077,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-1-8.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-37-59.jpg",
+    "wordpressId": 14387,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 420990,
+    "product": 14386,
+    "productSlug": "vendita-scooter-usato-tommy-1"
+   },
+   "used-tommy-2-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/venduto-4.png",
+    "wordpressId": 14990,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 899252,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-2-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-55-2.jpg",
+    "wordpressId": 14404,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 338514,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-2-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-56.jpg",
+    "wordpressId": 14405,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 477506,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-2-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-57.jpg",
+    "wordpressId": 14407,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 436121,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-2-5.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Tommy-2.png",
+    "wordpressId": 14408,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1052508,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-2-6.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Tommy-3.png",
+    "wordpressId": 14409,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 1340771,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-2-7.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-38-55.jpg",
+    "wordpressId": 14403,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 431202,
+    "product": 14395,
+    "productSlug": "vendita-scooter-usato-tommy-2"
+   },
+   "used-tommy-3-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02.jpg",
+    "wordpressId": 14411,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 324999,
+    "product": 14410,
+    "productSlug": "vendita-scooter-usato-tommy-3"
+   },
+   "used-tommy-3-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02-3.jpg",
+    "wordpressId": 14413,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 606294,
+    "product": 14410,
+    "productSlug": "vendita-scooter-usato-tommy-3"
+   },
+   "used-tommy-3-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02-2.jpg",
+    "wordpressId": 14412,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 204590,
+    "product": 14410,
+    "productSlug": "vendita-scooter-usato-tommy-3"
+   },
+   "used-tommy-3-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-02-4.jpg",
+    "wordpressId": 14414,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 413521,
+    "product": 14410,
+    "productSlug": "vendita-scooter-usato-tommy-3"
+   },
+   "used-tommy-3-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/PHOTO-2025-08-23-19-40-03.jpg",
+    "wordpressId": 14416,
+    "width": 2048,
+    "height": 2048,
+    "bytes": 283816,
+    "product": 14410,
+    "productSlug": "vendita-scooter-usato-tommy-3"
+   }
+  },
+  "walkers-hire": {
+   "aluminium-rollator-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1142.jpg",
+    "wordpressId": 12498,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 143827,
+    "product": 9085,
+    "productSlug": "noleggio-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1146.jpg",
+    "wordpressId": 12500,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 192372,
+    "product": 9085,
+    "productSlug": "noleggio-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1148.jpg",
+    "wordpressId": 12501,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 122409,
+    "product": 9085,
+    "productSlug": "noleggio-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg",
+    "wordpressId": 12503,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 138354,
+    "product": 9085,
+    "productSlug": "noleggio-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1140.jpg",
+    "wordpressId": 12504,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 131658,
+    "product": 9085,
+    "productSlug": "noleggio-deambulatore-rollatore-in-alluminio"
+   },
+   "forearm-support-walker-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DEAMBULATORE-CON-TAVOLETTA-1-1.jpg",
+    "wordpressId": 12272,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 137042,
+    "product": 8939,
+    "productSlug": "noleggio-deambulatore-con-tavoletta-imbottita"
+   },
+   "rollator-with-seat-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/Rollator.png",
+    "wordpressId": 14623,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 369741,
+    "product": 12308,
+    "productSlug": "noleggio-deambulatore-rollatore-in-alluminio-2"
+   },
+   "ultralight-aluminium-walker-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-4R-jpg-150x150-1.jpg",
+    "wordpressId": 12305,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 66332,
+    "product": 8959,
+    "productSlug": "noleggio-deambulatore-in-alluminio"
+   },
+   "ultralight-aluminium-walker-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-4R-piegato-150x150-1.jpg",
+    "wordpressId": 12306,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 112334,
+    "product": 8959,
+    "productSlug": "noleggio-deambulatore-in-alluminio"
+   },
+   "underarm-walker-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-ascellare-.jpg",
+    "wordpressId": 12234,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 72719,
+    "product": 9073,
+    "productSlug": "noleggio-deambulatore-con-sotto-ascellare-firenza-e-provincia-roma-e-provincia"
+   },
+   "walker-and-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2023/02/combinati-4-.jpg",
+    "wordpressId": 12301,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 151529,
+    "product": 9450,
+    "productSlug": "deambulatore-carrozzina"
+   }
+  },
+  "walkers-sale": {
+   "aluminium-rollator-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/adeambulatore-rollator-Moretti-mia-medical-.jpg",
+    "wordpressId": 12503,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 138354,
+    "product": 8996,
+    "productSlug": "vendita-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1142.jpg",
+    "wordpressId": 12498,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 143827,
+    "product": 8996,
+    "productSlug": "vendita-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1146.jpg",
+    "wordpressId": 12500,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 192372,
+    "product": 8996,
+    "productSlug": "vendita-deambulatore-rollatore-in-alluminio"
+   },
+   "aluminium-rollator-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DSC_1148.jpg",
+    "wordpressId": 12501,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 122409,
+    "product": 8996,
+    "productSlug": "vendita-deambulatore-rollatore-in-alluminio"
+   },
+   "forearm-support-walker-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/DEAMBULATORE-CON-TAVOLETTA-1-1.jpg",
+    "wordpressId": 12272,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 137042,
+    "product": 14635,
+    "productSlug": "deambulatore-con-tavoletta-per-appoggio-antibrachiale-in-vendita"
+   },
+   "rollator-mini-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/Rollator-mini.png",
+    "wordpressId": 14639,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 465162,
+    "product": 14638,
+    "productSlug": "rollator-pieghevole-mini-in-vendita"
+   },
+   "rollator-with-seat-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/Rollator.png",
+    "wordpressId": 14623,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 369741,
+    "product": 14642,
+    "productSlug": "deambulatore-rollatore-con-seduta-in-vendita"
+   },
+   "ultralight-aluminium-walker-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2025/09/rollatore-alluminio.jpg",
+    "wordpressId": 14649,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 68677,
+    "product": 14646,
+    "productSlug": "deambulatore-in-alluminio-pieghevole-ultraleggero-in-vendita"
+   },
+   "underarm-walker-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/deambulatore-ascellare-.jpg",
+    "wordpressId": 12234,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 72719,
+    "product": 14631,
+    "productSlug": "deambulatore-con-sotto-ascellari-in-vendita"
+   }
+  },
+  "wheelchairs-hire": {
+   "bariatric-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-bariatrica_3.jpg",
+    "wordpressId": 9068,
+    "width": 700,
+    "height": 700,
+    "bytes": 53844,
+    "product": 9045,
+    "productSlug": "affitto-carrozzina-bariatrica-per-pazienti-obesi-bariatrica"
+   },
+   "bariatric-wheelchair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile.jpg",
+    "wordpressId": 9072,
+    "width": 500,
+    "height": 500,
+    "bytes": 26837,
+    "product": 9045,
+    "productSlug": "affitto-carrozzina-bariatrica-per-pazienti-obesi-bariatrica"
+   },
+   "bobby-transit-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-.jpg",
+    "wordpressId": 15762,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 133857,
+    "product": 15658,
+    "productSlug": "noleggio-carrozzina-transito-bobby"
+   },
+   "bobby-transit-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-6.jpg",
+    "wordpressId": 15767,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 137943,
+    "product": 15658,
+    "productSlug": "noleggio-carrozzina-transito-bobby"
+   },
+   "bobby-transit-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo3.jpg",
+    "wordpressId": 15765,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 128455,
+    "product": 15658,
+    "productSlug": "noleggio-carrozzina-transito-bobby"
+   },
+   "bobby-transit-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo2.jpg",
+    "wordpressId": 15764,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 123425,
+    "product": 15658,
+    "productSlug": "noleggio-carrozzina-transito-bobby"
+   },
+   "bobby-transit-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-4.jpg",
+    "wordpressId": 15763,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 123413,
+    "product": 15658,
+    "productSlug": "noleggio-carrozzina-transito-bobby"
+   },
+   "bobby-transit-6.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-.jpg",
+    "wordpressId": 15762,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 133857,
+    "product": 15658,
+    "productSlug": "noleggio-carrozzina-transito-bobby"
+   },
+   "pediatric-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/carrozzina-pediatrica-.jpg",
+    "wordpressId": 12332,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 114462,
+    "product": 12321,
+    "productSlug": "noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso"
+   },
+   "pediatric-wheelchair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/carrozzina-pediatrica-3-.jpg",
+    "wordpressId": 12333,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 125969,
+    "product": 12321,
+    "productSlug": "noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso"
+   },
+   "pediatric-wheelchair-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 12321,
+    "productSlug": "noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso"
+   },
+   "pediatric-wheelchair-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/05/carrina-pediatrica-2-.jpg",
+    "wordpressId": 12334,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 139204,
+    "product": 12321,
+    "productSlug": "noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso"
+   },
+   "ramp-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-213cm-pieghevole-.jpg",
+    "wordpressId": 12359,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 98874,
+    "product": 8988,
+    "productSlug": "noleggio-rampa-pedana-per-disabili"
+   },
+   "ramp-2.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-pendenze-2-.png",
+    "wordpressId": 12223,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 608026,
+    "product": 8988,
+    "productSlug": "noleggio-rampa-pedana-per-disabili"
+   },
+   "ramp-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-pendenze-.jpg",
+    "wordpressId": 12224,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 129824,
+    "product": 8988,
+    "productSlug": "noleggio-rampa-pedana-per-disabili"
+   },
+   "ramp-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/rampa-piegata-.jpg",
+    "wordpressId": 12225,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 84630,
+    "product": 8988,
+    "productSlug": "noleggio-rampa-pedana-per-disabili"
+   },
+   "ramp-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/modalita-uso-rampa-.jpg",
+    "wordpressId": 12360,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 329393,
+    "product": 8988,
+    "productSlug": "noleggio-rampa-pedana-per-disabili"
+   },
+   "reclining-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-reclinabile-1-1-1.jpg",
+    "wordpressId": 12377,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 128991,
+    "product": 9034,
+    "productSlug": "noleggio-carrozzina-reclinabile-pieghevole-roma-e-firenze"
+   },
+   "reclining-wheelchair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/schienale-reclinabile-.jpg",
+    "wordpressId": 9065,
+    "width": 450,
+    "height": 450,
+    "bytes": 21229,
+    "product": 9034,
+    "productSlug": "noleggio-carrozzina-reclinabile-pieghevole-roma-e-firenze"
+   },
+   "reclining-wheelchair-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 9034,
+    "productSlug": "noleggio-carrozzina-reclinabile-pieghevole-roma-e-firenze"
+   },
+   "self-propelled-folding-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg",
+    "wordpressId": 12209,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 103934,
+    "product": 9079,
+    "productSlug": "affitto-carrozzina-pieghevole-ad-autospinta-spedizioni-in-tutta-italia"
+   },
+   "self-propelled-folding-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 9079,
+    "productSlug": "affitto-carrozzina-pieghevole-ad-autospinta-spedizioni-in-tutta-italia"
+   },
+   "self-propelled-folding-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-ad-autospinta-piegata-.jpg",
+    "wordpressId": 12210,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 162793,
+    "product": 9079,
+    "productSlug": "affitto-carrozzina-pieghevole-ad-autospinta-spedizioni-in-tutta-italia"
+   },
+   "slim-self-propelled-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-MIA-MEDICAL-ITALIA-150x150-1.jpg",
+    "wordpressId": 12228,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 135909,
+    "product": 8947,
+    "productSlug": "affitto-carrozzina-per-disabili-di-piccole-dimensioni-autospinta-slim"
+   },
+   "slim-self-propelled-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-2-MIA-MEDICAL-ITALIA-150x150-1.jpg",
+    "wordpressId": 12229,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 104802,
+    "product": 8947,
+    "productSlug": "affitto-carrozzina-per-disabili-di-piccole-dimensioni-autospinta-slim"
+   },
+   "slim-transit-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-transito-1-1.jpg",
+    "wordpressId": 12232,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 118801,
+    "product": 8948,
+    "productSlug": "affitto-carrozzina-per-disabili-di-piccole-dimensioni-slim"
+   },
+   "slim-transit-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 8948,
+    "productSlug": "affitto-carrozzina-per-disabili-di-piccole-dimensioni-slim"
+   },
+   "tilting-care-chair-electric-1.png": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/Seggiolone-elettrico-polifunzionale.png",
+    "wordpressId": 14438,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 741957,
+    "product": 12408,
+    "productSlug": "noleggio-seggiolone-polifunzionale-basculante-elettrico"
+   },
+   "tilting-care-chair-electric-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/seggiolone-polifunzionale-Inovis-2-.jpg",
+    "wordpressId": 12107,
+    "width": 990,
+    "height": 600,
+    "bytes": 101674,
+    "product": 12408,
+    "productSlug": "noleggio-seggiolone-polifunzionale-basculante-elettrico"
+   },
+   "tilting-care-chair-electric-3.jpeg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2024/06/telecomando-Inovys-EVO-.jpeg",
+    "wordpressId": 12415,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 77782,
+    "product": 12408,
+    "productSlug": "noleggio-seggiolone-polifunzionale-basculante-elettrico"
+   },
+   "tilting-care-chair-electric-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/seggiolone-polifunzionale-di-transito-1-1.jpg",
+    "wordpressId": 12212,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 190588,
+    "product": 12408,
+    "productSlug": "noleggio-seggiolone-polifunzionale-basculante-elettrico"
+   },
+   "tilting-care-chair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/seggiolone-polifunzionale-di-transito-1-1.jpg",
+    "wordpressId": 12212,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 190588,
+    "product": 9040,
+    "productSlug": "noleggio-seggiolone-polifunzionale-basculante"
+   },
+   "tilting-care-chair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/seggiolone-polifunzionale-Inovis-2-.jpg",
+    "wordpressId": 12107,
+    "width": 990,
+    "height": 600,
+    "bytes": 101674,
+    "product": 9040,
+    "productSlug": "noleggio-seggiolone-polifunzionale-basculante"
+   },
+   "transit-folding-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-di-transito-MIA-MEDICAL-150x150-1.jpg",
+    "wordpressId": 12204,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 135478,
+    "product": 9052,
+    "productSlug": "noleggio-carrozzina-pieghevole-da-transito"
+   },
+   "transit-folding-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 9052,
+    "productSlug": "noleggio-carrozzina-pieghevole-da-transito"
+   }
+  },
+  "wheelchairs-sale": {
+   "bariatric-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-bariatrica_3.jpg",
+    "wordpressId": 9068,
+    "width": 700,
+    "height": 700,
+    "bytes": 53844,
+    "product": 16147,
+    "productSlug": "carrozzina-bariatrica-pieghevole"
+   },
+   "bobby-evo-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo3.jpg",
+    "wordpressId": 15765,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 128455,
+    "product": 15673,
+    "productSlug": "carrozzina-transito-bobby-evo"
+   },
+   "bobby-evo-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-4.jpg",
+    "wordpressId": 15763,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 123413,
+    "product": 15673,
+    "productSlug": "carrozzina-transito-bobby-evo"
+   },
+   "bobby-evo-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo2.jpg",
+    "wordpressId": 15764,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 123425,
+    "product": 15673,
+    "productSlug": "carrozzina-transito-bobby-evo"
+   },
+   "bobby-evo-4.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo3.jpg",
+    "wordpressId": 15765,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 128455,
+    "product": 15673,
+    "productSlug": "carrozzina-transito-bobby-evo"
+   },
+   "bobby-evo-5.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2026/05/bobby-evo-6.jpg",
+    "wordpressId": 15767,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 137943,
+    "product": 15673,
+    "productSlug": "carrozzina-transito-bobby-evo"
+   },
+   "folding-convertible-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-di-transito-MIA-MEDICAL-150x150-1.jpg",
+    "wordpressId": 12204,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 135478,
+    "product": 9051,
+    "productSlug": "vendita-carrozzina-pieghevole"
+   },
+   "folding-convertible-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-2.jpg",
+    "wordpressId": 12528,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 103934,
+    "product": 9051,
+    "productSlug": "vendita-carrozzina-pieghevole"
+   },
+   "folding-convertible-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-ad-autospinta-piegata-.jpg",
+    "wordpressId": 12210,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 162793,
+    "product": 9051,
+    "productSlug": "vendita-carrozzina-pieghevole"
+   },
+   "reclining-wheelchair-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-reclinabile-1-1-1.jpg",
+    "wordpressId": 12377,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 128991,
+    "product": 15877,
+    "productSlug": "vendita-carrozzina-reclinabile"
+   },
+   "reclining-wheelchair-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/schienale-reclinabile-.jpg",
+    "wordpressId": 9065,
+    "width": 450,
+    "height": 450,
+    "bytes": 21229,
+    "product": 15877,
+    "productSlug": "vendita-carrozzina-reclinabile"
+   },
+   "reclining-wheelchair-3.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 15877,
+    "productSlug": "vendita-carrozzina-reclinabile"
+   },
+   "self-propelled-folding-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/Carrozzina-ad-autospinta-pieghevole-150x150-1.jpg",
+    "wordpressId": 12209,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 103934,
+    "product": 15841,
+    "productSlug": "vendita-carrozzina-pieghevole-ad-autospinta"
+   },
+   "self-propelled-folding-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 15841,
+    "productSlug": "vendita-carrozzina-pieghevole-ad-autospinta"
+   },
+   "slim-self-propelled-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-MIA-MEDICAL-ITALIA-150x150-1.jpg",
+    "wordpressId": 12228,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 135909,
+    "product": 15835,
+    "productSlug": "vendita-carrozzina-per-disabili-piccola-ad-autospinta-slim"
+   },
+   "slim-self-propelled-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-2-MIA-MEDICAL-ITALIA-150x150-1.jpg",
+    "wordpressId": 12229,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 104802,
+    "product": 15835,
+    "productSlug": "vendita-carrozzina-per-disabili-piccola-ad-autospinta-slim"
+   },
+   "slim-transit-1.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/carrozzina-slim-transito-1-1.jpg",
+    "wordpressId": 12232,
+    "width": 1000,
+    "height": 1000,
+    "bytes": 118801,
+    "product": 15839,
+    "productSlug": "vendita-carrozzina-slim-da-transito-piccole-dimensioni"
+   },
+   "slim-transit-2.jpg": {
+    "url": "https://www.miamedicalitalia.it/wp-content/uploads/2022/12/pedane-elevabile-1.jpg",
+    "wordpressId": 12205,
+    "width": 2000,
+    "height": 2000,
+    "bytes": 314058,
+    "product": 15839,
+    "productSlug": "vendita-carrozzina-slim-da-transito-piccole-dimensioni"
+   }
+  }
+ }
+}

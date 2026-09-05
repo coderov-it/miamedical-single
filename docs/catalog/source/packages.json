@@ -1,0 +1,1821 @@
+{
+ "_source": "https://www.miamedicalitalia.it",
+ "_crawled": "2026-09-04",
+ "_note": "One entry per rental product: the duration parsed from each variation's \"Quanto costa?\" label and the price it actually charges. `source` says which figure was taken when the label and the charge disagree.",
+ "packages": {
+  "8842": [
+   {
+    "duration": 15,
+    "price": 120.0,
+    "label": "15 giorni 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 150.0,
+    "label": "30 giorni 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 200.0,
+    "label": "45 giorni 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 250.0,
+    "label": "60 giorni 250 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 315.0,
+    "label": "90 giorni 315 €",
+    "source": "charged"
+   }
+  ],
+  "8849": [
+   {
+    "duration": 15,
+    "price": 155.0,
+    "label": "15 giorni 155 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 195.0,
+    "label": "30 giorni 195 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 270.0,
+    "label": "45 giorni 270 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 330.0,
+    "label": "60 giorni 330 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 435.0,
+    "label": "90 giorni 435 €",
+    "source": "charged"
+   }
+  ],
+  "8852": [
+   {
+    "duration": 15,
+    "price": 80.0,
+    "label": "15 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 120.0,
+    "label": "30 giorni - 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 200.0,
+    "label": "60 giorni - 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 250.0,
+    "label": "90 giorni - 250€",
+    "source": "charged"
+   }
+  ],
+  "8853": [
+   {
+    "duration": 15,
+    "price": 110.0,
+    "label": "15 giorni - 110 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 180.0,
+    "label": "30 giorni 180 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 280.0,
+    "label": "60 giorni 280 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 390.0,
+    "label": "90 giorni 360 €",
+    "source": "charged"
+   }
+  ],
+  "8936": [
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 200.0,
+    "label": "20 giorni - 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 260.0,
+    "label": "30 giorni - 260€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 480.0,
+    "label": "60 giorni - 480€",
+    "source": "charged"
+   }
+  ],
+  "8939": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100€",
+    "source": "charged"
+   }
+  ],
+  "8946": [
+   {
+    "duration": 30,
+    "price": 200.0,
+    "label": "30 giorni - 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 280.0,
+    "label": "45 giorni - 280 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 350.0,
+    "label": "60 giorni - 350€",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 495.0,
+    "label": "90 giorni - 495 €",
+    "source": "charged"
+   }
+  ],
+  "8947": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25€",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "label — THE VARIATION PRICE IS 0 ON THE LIVE SITE"
+   }
+  ],
+  "8948": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni 100 €",
+    "source": "charged"
+   }
+  ],
+  "8959": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ],
+  "8988": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 32,
+    "price": 25.0,
+    "label": "32 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ],
+  "8999": [
+   {
+    "duration": 7,
+    "price": 105.0,
+    "label": "7 giorni -105€",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni -150€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 240.0,
+    "label": "30 giorni - 240€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 340.0,
+    "label": "45 giorni - 340€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 420.0,
+    "label": "60 giorni - 420 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 600.0,
+    "label": "90 giorni - 600€",
+    "source": "charged"
+   }
+  ],
+  "9034": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni 100 €",
+    "source": "charged"
+   }
+  ],
+  "9040": [
+   {
+    "duration": 7,
+    "price": 70.0,
+    "label": "7 giorni - 70 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 110.0,
+    "label": "15 giorni - 110 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 180.0,
+    "label": "30 giorni - 180€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 250.0,
+    "label": "45 giorni 250 €",
+    "source": "charged"
+   }
+  ],
+  "9045": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ],
+  "9052": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30€",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80€",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100€",
+    "source": "charged"
+   }
+  ],
+  "9073": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100€",
+    "source": "charged"
+   }
+  ],
+  "9079": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni 100 €",
+    "source": "charged"
+   }
+  ],
+  "9085": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ],
+  "9431": [
+   {
+    "duration": 15,
+    "price": 240.0,
+    "label": "15 giorni - 240 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 290.0,
+    "label": "20 giorni - 290 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 360.0,
+    "label": "30 giorni - 360€",
+    "source": "charged"
+   }
+  ],
+  "9444": [
+   {
+    "duration": 15,
+    "price": 180.0,
+    "label": "15 giorni - 180€",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 230.0,
+    "label": "20 giorni - 230 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 296.0,
+    "label": "30 giorni - 296 €",
+    "source": "charged"
+   }
+  ],
+  "9450": [
+   {
+    "duration": 7,
+    "price": 55.0,
+    "label": "7 giorni - 55€",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 64.0,
+    "label": "15 giorni - 64€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 90.0,
+    "label": "30 giorni - 90€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 120.0,
+    "label": "45 giorni - 120€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 145.0,
+    "label": "60 giorni - 145€",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 180.0,
+    "label": "90 giorni - 180€",
+    "source": "charged"
+   }
+  ],
+  "9455": [
+   {
+    "duration": 10,
+    "price": 110.0,
+    "label": "10 giorni - 110 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 20,
+    "price": 190.0,
+    "label": "20 giorni - 190 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 30,
+    "price": 220.0,
+    "label": "30 giorni - 220 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 45,
+    "price": 300.0,
+    "label": "45 giorni - 300 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 60,
+    "price": 360.0,
+    "label": "60 giorni - 360 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   }
+  ],
+  "9461": [
+   {
+    "duration": 20,
+    "price": 100.0,
+    "label": "20 giorni - 100 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 130.0,
+    "label": "30 giorni - 130 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 170.0,
+    "label": "45 giorni - 170 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 210.0,
+    "label": "60 giorni - 210 €",
+    "source": "charged"
+   }
+  ],
+  "9486": [
+   {
+    "duration": 15,
+    "price": 176.0,
+    "label": "15 giorni 176€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 231.0,
+    "label": "30 giorni - 231 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 378.0,
+    "label": "60 giorni - 378 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 490.0,
+    "label": "90 giorni - 490 €",
+    "source": "charged"
+   }
+  ],
+  "9603": [
+   {
+    "duration": 15,
+    "price": 90.0,
+    "label": "15 giorni - 90 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 140.0,
+    "label": "30 giorni - 140 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 250.0,
+    "label": "60 giorni - 240 €",
+    "source": "charged"
+   }
+  ],
+  "9611": [
+   {
+    "duration": 20,
+    "price": 100.0,
+    "label": "20 giorni - 100 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 125.0,
+    "label": "30 giorni - 125 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 160.0,
+    "label": "45 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 210.0,
+    "label": "60 giorni - 210€",
+    "source": "charged"
+   }
+  ],
+  "9699": [
+   {
+    "duration": 15,
+    "price": 90.0,
+    "label": "15 giorni 90 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 120.0,
+    "label": "30 giorni 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 160.0,
+    "label": "45 giorni 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 210.0,
+    "label": "60 giorni 210 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 290.0,
+    "label": "90 giorni 290 €",
+    "source": "charged"
+   }
+  ],
+  "9707": [
+   {
+    "duration": 7,
+    "price": 105.0,
+    "label": "7 giorni 105€",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni 150€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 240.0,
+    "label": "30 giorni 240€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 340.0,
+    "label": "45 giorni 340€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 420.0,
+    "label": "60 giorni 420 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 600.0,
+    "label": "90 giorni 600 €",
+    "source": "charged"
+   }
+  ],
+  "9724": [
+   {
+    "duration": 3,
+    "price": 90.0,
+    "label": "3 giorni - 90 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 140.0,
+    "label": "7 giorni - 140 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 225.0,
+    "label": "15 giorni - 225 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 300.0,
+    "label": "30 giorni - 300 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 360.0,
+    "label": "45 giorni -360 €",
+    "source": "charged"
+   }
+  ],
+  "11090": [
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 260.0,
+    "label": "30 giorni - 240 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 315.0,
+    "label": "45 giorni - 315 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 360.0,
+    "label": "60 giorni - 360 €",
+    "source": "charged"
+   }
+  ],
+  "11660": [
+   {
+    "duration": 20,
+    "price": 100.0,
+    "label": "20 giorni - 100 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 125.0,
+    "label": "30 giorni - 125 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 160.0,
+    "label": "45 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 210.0,
+    "label": "60 giorni - 210 €",
+    "source": "charged"
+   }
+  ],
+  "11856": [
+   {
+    "duration": 3,
+    "price": 120.0,
+    "label": "3 giorni - 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 200.0,
+    "label": "7 giorni - 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 300.0,
+    "label": "15 giorni - 300 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 490.0,
+    "label": "30 giorni - 490 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 610.0,
+    "label": "45 giorni - 610 €",
+    "source": "charged"
+   }
+  ],
+  "12120": [
+   {
+    "duration": 3,
+    "price": 90.0,
+    "label": "3 giorni - 90 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 140.0,
+    "label": "7 giorni - 140 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 225.0,
+    "label": "15 giorni - 225 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 300.0,
+    "label": "30 giorni - 300€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 360.0,
+    "label": "45 giorni -360 €",
+    "source": "charged"
+   }
+  ],
+  "12141": [
+   {
+    "duration": 15,
+    "price": 90.0,
+    "label": "15 giorni - 90 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 140.0,
+    "label": "30 giorni - 140 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 240.0,
+    "label": "60 giorni - 240 €",
+    "source": "charged"
+   }
+  ],
+  "12152": [
+   {
+    "duration": 7,
+    "price": 105.0,
+    "label": "7 giorni 105€",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni 150€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 240.0,
+    "label": "30 giorni 240€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 340.0,
+    "label": "45 giorni 340€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 420.0,
+    "label": "60 giorni 420€",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 600.0,
+    "label": "90 giorni 600€",
+    "source": "charged"
+   }
+  ],
+  "12192": [
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 200.0,
+    "label": "20 giorni - 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 260.0,
+    "label": "30 giorni - 260€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 480.0,
+    "label": "60 giorni - 480 €",
+    "source": "charged"
+   }
+  ],
+  "12308": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni- 100 €",
+    "source": "charged"
+   }
+  ],
+  "12321": [
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni 65 - €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ],
+  "12347": [
+   {
+    "duration": 15,
+    "price": 100.0,
+    "label": "15 giorni - 100 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 160.0,
+    "label": "30 giorni - 160€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 200.0,
+    "label": "45 giorni - 200€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 240.0,
+    "label": "60 giorni - 240€",
+    "source": "charged"
+   }
+  ],
+  "12361": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ],
+  "12408": [
+   {
+    "duration": 7,
+    "price": 90.0,
+    "label": "7 giorni - 90 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 130.0,
+    "label": "15 giorni - 130 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 240.0,
+    "label": "30 giorni - 240 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 315.0,
+    "label": "45 giorni - 315 €",
+    "source": "charged"
+   }
+  ],
+  "12417": [
+   {
+    "duration": 20,
+    "price": 100.0,
+    "label": "20 giorni - 100 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 30,
+    "price": 125.0,
+    "label": "30 giorni - 125 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 45,
+    "price": 160.0,
+    "label": "45 giorni - 160 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   },
+   {
+    "duration": 60,
+    "price": 210.0,
+    "label": "60 giorni - 210 €",
+    "source": "label (the charged price bundles the compulsory electrode pack)"
+   }
+  ],
+  "12465": [
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 190.0,
+    "label": "20 giorni - 190 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 260.0,
+    "label": "30 giorni - 260 €",
+    "source": "charged"
+   }
+  ],
+  "13274": [
+   {
+    "duration": 10,
+    "price": 160.0,
+    "label": "10 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 280.0,
+    "label": "20 giorni - 280 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 360.0,
+    "label": "30 giorni - 360 €",
+    "source": "charged"
+   }
+  ],
+  "14117": [
+   {
+    "duration": 3,
+    "price": 110.0,
+    "label": "3 giorni - 110 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 160.0,
+    "label": "7 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 250.0,
+    "label": "15 giorni - 250 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 390.0,
+    "label": "30 giorni - 390 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 540.0,
+    "label": "45 giorni - 540 €",
+    "source": "charged"
+   }
+  ],
+  "14191": [
+   {
+    "duration": 20,
+    "price": 120.0,
+    "label": "20 giorni - 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 150.0,
+    "label": "30 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 200.0,
+    "label": "45 giorni - 200 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 280.0,
+    "label": "60 giorni - 280 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 420.0,
+    "label": "90 giorni - 420 €",
+    "source": "charged"
+   }
+  ],
+  "14198": [
+   {
+    "duration": 20,
+    "price": 100.0,
+    "label": "20 giorni - 100 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 125.0,
+    "label": "30 giorni - 125 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 160.0,
+    "label": "45 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 210.0,
+    "label": "60 giorni - 210 €",
+    "source": "charged"
+   }
+  ],
+  "14204": [
+   {
+    "duration": 15,
+    "price": 320.0,
+    "label": "15 giorni - 320 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 420.0,
+    "label": "20 giorni - 420 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 550.0,
+    "label": "30 giorni - 550 €",
+    "source": "charged"
+   }
+  ],
+  "14542": [
+   {
+    "duration": 3,
+    "price": 110.0,
+    "label": "3 giorni - 110 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 160.0,
+    "label": "7 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 250.0,
+    "label": "15 giorni - 250 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 390.0,
+    "label": "30 giorni - 390 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 540.0,
+    "label": "45 giorni - 540 €",
+    "source": "charged"
+   }
+  ],
+  "14603": [
+   {
+    "duration": 15,
+    "price": 225.0,
+    "label": "15 giorni - 225 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 390.0,
+    "label": "30 giorni - 390 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 540.0,
+    "label": "45 giorni - 540 €",
+    "source": "charged"
+   }
+  ],
+  "14712": [
+   {
+    "duration": 20,
+    "price": 120.0,
+    "label": "20 giorni - 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 150.0,
+    "label": "30 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 225.0,
+    "label": "45 giorni - 225 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 290.0,
+    "label": "60 giorni - 290 €",
+    "source": "charged"
+   }
+  ],
+  "15053": [
+   {
+    "duration": 15,
+    "price": 130.0,
+    "label": "15 giorni 130 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 210.0,
+    "label": "30 giorni 210 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 292.0,
+    "label": "45 giorni 292 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 360.0,
+    "label": "60 giorni 360 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 450.0,
+    "label": "90 giorni 450 €",
+    "source": "charged"
+   }
+  ],
+  "15094": [
+   {
+    "duration": 3,
+    "price": 110.0,
+    "label": "3 giorni - 110 €",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 160.0,
+    "label": "7 giorni - 160 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 250.0,
+    "label": "15 giorni - 250 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 390.0,
+    "label": "30 giorni - 390 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 540.0,
+    "label": "45 giorni - 540 €",
+    "source": "charged"
+   }
+  ],
+  "15167": [
+   {
+    "duration": 15,
+    "price": 120.0,
+    "label": "15 giorni - 120 €",
+    "source": "charged"
+   },
+   {
+    "duration": 20,
+    "price": 150.0,
+    "label": "20 giorni - 150 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 180.0,
+    "label": "30 giorni - 180 €",
+    "source": "charged"
+   }
+  ],
+  "15347": [
+   {
+    "duration": 20,
+    "price": 350.0,
+    "label": "20 giorni - 350 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 465.0,
+    "label": "30 giorni - 465 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 560.0,
+    "label": "45 giorni - 560 €",
+    "source": "charged"
+   }
+  ],
+  "15557": [
+   {
+    "duration": 7,
+    "price": 105.0,
+    "label": "7 giorni -105€",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 150.0,
+    "label": "15 giorni -150€",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 240.0,
+    "label": "30 giorni - 240€",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 315.0,
+    "label": "45 giorni - 315€",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 390.0,
+    "label": "60 giorni - 390 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 540.0,
+    "label": "90 giorni - 540 €",
+    "source": "charged"
+   }
+  ],
+  "15658": [
+   {
+    "duration": 3,
+    "price": 25.0,
+    "label": "3 giorni - 25€",
+    "source": "charged"
+   },
+   {
+    "duration": 7,
+    "price": 30.0,
+    "label": "7 giorni - 30 €",
+    "source": "charged"
+   },
+   {
+    "duration": 15,
+    "price": 35.0,
+    "label": "15 giorni - 35 €",
+    "source": "charged"
+   },
+   {
+    "duration": 30,
+    "price": 50.0,
+    "label": "30 giorni - 50 €",
+    "source": "charged"
+   },
+   {
+    "duration": 45,
+    "price": 65.0,
+    "label": "45 giorni - 65 €",
+    "source": "charged"
+   },
+   {
+    "duration": 60,
+    "price": 80.0,
+    "label": "60 giorni - 80 €",
+    "source": "charged"
+   },
+   {
+    "duration": 90,
+    "price": 100.0,
+    "label": "90 giorni - 100 €",
+    "source": "charged"
+   }
+  ]
+ }
+}

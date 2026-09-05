@@ -168,3 +168,20 @@ one of four neutrals.
 | `metadata.ts` | the closing panel — identity, SEO, terms, media files       |
 | `media.ts`    | the gallery viewer and thumbnail strip                      |
 | `terms.ts`    | the terms documents page                                    |
+
+## Sending it to someone
+
+The page is self-contained — one inline `<style>`, one inline `<script>`, system
+fonts, no CDN — and it sits in the assets root next to the photos it names, so the
+whole folder is the deliverable:
+
+```sh
+tar czf ~/catalog-preview.tar.gz -C docs/assets catalog
+```
+
+~117 MB. The recipient extracts it and opens `catalog/preview.html`; no server, no
+network, no repo. Run `pnpm catalog:preview` first if the data has changed.
+
+Two products (8793, 12321) embed dimension diagrams hotlinked from `vermeiren.it`.
+Those are the only images that need the network, and they are left as the shop
+wrote them.

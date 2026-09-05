@@ -1,0 +1,1002 @@
+{
+ "_source": "https://www.miamedicalitalia.it",
+ "_crawled": "2026-09-04",
+ "_note": "The varying attributes per product. All but two have a single axis (\"Quanto costa?\"); products 9455 and 12417 add a compulsory \"Acquista gli elettrodi\" axis, which is why their electrodes are add-ons.",
+ "products": [
+  {
+   "id": 8842,
+   "slug": "noleggio-letto-ospedaliero-elettrico-incluso-di-materasso-antidecubito",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni 120 €",
+      "30 giorni 150 €",
+      "45 giorni 200 €",
+      "60 giorni 250 €",
+      "90 giorni 315 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8849,
+   "slug": "noleggio-letto-ospedaliero-elettrico-120cm-per-disabili-e-anziani-a-domicilio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni 155 €",
+      "30 giorni 195 €",
+      "45 giorni 270 €",
+      "60 giorni 330 €",
+      "90 giorni 435 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8852,
+   "slug": "sollevatore-elettrico-forfait-imbattibili",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 80 €",
+      "30 giorni - 120 €",
+      "60 giorni - 200 €",
+      "90 giorni - 250€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8853,
+   "slug": "noleggio-verticalizzatore-a-domicilio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 110 €",
+      "30 giorni 180 €",
+      "60 giorni 280 €",
+      "90 giorni 360 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8936,
+   "slug": "noleggio-kinetec-artromot-k1-ginocchio-anca-riabilitazione",
+   "varying": [
+    {
+     "name": "quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 150 €",
+      "20 giorni - 200 €",
+      "30 giorni - 260€",
+      "60 giorni - 480€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8939,
+   "slug": "noleggio-deambulatore-con-tavoletta-imbottita",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8946,
+   "slug": "letto-ortopedico-con-materasso-antidecubito-roma-firenze-300kg",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "30 giorni - 200 €",
+      "45 giorni - 280 €",
+      "60 giorni - 350€",
+      "90 giorni - 495 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8947,
+   "slug": "affitto-carrozzina-per-disabili-di-piccole-dimensioni-autospinta-slim",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25€",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8948,
+   "slug": "affitto-carrozzina-per-disabili-di-piccole-dimensioni-slim",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni 65 €",
+      "60 giorni 80 €",
+      "90 giorni 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8959,
+   "slug": "noleggio-deambulatore-in-alluminio",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8988,
+   "slug": "noleggio-rampa-pedana-per-disabili",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8999,
+   "slug": "noleggio-sedia-motorizzata-sali-scendiscale",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni -105€",
+      "15 giorni -150€",
+      "30 giorni - 240€",
+      "45 giorni - 340€",
+      "60 giorni - 420 €",
+      "90 giorni - 600€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9034,
+   "slug": "noleggio-carrozzina-reclinabile-pieghevole-roma-e-firenze",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni 65 €",
+      "60 giorni 80 €",
+      "90 giorni 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9040,
+   "slug": "noleggio-seggiolone-polifunzionale-basculante",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 70 €",
+      "15 giorni - 110 €",
+      "30 giorni - 180€",
+      "45 giorni 250 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9045,
+   "slug": "affitto-carrozzina-bariatrica-per-pazienti-obesi-bariatrica",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9052,
+   "slug": "noleggio-carrozzina-pieghevole-da-transito",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30€",
+      "15 giorni - 35€",
+      "30 giorni - 50€",
+      "45 giorni - 65€",
+      "60 giorni - 80€",
+      "90 giorni - 100€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9073,
+   "slug": "noleggio-deambulatore-con-sotto-ascellare-firenza-e-provincia-roma-e-provincia",
+   "varying": [
+    {
+     "name": "quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9079,
+   "slug": "affitto-carrozzina-pieghevole-ad-autospinta-spedizioni-in-tutta-italia",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni 65 €",
+      "60 giorni 80 €",
+      "90 giorni 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9085,
+   "slug": "noleggio-deambulatore-rollatore-in-alluminio",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9431,
+   "slug": "kinetec-elettrostimolatore-tens-o-magnetoterapia",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 240 €",
+      "20 giorni - 290 €",
+      "30 giorni - 360€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9444,
+   "slug": "noleggio-kinetec-carrozzina",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 180€",
+      "20 giorni - 230 €",
+      "30 giorni - 290 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9450,
+   "slug": "deambulatore-carrozzina",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 55€",
+      "15 giorni - 64€",
+      "30 giorni - 90€",
+      "45 giorni - 120€",
+      "60 giorni - 145€",
+      "90 giorni - 180€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9455,
+   "slug": "elettrostimolatore-e-magnetoterapia",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "10 giorni - 110 €",
+      "20 giorni - 190 €",
+      "30 giorni - 220 €",
+      "45 giorni - 300 €",
+      "60 giorni - 360 €"
+     ]
+    },
+    {
+     "name": "Acquista gli elettrodi.",
+     "taxonomy": null,
+     "terms": [
+      "Conf. 4 pz 5cm x 5cm - 8€",
+      "Conf. 4 pz 9cm x 5cm - 13 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9461,
+   "slug": "noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 100 €",
+      "30 giorni - 130 €",
+      "45 giorni - 170 €",
+      "60 giorni - 210 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9486,
+   "slug": "noleggio-deambulatore-carrozzina-e-letto",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni 176€",
+      "30 giorni - 231 €",
+      "60 giorni - 378 €",
+      "90 giorni - 490 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9603,
+   "slug": "pressoterapia-professionale-a-casa-tua",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 90 €",
+      "30 giorni - 140 €",
+      "60 giorni - 240 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9611,
+   "slug": "magnetoterapia-cemp-mag-2000",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 100 €",
+      "30 giorni - 125 €",
+      "45 giorni - 160 €",
+      "60 giorni - 210€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9699,
+   "slug": "noleggio-materasso-antidecubito-ad-alto-rischio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni 90 €",
+      "30 giorni 120 €",
+      "45 giorni 160 €",
+      "60 giorni 210 €",
+      "90 giorni 290 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9707,
+   "slug": "noleggio-montascale-elettrico-a-cingoli-per-anziani-e-disabili-a-domicilio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni 105€",
+      "15 giorni 150€",
+      "30 giorni 240€",
+      "45 giorni 340€",
+      "60 giorni 420 €",
+      "90 giorni 600 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 9724,
+   "slug": "scooter-elettrico-pieghevole-s19",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 90 €",
+      "7 giorni - 140 €",
+      "15 giorni - 225 €",
+      "30 giorni - 300 €",
+      "45 giorni -360 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 11090,
+   "slug": "noleggio-sollevatore-elettrico-con-seduta-per-il-bagno",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 150 €",
+      "30 giorni - 240 €",
+      "45 giorni - 315 €",
+      "60 giorni - 360 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 11660,
+   "slug": "magnetoterapia-cemp-magnum-2500",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 100 €",
+      "30 giorni - 125 €",
+      "45 giorni - 160 €",
+      "60 giorni - 210 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 11856,
+   "slug": "scooter-elettrico-maximo-a-noleggio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 120 €",
+      "7 giorni - 200 €",
+      "15 giorni - 300 €",
+      "30 giorni - 490 €",
+      "45 giorni - 610 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12120,
+   "slug": "scooter-elettrico-pieghevole-con-braccioli-deluxe",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 90 €",
+      "7 giorni - 140 €",
+      "15 giorni - 225 €",
+      "30 giorni - 300€",
+      "45 giorni -360 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12141,
+   "slug": "noleggio-pressoterapia-professionale",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 90 €",
+      "30 giorni - 140 €",
+      "60 giorni - 240 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12152,
+   "slug": "noleggio-montascale-a-ruote-roma-e-firenze",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni 105€",
+      "15 giorni 150€",
+      "30 giorni 240€",
+      "45 giorni 340€",
+      "60 giorni 420€",
+      "90 giorni 600€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12192,
+   "slug": "noleggio-kinetec-cpm-advance-ginocchio-anca",
+   "varying": [
+    {
+     "name": "quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 150 €",
+      "20 giorni - 200 €",
+      "30 giorni - 260€",
+      "60 giorni - 480 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12308,
+   "slug": "noleggio-deambulatore-rollatore-in-alluminio-2",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12321,
+   "slug": "noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni 65 - €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12347,
+   "slug": "noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 100 €",
+      "30 giorni - 160€",
+      "45 giorni - 200€",
+      "60 giorni - 240€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12361,
+   "slug": "noleggio-rampa-e-pedane-corta-per-disabili",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25 €",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12408,
+   "slug": "noleggio-seggiolone-polifunzionale-basculante-elettrico",
+   "varying": [
+    {
+     "name": "Quanto costa ?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni - 90 €",
+      "15 giorni - 130 €",
+      "30 giorni - 240 €",
+      "45 giorni - 315 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12417,
+   "slug": "noleggio-tens-elettrostimolatore-globus-premium-400",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 100 €",
+      "30 giorni - 125 €",
+      "45 giorni - 160 €",
+      "60 giorni - 210 €"
+     ]
+    },
+    {
+     "name": "Acquista gli elettrodi .",
+     "taxonomy": null,
+     "terms": [
+      "Conf. 4 pz 5cm x 5cm - 8€",
+      "Conf. 4 pz 5cm x 9cm - 13€"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 12465,
+   "slug": "noleggio-cryoterapia-compressiva-cryopush",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 150 €",
+      "20 giorni - 190 €",
+      "30 giorni - 260 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 13274,
+   "slug": "noleggio-crioterapia-a-compressione-cryopush",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "10 giorni - 160 €",
+      "20 giorni - 280 €",
+      "30 giorni - 360 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14117,
+   "slug": "scooter-elettrico-one-a-noleggio-per-disabili-ed-anziani",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 110 €",
+      "7 giorni - 160 €",
+      "15 giorni - 250 €",
+      "30 giorni - 390 €",
+      "45 giorni - 540 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14191,
+   "slug": "noleggio-ultrasuono-globus-medisound-3000",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 120 €",
+      "30 giorni - 150 €",
+      "45 giorni - 200 €",
+      "60 giorni - 280 €",
+      "90 giorni - 420 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14198,
+   "slug": "noleggio-magnetocemp-elite-globus",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 100 €",
+      "30 giorni - 125 €",
+      "45 giorni - 160 €",
+      "60 giorni - 210 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14204,
+   "slug": "noleggio-kinetec-ginocchio-e-crioterapia",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 320 €",
+      "20 giorni - 420 €",
+      "30 giorni - 550 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14542,
+   "slug": "carrozzina-elettrica-superwheel-a-noleggio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 110 €",
+      "7 giorni - 160 €",
+      "15 giorni - 250 €",
+      "30 giorni - 390 €",
+      "45 giorni - 540 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14603,
+   "slug": "verticalizzatore-attivo-albatros-2-a-noleggio",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 225 €",
+      "30 giorni - 390 €",
+      "45 giorni - 540 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 14712,
+   "slug": "magnetoterapia-therapist-150-plus",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 120 €",
+      "30 giorni - 150 €",
+      "45 giorni - 225 €",
+      "60 giorni - 290 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15053,
+   "slug": "materasso-antidecubito-hospital-care-xl",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni 130 €",
+      "30 giorni 210 €",
+      "45 giorni 292 €",
+      "60 giorni 360 €",
+      "90 giorni 450 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15094,
+   "slug": "noleggio-carrozzina-elettrica-fantastica",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 110 €",
+      "7 giorni - 160 €",
+      "15 giorni - 250 €",
+      "30 giorni - 390 €",
+      "45 giorni - 540 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15167,
+   "slug": "noleggio-cryo-cuff",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "15 giorni - 120 €",
+      "20 giorni - 150 €",
+      "30 giorni - 180 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15347,
+   "slug": "noleggio-criomagnetoterapia",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "20 giorni - 350 €",
+      "30 giorni - 465 €",
+      "45 giorni - 560 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15557,
+   "slug": "noleggio-montascale-per-carrozzine-easystep",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "7 giorni -105€",
+      "15 giorni -150€",
+      "30 giorni - 240€",
+      "45 giorni - 315€",
+      "60 giorni - 390 €",
+      "90 giorni - 540 €"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 15658,
+   "slug": "noleggio-carrozzina-transito-bobby",
+   "varying": [
+    {
+     "name": "Quanto costa?",
+     "taxonomy": null,
+     "terms": [
+      "3 giorni - 25€",
+      "7 giorni - 30 €",
+      "15 giorni - 35 €",
+      "30 giorni - 50 €",
+      "45 giorni - 65 €",
+      "60 giorni - 80 €",
+      "90 giorni - 100 €"
+     ]
+    }
+   ]
+  }
+ ]
+}
