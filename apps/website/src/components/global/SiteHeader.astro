@@ -3,7 +3,7 @@
  * Sticky site header — the editorial design system's quiet, typographic bar,
  * ported 1:1 from docs/blueprint/home.html with Tailwind utilities.
  *
- * Anatomy: text brand · plain-text nav (≥720px) · green phone pill · three
+ * Anatomy: image brand · plain-text nav (≥720px) · green phone pill · three
  * ink-tile icons (search, cart with badge, account). No pills, no hamburger —
  * below 720px navigation belongs to MobileNav's bottom bar.
  *
@@ -140,11 +140,18 @@ const headerIconClass =
     ]}
   >
     <a
-      class="mid:max-wide:text-[0.9375rem] flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] no-underline"
+      class="flex-none no-underline"
       href={routePath(locale, 'home')}
       aria-label={text('header.brand')}
     >
-      MIA-MEDICAL
+      <img
+        class="mid:h-6.5 wide:h-8 h-6 w-auto"
+        src="/img/logo.png"
+        width="2058"
+        height="361"
+        alt=""
+        decoding="async"
+      />
     </a>
 
     <nav

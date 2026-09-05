@@ -1,4 +1,4 @@
-![M.i.a. Medical Italia — moving in autonomy](docs/assets/readme-banner.png)
+![Mia Medical — moving in autonomy](docs/assets/readme-banner.png)
 
 # Mia Medical — E-commerce Monorepo
 
