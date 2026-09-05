@@ -12,8 +12,8 @@
  * one trade:
  *
  *   search  hidden ≥720   the tab bar has four slots and the type floor keeps
- *                         it to four; search gives up its slot to Noleggio and
- *                         Vendita and comes up here, where the reference has it
+ *                         it to four, so search never gets one; it comes up
+ *                         here instead, where the reference has it too
  *   phone   hidden <720   its replacement, and the reason the swap is even —
  *                         the support launcher is pinned to every phone screen
  *                         with the same number one tap inside it
@@ -184,8 +184,8 @@ const headerIconClass =
         */
       }
       {
-        /* Phones only: the tab bar spent its search slot on Noleggio/Vendita,
-           so typed search lives here — the reference's own arrangement. */
+        /* Phones only: search has no slot in the four-tab bar, so typed
+           search lives here — the reference's own arrangement. */
       }
       <a
         class:list={[headerIconClass, 'mid:hidden']}

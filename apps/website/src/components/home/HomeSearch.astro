@@ -1,0 +1,155 @@
+---
+/**
+ * The search card — the white bar straddling the hero's bottom edge.
+ *
+ * ONE FIELD, NOT FOUR SEGMENTS (owner, 2026-09-05, following the reference
+ * site's own change). It used to collect a query, a delivery zone, a start date
+ * and a fuzzy duration before the customer had chosen anything; three of those
+ * were carried context that nothing filtered on, and the product page collects
+ * the dates properly anyway. What replaces them is a search field that suggests
+ * as you type, and — for the customer who cannot name what they need — a line
+ * pointing at the guided selector, with the phone number beside it.
+ *
+ * ⚠️ `area` and `for` LOST THEIR ONLY PRODUCER with those segments. Both are
+ * still plumbed end to end (routes.ts § BrowseContext) and every consumer was
+ * already written to work without them — the product page simply prints no
+ * delivery city. `from` is unaffected: the search page collects it. Restoring
+ * the zone selector is adding a producer, not re-plumbing the funnel.
+ *
+ * Rendered by `HomeHero`, not by the page: the overlap is part of the hero's
+ * composition, and there is exactly one search bar on the site.
+ *
+ * A native GET form landing on the SEARCH page, not the catalogue (owner,
+ * 2026-08-30): the customer has typed a query, and search is the one surface
+ * that answers a typed one — it owns the sort, the category filter and the
+ * result count. The suggestion list is a shortcut past it, never a replacement:
+ * with no JavaScript the field still submits here.
+ *
+ * ------------------------------------------------------------------ mobile ---
+ *
+ * The card's frame goes below `mid`: this becomes a white band ruled off the
+ * hero, not a card floating on a grey field. The submit stands down with it and
+ * becomes the round icon button inside the field's right end — a search box
+ * whose only way forward is the keyboard's Go key is a silent block in a new
+ * costume. The "not sure?" line stacks under the field rather than beside it.
+ */
+import SearchSuggest from '~/components/primitives/SearchSuggest.astro';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
+import type { SuggestItem } from '~/lib/search-suggest';
+import { CONTACT } from '~/lib/site';
+
+interface Props {
+  /** Categories and products the field suggests from. Empty disables the list. */
+  items: SuggestItem[];
+}
+
+const { items } = Astro.props;
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+---
+
+<section
+  class="mid:rounded-[var(--radius-bar)] mid:border mid:border-[var(--color-line)] mid:px-6 mid:pt-5.5 mid:pb-6 mid:shadow-[var(--shadow-whisper)] max-mid:border-b max-mid:border-[var(--color-line)] max-mid:px-gutter max-mid:pt-4 max-mid:pb-4.5 relative bg-white"
+  aria-labelledby="home-search-title"
+>
+  <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+    <h2
+      class="mid:text-[clamp(1.25rem,2vw,1.5rem)] mid:tracking-[-0.02em] max-mid:text-base max-mid:mb-2 font-bold"
+      id="home-search-title"
+    >
+      {text('home.search.title')}
+    </h2>
+    <p class="max-mid:hidden text-sm text-[var(--color-ink-soft)]">{text('home.search.note')}</p>
+  </div>
+
+  <form
+    class="mid:mt-4 max-mid:relative flex gap-3 text-left"
+    method="get"
+    action={routePath(locale, 'search')}
+    role="search"
+    aria-label={text('home.search.formLabel')}
+  >
+    <SearchSuggest
+      id="home-search-q"
+      label={text('home.search.label')}
+      placeholder={text('home.search.placeholder')}
+      {items}
+      endInset="max-mid:pe-13"
+    />
+
+    {/* Inside the field's right end on a phone, its own column on desktop. */}
+    <button
+      class="mid:min-h-15 mid:gap-2.5 mid:rounded-[var(--radius-control)] mid:px-8 mid:relative mid:inset-auto max-mid:absolute max-mid:end-2 max-mid:top-2 max-mid:size-10 max-mid:min-h-10 max-mid:min-w-10 max-mid:rounded-field max-mid:px-0 inline-flex flex-none items-center justify-center border-0 bg-[var(--color-accent)] text-[1.0625rem] font-semibold text-white hover:bg-[var(--color-accent-deep)]"
+      type="submit"
+    >
+      <svg
+        class="mid:hidden size-4.5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="6.5"></circle>
+        <path d="m20 20-4.2-4.2"></path>
+      </svg>
+      <span class="max-mid:sr-only">{text('home.search.submit')}</span>
+    </button>
+  </form>
+
+  {
+    /* The other way in. A customer who cannot name the aid is exactly who the
+       guided selector is for, and this is the moment they find out they cannot
+       name it — so the offer belongs under the empty field, not in a nav. */
+  }
+  <div
+    class="mid:flex-row mid:items-center mid:gap-4 mid:mt-3.5 mt-3 flex flex-col items-start gap-2.5"
+  >
+    <a
+      class="rounded-field border-hair hover:bg-accent-tint max-mid:w-full inline-flex min-h-12 items-center gap-2.5 border px-3.5 text-[0.9375rem] no-underline hover:border-accent"
+      href={routePath(locale, 'productFinder')}
+    >
+      <svg
+        class="size-5 flex-none text-accent"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="m15.5 8.5-2 5-5 2 2-5Z"></path>
+      </svg>
+      <span class="text-[var(--color-ink-soft)]">{text('home.search.unsure')}</span>
+      <span class="font-ui font-semibold text-accent">{text('home.search.unsureAction')}</span>
+    </a>
+
+    <p class="max-mid:hidden text-sm text-[var(--color-ink-soft)]">{text('home.search.or')}</p>
+
+    <a
+      class="font-ui text-ink inline-flex min-h-12 items-center gap-2 text-[1.0313rem] font-semibold tabular-nums no-underline hover:text-[var(--color-accent)]"
+      href={`tel:${CONTACT.phoneE164}`}
+      data-analytics="phone-call"
+    >
+      <svg
+        class="size-4.5 flex-none text-[var(--color-phone-ink)]"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
+        ></path>
+      </svg>
+      {CONTACT.phoneDisplay}
+    </a>
+  </div>
+</section>
