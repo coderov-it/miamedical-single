@@ -29,6 +29,7 @@
  * editorial bands paint their own grounds and stack against each other, so a
  * muted field behind them would be one ground too many.
  */
+import FinderEntry from '~/components/global/FinderEntry.astro';
 import HomeCategoryGrid from '~/components/home/HomeCategoryGrid.astro';
 import HomeFaq from '~/components/home/HomeFaq.astro';
 import HomeHero from '~/components/home/HomeHero.astro';
@@ -123,6 +124,14 @@ const jsonLd = [
       products={forSale}
     />
     <HomeCategoryGrid categories={categoryCards} />
+    {
+      /* After the categories, not before: someone who found their category in
+        the grid above never needs this, and someone who did not just proved
+        they need it. */
+    }
+    <div class="max-w-page px-gutter mx-auto w-full pt-[clamp(28px,3vw,44px)]">
+      <FinderEntry />
+    </div>
     <HomeReviews />
     <HomeFaq />
     <HomeSpeakToPerson />

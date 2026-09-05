@@ -3,7 +3,7 @@
  * The product card — one component for every grid and rail on the site.
  *
  * FOUR PARTS, in the owner's own design (2026-08-31, chosen over the reference
- * site's card): an inset tint well for the photo, a quiet two-line name, ONE
+ * site's card): a full-width 3:2 tint well for the photo, a quiet two-line name, ONE
  * loud dark price, and one soft accent action. Nothing else — no blurb, no spec
  * chips, no divider rule, no availability dot. Those were the five competing
  * blocks that made a grid of these read as cluttered; the shortlist is the
@@ -108,8 +108,31 @@ const actionClass =
   ]}
   href={href}
 >
+  {
+    /* THE WELL IS THE CARD'S FULL WIDTH AT THE HOUSE 3:2, and both halves of
+       that matter (owner, 2026-09-05).
+
+       It used to be `h-46 w-auto` under the `self-center` the phone row needs,
+       and in a flex column that combination shrink-wraps: the well collapsed to
+       whatever the PHOTO measured, so a 500×500 product sat in a 184px tint
+       square inside a 383px card and every card in a row had a differently
+       sized well. `mid:self-stretch` undoes the phone row's centring and
+       `mid:w-full` states the width rather than leaving it to be inferred.
+
+       3:2 is the aspect product photos are shot at and the one HomeShowcase
+       uses. Anything that is not 3:2 letterboxes inside it — `object-contain`,
+       never `cover`: cropping a wheelchair to fill a box is exactly what the
+       media rule forbids.
+
+       `mid:min-h-0` is what makes the aspect stick. The well is a flex item in
+       the card's column, so it carries `min-height: auto` — its automatic
+       minimum is the photo's own height, and a 500×500 thumbnail at 325px wide
+       demanded 325px, overruling the 235px the ratio asked for and making the
+       well square again. Without this line `aspect-3/2` computes and then loses
+       silently. */
+  }
   <span
-    class="bg-tint mid:h-46 mid:w-auto mid:p-3.5 max-mid:[grid-area:1/1/3/2] max-mid:size-(--spacing-row-photo) block h-38 flex-none self-center rounded-[14px] p-1.5"
+    class="bg-tint mid:aspect-3/2 mid:h-auto mid:min-h-0 mid:w-full mid:self-stretch mid:p-3.5 max-mid:[grid-area:1/1/3/2] max-mid:size-(--spacing-row-photo) block h-38 flex-none self-center rounded-[14px] p-1.5"
   >
     {
       product.thumbnail && (

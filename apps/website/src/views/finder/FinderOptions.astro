@@ -1,0 +1,119 @@
+---
+/**
+ * One question of the guided selector: a heading, a hint, and the answers.
+ *
+ * EVERY ANSWER IS A LINK to the next state of the flow. One tap is one step —
+ * there is no "next" button to press afterwards, because a second tap to
+ * confirm a choice this page can act on immediately is a tap spent on nothing.
+ * That also means nothing here can be disabled and nothing can silently
+ * return: a link always goes somewhere (CLAUDE.md § form gates).
+ *
+ * ON A PHONE AN ANSWER IS A FULL-WIDTH ROW — photo, text, chevron — and above
+ * `mid` it is a card in a three-column grid. The same four children in both,
+ * placed by CSS, so there is only ever one option component to change; the
+ * pattern and the reasons are ProductCard's, written up in
+ * docs/code/storefront-mobile.md.
+ *
+ * The photo is optional and only the first question has one: "in casa" and
+ * "poche settimane" have nothing to picture, and an empty well beside them
+ * would read as a photo that failed to load.
+ */
+import { mediaUrl } from '~/lib/api';
+import { localeForRequest, translate } from '~/lib/i18n';
+import type { FinderOption } from '~/lib/product-finder';
+
+interface Props {
+  /** i18n key stem — `finder.q.activity` names both the question and its hint. */
+  questionKey: string;
+  options: FinderOption[];
+}
+
+const { questionKey, options } = Astro.props;
+const locale = localeForRequest();
+const hasImages = options.some((option) => option.imagePath);
+---
+
+<section aria-labelledby="finder-question">
+  <h2 class="font-ui text-[clamp(1.25rem,2vw,1.4375rem)]/[1.3] font-bold" id="finder-question">
+    {translate(locale, questionKey)}
+  </h2>
+  <p class="text-ink-2 mt-1.5 text-[1.0625rem]/[1.5]">{translate(locale, `${questionKey}.hint`)}</p>
+
+  <ul
+    class:list={[
+      'mid:gap-3.5 max-mid:gap-2.5 mt-5 grid list-none grid-cols-1 p-0',
+      /* Three across is the reference's grid. Two at `mid` keeps a 17px label
+         off two lines on a narrow laptop, where three columns are ~200px. */
+      'wide:grid-cols-3 mid:grid-cols-2',
+    ]}
+  >
+    {
+      options.map((option) => (
+        <li class="flex">
+          <a
+            class:list={[
+              'group/option border-hair rounded-card w-full min-w-0 border bg-white no-underline hover:border-accent',
+              /* Desktop: photo beside a text column, both centred in the card. */
+              'mid:flex mid:min-h-25 mid:items-center mid:gap-4 mid:p-4',
+              /* Phone: the ProductCard row — photo, text, chevron.
+
+                 THE TEMPLATE FOLLOWS THE QUESTION. The text has to be the
+                 `1fr` column or the chevron stops being right-aligned: with a
+                 three-column template and only two children, the text lands in
+                 the leading `auto` column and the chevron takes the flexible
+                 one, which parks it against the text with the rest of the row
+                 empty beside it. "Dove" and "Durata" have no photos, so they
+                 get the two-column template. */
+              'max-mid:grid max-mid:items-center max-mid:gap-x-3.5 max-mid:p-3.5',
+              hasImages
+                ? 'max-mid:grid-cols-[auto_minmax(0,1fr)_auto]'
+                : 'max-mid:grid-cols-[minmax(0,1fr)_auto]',
+            ]}
+            href={option.href}
+          >
+            {option.imagePath ? (
+              /* The art sits straight on the card, as it does on CategoryTile:
+                 the category icons carry their own white ground, so a tint well
+                 here would frame a white rectangle in a grey box.
+                 `mix-blend-multiply` makes that ground disappear into the card. */
+              <span class="mid:size-18 max-mid:size-16 block flex-none">
+                <img
+                  class="block size-full object-contain mix-blend-multiply"
+                  src={mediaUrl(option.imagePath)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+            ) : (
+              /* Holds the grid column open on a phone so a question with no
+                 photos still lines its text up with one that has them. */
+              hasImages && <span class="mid:size-18 max-mid:size-16 block flex-none" />
+            )}
+
+            <span class="block min-w-0">
+              <span class="font-ui text-ink block text-[1.0625rem]/[1.3] font-bold group-hover/option:text-accent">
+                {option.label}
+              </span>
+              <span class="text-ink-2 mt-1 block text-base/[1.4]">{option.hint}</span>
+            </span>
+
+            {/* The affordance a row needs and a card does not. */}
+            <svg
+              class="text-ink-decorative mid:hidden size-5 flex-none group-hover/option:text-accent"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m9 6 6 6-6 6" />
+            </svg>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
