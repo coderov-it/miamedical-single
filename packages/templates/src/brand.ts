@@ -1,15 +1,15 @@
 /**
  * Who the message is from, as text.
  *
- * Deliberately not an image. `apps/website/public/img/logo.svg` is the real mark, but
+ * Deliberately not an image. `apps/website/public/img/logo.png` is the real mark, but
  * SVG is unsupported in Gmail, Outlook and Apple Mail — it is stripped, leaving a gap —
  * and even a PNG is blocked by default in Outlook desktop until the reader clicks
  * "download pictures". A transactional email has to be recognisable in the half second
  * before that, so the wordmark is set in type: it always renders, costs no request, and
  * survives a dark-mode inversion.
  *
- * `name` matches the logo's own reading of the name, dots included, so the email and
- * the site do not appear to come from two different companies.
+ * `name` remains the formal sender name used on transactional and contract documents;
+ * the public logo uses the shorter "Mia Medical" brand.
  */
 export const BRAND = {
   name: 'M.i.a. Medical Italia',
