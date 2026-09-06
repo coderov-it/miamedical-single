@@ -12,13 +12,13 @@
   },
   "dependencies": {
     "@mia/pricing": "workspace:*",
-    "sanitize-html": "^2.17.6",
+    "sanitize-html": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",
     "@types/node": "catalog:",
-    "@types/sanitize-html": "^2.16.1",
+    "@types/sanitize-html": "catalog:",
     "typescript": "catalog:"
   }
 }
