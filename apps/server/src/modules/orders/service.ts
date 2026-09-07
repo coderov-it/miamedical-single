@@ -51,6 +51,7 @@ import type {
   PlacedOrder,
 } from './types.ts';
 import type { AdminUpdateOrderInput } from './validators.ts';
+import { SOURCE_LANGUAGE } from '@mia/db/schema';
 
 export async function list(
   db: Database,
@@ -269,7 +270,7 @@ async function loadProduct(db: Database, slug: string, field: string) {
     });
   }
 
-  return toPublicDetail(product, 'it');
+  return toPublicDetail(product, SOURCE_LANGUAGE);
 }
 
 /**

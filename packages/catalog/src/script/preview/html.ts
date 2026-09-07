@@ -26,6 +26,7 @@
  * file wrote — nothing here rounds, and nothing here is written back.
  */
 import type { Localized } from '../../lib/types.ts';
+import { LANGUAGE_CODES, languageOf, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 const ENTITIES: Record<string, string> = {
   '&': '&amp;',
@@ -49,22 +50,38 @@ export const decimal = (value: number): string => DECIMAL.format(value);
 
 /** Both languages, `data-lang` tagged. `tag` is the element to wrap each in. */
 export function localized(value: Localized, tag = 'span'): string {
-  const italian = `<${tag} data-lang="it">${escape(value.it)}</${tag}>`;
-  if (!value.en)
-    return `${italian}<${tag} data-lang="en" class="untranslated" title="No English written — showing Italian">${escape(value.it)}</${tag}>`;
-  return `${italian}<${tag} data-lang="en">${escape(value.en)}</${tag}>`;
+  const source = languageOf(SOURCE_LANGUAGE).label;
+  return LANGUAGE_CODES.map((code) => {
+    const text = value[code];
+    if (code === SOURCE_LANGUAGE || (text !== undefined && text !== '')) {
+      return `<${tag} data-lang="${code}">${escape(text ?? value[SOURCE_LANGUAGE])}</${tag}>`;
+    }
+    const label = languageOf(code).label;
+    return `<${tag} data-lang="${code}" class="untranslated" title="No ${label} written — showing ${source}">${escape(value[SOURCE_LANGUAGE])}</${tag}>`;
+  }).join('');
 }
 
-/** The same for authored markup — a `description`, a terms `body`. */
-export function localizedRich(it: string, en: string | undefined): string {
-  const italian = `<div class="rich" data-lang="it">${richText(it)}</div>`;
-  if (!en)
-    return `${italian}<div class="rich untranslated" data-lang="en">${richText(it)}<p class="untranslated-note">No English written — showing Italian.</p></div>`;
-  return `${italian}<div class="rich" data-lang="en">${richText(en)}</div>`;
+/**
+ * The same for authored markup — a `description`, a terms `body`.
+ *
+ * Takes the whole localized value rather than a `(it, en)` pair: a positional
+ * pair is one parameter per language, which is exactly what made the third
+ * language a change to every caller.
+ */
+export function localizedRich(value: Localized): string {
+  const source = languageOf(SOURCE_LANGUAGE).label;
+  return LANGUAGE_CODES.map((code) => {
+    const text = value[code];
+    if (code === SOURCE_LANGUAGE || (text !== undefined && text !== '')) {
+      return `<div class="rich" data-lang="${code}">${richText(text ?? value[SOURCE_LANGUAGE])}</div>`;
+    }
+    const label = languageOf(code).label;
+    return `<div class="rich untranslated" data-lang="${code}">${richText(value[SOURCE_LANGUAGE])}<p class="untranslated-note">No ${label} written — showing ${source}.</p></div>`;
+  }).join('');
 }
 
-/** Italian only, for a `title=` attribute or a `document.title`. */
-export const plain = (value: Localized): string => value.it;
+/** Source language only, for a `title=` attribute or a `document.title`. */
+export const plain = (value: Localized): string => value[SOURCE_LANGUAGE];
 
 export const code = (text: string): string => `<code>${escape(text)}</code>`;
 

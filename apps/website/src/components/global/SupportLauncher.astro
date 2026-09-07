@@ -28,7 +28,7 @@
  */
 import { localeForRequest, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
-import { CONTACT, whatsappUrl } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY, whatsappUrl } from '~/lib/site';
 
 const locale = localeForRequest();
 const text = (key: string) => translate(locale, key);
@@ -66,7 +66,7 @@ const itemClass =
     class="rounded-card border-hair absolute right-0 bottom-[calc(100%+10px)] w-max max-w-[min(20rem,calc(100vw-32px))] min-w-60 border bg-white p-2.5 shadow-lg"
   >
     <p class="font-display text-ui text-ink-2 px-3.5 pt-2 pb-1.5 font-semibold">
-      {CONTACT.hours[locale]}
+      {translate(locale, CONTACT_HOURS_KEY)}
     </p>
 
     <a

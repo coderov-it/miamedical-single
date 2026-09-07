@@ -30,6 +30,7 @@
   import { Reorder } from '~/lib/reorder.svelte';
   import type { ChipEdit } from './shared';
   import { MAX_CHIP_LENGTH, MAX_CHIPS } from './shared';
+  import { languageOf, setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
 
   interface Props {
     items: ChipEdit[];
@@ -45,14 +46,13 @@
   /** Past this, a chip is close enough to the card's crop to warn about it. */
   const LONG_ENOUGH = 16;
 
-  const textOf = (chip: ChipEdit) => (lang === 'it' ? chip.text.it : (chip.text.en ?? ''));
+  const isSource = $derived(lang === SOURCE_LANGUAGE);
+  const textOf = (chip: ChipEdit) => textFor(chip.text, lang);
 
-  function setText(chip: ChipEdit, value: string) {
-    // Empty English is `undefined`, not `''` — that is what makes the chip fall
-    // back to Italian on the storefront instead of rendering blank.
-    if (lang === 'it') chip.text.it = value;
-    else chip.text.en = value || undefined;
-  }
+  // `setTextFor` keeps an emptied target language `undefined` rather than `''` —
+  // that is what makes the chip fall back to the source language on the
+  // storefront instead of rendering blank.
+  const setText = (chip: ChipEdit, value: string) => setTextFor(chip.text, lang, value);
 
   const reorder = new Reorder();
 
@@ -109,7 +109,9 @@
               type="text"
               value={text}
               maxlength={MAX_CHIP_LENGTH}
-              placeholder={lang === 'en' ? chip.text.it || 'Short claim' : 'Short claim'}
+              placeholder={isSource
+                ? 'Short claim'
+                : textFor(chip.text, SOURCE_LANGUAGE) || 'Short claim'}
               class="pr-13"
               aria-label="Chip {index + 1}"
               aria-invalid={error ? 'true' : undefined}
@@ -178,8 +180,8 @@
   <p class="mt-1.5 text-xs text-muted-foreground">
     {#if items.length === 0}
       No chips — the card and the product page fall back to comparable specs.
-    {:else if lang === 'en'}
-      Blank English chips fall back to the Italian text.
+    {:else if !isSource}
+      Blank {languageOf(lang).label} chips fall back to the {languageOf(SOURCE_LANGUAGE).label} text.
     {:else}
       Shown in this order on the card and the product page.
     {/if}

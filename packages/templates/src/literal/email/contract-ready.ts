@@ -1,3 +1,5 @@
+import type { ContractLanguage } from '../contract/language.ts';
+
 import { button } from './component/button.ts';
 import { footer } from './component/footer.ts';
 import { header } from './component/header.ts';
@@ -12,7 +14,7 @@ export function contractReady(input: {
   /** Null for manual contracts, which have no storefront order behind them. */
   orderNumber: string | null;
   signingUrl: string;
-  language: 'it' | 'en';
+  language: ContractLanguage;
 }): EmailMessage {
   if (input.language === 'en') {
     const subject = `Your contract ${input.contractNumber} is ready for signing`;

@@ -12,7 +12,7 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import type { TermsDocument } from '~/lib/catalog';
 import { localeForRequest, localeTag, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
-import { CONTACT } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 
 interface Props {
   /** `null` when the document exists as a route but is not published yet. */
@@ -65,7 +65,7 @@ const effectiveDate = document?.publishedAt
         ) : (
           <div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
             <p>{text('legal.unpublished')}</p>
-            <p class="text-ui text-ink-2">{CONTACT.hours[locale]}</p>
+            <p class="text-ui text-ink-2">{translate(locale, CONTACT_HOURS_KEY)}</p>
             <PhoneCta variant="primary" />
             <p>
               {text('legal.orWriteTo')}{' '}

@@ -7,6 +7,12 @@
       "skillPath": "skills/better-plan/SKILL.md",
       "computedHash": "c1ad6ca9a4a78d6fa403ad2c051bb205ca2e7a53ce368e58be84712857450f95"
     },
+    "design-control-loop": {
+      "source": "humanlayer/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/design-control-loop/skills/design-control-loop/SKILL.md",
+      "computedHash": "b71362e3506b6d44308feb0391a0c7ad982eba578201ca3c8aa414c912724c8a"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
@@ -18,6 +24,18 @@
       "sourceType": "github",
       "skillPath": ".agents/skills/git-commit/SKILL.md",
       "computedHash": "9f432f24a5838c5c9d3c3632e0ed69e2ab5b4d151028304a99e400031bd570bf"
+    },
+    "improve-claude-md": {
+      "source": "humanlayer/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/improve-claude-md/skills/improve-claude-md/SKILL.md",
+      "computedHash": "a93226f53ffa6a2599c89fb983f3aed00c843c04071a7aa59ee3365141619d25"
+    },
+    "show-me": {
+      "source": "humanlayer/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/show-me/skills/show-me/SKILL.md",
+      "computedHash": "de32a72f802801f08a84641b467f2c6306d35a58ce5e59ea607ac3a993a18c91"
     }
   }
 }

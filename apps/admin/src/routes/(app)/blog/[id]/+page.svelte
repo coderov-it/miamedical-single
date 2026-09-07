@@ -14,7 +14,6 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
-  import * as Tabs from '$lib/components/ui/tabs/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
@@ -25,6 +24,19 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
+  import TranslationGaps from '~/lib/components/translation-gaps.svelte';
+  import { provideContentLang } from '~/lib/content-lang.svelte';
+  import {
+    buildTranslations,
+    languageOf,
+    localizedFrom,
+    type LocalizedValue,
+    progressAcross,
+    setTextFor,
+    SOURCE_LANGUAGE,
+    textFor,
+  } from '~/lib/i18n';
 
   type BlogPost = InferResponseType<(typeof api.api.admin.blog)[':id']['$get'], 200>['data'];
 
@@ -41,45 +53,39 @@
   const canPublish = $derived(session.can(P.BLOG_PUBLISH));
 
   let busy = $state<string | null>(null);
-  let lang = $state<'it' | 'en'>('it');
+  /**
+   * One `LocalizedValue` per field, not one `$state` per field PER LANGUAGE.
+   *
+   * The editor used to hold `title`/`titleEn`, `slug`/`slugEn` … and render a
+   * duplicated `<Tabs.Content>` for each language — so a third language meant
+   * six more variables and a third copy of every input. Now the switcher moves
+   * `lang` and the same inputs read and write through `textFor`/`setTextFor`.
+   */
+  const contentLang = provideContentLang();
+  const lang = $derived(contentLang.current);
+  const isSource = $derived(lang === SOURCE_LANGUAGE);
 
-  let title = $state('');
-  let slug = $state('');
-  let body = $state('');
-  let excerpt = $state('');
-  let metaTitle = $state('');
-  let metaDescription = $state('');
+  let title = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
+  let slug = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
+  let body = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
+  let excerpt = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
+  let metaTitle = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
+  let metaDescription = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
 
-  let titleEn = $state('');
-  let slugEn = $state('');
-  let bodyEn = $state('');
-  let excerptEn = $state('');
-  let metaTitleEn = $state('');
-  let metaDescriptionEn = $state('');
+  /** A post counts as translated once it has a title, slug and body. */
+  const progress = $derived(progressAcross([title, slug, body]));
 
   let featuredImage = $state('');
 
   $effect(() => {
     const p = post.data;
     if (!p) return;
-    const it = p.translations?.it;
-    if (it) {
-      title = it.title;
-      slug = it.slug;
-      body = it.body;
-      excerpt = it.excerpt ?? '';
-      metaTitle = it.metaTitle ?? '';
-      metaDescription = it.metaDescription ?? '';
-    }
-    const en = p.translations?.en;
-    if (en) {
-      titleEn = en.title;
-      slugEn = en.slug;
-      bodyEn = en.body;
-      excerptEn = en.excerpt ?? '';
-      metaTitleEn = en.metaTitle ?? '';
-      metaDescriptionEn = en.metaDescription ?? '';
-    }
+    title = localizedFrom(p.translations, (t) => t.title);
+    slug = localizedFrom(p.translations, (t) => t.slug);
+    body = localizedFrom(p.translations, (t) => t.body);
+    excerpt = localizedFrom(p.translations, (t) => t.excerpt);
+    metaTitle = localizedFrom(p.translations, (t) => t.metaTitle);
+    metaDescription = localizedFrom(p.translations, (t) => t.metaDescription);
     featuredImage = p.featuredImage ?? '';
   });
 
@@ -88,31 +94,31 @@
     if (!p) return;
     busy = 'save';
     try {
-      const it = {
-        title: title.trim(),
-        slug: slug.trim(),
-        body,
-        ...(excerpt.trim() ? { excerpt: excerpt.trim() } : {}),
-        ...(metaTitle.trim() ? { metaTitle: metaTitle.trim() } : {}),
-        ...(metaDescription.trim() ? { metaDescription: metaDescription.trim() } : {}),
-      };
-      const hasEn = titleEn.trim() && slugEn.trim() && bodyEn.trim();
-      const en = hasEn
-        ? {
-            title: titleEn.trim(),
-            slug: slugEn.trim(),
-            body: bodyEn,
-            ...(excerptEn.trim() ? { excerpt: excerptEn.trim() } : {}),
-            ...(metaTitleEn.trim() ? { metaTitle: metaTitleEn.trim() } : {}),
-            ...(metaDescriptionEn.trim() ? { metaDescription: metaDescriptionEn.trim() } : {}),
-          }
-        : undefined;
+      // A target language is sent only once it has title, slug and body — the
+      // same rule the editor used to spell out for English alone.
+      const translations = buildTranslations(
+        (code) => {
+          const optional = (value: LocalizedValue, key: string) => {
+            const text = textFor(value, code).trim();
+            return text ? { [key]: text } : {};
+          };
+          return {
+            title: textFor(title, code).trim(),
+            slug: textFor(slug, code).trim(),
+            body: textFor(body, code),
+            ...optional(excerpt, 'excerpt'),
+            ...optional(metaTitle, 'metaTitle'),
+            ...optional(metaDescription, 'metaDescription'),
+          };
+        },
+        (row) => Boolean(row.title && row.slug && row.body.trim()),
+      )!;
 
       const updated = await unwrap<BlogPost>(
         await api.api.admin.blog[':id'].$patch({
           param: { id: p.id },
           json: {
-            translations: { it, ...(en ? { en } : {}) },
+            translations,
             ...(featuredImage.trim()
               ? { featuredImage: featuredImage.trim() }
               : { featuredImage: null }),
@@ -162,7 +168,11 @@
           Back to posts
         </Button>
         {#if post.data && canUpdate}
-          <Button onclick={save} disabled={busy !== null || !title.trim()}>
+          <!-- The source-language title is the one field the API requires. -->
+          <Button
+            onclick={save}
+            disabled={busy !== null || !textFor(title, SOURCE_LANGUAGE).trim()}
+          >
             {#if busy === 'save'}<Spinner />{:else}<SaveIcon class="size-4" />{/if}
             Save
           </Button>
@@ -202,143 +212,86 @@
 
     <div class="@container grid gap-5 @4xl:grid-cols-3">
       <div class="space-y-5 @4xl:col-span-2">
-        <!-- Language tabs -->
-        <Tabs.Root bind:value={lang}>
-          <Tabs.List>
-            <Tabs.Trigger value="it">Italiano</Tabs.Trigger>
-            <Tabs.Trigger value="en">English</Tabs.Trigger>
-          </Tabs.List>
+        <!-- One switcher, one set of inputs. See the note on the field state. -->
+        <LanguageSwitcher lang={contentLang} {progress} class="mb-2" />
 
-          <Tabs.Content value="it">
-            <Card.Root>
-              <Card.Content class="space-y-4">
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="title-it">Title</label>
-                  <Input id="title-it" bind:value={title} disabled={!canUpdate} />
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="slug-it">Slug</label>
-                  <Input id="slug-it" bind:value={slug} disabled={!canUpdate} />
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="body-it">Body</label>
-                  <Textarea id="body-it" bind:value={body} rows={20} disabled={!canUpdate} />
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="excerpt-it">Excerpt</label>
-                  <Textarea
-                    id="excerpt-it"
-                    bind:value={excerpt}
-                    rows={3}
-                    disabled={!canUpdate}
-                    placeholder="Short summary for listing cards…"
-                  />
-                </div>
-              </Card.Content>
-            </Card.Root>
-          </Tabs.Content>
-
-          <Tabs.Content value="en">
-            <Card.Root>
-              <Card.Content class="space-y-4">
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="title-en">Title</label>
-                  <Input
-                    id="title-en"
-                    bind:value={titleEn}
-                    disabled={!canUpdate}
-                    placeholder="English title (optional)"
-                  />
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="slug-en">Slug</label>
-                  <Input
-                    id="slug-en"
-                    bind:value={slugEn}
-                    disabled={!canUpdate}
-                    placeholder="english-slug"
-                  />
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="body-en">Body</label>
-                  <Textarea
-                    id="body-en"
-                    bind:value={bodyEn}
-                    rows={20}
-                    disabled={!canUpdate}
-                    placeholder="English body (optional)"
-                  />
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-sm font-medium" for="excerpt-en">Excerpt</label>
-                  <Textarea
-                    id="excerpt-en"
-                    bind:value={excerptEn}
-                    rows={3}
-                    disabled={!canUpdate}
-                    placeholder="English excerpt…"
-                  />
-                </div>
-              </Card.Content>
-            </Card.Root>
-          </Tabs.Content>
-        </Tabs.Root>
+        <Card.Root>
+          <Card.Content class="space-y-4">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium" for="post-title">Title</label>
+              <Input
+                id="post-title"
+                value={textFor(title, lang)}
+                oninput={(event) => setTextFor(title, lang, event.currentTarget.value)}
+                disabled={!canUpdate}
+                placeholder={isSource ? '' : `${languageOf(lang).label} title (optional)`}
+              />
+              <TranslationGaps value={title} class="mt-1" />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium" for="post-slug">Slug</label>
+              <Input
+                id="post-slug"
+                value={textFor(slug, lang)}
+                oninput={(event) => setTextFor(slug, lang, event.currentTarget.value)}
+                disabled={!canUpdate}
+                placeholder={isSource ? '' : `${lang}-slug`}
+              />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium" for="post-body">Body</label>
+              <Textarea
+                id="post-body"
+                value={textFor(body, lang)}
+                oninput={(event) => setTextFor(body, lang, event.currentTarget.value)}
+                rows={20}
+                disabled={!canUpdate}
+                placeholder={isSource ? '' : `${languageOf(lang).label} body (optional)`}
+              />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium" for="post-excerpt">Excerpt</label>
+              <Textarea
+                id="post-excerpt"
+                value={textFor(excerpt, lang)}
+                oninput={(event) => setTextFor(excerpt, lang, event.currentTarget.value)}
+                rows={3}
+                disabled={!canUpdate}
+                placeholder="Short summary for listing cards…"
+              />
+            </div>
+          </Card.Content>
+        </Card.Root>
 
         <!-- SEO -->
         <Card.Root class="gap-0 py-0">
           <div class="border-b px-4 py-2.5 text-sm font-medium">
-            SEO ({lang === 'it' ? 'IT' : 'EN'})
+            SEO ({lang.toUpperCase()})
           </div>
           <div class="space-y-4 p-4">
-            {#if lang === 'it'}
-              <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-title-it"
-                  >Meta title</label
-                >
-                <Input
-                  id="meta-title-it"
-                  bind:value={metaTitle}
-                  disabled={!canUpdate}
-                  placeholder="Custom page title for search engines"
-                />
-              </div>
-              <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-desc-it"
-                  >Meta description</label
-                >
-                <Textarea
-                  id="meta-desc-it"
-                  bind:value={metaDescription}
-                  rows={2}
-                  disabled={!canUpdate}
-                  placeholder="Short description for search results"
-                />
-              </div>
-            {:else}
-              <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-title-en"
-                  >Meta title</label
-                >
-                <Input
-                  id="meta-title-en"
-                  bind:value={metaTitleEn}
-                  disabled={!canUpdate}
-                  placeholder="English meta title"
-                />
-              </div>
-              <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-desc-en"
-                  >Meta description</label
-                >
-                <Textarea
-                  id="meta-desc-en"
-                  bind:value={metaDescriptionEn}
-                  rows={2}
-                  disabled={!canUpdate}
-                  placeholder="English meta description"
-                />
-              </div>
-            {/if}
+            <div>
+              <label class="mb-1.5 block text-sm font-medium" for="meta-title">Meta title</label>
+              <Input
+                id="meta-title"
+                value={textFor(metaTitle, lang)}
+                oninput={(event) => setTextFor(metaTitle, lang, event.currentTarget.value)}
+                disabled={!canUpdate}
+                placeholder="Custom page title for search engines"
+              />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium" for="meta-desc">
+                Meta description
+              </label>
+              <Textarea
+                id="meta-desc"
+                value={textFor(metaDescription, lang)}
+                oninput={(event) => setTextFor(metaDescription, lang, event.currentTarget.value)}
+                rows={2}
+                disabled={!canUpdate}
+                placeholder="Short description for search results"
+              />
+            </div>
           </div>
         </Card.Root>
       </div>

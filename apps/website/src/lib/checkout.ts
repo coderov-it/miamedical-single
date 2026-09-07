@@ -16,6 +16,8 @@ import { t } from './labels.ts';
 import { type ProductDetail, getProductBySlug } from './catalog.ts';
 import { FIELD, type ResolvedRequest, formatDateLabel, resolveRequest } from './request-config.ts';
 import { CONTACT, LOCATIONS } from './site.ts';
+import { SOURCE_LANGUAGE, translate } from '~/lib/i18n';
+import { CONTACT_HOURS_KEY } from '~/lib/site';
 
 /**
  * `item.<n>.` in front of every field of one line item. A cart sends
@@ -386,7 +388,7 @@ export type DeliveryId = (typeof DELIVERY_OPTIONS)[number]['id'];
 export const PICKUP_POINTS = LOCATIONS.map((location) => ({
   city: location.city,
   name: t('branchIn', { city: location.city }),
-  detail: `${location.street} · ${CONTACT.hours.it}`,
+  detail: `${location.street} · ${translate(SOURCE_LANGUAGE, CONTACT_HOURS_KEY)}`,
 }));
 
 /**

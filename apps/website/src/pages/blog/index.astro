@@ -4,7 +4,7 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { listBlogCategories, listBlogPosts, type BlogCategory } from '~/lib/blog';
 import { safely } from '~/lib/catalog';
-import { localeFromLocals, translate } from '~/lib/i18n';
+import { localeFromLocals, type Localized, pickLocalized, translate } from '~/lib/i18n';
 import { blogPath, routePath } from '~/lib/routes';
 
 export const prerender = false;
@@ -34,10 +34,7 @@ const { data: posts, meta } = result;
 const isFirstPage = meta.page <= 1;
 const activeCategory = categories.find((cat) => cat.slug === categoria);
 const activeCategoryName = activeCategory
-  ? locale === 'en'
-    ? ((activeCategory.name as { it: string; en?: string }).en ??
-      (activeCategory.name as { it: string }).it)
-    : (activeCategory.name as { it: string }).it
+  ? pickLocalized(activeCategory.name as Localized, locale)
   : null;
 
 const prevUrl = meta.page > 1 ? blogPath({ categoria, page: meta.page - 1 }, locale) : null;
@@ -122,10 +119,7 @@ const chipClass =
                   href={blogPath({ categoria: cat.slug }, locale)}
                   aria-current={cat.slug === categoria ? 'true' : undefined}
                 >
-                  {locale === 'en'
-                    ? ((cat.name as { it: string; en?: string }).en ??
-                      (cat.name as { it: string }).it)
-                    : (cat.name as { it: string }).it}
+                  {pickLocalized(cat.name as Localized, locale)}
                 </a>
               </li>
             ))}

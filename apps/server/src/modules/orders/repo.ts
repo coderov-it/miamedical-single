@@ -12,6 +12,7 @@ import {
   orderStatusEvents,
   products,
   productTranslations,
+  SOURCE_LANGUAGE,
 } from '@mia/db/schema';
 
 import { multiply, sumMoney } from './mapper.ts';
@@ -679,7 +680,7 @@ export async function findCartById(db: Database, id: string): Promise<CartAggreg
       productTranslations,
       and(
         eq(productTranslations.productId, products.id),
-        eq(productTranslations.languageCode, 'it'),
+        eq(productTranslations.languageCode, SOURCE_LANGUAGE),
       ),
     )
     .where(eq(cartItems.cartId, id))

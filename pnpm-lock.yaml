@@ -474,6 +474,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@mia/validators':
+        specifier: workspace:*
+        version: link:../validators
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(mysql2@3.23.2(@types/node@26.1.2))(postgres@3.4.9)

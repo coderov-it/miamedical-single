@@ -267,9 +267,20 @@ export interface AdminProductTranslationDto {
   metaDescription: string | null;
 }
 
+export type TranslationState = 'complete' | 'partial' | 'missing';
+
+/**
+ * Translation completeness, keyed by language rather than with one property per
+ * language — so registering a language widens the map instead of changing this
+ * shape and every consumer of it.
+ *
+ * `missing` names the empty fields, which is what lets the admin say *what* is
+ * left rather than only that something is, and is the input an automatic
+ * translation would be given.
+ */
 export interface TranslationStatusDto {
-  it: 'complete' | 'partial' | 'missing';
-  en: 'complete' | 'partial' | 'missing';
+  languages: Record<LanguageCode, TranslationState>;
+  /** Only languages with gaps appear. A complete language has no entry. */
   missing: Partial<Record<LanguageCode, string[]>>;
 }
 

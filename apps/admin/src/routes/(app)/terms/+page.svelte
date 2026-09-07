@@ -20,7 +20,7 @@
   import * as Table from '$lib/components/ui/table/index.js';
   import { api } from '~/lib/api';
   import type { Localized } from '~/lib/categories/spec-edit';
-  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
+  import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
@@ -30,6 +30,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { SOURCE_LANGUAGE, buildTranslations, progressAcross, textFor } from '~/lib/i18n';
 
   type Terms = InferResponseType<typeof api.api.admin.terms.$get, 200>['data'][number];
 
@@ -62,13 +63,11 @@
 
   // List display follows the interface language, not any editing state.
   const titleOf = (doc: Terms) =>
-    (uiLang.current === 'en' ? doc.translations.en?.title : undefined) ??
-    doc.translations.it?.title ??
-    doc.code;
+    doc.translations[uiLang.current]?.title ?? doc.translations[SOURCE_LANGUAGE]?.title ?? doc.code;
 
-  /** Mirrors translationsPayload: EN counts once title, body and slug exist. */
-  const enMissing = $derived(
-    !editing?.title.en?.trim() || !editing?.body.en?.trim() || !editing?.slug.en?.trim(),
+  /** A document counts as translated once title, body and slug all exist. */
+  const progress = $derived(
+    editing ? progressAcross([editing.title, editing.body, editing.slug]) : undefined,
   );
 
   function startEdit(doc?: Terms) {
@@ -92,19 +91,15 @@
    * back to Italian entirely rather than serve a mix of the two.
    */
   function translationsPayload(edit: TermsEdit) {
-    const forLang = (lang: 'it' | 'en') => {
-      const pick = (value: Localized) => (lang === 'it' ? value.it : (value.en ?? ''));
-      const row = {
-        title: pick(edit.title).trim(),
-        body: pick(edit.body).trim(),
-        slug: pick(edit.slug).trim(),
-      };
-      if (lang === 'en' && (!row.title || !row.body || !row.slug)) return undefined;
-      return row;
-    };
-
-    const en = forLang('en');
-    return { it: forLang('it')!, ...(en ? { en } : {}) };
+    return buildTranslations(
+      (lang) => ({
+        title: textFor(edit.title, lang).trim(),
+        body: textFor(edit.body, lang).trim(),
+        slug: textFor(edit.slug, lang).trim(),
+      }),
+      (row) => Boolean(row.title && row.body && row.slug),
+    )!; // never null: the builder always returns a row, and the form gate
+    // already requires the source-language title before save is reachable.
   }
 
   async function save() {
@@ -298,7 +293,7 @@
     </Sheet.Header>
 
     <div class="flex border-b px-6">
-      <ContentLangTabs lang={contentLang} {enMissing} />
+      <LanguageSwitcher lang={contentLang} {progress} />
     </div>
 
     {#if editing}

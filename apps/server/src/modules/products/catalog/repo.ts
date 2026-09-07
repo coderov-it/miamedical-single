@@ -11,12 +11,13 @@ import {
   categories,
   categorySpecOptions,
   categorySpecs,
+  products,
   productSpecValueOptions,
   productSpecValues,
   productTranslations,
-  products,
   searchQueryFor,
   searchVectorFor,
+  SOURCE_LANGUAGE,
 } from '@mia/db/schema';
 import { richTextToPlain } from '@mia/validators';
 
@@ -176,7 +177,7 @@ function searchClause(locale: LanguageCode, q: string) {
   return sql`EXISTS (
     SELECT 1 FROM ${productTranslations} pt
     WHERE pt.product_id = ${products.id}
-      AND pt.language_code IN (${locale}, 'it')
+      AND pt.language_code IN (${locale}, ${SOURCE_LANGUAGE})
       AND pt.search_vector @@ ${searchQueryFor(locale, q)}
   )`;
 }
@@ -224,7 +225,7 @@ function orderBy(filters: ProductListFilters) {
     case 'title':
       return sql`(
         SELECT pt.title FROM ${productTranslations} pt
-        WHERE pt.product_id = ${products.id} AND pt.language_code = 'it'
+        WHERE pt.product_id = ${products.id} AND pt.language_code = ${SOURCE_LANGUAGE}
       ) ASC`;
     default:
       return desc(products.createdAt);

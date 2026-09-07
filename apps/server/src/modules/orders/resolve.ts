@@ -34,6 +34,7 @@ import type {
   PublicRentalPackageDto,
 } from '../products/dto.ts';
 import { booleanLabel } from '../products/mapper.ts';
+import { SOURCE_LANGUAGE } from '@mia/db/schema';
 
 /** The wire values of a `boolean` intake answer, as the buy box writes them. */
 const BOOLEAN_VALUES = new Set(['yes', 'no']);
@@ -189,7 +190,11 @@ function resolveQuestion(
     if (!BOOLEAN_VALUES.has(wire)) reject(`"${question.prompt}" takes yes or no.`, at);
     // The word the customer read, not the word the wire carried.
     return [
-      { key: question.key, label: question.prompt, value: booleanLabel(wire === 'yes', 'it') },
+      {
+        key: question.key,
+        label: question.prompt,
+        value: booleanLabel(wire === 'yes', SOURCE_LANGUAGE),
+      },
     ];
   }
 

@@ -1,10 +1,16 @@
+import type { ContractLanguage } from '../language.ts';
+
 import { BRAND, COLORS } from '../../../brand.ts';
 import { CONTACT } from '../../../contact.ts';
 import { escapeHtml } from './escape.ts';
 
 const FONT = "'Instrument Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 
-export function contractLayout(props: { title: string; lang: 'it' | 'en'; body: string }): string {
+export function contractLayout(props: {
+  title: string;
+  lang: ContractLanguage;
+  body: string;
+}): string {
   return `<!doctype html>
 <html lang="${props.lang}">
 <head>

@@ -4,8 +4,9 @@ import type { LanguageCode } from '@mia/db/schema';
 import {
   blogCategories,
   blogPostCategories,
-  blogPostTranslations,
   blogPosts,
+  blogPostTranslations,
+  LANGUAGE_CODES,
 } from '@mia/db/schema';
 import { P } from '@mia/permissions';
 import {
@@ -51,7 +52,7 @@ async function upsertTranslations(
   postId: string,
   translations: CreateBlogPostInput['translations'] | undefined,
 ): Promise<void> {
-  for (const lang of ['it', 'en'] as LanguageCode[]) {
+  for (const lang of LANGUAGE_CODES) {
     const t = translations?.[lang];
     if (!t) continue;
     await db

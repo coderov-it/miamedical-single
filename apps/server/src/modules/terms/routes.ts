@@ -1,7 +1,7 @@
 import type { Database } from '@mia/db';
 import { desc, eq } from '@mia/db';
 import type { LanguageCode } from '@mia/db/schema';
-import { termsDocumentTranslations, termsDocuments } from '@mia/db/schema';
+import { LANGUAGE_CODES, termsDocuments, termsDocumentTranslations } from '@mia/db/schema';
 import { P } from '@mia/permissions';
 import {
   CreateTermsSchema,
@@ -45,7 +45,7 @@ async function upsertTranslations(
   termsId: string,
   translations: CreateTermsInput['translations'] | undefined,
 ): Promise<void> {
-  for (const lang of ['it', 'en'] as LanguageCode[]) {
+  for (const lang of LANGUAGE_CODES) {
     const t = translations?.[lang];
     if (!t) continue;
     await db

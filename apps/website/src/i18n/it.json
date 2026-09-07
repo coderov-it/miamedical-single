@@ -674,5 +674,8 @@
   "contract.linkIncomplete": "Questo link non è completo. Apri di nuovo il collegamento ricevuto via email.",
   "contract.loadFailed": "Non è stato possibile caricare il contratto.",
   "contract.loadError": "Errore nel caricamento del contratto.",
-  "contract.signError": "Errore nella firma del contratto."
+  "contract.signError": "Errore nella firma del contratto.",
+  "contact.hours": "Lun–Sab, 9:00–19:00",
+  "card.priceFrom": "da",
+  "card.unavailable": "Non disponibile"
 }

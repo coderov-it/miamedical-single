@@ -22,6 +22,7 @@ import type {
   SpecFilter,
 } from '../types.ts';
 import * as repo from './repo.ts';
+import { LANGUAGE_CODES } from '@mia/db/schema';
 
 /**
  * Business orchestration. Owns visibility policy and invariants; returns
@@ -181,7 +182,7 @@ async function assertSlugsFree(
   translations: CreateProductInput['translations'] | undefined,
   excludeId?: string,
 ): Promise<void> {
-  for (const lang of ['it', 'en'] as LanguageCode[]) {
+  for (const lang of LANGUAGE_CODES) {
     const translation = translations?.[lang];
     if (!translation) continue;
     if (await repo.existsBySlug(db, lang, translation.slug, excludeId)) {
@@ -219,7 +220,7 @@ function normalizeTranslations(
   translations: CreateProductInput['translations'] | undefined,
 ): Partial<Record<LanguageCode, repo.TranslationData>> {
   const result: Partial<Record<LanguageCode, repo.TranslationData>> = {};
-  for (const lang of ['it', 'en'] as LanguageCode[]) {
+  for (const lang of LANGUAGE_CODES) {
     const t = translations?.[lang];
     if (!t) continue;
     result[lang] = {

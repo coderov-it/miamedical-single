@@ -33,7 +33,7 @@
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
-  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
+  import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import UnsavedChangesGuard from '~/lib/components/unsaved-changes-guard.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
@@ -44,6 +44,8 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import TranslationProgress from '~/lib/components/translation-progress.svelte';
+  import { progressFromStates } from '~/lib/i18n';
   import AddonsTab from './AddonsTab.svelte';
   import BasicsTab from './BasicsTab.svelte';
   import DescriptionTab from './DescriptionTab.svelte';
@@ -112,7 +114,7 @@
 
   // Header title is *read* content — it follows the interface language.
   const title = $derived(
-    (uiLang.current === 'en' ? product.data?.translations.en?.title : undefined) ||
+    product.data?.translations[uiLang.current]?.title ||
       product.data?.translations.it?.title ||
       'Product',
   );
@@ -177,20 +179,9 @@
       <Badge variant="outline">
         {formatMoney(current.basePrice, current.currency)}
       </Badge>
-      {#if current.translationStatus.en === 'complete'}
-        <Badge
-          variant="outline"
-          class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">EN complete</Badge
-        >
-      {:else if current.translationStatus.en === 'partial'}
-        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400"
-          >EN partial</Badge
-        >
-      {:else}
-        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400"
-          >EN missing</Badge
-        >
-      {/if}
+      <Badge variant="outline" class="gap-1.5 font-normal">
+        <TranslationProgress progress={progressFromStates(current.translationStatus.languages)} />
+      </Badge>
       <span class="ml-auto text-muted-foreground">
         Updated {relativeTime(current.updatedAt)}
       </span>
@@ -232,9 +223,9 @@
           {/each}
         </div>
       </div>
-      <ContentLangTabs
+      <LanguageSwitcher
         lang={contentLang}
-        enMissing={current.translationStatus.en !== 'complete'}
+        progress={progressFromStates(current.translationStatus.languages)}
         class="shrink-0 border-l pl-1"
       />
     </div>

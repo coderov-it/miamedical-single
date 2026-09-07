@@ -22,10 +22,10 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { cartCopy, cartLinesFromParams, resolveCart } from '~/lib/cart';
-import { localeFromLocals, localeTag } from '~/lib/i18n';
+import { localeFromLocals, localeTag, translate } from '~/lib/i18n';
 import { t } from '~/lib/labels';
 import { routePath } from '~/lib/routes';
-import { CONTACT } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 
 export const prerender = false;
 
@@ -108,7 +108,7 @@ const copy = cartCopy();
       <strong class="text-ink font-semibold">{t('cartHelpTitle')}</strong>
       {' '}{t('cartHelpDetail')}{' '}
       <PhoneCta variant="inline" showFree={false} />
-      {' '}<span class="whitespace-nowrap">· {CONTACT.hours[locale]}</span>
+      {' '}<span class="whitespace-nowrap">· {translate(locale, CONTACT_HOURS_KEY)}</span>
     </p>
 
     {

@@ -81,9 +81,7 @@
 
   // List display follows the interface language, not any editing state.
   const nameOf = (category: Category) =>
-    (uiLang.current === 'en' ? category.translations.en?.name : undefined) ??
-    category.translations.it?.name ??
-    category.code;
+    category.translations[uiLang.current]?.name ?? category.translations.it?.name ?? category.code;
 
   async function confirmDelete() {
     const target = deleting;

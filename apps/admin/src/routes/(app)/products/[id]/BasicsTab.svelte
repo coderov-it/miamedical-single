@@ -16,6 +16,7 @@
   import type { AdminCategory, AdminProduct, ChipEdit, Localized, TabProps } from './shared';
   import { localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
+  import { buildTranslations, type LanguageCode, textFor } from '~/lib/i18n';
 
   let { product, onSaved, dirty }: TabProps = $props();
 
@@ -102,20 +103,16 @@
   let error = $state<string | null>(null);
   let fields = $state<Record<string, string>>({});
 
-  function translationFor(lang: 'it' | 'en') {
-    const pick = (value: Localized) => (lang === 'it' ? value.it : (value.en ?? ''));
-    const row = {
-      title: pick(form.title).trim(),
-      slug: pick(form.slug).trim(),
-      shortDescription: pick(form.shortDescription).trim() || null,
+  function translationFor(lang: LanguageCode) {
+    return {
+      title: textFor(form.title, lang).trim(),
+      slug: textFor(form.slug, lang).trim(),
+      shortDescription: textFor(form.shortDescription, lang).trim() || null,
       // Owned by the Description tab — carried through untouched.
       description: product.translations[lang]?.description ?? null,
-      metaTitle: pick(form.metaTitle).trim() || null,
-      metaDescription: pick(form.metaDescription).trim() || null,
+      metaTitle: textFor(form.metaTitle, lang).trim() || null,
+      metaDescription: textFor(form.metaDescription, lang).trim() || null,
     };
-    // An English side without title+slug is "not translated yet", not an error.
-    if (lang === 'en' && (!row.title || !row.slug)) return undefined;
-    return row;
   }
 
   async function save() {
@@ -124,7 +121,6 @@
     fields = {};
 
     try {
-      const en = translationFor('en');
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
@@ -138,7 +134,14 @@
             chips: form.chips
               .map((chip) => localizedOrNull(chip.text))
               .filter((chip): chip is Localized => chip !== null),
-            translations: { it: translationFor('it')!, ...(en ? { en } : {}) },
+            // A target language without title+slug is "not translated yet",
+            // not an error — `buildTranslations` drops the row so the storefront
+            // falls back per-language instead of serving a half-translated page.
+            // Never null here: `translationFor` always builds a row, and the
+            // source language's own title is what the form's validation guards.
+            translations: buildTranslations(translationFor, (row) =>
+              Boolean(row.title && row.slug),
+            )!,
           },
         }),
       );

@@ -10,7 +10,8 @@
     "check": "astro check",
     "test": "node --test --experimental-strip-types 'src/**/*.test.ts'",
     "astro": "astro",
-    "clean": "rm -rf .turbo .astro dist node_modules"
+    "clean": "rm -rf .turbo .astro dist node_modules",
+    "i18n:coverage": "tsx script/i18n-coverage.ts"
   },
   "dependencies": {
     "@astrojs/node": "catalog:",
