@@ -13,9 +13,11 @@ import SiteHeader from '~/components/global/SiteHeader.astro';
 import SupportLauncher from '~/components/global/SupportLauncher.astro';
 import {
   localeFromLocals,
+  LOCALES,
   localeTag,
   openGraphLocale,
   publicPathForRequest,
+  SOURCE_LANGUAGE,
   translate,
   type SiteLocale,
 } from '~/lib/i18n';
@@ -60,13 +62,25 @@ const {
 
 const locale = localeFromLocals(Astro.locals);
 const publicPath = Astro.locals.publicPath ?? publicPathForRequest() ?? Astro.url.pathname;
-const staticRouteKey = (Object.keys(routePaths.it) as RouteKey[]).find(
-  (key) => routePaths.it[key] === Astro.url.pathname,
+/**
+ * Where this page lives in every language, for the header's switcher.
+ *
+ * A static route is the same page in all of them, so every locale's path is
+ * offered. A page that is not in the route table — a product, a post, a legal
+ * document — knows its own alternates and passes `languagePaths` itself,
+ * because only it can say which languages the record actually exists in.
+ *
+ * The rewrite runs on the source-language route file, so `Astro.url.pathname`
+ * is always the source path regardless of which locale was requested; that is
+ * what `routePaths[SOURCE_LANGUAGE]` is matched against.
+ */
+const staticRouteKey = (Object.keys(routePaths[SOURCE_LANGUAGE]) as RouteKey[]).find(
+  (key) => routePaths[SOURCE_LANGUAGE][key] === Astro.url.pathname,
 );
 const languagePaths =
   suppliedLanguagePaths ??
   (staticRouteKey
-    ? { it: routePaths.it[staticRouteKey], en: routePaths.en[staticRouteKey] }
+    ? Object.fromEntries(LOCALES.map((code) => [code, routePaths[code][staticRouteKey]]))
     : { [locale]: publicPath });
 const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.origin).href;
 ---
