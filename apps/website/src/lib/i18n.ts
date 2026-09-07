@@ -12,6 +12,7 @@ import {
 } from '@mia/validators/language';
 
 import en from '~/i18n/en.json';
+import fr from '~/i18n/fr.json';
 import it from '~/i18n/it.json';
 
 /**
@@ -32,7 +33,7 @@ export { pickLocalized, type Localized };
  * while its 676 chrome strings are still being written.
  */
 type Messages = Record<string, string>;
-const MESSAGES: Partial<Record<SiteLocale, Messages>> = { it, en };
+const MESSAGES: Partial<Record<SiteLocale, Messages>> = { it, en, fr };
 
 interface RequestLanguageContext {
   locale: SiteLocale;

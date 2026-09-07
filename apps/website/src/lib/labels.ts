@@ -1,7 +1,12 @@
 /**
  * Checkout and cart messages are part of the storefront message catalog, not
- * TypeScript constants. Both `it.json` and `en.json` carry every key so server
- * rendering fails loudly during development when a translation is missing.
+ * TypeScript constants.
+ *
+ * The key type comes from `it.json` alone, because that is the source language:
+ * it is the catalogue every other locale is checked against, and the only one
+ * `translate()` throws for. A target locale with a gap falls back rather than
+ * failing, so `pnpm --filter @mia/website run i18n:coverage` is what reports
+ * one — not the type system.
  */
 import it from '~/i18n/it.json';
 
