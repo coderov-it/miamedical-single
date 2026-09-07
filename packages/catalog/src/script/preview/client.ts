@@ -13,8 +13,14 @@
  *
  * Written without template literals on purpose: this string is itself inside a
  * TypeScript template literal, and `${` in here would be interpolated by the
- * generator rather than reaching the browser.
+ * generator rather than reaching the browser. The two DELIBERATE
+ * interpolations are the source language — it comes from the registry rather
+ * than being spelled `'it'` in a browser script nothing typechecks.
  */
+import { SOURCE_LANGUAGE } from '@mia/validators/language';
+
+/** `it` → `altIt`, matching how `data-alt-it` lands in `dataset`. */
+const SOURCE_ALT_KEY = 'alt' + SOURCE_LANGUAGE.charAt(0).toUpperCase() + SOURCE_LANGUAGE.slice(1);
 export const CLIENT = `
 (function () {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -33,7 +39,7 @@ export const CLIENT = `
   var links = document.querySelectorAll('[data-route]');
 
   // --- language ------------------------------------------------------------
-  var lang = 'it';
+  var lang = '${SOURCE_LANGUAGE}';
   function setLanguage(next) {
     lang = next;
     document.documentElement.setAttribute('data-lang', next);
@@ -112,7 +118,12 @@ export const CLIENT = `
 
     caption.appendChild(facts);
 
-    var alt = lang === 'en' ? data.altEn || data.altIt : data.altIt;
+    /* A data-alt-xx attribute lands in dataset as altXx, so the key is derived
+       from the language rather than branched on. Falls back to the source
+       language, the same rule the storefront uses.
+       (No backticks in here: this string is a TypeScript template literal.) */
+    var altKey = 'alt' + lang.charAt(0).toUpperCase() + lang.slice(1);
+    var alt = data[altKey] || data['${SOURCE_ALT_KEY}'];
     var note = document.createElement('span');
     if (alt) {
       note.className = 'caption-alt';
@@ -178,7 +189,7 @@ export const CLIENT = `
   }
 
   window.addEventListener('hashchange', show);
-  setLanguage('it');
+  setLanguage('${SOURCE_LANGUAGE}');
   show();
 })();
 `;

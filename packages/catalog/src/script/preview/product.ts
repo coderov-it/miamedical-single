@@ -28,6 +28,7 @@ import { renderGallery } from './media.ts';
 import { renderMetadata } from './metadata.ts';
 import { addonsTable, packagesTable, priceHeadline, renderChips } from './pricing.ts';
 import { specValues } from './specs.ts';
+import { localizedFrom, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 export interface RenderedProduct {
   html: string;
@@ -45,16 +46,20 @@ export interface ProductEntry {
 
 /** Step 4 — the sales copy, short description above the rich description. */
 function description(product: ProductInput<SpecMap>): string {
-  const it = product.translations.it;
-  const en = product.translations.en;
+  const source = product.translations[SOURCE_LANGUAGE];
 
   const short =
-    it.shortDescription === undefined
+    source.shortDescription === undefined
       ? ''
-      : `<div class="lede">${localized({ it: it.shortDescription, ...(en?.shortDescription ? { en: en.shortDescription } : {}) }, 'p')}</div>`;
+      : `<div class="lede">${localized(
+          localizedFrom(product.translations, (t) => t.shortDescription),
+          'p',
+        )}</div>`;
 
   const long =
-    it.description === undefined ? '' : localizedRich(it.description, en?.description ?? undefined);
+    source.description === undefined
+      ? ''
+      : localizedRich(localizedFrom(product.translations, (t) => t.description));
 
   return short + long;
 }

@@ -1,3 +1,5 @@
+export { isContractLanguage } from './language.ts';
+export type { ContractLanguage } from './language.ts';
 export { carrozzInaItalian } from './carrozzina-italian.ts';
 export { carrozzinaTourist } from './carrozzina-tourist.ts';
 export { scooterItalian } from './scooter-italian.ts';

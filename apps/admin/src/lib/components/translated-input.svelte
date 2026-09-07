@@ -1,26 +1,30 @@
 <!--
-  One bilingual text field. Binds a plain `{ it, en }` object — which is both
-  what the jsonb columns hold and what the mapper hands back for products and
-  categories, so this covers every translated field regardless of the storage
-  style behind it.
+  One translated text field. Binds a plain `{ it, en, … }` object — which is
+  both what the jsonb columns hold and what the mapper hands back for products
+  and categories, so this covers every translated field regardless of the
+  storage style behind it.
 
-  Which language it edits is the form's ContentLang (context) — the tab
-  switcher at the top of each editor. The field itself only reports status:
-  the "EN missing" chip is a standing reminder of translation debt rather
-  than an error, because a half-translated product is a normal working state.
-  While editing English, the Italian text stays visible under the input as
-  the source to translate from.
+  Which language it edits is the form's ContentLang (context) — the switcher at
+  the top of each editor. The field itself only reports status, via
+  `translation-gaps.svelte`: the languages still to write, muted, because a
+  half-translated product is a normal working state and the storefront falls
+  back to the source language.
+
+  While editing any target language the source text stays visible under the
+  input, as the thing being translated.
 -->
 <script lang="ts">
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { useContentLang } from '~/lib/content-lang.svelte';
+  import { type LocalizedValue, setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
+
+  import TranslationGaps from './translation-gaps.svelte';
 
   interface Props {
     label: string;
-    value: { it: string; en?: string | undefined };
+    value: LocalizedValue;
     error?: string | undefined;
     hint?: string | undefined;
     required?: boolean;
@@ -45,7 +49,7 @@
 
   const contentLang = useContentLang();
   const lang = $derived(contentLang.current);
-  const enMissing = $derived(!value.en?.trim());
+  const isSource = $derived(lang === SOURCE_LANGUAGE);
 
   // `$props.id()` is stable per component instance and hydration-safe, which a
   // `Math.random()` id is not — the label's `for` has to survive a rerender.
@@ -53,28 +57,25 @@
   const fieldId = $derived(id ?? generatedId);
   const describedBy = $derived(error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined);
 
-  const current = $derived(lang === 'it' ? value.it : (value.en ?? ''));
+  const current = $derived(textFor(value, lang));
+  const sourceText = $derived(textFor(value, SOURCE_LANGUAGE));
 
-  function setText(text: string) {
-    // Empty English is `undefined`, not `''` — the API treats a missing
-    // translation and a blank one differently, and so does the fallback.
-    if (lang === 'it') value.it = text;
-    else value.en = text || undefined;
-  }
+  // `setTextFor` is what keeps an emptied target language `undefined` rather
+  // than `''` — see the note on it: a blank string would look like a real
+  // translation and hide the gap.
+  const setText = (text: string) => setTextFor(value, lang, text);
 </script>
 
 <div>
   <div class="mb-1.5 flex items-center justify-between gap-2">
     <Label for={fieldId}>
       {label}
-      {#if required && lang === 'it'}<span class="text-destructive">*</span>{/if}
+      <!-- The asterisk belongs to the source language only: it is the one the
+           CHECK constraint and the validator actually require. -->
+      {#if required && isSource}<span class="text-destructive">*</span>{/if}
     </Label>
 
-    {#if enMissing}
-      <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
-        EN missing
-      </Badge>
-    {/if}
+    <TranslationGaps {value} />
   </div>
 
   {#if multiline}
@@ -105,9 +106,9 @@
     <p id="{fieldId}-hint" class="mt-1 text-xs text-muted-foreground">{hint}</p>
   {/if}
 
-  {#if lang === 'en' && value.it.trim()}
-    <p class="mt-1 truncate text-xs text-muted-foreground" title={value.it}>
-      <span class="font-medium uppercase">it</span> · {value.it}
+  {#if !isSource && sourceText.trim()}
+    <p class="mt-1 truncate text-xs text-muted-foreground" title={sourceText}>
+      <span class="font-medium uppercase">{SOURCE_LANGUAGE}</span> · {sourceText}
     </p>
   {/if}
 </div>

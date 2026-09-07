@@ -4,10 +4,11 @@ import type { Database } from '@mia/db';
 import { eq } from '@mia/db';
 import { orders } from '@mia/db/schema';
 import type { RentalPeriod } from '@mia/pricing';
-import type { ContractData } from '@mia/templates';
+import type { ContractData, ContractLanguage } from '@mia/templates';
 import {
   carrozzInaItalian,
   carrozzinaTourist,
+  isContractLanguage,
   scooterItalian,
   scooterTourist,
 } from '@mia/templates';
@@ -357,7 +358,7 @@ export async function resend(db: Database, id: string): Promise<void> {
     contractNumber: contract.number,
     orderNumber: contract.orderNumber,
     signingToken: token.raw,
-    language: contract.language as 'it' | 'en',
+    language: asContractLanguage(contract.language),
   });
 
   await repo.updateStatus(db, id, 'sent', { sentAt: new Date() });
@@ -511,7 +512,7 @@ export async function sign(
     customerName: data.customer.fullName,
     contractNumber: contract.number,
     orderNumber: contract.orderNumber,
-    language: contract.language as 'it' | 'en',
+    language: asContractLanguage(contract.language),
   });
 
   // The signature lands on the order's timeline, where the operator reads it.
@@ -527,7 +528,22 @@ export async function sign(
   return getById(db, contract.id);
 }
 
-function defaultDamages(language: 'it' | 'en'): ContractData['damages'] {
+/**
+ * `contracts.language` is a plain `text` column, so a value that no contract
+ * variant exists for is reachable — a hand-edited row, a restored backup, an
+ * older writer. Throwing is the only correct answer: falling back to Italian
+ * would render a legally different document under a number recorded as
+ * something else, and that is worse than a 500.
+ */
+function asContractLanguage(value: string): ContractLanguage {
+  if (isContractLanguage(value)) return value;
+  throw httpError(
+    500,
+    `Contract language "${value}" has no contract template. A contract is drafted per jurisdiction, not translated — see ContractLanguage in @mia/templates.`,
+  );
+}
+
+function defaultDamages(language: ContractLanguage): ContractData['damages'] {
   if (language === 'en') {
     return [
       { description: 'Scratches or cosmetic damage', amount: '50.00' },

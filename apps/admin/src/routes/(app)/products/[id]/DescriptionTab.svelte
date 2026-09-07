@@ -20,15 +20,21 @@
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
+  import {
+    buildTranslations,
+    type LanguageCode,
+    languageOf,
+    localizedFrom,
+    SOURCE_LANGUAGE,
+    textFor,
+  } from '~/lib/i18n';
 
   let { product, onSaved, dirty }: TabProps = $props();
 
   const SECTION = 'description';
 
-  const snapshot = (source: AdminProduct): Localized => ({
-    it: source.translations.it?.description ?? '',
-    en: source.translations.en?.description ?? undefined,
-  });
+  const snapshot = (source: AdminProduct): Localized =>
+    localizedFrom(source.translations, (t) => t.description);
 
   let form = $state(untrack(() => snapshot(product)));
   let saved = $state(untrack(() => snapshot(product)));
@@ -46,14 +52,16 @@
 
   const contentLang = useContentLang();
   /**
-   * The API cannot store an English description without an English title and
-   * slug — `ProductTranslationsSchema` requires both. Say so instead of
-   * accepting the text and dropping it on save.
+   * The API cannot store a description in a target language without that
+   * language's title and slug — `ProductTranslationsSchema` requires both. Say
+   * so instead of accepting the text and dropping it on save.
    */
-  const englishBlocked = $derived(
-    contentLang.current === 'en' &&
-      !(product.translations.en?.title && product.translations.en?.slug),
-  );
+  const blockedLanguage = $derived.by(() => {
+    const lang = contentLang.current;
+    if (lang === SOURCE_LANGUAGE) return null;
+    const row = product.translations[lang];
+    return row?.title && row.slug ? null : languageOf(lang).label;
+  });
 
   const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
 
@@ -62,10 +70,10 @@
   let fields = $state<Record<string, string>>({});
 
   /** The language's row as the server has it, with our field swapped in. */
-  function translationFor(lang: 'it' | 'en') {
+  function translationFor(lang: LanguageCode) {
     const row = product.translations[lang];
-    const description = (lang === 'it' ? form.it : (form.en ?? '')).trim() || null;
-    if (!row?.title || !row.slug) return undefined;
+    const description = textFor(form, lang).trim() || null;
+    if (!row?.title || !row.slug) return null;
     return {
       title: row.title,
       slug: row.slug,
@@ -82,14 +90,18 @@
     fields = {};
 
     try {
-      const it = translationFor('it');
-      if (!it)
-        throw new Error('This product has no Italian title yet — save the Basics tab first.');
-      const en = translationFor('en');
+      // Only languages that already have a title and slug can carry a
+      // description; the rest are dropped, exactly as before.
+      const translations = buildTranslations(translationFor, () => true);
+      if (!translations) {
+        throw new Error(
+          `This product has no ${languageOf(SOURCE_LANGUAGE).label} title yet — save the Basics tab first.`,
+        );
+      }
       const updated = await unwrap<AdminProduct>(
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
-          json: { translations: { it, ...(en ? { en } : {}) } },
+          json: { translations },
         }),
       );
 
@@ -118,13 +130,13 @@
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="space-y-3">
-    {#if englishBlocked}
+    {#if blockedLanguage}
       <p
         class="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400"
         role="status"
       >
-        Give this product an English title and slug on the Basics tab first — the API stores a
-        translation as a whole row, so an English description has nowhere to go until then.
+        Give this product a {blockedLanguage} title and slug on the Basics tab first — the API stores
+        a translation as a whole row, so a {blockedLanguage} description has nowhere to go until then.
       </p>
     {/if}
 

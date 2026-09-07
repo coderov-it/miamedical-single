@@ -1,4 +1,5 @@
 import type { Database } from '@mia/db';
+import type { ContractLanguage } from '@mia/templates';
 import * as templates from '@mia/templates';
 
 import { mailSender } from '../../infra/mail/index.ts';
@@ -103,7 +104,7 @@ export function sendContractReady(input: {
   contractNumber: string;
   orderNumber: string | null;
   signingToken: string;
-  language: 'it' | 'en';
+  language: ContractLanguage;
 }): Promise<void> {
   return sendQuietly(
     templates.contractReady({
@@ -123,7 +124,7 @@ export function sendContractSigned(input: {
   customerName: string;
   contractNumber: string;
   orderNumber: string | null;
-  language: 'it' | 'en';
+  language: ContractLanguage;
 }): Promise<void> {
   return sendQuietly(
     templates.contractSigned({

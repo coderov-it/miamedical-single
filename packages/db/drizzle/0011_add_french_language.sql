@@ -1,0 +1,11 @@
+-- Appended, never reordered: PostgreSQL enum ordering is part of the type.
+--
+-- This migration must stay alone. A transaction cannot use an enum value it
+-- added itself, so no seed, backfill or data migration may share it — put
+-- those in 0012 and let this one commit first.
+--
+-- Nothing else changes. The four *_translations tables are keyed
+-- (parent_id, language_code), the localized columns are jsonb, and every
+-- ..._it_check constraint asserts only the source language — so French is
+-- rows and keys, not columns.
+ALTER TYPE "public"."language_code" ADD VALUE 'fr';

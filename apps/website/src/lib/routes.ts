@@ -5,7 +5,7 @@
  * as a literal scattered through components. Italian slugs match the storefront
  * design and the live site's URL shape.
  */
-import type { SiteLocale } from './i18n.ts';
+import { SOURCE_LANGUAGE, type SiteLocale } from './i18n.ts';
 
 export const routePaths = {
   it: {
@@ -72,12 +72,54 @@ export const routePaths = {
     signContract: '/en/sign-contract/',
     blog: '/en/blog/',
   },
+  /**
+   * French. Every path is prefixed, exactly like English — only the source
+   * language is unprefixed, and that is a property of the registry, not a fact
+   * about Italian written into this table.
+   *
+   * Nothing links to these yet, so unlike the Italian slugs they carry no SEO
+   * commitment: they are chosen to read naturally in French rather than to
+   * preserve a URL somebody already indexed. Once published they inherit the
+   * same rule as the rest of this file — changing one is an SEO event.
+   */
+  fr: {
+    home: '/fr/',
+    catalog: '/fr/catalogue/',
+    catalogRental: '/fr/catalogue-location/',
+    catalogSale: '/fr/catalogue-vente/',
+    product: '/fr/produit/',
+    search: '/fr/recherche/',
+    productFinder: '/fr/aidez-moi-a-choisir/',
+    support: '/fr/assistance/',
+    cart: '/fr/panier/',
+    checkout: '/fr/commande/',
+    terms: '/fr/conditions-generales/',
+    privacy: '/fr/politique-de-confidentialite/',
+    cookies: '/fr/politique-de-cookies/',
+    login: '/fr/connexion/',
+    account: '/fr/espace-client/',
+    accountOrders: '/fr/espace-client/commandes/',
+    activateAccount: '/fr/activer-le-compte/',
+    resetPassword: '/fr/reinitialiser-le-mot-de-passe/',
+    reportOrder: '/fr/signaler-une-commande/',
+    signContract: '/fr/signer-le-contrat/',
+    blog: '/fr/blog/',
+  },
 } as const;
 
-/** Italian is the unprefixed default. Kept for existing route imports. */
-export const routes = routePaths.it;
+/** The source language is the unprefixed one. Kept for existing route imports. */
+export const routes = routePaths[SOURCE_LANGUAGE];
 
 export type RouteKey = keyof typeof routes;
+
+/**
+ * `satisfies` rather than an annotation on `routePaths`: it keeps every path a
+ * literal type — the middleware builds lookup tables out of them — while making
+ * a registered language with no route table, or a language missing one route, a
+ * compile error here rather than a 404 in production.
+ */
+const _routeTableIsComplete = routePaths satisfies Record<SiteLocale, Record<RouteKey, string>>;
+void _routeTableIsComplete;
 
 export function routePath(locale: SiteLocale, key: RouteKey): string {
   return routePaths[locale][key];
@@ -116,7 +158,7 @@ function appendContext(search: URLSearchParams, context: BrowseContext): void {
 export function productPath(
   slug: string,
   context: BrowseContext = {},
-  locale: SiteLocale = 'it',
+  locale: SiteLocale = SOURCE_LANGUAGE,
 ): string {
   const search = new URLSearchParams();
   appendContext(search, context);
@@ -125,13 +167,13 @@ export function productPath(
   return qs ? `${base}${slug}/?${qs}` : `${base}${slug}/`;
 }
 
-export function blogPostPath(slug: string, locale: SiteLocale = 'it'): string {
+export function blogPostPath(slug: string, locale: SiteLocale = SOURCE_LANGUAGE): string {
   return `${routePath(locale, 'blog')}${slug}/`;
 }
 
 export function blogPath(
   params: { categoria?: string; page?: number } = {},
-  locale: SiteLocale = 'it',
+  locale: SiteLocale = SOURCE_LANGUAGE,
 ): string {
   const search = new URLSearchParams();
   if (params.categoria) search.set('categoria', params.categoria);
@@ -156,7 +198,7 @@ const CATALOG_ROUTE: Record<CatalogView, RouteKey> = {
   sale: 'catalogSale',
 };
 
-export function catalogRoot(view: CatalogView, locale: SiteLocale = 'it'): string {
+export function catalogRoot(view: CatalogView, locale: SiteLocale = SOURCE_LANGUAGE): string {
   return routePath(locale, CATALOG_ROUTE[view]);
 }
 
@@ -175,7 +217,7 @@ export function catalogPath(
     layout?: string;
     page?: number;
   } & BrowseContext = {},
-  locale: SiteLocale = 'it',
+  locale: SiteLocale = SOURCE_LANGUAGE,
 ): string {
   const search = new URLSearchParams();
   if (params.q) search.set('q', params.q);
@@ -199,7 +241,7 @@ export function catalogPath(
 /** Search URL carrying what the customer already told the home booking bar. */
 export function searchPath(
   params: { q?: string; category?: string; sort?: string; page?: number } & BrowseContext = {},
-  locale: SiteLocale = 'it',
+  locale: SiteLocale = SOURCE_LANGUAGE,
 ): string {
   const search = new URLSearchParams();
   if (params.q) search.set('q', params.q);
@@ -213,7 +255,7 @@ export function searchPath(
 }
 
 /** One customer's order, by the number they were given. */
-export function accountOrderPath(number: string, locale: SiteLocale = 'it'): string {
+export function accountOrderPath(number: string, locale: SiteLocale = SOURCE_LANGUAGE): string {
   return `${routePath(locale, 'accountOrders')}${encodeURIComponent(number)}/`;
 }
 

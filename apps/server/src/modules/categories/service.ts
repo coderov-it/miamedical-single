@@ -1,7 +1,7 @@
 import type { Database } from '@mia/db';
 import { eq, inArray } from '@mia/db';
 import type { LanguageCode } from '@mia/db/schema';
-import { categorySpecOptions, categorySpecs } from '@mia/db/schema';
+import { categorySpecOptions, categorySpecs, LANGUAGE_CODES } from '@mia/db/schema';
 import type { CreateCategoryInput, SpecInput, UpdateCategoryInput } from '@mia/validators';
 
 import type { FileUploader } from '@mia/media';
@@ -36,7 +36,7 @@ export async function getById(db: Database, id: string): Promise<CategoryAggrega
 
 function normalizeTranslations(input: CreateCategoryInput['translations'] | undefined) {
   const result: Partial<Record<LanguageCode, repo.CategoryTranslationData>> = {};
-  for (const lang of ['it', 'en'] as LanguageCode[]) {
+  for (const lang of LANGUAGE_CODES) {
     const t = input?.[lang];
     if (!t) continue;
     result[lang] = {

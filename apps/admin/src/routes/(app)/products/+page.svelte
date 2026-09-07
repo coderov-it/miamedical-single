@@ -28,6 +28,8 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import TranslationProgress from '~/lib/components/translation-progress.svelte';
+  import { progressFromStates } from '~/lib/i18n';
 
   type ListResponse = InferResponseType<typeof api.api.admin.products.$get, 200>;
   type Product = ListResponse['data'][number];
@@ -87,9 +89,7 @@
   );
   // Category names in the filter follow the interface language too.
   const categoryName = (category: Category) =>
-    (uiLang.current === 'en' ? category.translations.en?.name : undefined) ??
-    category.translations.it?.name ??
-    category.code;
+    category.translations[uiLang.current]?.name ?? category.translations.it?.name ?? category.code;
 
   const categoryLabel = $derived(
     draft.values.category === ANY
@@ -264,23 +264,9 @@
               </Table.Cell>
 
               <Table.Cell>
-                {#if product.translationStatus.en === 'complete'}
-                  <Badge
-                    variant="outline"
-                    class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-                  >
-                    complete
-                  </Badge>
-                {:else if product.translationStatus.en === 'partial'}
-                  <Badge
-                    variant="outline"
-                    class="border-amber-500/40 text-amber-600 dark:text-amber-400"
-                  >
-                    partial
-                  </Badge>
-                {:else}
-                  <span class="text-muted-foreground">—</span>
-                {/if}
+                <TranslationProgress
+                  progress={progressFromStates(product.translationStatus.languages)}
+                />
               </Table.Cell>
 
               <Table.Cell class="text-muted-foreground">

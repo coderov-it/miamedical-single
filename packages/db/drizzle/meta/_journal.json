@@ -78,6 +78,13 @@
       "when": 1788087258049,
       "tag": "0010_add_product_order_count",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788737388481,
+      "tag": "0011_add_french_language",
+      "breakpoints": true
     }
   ]
 }

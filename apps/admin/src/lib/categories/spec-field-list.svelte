@@ -29,6 +29,7 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { Reorder } from '~/lib/reorder.svelte';
+  import { SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
   import OptionListEditor from './option-list-editor.svelte';
   import { isSelectType, VALUE_TYPES, type SpecEdit } from './spec-edit';
 
@@ -83,8 +84,10 @@
     reorder.mark(row.uid);
   }
 
+  /* Falls back to the source language: a row heading must never be blank while
+     the form sits on a language this spec has not been translated into. */
   const title = (spec: SpecEdit) =>
-    (contentLang.current === 'en' ? spec.label.en : spec.label.it) || spec.label.it;
+    textFor(spec.label, contentLang.current) || textFor(spec.label, SOURCE_LANGUAGE);
 
   const TOGGLES = [
     {

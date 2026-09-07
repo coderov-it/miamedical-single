@@ -26,8 +26,9 @@
 import { t } from '~/lib/labels';
 import type { CheckoutBlocked, CheckoutItem } from '~/lib/checkout';
 import { routes } from '~/lib/routes';
-import { CONTACT } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 import { EYEBROW } from './styles';
+import { SOURCE_LANGUAGE, translate } from '~/lib/i18n';
 
 interface Props {
   /** `wa.me` URL already carrying the line items. */
@@ -110,7 +111,7 @@ const SECONDARY_CTA =
         <strong class="text-[14.5px]">{t('noPaymentNow')}</strong>
         <span class="text-ink-2 text-[14px] leading-normal">
           {t('noPaymentNowDetail')}
-          {CONTACT.hours.it}.
+          {translate(SOURCE_LANGUAGE, CONTACT_HOURS_KEY)}.
         </span>
       </span>
     </div>

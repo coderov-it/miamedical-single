@@ -3,7 +3,7 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { mediaUrl } from '~/lib/api';
 import { getBlogPostBySlug } from '~/lib/blog';
-import { localeFromLocals, localeTag, translate } from '~/lib/i18n';
+import { localeFromLocals, LOCALES, localeTag, translate } from '~/lib/i18n';
 import { blogPostPath, routes } from '~/lib/routes';
 
 export const prerender = false;
@@ -16,11 +16,19 @@ if (!post || post.slug !== slug) {
   return Astro.rewrite('/404');
 }
 
-const otherLocale = locale === 'it' ? 'en' : 'it';
-const alternatePost = await getBlogPostBySlug(slug, otherLocale);
+/* Every other locale the post exists in. The blog has no `availableLocales`
+   equivalent, so each candidate is a lookup — issued together, not in series. */
+const alternates = await Promise.all(
+  LOCALES.filter((candidate) => candidate !== locale).map(async (candidate) => {
+    const alternate = await getBlogPostBySlug(slug, candidate);
+    return alternate ? ([candidate, blogPostPath(alternate.slug, candidate)] as const) : null;
+  }),
+);
 const languagePaths = {
   [locale]: blogPostPath(post.slug, locale),
-  ...(alternatePost ? { [otherLocale]: blogPostPath(alternatePost.slug, otherLocale) } : {}),
+  ...Object.fromEntries(
+    alternates.filter((entry): entry is NonNullable<typeof entry> => entry !== null),
+  ),
 };
 
 const publishedAt = post.publishedAt

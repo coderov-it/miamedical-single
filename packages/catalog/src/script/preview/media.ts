@@ -15,6 +15,8 @@
  * out of the file here: the browser has already decoded the image, and a
  * JPEG/PNG/WebP header reader is a lot of bytes for a number that is free.
  */
+import { LANGUAGE_CODES } from '@mia/validators/language';
+
 import type { MediaInput, MediaRef } from '../../lib/types.ts';
 import type { AssetResolver, ResolvedAsset } from './assets.ts';
 import { fileSize } from './assets.ts';
@@ -56,8 +58,9 @@ function thumb(slot: Slot, asset: ResolvedAsset, index: number): string {
     `data-size="${asset.exists ? fileSize(asset.bytes) : ''}"`,
     `data-src="${asset.href}"`,
     `data-path="${escape(asset.sourcePath)}"`,
-    `data-alt-it="${escape(alt?.it ?? '')}"`,
-    `data-alt-en="${escape(alt?.en ?? '')}"`,
+    /* One attribute per registered language, so the preview never claims a
+       language has no alt text just because this emitter predates it. */
+    ...LANGUAGE_CODES.map((code) => `data-alt-${code}="${escape(alt?.[code] ?? '')}"`),
     asset.exists ? '' : 'data-missing="true"',
   ]
     .filter(Boolean)

@@ -24,10 +24,10 @@ import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import { API_BASE } from '~/lib/api';
 import type { Checkout } from '~/lib/checkout';
-import { localeForRequest } from '~/lib/i18n';
+import { localeForRequest, translate } from '~/lib/i18n';
 import { t } from '~/lib/labels';
 import { productPath, routePath } from '~/lib/routes';
-import { CONTACT, whatsappUrl } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY, whatsappUrl } from '~/lib/site';
 
 interface Props {
   checkout: Checkout;
@@ -136,7 +136,7 @@ const originCrumb =
         >
           {t('goToCatalog')}
         </a>
-        <p class="text-ink-2 m-0 text-[13.5px]">{CONTACT.hours[locale]}</p>
+        <p class="text-ink-2 m-0 text-[13.5px]">{translate(locale, CONTACT_HOURS_KEY)}</p>
         <PhoneCta variant="primary" />
       </div>
     )

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Schema impact of adding fr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Atkinson+Hyperlegible&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#303137;--ink2:#525358;--dec:#929397;--ph:#86878d;
+  --page:#f6f7fa;--tint:#f5f6f7;--tint2:#f0f0f1;--hair:#e7e8ea;--hairs:#d1d1d4;
+  --accent:#3846b1;--deep:#262d97;--atint:#eef0fb;
+  --ok:#0e6b41;--star:#d99a2b;--danger:#c2402a;--dtint:#fdf2ef;
+  --addbg:#eaf4ee;--addln:#12523a;--addgut:#d7eade;--addword:#a7dcbd;
+  --delbg:#fdf2ef;--delln:#8d3421;--delword:#f3c0b4;
+  --ui:'Lexend',system-ui,sans-serif;--body:'Atkinson Hyperlegible',system-ui,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 18px 80px}
+h1{font-family:var(--ui);font-weight:600;font-size:clamp(21px,3.4vw,29px);letter-spacing:-.02em;margin:0 0 8px}
+.lede{font-size:14.5px;line-height:1.55;color:var(--ink2);margin:0 0 26px;max-width:74ch}
+h2{font-family:var(--ui);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dec);margin:36px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--hair)}
+p{font-size:14px;line-height:1.55;color:var(--ink2);margin:0 0 12px;max-width:78ch}
+code{font-family:var(--mono);font-size:.87em;color:var(--deep);background:var(--atint);padding:1px 5px;border-radius:4px}
+
+/* verdict strip */
+.verdict{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 8px}
+.v{background:#fff;border:1px solid var(--hair);border-radius:10px;padding:13px 15px}
+.v .n{font-family:var(--ui);font-size:26px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.v .k{font-family:var(--ui);font-size:11px;color:var(--dec);margin-top:6px;letter-spacing:.04em}
+.v.hot .n{color:var(--star)} .v.cold .n{color:var(--ok)} .v.warn .n{color:var(--danger)}
+
+/* toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.tabs{display:flex;gap:4px;background:var(--tint2);border-radius:9px;padding:3px}
+.tab{font-family:var(--ui);font-size:12.5px;border:0;background:transparent;color:var(--ink2);padding:6px 12px;border-radius:7px;cursor:pointer}
+.tab[aria-selected="true"]{background:#fff;color:var(--deep);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.07)}
+.spacer{flex:1}
+.tog{display:inline-flex;align-items:center;gap:7px;font-family:var(--ui);font-size:12.5px;color:var(--ink2);background:#fff;border:1px solid var(--hairs);border-radius:8px;padding:6px 11px;cursor:pointer}
+.tog[aria-pressed="true"]{background:var(--atint);border-color:var(--accent);color:var(--deep)}
+
+/* file card */
+.file{background:#fff;border:1px solid var(--hair);border-radius:11px;margin:0 0 13px;overflow:hidden}
+.fhead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--tint);border-bottom:1px solid var(--hair);cursor:pointer;user-select:none}
+.chev{font-size:10px;color:var(--dec);transition:transform .15s;flex:none}
+.file.closed .chev{transform:rotate(-90deg)}
+.file.closed .fbody{display:none}
+.fpath{font-family:var(--mono);font-size:12.5px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-family:var(--ui);font-size:10.5px;font-weight:500;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.t-ddl{background:var(--dtint);color:var(--danger)}
+.t-new{background:var(--addbg);color:var(--ok)}
+.t-ct{background:var(--atint);color:var(--deep)}
+.t-val{background:#fbf3e2;color:#8a6212}
+.stat{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+.stat .p{color:var(--ok)} .stat .m{color:var(--danger)}
+.why{font-size:12.5px;color:var(--ink2);padding:9px 14px;background:#fcfcfd;border-bottom:1px solid var(--hair);line-height:1.5}
+.why b{font-family:var(--ui);font-weight:500;color:var(--ink)}
+
+/* diff table */
+.dwrap{overflow-x:auto}
+table.d{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;line-height:1.62}
+table.d td{padding:0;vertical-align:top}
+.gut{width:1%;text-align:right;padding:0 9px 0 12px!important;color:var(--ph);background:#fcfcfd;border-right:1px solid var(--hair);user-select:none;white-space:nowrap;font-size:11px}
+.sig{width:1%;padding:0 0 0 9px!important;user-select:none;color:var(--ph)}
+.src{padding:0 14px 0 6px!important;white-space:pre-wrap;word-break:break-word}
+tr.add{background:var(--addbg)} tr.add .src{color:var(--addln)} tr.add .sig{color:var(--ok)} tr.add .gut{background:#e0efe6;color:#5b8c72}
+tr.del{background:var(--delbg)} tr.del .src{color:var(--delln)} tr.del .sig{color:var(--danger)} tr.del .gut{background:#f8e3dd;color:#a8695a}
+tr.hunk td{background:var(--tint2);color:var(--dec);font-size:11px;padding:4px 12px!important}
+tr.pad{background:#fafafb}
+mark{background:var(--addword);color:inherit;border-radius:2px;padding:0 1px}
+tr.del mark{background:var(--delword)}
+.split table.d{table-layout:fixed}
+.split .side{width:50%;border-right:1px solid var(--hair)}
+.split .side:last-child{border-right:0}
+.hidectx tr.ctx{display:none}
+
+/* unchanged inventory */
+.inv{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--hair);border-radius:11px;overflow:hidden;font-size:13px}
+.inv th{font-family:var(--ui);font-weight:500;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--dec);text-align:left;padding:10px 14px;background:var(--tint);border-bottom:1px solid var(--hair)}
+.inv td{padding:10px 14px;border-bottom:1px solid var(--hair);color:var(--ink2)}
+.inv tr:last-child td{border-bottom:0}
+.inv td:first-child{font-family:var(--mono);font-size:12px;color:var(--ink);white-space:nowrap}
+.inv .cnt{font-family:var(--ui);font-weight:600;color:var(--ok);text-align:center;width:1%}
+.note{background:#fff;border:1px solid var(--hair);border-left:3px solid var(--star);border-radius:9px;padding:12px 15px;font-size:13.5px;line-height:1.55;color:var(--ink2);margin:0 0 12px}
+.note.red{border-left-color:var(--danger)}
+.note b{font-family:var(--ui);font-weight:500;color:var(--ink)}
+@media(max-width:860px){.verdict{grid-template-columns:repeat(2,1fr)}.split table.d{table-layout:auto}.split .side{width:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Schema impact of adding <code>fr</code></h1>
+<p class="lede">The translation tables are keyed <code>(parentId, languageCode)</code> and the inline columns are <code>jsonb</code>. Both store a language as a <b>row or a key</b>, never as a column — so a third language is one <code>ALTER TYPE</code> and no table ever changes shape.</p>
+
+<div class="verdict">
+  <div class="v warn"><div class="n">1</div><div class="k">DDL statement</div></div>
+  <div class="v cold"><div class="n">0</div><div class="k">ALTER TABLE</div></div>
+  <div class="v cold"><div class="n">0</div><div class="k">rows to backfill</div></div>
+  <div class="v hot"><div class="n">4</div><div class="k">type contracts to widen</div></div>
+</div>
+
+<div class="bar">
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-f="all" aria-selected="true">All</button>
+    <button class="tab" role="tab" data-f="ddl" aria-selected="false">DDL</button>
+    <button class="tab" role="tab" data-f="contract" aria-selected="false">Type contracts</button>
+    <button class="tab" role="tab" data-f="value" aria-selected="false">Stored values</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="tog" id="mode" aria-pressed="false">Split view</button>
+  <button class="tog" id="ctx" aria-pressed="false">Changes only</button>
+  <button class="tog" id="fold" aria-pressed="false">Collapse all</button>
+</div>
+
+<div id="files"></div>
+
+<h2>What does not change — and why</h2>
+<table class="inv">
+<thead><tr><th>Existing structure</th><th class="cnt">#</th><th>Why <code>fr</code> needs no DDL</th></tr></thead>
+<tbody>
+<tr><td>*_translations tables</td><td class="cnt">4</td><td><code>primaryKey(parentId, languageCode)</code> — a language is a <b>row</b>. French is an <code>INSERT</code>. <span style="color:var(--dec)">product · category · blog_post · terms_document</span></td></tr>
+<tr><td>localized() jsonb columns</td><td class="cnt">13</td><td><code>{it,en}</code> → <code>{it,en,fr}</code> is a value edit inside one <code>jsonb</code>. No column, no type change.</td></tr>
+<tr><td>…_it_check constraints</td><td class="cnt">12</td><td>Every one is <code>col ? 'it' AND length(col-&gt;&gt;'it') &gt; 0</code>. They assert Italian only, so they accept an <code>fr</code> key untouched.</td></tr>
+<tr><td>unique (language_code, slug)</td><td class="cnt">4</td><td>Already composite. A French slug can equal an Italian one without colliding — no index rebuild.</td></tr>
+<tr><td>GIN search indexes</td><td class="cnt">2</td><td>Indexed on the <code>tsvector</code> column, not per dictionary. French rows index into the same GIN.</td></tr>
+<tr><td>MediaAlt</td><td class="cnt">1</td><td><code>{[K in LanguageCode]?: string}</code> — a mapped type. Widens itself the moment the union does.</td></tr>
+</tbody>
+</table>
+
+<h2>Two things to verify before the migration</h2>
+<div class="note"><b>The <code>french</code> text-search config must exist on the instance.</b> It ships with a default PostgreSQL build, but a slim image can omit it, and <code>searchVectorFor()</code> would then throw on every French insert.
+<div style="font-family:var(--mono);font-size:12px;color:var(--deep);background:var(--atint);border-radius:6px;padding:9px 11px;margin-top:9px;overflow-x:auto">SELECT cfgname FROM pg_ts_config WHERE cfgname = 'french';</div></div>
+<div class="note red"><b><code>ADD VALUE</code> must commit before anything uses <code>'fr'</code>.</b> PostgreSQL will not let a transaction insert a value it added itself, so this cannot be bundled with a seed or a data migration — keep <code>0011</code> alone and let <code>0012</code> use it.
+<div style="font-family:var(--mono);font-size:12px;color:var(--deep);background:var(--atint);border-radius:6px;padding:9px 11px;margin-top:9px;overflow-x:auto">SELECT unnest(enum_range(NULL::language_code));  -- expect it, en, fr</div></div>
+<div class="note"><b><code>blog_post_translations</code> has no <code>search_vector</code>.</b> Blog search does not exist in any language today — French does not regress it, but if the fr launch is meant to include blog search, that column and its GIN index are a separate migration.</div>
+
+<script>
+const M = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+                .replace(/⟦(.*?)⟧/g,'<mark>$1</mark>');
+
+const DATA = [
+{
+  path:'packages/db/drizzle/0011_add_french_language.sql', kind:'ddl', tag:'new file', tagc:'t-new',
+  why:'<b>The only DDL in the entire change.</b> Enum values are appended, never reordered — PostgreSQL enum ordering is part of the type.',
+  hunks:[{h:'@@ new file @@',l:[
+    ['add',null,1,'-- Appended, never reordered: enum order is part of the type.'],
+    ['add',null,2,'-- Must commit alone. Nothing in this transaction may use \'fr\'.'],
+    ['add',null,3,'ALTER TYPE "language_code" ADD VALUE \'fr\';'],
+  ]}]
+},
+{
+  path:'packages/db/src/schema/i18n.ts', kind:'ddl', tag:'enum + type', tagc:'t-ddl',
+  why:'The <code>pgEnum</code> literal is what drizzle-kit diffs to emit the <code>ALTER TYPE</code>. The <code>Localized</code> interface is hand-written today — deriving it from the union means the next language never edits this file.',
+  hunks:[
+   {h:'@@ -6,7 +6,7 @@  the enum',l:[
+    ['ctx',6,6,'/**'],
+    ['del',7,null,' * The ⟦two⟧ catalog languages. An enum rather than a `languages` table: the'],
+    ['add',null,7,' * The ⟦three⟧ catalog languages. An enum rather than a `languages` table: the'],
+    ['ctx',8,8,' * codebase leans on literal types throughout … adding a language needs a code'],
+    ['ctx',9,9,' * change anyway — the search helper must learn the new dictionary.'],
+    ['ctx',10,10,' */'],
+    ['del',11,null,"export const languageCode = pgEnum('language_code', ['it', 'en']⟦⟧);"],
+    ['add',null,11,"export const languageCode = pgEnum('language_code', ['it', 'en'⟦, 'fr'⟧]);"],
+   ]},
+   {h:'@@ -24,10 +24,10 @@  the value shape',l:[
+    ['ctx',24,24,'/** … translated text goes in a `*_translations` table only if PostgreSQL'],
+    ['del',25,null,' * indexes it … Everything else is an inline `{ it, ⟦en⟧ }` jsonb column. */'],
+    ['add',null,25,' * indexes it … Everything else is an inline `{ it, ⟦en, fr⟧ }` jsonb column. */'],
+    ['del',26,null,'export ⟦interface Localized {⟧'],
+    ['del',27,null,'  it: string;'],
+    ['del',28,null,'  en?: string | undefined;'],
+    ['del',29,null,'}'],
+    ['add',null,26,'export ⟦type Localized = { it: string } & {⟧'],
+    ['add',null,27,'⟦  [K in Exclude<LanguageCode, \'it\'>]?: string | undefined;⟧'],
+    ['add',null,28,'⟦};⟧'],
+   ]},
+   {h:'@@ -38,7 +37,7 @@  the CHECK — unchanged, its comment is not',l:[
+    ['ctx',38,37,'/**'],
+    ['ctx',39,38,' * `CHECK (col ? \'it\')` — Italian is mandatory *in the database*.'],
+    ['del',40,null,' * What it cannot police is the key set — a stray `{"⟦fr⟧": …}` is'],
+    ['add',null,39,' * What it cannot police is the key set — a stray `{"⟦de⟧": …}` is'],
+    ['ctx',41,40,' * valibot\'s job to reject.'],
+    ['ctx',42,41,' */'],
+    ['ctx',43,42,'export const localizedCheck = (name: string, column: AnyPgColumn) =>'],
+    ['ctx',44,43,'  check(name, sql`${column} ? \'it\' AND length(${column}->>\'it\') > 0`);'],
+   ]}
+  ]
+},
+{
+  path:'packages/db/src/schema/search.ts', kind:'contract', tag:'compiler gate', tagc:'t-ct',
+  why:'<code>Record&lt;LanguageCode, string&gt;</code> means <code>tsc</code> fails the moment the union widens. This is the tripwire the schema comment promises — it cannot be forgotten.',
+  hunks:[{h:'@@ -13,6 +13,7 @@',l:[
+    ['ctx',13,13,'/** Adding a language later means an enum value *and* a dictionary entry here. */'],
+    ['ctx',14,14,'const SEARCH_CONFIG: Record<LanguageCode, string> = {'],
+    ['ctx',15,15,"  it: 'italian',"],
+    ['ctx',16,16,"  en: 'english',"],
+    ['add',null,17,"⟦  fr: 'french',⟧"],
+    ['ctx',17,18,'};'],
+  ]}]
+},
+{
+  path:'packages/validators/src/i18n.ts', kind:'contract', tag:'the real gate', tagc:'t-ct',
+  why:'<b><code>strictObject</code> rejects unknown keys.</b> Until these three land, every write carrying an <code>fr</code> key is refused by valibot — the database would have accepted it. Existing <code>{it,en}</code> rows keep validating, because <code>fr</code> is optional exactly like <code>en</code>.',
+  hunks:[
+   {h:'@@ -7,3 +7,3 @@  the source list',l:[
+    ['del',7,null,"export const LANGUAGE_CODES = ['it', 'en'⟦⟧] as const;"],
+    ['add',null,7,"export const LANGUAGE_CODES = ['it', 'en'⟦, 'fr'⟧] as const;"],
+    ['ctx',8,8,'export type LanguageCode = (typeof LANGUAGE_CODES)[number];'],
+    ['ctx',9,9,"export const DEFAULT_LANGUAGE: LanguageCode = 'it';"],
+   ]},
+   {h:'@@ -22,6 +22,7 @@  inline jsonb columns',l:[
+    ['ctx',22,22,'export const localizedSchema = (max = 500) =>'],
+    ['ctx',23,23,'  v.strictObject({'],
+    ['ctx',24,24,'    it: requiredText(max),'],
+    ['ctx',25,25,'    en: optionalText(max),'],
+    ['add',null,26,'⟦    fr: optionalText(max),⟧'],
+    ['ctx',26,27,'  });'],
+   ]},
+   {h:'@@ -33,4 +34,4 @@  the picklist message',l:[
+    ['del',33,null,"export const LanguageCodeSchema = v.picklist(LANGUAGE_CODES, 'Language must be ⟦\"it\" or \"en\"⟧.');"],
+    ['add',null,34,"export const LanguageCodeSchema = v.picklist(LANGUAGE_CODES, 'Language must be ⟦\"it\", \"en\" or \"fr\"⟧.');"],
+   ]},
+   {h:'@@ -40,6 +41,7 @@  translation tables',l:[
+    ['ctx',40,41,'export function translationsSchema<TEntries extends v.ObjectEntries>(entries: TEntries) {'],
+    ['ctx',41,42,'  return v.strictObject({'],
+    ['ctx',42,43,'    it: v.strictObject(entries),'],
+    ['ctx',43,44,'    en: v.optional(v.strictObject(entries)),'],
+    ['add',null,45,'⟦    fr: v.optional(v.strictObject(entries)),⟧'],
+    ['ctx',44,46,'  });'],
+    ['ctx',45,47,'}'],
+   ]},
+   {h:'@@ -48,3 +50,3 @@  resolution stops being a pair',l:[
+    ['ctx',48,50,'/** Resolve a `Localized` value for a locale, falling back to Italian. */'],
+    ['del',49,null,'export function pickLocalized(value: ⟦{ it: string; en?: string }⟧, locale: LanguageCode) {'],
+    ['del',50,null,"  return ⟦locale === 'en' && value.en ? value.en : value.it⟧;"],
+    ['add',null,51,'export function pickLocalized(value: ⟦Localized⟧, locale: LanguageCode) {'],
+    ['add',null,52,'  return ⟦value[locale] || value[DEFAULT_LANGUAGE]⟧;'],
+    ['ctx',51,53,'}'],
+   ]}
+  ]
+},
+{
+  path:'category_specs.label  —  stored jsonb value', kind:'value', tag:'UPDATE, not ALTER', tagc:'t-val',
+  why:'A third language inside an existing <code>jsonb</code> column. The <code>category_specs_label_it_check</code> constraint still passes, because it only tests for the <code>it</code> key.',
+  hunks:[{h:'@@ one row, column label @@',l:[
+    ['ctx',1,1,'{'],
+    ['ctx',2,2,'  "it": "Larghezza seduta",'],
+    ['del',3,null,'  "en": "Seat width"⟦⟧'],
+    ['add',null,3,'  "en": "Seat width"⟦,⟧'],
+    ['add',null,4,'⟦  "fr": "Largeur d\'assise"⟧'],
+    ['ctx',4,5,'}'],
+  ]}]
+},
+{
+  path:'product_translations  —  stored rows', kind:'value', tag:'INSERT, not ALTER', tagc:'t-val',
+  why:'The composite primary key <code>(product_id, language_code)</code> already admits a third row per product. The unique index is on <code>(language_code, slug)</code>, so a French slug never collides with the Italian one.',
+  hunks:[{h:'@@ product_id = 9f3c… @@',l:[
+    ['ctx',1,1,"(9f3c…, 'it', 'Carrozzina pieghevole',  'carrozzina-pieghevole',  <tsvector italian>)"],
+    ['ctx',2,2,"(9f3c…, 'en', 'Folding wheelchair',     'folding-wheelchair',     <tsvector english>)"],
+    ['add',null,3,"⟦(9f3c…, 'fr', 'Fauteuil roulant pliant','fauteuil-roulant-pliant',<tsvector french>)⟧"],
+  ]}]
+},
+];
+
+const host = document.getElementById('files');
+let split=false, hidectx=false, filter='all';
+
+function stats(f){let a=0,d=0;f.hunks.forEach(h=>h.l.forEach(l=>{if(l[0]==='add')a++;if(l[0]==='del')d++}));return{a,d}}
+
+function unified(h){
+  return h.l.map(l=>`<tr class="${l[0]==='ctx'?'ctx':l[0]}">
+    <td class="gut">${l[1]??''}</td><td class="gut">${l[2]??''}</td>
+    <td class="sig">${l[0]==='add'?'+':l[0]==='del'?'-':' '}</td>
+    <td class="src">${M(l[3])}</td></tr>`).join('');
+}
+
+function splitRows(h){
+  const rows=[]; let i=0;
+  while(i<h.l.length){
+    const l=h.l[i];
+    if(l[0]==='ctx'){rows.push([l,l,'ctx']);i++;continue}
+    const dels=[],adds=[];
+    while(i<h.l.length&&h.l[i][0]==='del')dels.push(h.l[i++]);
+    while(i<h.l.length&&h.l[i][0]==='add')adds.push(h.l[i++]);
+    const n=Math.max(dels.length,adds.length);
+    for(let k=0;k<n;k++)rows.push([dels[k]||null,adds[k]||null,'chg']);
+  }
+  const cell=(l,s)=>l?`<td class="gut">${l[s]??''}</td><td class="sig">${l[0]==='add'?'+':l[0]==='del'?'-':' '}</td><td class="src">${M(l[3])}</td>`
+                     :`<td class="gut"></td><td class="sig"></td><td class="src"></td>`;
+  return rows.map(([L,R,t])=>{
+    const lc=L?(L[0]==='ctx'?'ctx':'del'):'pad', rc=R?(R[0]==='ctx'?'ctx':'add'):'pad';
+    return `<tr class="${t==='ctx'?'ctx':''}">
+      <td class="side"><table class="d"><tr class="${lc}">${cell(L,1)}</tr></table></td>
+      <td class="side"><table class="d"><tr class="${rc}">${cell(R,2)}</tr></table></td></tr>`;
+  }).join('');
+}
+
+function render(){
+  host.className = (split?'split ':'')+(hidectx?'hidectx':'');
+  host.innerHTML = DATA.filter(f=>filter==='all'||f.kind===filter).map(f=>{
+    const s=stats(f);
+    const body=f.hunks.map(h=>
+      `<tr class="hunk"><td colspan="${split?2:4}">${M(h.h)}</td></tr>`+(split?splitRows(h):unified(h))
+    ).join('');
+    return `<div class="file">
+      <div class="fhead"><span class="chev">▼</span>
+        <span class="fpath">${f.path}</span>
+        <span class="tag ${f.tagc}">${f.tag}</span>
+        <span class="stat"><span class="p">+${s.a}</span> <span class="m">−${s.d}</span></span>
+      </div>
+      <div class="fbody"><div class="why">${f.why}</div>
+      <div class="dwrap"><table class="d">${body}</table></div></div>
+    </div>`;
+  }).join('');
+  host.querySelectorAll('.fhead').forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('closed'));
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
+  t.setAttribute('aria-selected','true'); filter=t.dataset.f; render();
+});
+const mode=document.getElementById('mode'), ctxb=document.getElementById('ctx'), fold=document.getElementById('fold');
+mode.onclick=()=>{split=!split;mode.setAttribute('aria-pressed',split);mode.textContent=split?'Unified view':'Split view';render()};
+ctxb.onclick=()=>{hidectx=!hidectx;ctxb.setAttribute('aria-pressed',hidectx);ctxb.textContent=hidectx?'With context':'Changes only';render()};
+fold.onclick=()=>{const c=fold.getAttribute('aria-pressed')!=='true';fold.setAttribute('aria-pressed',c);fold.textContent=c?'Expand all':'Collapse all';
+  host.querySelectorAll('.file').forEach(f=>f.classList.toggle('closed',c))};
+render();
+</script>
+</div>
+</body>
+</html>

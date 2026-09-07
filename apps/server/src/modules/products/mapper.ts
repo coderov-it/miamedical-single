@@ -1,3 +1,4 @@
+import { LANGUAGE_CODES, SOURCE_LANGUAGE } from '@mia/db/schema';
 import type {
   LanguageCode,
   Localized,
@@ -25,6 +26,7 @@ import type {
   PublicProductSummaryDto,
   PublicRentalPackageDto,
   PublicSpecDto,
+  TranslationState,
   TranslationStatusDto,
 } from './dto.ts';
 import { pick, pickAlt, pickOptional, pickTranslation, resolveField } from './i18n.ts';
@@ -124,9 +126,12 @@ const TRANSLATION_FIELDS = [
 
 export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationStatusDto {
   const missing: Partial<Record<LanguageCode, string[]>> = {};
-  const statusFor = (lang: LanguageCode): 'complete' | 'partial' | 'missing' => {
+  const statusFor = (lang: LanguageCode): TranslationState => {
     const row = rows.find((r) => r.languageCode === lang);
-    if (!row) return 'missing';
+    if (!row) {
+      missing[lang] = [...TRANSLATION_FIELDS];
+      return 'missing';
+    }
     const gaps = TRANSLATION_FIELDS.filter((field) => {
       const value = row[field];
       return value === null || value === '';
@@ -135,13 +140,18 @@ export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationS
     missing[lang] = gaps;
     return 'partial';
   };
-  return { it: statusFor('it'), en: statusFor('en'), missing };
+
+  // Built by walking the registry, so a new language reports its own status
+  // from the first request without an edit here.
+  const languages = {} as Record<LanguageCode, TranslationState>;
+  for (const code of LANGUAGE_CODES) languages[code] = statusFor(code);
+  return { languages, missing };
 }
 
 // --- specs -----------------------------------------------------------------
 
-const YES: Record<LanguageCode, string> = { it: 'Sì', en: 'Yes' };
-const NO: Record<LanguageCode, string> = { it: 'No', en: 'No' };
+const YES: Record<LanguageCode, string> = { it: 'Sì', en: 'Yes', fr: 'Oui' };
+const NO: Record<LanguageCode, string> = { it: 'No', en: 'No', fr: 'Non' };
 
 /**
  * Exported because an order line snapshots the words the customer read, and a
@@ -273,7 +283,7 @@ export function toPublicDetail(
 ): PublicProductDetailDto {
   const translations = row.translations;
   const requested = translations.find((t) => t.languageCode === locale);
-  const italian = translations.find((t) => t.languageCode === 'it');
+  const italian = translations.find((t) => t.languageCode === SOURCE_LANGUAGE);
   const active = requested ?? italian;
   if (!active) throw new Error(`Product ${row.id} has no translations.`);
 
@@ -570,11 +580,11 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     URL segment, not display text. */
 export function toAdminSummary(
   row: ProductSummaryRowData,
-  locale: LanguageCode = 'it',
+  locale: LanguageCode = SOURCE_LANGUAGE,
 ): AdminProductSummaryDto {
-  const italian = row.translations.find((t) => t.languageCode === 'it');
+  const italian = row.translations.find((t) => t.languageCode === SOURCE_LANGUAGE);
   const localized = row.translations.find((t) => t.languageCode === locale) ?? italian;
-  const categoryItalian = row.category.translations.find((t) => t.languageCode === 'it');
+  const categoryItalian = row.category.translations.find((t) => t.languageCode === SOURCE_LANGUAGE);
   const categoryLocalized =
     row.category.translations.find((t) => t.languageCode === locale) ?? categoryItalian;
   return {

@@ -14,12 +14,15 @@ export const CONTACT = {
   whatsappDisplay: '+39 392 65 09 237',
 
   email: 'info@miamedicalitalia.it',
-
-  hours: {
-    it: 'Lun–Sab, 9:00–19:00',
-    en: 'Mon–Sat, 9:00–19:00',
-  },
 } as const;
+
+/**
+ * Opening hours read as a sentence, so they are UI copy and live in the message
+ * catalogue with every other sentence — `translate(locale, 'contact.hours')`.
+ * They used to be a `{ it, en }` literal here, which meant seven call sites
+ * indexed it by locale and all seven broke on the third language.
+ */
+export const CONTACT_HOURS_KEY = 'contact.hours';
 
 export const LOCATIONS = [
   { city: 'Roma', street: 'Via Gian Pietro Talamini 44' },

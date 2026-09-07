@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adding fr — where it enters, what breaks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Atkinson+Hyperlegible&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#303137;--ink-2:#525358;--dec:#929397;
+  --page:#f6f7fa;--tint:#f5f6f7;--hair:#e7e8ea;--hair-s:#d1d1d4;
+  --accent:#3846b1;--deep:#262d97;--a-tint:#eef0fb;
+  --ok:#0e6b41;--star:#d99a2b;--danger:#c2402a;--d-tint:#fdf2ef;
+  --ui:'Lexend',system-ui,sans-serif;--body:'Atkinson Hyperlegible',system-ui,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--body)}
+.wrap{max-width:940px;margin:0 auto;padding:30px 18px 70px}
+h1{font-family:var(--ui);font-weight:600;font-size:clamp(21px,3.6vw,28px);letter-spacing:-.02em;margin:0 0 28px}
+h2{font-family:var(--ui);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dec);margin:38px 0 12px}
+p{font-size:14px;line-height:1.55;color:var(--ink-2);margin:0 0 12px}
+figure{margin:0;background:#fff;border:1px solid var(--hair);border-radius:12px;padding:14px;overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:560px}
+pre{font-family:var(--mono);font-size:12.5px;line-height:1.6;margin:0;padding:14px 16px;background:#fff;border:1px solid var(--hair);border-radius:12px;overflow-x:auto}
+.add{background:#eaf4ee;color:#12523a;display:block;padding:0 5px;margin:0 -5px;border-radius:3px}
+.del{background:var(--d-tint);color:#8d3421;display:block;padding:0 5px;margin:0 -5px;border-radius:3px}
+.cm{color:var(--dec)}
+code{font-family:var(--mono);font-size:.88em;color:var(--deep);background:var(--a-tint);padding:1px 5px;border-radius:4px}
+/* svg text classes */
+.t-lbl{font-family:'Lexend',system-ui,sans-serif;font-size:11px;font-weight:500;fill:#929397;letter-spacing:.08em;text-transform:uppercase}
+.t-file{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;fill:#303137}
+.t-note{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;fill:#929397}
+.t-node{font-family:'Lexend',system-ui,sans-serif;font-size:12.5px;font-weight:500;fill:#303137}
+.t-cnt{font-family:'Lexend',system-ui,sans-serif;font-size:19px;font-weight:600;fill:#c2402a}
+.t-sub{font-family:'Lexend',system-ui,sans-serif;font-size:10.5px;fill:#929397}
+.t-mono-w{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;fill:#fff}
+.box-add{fill:#eaf4ee;stroke:#0e6b41;stroke-width:1}
+.box-brk{fill:#fdf2ef;stroke:#c2402a;stroke-width:1}
+.box-pl{fill:#fff;stroke:#d1d1d4;stroke-width:1}
+.box-acc{fill:#3846b1;stroke:none}
+.ln{stroke:#d1d1d4;stroke-width:1.2;fill:none}
+.ln-a{stroke:#3846b1;stroke-width:1.6;fill:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Adding <code>fr</code>: where it enters, what breaks</h1>
+
+<h2>Six files declare the language set. Three apps assume there are two.</h2>
+<figure>
+<svg viewBox="0 0 900 330" role="img" aria-label="Six declaration files feed the LanguageCode union, which fans out to three apps containing binary ternaries">
+  <defs>
+    <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#d1d1d4"/>
+    </marker>
+    <marker id="ara" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#3846b1"/>
+    </marker>
+  </defs>
+
+  <text class="t-lbl" x="14" y="20">1 · declare — add a string</text>
+  <text class="t-lbl" x="360" y="20">2 · the union</text>
+  <text class="t-lbl" x="612" y="20">3 · consume — breaks</text>
+
+  <!-- left: 6 files -->
+  <g>
+    <rect class="box-add" x="14" y="34" width="292" height="32" rx="6"/>
+    <text class="t-file" x="26" y="49">validators/src/i18n.ts</text>
+    <text class="t-note" x="26" y="61">LANGUAGE_CODES</text>
+
+    <rect class="box-add" x="14" y="74" width="292" height="32" rx="6"/>
+    <text class="t-file" x="26" y="89">db/src/schema/i18n.ts</text>
+    <text class="t-note" x="26" y="101">pgEnum language_code</text>
+
+    <rect class="box-add" x="14" y="114" width="292" height="32" rx="6"/>
+    <text class="t-file" x="26" y="129">db/src/schema/search.ts</text>
+    <text class="t-note" x="26" y="141">fr: 'french'</text>
+
+    <rect class="box-add" x="14" y="154" width="292" height="32" rx="6"/>
+    <text class="t-file" x="26" y="169">i18n/src/enum-labels.ts</text>
+    <text class="t-note" x="26" y="181">34 entries — tsc enforces</text>
+
+    <rect class="box-add" x="14" y="194" width="292" height="32" rx="6"/>
+    <text class="t-file" x="26" y="209">website/src/i18n/fr.json</text>
+    <text class="t-note" x="26" y="221">676 keys — translate() throws on a miss</text>
+
+    <rect class="box-add" x="14" y="234" width="292" height="32" rx="6"/>
+    <text class="t-file" x="26" y="249">website/src/lib/routes.ts</text>
+    <text class="t-note" x="26" y="261">routePaths.fr — 22 slugs</text>
+  </g>
+
+  <!-- arrows into union -->
+  <path class="ln" d="M306,50 C336,50 336,150 356,150" marker-end="url(#ar)"/>
+  <path class="ln" d="M306,90 C336,90 336,150 356,150" marker-end="url(#ar)"/>
+  <path class="ln" d="M306,130 C340,130 336,150 356,150" marker-end="url(#ar)"/>
+  <path class="ln" d="M306,170 C340,170 336,150 356,150" marker-end="url(#ar)"/>
+  <path class="ln" d="M306,210 C336,210 336,150 356,150" marker-end="url(#ar)"/>
+  <path class="ln" d="M306,250 C336,250 336,150 356,150" marker-end="url(#ar)"/>
+
+  <!-- union -->
+  <rect class="box-acc" x="358" y="122" width="188" height="56" rx="8"/>
+  <text class="t-mono-w" x="376" y="146">type LanguageCode</text>
+  <text class="t-mono-w" x="376" y="164">'it' | 'en' | 'fr'</text>
+
+  <!-- arrows out -->
+  <path class="ln-a" d="M546,150 C578,150 578,62 608,62" marker-end="url(#ara)"/>
+  <path class="ln-a" d="M546,150 C578,150 578,150 608,150" marker-end="url(#ara)"/>
+  <path class="ln-a" d="M546,150 C578,150 578,238 608,238" marker-end="url(#ara)"/>
+
+  <!-- right: 3 apps -->
+  <g>
+    <rect class="box-brk" x="610" y="36" width="276" height="52" rx="6"/>
+    <text class="t-node" x="626" y="57">apps/server</text>
+    <text class="t-sub" x="626" y="76">mappers · dtos · repos</text>
+    <text class="t-cnt" x="866" y="68" text-anchor="end">17</text>
+
+    <rect class="box-brk" x="610" y="124" width="276" height="52" rx="6"/>
+    <text class="t-node" x="626" y="145">apps/admin</text>
+    <text class="t-sub" x="626" y="164">field editors · lang tabs</text>
+    <text class="t-cnt" x="866" y="156" text-anchor="end">20</text>
+
+    <rect class="box-brk" x="610" y="212" width="276" height="52" rx="6"/>
+    <text class="t-node" x="626" y="233">apps/website</text>
+    <text class="t-sub" x="626" y="252">middleware · hreflang · tags</text>
+    <text class="t-cnt" x="866" y="244" text-anchor="end">13</text>
+  </g>
+
+  <text class="t-sub" x="610" y="292">files spelling two languages as a ternary</text>
+  <text class="t-sub" x="610" y="308">— fix these first, then fr is data</text>
+</svg>
+</figure>
+
+<pre><span class="del">- locale === 'en' && value.en ? value.en : value.it</span>
+<span class="add">+ value[locale] ?? value[DEFAULT_LANGUAGE]</span></pre>
+
+<h2>The routing trick already in place — and the literal that blocks it</h2>
+<p>There is no <code>pages/fr/</code>. English works by rewriting onto the Italian route files, and French rides the same rail — once <code>/en/</code> stops being a hardcoded literal.</p>
+<figure>
+<svg viewBox="0 0 900 300" role="img" aria-label="Request flow: a French URL is matched by middleware, rewritten to the Italian Astro route, and rendered with the French locale">
+  <defs>
+    <marker id="ar2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#3846b1"/>
+    </marker>
+  </defs>
+
+  <rect class="box-pl" x="14" y="24" width="230" height="46" rx="6"/>
+  <text class="t-lbl" x="26" y="42">public url</text>
+  <text class="t-file" x="26" y="60">GET /fr/rental-catalog/</text>
+
+  <path class="ln-a" d="M129,70 L129,96" marker-end="url(#ar2)"/>
+
+  <rect class="box-brk" x="14" y="100" width="430" height="70" rx="6"/>
+  <text class="t-lbl" x="26" y="118">middleware.ts — the blocker</text>
+  <text class="t-file" x="26" y="137">locale = localeFromPrefix(pathname)</text>
+  <text class="t-note" x="26" y="155">'/en/' is a literal in 4 spots · must become a table</text>
+
+  <path class="ln-a" d="M229,170 L229,196" marker-end="url(#ar2)"/>
+
+  <rect class="box-pl" x="14" y="200" width="430" height="70" rx="6"/>
+  <text class="t-lbl" x="26" y="218">internal rewrite — no new page files</text>
+  <text class="t-file" x="26" y="237">next('/catalogo-noleggio/')</text>
+  <text class="t-note" x="26" y="255">locals.publicPath keeps /fr/… for canonical + hreflang</text>
+
+  <path class="ln-a" d="M444,235 L488,235" marker-end="url(#ar2)"/>
+
+  <rect class="box-acc" x="492" y="200" width="394" height="70" rx="6"/>
+  <text class="t-mono-w" x="508" y="222">renderWithLocale('fr', …)</text>
+  <text class="t-mono-w" x="508" y="240">translate('fr', key)     ← fr.json</text>
+  <text class="t-mono-w" x="508" y="258">api ?locale=fr           ← value[locale]</text>
+
+  <!-- collision warning -->
+  <rect x="492" y="24" width="394" height="146" rx="6" fill="#fdf9ef" stroke="#d99a2b"/>
+  <text class="t-lbl" x="508" y="44" style="fill:#8a6212">the subtraction that must become a union</text>
+  <text class="t-note" x="508" y="66" style="fill:#6b5210">UNPREFIXED_ENGLISH_PATHS strips /en/ and 404s</text>
+  <text class="t-note" x="508" y="82" style="fill:#6b5210">the result — minus the real Italian routes.</text>
+  <text class="t-note" x="508" y="104" style="fill:#6b5210">fr shares privacy-policy · cookie-policy</text>
+  <text class="t-note" x="508" y="120" style="fill:#6b5210">with it, exactly like en does.</text>
+  <text class="t-note" x="508" y="142" style="fill:#c2402a">pairwise diff → union across all non-default</text>
+  <text class="t-note" x="508" y="158" style="fill:#c2402a">locales, or /checkout/ 404s again.</text>
+</svg>
+</figure>
+
+<pre> onRequest
+<span class="del">-  if pathname startsWith '/en/'</span>
+<span class="del">-    sourcePath = sourcePathForEnglish(pathname)</span>
+<span class="add">+  locale = localeFromPrefix(pathname)        <span class="cm">// '/fr/' → 'fr', else 'it'</span></span>
+<span class="add">+  if locale !== 'it'</span>
+<span class="add">+    sourcePath = italianSourceFor(locale, pathname)</span>
+    if !sourcePath return 404</pre>
+
+</div>
+</body>
+</html>

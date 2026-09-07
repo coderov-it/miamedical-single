@@ -11,7 +11,7 @@
  */
 import { translate, type SiteLocale } from '~/lib/i18n';
 import { catalogPath, routePath } from '~/lib/routes';
-import { COMPANY, CONTACT } from '~/lib/site';
+import { COMPANY, CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 import { EDITORIAL_CONTAINER, EDITORIAL_THEME, INVISIBLE_48 } from '~/styles/editorial';
 
 interface Props {
@@ -123,7 +123,7 @@ const socialLinkClass =
           {CONTACT.phoneDisplay}
         </a>
         <p class="mt-2 text-[0.9375rem] text-[#8b94a8]">
-          {text('footer.freephone')} · {CONTACT.hours[locale]}
+          {text('footer.freephone')} · {translate(locale, CONTACT_HOURS_KEY)}
         </p>
 
         <div class="mt-4.5 flex gap-2">

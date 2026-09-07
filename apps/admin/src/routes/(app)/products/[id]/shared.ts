@@ -3,6 +3,7 @@ import type { InferResponseType } from 'hono/client';
 import type { DirtyState } from '~/lib/dirty.svelte';
 
 import { api } from '~/lib/api';
+import type { LocalizedValue } from '~/lib/i18n';
 
 /** DTO shapes inferred from the RPC client — never redeclared by hand. */
 export type AdminProduct = InferResponseType<
@@ -17,20 +18,11 @@ export type AdminCategory = InferResponseType<
 
 export type AdminTerms = InferResponseType<typeof api.api.admin.terms.$get, 200>['data'][number];
 
-export type Localized = { it: string; en?: string | undefined };
-
-/** Normalise a possibly-null jsonb label into a bindable `{ it, en }`. */
-export function localizedOf(value: Localized | null | undefined): Localized {
-  return value ? { it: value.it, en: value.en } : { it: '' };
-}
-
-/** Empty string → the object is dropped (nullable columns). */
-export function localizedOrNull(value: Localized): Localized | null {
-  const it = value.it.trim();
-  if (!it) return null;
-  const en = value.en?.trim();
-  return en ? { it, en } : { it };
-}
+/* The three localized helpers are the registry's, not this module's — a
+   `{ it, en }` written out here is exactly what stopped a third language from
+   being a data change. Re-exported so the tabs keep one import. */
+export type Localized = LocalizedValue;
+export { cloneLocalized as localizedOf, localizedOrNull } from '~/lib/i18n';
 
 /**
  * Card/hero chips. The limits mirror `ProductChipsSchema` in @mia/validators —

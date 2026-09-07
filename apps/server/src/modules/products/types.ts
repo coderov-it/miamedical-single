@@ -1,4 +1,5 @@
 import type {
+  LanguageCode,
   categories,
   categorySpecOptions,
   categorySpecs,
@@ -40,7 +41,7 @@ export interface SpecValueWithOptions extends SpecValueRow {
 }
 
 export interface CategoryWithTranslations extends CategoryRow {
-  translations: { languageCode: 'it' | 'en'; name: string; slug: string }[];
+  translations: { languageCode: LanguageCode; name: string; slug: string }[];
 }
 
 /** Everything one product page needs — one relational query. */
@@ -83,7 +84,7 @@ export interface SpecFilter {
 export interface ProductListFilters {
   page: number;
   perPage: number;
-  locale: 'it' | 'en';
+  locale: LanguageCode;
   q?: string | undefined;
   categoryId?: string | undefined;
   /** Pricing mode, which is what the rental and sale catalogues filter on. */

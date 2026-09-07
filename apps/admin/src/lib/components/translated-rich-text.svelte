@@ -1,21 +1,21 @@
 <!--
-  `translated-input.svelte`'s rich-text twin: one bilingual `{ it, en }` HTML
-  field, edited in whichever language the form's ContentLang tab is on.
+  `translated-input.svelte`'s rich-text twin: one translated `{ it, en, … }`
+  HTML field, edited in whichever language the form's ContentLang is on.
 
-  Same rules as the plain field — the "EN missing" chip is a standing reminder of
-  translation debt rather than an error, and empty English is `undefined` so the
-  storefront falls back to Italian instead of rendering a blank tab. What differs
-  is the Italian source preview: a paragraph of HTML cannot sit under the field
-  as one truncated line, so it is a collapsed block the translator opens when
-  they want it.
+  Same rules as the plain field — the gap indicator is muted and factual, and an
+  emptied target language is `undefined` so the storefront falls back to the
+  source instead of rendering a blank tab. What differs is the source preview: a
+  paragraph of HTML cannot sit under the field as one truncated line, so it is a
+  collapsed block the translator opens when they want it.
 -->
 <script lang="ts">
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import * as Collapsible from '$lib/components/ui/collapsible/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { useContentLang } from '~/lib/content-lang.svelte';
+  import { gapsIn, type LocalizedValue, setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
 
   import RichTextEditor from './rich-text-editor.svelte';
+  import TranslationGaps from './translation-gaps.svelte';
 
   interface Props {
     /**
@@ -27,7 +27,7 @@
     label?: string | undefined;
     /** Accessible name for the editing surface. Defaults to `label`. */
     name?: string;
-    value: { it: string; en?: string | undefined };
+    value: LocalizedValue;
     error?: string | undefined;
     hint?: string | undefined;
   }
@@ -38,31 +38,22 @@
 
   const contentLang = useContentLang();
   const lang = $derived(contentLang.current);
-  const enMissing = $derived(!value.en?.trim());
+  const isSource = $derived(lang === SOURCE_LANGUAGE);
+  const hasGaps = $derived(gapsIn(value).length > 0);
 
-  const current = $derived(lang === 'it' ? value.it : (value.en ?? ''));
+  const current = $derived(textFor(value, lang));
+  const sourceHtml = $derived(textFor(value, SOURCE_LANGUAGE));
 
-  function setHtml(html: string) {
-    if (lang === 'it') value.it = html;
-    else value.en = html || undefined;
-  }
+  const setHtml = (html: string) => setTextFor(value, lang, html);
 </script>
 
 <div>
   <!-- No asterisk anywhere: `description` is nullable in the schema and optional
        in the validator, so a product with no long copy is a legal product. -->
-  {#if label || enMissing}
+  {#if label || hasGaps}
     <div class="mb-1.5 flex min-h-6 items-center justify-between gap-2">
       {#if label}<Label>{label}</Label>{/if}
-
-      {#if enMissing}
-        <Badge
-          variant="outline"
-          class="ml-auto border-amber-500/40 text-amber-600 dark:text-amber-400"
-        >
-          EN missing
-        </Badge>
-      {/if}
+      <TranslationGaps {value} class="ml-auto" />
     </div>
   {/if}
 
@@ -77,12 +68,12 @@
     <p class="mt-1 text-xs text-muted-foreground">{hint}</p>
   {/if}
 
-  {#if lang === 'en' && value.it.trim()}
+  {#if !isSource && sourceHtml.trim()}
     <Collapsible.Root class="mt-2">
       <Collapsible.Trigger
         class="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:underline"
       >
-        <span class="font-medium uppercase">it</span> · show the Italian source
+        <span class="font-medium uppercase">{SOURCE_LANGUAGE}</span> · show the source text
       </Collapsible.Trigger>
       <Collapsible.Content>
         <div class="source-preview mt-1.5 rounded-lg border bg-muted/30 p-3 text-sm">
@@ -91,7 +82,7 @@
                returned, and the server sanitises description HTML against an
                allowlist on write (packages/validators/src/rich-text.ts). -->
           <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-          {@html value.it}
+          {@html sourceHtml}
         </div>
       </Collapsible.Content>
     </Collapsible.Root>

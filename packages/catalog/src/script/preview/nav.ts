@@ -14,6 +14,7 @@
  */
 import type { CategoryEntry } from './category.ts';
 import { escape, localized } from './html.ts';
+import { LANGUAGES, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 function outline(entry: CategoryEntry): string {
   const products = entry.products
@@ -60,8 +61,12 @@ export function renderRail(entries: readonly CategoryEntry[]): string {
 export function renderLanguageToggle(): string {
   return `<div class="chrome chrome-right">
     <div class="lang" role="group" aria-label="Content language">
-      <button type="button" data-lang-set="it" class="on">IT</button>
-      <button type="button" data-lang-set="en">EN</button>
+      ${LANGUAGES.map(
+        (language) =>
+          `<button type="button" data-lang-set="${language.code}" title="${language.label}"${
+            language.code === SOURCE_LANGUAGE ? ' class="on"' : ''
+          }>${language.code.toUpperCase()}</button>`,
+      ).join('\n      ')}
     </div>
   </div>`;
 }

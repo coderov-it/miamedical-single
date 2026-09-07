@@ -674,5 +674,8 @@
   "contract.linkIncomplete": "This link is incomplete. Open the link you received by email again.",
   "contract.loadFailed": "We could not load the contract.",
   "contract.loadError": "Error loading the contract.",
-  "contract.signError": "Error signing the contract."
+  "contract.signError": "Error signing the contract.",
+  "contact.hours": "Mon–Sat, 9:00–19:00",
+  "card.priceFrom": "from",
+  "card.unavailable": "Unavailable"
 }

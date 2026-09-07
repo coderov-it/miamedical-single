@@ -23,16 +23,18 @@
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { api } from '~/lib/api';
-  import ContentLangTabs from '~/lib/components/content-lang-tabs.svelte';
+  import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import IconPicker from '~/lib/components/icon-picker.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { buildTranslations, progressAcross, textFor } from '~/lib/i18n';
   import SpecFieldList from './spec-field-list.svelte';
   import {
     isSelectType,
+    cloneLocalized,
+    localizedFrom,
     localizedOrNull,
-    toLocalized,
     type Localized,
     type SpecEdit,
   } from './spec-edit';
@@ -100,15 +102,15 @@
     isActive = open.isActive;
     requiresDeposit = open.requiresDeposit;
     icon = open.icon;
-    name = toLocalized(open.translations.it?.name, open.translations.en?.name);
-    description = toLocalized(open.translations.it?.description, open.translations.en?.description);
-    slug = toLocalized(open.translations.it?.slug, open.translations.en?.slug);
+    name = localizedFrom(open.translations, (t) => t.name);
+    description = localizedFrom(open.translations, (t) => t.description);
+    slug = localizedFrom(open.translations, (t) => t.slug);
     specs = open.specs.map((spec) => ({
       uid: spec.id,
       id: spec.id,
       key: spec.key,
-      label: toLocalized(spec.label.it, spec.label.en),
-      helpText: spec.helpText ? toLocalized(spec.helpText.it, spec.helpText.en) : { it: '' },
+      label: cloneLocalized(spec.label),
+      helpText: cloneLocalized(spec.helpText),
       valueType: spec.valueType,
       unit: spec.unit ?? '',
       isRequired: spec.isRequired,
@@ -120,31 +122,24 @@
         uid: option.id,
         id: option.id,
         value: option.value,
-        label: toLocalized(option.label.it, option.label.en),
+        label: cloneLocalized(option.label),
       })),
     }));
   });
 
-  /** Mirrors translationsPayload's completeness rule: EN needs name + slug. */
-  const enMissing = $derived(!name.en?.trim() || !slug.en?.trim());
+  /** A category counts as translated once it has a name and a slug. */
+  const progress = $derived(progressAcross([name, slug]));
 
-  /** English is only sent when it is actually complete — a half row is worse
-      than none, because the storefront would fall back per-field instead of
-      per-language. */
   function translationsPayload() {
-    const forLang = (lang: 'it' | 'en') => {
-      const pick = (value: Localized) => (lang === 'it' ? value.it : (value.en ?? ''));
-      const row = {
-        name: pick(name).trim(),
-        slug: pick(slug).trim(),
-        description: pick(description).trim() || null,
-      };
-      if (lang === 'en' && (!row.name || !row.slug)) return undefined;
-      return row;
-    };
-
-    const en = forLang('en');
-    return { it: forLang('it')!, ...(en ? { en } : {}) };
+    return buildTranslations(
+      (lang) => ({
+        name: textFor(name, lang).trim(),
+        slug: textFor(slug, lang).trim(),
+        description: textFor(description, lang).trim() || null,
+      }),
+      (row) => Boolean(row.name && row.slug),
+    )!; // never null: the builder always returns a row, and the form gate
+    // already requires the source-language name before save is reachable.
   }
 
   function specsPayload() {
@@ -233,7 +228,7 @@
     </Sheet.Header>
 
     <div class="flex border-b px-6">
-      <ContentLangTabs lang={contentLang} {enMissing} />
+      <LanguageSwitcher lang={contentLang} {progress} />
     </div>
 
     <div class="min-h-0 flex-1 divide-y overflow-y-auto">

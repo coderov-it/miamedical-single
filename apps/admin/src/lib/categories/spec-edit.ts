@@ -50,17 +50,8 @@ export function isSelectType(valueType: string): boolean {
   return valueType === 'single_select' || valueType === 'multi_select';
 }
 
-/** `{ it: '' }` means "no value", which the API stores as null, not as a blank. */
-export function localizedOrNull(value: Localized): { it: string; en?: string } | null {
-  const it = value.it.trim();
-  if (!it) return null;
-  const en = value.en?.trim();
-  return en ? { it, en } : { it };
-}
-
-export function toLocalized(
-  it: string | null | undefined,
-  en: string | null | undefined,
-): Localized {
-  return { it: it ?? '', en: en ?? undefined };
-}
+/* Both helpers moved to `~/lib/i18n`, which builds them from the language
+   registry — the two-argument `toLocalized(it, en)` could not take a third
+   language without touching every call site. Re-exported here so the category
+   editors keep one import. */
+export { cloneLocalized, localizedFrom, localizedOrNull } from '~/lib/i18n';

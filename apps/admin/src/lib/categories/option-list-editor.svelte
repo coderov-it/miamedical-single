@@ -13,6 +13,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { useContentLang } from '~/lib/content-lang.svelte';
+  import { setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
   import type { SpecOptionEdit } from './spec-edit';
 
   interface Props {
@@ -40,15 +41,17 @@
   }
 
   function onLabelInput(option: SpecOptionEdit, text: string) {
-    const previous = contentLang.current === 'en' ? (option.label.en ?? '') : option.label.it;
-
-    if (contentLang.current === 'en') option.label.en = text || undefined;
-    else option.label.it = text;
+    const lang = contentLang.current;
+    const previous = textFor(option.label, lang);
+    setTextFor(option.label, lang, text);
 
     // Autofill the machine value only while it is still tracking the label and
     // the row is new. Once a value is saved it is a key other rows point at.
     if (!option.id && (option.value === '' || option.value === slugify(previous))) {
-      option.value = slugify(contentLang.current === 'en' ? (option.label.it ?? text) : text);
+      // The value is a machine key, so it is always slugified from the SOURCE
+      // language — never from whichever language happens to be on screen, or the
+      // same option would get a different key depending on who typed it first.
+      option.value = slugify(textFor(option.label, SOURCE_LANGUAGE) || text);
     }
   }
 </script>
@@ -70,9 +73,9 @@
       {#each options as option (option.uid)}
         <div class="flex items-center gap-1.5">
           <Input
-            value={contentLang.current === 'en' ? (option.label.en ?? '') : option.label.it}
+            value={textFor(option.label, contentLang.current)}
             oninput={(event) => onLabelInput(option, event.currentTarget.value)}
-            placeholder={contentLang.current === 'en' ? 'Label (EN)' : 'Etichetta (IT)'}
+            placeholder="Label ({contentLang.current.toUpperCase()})"
             aria-label="Option label"
             class="h-8 flex-1"
           />

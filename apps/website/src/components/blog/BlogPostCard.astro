@@ -1,7 +1,7 @@
 ---
 import { mediaUrl } from '~/lib/api';
 import type { BlogPostSummary } from '~/lib/blog';
-import { localeForRequest, localeTag } from '~/lib/i18n';
+import { localeForRequest, localeTag, type Localized, pickLocalized } from '~/lib/i18n';
 import { blogPostPath } from '~/lib/routes';
 
 interface Props {
@@ -66,9 +66,7 @@ const publishedAt = post.publishedAt
         <span class="mb-2 flex flex-wrap gap-1.5">
           {post.categories.map((cat) => (
             <span class="text-[13px] font-semibold tracking-wide text-accent uppercase">
-              {locale === 'en'
-                ? ((cat.name as { it: string; en?: string }).en ?? (cat.name as { it: string }).it)
-                : (cat.name as { it: string }).it}
+              {pickLocalized(cat.name as Localized, locale)}
             </span>
           ))}
         </span>

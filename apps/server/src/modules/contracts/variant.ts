@@ -1,10 +1,12 @@
+import type { ContractLanguage } from '@mia/templates';
 import type { ContractVariant } from '@mia/validators';
 
 const DEPOSIT_AMOUNT = '300.00';
 
 export interface VariantResult {
   variant: ContractVariant;
-  language: 'it' | 'en';
+  /** The document's own language — see `ContractLanguage`, deliberately not `LanguageCode`. */
+  language: ContractLanguage;
   requiresDeposit: boolean;
   depositAmount: string | null;
 }
@@ -14,7 +16,7 @@ export function resolveVariant(
   hasDepositProduct: boolean,
 ): VariantResult {
   const isTourist = customerType === 'tourist';
-  const language = isTourist ? 'en' : 'it';
+  const language: ContractLanguage = isTourist ? 'en' : 'it';
 
   if (hasDepositProduct) {
     return {

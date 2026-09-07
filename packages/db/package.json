@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
-    "postgres": "catalog:"
+    "postgres": "catalog:",
+    "@mia/validators": "workspace:*"
   },
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",

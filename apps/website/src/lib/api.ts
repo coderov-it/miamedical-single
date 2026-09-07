@@ -4,6 +4,7 @@ import type { LanguageCode } from '@mia/validators';
 import { hc } from 'hono/client';
 
 import type { SiteLocale } from './i18n.ts';
+import { DEFAULT_LOCALE, localeTag, translate } from '~/lib/i18n';
 
 /** The one place the API origin is named. Same variable the admin reads. */
 const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
@@ -35,7 +36,12 @@ export const api = hc<AppType>(API_BASE, {
 });
 
 /** The BCP-47 tags the storefront formats in — `localeTag()`'s return type. */
-export type IntlLocale = 'it-IT' | 'en-GB';
+/**
+ * A BCP 47 tag for `Intl`. Was the literal union `'it-IT' | 'en-GB'`, which
+ * every new language had to be added to by hand; it is now whatever the
+ * registry says, resolved through `localeTag`.
+ */
+export type IntlLocale = string;
 
 /**
  * `amount` is the wire's decimal string ("35.00") — exact all the way from
@@ -120,8 +126,8 @@ export function cardPrice(
   pricing: Pricing,
   locale: SiteLocale,
 ): { prefix: string; text: string } | null {
-  const prefix = pricing.mode === 'rental' ? (locale === 'it' ? 'da' : 'from') : '';
-  const intl: IntlLocale = locale === 'it' ? 'it-IT' : 'en-GB';
+  const prefix = pricing.mode === 'rental' ? translate(locale, 'card.priceFrom') : '';
+  const intl: IntlLocale = localeTag(locale);
   const text = formatPricing(pricing, intl, locale);
   if (text) return { prefix, text };
   if (pricing.fromPrice === null) return null;
@@ -141,8 +147,12 @@ export function mediaUrl(path: string): string {
   return `${MEDIA_BASE}/${path}`;
 }
 
-/** Localised availability label. The API returns a boolean, not UI copy. */
-export function availabilityLabel(inStock: boolean, locale: SiteLocale = 'it'): string {
-  if (locale === 'en') return inStock ? 'Available' : 'Unavailable';
-  return inStock ? 'Disponibile' : 'Non disponibile';
+/**
+ * Localised availability label. The API returns a boolean, not UI copy.
+ *
+ * The strings live in the message catalogue rather than in a ternary here, so a
+ * new language gets them the same way it gets every other word on the page.
+ */
+export function availabilityLabel(inStock: boolean, locale: SiteLocale = DEFAULT_LOCALE): string {
+  return translate(locale, inStock ? 'card.available' : 'card.unavailable');
 }

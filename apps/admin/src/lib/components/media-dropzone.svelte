@@ -36,11 +36,12 @@
   import { formatBytes } from '~/lib/format';
   import { uploadFile } from '~/lib/media/upload';
   import { Reorder } from '~/lib/reorder.svelte';
+  import type { LocalizedOptional } from '~/lib/i18n';
 
   export interface MediaItem {
     path: string;
     mimeType: string;
-    alt?: { it?: string | undefined; en?: string | undefined } | undefined;
+    alt?: LocalizedOptional | undefined;
   }
 
   interface Props {
@@ -266,7 +267,7 @@
             <p class="truncate text-xs text-muted-foreground">{item.path.split('/').at(-1)}</p>
             <Input
               value={item.alt?.[lang] ?? ''}
-              placeholder={lang === 'it' ? 'Testo alternativo (IT)' : 'Alt text (EN)'}
+              placeholder="Alt text ({lang.toUpperCase()})"
               aria-label="Alt text for {item.path.split('/').at(-1)}"
               class="mt-1 h-7 text-xs"
               oninput={(event) => {

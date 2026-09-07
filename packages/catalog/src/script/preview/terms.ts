@@ -12,26 +12,26 @@
  */
 import type { TermsDocument } from '../../lib/types.ts';
 import { escape, localizedRich } from './html.ts';
+import { localizedFrom, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 export function renderTermsPage(documents: readonly TermsDocument[]): string {
   if (documents.length === 0) return '';
 
   const body = documents
     .map((document) => {
-      const italian = document.translations.it;
-      const english = document.translations.en;
+      const source = document.translations[SOURCE_LANGUAGE];
 
       return `<section class="panel" id="terms-${encodeURIComponent(document.code)}">
         <header class="panel-head">
-          <h2>${escape(italian.title)}</h2>
+          <h2>${escape(source.title)}</h2>
           <span class="panel-note"><code>${escape(document.code)}</code></span>
         </header>
         <p class="eyebrow">
           <span class="flag status-${escape(document.status ?? 'draft')}">${escape(document.status ?? 'draft')}</span>
           <span class="flag">v${(document.version ?? 1).toString()}</span>
-          <code>/${escape(italian.slug)}</code>
+          <code>/${escape(source.slug)}</code>
         </p>
-        ${localizedRich(italian.body, english?.body)}
+        ${localizedRich(localizedFrom(document.translations, (t) => t.body))}
       </section>`;
     })
     .join('');

@@ -14,7 +14,7 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { mediaUrl } from '~/lib/api';
 import { getProductBySlug } from '~/lib/catalog';
-import { localeFromLocals, translate } from '~/lib/i18n';
+import { localeFromLocals, LOCALES, translate } from '~/lib/i18n';
 import {
   buildProductJsonLd,
   isInStock,
@@ -50,15 +50,23 @@ if (!product || product.slug !== slug) {
  * products, so the switch offers nothing until a translation is actually
  * written.
  */
-const otherLocale = locale === 'it' ? 'en' : 'it';
-const alternateProduct = product.availableLocales.includes(otherLocale)
-  ? await getProductBySlug(slug, otherLocale)
-  : null;
+/* Every OTHER locale this product exists in, not "the" other one — with three
+   languages there is no single alternate. `availableLocales` is fetched per
+   locale, so the requests go out together rather than one after another. */
+const alternateLocales = LOCALES.filter(
+  (candidate) => candidate !== locale && product.availableLocales.includes(candidate),
+);
+const alternates = await Promise.all(
+  alternateLocales.map(async (candidate) => {
+    const alternate = await getProductBySlug(slug, candidate);
+    return alternate ? ([candidate, productPath(alternate.slug, {}, candidate)] as const) : null;
+  }),
+);
 const languagePaths = {
   [locale]: productPath(product.slug, {}, locale),
-  ...(alternateProduct
-    ? { [otherLocale]: productPath(alternateProduct.slug, {}, otherLocale) }
-    : {}),
+  ...Object.fromEntries(
+    alternates.filter((entry): entry is NonNullable<typeof entry> => entry !== null),
+  ),
 };
 
 const isRental = product.pricing.mode === 'rental';

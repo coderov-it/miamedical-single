@@ -3,7 +3,7 @@ import PhoneCta from '~/components/global/PhoneCta.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { localeFromLocals, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
-import { CONTACT } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 
 /**
  * On demand, not prerendered. Astro forbids rewriting from an on-demand route
@@ -39,7 +39,7 @@ const locale = localeFromLocals(Astro.locals);
         <PhoneCta variant="soft" />
       </div>
 
-      <p class="text-ui text-ink-2 mt-5">{CONTACT.hours[locale]}</p>
+      <p class="text-ui text-ink-2 mt-5">{translate(locale, CONTACT_HOURS_KEY)}</p>
     </div>
   </div>
 </BaseLayout>
