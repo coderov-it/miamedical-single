@@ -426,6 +426,9 @@ export function toPublicSummary(
   return {
     id: row.id,
     slug: translation?.slug ?? '',
+    /* `findMany` loads `translations` unfiltered, so this is the whole set and
+       costs no extra query. */
+    availableLocales: row.translations.map((t) => t.languageCode),
     title: translation?.title ?? '',
     shortDescription: translation?.shortDescription ?? null,
     status: row.status,
@@ -446,6 +449,7 @@ export function toPublicSummary(
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
     chips: row.chips.length > 0 ? toChips(row.chips, locale) : toCardSpecTags(row, locale),
     inStock: row.stock > 0,
+    updatedAt: iso(row.updatedAt),
   };
 }
 

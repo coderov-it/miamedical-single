@@ -58,10 +58,15 @@ differ per language.
 
 ## 4. Storefront routes
 
-`apps/website/src/lib/routes.ts` — add a `routePaths.<code>` block with all 22
+`apps/website/src/lib/routes.ts` — add a `routePaths.<code>` block with all 21
 paths, every one prefixed `/<code>/`. A `satisfies` in that file makes a missing
 route a compile error. Nothing else in the routing layer needs touching: the
 middleware builds its lookup tables and its 404 set from this array.
+
+Nothing in the SEO layer needs touching either, and that is the point of having
+one table. The switcher, the `hreflang` block in `BaseLayout` and `/sitemap.xml`
+all read the same `languagePaths`, so the new language appears in all three at
+once — see `storefront-languages.md`.
 
 Once published, these are an SEO commitment like the Italian ones.
 
@@ -69,9 +74,14 @@ Once published, these are an SEO commitment like the Italian ones.
 
 `apps/website/src/i18n/<code>.json`. **`translate()` does not throw for a target
 language** — it falls back to the source. So the language can go live with real
-URLs, working `hreflang` and translated database content while the 679 chrome
-strings are still being written. A gap in the _source_ catalogue still throws,
-because that is a bug.
+URLs and translated database content while the 679 chrome strings are still
+being written. A gap in the _source_ catalogue still throws, because that is a
+bug.
+
+The URLs are real from the moment step 4 lands, but they are not *advertised*
+until they are earned: `hreflang` and the sitemap list a page in a language only
+when that page's content exists in it, which for a product means an
+`availableLocales` entry, not a route.
 
 ```
 pnpm --filter @mia/website run i18n:coverage          # a percentage per locale
@@ -102,4 +112,5 @@ how many there are. In practice that means:
   `progressAcross`, `buildTranslations`, `localizedFrom`
 
 The first two languages were spelled out as ternaries in ~50 files. That is what
-made the third one a project instead of an array entry.
+made the third one a project instead of an array entry. The third one cost four
+files: the registry, one migration, `enum-labels.ts`, and a `routePaths` block.

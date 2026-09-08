@@ -96,7 +96,7 @@ The mechanism is `createLabels()` in `@mia/i18n`, and the fallback order is
 "Same address"), so a missing translation degrades instead of blanking a page.
 That is the one difference from `enum-labels.ts` in the same package, which is
 deliberately exhaustive and has NO fallback because a new pgEnum member must fail
-`tsc` until both languages exist. The key type is `keyof` the catalog either way,
+`tsc` until every registered language exists. The key type is `keyof` the catalog either way,
 so a misspelled key does not compile.
 
 The page script holds no Italian either. It cannot import `t` — that would put the

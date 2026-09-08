@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@astrojs/node": "catalog:",
-    "@astrojs/sitemap": "catalog:",
     "@astrojs/svelte": "catalog:",
     "@floating-ui/dom": "^1.8.0",
     "@mia/i18n": "workspace:*",

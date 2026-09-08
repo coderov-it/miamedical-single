@@ -18,15 +18,12 @@
  *                         the support launcher is pinned to every phone screen
  *                         with the same number one tap inside it
  *
- * The header's one script paints the cart badge; every link works without it.
+ * This file's one script paints the cart badge; every link works without it.
+ * The language switcher carries its own, for its own dismissal — see
+ * LanguageSwitcher.astro.
  */
-import {
-  LANGUAGES,
-  languageOf,
-  publicPathForRequest,
-  translate,
-  type SiteLocale,
-} from '~/lib/i18n';
+import LanguageSwitcher from '~/components/global/LanguageSwitcher.astro';
+import { publicPathForRequest, translate, type SiteLocale } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
 import { CONTACT } from '~/lib/site';
 import { EDITORIAL_CONTAINER, EDITORIAL_THEME, INVISIBLE_48 } from '~/styles/editorial';
@@ -39,22 +36,6 @@ interface Props {
 const { locale, languagePaths } = Astro.props;
 const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
-/**
- * The switcher's entries, in registry order. Was two hand-written `<a>` blocks
- * bound to `italianPath` and `englishPath`, which is one block per language and
- * two more literals (`'it'`, `'🇬🇧'`) per addition.
- *
- * A locale with no path is omitted rather than linked: `languagePaths` only
- * carries the languages this particular page actually exists in, and offering a
- * switch that re-serves the same copy is what made the old one dishonest
- * (owner, 2026-09-01).
- */
-const languageChoices = LANGUAGES.flatMap((language) => {
-  const href = languagePaths[language.code];
-  return href ? [{ ...language, href }] : [];
-});
-const currentLanguage = languageOf(locale);
-
 /**
  * FIVE DESTINATIONS, ONE PER THING A CUSTOMER CAN WANT (owner, 2026-09-05):
  * where they are, what is for sale, help choosing it, how the service works,
@@ -210,11 +191,19 @@ const headerIconClass =
       href={routePath(locale, 'home')}
       aria-label={text('header.brand')}
     >
+      {
+        /* The legacy lockup, at the client's instruction (2026-09-08). A 1.86:1
+           stacked mark where the old one was a 5.70:1 wordmark, so it could not
+           keep the old heights — 24px tall is 45px wide with a 6px wordmark.
+           These fill the header band with ~6px of air at every breakpoint, the
+           largest the mark goes without growing the band.
+           Measurements and the two remedies: docs/code/storefront-brand-mark.md */
+      }
       <img
-        class="mid:h-6.5 wide:h-8 h-6 w-auto"
-        src="/img/logo.png"
-        width="2058"
-        height="361"
+        class="mid:h-10 wide:h-13 h-9.5 w-auto"
+        src="/img/logo.svg"
+        width="1105"
+        height="595"
         alt=""
         decoding="async"
       />
@@ -249,32 +238,7 @@ const headerIconClass =
     </nav>
 
     <div class="ms-auto flex items-center gap-[clamp(6px,calc(0.36vw+3.4px),8px)]">
-      <details class="relative">
-        <summary
-          class="mid:max-wide:min-w-11 mid:max-wide:px-1.5 inline-flex min-h-11 min-w-13.5 cursor-pointer list-none items-center justify-center gap-1.5 rounded-xl bg-[rgb(11_18_32_/_0.05)] px-2.5 text-sm font-bold text-[var(--color-ink)] hover:bg-[rgb(11_18_32_/_0.09)] hover:text-[var(--color-accent)] [&::-webkit-details-marker]:hidden"
-          aria-label={text('language.switch')}
-        >
-          <span class="mid:max-wide:hidden" aria-hidden="true">{currentLanguage.flag}</span>
-          <span>{locale.toUpperCase()}</span>
-        </summary>
-        <div
-          class="absolute top-[calc(100%+8px)] right-0 grid min-w-37 rounded-xl border border-[var(--color-line)] bg-white p-1.5 shadow-[0_10px_28px_rgb(11_18_32_/_0.16)]"
-        >
-          {
-            languageChoices.map((language) => (
-              <a
-                class="flex min-h-9.5 items-center gap-2 rounded-lg px-2 text-[0.9375rem] font-semibold text-[var(--color-ink)] no-underline hover:bg-[var(--color-surface)] hover:text-[var(--color-accent)] aria-[current=true]:bg-[var(--color-surface)] aria-[current=true]:text-[var(--color-accent)]"
-                href={language.href}
-                lang={language.tag}
-                aria-current={locale === language.code ? 'true' : undefined}
-              >
-                <span aria-hidden="true">{language.flag}</span>
-                <span>{language.label}</span>
-              </a>
-            ))
-          }
-        </div>
-      </details>
+      <LanguageSwitcher {locale} {languagePaths} />
 
       <a
         class="mid:max-wide:w-11 mid:max-wide:justify-center mid:max-wide:px-0 max-mid:hidden relative inline-flex min-h-11 items-center gap-2.25 rounded-xl bg-[var(--color-phone-tint)] px-3.75 text-base font-[650] whitespace-nowrap text-[var(--color-phone-ink)] tabular-nums no-underline hover:bg-[#d3ecdd]"

@@ -200,6 +200,16 @@ export interface PublicProductDetailDto {
 export interface PublicProductSummaryDto {
   id: string;
   slug: string;
+  /**
+   * The translations that really exist — the same honest signal the detail DTO
+   * carries, and for the same reason: `title` and `slug` above fall back to the
+   * source language, so neither says whether this locale was ever written.
+   *
+   * The storefront's sitemap is what needs it in bulk. Without it a product URL
+   * could only ever be listed in the source language, and no French translation
+   * would ever reach a search engine — silently.
+   */
+  availableLocales: LanguageCode[];
   title: string;
   shortDescription: string | null;
   status: 'draft' | 'active' | 'archived';
@@ -211,6 +221,8 @@ export interface PublicProductSummaryDto {
   /** Ready-to-render card chips — the product's own, or the legacy spec fallback. */
   chips: string[];
   inStock: boolean;
+  /** `<lastmod>` for the sitemap. A real timestamp, or the tag is omitted. */
+  updatedAt: string;
 }
 
 export interface FacetOptionDto {
