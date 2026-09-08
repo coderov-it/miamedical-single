@@ -82,7 +82,26 @@ const languagePaths =
   (staticRouteKey
     ? Object.fromEntries(LOCALES.map((code) => [code, routePaths[code][staticRouteKey]]))
     : { [locale]: publicPath });
-const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.origin).href;
+const site = Astro.site ?? Astro.url.origin;
+const canonicalHref = canonical ?? new URL(publicPath, site).href;
+
+/**
+ * `hreflang`, from the same `languagePaths` the switcher reads — so a language
+ * the switcher offers is a language search engines are told about, and one it
+ * hides is one they are not.
+ *
+ * The value is the registry `code` (`fr`), never the `tag` (`fr-FR`): a region
+ * subtag targets a COUNTRY, so `fr-FR` would exclude a French speaker in
+ * Belgium. See docs/code/storefront-languages.md § hreflang.
+ */
+const alternates = LOCALES.flatMap((code) => {
+  const path = languagePaths[code];
+  return path ? [{ code, href: new URL(path, site).href }] : [];
+});
+/* A set of one says nothing, and an alternate set on a page that must not be
+   indexed says it about nothing. */
+const showAlternates = !noindex && alternates.length > 1;
+const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE_LANGUAGE);
 ---
 
 <!doctype html>
@@ -94,6 +113,17 @@ const canonicalHref = canonical ?? new URL(publicPath, Astro.site ?? Astro.url.o
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalHref} />
+    {
+      showAlternates && (
+        <>
+          {alternates.map((alternate) => (
+            <link rel="alternate" hreflang={alternate.code} href={alternate.href} />
+          ))}
+          {/* What a visitor whose language is none of ours should be served. */}
+          {sourceAlternate && <link rel="alternate" hreflang="x-default" href={sourceAlternate.href} />}
+        </>
+      )
+    }
     <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
     <link rel="icon" type="image/png" href="/favicon.png" sizes="512x512" />

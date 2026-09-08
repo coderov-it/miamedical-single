@@ -29,8 +29,8 @@ export { pickLocalized, type Localized };
 /**
  * UI copy per locale. A locale with no file here is not broken — see
  * `translate()`: it falls back to the source language, which is how a new
- * language can go live with correct URLs, hreflang and translated *content*
- * while its 676 chrome strings are still being written.
+ * language can go live with correct URLs and translated *content* while its 679
+ * chrome strings are still being written.
  */
 type Messages = Record<string, string>;
 const MESSAGES: Partial<Record<SiteLocale, Messages>> = { it, en, fr };

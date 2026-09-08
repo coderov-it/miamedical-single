@@ -1,0 +1,93 @@
+---
+/**
+ * The header's language switcher.
+ *
+ * Entries come from the registry, in registry order, so a fourth language is an
+ * array entry rather than another `<a>` block. A locale with no path is omitted
+ * rather than linked: `languagePaths` carries only the languages THIS page
+ * actually exists in, and offering a switch that re-serves the same copy is
+ * what made the old one dishonest (owner, 2026-09-01).
+ *
+ * ── Why `<details>` and not a popover ──────────────────────────────────────
+ * `popover` would give light dismiss — Escape and click-outside — with no
+ * script at all. It cannot be used here: a popover is promoted to the top
+ * layer, where its containing block is the viewport rather than this header,
+ * so anchoring it under the button needs CSS anchor positioning, which Firefox
+ * still does not ship. `<details>` opens and closes with no script; the script
+ * below only adds the two dismissals `<details>` has never had.
+ */
+import { LANGUAGES, languageOf, translate, type SiteLocale } from '~/lib/i18n';
+
+interface Props {
+  locale: SiteLocale;
+  languagePaths: Partial<Record<SiteLocale, string>>;
+}
+
+const { locale, languagePaths } = Astro.props;
+const choices = LANGUAGES.flatMap((language) => {
+  const href = languagePaths[language.code];
+  return href ? [{ ...language, href }] : [];
+});
+const currentLanguage = languageOf(locale);
+---
+
+<details class="relative" data-language-switcher>
+  <summary
+    class="mid:max-wide:min-w-11 mid:max-wide:px-1.5 text-ink inline-flex min-h-11 min-w-13.5 cursor-pointer list-none items-center justify-center gap-1.5 rounded-xl bg-[rgb(11_18_32/0.05)] px-2.5 text-sm font-bold hover:bg-[rgb(11_18_32/0.09)] hover:text-accent [&::-webkit-details-marker]:hidden"
+    aria-label={translate(locale, 'language.switch')}
+  >
+    <span class="mid:max-wide:hidden" aria-hidden="true">{currentLanguage.flag}</span>
+    <span>{locale.toUpperCase()}</span>
+  </summary>
+  <div
+    class="absolute top-[calc(100%+8px)] right-0 grid min-w-37 rounded-xl border border-(--color-line) bg-white p-1.5 shadow-[0_10px_28px_rgb(11_18_32/0.16)]"
+  >
+    {
+      choices.map((language) => (
+        <a
+          class="text-ink flex min-h-9.5 items-center gap-2 rounded-lg px-2 text-[0.9375rem] font-semibold no-underline hover:bg-(--color-surface) hover:text-accent aria-current:bg-(--color-surface) aria-current:text-accent"
+          href={language.href}
+          lang={language.tag}
+          aria-current={locale === language.code ? 'true' : undefined}
+        >
+          <span aria-hidden="true">{language.flag}</span>
+          <span>{language.label}</span>
+        </a>
+      ))
+    }
+  </div>
+</details>
+
+<script>
+  /*
+   * The two dismissals `<details>` does not have.
+   *
+   * A native disclosure closes only by clicking its own summary again, so an
+   * open menu follows the customer around the page — every other dropdown on
+   * the web closes on Escape and on a click elsewhere, and this one looks
+   * broken for not doing it.
+   *
+   * Escape moves focus back to the summary, because focus inside a menu that
+   * just closed lands nowhere a keyboard user can see.
+   *
+   * `pointerdown` rather than `click`: a click that starts on the page and ends
+   * on the menu should still close it, and pointerdown fires before the link's
+   * own activation either way.
+   */
+  const menus = () =>
+    document.querySelectorAll<HTMLDetailsElement>('[data-language-switcher][open]');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const menu of menus()) {
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    }
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    for (const menu of menus()) {
+      if (!menu.contains(event.target as Node)) menu.open = false;
+    }
+  });
+</script>

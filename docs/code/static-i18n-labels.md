@@ -31,6 +31,7 @@ export const RENTAL_UNIT = {
   day: {
     it: { one: 'giorno', many: 'giorni', per: 'al giorno' },
     en: { one: 'day', many: 'days', per: 'per day' },
+    fr: { one: 'jour', many: 'jours', per: 'par jour' },
   },
 } as const satisfies Labels<RentalUnit, UnitForms>;
 ```
@@ -39,7 +40,8 @@ export const RENTAL_UNIT = {
 
 `satisfies Labels<RentalUnit, UnitForms>` is the entire reason this file exists rather than
 a JSON message catalogue. Append a member to the `rental_unit` pgEnum and the build stops
-until both languages are written:
+until EVERY registered language is written — the entry type is
+`Record<LanguageCode, …>`, so it widens with the registry:
 
 ```
 src/enum-labels.ts(54,12): error TS1360: Type '{ readonly hour: …; readonly day: … }'

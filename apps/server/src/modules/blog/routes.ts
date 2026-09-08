@@ -438,6 +438,11 @@ export const blogPublicRoutes = new Hono<AppEnv>()
         id: row.id,
         title: t?.title ?? '',
         slug: t?.slug ?? '',
+        /* Which languages the post was really written in. `title` and `slug`
+           fall back to the source language, so neither answers that — and the
+           storefront's sitemap has to know before it lists a translated URL.
+           `translations` is loaded unfiltered above, so this is free. */
+        availableLocales: row.translations.map((tr) => tr.languageCode),
         excerpt: t?.excerpt ?? null,
         featuredImage: row.featuredImage,
         publishedAt: row.publishedAt?.toISOString() ?? null,

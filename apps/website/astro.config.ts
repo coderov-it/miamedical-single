@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'node:url';
 
 import node from '@astrojs/node';
-import sitemap from '@astrojs/sitemap';
 import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
@@ -30,8 +29,13 @@ export default defineConfig({
    * Svelte stays available for islands. The storefront currently ships none:
    * the whole design is server-rendered HTML plus two small inline scripts
    * (the search suggestions panel and the quantity stepper).
+   *
+   * No `@astrojs/sitemap` either: it can only list routes it sees at build
+   * time, and every page here is `prerender = false` — so it emitted nothing,
+   * and could never have found `/en/*` or `/fr/*`, which exist as middleware
+   * rewrites rather than as page files. `pages/sitemap.xml.ts` replaces it.
    */
-  integrations: [svelte(), sitemap()],
+  integrations: [svelte()],
 
   prefetch: {
     prefetchAll: true,

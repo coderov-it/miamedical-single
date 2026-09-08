@@ -131,19 +131,31 @@ a white rectangle inside a grey box.
 
 ### Static brand assets
 
-| File                                  | Size       | Rendered by                                  |
-| ------------------------------------- | ---------- | -------------------------------------------- |
-| `apps/website/public/favicon.svg`     | 32 × 32    | `BaseLayout` — the only one served to a page |
-| `apps/website/public/img/logo.svg`    | 1473 × 793 | nothing; cited by docs and archived mockups  |
-| `apps/website/public/img/logo-v2.png` | 2172 × 724 | nothing                                      |
+Corrected 2026-09-08 — this table claimed the header wordmark was an inline
+`<svg>` and that there was no `apple-touch-icon`. Neither was true.
 
-The header and footer wordmarks are inline `<svg>`, not these files, and mail is
-set in type for the same reason — `packages/templates/src/brand.ts` notes that
-`logo.svg` cannot be used because email clients do not render SVG. So the two
-`img/` files are kept as brand masters, not as assets any surface loads.
+| File                                     | Size       | Rendered by                                 |
+| ---------------------------------------- | ---------- | ------------------------------------------- |
+| `apps/website/public/img/logo.svg`       | 1473 × 793 | `SiteHeader` — the brand mark               |
+| `apps/website/public/favicon-32x32.png`  | 32 × 32    | `BaseLayout`                                |
+| `apps/website/public/favicon-16x16.png`  | 16 × 16    | `BaseLayout`                                |
+| `apps/website/public/favicon.png`        | 512 × 512  | `BaseLayout`                                |
+| `apps/website/public/apple-touch-icon.png` | 180 × 180 | `BaseLayout`                               |
+| `apps/website/public/favicon.svg`        | 32 × 32    | nothing                                     |
+| `apps/website/public/img/logo.png`       | 2058 × 361 | nothing — was the header until 2026-09-08   |
+| `apps/website/public/img/logo-v2.png`    | 2172 × 724 | nothing                                     |
 
-No `apple-touch-icon`, no web manifest, no default `og:image` — `og:image` is set
-per page from the product hero or the blog cover, and is absent elsewhere.
+`logo.svg` is an `<img>` in the header, not inline markup, and it is a PNG in an
+SVG wrapper rather than path data — see `docs/code/storefront-brand-mark.md` for
+why it is sized the way it is. The footer carries no wordmark at all: its only
+`<svg>`s are the phone and social icons, and the brand appears there as type.
+
+Mail uses no image by design — `packages/templates/src/brand.ts` notes that SVG
+is stripped by Gmail, Outlook and Apple Mail, and a PNG is blocked by default in
+Outlook desktop, so the wordmark is set in type.
+
+No web manifest, and no default `og:image` — `og:image` is set per page from the
+product hero or the blog cover, and is absent elsewhere.
 
 ### Measured, at 1440px on `/catalogo/`
 

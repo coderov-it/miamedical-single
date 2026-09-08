@@ -43,12 +43,16 @@ if (!product || product.slug !== slug) {
  * used to be read as "there is an English version", and the header's language
  * switch offered English on every product — a switch that changed the chrome,
  * re-served the same Italian copy, and called it a translation (owner,
- * 2026-09-01). `languagePaths` drives that switch and nothing else; the page
- * emits no `hreflang`, so this was never an SEO signal.
+ * 2026-09-01).
  *
- * `availableLocales` is the honest list. Today it holds `['it']` for all 24
- * products, so the switch offers nothing until a translation is actually
- * written.
+ * `languagePaths` now drives THREE things — the switcher, the `hreflang` block
+ * in `BaseLayout` and this URL's entry in `/sitemap.xml` — so the honesty is no
+ * longer only a UI courtesy: a language named here is a language search engines
+ * are told this product exists in.
+ *
+ * `availableLocales` is the honest list. Today it holds `['it']` for all 107
+ * products, so the switch offers nothing, no `hreflang` is emitted and the
+ * sitemap carries the Italian URL alone — until a translation is written.
  */
 /* Every OTHER locale this product exists in, not "the" other one — with three
    languages there is no single alternate. `availableLocales` is fetched per
