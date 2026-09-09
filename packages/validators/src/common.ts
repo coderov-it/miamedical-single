@@ -24,6 +24,17 @@ export const PasswordSchema = v.pipe(
   v.maxLength(128),
 );
 
+/** A person's name, as an operator or a customer types it. */
+export const FullNameSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.minLength(2, 'Enter a name.'),
+  v.maxLength(120),
+);
+
+/** Free-form on purpose: a number may be a mobile, a desk or an extension. */
+export const PhoneSchema = v.pipe(v.string(), v.trim(), v.maxLength(40));
+
 /**
  * Money is a `numeric(12, 2)`-shaped decimal **string** — `"35.00"`, never a
  * JS number. A JSON number 10.00 serialises back as 10; a string does not,

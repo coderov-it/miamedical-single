@@ -1,5 +1,5 @@
 import type { Database } from '@mia/db';
-import type { ChangePasswordInput, LoginInput } from '@mia/validators';
+import type { ChangePasswordInput, LoginInput, UpdateProfileInput } from '@mia/validators';
 
 import {
   fakeVerify,
@@ -8,7 +8,7 @@ import {
   verifyPassword,
 } from '../../shared/auth/password.ts';
 import { SESSION_TTL_MS, createSessionToken, hashToken } from '../../shared/auth/session.ts';
-import { httpError } from '../../shared/http/errors.ts';
+import { conflict, forbidden, httpError, notFound } from '../../shared/http/errors.ts';
 import * as repo from './repo.ts';
 import type { AdminUserRow, IssuedSession, SessionMeta } from './types.ts';
 
@@ -77,6 +77,14 @@ export async function logout(db: Database, token: string | undefined): Promise<v
  * Changing a password revokes every session, including the caller's own. The
  * alternative — keeping the current one alive — leaves a stolen session valid
  * after the victim reacts to the theft.
+ *
+ * A superuser is not asked for the current one. That is a deliberate trade, not
+ * an oversight: the flag already lets its holder set any *other* operator's
+ * password with no proof about that account at all, so demanding the old one on
+ * their own row guards against nothing they could not route around in two
+ * clicks — and it does block the case the check is supposed to serve, an
+ * administrator rotating a password they no longer remember. Everyone else
+ * proves ownership, because for them the admin route is closed.
  */
 export async function changePassword(
   db: Database,
@@ -86,12 +94,77 @@ export async function changePassword(
   const user = await repo.findById(db, userId);
   if (!user) throw invalidCredentials();
 
-  if (!(await verifyPassword(input.currentPassword, user.passwordHash))) {
-    throw httpError(422, 'Current password is incorrect.', 'validation_failed', {
-      fields: { currentPassword: 'Current password is incorrect.' },
-    });
+  if (!user.isSuperuser) {
+    await assertCurrentPassword(user, input.currentPassword);
   }
 
   await repo.updatePasswordHash(db, user.id, await hashPassword(input.newPassword));
   await repo.deleteSessionsForUser(db, user.id);
+}
+
+/**
+ * Your own details, editable with no permission at all — an operator holding
+ * nothing must still be able to correct their own name.
+ *
+ * Email is the exception and stays administrative: it is the identity you sign
+ * in with, so only a superuser may change their own. Submitting the address you
+ * already have is not a change and is always allowed, which is what lets the
+ * form post the whole object every time.
+ */
+export async function updateProfile(
+  db: Database,
+  userId: string,
+  input: UpdateProfileInput,
+): Promise<AdminUserRow> {
+  const user = await repo.findById(db, userId);
+  if (!user) throw notFound('Account');
+
+  const newEmail = input.email !== undefined && input.email !== user.email ? input.email : null;
+  if (newEmail !== null) {
+    if (!user.isSuperuser) {
+      throw forbidden('Only a superuser can change their own email address.');
+    }
+    const existing = await repo.findByEmail(db, newEmail);
+    if (existing && existing.id !== user.id) {
+      throw conflict(`An account with the email "${newEmail}" already exists.`);
+    }
+  }
+
+  await repo.updateProfile(db, user.id, {
+    ...(input.fullName !== undefined ? { fullName: input.fullName } : {}),
+    ...(input.phone !== undefined ? { phone: input.phone } : {}),
+    ...(newEmail !== null ? { email: newEmail } : {}),
+  });
+
+  const updated = await repo.findById(db, user.id);
+  if (!updated) throw notFound('Account');
+  return updated;
+}
+
+/** Your own account, for the profile screen. */
+export async function getProfile(db: Database, userId: string): Promise<AdminUserRow> {
+  const user = await repo.findById(db, userId);
+  if (!user) throw notFound('Account');
+  return user;
+}
+
+/**
+ * 422 on the field that carries it, whether it was missing or wrong. Absent and
+ * incorrect are told apart because "you left it blank" and "that is not your
+ * password" are different fixes for the operator.
+ */
+async function assertCurrentPassword(
+  user: AdminUserRow,
+  currentPassword: string | undefined,
+): Promise<void> {
+  if (!currentPassword) {
+    throw httpError(422, 'Enter your current password.', 'validation_failed', {
+      fields: { currentPassword: 'Enter your current password.' },
+    });
+  }
+  if (!(await verifyPassword(currentPassword, user.passwordHash))) {
+    throw httpError(422, 'Current password is incorrect.', 'validation_failed', {
+      fields: { currentPassword: 'Current password is incorrect.' },
+    });
+  }
 }

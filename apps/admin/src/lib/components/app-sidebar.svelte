@@ -5,6 +5,12 @@
   rendered here is something the visitor can actually open. Sign-out is behind
   an AlertDialog rather than a bare button — it is a one-click way to lose an
   unsaved product edit.
+
+  The footer identity is the way to your own account, and it is a link rather
+  than a nav entry on purpose: your name and password are not a section of the
+  back office, so `nav.ts` says nothing about them. Clicking who you are is
+  where every operator looks for their own details, including the ones holding
+  no permission at all — for whom this is the only page they can open.
 -->
 <script lang="ts">
   import HeartPulseIcon from '@lucide/svelte/icons/heart-pulse';
@@ -87,43 +93,60 @@
     {/each}
   </Sidebar.Content>
 
-  <Sidebar.Footer>
+  <!--
+    A hairline, not a filled block. The footer is an identity strip that happens
+    to be clickable, so it separates itself from the nav with a border and takes
+    highlight only on hover — a persistent `isActive` fill here reads as a grey
+    slab across the bottom of a light sidebar, and competes with the nav item
+    that is actually marking where you are.
+  -->
+  <Sidebar.Footer class="border-t border-sidebar-border">
     <Sidebar.Menu>
+      <!--
+        `MenuButton size="lg"` and `MenuAction` rather than hand-rolled markup:
+        the row inherits the nav's hover treatment and metrics, and the sign-out
+        sits *inside* the row — the button reserves the space for it (`pr-8`
+        when a menu-action is present) and MenuAction positions itself against
+        the item. Collapsed to icons, the row becomes the avatar alone.
+      -->
       <Sidebar.MenuItem>
-        <div
-          class="flex items-center gap-2 rounded-md px-2 py-1.5 group-data-[collapsible=icon]:px-0"
-        >
-          <span
-            class="flex size-7 shrink-0 items-center justify-center rounded-md bg-foreground text-[0.6875rem] font-medium text-background"
-          >
-            {initials}
-          </span>
-          <div class="grid flex-1 leading-tight group-data-[collapsible=icon]:hidden">
-            <span class="truncate text-xs font-medium">{identity}</span>
-            <span class="truncate text-xs text-muted-foreground">{access}</span>
-          </div>
+        <Sidebar.MenuButton size="lg" tooltipContent="Your account">
+          {#snippet child({ props })}
+            <a href={routes.profile} {...props}>
+              <span
+                class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-xs font-semibold text-background"
+              >
+                {initials}
+              </span>
+              <span class="grid flex-1 leading-tight">
+                <span class="truncate text-sm font-medium">{identity}</span>
+                <span class="truncate text-xs text-muted-foreground">{access}</span>
+              </span>
+            </a>
+          {/snippet}
+        </Sidebar.MenuButton>
 
-          <AlertDialog.Root>
-            <AlertDialog.Trigger
-              class="rounded-md p-1.5 text-muted-foreground transition-colors group-data-[collapsible=icon]:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              aria-label="Sign out"
-            >
-              <LogOutIcon class="size-4" />
-            </AlertDialog.Trigger>
-            <AlertDialog.Content>
-              <AlertDialog.Header>
-                <AlertDialog.Title>Sign out?</AlertDialog.Title>
-                <AlertDialog.Description>
-                  Any unsaved changes on the current page will be lost.
-                </AlertDialog.Description>
-              </AlertDialog.Header>
-              <AlertDialog.Footer>
-                <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-                <AlertDialog.Action onclick={signOut}>Sign out</AlertDialog.Action>
-              </AlertDialog.Footer>
-            </AlertDialog.Content>
-          </AlertDialog.Root>
-        </div>
+        <AlertDialog.Root>
+          <AlertDialog.Trigger>
+            {#snippet child({ props })}
+              <Sidebar.MenuAction {...props} title="Sign out" aria-label="Sign out">
+                <LogOutIcon />
+              </Sidebar.MenuAction>
+            {/snippet}
+          </AlertDialog.Trigger>
+          <AlertDialog.Content>
+            <AlertDialog.Header>
+              <AlertDialog.Title>Sign out?</AlertDialog.Title>
+              <AlertDialog.Description>
+                Any unsaved changes on the current page will be lost.
+              </AlertDialog.Description>
+            </AlertDialog.Header>
+            <AlertDialog.Footer>
+              <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+              <AlertDialog.Action onclick={signOut}>Sign out</AlertDialog.Action>
+            </AlertDialog.Footer>
+          </AlertDialog.Content>
+        </AlertDialog.Root>
       </Sidebar.MenuItem>
     </Sidebar.Menu>
   </Sidebar.Footer>

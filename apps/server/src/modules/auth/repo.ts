@@ -59,3 +59,17 @@ export async function updatePasswordHash(
 ): Promise<void> {
   await db.update(adminUsers).set({ passwordHash }).where(eq(adminUsers.id, adminUserId));
 }
+
+/**
+ * Your own details. Narrower than `admin-users/repo.ts`'s `update` by design —
+ * `isActive` is absent, so no amount of wrong policy above this line can let an
+ * operator disable themselves through the profile screen.
+ */
+export async function updateProfile(
+  db: Database,
+  adminUserId: string,
+  values: Partial<Pick<AdminUserRow, 'email' | 'fullName' | 'phone'>>,
+): Promise<void> {
+  if (Object.keys(values).length === 0) return;
+  await db.update(adminUsers).set(values).where(eq(adminUsers.id, adminUserId));
+}

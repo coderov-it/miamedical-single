@@ -1,7 +1,14 @@
 import * as v from 'valibot';
 
 import { PermissionCodesSchema } from './auth.ts';
-import { EmailSchema, PaginationSchema, PasswordSchema, UuidSchema } from './common.ts';
+import {
+  EmailSchema,
+  FullNameSchema,
+  PaginationSchema,
+  PasswordSchema,
+  PhoneSchema,
+  UuidSchema,
+} from './common.ts';
 
 /**
  * Back-office account management. Shared with the admin UI so the form and the
@@ -14,11 +21,6 @@ import { EmailSchema, PaginationSchema, PasswordSchema, UuidSchema } from './com
  */
 
 export const AdminUserIdParamSchema = v.object({ id: UuidSchema });
-
-const NameSchema = v.pipe(v.string(), v.trim(), v.minLength(2, 'Enter a name.'), v.maxLength(120));
-
-/** Free-form on purpose: an operator's number may be a mobile, a desk or an extension. */
-const PhoneSchema = v.pipe(v.string(), v.trim(), v.maxLength(40));
 
 export const AdminUserQuerySchema = v.object({
   ...PaginationSchema.entries,
@@ -34,7 +36,7 @@ export const AdminUserQuerySchema = v.object({
  */
 export const CreateAdminUserSchema = v.object({
   email: EmailSchema,
-  fullName: NameSchema,
+  fullName: FullNameSchema,
   phone: v.optional(PhoneSchema),
   password: PasswordSchema,
   isSuperuser: v.optional(v.boolean(), false),
@@ -48,7 +50,7 @@ export const CreateAdminUserSchema = v.object({
  */
 export const UpdateAdminUserSchema = v.object({
   email: v.optional(EmailSchema),
-  fullName: v.optional(NameSchema),
+  fullName: v.optional(FullNameSchema),
   phone: v.optional(PhoneSchema),
   isActive: v.optional(v.boolean()),
 });

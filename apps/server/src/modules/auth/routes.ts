@@ -9,9 +9,9 @@ import {
 import type { AppEnv } from '../../shared/http/context.ts';
 import { clientIp, rateLimit } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
-import { toSessionUser } from './mapper.ts';
+import { toProfileDto, toSessionUser } from './mapper.ts';
 import * as service from './service.ts';
-import { ChangePasswordSchema, LoginSchema } from './validators.ts';
+import { ChangePasswordSchema, LoginSchema, UpdateProfileSchema } from './validators.ts';
 
 /** Credential endpoints are the one place worth throttling before validation. */
 const loginRateLimit = rateLimit({
@@ -50,4 +50,20 @@ export const authRoutes = new Hono<AppEnv>()
     clearSessionCookie(c);
 
     return c.json({ data: { ok: true } });
+  })
+
+  /**
+   * Your own account. Behind `requireAuth` and nothing more: an operator who
+   * holds no permission at all still owns their name, their phone number and
+   * their password, and `/api/admin/users` — which does answer to `admin:*` —
+   * refuses a self-target for exactly that reason.
+   */
+  .get('/profile', requireAuth, async (c) => {
+    const row = await service.getProfile(c.get('db'), currentUser(c).id);
+    return c.json({ data: toProfileDto(row) });
+  })
+
+  .patch('/profile', requireAuth, validate('json', UpdateProfileSchema), async (c) => {
+    const row = await service.updateProfile(c.get('db'), currentUser(c).id, c.req.valid('json'));
+    return c.json({ data: toProfileDto(row) });
   });
