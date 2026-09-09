@@ -16,11 +16,13 @@
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import { formatDate, relativeTime } from '~/lib/format';
+  import { SOURCE_LANGUAGE } from '~/lib/i18n';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
   import { unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.blog.$get, 200>;
 
@@ -49,8 +51,15 @@
 
   const rows = $derived(posts.data?.data ?? []);
 
+  // List display follows the interface language, falling back to the source —
+  // the same rule every other list in the admin uses.
   function postTitle(post: (typeof rows)[number]): string {
-    return post.translations?.it?.title ?? post.translations?.en?.title ?? '(no title)';
+    const translations = post.translations;
+    return (
+      translations?.[uiLang.current]?.title ??
+      translations?.[SOURCE_LANGUAGE]?.title ??
+      '(no title)'
+    );
   }
 </script>
 

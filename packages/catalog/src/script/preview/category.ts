@@ -6,7 +6,14 @@
  * read through. Reaching it from the menu means those declarations stay one
  * click away from any product without sitting on top of all fifteen of them.
  */
-import type { Category, CategoryTranslationInput, LanguageCode } from '../../lib/types.ts';
+import { localizedFrom, SOURCE_LANGUAGE } from '@mia/validators/language';
+
+import type {
+  Category,
+  CategoryTranslationInput,
+  LanguageCode,
+  Localized,
+} from '../../lib/types.ts';
 import type { ResolvedAsset } from './assets.ts';
 import { assetResolver } from './assets.ts';
 import { escape, field, localized, plain, rows, section } from './html.ts';
@@ -23,18 +30,21 @@ export interface RenderedCategory {
 export interface CategoryEntry {
   code: string;
   route: string;
-  name: { it: string; en?: string | undefined };
+  name: Localized;
   products: ProductEntry[];
 }
 
+/**
+ * One field across every registered language. `null` when the source language
+ * has nothing — an optional field nobody wrote is not rendered at all, and
+ * without source text there is nothing for the other languages to fall back to.
+ */
 const pick = <K extends keyof CategoryTranslationInput>(
   translations: Category['input']['translations'],
   key: K,
-): { it: string; en?: string | undefined } | null => {
-  const it = translations.it[key];
-  if (it === undefined) return null;
-  const en = translations.en?.[key];
-  return { it, ...(en === undefined ? {} : { en }) };
+): Localized | null => {
+  if (translations[SOURCE_LANGUAGE][key] === undefined) return null;
+  return localizedFrom(translations, (text) => text[key]);
 };
 
 function icon(resolved: ResolvedAsset | null): string {
@@ -58,7 +68,7 @@ export function renderCategory(category: Category, assetsRoot: string): Rendered
     return rendered;
   });
 
-  const name = pick(input.translations, 'name') ?? { it: input.code };
+  const name = pick(input.translations, 'name') ?? { [SOURCE_LANGUAGE]: input.code };
   const description = pick(input.translations, 'description');
   const metaTitle = pick(input.translations, 'metaTitle');
   const metaDescription = pick(input.translations, 'metaDescription');

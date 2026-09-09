@@ -22,7 +22,7 @@ export type AdminTerms = InferResponseType<typeof api.api.admin.terms.$get, 200>
    `{ it, en }` written out here is exactly what stopped a third language from
    being a data change. Re-exported so the tabs keep one import. */
 export type Localized = LocalizedValue;
-export { cloneLocalized as localizedOf, localizedOrNull } from '~/lib/i18n';
+export { cloneLocalized as localizedOf, localizedOrNull, translationError } from '~/lib/i18n';
 
 /**
  * Card/hero chips. The limits mirror `ProductChipsSchema` in @mia/validators —

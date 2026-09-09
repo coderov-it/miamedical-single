@@ -1,0 +1,15 @@
+-- Appended, never reordered: PostgreSQL enum ordering is part of the type.
+--
+-- This migration must stay alone. A transaction cannot use an enum value it
+-- added itself, so no seed, backfill or data migration may share it — put
+-- those in 0013 and let this one commit first.
+--
+-- Nothing else changes, for the same reason 0011 changed nothing: the four
+-- *_translations tables are keyed (parent_id, language_code), the localized
+-- columns are jsonb, and every ..._it_check constraint asserts only the source
+-- language — so German is rows and keys, not columns.
+--
+-- The registry's searchConfig for this language is `german`. It must exist on
+-- the instance — SELECT cfgname FROM pg_ts_config — or every write of a German
+-- translation row throws.
+ALTER TYPE "public"."language_code" ADD VALUE 'de';

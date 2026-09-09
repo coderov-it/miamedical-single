@@ -22,9 +22,11 @@
   import CategorySheet from '~/lib/categories/category-sheet.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
+  import TranslationProgress from '~/lib/components/translation-progress.svelte';
   import { orDash, pluralize } from '~/lib/format';
   import { errorMessage, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
+  import { localizedFrom, progressAcross, SOURCE_LANGUAGE } from '~/lib/i18n';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
 
@@ -81,7 +83,20 @@
 
   // List display follows the interface language, not any editing state.
   const nameOf = (category: Category) =>
-    category.translations[uiLang.current]?.name ?? category.translations.it?.name ?? category.code;
+    category.translations[uiLang.current]?.name ??
+    category.translations[SOURCE_LANGUAGE]?.name ??
+    category.code;
+
+  /**
+   * Per-language state for the list's progress cell, scored on the same two
+   * fields the sheet calls a translation — name and slug — so the badge and the
+   * editor's switcher can never disagree.
+   */
+  const progressFor = (category: Category) =>
+    progressAcross([
+      localizedFrom(category.translations, (row) => row.name),
+      localizedFrom(category.translations, (row) => row.slug),
+    ]);
 
   async function confirmDelete() {
     const target = deleting;
@@ -168,7 +183,7 @@
                       {nameOf(category)}
                     </button>
                     <p class="truncate text-xs text-muted-foreground">
-                      {orDash(category.translations.it?.slug)}
+                      {orDash(category.translations[SOURCE_LANGUAGE]?.slug)}
                     </p>
                   </div>
                 </div>
@@ -184,21 +199,7 @@
               </Table.Cell>
 
               <Table.Cell>
-                {#if category.translations.en?.name}
-                  <Badge
-                    variant="outline"
-                    class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-                  >
-                    complete
-                  </Badge>
-                {:else}
-                  <Badge
-                    variant="outline"
-                    class="border-amber-500/40 text-amber-600 dark:text-amber-400"
-                  >
-                    missing
-                  </Badge>
-                {/if}
+                <TranslationProgress progress={progressFor(category)} />
               </Table.Cell>
 
               <Table.Cell>

@@ -54,7 +54,36 @@ Two places are `Record<LanguageCode, …>` and will fail until answered:
 
 Note the gender trap in `enum-labels.ts`: `ORDER_STATUS` agrees with the noun
 for "order", `PAYMENT_STATUS` with the noun for "payment", and those genders
-differ per language.
+differ per language. German sidesteps it — a predicative participle does not
+inflect — so do not copy French's `-e` pattern into it.
+
+### `pnpm check` finds the exhaustive records, and nothing else
+
+This is the step that costs more than it looks. `tsc` only fails where a type
+says `Record<LanguageCode, …>`. It says nothing about the far commoner shape —
+reading an OPTIONAL language off a value:
+
+```ts
+// compiles clean, silently drops every language after the second
+title: { it: source.translations.it?.title ?? '', en: source.translations.en?.title }
+```
+
+Adding German turned up six of those, left behind by the French pass: the
+product Basics, Pricing and Specs tabs, the terms and blog-category editors, and
+the catalogue's preview renderer and sync. Each one loaded two languages into a
+form the switcher offered four of, so a German value could be typed, saved, and
+then blanked by the next save of the same record.
+
+Grep for them — the compiler will not:
+
+```
+rg "\.(it|en)\b" apps packages --glob '!node_modules'
+rg "\{ *it:" apps packages --glob '!node_modules'
+```
+
+The fix is never to add the new code to the list. It is `localizedFrom` on the
+way in, `localizedOrNull` / `buildTranslations` on the way out, and
+`translationError` for a field error that may land on any language.
 
 ## 4. Storefront routes
 
@@ -78,7 +107,7 @@ URLs and translated database content while the 679 chrome strings are still
 being written. A gap in the _source_ catalogue still throws, because that is a
 bug.
 
-The URLs are real from the moment step 4 lands, but they are not *advertised*
+The URLs are real from the moment step 4 lands, but they are not _advertised_
 until they are earned: `hreflang` and the sitemap list a page in a language only
 when that page's content exists in it, which for a product means an
 `availableLocales` entry, not a route.
@@ -114,3 +143,8 @@ how many there are. In practice that means:
 The first two languages were spelled out as ternaries in ~50 files. That is what
 made the third one a project instead of an array entry. The third one cost four
 files: the registry, one migration, `enum-labels.ts`, and a `routePaths` block.
+
+The fourth cost those same four, plus `de.json`, plus the six editors named
+under step 3 that the third pass had not converted. Those six are converted now,
+so the fifth language should be the four files this document promises — provided
+nothing new reads a language off a value by name.

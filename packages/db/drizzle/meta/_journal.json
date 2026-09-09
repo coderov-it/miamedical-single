@@ -85,6 +85,13 @@
       "when": 1788737388481,
       "tag": "0011_add_french_language",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788955203081,
+      "tag": "0012_add_german_language",
+      "breakpoints": true
     }
   ]
 }

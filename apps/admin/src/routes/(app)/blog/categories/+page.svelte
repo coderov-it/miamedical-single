@@ -13,11 +13,23 @@
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import { api } from '~/lib/api';
+  import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
+  import TranslatedInput from '~/lib/components/translated-input.svelte';
+  import { provideContentLang } from '~/lib/content-lang.svelte';
+  import {
+    cloneLocalized,
+    type LocalizedValue,
+    localizedOrNull,
+    progressAcross,
+    SOURCE_LANGUAGE,
+    textFor,
+  } from '~/lib/i18n';
   import { errorMessage } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   type CategoryList = InferResponseType<
     (typeof api.api.admin.blog)['categories']['$get'],
@@ -37,42 +49,51 @@
   const rows = $derived(categories.data ?? []);
   const canManage = $derived(session.can(P.BLOG_CATEGORY_MANAGE));
 
+  // Editing language for the form below — one switcher, every registered
+  // language. It replaced a hardcoded "Name (IT)" / "Name (EN)" input pair,
+  // which could not express a third language however many were registered.
+  const contentLang = provideContentLang();
+
   let showForm = $state(false);
   let editId = $state<string | null>(null);
   let code = $state('');
-  let nameIt = $state('');
-  let nameEn = $state('');
+  let name = $state<LocalizedValue>({ [SOURCE_LANGUAGE]: '' });
   let slug = $state('');
   let position = $state(0);
   let busy = $state(false);
 
+  const sourceName = $derived(textFor(name, SOURCE_LANGUAGE).trim());
+  const progress = $derived(progressAcross([name]));
+
   function resetForm() {
     editId = null;
     code = '';
-    nameIt = '';
-    nameEn = '';
+    name = { [SOURCE_LANGUAGE]: '' };
     slug = '';
     position = 0;
     showForm = false;
+    contentLang.reset();
   }
 
   function startEdit(cat: CategoryList[number]) {
     editId = cat.id;
     code = cat.code;
-    nameIt = (cat.name as { it: string; en?: string }).it;
-    nameEn = (cat.name as { it: string; en?: string }).en ?? '';
+    name = cloneLocalized(cat.name);
     slug = cat.slug;
     position = cat.position;
     showForm = true;
+    contentLang.reset();
   }
 
   async function saveCategory() {
-    if (!code.trim() || !nameIt.trim() || !slug.trim()) return;
+    if (!code.trim() || !sourceName || !slug.trim()) return;
     busy = true;
     try {
       const payload = {
         code: code.trim(),
-        name: { it: nameIt.trim(), ...(nameEn.trim() ? { en: nameEn.trim() } : {}) },
+        // Every language the operator filled in; blanks stay absent so the
+        // storefront keeps falling back rather than serving an empty name.
+        name: localizedOrNull(name)!,
         slug: slug.trim(),
         position,
       };
@@ -148,14 +169,8 @@
             <label class="mb-1.5 block text-sm font-medium" for="cat-code">Code</label>
             <Input id="cat-code" bind:value={code} placeholder="e.g. news" />
           </div>
-          <div>
-            <label class="mb-1.5 block text-sm font-medium" for="cat-name-it">Name (IT)</label>
-            <Input id="cat-name-it" bind:value={nameIt} placeholder="Notizie" />
-          </div>
-          <div>
-            <label class="mb-1.5 block text-sm font-medium" for="cat-name-en">Name (EN)</label>
-            <Input id="cat-name-en" bind:value={nameEn} placeholder="News (optional)" />
-          </div>
+          <LanguageSwitcher lang={contentLang} {progress} class="border-b pb-2" />
+          <TranslatedInput id="cat-name" label="Name" bind:value={name} placeholder="Notizie" />
           <div>
             <label class="mb-1.5 block text-sm font-medium" for="cat-slug">Slug</label>
             <Input id="cat-slug" bind:value={slug} placeholder="news" />
@@ -168,7 +183,7 @@
             <Button
               type="submit"
               class="flex-1"
-              disabled={busy || !code.trim() || !nameIt.trim() || !slug.trim()}
+              disabled={busy || !code.trim() || !sourceName || !slug.trim()}
             >
               {#if busy}<Spinner />{/if}
               {editId ? 'Update' : 'Create'}
@@ -219,7 +234,10 @@
           {#each rows as cat (cat.id)}
             <Table.Row>
               <Table.Cell class="font-mono text-sm">{cat.code}</Table.Cell>
-              <Table.Cell>{(cat.name as { it: string }).it}</Table.Cell>
+              <Table.Cell
+                >{textFor(cat.name, uiLang.current) ||
+                  textFor(cat.name, SOURCE_LANGUAGE)}</Table.Cell
+              >
               <Table.Cell class="text-muted-foreground">{cat.slug}</Table.Cell>
               <Table.Cell class="text-right tabular-nums">{cat.position}</Table.Cell>
               {#if canManage}

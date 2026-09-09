@@ -1,13 +1,13 @@
-# The storefront in three languages
+# The storefront in four languages
 
 Covers `apps/website/src/lib/i18n.ts`, `middleware.ts`, `lib/labels.ts`,
 `lib/routes.ts`, `lib/sitemap.ts`, `lib/account-page.ts`, `scripts/locale.ts`,
-`components/global/LanguageSwitcher.astro` and `i18n/{it,en,fr}.json`.
+`components/global/LanguageSwitcher.astro` and `i18n/{it,en,fr,de}.json`.
 
 Read `static-i18n-labels.md` first for the other half of the picture: that one is
 about **enum tokens** shipped in `@mia/i18n`; this one is about **page copy**.
 
-To add a fourth, see `adding-a-language.md` — nothing in this document is a step
+To add a fifth, see `adding-a-language.md` — nothing in this document is a step
 you repeat per language.
 
 ## Where a locale comes from, and the two ways to read it
@@ -78,7 +78,7 @@ pnpm --filter @mia/website run i18n:coverage --list   # the exact missing keys
 
 It also reports **orphans** — a key a target locale has and the source does not,
 which can never render because `translate()` looks the source up first. As of
-2026-09-08: 679 keys in `it.json`, and `en` and `fr` both at 100%.
+2026-09-09: 679 keys in `it.json`, and `en`, `fr` and `de` all at 100%.
 
 ## Client-rendered pages get their copy as JSON
 
@@ -179,11 +179,11 @@ self-reference is ignored rather than half-read.
 
 What is in it, and the reasoning behind each exclusion:
 
-| In                                        | Out                                                  |
-| ----------------------------------------- | ---------------------------------------------------- |
-| static route keys × every locale          | `PRIVATE_ROUTES` — cart, checkout, the customer area |
-| products, per locale in `availableLocales` | `search` (`/cerca/` renders `noindex`)              |
-| blog posts, same rule                     | `product` (a base path, not a page)                  |
+| In                                         | Out                                                  |
+| ------------------------------------------ | ---------------------------------------------------- |
+| static route keys × every locale           | `PRIVATE_ROUTES` — cart, checkout, the customer area |
+| products, per locale in `availableLocales` | `search` (`/cerca/` renders `noindex`)               |
+| blog posts, same rule                      | `product` (a base path, not a page)                  |
 
 - `PRIVATE_ROUTES` in `lib/routes.ts` had no consumer before this; it is the
   same list that makes those pages `noindex`.
@@ -226,9 +226,9 @@ Code is English, data is Italian (CLAUDE.md). For this app the line is:
 
 | Kind                                            | Lives in                           |
 | ----------------------------------------------- | ---------------------------------- |
-| UI copy, headings, errors, aria-labels          | `i18n/{it,en,fr}.json`             |
-| Marketing copy on the home and support pages    | `i18n/{it,en,fr}.json`             |
-| FAQ answers, testimonial quotes and their dates | `i18n/{it,en,fr}.json`             |
+| UI copy, headings, errors, aria-labels          | `i18n/{it,en,fr,de}.json`          |
+| Marketing copy on the home and support pages    | `i18n/{it,en,fr,de}.json`          |
+| FAQ answers, testimonial quotes and their dates | `i18n/{it,en,fr,de}.json`          |
 | Enum tokens (`day`, `paid`, `draft`)            | `@mia/i18n`                        |
 | Product and category names, descriptions, chips | the database, per `*_translations` |
 | A person's name, a street, a phone number       | `lib/site.ts` and the database     |
@@ -239,12 +239,13 @@ moved to the catalogue because they are prose a customer reads.
 
 **The translated storefronts still show Italian catalogue copy.** That is not
 this layer: `listProducts(…, locale)` already asks the API for the locale, and
-the rows do not exist. Measured on the dev database, 2026-09-08:
+the rows do not exist. Measured on the dev database, 2026-09-08 (German was
+registered on 2026-09-09 and starts from the same place):
 
 ```
-products         107 rows  →  it: 107   en: 0   fr: 0
-categories        18 rows  →  it: 18    en: 0   fr: 0
-terms_documents    1 row   →  it: 1     en: 1   fr: 0
+products         107 rows  →  it: 107   en: 0   fr: 0   de: 0
+categories        18 rows  →  it: 18    en: 0   fr: 0   de: 0
+terms_documents    1 row   →  it: 1     en: 1   fr: 0   de: 0
 ```
 
 Filling them is back-office work, not a code change — the admin has the editors,

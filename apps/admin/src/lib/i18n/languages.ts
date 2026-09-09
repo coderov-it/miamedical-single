@@ -184,6 +184,26 @@ export function buildTranslations<TRow>(
   return payload;
 }
 
+/**
+ * The first validation error the server reported for one translated field,
+ * whichever language it landed on.
+ *
+ * The API keys field errors by path — `translations.de.slug` — so an editor
+ * that named two languages could only ever surface two of them, and a German
+ * slug collision came back as a red banner with no field marked. Walking
+ * `LANGUAGE_CODES` means a registered language reports like every other one.
+ *
+ * First rather than all: an editor shows one language at a time, and the
+ * switcher already says which ones are incomplete.
+ */
+export function translationError(fields: Record<string, string>, key: string): string | undefined {
+  for (const code of LANGUAGE_CODES) {
+    const message = fields[`translations.${code}.${key}`];
+    if (message) return message;
+  }
+  return undefined;
+}
+
 /** Copy a stored `{ it, en, … }` jsonb value into an editable form value. */
 export function cloneLocalized(value: LocalizedLike | null | undefined): LocalizedValue {
   return localizedFrom(

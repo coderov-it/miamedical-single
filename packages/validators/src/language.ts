@@ -57,6 +57,14 @@ export const LANGUAGES = [
     searchConfig: 'french',
     flag: '🇫🇷',
   },
+  {
+    code: 'de',
+    label: 'Deutsch',
+    tag: 'de-DE',
+    ogLocale: 'de_DE',
+    searchConfig: 'german',
+    flag: '🇩🇪',
+  },
 ] as const satisfies readonly LanguageDefinition[];
 
 export type LanguageCode = (typeof LANGUAGES)[number]['code'];

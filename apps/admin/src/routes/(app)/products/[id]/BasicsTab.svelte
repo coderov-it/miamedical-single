@@ -14,9 +14,9 @@
   import { session } from '~/lib/session.svelte';
   import ChipsField from './ChipsField.svelte';
   import type { AdminCategory, AdminProduct, ChipEdit, Localized, TabProps } from './shared';
-  import { localizedOrNull, sameAsSaved } from './shared';
+  import { localizedOf, localizedOrNull, sameAsSaved, translationError } from './shared';
   import TabPanel from './tab-panel.svelte';
-  import { buildTranslations, type LanguageCode, textFor } from '~/lib/i18n';
+  import { buildTranslations, type LanguageCode, localizedFrom, textFor } from '~/lib/i18n';
 
   let { product, onSaved, dirty }: TabProps = $props();
 
@@ -29,9 +29,11 @@
   ] as const;
 
   /**
-   * The DTO carries `translations: { it: {…}, en: {…} }` per language; the
-   * Translated* components bind per FIELD. This pivots between the two shapes:
-   * DTO → five `{ it, en }` objects on load, and back again on save.
+   * The DTO carries one `translations` row per language; the Translated*
+   * components bind per FIELD. This pivots between the two shapes: DTO → five
+   * localized objects on load, and back again on save. Both directions walk the
+   * registry — `localizedFrom` on the way in, `buildTranslations` on the way
+   * out — so a registered language is editable here without an edit.
    *
    * `description` is edited on its own tab but still travels in this payload:
    * the PATCH replaces a language's whole translation row, so a Basics save that
@@ -39,10 +41,8 @@
    * `product` at save time for the same reason — see DescriptionTab.
    */
   function snapshot(source: AdminProduct) {
-    const field = (key: keyof NonNullable<AdminProduct['translations']['it']>): Localized => ({
-      it: (source.translations.it?.[key] as string | null) ?? '',
-      en: (source.translations.en?.[key] as string | null) ?? undefined,
-    });
+    const field = (key: keyof NonNullable<AdminProduct['translations']['it']>): Localized =>
+      localizedFrom(source.translations, (row) => row[key] as string | null);
 
     return {
       title: field('title'),
@@ -56,7 +56,7 @@
       isFeatured: source.isFeatured,
       chips: source.chips.map((chip): ChipEdit => ({
         uid: crypto.randomUUID(),
-        text: { it: chip.it, en: chip.en },
+        text: localizedOf(chip),
       })),
     };
   }
@@ -176,12 +176,12 @@
     <TranslatedInput
       label="Title"
       bind:value={form.title}
-      error={fields['translations.it.title']}
+      error={translationError(fields, 'title')}
     />
     <TranslatedInput
       label="Slug"
       bind:value={form.slug}
-      error={fields['translations.it.slug'] ?? fields['translations.en.slug']}
+      error={translationError(fields, 'slug')}
       hint="The URL segment on the storefront."
     />
     <TranslatedInput

@@ -71,11 +71,9 @@ export function renderProduct(
   resolve: AssetResolver,
 ): RenderedProduct {
   const gallery = renderGallery(product.media, resolve);
-  const it = product.translations.it;
-  const en = product.translations.en;
   const route = `${categoryCode}/${product.code}`;
 
-  const title = { it: it.title, ...(en?.title ? { en: en.title } : {}) };
+  const title = localizedFrom(product.translations, (t) => t.title);
 
   const html = `<article class="page product" data-page="${escape(route)}" data-title="${escape(plain(title))}">
     <header class="page-head">

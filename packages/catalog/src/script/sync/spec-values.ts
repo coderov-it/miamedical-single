@@ -17,6 +17,7 @@
  * category, not the first one it meets.
  */
 import type { Localized } from '@mia/db/schema';
+import { LANGUAGE_CODES, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 import type { AnySpec } from '../../lib/types.ts';
 import { specOptionId } from './ids.ts';
@@ -98,13 +99,23 @@ function coerceRange(raw: unknown): CoercionResult {
   });
 }
 
+/**
+ * A spec's text value: a bare string is the source language, an object is a
+ * localized value. Every registered language is read off the object rather than
+ * a listed pair, so a data file can carry a German spec value without an edit
+ * here — and the error message names the languages actually registered.
+ */
 function coerceText(raw: unknown): CoercionResult {
-  if (typeof raw === 'string') return ok({ textValue: { it: raw } });
-  if (isRecord(raw) && typeof raw['it'] === 'string') {
-    const en = raw['en'];
-    return ok({ textValue: { it: raw['it'], ...(typeof en === 'string' ? { en } : {}) } });
+  if (typeof raw === 'string') return ok({ textValue: { [SOURCE_LANGUAGE]: raw } });
+  if (isRecord(raw) && typeof raw[SOURCE_LANGUAGE] === 'string') {
+    const textValue: Record<string, string> = {};
+    for (const code of LANGUAGE_CODES) {
+      const text = raw[code];
+      if (typeof text === 'string' && text !== '') textValue[code] = text;
+    }
+    return ok({ textValue: textValue as Localized });
   }
-  return fail(`expected text or { it, en }, got ${describe(raw)}`);
+  return fail(`expected text or { ${LANGUAGE_CODES.join(', ')} }, got ${describe(raw)}`);
 }
 
 function coerceSelect(

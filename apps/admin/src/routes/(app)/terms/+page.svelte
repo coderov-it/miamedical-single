@@ -9,7 +9,6 @@
   import { toast } from 'svelte-sonner';
 
   import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
@@ -24,13 +23,20 @@
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
+  import TranslationProgress from '~/lib/components/translation-progress.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
   import { formatDate, orDash } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
-  import { SOURCE_LANGUAGE, buildTranslations, progressAcross, textFor } from '~/lib/i18n';
+  import {
+    SOURCE_LANGUAGE,
+    buildTranslations,
+    localizedFrom,
+    progressAcross,
+    textFor,
+  } from '~/lib/i18n';
 
   type Terms = InferResponseType<typeof api.api.admin.terms.$get, 200>['data'][number];
 
@@ -51,7 +57,7 @@
 
   const rows = $derived(documents.data ?? []);
 
-  // Editing language for the document sheet — the IT/EN tabs under its header.
+  // Editing language for the document sheet — the switcher under its header.
   const contentLang = provideContentLang();
 
   let editing = $state<TermsEdit | null>(null);
@@ -64,6 +70,24 @@
   // List display follows the interface language, not any editing state.
   const titleOf = (doc: Terms) =>
     doc.translations[uiLang.current]?.title ?? doc.translations[SOURCE_LANGUAGE]?.title ?? doc.code;
+
+  /**
+   * The three translated fields of one document, pivoted from the DTO's
+   * per-language rows into one localized value per field. Used both to seed the
+   * editor and to score a row in the list, so the badge and the sheet's
+   * switcher can never disagree about what is translated.
+   */
+  const localizedFields = (doc: Terms) => ({
+    title: localizedFrom(doc.translations, (row) => row.title),
+    body: localizedFrom(doc.translations, (row) => row.body),
+    slug: localizedFrom(doc.translations, (row) => row.slug),
+  });
+
+  /** Per-language state for the list's progress cell. */
+  function progressFor(doc: Terms) {
+    const fields = localizedFields(doc);
+    return progressAcross([fields.title, fields.body, fields.slug]);
+  }
 
   /** A document counts as translated once title, body and slug all exist. */
   const progress = $derived(
@@ -78,17 +102,21 @@
       ? {
           id: doc.id,
           code: doc.code,
-          title: { it: doc.translations.it?.title ?? '', en: doc.translations.en?.title },
-          body: { it: doc.translations.it?.body ?? '', en: doc.translations.en?.body },
-          slug: { it: doc.translations.it?.slug ?? '', en: doc.translations.en?.slug },
+          ...localizedFields(doc),
         }
-      : { code: '', title: { it: '' }, body: { it: '' }, slug: { it: '' } };
+      : {
+          code: '',
+          title: { [SOURCE_LANGUAGE]: '' },
+          body: { [SOURCE_LANGUAGE]: '' },
+          slug: { [SOURCE_LANGUAGE]: '' },
+        };
   }
 
   /**
-   * A terms document is a legal text. English is only sent when title, body
-   * and slug are all present — a document that is half translated must fall
-   * back to Italian entirely rather than serve a mix of the two.
+   * A terms document is a legal text. A target language is only sent when
+   * title, body and slug are all present — a document that is half translated
+   * must fall back to the source language entirely rather than serve a mix of
+   * the two.
    */
   function translationsPayload(edit: TermsEdit) {
     return buildTranslations(
@@ -200,26 +228,12 @@
                   {titleOf(doc)}
                 </button>
                 <p class="text-xs text-muted-foreground">
-                  {orDash(doc.translations.it?.slug)}
+                  {orDash(doc.translations[SOURCE_LANGUAGE]?.slug)}
                 </p>
               </Table.Cell>
               <Table.Cell><code class="font-mono text-xs">{doc.code}</code></Table.Cell>
               <Table.Cell>
-                {#if doc.translations.en?.body}
-                  <Badge
-                    variant="outline"
-                    class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-                  >
-                    complete
-                  </Badge>
-                {:else}
-                  <Badge
-                    variant="outline"
-                    class="border-amber-500/40 text-amber-600 dark:text-amber-400"
-                  >
-                    missing
-                  </Badge>
-                {/if}
+                <TranslationProgress progress={progressFor(doc)} />
               </Table.Cell>
               <Table.Cell class="text-muted-foreground">{formatDate(doc.updatedAt)}</Table.Cell>
               <Table.Cell>
