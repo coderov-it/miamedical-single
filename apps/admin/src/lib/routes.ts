@@ -44,6 +44,13 @@ export const routes = {
   /** Back-office accounts and what each of them may reach. */
   adminUsers: '/access',
 
+  /**
+   * Your own account. Reached by clicking your name in the sidebar footer and
+   * deliberately absent from `nav.ts` — it is not a section of the back office,
+   * it is the operator looking at themselves.
+   */
+  profile: '/profile',
+
   login: '/login',
 } as const;
 

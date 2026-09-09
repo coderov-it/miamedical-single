@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { EmailSchema, PasswordSchema } from './common.ts';
+import { EmailSchema, FullNameSchema, PasswordSchema, PhoneSchema } from './common.ts';
 
 export const LoginSchema = v.object({
   email: EmailSchema,
@@ -24,9 +24,18 @@ export const RegisterSchema = v.pipe(
   ),
 );
 
+/**
+ * Changing your own password.
+ *
+ * `currentPassword` is optional *on the wire* and required by policy for
+ * everyone except a superuser — see `modules/auth/service.ts`. It cannot be
+ * required here because "is the caller a superuser" is not a question a schema
+ * can answer, and a schema that guessed would either lock superusers out of
+ * their own account or drop the check for everybody.
+ */
 export const ChangePasswordSchema = v.pipe(
   v.object({
-    currentPassword: v.pipe(v.string(), v.minLength(1, 'Current password is required.')),
+    currentPassword: v.optional(v.pipe(v.string(), v.minLength(1, 'Enter your current password.'))),
     newPassword: PasswordSchema,
     confirmPassword: v.string(),
   }),
@@ -41,6 +50,22 @@ export const ChangePasswordSchema = v.pipe(
 );
 
 /**
+ * Editing your own account details, which every signed-in operator may do —
+ * it answers to no permission, because needing one would mean an operator with
+ * no grants at all could not correct their own phone number.
+ *
+ * `email` is in the shape but not everyone's to change: it is the identity you
+ * sign in with rather than a preference, so the service accepts a new one only
+ * from a superuser and 403s otherwise. Sending your existing address is always
+ * fine — the form does it on every save.
+ */
+export const UpdateProfileSchema = v.object({
+  fullName: v.optional(FullNameSchema),
+  phone: v.optional(PhoneSchema),
+  email: v.optional(EmailSchema),
+});
+
+/**
  * A single permission code. Values are validated against the catalog in
  * `@mia/permissions` at the service layer — this only enforces the shape.
  */
@@ -51,3 +76,4 @@ export const PermissionCodesSchema = v.pipe(v.array(PermissionCodeSchema), v.max
 export type LoginInput = v.InferOutput<typeof LoginSchema>;
 export type RegisterInput = v.InferOutput<typeof RegisterSchema>;
 export type ChangePasswordInput = v.InferOutput<typeof ChangePasswordSchema>;
+export type UpdateProfileInput = v.InferOutput<typeof UpdateProfileSchema>;

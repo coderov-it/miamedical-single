@@ -1,20 +1,13 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
-  import KeyRoundIcon from '@lucide/svelte/icons/key-round';
-  import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
-  import PencilIcon from '@lucide/svelte/icons/pencil';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import SearchIcon from '@lucide/svelte/icons/search';
-  import Trash2Icon from '@lucide/svelte/icons/trash-2';
-  import UserCheckIcon from '@lucide/svelte/icons/user-check';
-  import UserXIcon from '@lucide/svelte/icons/user-x';
   import UsersIcon from '@lucide/svelte/icons/users';
   import { toast } from 'svelte-sonner';
 
   import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
-  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
@@ -22,6 +15,7 @@
   import { api } from '~/lib/api';
   import { groupSummary, type AdminUser, type AdminUserList } from '~/lib/access/access';
   import AdminUserSheet from '~/lib/access/admin-user-sheet.svelte';
+  import RowActions from '~/lib/access/row-actions.svelte';
   import SetPasswordDialog from '~/lib/access/set-password-dialog.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
@@ -54,8 +48,6 @@
 
   const rows = $derived(operators.data?.data ?? []);
   const canCreate = $derived(session.can(P.ADMIN_CREATE));
-  const canUpdate = $derived(session.can(P.ADMIN_UPDATE));
-  const canDelete = $derived(session.can(P.ADMIN_DELETE));
 
   const statuses = [
     { value: 'all', label: 'All accounts' },
@@ -242,50 +234,14 @@
               </Table.Cell>
 
               <Table.Cell>
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger
-                    class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                    aria-label="Row actions"
-                  >
-                    <MoreHorizontalIcon />
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Content align="end">
-                    <DropdownMenu.Item onSelect={() => (editing = user)}>
-                      <PencilIcon />
-                      {canUpdate ? 'Edit' : 'View access'}
-                    </DropdownMenu.Item>
-
-                    <!--
-                      Every action below is one the server refuses on your own
-                      row — you cannot lock yourself out or reset your own
-                      password without the current one. Hidden rather than shown
-                      failing.
-                    -->
-                    {#if canUpdate && !isSelf(user)}
-                      <DropdownMenu.Item onSelect={() => (passwordFor = user)}>
-                        <KeyRoundIcon />
-                        Set password
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item disabled={busy} onSelect={() => void toggleActive(user)}>
-                        {#if user.isActive}
-                          <UserXIcon />
-                          Disable account
-                        {:else}
-                          <UserCheckIcon />
-                          Enable account
-                        {/if}
-                      </DropdownMenu.Item>
-                    {/if}
-
-                    {#if canDelete && !isSelf(user)}
-                      <DropdownMenu.Separator />
-                      <DropdownMenu.Item variant="destructive" onSelect={() => (deleting = user)}>
-                        <Trash2Icon />
-                        Delete
-                      </DropdownMenu.Item>
-                    {/if}
-                  </DropdownMenu.Content>
-                </DropdownMenu.Root>
+                <RowActions
+                  {user}
+                  {busy}
+                  onEdit={() => (editing = user)}
+                  onSetPassword={() => (passwordFor = user)}
+                  onToggleActive={() => void toggleActive(user)}
+                  onDelete={() => (deleting = user)}
+                />
               </Table.Cell>
             </Table.Row>
           {/each}

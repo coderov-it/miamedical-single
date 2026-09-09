@@ -50,6 +50,11 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   // Reading the operator list is its own grant, not part of "can look around":
   // it names every account and everything each one can reach.
   { pattern: routes.adminUsers, requiredAny: [P.ADMIN_READ] },
+
+  // Open to anyone signed in, and listed rather than left to the "unmapped
+  // paths are open" default so the intent is on the record: your own name,
+  // phone and password are yours whatever you were granted.
+  { pattern: routes.profile, requiredAny: [] },
 ];
 
 /**

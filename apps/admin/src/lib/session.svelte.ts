@@ -56,6 +56,27 @@ class Session {
     }
   }
 
+  /**
+   * Re-read the signed-in user, leaving `loading` alone.
+   *
+   * Not `load()`, and the difference matters: the root layout uses `loading` as
+   * its auth gate, so a page that called `load()` to pick up a name it had just
+   * saved would swap the whole workspace for "Loading workspace…", unmount
+   * itself mid-save and lose its own success toast. This is the call for "the
+   * user I am already showing has changed".
+   *
+   * A failed refresh keeps the current user rather than clearing it — the
+   * session is still valid, we just did not get an update.
+   */
+  async refreshUser(): Promise<void> {
+    try {
+      const response = await api.api.auth.me.$get();
+      if (response.ok) this.#user = ((await response.json()) as { data: Me }).data;
+    } catch {
+      // Keep what we have; this is a refresh, not a sign-out.
+    }
+  }
+
   /** Resolves to an error message, or null on success. */
   async login(email: string, password: string): Promise<string | null> {
     const response = await api.api.auth.login.$post({ json: { email, password } });
@@ -75,6 +96,16 @@ class Session {
 
   async logout(): Promise<void> {
     await api.api.auth.logout.$post().catch(() => undefined);
+    this.clear();
+  }
+
+  /**
+   * Forget the signed-in user without calling the server. For when the session
+   * is already gone server-side and there is nothing left to revoke — changing
+   * your own password revokes every session including this one, and the
+   * response has already cleared the cookie.
+   */
+  clear(): void {
     this.#user = null;
     // Let the next guard refetch rather than trusting this cleared state.
     this.#pending = null;
