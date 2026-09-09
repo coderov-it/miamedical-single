@@ -18,7 +18,7 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
   import type { AdminProduct, Localized, TabProps } from './shared';
-  import { sameAsSaved } from './shared';
+  import { sameAsSaved, translationError } from './shared';
   import TabPanel from './tab-panel.svelte';
   import {
     buildTranslations,
@@ -144,7 +144,7 @@
       name="Description"
       bind:value={form}
       hint="Headings start at H2 — the product title is the page's only H1. Images and video live on the Media tab."
-      error={fields['translations.it.description'] ?? fields['translations.en.description']}
+      error={translationError(fields, 'description')}
     />
   </div>
 </TabPanel>

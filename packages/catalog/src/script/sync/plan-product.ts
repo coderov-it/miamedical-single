@@ -13,6 +13,7 @@
  * and the JSON format this replaces had authors keeping the two in step by hand.
  */
 import type { Localized } from '@mia/db/schema';
+import { localizedFrom, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 import { parseMoney } from '../../lib/money.ts';
 import type {
@@ -243,7 +244,9 @@ function planMedia(media: MediaInput | undefined, asset: AssetResolver): Planned
       role,
       position,
       asset: resolved,
-      alt: alt?.it === undefined ? null : { it: alt.it, ...(alt.en ? { en: alt.en } : {}) },
+      /* Every language the data file wrote, not a hand-listed pair — a `de`
+         alt in the catalogue used to be silently dropped on sync. */
+      alt: alt?.[SOURCE_LANGUAGE] === undefined ? null : localizedFrom(alt, (text) => text),
     });
   };
 

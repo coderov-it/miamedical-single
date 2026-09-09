@@ -16,9 +16,10 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
   import { uiLang } from '~/lib/ui-lang.svelte';
   import type { AdminProduct, Localized, TabProps } from './shared';
-  import { localizedOf, sameAsSaved } from './shared';
+  import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
 
   let { product, onSaved, dirty }: TabProps = $props();
@@ -109,7 +110,7 @@
     packages.push({
       uid: crypto.randomUUID(),
       code: deriveCode('1', unit),
-      name: { it: '' },
+      name: { [SOURCE_LANGUAGE]: '' },
       price: '0.00',
       duration: '1',
       unit,
@@ -135,15 +136,19 @@
                   rentalUnit: form.rentalUnit,
                   rentalPackages: packages.map((item) => ({
                     code: item.code,
-                    // Italian is mandatory; fall back to the composed duration
-                    // label so an unnamed row saves as "7 giorni" rather than
-                    // failing validation on an empty string.
-                    name: item.name.it.trim()
-                      ? {
-                          it: item.name.it.trim(),
-                          ...(item.name.en?.trim() ? { en: item.name.en.trim() } : {}),
-                        }
-                      : { it: durationLabel(Number(item.duration) || 1, item.unit, 'it') },
+                    /* The source language is mandatory; fall back to the
+                       composed duration label so an unnamed row saves as
+                       "7 giorni" rather than failing validation on an empty
+                       string. `localizedOrNull` carries every language the
+                       operator filled in — writing the pair out here is what
+                       dropped a French package name on every save. */
+                    name: localizedOrNull(item.name) ?? {
+                      [SOURCE_LANGUAGE]: durationLabel(
+                        Number(item.duration) || 1,
+                        item.unit,
+                        SOURCE_LANGUAGE,
+                      ),
+                    },
                     price: item.price,
                     duration: Number(item.duration) || 1,
                     unit: item.unit,
@@ -295,7 +300,7 @@
           bind:items={packages}
           label="Package"
           key={(item) => item.uid}
-          describe={(item) => item.name.it || 'this package'}
+          describe={(item) => textFor(item.name, SOURCE_LANGUAGE) || 'this package'}
           onRemove={(index) => {
             if (packages.length <= MIN_PACKAGES) {
               toast.error('A rental product needs at least one package.');

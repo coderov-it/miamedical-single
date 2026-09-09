@@ -13,7 +13,7 @@
  * one file — there is no fetch to make from a `file://` page.
  */
 import type { CategoryEntry } from './category.ts';
-import { escape, localized } from './html.ts';
+import { escape, localized, plain } from './html.ts';
 import { LANGUAGES, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 function outline(entry: CategoryEntry): string {
@@ -42,7 +42,7 @@ export function renderRail(entries: readonly CategoryEntry[]): string {
   const options = entries
     .map(
       (entry) =>
-        `<option value="${escape(entry.code)}">${escape(entry.name.it)} — ${entry.products.length.toString()}</option>`,
+        `<option value="${escape(entry.code)}">${escape(plain(entry.name))} — ${entry.products.length.toString()}</option>`,
     )
     .join('');
 

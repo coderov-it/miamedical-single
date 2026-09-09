@@ -29,7 +29,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
   import type { AdminCategory, AdminProduct, Localized, TabProps } from './shared';
-  import { localizedOrNull, sameAsSaved } from './shared';
+  import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
 
   let { product, onSaved, dirty }: TabProps = $props();
@@ -77,9 +77,7 @@
         booleanValue:
           value?.booleanValue === true ? 'true' : value?.booleanValue === false ? 'false' : NONE,
         optionIds: value?.optionIds ?? [],
-        textValue: value?.textValue
-          ? { it: value.textValue.it, en: value.textValue.en }
-          : { it: '' },
+        textValue: localizedOf(value?.textValue),
       };
     }
     return next;

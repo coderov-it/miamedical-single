@@ -11,6 +11,7 @@ import {
   SOURCE_LANGUAGE,
 } from '@mia/validators/language';
 
+import de from '~/i18n/de.json';
 import en from '~/i18n/en.json';
 import fr from '~/i18n/fr.json';
 import it from '~/i18n/it.json';
@@ -33,7 +34,7 @@ export { pickLocalized, type Localized };
  * chrome strings are still being written.
  */
 type Messages = Record<string, string>;
-const MESSAGES: Partial<Record<SiteLocale, Messages>> = { it, en, fr };
+const MESSAGES: Partial<Record<SiteLocale, Messages>> = { it, en, fr, de };
 
 interface RequestLanguageContext {
   locale: SiteLocale;

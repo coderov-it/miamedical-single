@@ -28,7 +28,13 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
-  import { buildTranslations, progressAcross, textFor } from '~/lib/i18n';
+  import {
+    buildTranslations,
+    progressAcross,
+    SOURCE_LANGUAGE,
+    textFor,
+    translationError,
+  } from '~/lib/i18n';
   import SpecFieldList from './spec-field-list.svelte';
   import {
     isSelectType,
@@ -58,9 +64,9 @@
   let isActive = $state(true);
   let requiresDeposit = $state(false);
   let icon = $state<string | null>(null);
-  let name = $state<Localized>({ it: '' });
-  let description = $state<Localized>({ it: '' });
-  let slug = $state<Localized>({ it: '' });
+  let name = $state<Localized>({ [SOURCE_LANGUAGE]: '' });
+  let description = $state<Localized>({ [SOURCE_LANGUAGE]: '' });
+  let slug = $state<Localized>({ [SOURCE_LANGUAGE]: '' });
   let specs = $state<SpecEdit[]>([]);
 
   let saving = $state(false);
@@ -91,9 +97,9 @@
       isActive = true;
       requiresDeposit = false;
       icon = null;
-      name = { it: '' };
-      description = { it: '' };
-      slug = { it: '' };
+      name = { [SOURCE_LANGUAGE]: '' };
+      description = { [SOURCE_LANGUAGE]: '' };
+      slug = { [SOURCE_LANGUAGE]: '' };
       specs = [];
       return;
     }
@@ -146,7 +152,7 @@
     return specs.map((spec, position) => ({
       ...(spec.id ? { id: spec.id } : {}),
       key: spec.key,
-      label: localizedOrNull(spec.label) ?? { it: '' },
+      label: localizedOrNull(spec.label) ?? { [SOURCE_LANGUAGE]: '' },
       helpText: localizedOrNull(spec.helpText),
       valueType: spec.valueType as 'string',
       unit: spec.unit.trim() || null,
@@ -161,7 +167,7 @@
         ? spec.options.map((option, optionPosition) => ({
             ...(option.id ? { id: option.id } : {}),
             value: option.value,
-            label: localizedOrNull(option.label) ?? { it: '' },
+            label: localizedOrNull(option.label) ?? { [SOURCE_LANGUAGE]: '' },
             position: optionPosition,
           }))
         : [],
@@ -194,7 +200,7 @@
         }),
       );
 
-      toast.success(`Saved "${name.it || code}".`);
+      toast.success(`Saved "${textFor(name, SOURCE_LANGUAGE) || code}".`);
       onSaved();
       onClose();
     } catch (err) {
@@ -241,13 +247,13 @@
           <TranslatedInput
             label="Name"
             bind:value={name}
-            error={fields['translations.it.name']}
+            error={translationError(fields, 'name')}
             placeholder="Carrozzine"
           />
           <TranslatedInput
             label="Slug"
             bind:value={slug}
-            error={fields['translations.it.slug']}
+            error={translationError(fields, 'slug')}
             placeholder="carrozzine"
             hint="The URL segment on the storefront."
           />

@@ -150,8 +150,8 @@ export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationS
 
 // --- specs -----------------------------------------------------------------
 
-const YES: Record<LanguageCode, string> = { it: 'Sì', en: 'Yes', fr: 'Oui' };
-const NO: Record<LanguageCode, string> = { it: 'No', en: 'No', fr: 'Non' };
+const YES: Record<LanguageCode, string> = { it: 'Sì', en: 'Yes', fr: 'Oui', de: 'Ja' };
+const NO: Record<LanguageCode, string> = { it: 'No', en: 'No', fr: 'Non', de: 'Nein' };
 
 /**
  * Exported because an order line snapshots the words the customer read, and a

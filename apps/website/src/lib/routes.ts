@@ -105,6 +105,39 @@ export const routePaths = {
     signContract: '/fr/signer-le-contrat/',
     blog: '/fr/blog/',
   },
+  /**
+   * German. Slugs are written as German reads them rather than as calques of
+   * the Italian: `agb` is what a German site calls its terms, `warenkorb` its
+   * cart, and `auswahlhilfe` is the compound German forms where French needed a
+   * phrase. Umlauts are transliterated — `zuruecksetzen`, not `zurücksetzen` —
+   * for the same reason the French paths dropped their accents.
+   *
+   * Like the French block these carry no SEO history yet, and inherit the
+   * file's rule the moment they are published: changing one is an SEO event.
+   */
+  de: {
+    home: '/de/',
+    catalog: '/de/katalog/',
+    catalogRental: '/de/mietkatalog/',
+    catalogSale: '/de/verkaufskatalog/',
+    product: '/de/produkt/',
+    search: '/de/suche/',
+    productFinder: '/de/auswahlhilfe/',
+    support: '/de/kundenservice/',
+    cart: '/de/warenkorb/',
+    checkout: '/de/kasse/',
+    terms: '/de/agb/',
+    privacy: '/de/datenschutz/',
+    cookies: '/de/cookie-richtlinie/',
+    login: '/de/anmelden/',
+    account: '/de/kundenbereich/',
+    accountOrders: '/de/kundenbereich/bestellungen/',
+    activateAccount: '/de/konto-aktivieren/',
+    resetPassword: '/de/passwort-zuruecksetzen/',
+    reportOrder: '/de/bestellung-melden/',
+    signContract: '/de/vertrag-unterzeichnen/',
+    blog: '/de/blog/',
+  },
 } as const;
 
 /** The source language is the unprefixed one. Kept for existing route imports. */
