@@ -39,7 +39,7 @@ import {
 export const productPublicRoutes = new Hono<AppEnv>()
   .get('/', validate('query', ProductQuerySchema), async (c) => {
     const query = c.req.valid('query');
-    const result = await catalogService.list(c.get('db'), query, c.get('user'));
+    const result = await catalogService.list(c.get('db'), query, c.get('user'), 'storefront');
 
     return c.json({
       data: result.rows.map((row) => toPublicSummary(row, query.locale)),
@@ -86,6 +86,9 @@ export const productAdminRoutes = new Hono<AppEnv>()
           specs: undefined,
         },
         c.get('user'),
+        /* Newest first, ungrouped: an operator who just saved a product looks
+           for it at the top of the list, whichever mode it prices in. */
+        'admin',
       );
 
       return c.json({

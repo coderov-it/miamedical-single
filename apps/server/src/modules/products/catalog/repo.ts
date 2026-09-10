@@ -209,8 +209,19 @@ const sortablePrice = sql`COALESCE(
      FROM jsonb_array_elements(${products.rentalPackages}) AS entry)
 )`;
 
-function orderBy(filters: ProductListFilters) {
-  switch (filters.sort) {
+/**
+ * The shop rents first and sells second, so a listing that mixes both modes
+ * leads with the rentals (owner, 2026-09-10).
+ *
+ * It is the PRIMARY key of every sort rather than a sort of its own: "cheapest
+ * first" means the cheapest rental, then the cheapest sale item. A listing
+ * already filtered to one mode has nothing to group, which is what turns it off
+ * — see `rentalFirst` in the service.
+ */
+const rentalFirst = sql`(${products.pricingMode} = 'rental') DESC`;
+
+function sortKeys(sort: ProductListFilters['sort']) {
+  switch (sort) {
     /**
      * Demand first, then the newest — without the tiebreak a catalogue whose
      * orders have not started yet is one big zero bucket in whatever order the
@@ -219,17 +230,33 @@ function orderBy(filters: ProductListFilters) {
     case 'popular':
       return [desc(products.orderCount), desc(products.createdAt)];
     case 'price_asc':
-      return asc(sortablePrice);
+      return [asc(sortablePrice)];
     case 'price_desc':
-      return desc(sortablePrice);
+      return [desc(sortablePrice)];
     case 'title':
-      return sql`(
+      return [
+        sql`(
         SELECT pt.title FROM ${productTranslations} pt
         WHERE pt.product_id = ${products.id} AND pt.language_code = ${SOURCE_LANGUAGE}
-      ) ASC`;
+      ) ASC`,
+      ];
     default:
-      return desc(products.createdAt);
+      return [desc(products.createdAt)];
   }
+}
+
+/**
+ * `id` closes every sort, because a listing is read one page at a time and
+ * LIMIT/OFFSET over a tied ORDER BY is free to hand the same row back on page 2
+ * and drop another. The catalogue was seeded in bulk, so `created_at` ties are
+ * the normal case, not the edge one.
+ */
+function orderBy(filters: ProductListFilters) {
+  return [
+    ...(filters.rentalFirst ? [rentalFirst] : []),
+    ...sortKeys(filters.sort),
+    asc(products.id),
+  ];
 }
 
 export async function findMany(
