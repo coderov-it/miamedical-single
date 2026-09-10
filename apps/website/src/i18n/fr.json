@@ -597,6 +597,7 @@
   "account.save": "Enregistrer",
   "account.password": "Mot de passe",
   "account.currentPassword": "Mot de passe actuel",
+  "account.errorCurrentPassword": "Saisissez votre mot de passe actuel.",
   "account.newPassword": "Nouveau mot de passe",
   "account.savePassword": "Enregistrer le mot de passe",
   "account.changePassword": "Changer le mot de passe",

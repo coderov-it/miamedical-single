@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "comment": "svelte-check's view of the app: the islands and the modules they import, without the .astro files it cannot parse.",
+  "include": [".astro/types.d.ts", "src/env.d.ts", "src/**/*.ts", "src/**/*.svelte"],
+  "exclude": ["dist", "node_modules"]
+}

@@ -16,6 +16,84 @@
 import { translate, type SiteLocale } from './i18n.ts';
 import { accountOrderPathTemplate, routePath } from './routes.ts';
 
+/**
+ * Every string the account island renders.
+ *
+ * ONE set, shared by all three shims, because they mount the same island and a
+ * per-page list would let a screen reach a key its entry point never shipped —
+ * a blank label that only appears when you arrive from the other page. The
+ * four pages that are NOT the island keep declaring their own `keys`; nothing
+ * about `<AccountCopy>` changes for them.
+ *
+ * It includes the `*.metaTitle` keys, which the server also uses for `<title>`:
+ * a client-side navigation has to move the title too, and only the island can.
+ *
+ * Keys outside `account.` are reused verbatim from the checkout — the field
+ * errors and the gate's count templates are the same sentences, and a second
+ * translation of "Inserisci il tuo nome." is a second thing to keep in step.
+ */
+export const ACCOUNT_ISLAND_KEYS = [
+  // shell
+  'account.metaTitle',
+  'account.loading',
+  'account.title',
+  'account.signOut',
+  'account.myOrders',
+  'account.genericError',
+  'account.retry',
+  // profile
+  'account.emailLabel',
+  'yourDetails',
+  'firstName',
+  'lastName',
+  'account.whatsappNumber',
+  'account.save',
+  'account.profileSaved',
+  'errorFirstName',
+  'errorLastName',
+  'errorPhone',
+  // password
+  'account.password',
+  'account.changePassword',
+  'account.changePasswordNote',
+  'account.setPassword',
+  'account.setPasswordNote',
+  'account.currentPassword',
+  'account.newPassword',
+  'account.minChars',
+  'account.savePassword',
+  'account.passwordSaved',
+  'account.passwordTooShort',
+  'account.errorCurrentPassword',
+  // the gate's live region
+  'errorCountOne',
+  'errorCountMany',
+  // orders
+  'account.orders.metaTitle',
+  'account.orders.breadcrumb',
+  'account.orders.empty',
+  'account.orders.browse',
+  'account.orders.itemOne',
+  'account.orders.itemMany',
+  'account.orders.verifyPrompt',
+  'account.orders.confirm',
+  'account.orders.reject',
+  // one order
+  'account.order.metaTitle',
+  'account.order.title',
+  'account.order.placedOn',
+  'account.order.subtotal',
+  'account.order.storePickup',
+  'account.order.pieces',
+  'account.order.yourNotes',
+  'account.order.unavailable',
+  'account.order.backToOrders',
+  'homeDeliveryShort',
+  'deliveryPending',
+  'delivery',
+  'total',
+] as const;
+
 /** Order states, in the storefront's softer wording — not the back office's. */
 export const ORDER_STATUS_KEYS = ['pending', 'paid', 'fulfilled', 'cancelled', 'refunded'] as const;
 

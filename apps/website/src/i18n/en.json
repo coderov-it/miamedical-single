@@ -597,6 +597,7 @@
   "account.save": "Save",
   "account.password": "Password",
   "account.currentPassword": "Current password",
+  "account.errorCurrentPassword": "Enter your current password.",
   "account.newPassword": "New password",
   "account.savePassword": "Save password",
   "account.changePassword": "Change password",
