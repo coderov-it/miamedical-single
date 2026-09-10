@@ -124,7 +124,7 @@ const SCRIPT_KEYS = [
   }
 
   async function render() {
-    const orders = await listOrders();
+    const { rows: orders } = await listOrders();
 
     if (loading) loading.hidden = true;
 
