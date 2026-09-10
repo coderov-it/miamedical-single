@@ -1,6 +1,5 @@
 import { documentLocale } from '../scripts/locale.ts';
-import { API_BASE } from './api';
-import { routes } from './routes';
+import { API_BASE } from './api-base.ts';
 
 /**
  * The storefront's side of customer authentication.
@@ -187,8 +186,14 @@ export function reportOrder(input: {
  * Where to go after signing in. Only same-site paths are honoured: an unchecked
  * `next` is an open redirect, and a sign-in page is exactly where one is worth
  * exploiting. Mirrors the guard the admin login uses.
+ *
+ * `fallback` is REQUIRED. It used to default to `routes.account` — the Italian
+ * path — which quietly dropped an English or German reader onto the Italian
+ * account page, and cost this module a runtime import of the whole route table
+ * (and through it `lib/i18n.ts`) for a default nobody used. Callers pass their
+ * own locale's path.
  */
-export function safeNext(raw: string | null, fallback: string = routes.account): string {
+export function safeNext(raw: string | null, fallback: string): string {
   if (!raw) return fallback;
   return raw.startsWith('/') && !raw.startsWith('//') ? raw : fallback;
 }

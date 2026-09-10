@@ -3,29 +3,19 @@ import type { AppType } from '@mia/server/types';
 import type { LanguageCode } from '@mia/validators';
 import { hc } from 'hono/client';
 
+import { API_BASE, apiUrl } from './api-base.ts';
 import type { SiteLocale } from './i18n.ts';
 import { DEFAULT_LOCALE, localeTag, translate } from '~/lib/i18n';
 
-/** The one place the API origin is named. Same variable the admin reads. */
-const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
-
 /**
- * During SSR the backend can be reached over the LAN instead of its public
- * origin, skipping DNS, TLS and the reverse proxy. `LAN_API_URL` is read from
- * `process.env` at runtime because the Node adapter loads no `.env` file — set
- * it in the service's process environment (systemd unit), not at build.
- * `import.meta.env.SSR` is statically `false` in the client bundle, so this
- * branch never ships to the browser. Unset, SSR falls back to the public
- * origin and behaves exactly as before.
+ * The API origin lives in `api-base.ts`, which imports nothing, and is
+ * re-exported here so every existing `import { API_BASE } from '~/lib/api'`
+ * still resolves. A CLIENT module must import it from `api-base.ts` directly:
+ * this file's module scope calls `hc()` and pulls in `@mia/i18n`, so importing
+ * `API_BASE` from here ships the whole server graph to the browser. See
+ * docs/code/storefront-cart.md § bundle hygiene.
  */
-const LAN_API_URL = import.meta.env.SSR ? process.env.LAN_API_URL : undefined;
-
-export const API_BASE = LAN_API_URL ?? PUBLIC_API_URL;
-
-/** `apiUrl('/api/products')`. Base carries no trailing slash, path leads with one. */
-export function apiUrl(path: string): string {
-  return API_BASE + path;
-}
+export { API_BASE, apiUrl };
 
 /**
  * End-to-end typed client generated from the Hono router. Route paths, params

@@ -29,8 +29,8 @@ import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 
 export const prerender = false;
 
-// Never cache a page built from someone's request details.
-Astro.response.headers.set('cache-control', 'no-store, max-age=0');
+// `cache-control: no-store` comes from the middleware, which derives it from
+// PRIVATE_ROUTES in lib/routes.ts — one statement for every private route.
 const locale = localeFromLocals(Astro.locals);
 
 /*
