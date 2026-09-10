@@ -59,8 +59,14 @@ const SCRIPT_KEYS = [
 </BaseLayout>
 
 <script>
-  import { API_BASE } from '~/lib/api-base';
-  import { formatDate, formatMoney, loadCustomer } from '~/lib/customer-session';
+  import {
+    ApiError,
+    type CustomerOrderDetail,
+    formatDate,
+    formatMoney,
+    getOrder,
+    loadCustomer,
+  } from '~/lib/customer-session';
   import { fill, readAccountCopy } from '~/scripts/account/copy';
 
   const copy = readAccountCopy();
@@ -78,28 +84,6 @@ const SCRIPT_KEYS = [
     );
   }
 
-  interface OrderItem {
-    productTitle: string;
-    quantity: number;
-    total: string;
-  }
-
-  interface OrderDetail {
-    number: string;
-    status: string;
-    totals: { subtotal: string; shippingTotal: string; total: string; currency: string };
-    items: OrderItem[];
-    shippingAddress: {
-      fullName?: string;
-      line1?: string;
-      city?: string;
-      postalCode?: string;
-    } | null;
-    delivery: { method?: string } | null;
-    notes: string | null;
-    placedAt: string;
-  }
-
   const DELIVERY_LABELS: Record<string, string> = {
     homeDelivery: say('homeDeliveryShort'),
     storePickup: say('account.order.storePickup'),
@@ -113,7 +97,7 @@ const SCRIPT_KEYS = [
    * somebody writes the amount settled on the phone. Printing "0,00 €" would tell
    * the customer their delivery is free. A collection genuinely is free.
    */
-  function deliveryAmount(order: OrderDetail): string {
+  function deliveryAmount(order: CustomerOrderDetail): string {
     const settled = Number(order.totals.shippingTotal) > 0;
     if (settled || order.delivery?.method !== 'homeDelivery') {
       return formatMoney(order.totals.shippingTotal, order.totals.currency);
@@ -126,7 +110,7 @@ const SCRIPT_KEYS = [
       <span>${escapeHtml(labelText)}</span><span class="tabular-nums">${value}</span></div>`;
   }
 
-  function render(order: OrderDetail) {
+  function render(order: CustomerOrderDetail) {
     const currency = order.totals.currency;
     const address = order.shippingAddress;
 
@@ -202,20 +186,22 @@ const SCRIPT_KEYS = [
       `${copy.routes.login}?next=${encodeURIComponent(window.location.pathname)}`,
     );
   } else {
-    const response = await fetch(`${API_BASE}/api/customer/orders/${encodeURIComponent(number)}`, {
-      credentials: 'include',
-    });
-
-    if (loading) loading.hidden = true;
-
-    if (response.ok) {
-      const payload = (await response.json()) as { data: OrderDetail };
-      render(payload.data);
-    } else if (errorBox) {
+    try {
+      const order = await getOrder(number);
+      if (loading) loading.hidden = true;
+      render(order);
+    } catch (error) {
+      if (loading) loading.hidden = true;
+      if (!errorBox) throw error;
       // A number that is not theirs 404s rather than 403s, so "not found" is the
-      // only thing this page can honestly say about either case.
+      // only thing this page can honestly say about either case. Anything else
+      // carries the API's own message, which the server already localised.
+      const message =
+        error instanceof ApiError && error.status !== 404
+          ? error.message
+          : say('account.order.unavailable');
       errorBox.hidden = false;
-      errorBox.innerHTML = `${escapeHtml(say('account.order.unavailable'))} <a class="underline" href="${copy.routes.accountOrders}">${escapeHtml(say('account.order.backToOrders'))}</a>.`;
+      errorBox.innerHTML = `${escapeHtml(message)} <a class="underline" href="${copy.routes.accountOrders}">${escapeHtml(say('account.order.backToOrders'))}</a>.`;
     }
   }
 </script>

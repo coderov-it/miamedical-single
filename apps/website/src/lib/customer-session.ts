@@ -1,4 +1,7 @@
+import type { InferResponseType } from 'hono/client';
+
 import { documentLocale } from '../scripts/locale.ts';
+import type { api } from './api.ts';
 import { API_BASE } from './api-base.ts';
 
 /**
@@ -10,28 +13,38 @@ import { API_BASE } from './api-base.ts';
  *
  * Every call is credentialed and cross-origin — the API is another host — so
  * `credentials: 'include'` is not optional anywhere in this file.
+ *
+ * ── Types are INFERRED, transport is raw `fetch` ────────────────────────────
+ * The shapes below are read off the server's own router through
+ * `InferResponseType`, the same way `lib/catalog.ts` reads the product
+ * endpoints. `import type { api }` erases completely, so this costs the
+ * browser nothing and the Hono client stays out of the bundle — see
+ * `lib/api-base.ts` for why that matters here specifically.
+ *
+ * They used to be hand-written. Two of them happened to match; the third, an
+ * inline `OrderDetail` in the order-detail page, had drifted and was missing
+ * `paymentStatus`, `linkStatus`, `taxTotal` and `discountTotal`, declared four
+ * optional address fields where the server sends eight required-or-null, and
+ * dropped five of the six delivery fields. Nothing could have caught that,
+ * because nothing connected the copy to the original.
  */
 
-export interface Customer {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string | null;
-  isActivated: boolean;
-  hasPassword: boolean;
-}
+/** `GET /api/customer/auth/me` — also what login and token redemption answer. */
+export type Customer = InferResponseType<typeof api.api.customer.auth.me.$get, 200>['data'];
 
-export interface CustomerOrderSummary {
-  number: string;
-  status: string;
-  paymentStatus: string;
-  itemCount: number;
-  total: string;
-  currency: string;
-  linkStatus: 'unverified' | 'confirmed';
-  placedAt: string;
-}
+type OrderListResponse = InferResponseType<typeof api.api.customer.orders.$get, 200>;
+
+/** One row of `GET /api/customer/orders`. */
+export type CustomerOrderSummary = OrderListResponse['data'][number];
+
+/** `{ page, perPage, total }` — the envelope `listOrders` used to discard. */
+export type OrderListMeta = OrderListResponse['meta'];
+
+/** `GET /api/customer/orders/:number` — narrower than the admin's on purpose. */
+export type CustomerOrderDetail = InferResponseType<
+  (typeof api.api.customer.orders)[':number']['$get'],
+  200
+>['data'];
 
 /** The `{ error: { code, message, fields? } }` envelope the API answers with. */
 export interface ApiFailure {
@@ -53,7 +66,12 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+/**
+ * The whole `{ data, meta? }` envelope, for the endpoints whose `meta` matters.
+ * `request()` below is this with the envelope unwrapped — one fetch, one error
+ * path, two shapes. Mirrors the admin's `unwrap` / `unwrapFull` pair.
+ */
+async function requestEnvelope<T>(path: string, init: RequestInit = {}): Promise<T | undefined> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     credentials: 'include',
@@ -63,12 +81,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     },
   });
 
-  if (response.status === 204) return undefined as T;
+  if (response.status === 204) return undefined;
 
-  const payload = (await response.json().catch(() => null)) as {
-    data?: T;
-    error?: ApiFailure;
-  } | null;
+  const payload = (await response.json().catch(() => null)) as (T & { error?: ApiFailure }) | null;
 
   if (!response.ok) {
     throw new ApiError(
@@ -77,6 +92,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     );
   }
 
+  return payload ?? undefined;
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const payload = await requestEnvelope<{ data?: T }>(path, init);
   return payload?.data as T;
 }
 
@@ -153,13 +173,33 @@ export function updateProfile(input: {
   });
 }
 
-export async function listOrders(): Promise<CustomerOrderSummary[]> {
-  const response = await fetch(`${API_BASE}/api/customer/orders?page=1&perPage=50`, {
-    credentials: 'include',
-  });
-  if (!response.ok) throw new ApiError(response.status, { code: 'unknown', message: 'Errore' });
-  const payload = (await response.json()) as { data: CustomerOrderSummary[] };
-  return payload.data;
+/**
+ * The customer's orders, newest first.
+ *
+ * `meta` is returned rather than discarded. Nothing paginates yet — fifty is
+ * far beyond any real customer's order count — but a caller can now see that
+ * it has been truncated instead of silently showing fifty of sixty. Adding a
+ * pager is a component change from here, with no plumbing.
+ *
+ * It also goes through `requestEnvelope` like everything else in this file.
+ * It used to hand-roll its own fetch, which meant every failure — a 500, an
+ * expired session, a dropped connection — arrived as the literal string
+ * 'Errore', throwing away the message the API had already localised.
+ */
+export async function listOrders(
+  page = 1,
+  perPage = 50,
+): Promise<{ rows: CustomerOrderSummary[]; meta: OrderListMeta }> {
+  const query = new URLSearchParams({ page: String(page), perPage: String(perPage) });
+  const payload = await requestEnvelope<{ data: CustomerOrderSummary[]; meta: OrderListMeta }>(
+    `/api/customer/orders?${query}`,
+  );
+  return { rows: payload?.data ?? [], meta: payload?.meta ?? { page, perPage, total: 0 } };
+}
+
+/** One order, by the number the customer was given. 404s when it is not theirs. */
+export function getOrder(number: string): Promise<CustomerOrderDetail> {
+  return request<CustomerOrderDetail>(`/api/customer/orders/${encodeURIComponent(number)}`);
 }
 
 export function confirmOrder(number: string): Promise<{ ok: boolean }> {
