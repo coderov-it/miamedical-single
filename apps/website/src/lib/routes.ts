@@ -293,6 +293,20 @@ export function accountOrderPath(number: string, locale: SiteLocale = SOURCE_LAN
 }
 
 /**
+ * The same path with `{number}` left standing, for a client script to fill.
+ *
+ * It exists because `accountOrderPath('{number}')` DOES NOT WORK: it encodes
+ * the braces to `%7Bnumber%7D`, which the `/\{(\w+)\}/` in
+ * `scripts/account/copy.ts` can never match — so the template travelled to the
+ * browser unfillable and every card on the order list linked to a literal
+ * order named `{number}`, which 404s. The placeholder has to survive
+ * un-encoded; a real number still goes through `encodeURIComponent` above.
+ */
+export function accountOrderPathTemplate(locale: SiteLocale = SOURCE_LANGUAGE): string {
+  return `${routePath(locale, 'accountOrders')}{number}/`;
+}
+
+/**
  * Routes that must never be indexed and must be served `no-store`.
  *
  * Every account route is here. Two reasons beyond the obvious: the token-bearing

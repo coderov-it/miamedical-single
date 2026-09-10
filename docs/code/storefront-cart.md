@@ -75,8 +75,21 @@ Verify after touching either:
 
 ```bash
 pnpm --filter @mia/website build
-grep -l "hono\|createLabels" apps/website/dist/client/_astro/*.js   # must find nothing
+# hono/client's cookie serialiser, lib/i18n.ts's module-scope store, the
+# language registry, and a message from the catalogue. Each must find nothing.
+grep -l  "Invalid cookie name"          apps/website/dist/client/_astro/*.js
+grep -lE "AsyncLocalStorage|searchConfig" apps/website/dist/client/_astro/*.js
+grep -l  "Caricamento"                  apps/website/dist/client/_astro/*.js
 ```
+
+⚠️ This used to read `grep -l "hono\|createLabels"`, and **it reported clean on a
+build that shipped the whole Hono client** — minification erases both names, so
+neither survives into a chunk. It hid a real 5.6 KB leak on every account page
+for as long as it was written that way: `customer-session.ts` imported
+`API_BASE` from `api.ts`, whose module scope calls `hc()`, and `routes` from
+`routes.ts`, which reaches `lib/i18n.ts`. The patterns above were chosen because
+they are string literals the minifier cannot touch. Fixed 2026-09-10 by
+`lib/api-base.ts`, which imports nothing and holds the API origin on its own.
 
 Because it cannot import the checkout, `cart-store.ts` restates four of its values
 (`CART_ITEM_PREFIX`, `CART_PRODUCT_FIELD`, `CART_QUANTITY_FIELD`,

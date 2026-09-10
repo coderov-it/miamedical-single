@@ -23,7 +23,7 @@ import {
   type SiteLocale,
   SOURCE_LANGUAGE,
 } from '~/lib/i18n';
-import { routePaths, type RouteKey } from '~/lib/routes';
+import { PRIVATE_ROUTES, routePaths, type RouteKey } from '~/lib/routes';
 
 /**
  * Prefixed path → the source-language Astro route it renders.
@@ -49,6 +49,29 @@ const PREFIXED_PATHS = new Map<SiteLocale, Map<string, string>>(
 );
 
 const SOURCE_STATIC_PATHS = new Set<string>(Object.values(routePaths[SOURCE_LANGUAGE]));
+
+/**
+ * `PRIVATE_ROUTES`, as source-language paths.
+ *
+ * `lib/routes.ts` has always said these "must never be indexed and must be
+ * served `no-store`", and until now only `carrello.astro` and
+ * `checkout.astro` actually said it — the other eight, including
+ * `reimposta-password.astro` with a live token in its query string, carried no
+ * cache directive at all and were left to heuristic caching. Deriving it from
+ * the registry here means adding a route to `PRIVATE_ROUTES` is enough; there
+ * is no second place to remember.
+ */
+const PRIVATE_SOURCE_PATHS = new Set<string>(
+  PRIVATE_ROUTES.map((key) => routePaths[SOURCE_LANGUAGE][key]),
+);
+
+/** Matched on the SOURCE path, so one check covers all four languages. */
+function isPrivatePath(sourcePath: string): boolean {
+  if (PRIVATE_SOURCE_PATHS.has(sourcePath)) return true;
+  /* `accountOrders` is in the set, so this also catches one order by number —
+     the only private route with a dynamic segment. */
+  return sourcePath.startsWith(routePaths[SOURCE_LANGUAGE].accountOrders);
+}
 
 /**
  * Translated slugs stripped of their prefix — `/en/search/` leaves `/search/`.
@@ -112,6 +135,20 @@ function sourcePathFor(locale: SiteLocale, pathname: string): string | null {
     return `${routePaths[SOURCE_LANGUAGE].blog}${post}/`;
   }
 
+  /* One customer's order. Without this branch the only dynamic account route
+     fell through to `return null` and 404'd in every language but the source
+     one — `/en/customer-area/orders/MIA-2026-001000/` is exactly what
+     `accountOrderPath(number, 'en')` generates, and it was never routable.
+     The legal-document regex below cannot cover it: that matches a single
+     segment. */
+  const ordersBase = routePaths[locale].accountOrders;
+  const orderNumber = pathname.startsWith(ordersBase)
+    ? pathname.slice(ordersBase.length).replace(/\/$/, '')
+    : null;
+  if (orderNumber && !orderNumber.includes('/')) {
+    return `${routePaths[SOURCE_LANGUAGE].accountOrders}${orderNumber}/`;
+  }
+
   /* Published legal documents are data-driven. Their translated slug is
      verified by the document page itself before it renders. */
   const terms = new RegExp(`^${prefix}/([^/]+)/$`).exec(pathname);
@@ -125,6 +162,10 @@ function sourcePathFor(locale: SiteLocale, pathname: string): string | null {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   let rewriteTarget: string | undefined;
+  /* The route DECLARATION this request renders, which is the source-language
+     path whether or not a prefix was stripped. `isPrivatePath` is matched
+     against it so the cache rule is stated once rather than per language. */
+  let sourcePathname = context.url.pathname;
 
   if (!context.locals.locale) {
     const inheritedPath = publicPathForRequest();
@@ -151,6 +192,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       context.locals.locale = prefixed;
       context.locals.publicPath = pathname;
       rewriteTarget = `${sourcePath}${search}`;
+      sourcePathname = sourcePath;
     } else {
       /* A translated slug without its prefix is never a source-language route,
          even when it looks like a legal-document slug. */
@@ -166,6 +208,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.publicPath ?? context.url.pathname,
     async () => {
       const response = rewriteTarget ? await next(rewriteTarget) : await next();
+
+      /* Set before the `isPublicHtml` gate, and deliberately so: `no-store` is
+         what makes that gate answer false, so a private page is never given an
+         ETag and never buffered to be hashed. It also drops the page out of the
+         back/forward cache, which is what stops Back from repainting a fully
+         populated account screen after a sign-out. */
+      if (isPrivatePath(sourcePathname)) {
+        response.headers.set('cache-control', 'no-store, max-age=0');
+      }
+
       if (!isPublicHtml(context.request, response)) return response;
 
       const html = await response.text();

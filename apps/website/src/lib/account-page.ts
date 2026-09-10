@@ -14,7 +14,7 @@
  * redirects there drops the reader out of their language.
  */
 import { translate, type SiteLocale } from './i18n.ts';
-import { accountOrderPath, routePath } from './routes.ts';
+import { accountOrderPathTemplate, routePath } from './routes.ts';
 
 /** Order states, in the storefront's softer wording — not the back office's. */
 export const ORDER_STATUS_KEYS = ['pending', 'paid', 'fulfilled', 'cancelled', 'refunded'] as const;
@@ -56,7 +56,7 @@ export function accountCopy(locale: SiteLocale, keys: readonly string[]): Accoun
       account: routePath(locale, 'account'),
       accountOrders: routePath(locale, 'accountOrders'),
       catalog: routePath(locale, 'catalog'),
-      orderDetail: accountOrderPath('{number}', locale),
+      orderDetail: accountOrderPathTemplate(locale),
     },
     status,
   };
