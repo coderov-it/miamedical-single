@@ -83,9 +83,43 @@ and every sort option keeps working — which matters, because "i più richiesti
 and "più recenti" rank on `order_count` and `created_at`, and the product
 summaries on the wire carry neither.
 
-The read is keyed by sort as well as locale. The home page and the guided
-selector hold their own key, so this is one more list of ~110 summaries in
-memory, paid once every four minutes rather than once per visitor.
+The read is keyed by sort as well as locale, and the storefront's default sort
+is `popular`. The home page and the guided selector hold their own key, so this
+is one more list of ~110 summaries in memory, paid once every four minutes
+rather than once per visitor.
+
+## Order
+
+**Rentals lead, sale items follow** (owner, 2026-09-10). It is the primary key
+of the `ORDER BY`, not a sort of its own, so the customer's choice ranks inside
+each block:
+
+```
+GET /api/products?sort=price_asc            ← /catalogo/, /cerca/
+  ORDER BY (pricing_mode = 'rental') DESC,  ← the rule
+           price ASC,                       ← what ?sort asked for
+           id ASC                           ← the tiebreak
+
+GET /api/products?sort=price_asc&mode=fixed ← /catalogo-vendita/
+  ORDER BY price ASC, id ASC                ← one mode, nothing to group
+```
+
+With 57 rentals against 50 sale items, `/catalogo/` is rentals through page 2
+and sale items from page 3. `/catalogo-vendita/`, the "In vendita" rail and the
+type tiles are how a sale item is reached in one click; the pricing-mode filter
+is what turns the grouping off, and `mode` is what every mode-scoped surface
+already sends.
+
+The rule is one expression in `catalog/service.ts` (`rentalFirst`) and one SQL
+fragment in `catalog/repo.ts`. It is a **storefront** rule: the back office
+lists products newest-first and ungrouped, which is why `list()` takes the
+surface asking.
+
+`id` closes every sort, because a listing is read one page at a time and
+`LIMIT`/`OFFSET` over a tied `ORDER BY` may hand the same row back twice and
+drop another. The catalogue was seeded in bulk, so `created_at` ties are the
+normal case — before the tiebreak, `sort=newest` walked 107 products as 101
+unique plus 6 repeats.
 
 ## Counts
 
@@ -98,13 +132,3 @@ appears on `/catalogo-noleggio/`).
 
 A type whose subdivisions collapse to one stocked group shows no pill row: a row
 of one pill restates the tile above it.
-
-## Known gap
-
-`listAllProducts` walks pages, and `sort=newest` orders by `created_at` with no
-tiebreak. The catalogue was seeded in bulk, so rows sharing a timestamp move
-between page 1 and page 2 — 107 products come back as 101 unique plus 6 repeats.
-The walk de-duplicates, so nothing renders twice, but the rows the repeats
-displaced are still missing on that one sort. The fix is an id tiebreak in
-`apps/server/src/modules/products/catalog/repo.ts` → `orderBy`. Every other sort
-walks cleanly, and `popular` is the catalogue's default.

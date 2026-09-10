@@ -234,7 +234,15 @@ export const ProductQuerySchema = v.object({
       v.transform((value) => value === 'true'),
     ),
   ),
-  sort: v.optional(v.picklist(['newest', 'popular', 'price_asc', 'price_desc', 'title']), 'newest'),
+  /**
+   * The storefront's default order is `popular`, under the rental-first
+   * grouping every mixed listing gets. The back office asks for `newest`
+   * explicitly — see the admin list route.
+   */
+  sort: v.optional(
+    v.picklist(['newest', 'popular', 'price_asc', 'price_desc', 'title']),
+    'popular',
+  ),
   /**
    * Spec facet filters, `key:value|value;key:value`. Keys are validated
    * against the category's `is_filterable` specs in the service.

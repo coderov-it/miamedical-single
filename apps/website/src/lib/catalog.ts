@@ -26,6 +26,10 @@ export type Category = InferResponseType<typeof api.api.categories.$get, 200>['d
 
 export type TermsDocument = InferResponseType<(typeof api.api.terms)[':slug']['$get'], 200>['data'];
 
+/**
+ * How the products inside each block are ranked. The blocks themselves are the
+ * API's: rentals lead every listing that is not filtered to one pricing mode.
+ */
 export type ProductSort = 'newest' | 'popular' | 'price_asc' | 'price_desc' | 'title';
 
 export interface ProductQuery {
@@ -53,7 +57,7 @@ export async function listProducts(
       locale,
       page: String(query.page ?? 1),
       perPage: String(query.perPage ?? 24),
-      sort: query.sort ?? 'newest',
+      sort: query.sort ?? 'popular',
       ...(query.q ? { q: query.q } : {}),
       ...(query.category ? { category: query.category } : {}),
       ...(query.mode ? { mode: query.mode } : {}),
@@ -72,18 +76,15 @@ export async function listProducts(
  * a silently short list. `maxPages` is a guard, not a limit to tune casually:
  * it throws rather than shipping a truncated catalogue.
  *
- * ⚠️ THE WALK IS ONLY AS STABLE AS THE SORT IT ASKS FOR. `sort=newest` orders by
- * `created_at` alone and the catalogue was seeded in bulk, so rows sharing a
- * timestamp can move between page 1 and page 2 — 107 products currently come
- * back as 101 unique plus 6 repeats. De-duplicating below stops the repeats
- * reaching a rail; the rows they displaced are still missing, and that needs an
- * id tiebreak in the server's `orderBy`. Every other sort walks cleanly.
+ * Every sort now closes on `id` server-side, so the walk sees each product once
+ * and the de-duplication below is a belt on a working brace. Before that, ties
+ * in `created_at` moved rows between page 1 and page 2 and the walk lost them.
  */
 export async function listAllProducts(
   opts: { maxPages?: number; sort?: ProductSort } = {},
   locale: SiteLocale = localeForRequest(),
 ): Promise<{ items: ProductSummary[]; total: number }> {
-  const { maxPages = 20, sort = 'newest' } = opts;
+  const { maxPages = 20, sort = 'popular' } = opts;
 
   const first = await listProducts({ page: 1, perPage: MAX_PER_PAGE, sort }, locale);
   const items = [...first.data];

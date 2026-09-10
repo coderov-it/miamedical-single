@@ -61,10 +61,18 @@ export interface ListResult {
   filters: ProductListFilters;
 }
 
+/**
+ * Who is reading, which is what decides whether the listing merchandises.
+ * The storefront leads with rentals; the back office lists rows in the order
+ * an operator asked for and nothing else.
+ */
+export type ListSurface = 'storefront' | 'admin';
+
 export async function list(
   db: Database,
   query: ProductQuery,
   user: SessionUser | null,
+  surface: ListSurface,
 ): Promise<ListResult> {
   const categoryId = query.category
     ? await repo.findCategoryIdByCode(db, query.category)
@@ -85,6 +93,10 @@ export async function list(
     status: query.status,
     featured: query.featured,
     sort: query.sort,
+    /* The client's rule, in one expression: rentals above sale items wherever
+       the storefront shows both, and nothing to group once `mode` has already
+       picked a half of the catalogue. */
+    rentalFirst: surface === 'storefront' && query.mode === undefined,
     specFilters: parseSpecFilters(query.specs),
     includeNonActive: canSeeHidden(user),
   };
@@ -108,6 +120,8 @@ function emptyFilters(query: ProductQuery): ProductListFilters {
     status: query.status,
     featured: query.featured,
     sort: query.sort,
+    // Nothing matched, so nothing to order.
+    rentalFirst: false,
     specFilters: [],
     includeNonActive: false,
   };

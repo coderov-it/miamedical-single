@@ -92,6 +92,12 @@ export interface ProductListFilters {
   status?: ProductRow['status'] | undefined;
   featured?: boolean | undefined;
   sort: ProductSort;
+  /**
+   * Rental products lead the page and sale products follow, above whatever
+   * `sort` asks for. Set by the service: on for a storefront listing that mixes
+   * both modes, off once `mode` has picked one and off in the back office.
+   */
+  rentalFirst: boolean;
   specFilters: SpecFilter[];
   /** Set by the service from the caller's permissions — repo never reads auth. */
   includeNonActive: boolean;
