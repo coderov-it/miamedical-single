@@ -26,9 +26,10 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
 
   /**
-   * Svelte stays available for islands. The storefront currently ships none:
-   * the whole design is server-rendered HTML plus two small inline scripts
-   * (the search suggestions panel and the quantity stepper).
+   * Svelte is here for the islands. Two of them: the cart
+   * (`components/cart/`, docs/code/storefront-cart.md) and the customer area
+   * (`components/account/`, docs/code/storefront-account-island.md). Every
+   * other page is server-rendered HTML plus small inline scripts.
    *
    * No `@astrojs/sitemap` either: it can only list routes it sees at build
    * time, and every page here is `prerender = false` — so it emitted nothing,

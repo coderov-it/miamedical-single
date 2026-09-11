@@ -199,7 +199,13 @@ from the website app, so they are written twice.
 
 All six are in `PRIVATE_ROUTES`, which drives `noindex` and `no-store`. The
 token-bearing pages carry a live credential in their query string, which must never
-reach a cache or an index.
+reach a cache or an index. `no-store` is set once, in `apps/website/src/middleware.ts`,
+derived from `PRIVATE_ROUTES` — it used to be written in two page files out of eleven.
+
+The three `/area-clienti/**` routes are now one Svelte island rather than three
+pages with inline scripts; their storefront half is documented in
+[storefront-account-island.md](./storefront-account-island.md). The other three
+paths above are still ordinary Astro pages.
 
 ## What a customer can see of their own order
 
