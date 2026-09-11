@@ -7,6 +7,8 @@
  * this is an Astro island, and Astro is already the app framework. Three
  * screens need a `$state`, a `pushState` and a `popstate` listener.
  */
+import { tick } from 'svelte';
+
 import {
   accountHref,
   type AccountRoutes,
@@ -44,7 +46,11 @@ export class AccountRouter {
       history.pushState(null, '', href);
     }
     this.#screen = screen;
-    window.scrollTo({ top: 0 });
+    /* `behavior: 'instant'` overrides the global `scroll-behavior: smooth` in
+       styles/app.css. A screen change is a navigation: the new screen should
+       be at the top when it appears, not glide there from wherever the last
+       one was scrolled to. */
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   /**
@@ -81,8 +87,15 @@ export class AccountRouter {
         return;
       }
       this.#screen = screen;
+
+      /* AFTER the DOM catches up. Restoring in this tick scrolls the screen we
+         are leaving — a short order detail — so the offset is clamped to its
+         height and the customer lands at the top of the list anyway, which is
+         the very thing `scrollRestoration = 'manual'` was set to prevent. */
       const stored = (history.state ?? {}) as ScrollState;
-      window.scrollTo({ top: stored.accountScrollY ?? 0 });
+      void tick().then(() =>
+        window.scrollTo({ top: stored.accountScrollY ?? 0, behavior: 'instant' }),
+      );
     };
 
     window.addEventListener('popstate', onPop);

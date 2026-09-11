@@ -48,6 +48,7 @@ const currentLanguage = languageOf(locale);
           class="text-ink flex min-h-9.5 items-center gap-2 rounded-lg px-2 text-[0.9375rem] font-semibold no-underline hover:bg-(--color-surface) hover:text-accent aria-current:bg-(--color-surface) aria-current:text-accent"
           href={language.href}
           lang={language.tag}
+          data-language={language.code}
           aria-current={locale === language.code ? 'true' : undefined}
         >
           <span aria-hidden="true">{language.flag}</span>

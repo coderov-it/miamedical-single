@@ -24,7 +24,5 @@ const copy = accountCopy(locale, ACCOUNT_ISLAND_KEYS);
 ---
 
 <BaseLayout title={text('account.metaTitle')} description={text('account.metaDescription')} noindex>
-  <div class="mx-auto w-full max-w-2xl px-5 py-10">
-    <AccountApp client:load {copy} initial={{ name: 'account' }} />
-  </div>
+  <AccountApp client:load {copy} initial={{ name: 'account' }} />
 </BaseLayout>

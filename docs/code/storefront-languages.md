@@ -101,6 +101,12 @@ prefix would have made those unreachable while looking like they worked.
 page that forgot to render `<AccountCopy>` is a bug, and a source-language
 default would hide it on the source-language storefront.
 
+> The customer-area island does not use `<AccountCopy>`. It receives the same
+> `accountCopy()` result as a **prop** — `readAccountCopy()` reads the DOM, which
+> the island's SSR pass has no access to — and ships one shared key set,
+> `ACCOUNT_ISLAND_KEYS`, plus every locale's account paths for the language
+> switcher. See [storefront-account-island.md](./storefront-account-island.md).
+
 ## `Intl` gets a locale, always
 
 Every formatter takes the request's locale. Two rules make that hard to forget:

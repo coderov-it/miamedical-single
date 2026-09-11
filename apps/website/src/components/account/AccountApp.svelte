@@ -15,11 +15,13 @@
   import type { AccountCopy } from '~/lib/account-page';
   import { setAccountContext, say } from '~/lib/account-context';
   import { AccountRouter } from '~/lib/account-router.svelte';
-  import type { AccountScreen } from '~/lib/account-routes';
+  import { accountHref, type AccountScreen } from '~/lib/account-routes';
   import { AccountSession } from '~/lib/account-session.svelte';
   import { AccountStore } from '~/lib/account-state.svelte';
   import { fill } from '~/scripts/account/copy';
 
+  import OrderDetailScreen from './OrderDetailScreen.svelte';
+  import OrdersScreen from './OrdersScreen.svelte';
   import ProfileScreen from './ProfileScreen.svelte';
 
   interface Props {
@@ -38,6 +40,11 @@
   setAccountContext({ copy, router, session, orders });
 
   let screenEl = $state<HTMLElement>();
+
+  /* Read once into a local: `{@const}` is not legal as a child of a plain
+     element, and narrowing `router.screen.name` inline across a getter does
+     not give the `{:else}` arm its `number`. */
+  const screen = $derived(router.screen);
 
   $effect(() => router.mount());
 
@@ -76,6 +83,21 @@
     document.title = titleFor(router.screen);
   });
 
+  /* The language switcher is server-rendered chrome, so after a client-side
+     hop it still offers the screen the reader arrived on: switch to German
+     from an order detail and you land on the German order LIST. Repoint it at
+     the screen actually showing. `data-language` carries the registry code —
+     the anchor's own `lang` is a BCP-47 tag, which is not the same key. */
+  $effect(() => {
+    const screen = router.screen;
+    for (const anchor of document.querySelectorAll<HTMLAnchorElement>(
+      '[data-language-switcher] a[data-language]',
+    )) {
+      const routes = copy.languageRoutes[anchor.dataset.language ?? ''];
+      if (routes) anchor.href = accountHref(routes, screen);
+    }
+  });
+
   /* And nothing announces the new screen either: there is no load event for a
      screen reader to react to, and the clicked link has just been removed from
      the DOM, so focus would fall to <body>. Move it to the new screen — but
@@ -97,11 +119,12 @@
 {:else if session.customer}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div bind:this={screenEl} tabindex="-1" class="outline-none">
-    {#if router.screen.name === 'account'}
+    {#if screen.name === 'account'}
       <ProfileScreen />
+    {:else if screen.name === 'orders'}
+      <OrdersScreen />
+    {:else}
+      <OrderDetailScreen number={screen.number} />
     {/if}
-    <!-- `orders` and `orderDetail` arrive with their own screens; nothing can
-         reach them yet, because the links out of here are still document
-         navigations to their own Astro pages. -->
   </div>
 {/if}

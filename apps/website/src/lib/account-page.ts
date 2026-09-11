@@ -13,7 +13,7 @@
  * reason: `routes.account` is the Italian path, and an English page that
  * redirects there drops the reader out of their language.
  */
-import { translate, type SiteLocale } from './i18n.ts';
+import { LOCALES, translate, type SiteLocale } from './i18n.ts';
 import { accountOrderPathTemplate, routePath } from './routes.ts';
 
 /**
@@ -97,18 +97,43 @@ export const ACCOUNT_ISLAND_KEYS = [
 /** Order states, in the storefront's softer wording — not the back office's. */
 export const ORDER_STATUS_KEYS = ['pending', 'paid', 'fulfilled', 'cancelled', 'refunded'] as const;
 
+/** The account paths the island navigates between, for ONE language. */
+export interface AccountRouteSet {
+  home: string;
+  login: string;
+  account: string;
+  accountOrders: string;
+  catalog: string;
+  /** `{number}` stands in for the order number the island fills in. */
+  orderDetail: string;
+}
+
 export interface AccountCopy {
   text: Record<string, string>;
-  routes: {
-    home: string;
-    login: string;
-    account: string;
-    accountOrders: string;
-    catalog: string;
-    /** `{number}` stands in for the order number the script fills in. */
-    orderDetail: string;
-  };
+  /** This request's language. */
+  routes: AccountRouteSet;
+  /**
+   * The same paths in EVERY language, for the header's switcher.
+   *
+   * The switcher is server-rendered chrome and the screen is not, so after a
+   * client-side hop it still points at the screen the reader ARRIVED on —
+   * offering "Deutsch" on an order detail and landing them on the German order
+   * LIST. `AccountApp` rewrites its hrefs from this on every screen change.
+   * A few dozen strings; the alternative is chrome that lies.
+   */
+  languageRoutes: Record<string, AccountRouteSet>;
   status: Record<string, string>;
+}
+
+function accountRouteSet(locale: SiteLocale): AccountRouteSet {
+  return {
+    home: routePath(locale, 'home'),
+    login: routePath(locale, 'login'),
+    account: routePath(locale, 'account'),
+    accountOrders: routePath(locale, 'accountOrders'),
+    catalog: routePath(locale, 'catalog'),
+    orderDetail: accountOrderPathTemplate(locale),
+  };
 }
 
 /**
@@ -128,14 +153,8 @@ export function accountCopy(locale: SiteLocale, keys: readonly string[]): Accoun
 
   return {
     text,
-    routes: {
-      home: routePath(locale, 'home'),
-      login: routePath(locale, 'login'),
-      account: routePath(locale, 'account'),
-      accountOrders: routePath(locale, 'accountOrders'),
-      catalog: routePath(locale, 'catalog'),
-      orderDetail: accountOrderPathTemplate(locale),
-    },
+    routes: accountRouteSet(locale),
+    languageRoutes: Object.fromEntries(LOCALES.map((code) => [code, accountRouteSet(code)])),
     status,
   };
 }
