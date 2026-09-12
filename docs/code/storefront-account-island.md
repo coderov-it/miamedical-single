@@ -35,9 +35,12 @@ pages/area-clienti/ordini/index.astro     26 lines  → initial={{ name: 'orders
 pages/area-clienti/ordini/[number].astro  42 lines  → initial={{ name: 'orderDetail', … }}
 
 components/account/
-  AccountApp.svelte          context, session gate, screen switch, title, focus, switcher
+  AccountApp.svelte          context, session gate, screen switch, focus, title, switcher
+  AccountShell.svelte        the ground, the heading, the identity and the navigation
+  AccountNav.svelte          the three destinations, sidebar above `mid`, strip below
+  titles.ts                  document title / page title / crumb trail, from one screen
   ProfileScreen.svelte  ProfileForm.svelte  PasswordForm.svelte
-  OrdersScreen.svelte   OrderCard.svelte
+  OrdersScreen.svelte   OrderCard.svelte    OrderStatusPill.svelte
   OrderDetailScreen.svelte
   AccountCrumbs.svelte  AccountLink.svelte  FieldError.svelte  fields.ts
 
@@ -50,6 +53,29 @@ lib/
   form-gate-action.ts        use:formGate
   api-base.ts                the API origin, importing nothing
 ```
+
+## The shell owns the chrome
+
+`AccountShell` renders everything the three screens have in common: the muted
+page ground, the crumbs, the `h1`, the customer's identity and the navigation.
+The screens under it render their CONTENT and nothing else. Before it, each one
+carried its own container and heading — the widths disagreed (`max-w-2xl`,
+`max-w-3xl`) and two of them painted a title the `<title>` already carried.
+
+```text
+                    phone                            ≥ mid
+  AccountShell      crumbs · h1 + Esci               same
+                    identity card                    identity in a 250px sidebar
+                    one scrolling strip of pills     the same list, stacked, sticky
+  screens           content only                     content only
+```
+
+The navigation is ONE list in ONE `<nav>`. The classes place it, so the document
+never holds two navigation landmarks offering the same destinations.
+
+`titles.ts` holds the three names a screen has — the document title, the `h1`
+and the trail — so a screen cannot appear under one name in the navigation and
+another in the tab.
 
 ## Routing
 

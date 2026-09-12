@@ -76,9 +76,9 @@
 
 {#if feedback}
   <div
-    class="mt-4 rounded-lg px-4 py-3 text-sm {feedback.failed
-      ? 'border border-red-300 bg-red-50'
-      : 'bg-tint'}"
+    class="rounded-field mt-4 px-4 py-3 text-sm {feedback.failed
+      ? 'bg-danger-tint text-danger'
+      : 'bg-tint text-ink'}"
     role="status"
   >
     {feedback.text}
@@ -86,7 +86,7 @@
 {/if}
 
 <form
-  class="mt-4 space-y-4"
+  class="mt-5 space-y-4"
   onsubmit={submit}
   use:formGate={{ gates, announce: () => announceEl ?? null, ready: (g) => (gate = g) }}
 >

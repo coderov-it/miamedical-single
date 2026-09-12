@@ -18,11 +18,12 @@
   import { accountHref, type AccountScreen } from '~/lib/account-routes';
   import { AccountSession } from '~/lib/account-session.svelte';
   import { AccountStore } from '~/lib/account-state.svelte';
-  import { fill } from '~/scripts/account/copy';
 
+  import AccountShell from './AccountShell.svelte';
   import OrderDetailScreen from './OrderDetailScreen.svelte';
   import OrdersScreen from './OrdersScreen.svelte';
   import ProfileScreen from './ProfileScreen.svelte';
+  import { documentTitle } from './titles';
 
   interface Props {
     /** Server-resolved copy and routes for this request's locale. */
@@ -69,18 +70,11 @@
     return () => window.removeEventListener('pageshow', onShow);
   });
 
-  function titleFor(screen: AccountScreen): string {
-    if (screen.name === 'orders') return say(copy, 'account.orders.metaTitle');
-    if (screen.name === 'orderDetail') {
-      return fill(say(copy, 'account.order.metaTitle'), { number: screen.number });
-    }
-    return say(copy, 'account.metaTitle');
-  }
-
   /* A client-side navigation moves no document, so nothing updates the tab or
-     the history entry's label unless we do. Only the shim set the first one. */
+     the history entry's label unless we do. Only the shim set the first one.
+     The three names live in `titles.ts`, beside the ones the shell paints. */
   $effect(() => {
-    document.title = titleFor(router.screen);
+    document.title = documentTitle(copy, router.screen);
   });
 
   /* The language switcher is server-rendered chrome, so after a client-side
@@ -115,16 +109,27 @@
 </script>
 
 {#if session.loading}
-  <p class="mt-6 text-[15px] text-neutral-600">{say(copy, 'account.loading')}</p>
+  <!--
+    The server-rendered first paint, and the only thing on screen until the
+    session settles. It carries the page ground so the transition into the real
+    shell moves nothing.
+  -->
+  <div class="bg-page">
+    <div class="max-w-page px-gutter mx-auto w-full py-16">
+      <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
+    </div>
+  </div>
 {:else if session.customer}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div bind:this={screenEl} tabindex="-1" class="outline-none">
-    {#if screen.name === 'account'}
-      <ProfileScreen />
-    {:else if screen.name === 'orders'}
-      <OrdersScreen />
-    {:else}
-      <OrderDetailScreen number={screen.number} />
-    {/if}
+    <AccountShell>
+      {#if screen.name === 'account'}
+        <ProfileScreen />
+      {:else if screen.name === 'orders'}
+        <OrdersScreen />
+      {:else}
+        <OrderDetailScreen number={screen.number} />
+      {/if}
+    </AccountShell>
   </div>
 {/if}
