@@ -88,18 +88,18 @@
   }
 </script>
 
-<h2 class="text-base font-medium">
+<h2 class="text-h4 font-bold">
   {say(copy, hasPassword ? 'account.changePassword' : 'account.setPassword')}
 </h2>
-<p class="mt-1 text-sm text-neutral-600">
+<p class="text-ink-2 mt-1.5 text-[14.5px]">
   {say(copy, hasPassword ? 'account.changePasswordNote' : 'account.setPasswordNote')}
 </p>
 
 {#if feedback}
   <div
-    class="mt-4 rounded-lg px-4 py-3 text-sm {feedback.failed
-      ? 'border border-red-300 bg-red-50'
-      : 'bg-tint'}"
+    class="rounded-field mt-4 px-4 py-3 text-sm {feedback.failed
+      ? 'bg-danger-tint text-danger'
+      : 'bg-tint text-ink'}"
     role="status"
   >
     {feedback.text}
@@ -107,7 +107,7 @@
 {/if}
 
 <form
-  class="mt-4 space-y-4"
+  class="mt-5 space-y-4"
   onsubmit={submit}
   use:formGate={{ gates, announce: () => announceEl ?? null, ready: (g) => (gate = g) }}
 >
@@ -134,7 +134,7 @@
       bind:this={nextEl}
       bind:value={next}
     />
-    <p class="mt-1.5 text-xs text-neutral-500">{say(copy, 'account.minChars')}</p>
+    <p class="text-ink-2 mt-1.5 text-xs">{say(copy, 'account.minChars')}</p>
     <FieldError key="newPassword" message={say(copy, 'account.passwordTooShort')} />
   </label>
 

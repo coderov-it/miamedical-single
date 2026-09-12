@@ -5,6 +5,9 @@
   Deliberately not the admin's view — no internal id, no status timeline, no
   operator notes, no fiscal identifiers. `CustomerOrderDetailDto` is narrower
   for that reason, and the omissions are the point.
+
+  The title and the trail are the shell's now; this screen opens on the one
+  thing the shell cannot know — where the order stands.
 -->
 <script lang="ts">
   import { accountContext, say } from '~/lib/account-context';
@@ -12,8 +15,9 @@
   import { type CustomerOrderDetail, formatDate, formatMoney } from '~/lib/customer-session';
   import { fill } from '~/scripts/account/copy';
 
-  import AccountCrumbs from './AccountCrumbs.svelte';
   import AccountLink from './AccountLink.svelte';
+  import OrderStatusPill from './OrderStatusPill.svelte';
+  import { CARD, HEADING } from './fields';
 
   interface Props {
     number: string;
@@ -58,84 +62,81 @@
   }
 </script>
 
-<div class="mx-auto w-full max-w-2xl px-5 py-10">
-  <AccountCrumbs
-    trail={[{ label: say(copy, 'account.myOrders'), to: { name: 'orders' } }, { label: number }]}
-  />
-
-  {#if failure}
-    <!-- An order that is not theirs 404s rather than 403s, so "not found" is
-         the only thing this screen can honestly say about either case. -->
-    <div class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm" role="status">
+{#if failure}
+  <div class={CARD} role="status">
+    <p class="text-danger text-sm">
       {errorMessage(failure, say(copy, 'account.order.unavailable'))}
-      <AccountLink to={{ name: 'orders' }} class="underline">
-        {say(copy, 'account.order.backToOrders')}
-      </AccountLink>.
-    </div>
-  {:else if !order}
-    <p class="text-[15px] text-neutral-600">{say(copy, 'account.loading')}</p>
-  {:else}
-    <article>
-      <header class="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 class="text-[clamp(1.5rem,2.2vw,1.9rem)]/[1.2]">
-          {fill(say(copy, 'account.order.title'), { number: order.number })}
-        </h1>
-        <span class="bg-tint rounded-full px-3 py-1 text-sm">
-          {copy.status[order.status] ?? order.status}
-        </span>
-      </header>
-
-      <p class="mt-1 text-sm text-neutral-600">
+    </p>
+    <AccountLink
+      to={{ name: 'orders' }}
+      class="mt-3 inline-block text-[15px] font-semibold text-accent underline"
+    >
+      {say(copy, 'account.order.backToOrders')}
+    </AccountLink>
+  </div>
+{:else if !order}
+  <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
+{:else}
+  <article>
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <OrderStatusPill status={order.status} />
+      <p class="text-ink-2 text-[14px]">
         {fill(say(copy, 'account.order.placedOn'), { date: formatDate(order.placedAt) })}
       </p>
+    </div>
 
-      <ul class="mt-7">
+    <section class={CARD + ' mt-5'}>
+      <h2 class={HEADING}>{say(copy, 'orderSummary')}</h2>
+
+      <ul class="mt-3">
         {#each order.items as item (item.id)}
           <li class="border-hair flex justify-between gap-4 border-b py-3 last:border-0">
-            <div>
+            <div class="min-w-0">
               <p class="font-medium">{item.productTitle}</p>
-              <p class="text-sm text-neutral-600">
+              <p class="text-ink-2 text-[14px]">
                 {fill(say(copy, 'account.order.pieces'), { count: item.quantity })}
               </p>
             </div>
-            <span class="tabular-nums">{formatMoney(item.total, order.totals.currency)}</span>
+            <span class="font-semibold tabular-nums">
+              {formatMoney(item.total, order.totals.currency)}
+            </span>
           </li>
         {/each}
       </ul>
 
-      <div class="mt-5 space-y-1.5 text-[15px]">
-        <div class="flex justify-between gap-4 text-neutral-600">
+      <div class="border-hair mt-4 space-y-2 border-t pt-4 text-[15px]">
+        <div class="text-ink-2 flex justify-between gap-4">
           <span>{say(copy, 'account.order.subtotal')}</span>
           <span class="tabular-nums">
             {formatMoney(order.totals.subtotal, order.totals.currency)}
           </span>
         </div>
-        <div class="flex justify-between gap-4 text-neutral-600">
+        <div class="text-ink-2 flex justify-between gap-4">
           <span>{say(copy, 'delivery')}</span>
           <span class="tabular-nums">{deliveryAmount(order)}</span>
         </div>
-        <div class="flex justify-between gap-4 font-medium">
+        <div class="flex justify-between gap-4 text-[1.0625rem] font-bold">
           <span>{say(copy, 'total')}</span>
           <span class="tabular-nums">{formatMoney(order.totals.total, order.totals.currency)}</span>
         </div>
       </div>
+    </section>
 
-      {#if order.delivery?.method}
-        <section class="border-hair mt-7 rounded-xl border p-4">
-          <h2 class="text-sm font-medium">{say(copy, 'delivery')}</h2>
-          <p class="mt-1 text-[15px] text-neutral-600">{deliveryLabel(order.delivery.method)}</p>
-          {#if addressLine(order)}
-            <p class="mt-1 text-[15px] text-neutral-600">{addressLine(order)}</p>
-          {/if}
-        </section>
-      {/if}
+    {#if order.delivery?.method}
+      <section class={CARD + ' mt-6'}>
+        <h2 class={HEADING}>{say(copy, 'delivery')}</h2>
+        <p class="mt-2 text-[15px]">{deliveryLabel(order.delivery.method)}</p>
+        {#if addressLine(order)}
+          <p class="text-ink-2 mt-1 text-[15px]">{addressLine(order)}</p>
+        {/if}
+      </section>
+    {/if}
 
-      {#if order.notes}
-        <section class="border-hair mt-4 rounded-xl border p-4">
-          <h2 class="text-sm font-medium">{say(copy, 'account.order.yourNotes')}</h2>
-          <p class="mt-1 text-[15px] whitespace-pre-line text-neutral-600">{order.notes}</p>
-        </section>
-      {/if}
-    </article>
-  {/if}
-</div>
+    {#if order.notes}
+      <section class={CARD + ' mt-6'}>
+        <h2 class={HEADING}>{say(copy, 'account.order.yourNotes')}</h2>
+        <p class="text-ink-2 mt-2 text-[15px] whitespace-pre-line">{order.notes}</p>
+      </section>
+    {/if}
+  </article>
+{/if}
