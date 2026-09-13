@@ -20,6 +20,7 @@
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import WandSparklesIcon from '@lucide/svelte/icons/wand-sparkles';
   import { toast } from 'svelte-sonner';
 
   import { goto } from '$app/navigation';
@@ -45,7 +46,13 @@
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
   import TranslationProgress from '~/lib/components/translation-progress.svelte';
-  import { progressFromStates } from '~/lib/i18n';
+  import TranslateDialog from '~/lib/components/translate-dialog.svelte';
+  import {
+    autoTranslate,
+    type PlanField,
+    progressFromStates,
+    type TargetLanguageCode,
+  } from '~/lib/i18n';
   import AddonsTab from './AddonsTab.svelte';
   import BasicsTab from './BasicsTab.svelte';
   import DescriptionTab from './DescriptionTab.svelte';
@@ -53,10 +60,12 @@
   import MediaTab from './MediaTab.svelte';
   import PricingTab from './PricingTab.svelte';
   import QuestionsTab from './QuestionsTab.svelte';
-  import type { AdminProduct } from './shared';
+  import type { AdminCategory, AdminProduct } from './shared';
   import SpecsTab from './SpecsTab.svelte';
   import { PRODUCT_TABS, parseTab, tabLabel } from './tabs';
   import TermsTab from './TermsTab.svelte';
+  import { buildPlanFields } from './translation-fields';
+  import { saveTranslations } from './translation-save';
 
   const product = new Resource(
     () => page.params.id,
@@ -89,6 +98,69 @@
 
   function onSaved(updated: AdminProduct) {
     product.set(updated);
+  }
+
+  /**
+   * Bumped after a translation run is saved. Not decoration: every tab holds the
+   * row it read when it mounted and never re-seeds, so the only honest way to
+   * show the newly written languages is to remount the panels against the fresh
+   * DTO. The run refuses to start while a tab is dirty (see `openTranslate`),
+   * which is what makes remounting safe rather than a way to lose edits.
+   */
+  let productVersion = $state(0);
+  let translateOpen = $state(false);
+
+  /**
+   * Spec labels live on the category, so the field list needs it. Loaded only
+   * when the action is actually available — the tab that owns specs loads its
+   * own copy, and a product page without a translation provider should not pay
+   * for a request nothing reads.
+   */
+  const category = new Resource(
+    () => product.data?.categoryId ?? null,
+    async (id, signal) =>
+      unwrap<AdminCategory>(
+        await api.api.admin.categories[':id'].$get({ param: { id: id! } }, { init: { signal } }),
+      ),
+    { enabled: () => autoTranslate.available && session.can(P.CATEGORY_READ) },
+  );
+
+  /** Everything a run can fill — the translation row, chips, media alt, specs, add-ons, FAQs. */
+  const translationFields = $derived.by((): PlanField[] => {
+    const current = product.data;
+    if (!current) return [];
+    return buildPlanFields(current, category.data ?? null);
+  });
+
+  // Ask once whether this API has a provider configured; the action is absent
+  // until it says yes, never rendered dead.
+  $effect(() => {
+    if (session.can(P.PRODUCT_UPDATE)) void autoTranslate.probe();
+  });
+
+  function openTranslate() {
+    if (dirty.any) {
+      toast.error('Save or discard your unsaved changes first — generating reloads the tabs.');
+      return;
+    }
+    translateOpen = true;
+  }
+
+  async function applyTranslations(
+    rows: Partial<Record<TargetLanguageCode, Record<string, string>>>,
+  ) {
+    const current = product.data;
+    if (!current) return;
+
+    // May be several requests (the row, chips and alt in one PATCH; specs,
+    // add-ons and FAQs each their own PUT). `saveTranslations` re-reads the
+    // product at the end, so this is the combined result, not the last body.
+    const updated = await saveTranslations(current, rows);
+
+    product.set(updated);
+    productVersion += 1;
+    const count = Object.keys(rows).length;
+    toast.success(`Saved ${count} ${count === 1 ? 'language' : 'languages'}.`);
   }
 
   let deleting = $state(false);
@@ -133,6 +205,12 @@
 <section class="admin-page">
   <PageHeader eyebrow="Catalog" title={product.data ? title : 'Product'}>
     {#snippet actions()}
+      {#if autoTranslate.available && product.data}
+        <Button variant="outline" onclick={openTranslate}>
+          <WandSparklesIcon />
+          Translate
+        </Button>
+      {/if}
       {#if storefrontUrl}
         <Button href={storefrontUrl} target="_blank" rel="noreferrer" variant="outline">
           <ExternalLinkIcon />
@@ -230,34 +308,40 @@
       />
     </div>
 
-    <!-- Every panel mounted; only the active one is shown. -->
-    <div class="max-w-5xl">
-      {#each PRODUCT_TABS as tab (tab.key)}
-        <div hidden={activeTab !== tab.key}>
-          {#if tab.key === 'basics'}
-            <BasicsTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'description'}
-            <DescriptionTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'pricing'}
-            <PricingTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'specs'}
-            <SpecsTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'media'}
-            <MediaTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'addons'}
-            <AddonsTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'faqs'}
-            <FaqsTab product={current} {onSaved} {dirty} />
-          {:else if tab.key === 'questions'}
-            <QuestionsTab product={current} {onSaved} {dirty} />
-          {:else}
-            <TermsTab product={current} {onSaved} {dirty} />
-          {/if}
-        </div>
-      {/each}
-    </div>
+    <!-- Every panel mounted; only the active one is shown. Keyed on the
+         translation version so a saved generation run remounts them against the
+         row the server returned — a tab keeps the copy it read at mount. -->
+    {#key productVersion}
+      <div class="max-w-5xl">
+        {#each PRODUCT_TABS as tab (tab.key)}
+          <div hidden={activeTab !== tab.key}>
+            {#if tab.key === 'basics'}
+              <BasicsTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'description'}
+              <DescriptionTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'pricing'}
+              <PricingTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'specs'}
+              <SpecsTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'media'}
+              <MediaTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'addons'}
+              <AddonsTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'faqs'}
+              <FaqsTab product={current} {onSaved} {dirty} />
+            {:else if tab.key === 'questions'}
+              <QuestionsTab product={current} {onSaved} {dirty} />
+            {:else}
+              <TermsTab product={current} {onSaved} {dirty} />
+            {/if}
+          </div>
+        {/each}
+      </div>
+    {/key}
   {/if}
 </section>
+
+<TranslateDialog bind:open={translateOpen} fields={translationFields} onApply={applyTranslations} />
 
 <AlertDialog.Root
   open={deleting}

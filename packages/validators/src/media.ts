@@ -1,5 +1,7 @@
 import * as v from 'valibot';
 
+import { localizedOptionalSchema } from './i18n.ts';
+
 /**
  * What the picker accepts for image slots. Sharp's prebuilt binaries decode
  * all the raster formats; HEIC/HEIF is deliberately absent (needs a custom
@@ -80,13 +82,13 @@ export const MediaPathSchema = v.pipe(
   v.check((path) => !path.includes('..'), 'Not a valid storage path.'),
 );
 
-const AltTextSchema = v.pipe(v.string(), v.trim(), v.maxLength(300));
-
-/** Explicit literal keys, so the output type stays `Partial<Record<LanguageCode, string>>`. */
-const AltSchema = v.strictObject({
-  it: v.optional(AltTextSchema),
-  en: v.optional(AltTextSchema),
-});
+/**
+ * Optional in every language, unlike `localizedSchema` — a decorative image has
+ * no alt text at all. Built from the registry: this used to list `it` and `en`
+ * as literal keys, which meant a French or German alt was rejected by
+ * `strictObject` however correct the translation was.
+ */
+const AltSchema = localizedOptionalSchema(300);
 
 export const MediaItemSchema = v.strictObject({
   path: MediaPathSchema,

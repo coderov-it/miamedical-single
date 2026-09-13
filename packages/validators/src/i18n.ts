@@ -51,12 +51,33 @@ function localizedEntries(max: number): LocalizedEntries {
   return entries as LocalizedEntries;
 }
 
+type LocalizedOptionalEntries = Record<LanguageCode, OptionalText>;
+
+/**
+ * A localized value with NO mandatory language, built from the registry like
+ * `localizedEntries` above.
+ *
+ * Alt text is the case that needs it: a decorative image has none in any
+ * language, so there is no source value to require. Media alt text used to be
+ * written out with `it` and `en` as literal keys, which is why it could not be
+ * translated into French or German — the shape, not the provider, was the
+ * limit.
+ */
+function localizedOptionalEntries(max: number): LocalizedOptionalEntries {
+  const entries: Record<string, OptionalText> = {};
+  for (const code of LANGUAGE_CODES) entries[code] = optionalText(max);
+  return entries as LocalizedOptionalEntries;
+}
+
 /**
  * Shape of every inline `{ it, en, … }` jsonb column. `strictObject` is what
  * polices the key set — the database CHECK can only demand that the source
  * language exists.
  */
 export const localizedSchema = (max = 500) => v.strictObject(localizedEntries(max));
+
+/** The same shape with every language optional — see `localizedOptionalEntries`. */
+export const localizedOptionalSchema = (max = 500) => v.strictObject(localizedOptionalEntries(max));
 
 /** Default cap suits labels and names; pass a larger max for long-form text. */
 export const LocalizedSchema = localizedSchema();

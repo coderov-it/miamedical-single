@@ -34,4 +34,12 @@ export const EXTERNAL_APIS = {
    * assembled by the adapter that needs it — `r2Endpoint` in `@mia/media`.
    */
   cloudflareApiBaseUrl: 'https://api.cloudflare.com/client/v4',
+
+  /**
+   * DeepL, automatic translation. This is the free-tier host; a Pro subscription
+   * is served from `https://api.deepl.com` instead. Which one an account has is
+   * fixed for that account, so switching is this line rather than an environment
+   * variable nobody would remember to set.
+   */
+  deeplBaseUrl: 'https://api-free.deepl.com',
 } as const;

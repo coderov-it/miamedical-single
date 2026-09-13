@@ -1,2 +1,3 @@
 export * from './languages.ts';
-export * from './auto-translate.ts';
+export * from './translation-plan.ts';
+export * from './auto-translate.svelte.ts';
