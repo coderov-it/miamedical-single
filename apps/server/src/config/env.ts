@@ -113,6 +113,23 @@ const EnvSchema = v.object({
   DEFAULT_CURRENCY: v.pipe(v.optional(v.string(), 'EUR'), v.length(3), v.toUpperCase()),
 
   /**
+   * Automatic translation of catalogue copy. Exactly one provider is live, and
+   * this picks it — `none` is the default because the feature is optional and
+   * the admin hides the action when nothing is configured.
+   *
+   * `stub` prefixes the source text with a `[fr]`-style marker and translates
+   * nothing; it exists so the dialog's confirmation, log and review steps are
+   * testable before anyone buys a key. It is refused in production, where that
+   * marker would become customer-visible copy.
+   *
+   * The key is optional like every credential group (R2, mail): the server
+   * boots without it, and the guard below is what keeps `deepl` from being
+   * selected and unconfigured at once.
+   */
+  TRANSLATION_PROVIDER: v.optional(v.picklist(['none', 'stub', 'deepl']), 'none'),
+  DEEPL_API_KEY: v.optional(v.string()),
+
+  /**
    * Absolute origin of the storefront. Not optional like the credential groups
    * below: every account email carries a link back to a page, and a relative link
    * in an inbox goes nowhere. Astro reads the same variable.
@@ -221,6 +238,23 @@ if (env.NODE_ENV === 'production') {
   if (env.MAIL_TRANSPORT === 'ses' && !env.AWS_SES_REGION) {
     throw new Error('AWS_SES_REGION is required when MAIL_TRANSPORT is "ses".');
   }
+}
+
+/*
+  Translation, guarded in every environment rather than only production: a
+  provider selected without its credential resolves to "enabled but broken",
+  which the admin would render as a button that fails on click. Refusing at boot
+  keeps that state unreachable. The stub is a production refusal for the same
+  reason the console mail transport is — its `[fr]` markers would be customer
+  copy — while remaining the way to exercise the flow locally.
+*/
+if (env.TRANSLATION_PROVIDER === 'deepl' && !env.DEEPL_API_KEY) {
+  throw new Error('DEEPL_API_KEY is required when TRANSLATION_PROVIDER is "deepl".');
+}
+if (env.NODE_ENV === 'production' && env.TRANSLATION_PROVIDER === 'stub') {
+  throw new Error(
+    'TRANSLATION_PROVIDER must be "none" or "deepl" in production; "stub" only returns placeholder text.',
+  );
 }
 
 export type Env = typeof env;

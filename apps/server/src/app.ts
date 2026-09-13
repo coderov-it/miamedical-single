@@ -27,6 +27,7 @@ import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import { rentalAdminRoutes } from './modules/rentals/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
+import { translationAdminRoutes } from './modules/translation/routes.ts';
 import { withCustomerSession } from './shared/auth/customer-session.ts';
 import { withSession } from './shared/auth/session.ts';
 import type { AppEnv } from './shared/http/context.ts';
@@ -95,6 +96,7 @@ const routes = app
   .route('/api/admin/users', adminUserRoutes)
   .route('/api/admin/rentals', rentalAdminRoutes)
   .route('/api/admin/payments', paymentAdminRoutes)
+  .route('/api/admin/translate', translationAdminRoutes)
   .route('/api/contracts', contractPublicRoutes)
   .route('/api/blog', blogPublicRoutes);
 

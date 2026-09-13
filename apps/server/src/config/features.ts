@@ -38,6 +38,7 @@ export function logFeatureSummary(): void {
   const rows: [string, string][] = [
     ['mail', mailState()],
     ['object storage', objectStorageState()],
+    ['translation', translationState()],
   ];
 
   const width = Math.max(...rows.map(([label]) => label.length));
@@ -95,4 +96,20 @@ function objectStorageState(): string {
   }
 
   return `R2 ${env.R2_BUCKET}`;
+}
+
+/**
+ * Which engine will answer a translate request, or that nothing will. Worth a
+ * line for the same reason mail gets one: "the translate button is missing" and
+ * "the stub is filling the dev database with `[fr]`" are both answered here
+ * rather than by reading the config file.
+ */
+function translationState(): string {
+  if (env.TRANSLATION_PROVIDER === 'none') {
+    return 'off — operators fill each language by hand';
+  }
+  if (env.TRANSLATION_PROVIDER === 'stub') {
+    return 'stub — placeholder text, development only';
+  }
+  return 'deepl';
 }

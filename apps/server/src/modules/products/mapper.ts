@@ -126,13 +126,37 @@ const TRANSLATION_FIELDS = [
 
 export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationStatusDto {
   const missing: Partial<Record<LanguageCode, string[]>> = {};
+  const source = rows.find((r) => r.languageCode === SOURCE_LANGUAGE);
+
+  /*
+    What a translation is measured against: the fields the SOURCE language
+    actually carries.
+
+    Counting all six was wrong for two of them. `metaTitle` and
+    `metaDescription` are nullable and nothing in the admin asks for them, so a
+    product whose Italian row has neither could never report a complete
+    translation: every language sat at `partial`, with an orange dot on the
+    language switcher and "EN FR DE pending" next to it, for a product that was
+    in fact fully translated. A field the source does not have is not a gap in a
+    translation — there is nothing to translate it from.
+
+    This also makes the source language's own state `complete` by construction,
+    which is what it is: it is the baseline, not a translation of anything.
+  */
+  const required = source
+    ? TRANSLATION_FIELDS.filter((field) => {
+        const value = source[field];
+        return value !== null && value !== '';
+      })
+    : [...TRANSLATION_FIELDS];
+
   const statusFor = (lang: LanguageCode): TranslationState => {
     const row = rows.find((r) => r.languageCode === lang);
     if (!row) {
-      missing[lang] = [...TRANSLATION_FIELDS];
+      missing[lang] = [...required];
       return 'missing';
     }
-    const gaps = TRANSLATION_FIELDS.filter((field) => {
+    const gaps = required.filter((field) => {
       const value = row[field];
       return value === null || value === '';
     });

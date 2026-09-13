@@ -32,6 +32,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { slugify } from '~/lib/slug';
 
   type Category = InferResponseType<typeof api.api.admin.categories.$get, 200>['data'][number];
 
@@ -68,16 +69,6 @@
   const categoryLabel = $derived(
     categoryOptions.find((entry) => entry.id === categoryId)?.translations.it?.name ?? 'Choose…',
   );
-
-  function slugify(text: string): string {
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replaceAll(/[̀-ͯ]/g, '')
-      .replaceAll(/[^a-z0-9]+/g, '-')
-      .replaceAll(/^-+|-+$/g, '')
-      .slice(0, 120);
-  }
 
   // The slug tracks the title until the operator edits it by hand, after which
   // it is theirs — a slug that keeps rewriting itself is unusable.
