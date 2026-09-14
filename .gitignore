@@ -4,6 +4,17 @@
 node_modules/
 .pnpm-store/
 
+# pnpm is the only package manager here — `packageManager` pins it and the
+# `preinstall` script runs `only-allow pnpm`. These patterns are the backstop
+# for that guard's hole: bun writes its lockfile BEFORE `preinstall` aborts it,
+# and `--ignore-scripts` skips the guard entirely. A stray lockfile must never
+# reach the repo. (Bun also rewrites package.json — only `git diff` catches that.)
+bun.lock
+bun.lockb
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
+
 # ---------------------------------------------------------------------------
 # Build output
 # ---------------------------------------------------------------------------
