@@ -24,19 +24,17 @@ export const kinetecAndTensOrMagnetotherapy = tensHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 240),
-    days(20, 290),
-    days(30, 360),
-  ],
+  packages: [days(15, 240), days(20, 290), days(30, 360)],
 
   translations: {
     it: {
       title: 'Kinetec + Tens o Magnetoterapia',
       slug: 'kinetec-elettrostimolatore-tens-o-magnetoterapia',
-      shortDescription: 'Prenotazione facile, costi chiari, ausili di ultima generazione Consegna a Roma e Firenze a partire da 30€. Consegna gratuita per i noleggi da 30 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Prenotazione facile, costi chiari, ausili di ultima generazione Consegna a Roma e Firenze a partire da 30€. Consegna gratuita per i noleggi da 30 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Kinetec + Tens o Magnetoterapia - Mia Medical Italia',
-      metaDescription: 'Noleggio del kinetec + elettrostimolatore Tens o magnetoterapia. Combo ideale per la fisioterapia a domicilio. Recupero veloce post trauma. Prenota online!',
+      metaDescription:
+        'Noleggio del kinetec + elettrostimolatore Tens o magnetoterapia. Combo ideale per la fisioterapia a domicilio. Recupero veloce post trauma. Prenota online!',
       description: [
         '<h2><strong>Noleggio Combinato KINETEC + MAGNETOTERAPIA o TENS Elettrostimolatore&nbsp;</strong></h2>',
         '<p><strong>La soluzione completa per la riabilitazione elettromedicale a domicilio</strong></p>',
@@ -99,9 +97,11 @@ export const kinetecAndTensOrMagnetotherapy = tensHire.rental({
     en: {
       title: 'Kinetec + TENS or magnetotherapy, combined hire',
       slug: 'kinetec-elettrostimolatore-tens-o-magnetoterapia',
-      shortDescription: 'Easy booking, clear costs, current-generation equipment. Delivery in Rome and Florence from €30. Free delivery on hires of 30 days or more! No deposit required. Delivery and collection at the warehouse are FREE!',
+      shortDescription:
+        'Easy booking, clear costs, current-generation equipment. Delivery in Rome and Florence from €30. Free delivery on hires of 30 days or more! No deposit required. Delivery and collection at the warehouse are FREE!',
       metaTitle: 'Kinetec + TENS or magnetotherapy - Mia Medical Italia',
-      metaDescription: 'Hire a Kinetec CPM machine with a TENS stimulator or magnetotherapy. The right set for physiotherapy at home and a quick recovery.',
+      metaDescription:
+        'Hire a Kinetec CPM machine with a TENS stimulator or magnetotherapy. The right set for physiotherapy at home and a quick recovery.',
       description: [
         '<h2><strong>KINETEC + MAGNETOTHERAPY or TENS Electrostimulator Combined Rental&nbsp;</strong></h2>',
         '<p><strong>The complete solution for electro-medical rehabilitation at home</strong></p>',

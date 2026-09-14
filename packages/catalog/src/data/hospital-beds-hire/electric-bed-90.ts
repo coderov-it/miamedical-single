@@ -30,21 +30,17 @@ export const electricBed90 = hospitalBedsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 120),
-    days(30, 150),
-    days(45, 200),
-    days(60, 250),
-    days(90, 315),
-  ],
+  packages: [days(15, 120), days(30, 150), days(45, 200), days(60, 250), days(90, 315)],
 
   translations: {
     it: {
       title: 'Noleggio e Affitto Letto Ospedaliero Elettrico con Antidecubito | Roma e Firenze',
       slug: 'noleggio-letto-ospedaliero-elettrico-incluso-di-materasso-antidecubito',
-      shortDescription: 'Noleggio letto ospedaliero elettrico 90cm + materasso antidecubito Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a domicilio incluso di montaggio a partire da 60€ soltanto nel Lazio e Toscana. Lo stesso prezzo vale anche per il ritiro! Il costo sarà maggiorato in caso di consegna al piano senza ascensore. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 80€.',
+      shortDescription:
+        'Noleggio letto ospedaliero elettrico 90cm + materasso antidecubito Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a domicilio incluso di montaggio a partire da 60€ soltanto nel Lazio e Toscana. Lo stesso prezzo vale anche per il ritiro! Il costo sarà maggiorato in caso di consegna al piano senza ascensore. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 80€.',
       metaTitle: 'Noleggio letto ortopedico + materasso antidecubito Roma e Firenze',
-      metaDescription: 'Noleggio Roma e Firenze di letto elettrico ospedaliero per anziani incluso di materasso antidecubito. Chiamaci al +39 3926509237!',
+      metaDescription:
+        'Noleggio Roma e Firenze di letto elettrico ospedaliero per anziani incluso di materasso antidecubito. Chiamaci al +39 3926509237!',
       description: [
         '<h3>Noleggio Letto Ortopedico Elettrico 1 PIAZZA (90 cm) &#8211; Roma e Firenze </h3>',
         '<p><strong>Affitta il nostro letto ortopedico elettrico per la degenza a casa con sponde 90 cm (1 piazza). Disponibile sia a Roma che Firenze, riceverai anche un materasso antidecubito incluso nel prezzo di noleggio! Pensato per garantire il massimo del confort e della sicurezza a chi ne ha bisogno. Con Consegna rapida e assistenza professionale. </strong></p>',
@@ -71,9 +67,11 @@ export const electricBed90 = hospitalBedsHire.rental({
     en: {
       title: 'Electric hospital bed with pressure-relief mattress, for hire | Rome and Florence',
       slug: 'noleggio-letto-ospedaliero-elettrico-incluso-di-materasso-antidecubito',
-      shortDescription: 'Electric hospital bed rental 90 cm + anti-decubitus mattress Easy booking, clear costs, state-of-the-art aids. No deposit! Home delivery including assembly starting from just €60 in Lazio and Tuscany only. The same price applies for collection too! The cost will be increased in the case of delivery to a floor without a lift. For hygiene reasons, it compulsory to buy the mattress cover for €80.',
+      shortDescription:
+        'Electric hospital bed rental 90 cm + anti-decubitus mattress Easy booking, clear costs, state-of-the-art aids. No deposit! Home delivery including assembly starting from just €60 in Lazio and Tuscany only. The same price applies for collection too! The cost will be increased in the case of delivery to a floor without a lift. For hygiene reasons, it compulsory to buy the mattress cover for €80.',
       metaTitle: 'Hospital bed + pressure-relief mattress hire | Rome and Florence',
-      metaDescription: 'Hire an electric hospital bed for older users in Rome and Florence, with a pressure-relief mattress included. Call +39 392 650 9237',
+      metaDescription:
+        'Hire an electric hospital bed for older users in Rome and Florence, with a pressure-relief mattress included. Call +39 392 650 9237',
       description: [
         '<h3>Electric Orthopaedic Bed Hire 1 BED (90 cm) - Rome and Florence </h3>',
         '<p><strong>Rent our electric orthopaedic bed for home care with 90 cm side rails (single bed). Available in both Rome and Florence, you will also receive an anti-decubitus mattress included in the rental price! Designed to ensure maximum comfort and safety for those who need it. With fast delivery and professional assistance. </strong></p>',
@@ -106,16 +104,16 @@ export const electricBed90 = hospitalBedsHire.rental({
     'total-length': { min: 212, max: 212 },
     'total-width': { min: 105, max: 105 },
     'height-adjustment': { min: 30, max: 80 },
-    articulation: { it: 'Regolazione elettrica dello schienale da 0° a circa 75°, elevazione parte testa 80°', en: 'Electric backrest from 0° to about 75°, head section raising to 80°' },
+    articulation: {
+      it: 'Regolazione elettrica dello schienale da 0° a circa 75°, elevazione parte testa 80°',
+      en: 'Electric backrest from 0° to about 75°, head section raising to 80°',
+    },
     'includes-mattress': true,
   },
 
   media: {
     thumbnail: { file: 'electric-bed-90-1.jpg', alt: { it: 'letto a noleggio electrico' } },
-    gallery: [
-      'electric-bed-90-2.jpg',
-      'electric-bed-90-3.jpg',
-    ],
+    gallery: ['electric-bed-90-2.jpg', 'electric-bed-90-3.jpg'],
   },
 
   addons: [homeDelivery(60)],

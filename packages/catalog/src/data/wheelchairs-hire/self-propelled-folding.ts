@@ -33,9 +33,11 @@ export const selfPropelledFolding = wheelchairsHire.rental({
     it: {
       title: 'Affitto carrozzina pieghevole ad autospinta',
       slug: 'affitto-carrozzina-pieghevole-ad-autospinta-spedizioni-in-tutta-italia',
-      shortDescription: 'Sedia a rotelle ad autospinta Comoda e leggera, facile da caricare in macchina. Carrozzina con seduta e telaio pieghevole per massima praticità. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio a Roma e Firenze da 30€.',
+      shortDescription:
+        'Sedia a rotelle ad autospinta Comoda e leggera, facile da caricare in macchina. Carrozzina con seduta e telaio pieghevole per massima praticità. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio a Roma e Firenze da 30€.',
       metaTitle: 'Affitto carrozzina pieghevole ad autospinta. Spedizioni in tutta Italia',
-      metaDescription: 'Affitto carrozzina pieghevole ad autospinta. Molto leggera è facile da caricare in macchina. Spedizioni in tutta Italia, ritiro GRATUITO in magazzino.',
+      metaDescription:
+        'Affitto carrozzina pieghevole ad autospinta. Molto leggera è facile da caricare in macchina. Spedizioni in tutta Italia, ritiro GRATUITO in magazzino.',
       description: [
         '<p>L&#8217;affitto della carrozzina pieghevole ad autospinta&nbsp;è <strong>indispensabile</strong> per le persone disabili, anziani, con ridotta capacità di deambulazione o per chi deve fare la riabilitazione.</p>',
         '<p>La carrozzina viene fornita con le <strong>pedane</strong> per i piedi e i <strong>braccioli</strong>. Entrambi removibili in qualsiasi momento e con estrema facilità. Al momento della consegna un <strong>nostro tecnico</strong> vi farà vedere come chiudere e riaprire la carrozzina pieghevole ad autospinta e di conseguenza come montare e smontare braccioli e pedane. <br />La sedia a rotelle è inoltre dotata di due <strong>freni</strong> per poter bloccare le ruote.</p>',
@@ -57,9 +59,11 @@ export const selfPropelledFolding = wheelchairsHire.rental({
     en: {
       title: 'Folding self-propelled wheelchair for hire',
       slug: 'affitto-carrozzina-pieghevole-ad-autospinta-spedizioni-in-tutta-italia',
-      shortDescription: 'Self-propelled wheelchair Comfortable and light, easy to load in the car. Wheelchair with folding seat and frame for maximum convenience. Hire for 1 day: 15€ with pick-up on site only. Home delivery and pick-up in Rome and Florence from 30€.',
+      shortDescription:
+        'Self-propelled wheelchair Comfortable and light, easy to load in the car. Wheelchair with folding seat and frame for maximum convenience. Hire for 1 day: 15€ with pick-up on site only. Home delivery and pick-up in Rome and Florence from 30€.',
       metaTitle: 'Folding self-propelled wheelchair hire',
-      metaDescription: 'Hire a folding self-propelled wheelchair carrying up to 130 kg. Large rear wheels for getting about unaided. Delivery across Italy.',
+      metaDescription:
+        'Hire a folding self-propelled wheelchair carrying up to 130 kg. Large rear wheels for getting about unaided. Delivery across Italy.',
       description: [
         '<p>The rental of the self-propelled folding wheelchair is <strong>indispensable</strong> for disabled people, elderly people, people with reduced mobility or people who need rehabilitation.</p>',
         '<p>The wheelchair comes with the <strong>podiums</strong> for feet and <strong>armrests</strong>. Both can be easily removed at any time. Upon delivery a <strong>our technician</strong> It will show you how to fold and unfold the self-propelled wheelchair and, consequently, how to attach and detach the armrests and footrests. <br />The wheelchair also has two <strong>brakes</strong> in order to lock the wheels.</p>',
@@ -72,7 +76,7 @@ export const selfPropelledFolding = wheelchairsHire.rental({
         '<p><strong>The weight</strong> of the wheelchair may vary depending on the size of the seat. The lightest weighs 14 kg, while the largest weighs around 18 kg.</p>',
         '<p>Large wheels are essential for independent movement<strong>.</strong> They differ from the <a href="/en/product/noleggio-carrozzina-pieghevole-da-transito/"><em>transit wheelchair</em>o</a> by diameter and position on the frame.</p>',
         '<p>All the aids we rent are sanitised in every part.<strong> Cleaning and sanitising</strong> are the basis of our work.</p>',
-        '<p>M.I.A Medical Italia\'s wheelchairs are of the highest quality and chair hire is<strong> safe, functional and guaranteed!&nbsp;</strong></p>',
+        "<p>M.I.A Medical Italia's wheelchairs are of the highest quality and chair hire is<strong> safe, functional and guaranteed!&nbsp;</strong></p>",
         '<p>Choose our <strong>rental of a self-propelled folding wheelchair</strong> for safe, sanitised and ready-to-use assistance. We deliver in Tuscany, Lazio and via<strong> delivery throughout Italy</strong></p>',
         '<p><strong>Book online</strong> rental of the self-propelled folding wheelchair now. If you prefer, you can contact us by phone/via WhatsApp at <strong>+393926509237 </strong>or by email: <strong>amministrazione@miamedicalitalia.it</strong></p>',
         '<p><a href="https://www.facebook.com/MIAMedicalitalia/"><em>Click here and cover our FACEBOOK page</em></a></p>',
@@ -93,11 +97,11 @@ export const selfPropelledFolding = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'self-propelled-folding-1.jpg', alt: { it: 'Affitto carrozzina pieghevole ad autospinta' } },
-    gallery: [
-      'self-propelled-folding-2.jpg',
-      'self-propelled-folding-3.jpg',
-    ],
+    thumbnail: {
+      file: 'self-propelled-folding-1.jpg',
+      alt: { it: 'Affitto carrozzina pieghevole ad autospinta' },
+    },
+    gallery: ['self-propelled-folding-2.jpg', 'self-propelled-folding-3.jpg'],
   },
 
   addons: [homeDelivery(30), legRaiser],

@@ -259,8 +259,7 @@ const nextUrl = meta.page < meta.pageCount ? pageLink(meta.page + 1) : null;
     {nextUrl && <link rel="next" href={nextUrl} />}
   </Fragment>
 
-  {
-    /* ONE grey ground with white cards on it, the reference's page and the home
+  {/* ONE grey ground with white cards on it, the reference's page and the home
        page's — which is why nothing inside paints a ground of its own. The
        wrapper's air is theirs too: 34px above the title, 60px under the last
        row before the footer.
@@ -272,15 +271,13 @@ const nextUrl = meta.page < meta.pageCount ? pageLink(meta.page + 1) : null;
        read as ONE object rather than as controls scattered on the page, and a
        ground change plus a hairline is what says so. This is also why the block
        bleeds past the gutter: a toolbar that stops short of the screen edge
-       reads as a card, not as chrome. */
-  }
+       reads as a card, not as chrome. */}
   <div class="bg-page">
     <div class="max-mid:border-hair max-mid:border-b max-mid:bg-white">
       <div class="max-w-page px-gutter max-mid:pt-3 mx-auto w-full pt-[clamp(22px,2.4vw,34px)]">
         <Breadcrumbs items={trail} />
 
-        {
-          /* THE MODE SEGMENT SITS ON THE TITLE'S LINE, hard right and bottom-
+        {/* THE MODE SEGMENT SITS ON THE TITLE'S LINE, hard right and bottom-
              aligned to it (owner, 2026-09-05, and the reference's own
              arrangement). "Which half of the shop" is a statement about the
              page, so it belongs beside the page's name; the row below it is
@@ -289,22 +286,19 @@ const nextUrl = meta.page < meta.pageCount ? pageLink(meta.page + 1) : null;
              What made this masthead unclean the first time was not the
              position — it was a `bg-tint` search field with no edges on a grey
              ground and a 149px caption repeating its own placeholder. Both are
-             fixed in CatalogSearch; this is the layout back where it belongs. */
-        }
-        <div
-          class="mid:flex-row mid:items-end mid:justify-between mid:gap-8 mid:pb-5 max-mid:gap-3 max-mid:pb-3.5 flex flex-col"
-        >
+             fixed in CatalogSearch; this is the layout back where it belongs. */}
+        <div class="mid:flex-row mid:items-end mid:justify-between mid:gap-8 mid:pb-5 max-mid:gap-3 max-mid:pb-3.5 flex flex-col">
           <CatalogHead heading={copy.heading} lede={copy.lede} />
           <CatalogViews {pills} />
         </div>
 
-        <div class="mid:pb-6.5 max-mid:pb-3"><CatalogSearch {query} /></div>
+        <div class="mid:pb-6.5 max-mid:pb-3">
+          <CatalogSearch {query} />
+        </div>
 
-        {
-          /* The strip sits under the search row and above the body, which is
+        {/* The strip sits under the search row and above the body, which is
              the reference's own order: the segment says which half of the shop,
-             the strip says which corner of it. */
-        }
+             the strip says which corner of it. */}
         <ProductTypeStrip tiles={typeTiles} />
         <CatalogGroups pills={groupPills} />
       </div>

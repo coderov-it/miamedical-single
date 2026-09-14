@@ -150,7 +150,6 @@
       busy = null;
     }
   }
-
 </script>
 
 <section class="admin-page">
@@ -237,12 +236,7 @@
           <div class="flex items-center justify-between gap-2 border-b px-4 py-2.5">
             <span class="text-sm font-medium">Contract Preview</span>
             <div class="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={!previewHtml}
-                onclick={openPreviewTab}
-              >
+              <Button variant="ghost" size="sm" disabled={!previewHtml} onclick={openPreviewTab}>
                 <ExternalLinkIcon class="size-4" />
                 Open in new tab
               </Button>

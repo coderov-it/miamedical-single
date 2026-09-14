@@ -14,4 +14,9 @@ const { keys } = Astro.props;
 const copy = accountCopy(localeForRequest(), keys);
 ---
 
-<script type="application/json" data-account-copy is:inline set:html={JSON.stringify(copy)} />
+<script
+  type="application/json"
+  data-account-copy
+  is:inline
+  set:html={JSON.stringify(copy)}
+></script>

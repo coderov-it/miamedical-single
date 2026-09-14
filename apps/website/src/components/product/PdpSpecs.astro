@@ -21,31 +21,29 @@ const locale = localeForRequest();
   <PdpSectionHead n="03" title={translate(locale, 'pdp.techSheet')} />
 
   <div class="grid [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))] gap-3">
-    {
-      specifications.map((spec) => (
-        <div class="border-hair rounded-field shadow-pdp-card flex items-center gap-3.5 border bg-white px-4 py-3.5">
-          {spec.icon ? (
-            <img
-              class="bg-tint size-9.5 flex-none rounded-[9px] object-contain p-1"
-              src={mediaUrl(spec.icon)}
-              alt=""
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <span
-              class="bg-tint grid size-9.5 flex-none place-items-center rounded-[9px] text-[16px] font-bold text-accent"
-              aria-hidden="true"
-            >
-              {spec.label.charAt(0).toUpperCase()}
-            </span>
-          )}
-          <span class="flex min-w-0 flex-col gap-0.5">
-            <span class="text-ink-2 text-[12.5px]">{spec.label}</span>
-            <strong class="text-[14px]">{spec.displayValue}</strong>
+    {specifications.map((spec) => (
+      <div class="border-hair rounded-field shadow-pdp-card flex items-center gap-3.5 border bg-white px-4 py-3.5">
+        {spec.icon ? (
+          <img
+            class="bg-tint size-9.5 flex-none rounded-[9px] object-contain p-1"
+            src={mediaUrl(spec.icon)}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <span
+            class="bg-tint grid size-9.5 flex-none place-items-center rounded-[9px] text-[16px] font-bold text-accent"
+            aria-hidden="true"
+          >
+            {spec.label.charAt(0).toUpperCase()}
           </span>
-        </div>
-      ))
-    }
+        )}
+        <span class="flex min-w-0 flex-col gap-0.5">
+          <span class="text-ink-2 text-[12.5px]">{spec.label}</span>
+          <strong class="text-[14px]">{spec.displayValue}</strong>
+        </span>
+      </div>
+    ))}
   </div>
 </section>

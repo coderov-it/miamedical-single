@@ -23,9 +23,11 @@ export const recliningWheelchairSale = wheelchairsSale.fixed({
     it: {
       title: 'Vendita carrozzina Reclinabile',
       slug: 'vendita-carrozzina-reclinabile',
-      shortDescription: 'Acquisto carrozzina Consegna gratuita in tutta Italia. Carrozzina reclinabile comoda e sicura. Ideale per anziani e persone con disabilità. Schienale e pedane regolabili.Completamente pieghevole. Chiamaci subito per informazioni e acquisto.',
+      shortDescription:
+        'Acquisto carrozzina Consegna gratuita in tutta Italia. Carrozzina reclinabile comoda e sicura. Ideale per anziani e persone con disabilità. Schienale e pedane regolabili.Completamente pieghevole. Chiamaci subito per informazioni e acquisto.',
       metaTitle: 'Carrozzina Reclinabile in Vendita | Comfort e Sicurezza',
-      metaDescription: 'Acquista una carrozzina reclinabile in vendita: comoda e sicura. Ideale per anziani e persone con disabilità. Schienale e pedane regolabili. Consegna rapida',
+      metaDescription:
+        'Acquista una carrozzina reclinabile in vendita: comoda e sicura. Ideale per anziani e persone con disabilità. Schienale e pedane regolabili. Consegna rapida',
       description: [
         '<p>La carrozzina reclinabile in Vendita è progettata per garantire <strong>comfort, autonomia e sicurezza</strong> a persone con mobilità ridotta o che necessitano di assistenza continuativa. Grazie alla struttura robusta e alle numerose regolazioni, rappresenta una soluzione completa sia per uso domestico che sanitario.</p>',
         '<h2>Caratteristiche principali</h2>',
@@ -52,9 +54,11 @@ export const recliningWheelchairSale = wheelchairsSale.fixed({
     en: {
       title: 'Reclining wheelchair for sale',
       slug: 'vendita-carrozzina-reclinabile',
-      shortDescription: 'Purchase wheelchair Delivery free throughout Italy. Comfortable and safe reclining wheelchair. Ideal for the elderly and people with disabilities. Adjustable backrest and footrests. Fully foldable. Call us now for information and purchase.',
+      shortDescription:
+        'Purchase wheelchair Delivery free throughout Italy. Comfortable and safe reclining wheelchair. Ideal for the elderly and people with disabilities. Adjustable backrest and footrests. Fully foldable. Call us now for information and purchase.',
       metaTitle: 'Reclining wheelchair for sale | Comfort and safety',
-      metaDescription: 'Buy a reclining wheelchair: multi-position backrest, headrest, integrated leg lift, adjustable footrests and a folding reinforced steel frame.',
+      metaDescription:
+        'Buy a reclining wheelchair: multi-position backrest, headrest, integrated leg lift, adjustable footrests and a folding reinforced steel frame.',
       description: [
         '<p>The reclining wheelchair for sale is designed to ensure <strong>comfort, autonomy and safety</strong> for people with reduced mobility or who require continuous care. Thanks to its sturdy structure and numerous adjustments, it represents a complete solution for both domestic and healthcare use.</p>',
         '<h2>Main features</h2>',
@@ -93,11 +97,11 @@ export const recliningWheelchairSale = wheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'reclining-wheelchair-1.jpg', alt: { it: 'carrozzina con schienale reclinabile' } },
-    gallery: [
-      'reclining-wheelchair-2.jpg',
-      'reclining-wheelchair-3.jpg',
-    ],
+    thumbnail: {
+      file: 'reclining-wheelchair-1.jpg',
+      alt: { it: 'carrozzina con schienale reclinabile' },
+    },
+    gallery: ['reclining-wheelchair-2.jpg', 'reclining-wheelchair-3.jpg'],
   },
   terms: [generalTerms],
 });

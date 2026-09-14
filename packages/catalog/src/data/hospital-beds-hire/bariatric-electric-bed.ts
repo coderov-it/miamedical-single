@@ -18,20 +18,18 @@ export const bariatricElectricBed = hospitalBedsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(30, 200),
-    days(45, 280),
-    days(60, 350),
-    days(90, 495),
-  ],
+  packages: [days(30, 200), days(45, 280), days(60, 350), days(90, 495)],
 
   translations: {
     it: {
-      title: 'Noleggio Letto Ospedaliero Bariatrico Elettrico largo 120cm portata 300kg con materasso antidecubito',
+      title:
+        'Noleggio Letto Ospedaliero Bariatrico Elettrico largo 120cm portata 300kg con materasso antidecubito',
       slug: 'letto-ortopedico-con-materasso-antidecubito-roma-firenze-300kg',
-      shortDescription: 'Noleggio Letto ospedaliero Bariatrico Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a Roma e a Firenze a domicilio incluso di montaggio a partire da 80€. Lo stesso prezzo vale anche per il ritiro! Il costo sarà maggiorato in caso di consegna al piano senza ascensore. La struttura di questo letto è rinforzata. Il motore è potenziato per una portata fino a 300kg. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 120€.',
+      shortDescription:
+        'Noleggio Letto ospedaliero Bariatrico Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a Roma e a Firenze a domicilio incluso di montaggio a partire da 80€. Lo stesso prezzo vale anche per il ritiro! Il costo sarà maggiorato in caso di consegna al piano senza ascensore. La struttura di questo letto è rinforzata. Il motore è potenziato per una portata fino a 300kg. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 120€.',
       metaTitle: 'Noleggio letti ortopedici - con materasso incluso | Roma e Firenze',
-      metaDescription: 'Noleggio letto ortopedico bariatrico elettrico per anziani con materasso antidecubito a Roma e Firenze. Chiamaci ora al +39 392 65 09 237!',
+      metaDescription:
+        'Noleggio letto ortopedico bariatrico elettrico per anziani con materasso antidecubito a Roma e Firenze. Chiamaci ora al +39 392 65 09 237!',
       description: [
         '<p>Il l<strong>etto ortopedico ospedaliero bariatrico elettrico</strong> è un <strong>dispositivo medicale </strong>progettato per garantire<br /><strong>sicurezza</strong>, <strong>comfort </strong>e <strong>supporto</strong> ottimale ad anziani, persone con obesità grave, mobilità ridotta o che devono trascorrere un periodo di <strong>degenza a casa</strong>. Mia Medical offre un servizio di noleggio su Roma e Firenze di una vasta gamma di letti ortopedici elettrici ospedalieri.</p>',
         '<p>Questo modello, grazie alla sua <strong>struttura rinforzata</strong> con una <strong>portata massima di 300 kg</strong>, sponde laterali, triangolo &#8220;alza-malato&#8221;, e una <strong>larghezza extra di 120 cm</strong>, questo letto è ideale per garantire la <strong>massima stabilità e comodità</strong> anche per <strong>pazienti bariatrici.</strong></p>',
@@ -60,24 +58,26 @@ export const bariatricElectricBed = hospitalBedsHire.rental({
     en: {
       title: 'Bariatric electric hospital bed, 120 cm wide, 300 kg, with pressure-relief mattress',
       slug: 'letto-ortopedico-con-materasso-antidecubito-roma-firenze-300kg',
-      shortDescription: 'Hire Bariatric Hospital Bed Easy booking, clear costs, state-of-the-art aids. No deposit! Delivery in Rome and Florence home delivery including assembly starting from €80. The same price also applies for collection! The cost will be increased in the case of delivery to a floor without a lift. The structure of this bed is reinforced. The motor is upgraded for a capacity of up to 300kg. For hygiene reasons, it mandatory purchase of the mattress cover at €120.',
+      shortDescription:
+        'Hire Bariatric Hospital Bed Easy booking, clear costs, state-of-the-art aids. No deposit! Delivery in Rome and Florence home delivery including assembly starting from €80. The same price also applies for collection! The cost will be increased in the case of delivery to a floor without a lift. The structure of this bed is reinforced. The motor is upgraded for a capacity of up to 300kg. For hygiene reasons, it mandatory purchase of the mattress cover at €120.',
       metaTitle: 'Orthopaedic bed hire — mattress included | Rome and Florence',
-      metaDescription: 'Hire a bariatric electric orthopaedic bed with a pressure-relief mattress in Rome and Florence. Call +39 392 650 9237',
+      metaDescription:
+        'Hire a bariatric electric orthopaedic bed with a pressure-relief mattress in Rome and Florence. Call +39 392 650 9237',
       description: [
         '<p>The l<strong>electric bariatric hospital orthopaedic hectograph</strong> is a <strong>medical device </strong>designed to ensure<br /><strong>security</strong>, <strong>comfort </strong>e <strong>support</strong> ideal for older people, individuals with severe obesity, reduced mobility or who have to spend a period of <strong>home care</strong>. Mia Medical offers a rental service in Rome and Florence for a wide range of electric orthopaedic hospital beds.</p>',
-        '<p>This model, thanks to its <strong>reinforced structure</strong> with a <strong>maximum load capacity of 300 kg</strong>, side rails, triangle \'riser\', and a <strong>extra width of 120 cm</strong>, this bed is ideal for ensuring the <strong>maximum stability and comfort</strong> also for <strong>bariatric patients.</strong></p>',
+        "<p>This model, thanks to its <strong>reinforced structure</strong> with a <strong>maximum load capacity of 300 kg</strong>, side rails, triangle 'riser', and a <strong>extra width of 120 cm</strong>, this bed is ideal for ensuring the <strong>maximum stability and comfort</strong> also for <strong>bariatric patients.</strong></p>",
         '<p>Don\'t let this opportunity pass you by! <strong>Included in the rental on Rome and Florence : <a href="/en/product/vendita-materasso-antidecubito-polyplot-90cm/">high-strength anti-decubitus mattress</a></strong>designed to prevent pressure injuries and improve the quality of rest.</p>',
         '<p>Perfect for the<strong>home and hospital use</strong>, This orthopaedic bed for the elderly offers adjustments.<br />advanced electrics for easier and more comfortable servicing.</p>',
         '<h3>Who can hire an electric orthopaedic bed | Rome and Florence ? </h3>',
         '<p>The electric orthopaedic bed is recommended for:</p>',
         '<ul><li><strong>People with severe obesity</strong> (up to 300 kg): The extra-large frame provides greater stability and comfort.</li><li><strong>Patients with reduced mobility or elderly patients confined to bed for long periods</strong>: Ideal for those who have difficulty moving independently.</li><li><strong>Post-operative subjects</strong>: Supports safe recovery, reducing the risk of complications.</li><li><strong>People with motor disabilities or neurological disorders</strong>: Facilitates home and hospital care.</li><li><strong>Who is at risk of pressure sores</strong>Thanks to the included anti-decubitus mattress, it helps prevent pressure injuries.</li><li>People who need a <strong>comfortable, practical and safe bed</strong> for a period of <strong>hospitalisation</strong> by <strong>home</strong></li></ul>',
         '<p><strong>Looking for the best orthopaedic hospital bed Bariartico? This model is the perfect choice!</strong></p>',
-        '<p>Here\'s why: </p>',
-        '<ul><li><strong>Maximum bed capacity</strong>In fact, if the patient weighs over 200 kg, a bed with a reinforced frame and a load capacity of up to 300 kg, such as this model, is essential.</li><li><strong>Extra-large dimensions</strong>A wider bed (120 cm instead of 90 cm) offers more stability and comfort.</li><li><strong>Electrical adjustments</strong>This electric orthopaedic bed allows the height, back and leg angle to be adjusted, facilitating movement and improving the patient\'s posture.</li></ul>',
+        "<p>Here's why: </p>",
+        "<ul><li><strong>Maximum bed capacity</strong>In fact, if the patient weighs over 200 kg, a bed with a reinforced frame and a load capacity of up to 300 kg, such as this model, is essential.</li><li><strong>Extra-large dimensions</strong>A wider bed (120 cm instead of 90 cm) offers more stability and comfort.</li><li><strong>Electrical adjustments</strong>This electric orthopaedic bed allows the height, back and leg angle to be adjusted, facilitating movement and improving the patient's posture.</li></ul>",
         '<p><strong><a href="https://wa.me/393926509237">Do you have doubts? Contact us for a free consultation!</a></strong></p>',
         '<p><strong>Features of the bariatric electric hospital orthopaedic bed </strong></p>',
         '<ul><li>full electric adjustment.</li><li>Net area: 200 cm x 140 cm ;</li><li>Total length: 220 cm;</li><li>Total width: 140 cm.</li><li>Maximum patient weight: 250 kg;</li><li>Maximum safe load: 300Kg.</li><li>Height adjustment with remote control: minimum: 30 cm. - maximum: 80 cm.</li></ul>',
-        '<p>Thanks to these characteristics, the <strong>renting the electric orthopaedic bed will improve the patient\'s quality of life and simplify care work.</strong></p>',
+        "<p>Thanks to these characteristics, the <strong>renting the electric orthopaedic bed will improve the patient's quality of life and simplify care work.</strong></p>",
         '<h3>Why this Mia Medical model?</h3>',
         '<ul><li><strong>Increased safety and stability</strong> for people with obesity</li><li><strong>Ease of use</strong> with advanced electrical adjustments</li><li><strong>Optimal comfort</strong> thanks to the extra width and anti-decubitus mattress</li><li>Perfect for <strong>home and hospital use</strong></li><li><strong>Ease of transport and installation </strong>with lockable wheels</li></ul>',
         '<h2>How does it work?</h2>',
@@ -102,9 +102,7 @@ export const bariatricElectricBed = hospitalBedsHire.rental({
 
   media: {
     thumbnail: 'bariatric-electric-bed-1.jpg',
-    gallery: [
-      'bariatric-electric-bed-2.jpg',
-    ],
+    gallery: ['bariatric-electric-bed-2.jpg'],
   },
 
   addons: [homeDelivery(80)],

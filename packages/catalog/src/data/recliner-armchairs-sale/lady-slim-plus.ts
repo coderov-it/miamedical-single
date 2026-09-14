@@ -25,9 +25,11 @@ export const ladySlimPlus = reclinerArmchairsSale.fixed({
     it: {
       title: 'Vendita poltrona reclinabile Lady Slim Plus',
       slug: 'poltrona-reclinabile-lady-slim-plus',
-      shortDescription: 'Poltrona Reclinabile Lady Slim Plus. Compatta, dalle linee eleganti e facile da posizionare anche in ambienti ristretti. Braccioli imbottiti, tessuto antigoccia e antimacchia, regolazione indipendente di schienale e poggiapiedi. Dotata di 2 ruotine posteriori e Roller System per spostarla senza sforzo. Portata massima 150 kg. IVA agevolata al 4%. Disponibilità immediata, consegna gratuita.',
+      shortDescription:
+        'Poltrona Reclinabile Lady Slim Plus. Compatta, dalle linee eleganti e facile da posizionare anche in ambienti ristretti. Braccioli imbottiti, tessuto antigoccia e antimacchia, regolazione indipendente di schienale e poggiapiedi. Dotata di 2 ruotine posteriori e Roller System per spostarla senza sforzo. Portata massima 150 kg. IVA agevolata al 4%. Disponibilità immediata, consegna gratuita.',
       metaTitle: 'Poltrona Reclinabile Lady Slim Plus | Comfort e Design in Spazi Ridotti',
-      metaDescription: 'Scopri la Poltrona Reclinabile Lady Slim Plus: compatta, confortevole e facile da spostare. Braccioli imbottiti, tessuto antigoccia e antimacchia, regolazione schienale e poggiapiedi. Acquista ora da Mia Medical Italia!',
+      metaDescription:
+        'Scopri la Poltrona Reclinabile Lady Slim Plus: compatta, confortevole e facile da spostare. Braccioli imbottiti, tessuto antigoccia e antimacchia, regolazione schienale e poggiapiedi. Acquista ora da Mia Medical Italia!',
       description: [
         '<p><strong>Vendita Poltrona Reclinabile Lady Slim Plus: comfort e design in spazi ridotti</strong></p>',
         '<p>La <strong>Poltrona Reclinabile Lady Slim Plus</strong> è la soluzione perfetta per chi desidera unire <strong>comfort, design e praticità</strong>, anche negli spazi più ristretti. Grazie al suo ingombro ridotto, ai braccioli imbottiti e al tessuto antigoccia e antimacchia, questa poltrona permette di rilassarsi in totale comodità senza rinunciare allo stile e alla funzionalità.</p>',
@@ -47,9 +49,11 @@ export const ladySlimPlus = reclinerArmchairsSale.fixed({
     en: {
       title: 'Lady Slim Plus recliner, for sale',
       slug: 'poltrona-reclinabile-lady-slim-plus',
-      shortDescription: 'Lady Slim Plus recliner. Compact, elegantly drawn and easy to place even where space is tight. Padded armrests, drip- and stain-resistant fabric, and backrest and footrest that adjust independently. Two rear castors and a Roller System move it without effort. Rated to 150 kg. Eligible for the reduced 4% VAT rate. Available immediately, delivered free.',
+      shortDescription:
+        'Lady Slim Plus recliner. Compact, elegantly drawn and easy to place even where space is tight. Padded armrests, drip- and stain-resistant fabric, and backrest and footrest that adjust independently. Two rear castors and a Roller System move it without effort. Rated to 150 kg. Eligible for the reduced 4% VAT rate. Available immediately, delivered free.',
       metaTitle: 'Lady Slim Plus recliner | Comfort and design in a small space',
-      metaDescription: 'Meet the Lady Slim Plus recliner: compact, comfortable and easy to move. Padded armrests and drip-resistant fabric.',
+      metaDescription:
+        'Meet the Lady Slim Plus recliner: compact, comfortable and easy to move. Padded armrests and drip-resistant fabric.',
       description: [
         '<p><strong>Vendita Poltrona Reclinabile Lady Slim Plus: comfort e design in spazi ridotti</strong></p>',
         '<p>La <strong>Poltrona Reclinabile Lady Slim Plus</strong> è la soluzione perfetta per chi desidera unire <strong>comfort, design e praticità</strong>, anche negli spazi più ristretti. Grazie al suo ingombro ridotto, ai braccioli imbottiti e al tessuto antigoccia e antimacchia, questa poltrona permette di rilassarsi in totale comodità senza rinunciare allo stile e alla funzionalità.</p>',
@@ -74,7 +78,10 @@ export const ladySlimPlus = reclinerArmchairsSale.fixed({
     'total-length': { min: 80, max: 80 },
     'total-height': { min: 112, max: 112 },
     'reclining-backrest': true,
-    upholstery: { it: 'Tessuto antigoccia, braccioli imbottiti', en: 'Drip-resistant fabric, padded armrests' },
+    upholstery: {
+      it: 'Tessuto antigoccia, braccioli imbottiti',
+      en: 'Drip-resistant fabric, padded armrests',
+    },
   },
 
   media: {

@@ -21,9 +21,11 @@ export const selfPropelledFoldingSale = wheelchairsSale.fixed({
     it: {
       title: 'Vendita carrozzina pieghevole ad autospinta',
       slug: 'vendita-carrozzina-pieghevole-ad-autospinta',
-      shortDescription: 'Sedia a rotelle ad autospinta Comoda e leggera, facile da caricare in macchina. Carrozzina con seduta e telaio pieghevole per massima praticità. Consegna gratuita in tutta Italia',
+      shortDescription:
+        'Sedia a rotelle ad autospinta Comoda e leggera, facile da caricare in macchina. Carrozzina con seduta e telaio pieghevole per massima praticità. Consegna gratuita in tutta Italia',
       metaTitle: 'Carrozzina Pieghevole ad Autospinta in vendita | Fino a 130kg',
-      metaDescription: 'Acquista la carrozzina pieghevole ad autospinta con portata fino a 130 kg, ruote grandi e struttura leggera. Ideale per anziani e disabili.',
+      metaDescription:
+        'Acquista la carrozzina pieghevole ad autospinta con portata fino a 130 kg, ruote grandi e struttura leggera. Ideale per anziani e disabili.',
       description: [
         '<p>La carrozzina pieghevole ad autospinta è la soluzione ideale per persone anziane, disabili o con ridotta capacità di deambulazione che necessitano di un ausilio pratico, sicuro e confortevole per gli spostamenti quotidiani.</p>',
         '<p>Grazie alle grandi ruote posteriori, l’utilizzatore può muoversi in autonomia senza la necessità di un accompagnatore. La struttura è leggera ma estremamente robusta, progettata per garantire affidabilità e durata nel tempo.</p>',
@@ -50,9 +52,11 @@ export const selfPropelledFoldingSale = wheelchairsSale.fixed({
     en: {
       title: 'Folding self-propelled wheelchair for sale',
       slug: 'vendita-carrozzina-pieghevole-ad-autospinta',
-      shortDescription: 'Self-propelled wheelchair Comfortable and light, easy to load in the car. Wheelchair with folding seat and frame for maximum convenience. Delivery free of charge throughout Italy',
+      shortDescription:
+        'Self-propelled wheelchair Comfortable and light, easy to load in the car. Wheelchair with folding seat and frame for maximum convenience. Delivery free of charge throughout Italy',
       metaTitle: 'Folding self-propelled wheelchair for sale | Up to 130 kg',
-      metaDescription: 'Buy a folding self-propelled wheelchair rated to 130 kg: large rear wheels, seats of 40, 45 or 50 cm, removable armrests and footrests.',
+      metaDescription:
+        'Buy a folding self-propelled wheelchair rated to 130 kg: large rear wheels, seats of 40, 45 or 50 cm, removable armrests and footrests.',
       description: [
         '<p>The self-propelled foldable wheelchair is the ideal solution for elderly people, disabled individuals or those with reduced mobility who require a practical, safe and comfortable aid for daily journeys.</p>',
         '<p>Thanks to the large rear wheels, the user can move around independently without the need of an attendant. The frame is lightweight yet extremely robust, designed to guarantee reliability and durability over time.</p>',
@@ -90,10 +94,11 @@ export const selfPropelledFoldingSale = wheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'self-propelled-folding-1.jpg', alt: { it: 'Affitto carrozzina pieghevole ad autospinta' } },
-    gallery: [
-      'self-propelled-folding-2.jpg',
-    ],
+    thumbnail: {
+      file: 'self-propelled-folding-1.jpg',
+      alt: { it: 'Affitto carrozzina pieghevole ad autospinta' },
+    },
+    gallery: ['self-propelled-folding-2.jpg'],
   },
   terms: [generalTerms],
 });

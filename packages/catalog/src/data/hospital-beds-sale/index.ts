@@ -5,6 +5,4 @@
 import { hospitalBedsSale } from './category.ts';
 import { threeJointElectricBed } from './three-joint-electric-bed.ts';
 
-export default hospitalBedsSale.withProducts([
-  threeJointElectricBed,
-]);
+export default hospitalBedsSale.withProducts([threeJointElectricBed]);

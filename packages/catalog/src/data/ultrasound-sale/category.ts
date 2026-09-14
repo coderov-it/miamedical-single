@@ -4,7 +4,13 @@
 import { defineCategory } from '../../lib/define.ts';
 import { powerSupply, treatmentTimer, warranty, weight, colour } from '../shared/specs.ts';
 import { overallDimensions } from '../shared/specs-chassis.ts';
-import { includedAccessories, channels, programmes, treatmentPressure, treatmentTemperature } from '../shared/specs-therapy.ts';
+import {
+  includedAccessories,
+  channels,
+  programmes,
+  treatmentPressure,
+  treatmentTemperature,
+} from '../shared/specs-therapy.ts';
 
 export const ultrasoundSale = defineCategory({
   code: 'ultrasound-sale',
@@ -30,5 +36,17 @@ export const ultrasoundSale = defineCategory({
     },
   },
 
-  specs: { ...includedAccessories, ...channels, ...programmes, ...treatmentPressure, ...treatmentTemperature, ...treatmentTimer, ...powerSupply, ...overallDimensions, ...weight, ...warranty, ...colour },
+  specs: {
+    ...includedAccessories,
+    ...channels,
+    ...programmes,
+    ...treatmentPressure,
+    ...treatmentTemperature,
+    ...treatmentTimer,
+    ...powerSupply,
+    ...overallDimensions,
+    ...weight,
+    ...warranty,
+    ...colour,
+  },
 });

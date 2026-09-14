@@ -25,7 +25,8 @@ export const pressureReliefCushion = accessoriesSale.fixed({
       slug: 'cuscino-antidecubito-in-fibra-cava-siliconata',
       shortDescription: 'Vendita Cuscino antidecubito con e senza foro.',
       metaTitle: 'Cuscino antidecubito - Mia Medical Italia',
-      metaDescription: 'vendita cuscino antidecubito in fibra siliconata, con foro centrale o senza, lavabile in lavatrice disponibilità immediata in 24 ore, chiamaci !',
+      metaDescription:
+        'vendita cuscino antidecubito in fibra siliconata, con foro centrale o senza, lavabile in lavatrice disponibilità immediata in 24 ore, chiamaci !',
       description: [
         '<h2><strong>Vendita Cuscino Antidecubito Traspirante: Comfort, prevenzione e benessere quotidiano</strong></h2>',
         '<p>Il&nbsp;<strong>cuscino antidecubito</strong>&nbsp;è un ausilio fondamentale per la&nbsp;<strong>prevenzione delle piaghe da decubito</strong>e per il miglioramento del comfort nelle persone costrette a stare sedute per lunghi periodi.</p>',
@@ -71,7 +72,8 @@ export const pressureReliefCushion = accessoriesSale.fixed({
       slug: 'cuscino-antidecubito-in-fibra-cava-siliconata',
       shortDescription: 'For sale. Pressure-relief cushion, with or without a central hole.',
       metaTitle: 'Pressure-relief cushion - Mia Medical Italia',
-      metaDescription: 'Siliconised-fibre pressure-relief cushion for sale, with or without a central hole, machine washable. Available in 24 hours.',
+      metaDescription:
+        'Siliconised-fibre pressure-relief cushion for sale, with or without a central hole, machine washable. Available in 24 hours.',
       description: [
         '<h2><strong>Breathable Antidecubitus Pillow for sale: Comfort, prevention and daily well-being</strong></h2>',
         '<p>The&nbsp;<strong>anti-decubitus pillow</strong>&nbsp;it is a fundamental aid for&nbsp;<strong>prevention of pressure sores</strong>and for improving comfort in people forced to sit for long periods.</p>',
@@ -89,7 +91,7 @@ export const pressureReliefCushion = accessoriesSale.fixed({
         '<h4><strong>Silicone hollow fibre filling</strong></h4>',
         '<p>The padding in&nbsp;<strong>siliconised hollow fibre</strong>&nbsp;allows:</p>',
         '<ul><li>a&nbsp;<strong>continuous aeration of the skin</strong></li><li>a&nbsp;<strong>better heat dissipation</strong></li><li>a&nbsp;<strong>even pressure distribution</strong></li></ul>',
-        '<p>La&nbsp;<strong>silicone film</strong>&nbsp;present on the fibre allows a&nbsp;<strong>easy sliding between fibres</strong>, further enhancing the softness and the pillow\'s ability to adapt to the shape of the body.</p>',
+        "<p>La&nbsp;<strong>silicone film</strong>&nbsp;present on the fibre allows a&nbsp;<strong>easy sliding between fibres</strong>, further enhancing the softness and the pillow's ability to adapt to the shape of the body.</p>",
         '<h4><strong>Soft, supple and comfortable</strong></h4>',
         '<p>The anti-pressure ulcer cushion is designed to offer:</p>',
         '<ul><li><strong>ergonomic adaptability</strong></li><li>comfort even during prolonged use</li><li>support without rigidity</li></ul>',
@@ -115,7 +117,10 @@ export const pressureReliefCushion = accessoriesSale.fixed({
   },
 
   specs: {
-    upholstery: { it: 'Fibra cava siliconata, lavabile in lavatrice', en: 'Siliconised hollow fibre, machine washable' },
+    upholstery: {
+      it: 'Fibra cava siliconata, lavabile in lavatrice',
+      en: 'Siliconised hollow fibre, machine washable',
+    },
   },
 
   media: {

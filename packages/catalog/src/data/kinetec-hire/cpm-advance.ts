@@ -18,20 +18,17 @@ export const cpmAdvance = kinetecHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 150),
-    days(20, 200),
-    days(30, 260),
-    days(60, 480),
-  ],
+  packages: [days(15, 150), days(20, 200), days(30, 260), days(60, 480)],
 
   translations: {
     it: {
       title: 'Noleggio Kinetec CPM ADVANCE Ginocchio Anca',
       slug: 'noleggio-kinetec-cpm-advance-ginocchio-anca',
-      shortDescription: 'Ritiro e consegna a domicilio Il ritiro in magazzino è GRATUITO. Chiamaci o prenota online subito! Consegna a domicilio solo a Roma e Firenze: 30€ + 30€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 30 giorni.',
+      shortDescription:
+        'Ritiro e consegna a domicilio Il ritiro in magazzino è GRATUITO. Chiamaci o prenota online subito! Consegna a domicilio solo a Roma e Firenze: 30€ + 30€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 30 giorni.',
       metaTitle: 'Noleggio Kinetec CPM ADVANCE Ginocchio-Anca',
-      metaDescription: 'Noleggio Kinetec CPM ADVANCE a partire da 8,00€ al giorno.Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare, prenota ora online!',
+      metaDescription:
+        'Noleggio Kinetec CPM ADVANCE a partire da 8,00€ al giorno.Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare, prenota ora online!',
       description: [
         '<p>Noleggio Kinetec CPM ADVANCE, dispositivo avanzato per la mobilizzazione passiva continua (CPM) delle articolazioni del ginocchio e dell’anca, pensato per accompagnare il paziente nel delicato percorso di recupero post-operatorio o post-traumatico.</p>',
         '<p>Grazie alla sua tecnologia avanzata e all’elevata adattabilità, è una scelta eccellente per chi desidera riabilitarsi in modo efficace, sicuro e confortevole direttamente a casa.</p>',
@@ -58,9 +55,11 @@ export const cpmAdvance = kinetecHire.rental({
     en: {
       title: 'Kinetec CPM ADVANCE knee and hip machine, for hire',
       slug: 'noleggio-kinetec-cpm-advance-ginocchio-anca',
-      shortDescription: 'Collection and home delivery. Collection at the warehouse is FREE. Call us or book online now! Home delivery in Rome and Florence only: €30 out and €30 back. Free delivery on hires of 30 days or more.',
+      shortDescription:
+        'Collection and home delivery. Collection at the warehouse is FREE. Call us or book online now! Home delivery in Rome and Florence only: €30 out and €30 back. Free delivery on hires of 30 days or more.',
       metaTitle: 'Kinetec CPM ADVANCE knee and hip hire',
-      metaDescription: 'Kinetec CPM ADVANCE hire from €8.00 a day, delivered to your door. Safe, reliable machines that are easy to use.',
+      metaDescription:
+        'Kinetec CPM ADVANCE hire from €8.00 a day, delivered to your door. Safe, reliable machines that are easy to use.',
       description: [
         '<p>Hire Kinetec CPM ADVANCE, an advanced device for continuous passive mobilisation (CPM) of the knee and hip joints, designed to accompany the patient through the delicate post-operative or post-traumatic recovery process.</p>',
         '<p>Thanks to its advanced technology and high adaptability, it is an excellent choice for those who want to rehabilitate effectively, safely and comfortably right at home.</p>',
@@ -73,7 +72,7 @@ export const cpmAdvance = kinetecHire.rental({
         '<ul><li>Total or partial knee or hip replacement;</li><li>Ligament or meniscus surgery;</li><li>Joint fractures and traumas;</li><li>Post-immobilisation joint stiffness;</li><li>Elderly patients with reduced mobility;</li><li>Long-term post-surgical rehabilitation.</li></ul>',
         '<h4><p><strong>Installation, servicing and programming at home</strong></h4>',
         '<p>With M.I.A. Medical, rental is simple, fast and complete:</p>',
-        '<ul><li>We deliver the Kinetec CPM ADVANCE directly to your home;</li><li>our qualified technicians show you step by step how to use it;</li><li>We customise the machine according to the doctor\'s prescription or the patient\'s specific needs;</li><li>we remain available after delivery for any needs or support.</li></ul>',
+        "<ul><li>We deliver the Kinetec CPM ADVANCE directly to your home;</li><li>our qualified technicians show you step by step how to use it;</li><li>We customise the machine according to the doctor's prescription or the patient's specific needs;</li><li>we remain available after delivery for any needs or support.</li></ul>",
         '<h4><p><strong>Why is it worth hiring a Kinetec CPM?</strong></h4>',
         '<p>CPM therapies are only effective if they are constant and practised over time. Occasional sessions at the physiotherapist are not sufficient to achieve lasting results.</p>',
         '<p>With the rental of the Kinetec CPM ADVANCE:</p>',
@@ -88,9 +87,7 @@ export const cpmAdvance = kinetecHire.rental({
 
   media: {
     thumbnail: 'cpm-advance-1.jpg',
-    gallery: [
-      'cpm-advance-2.png',
-    ],
+    gallery: ['cpm-advance-2.png'],
   },
 
   addons: [homeDeliveryOnly(30), homeCollection(30)],

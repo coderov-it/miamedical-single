@@ -21,21 +21,17 @@ export const oneScooter = electricWheelchairsAndScootersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(3, 110),
-    days(7, 160),
-    days(15, 250),
-    days(30, 390),
-    days(45, 540),
-  ],
+  packages: [days(3, 110), days(7, 160), days(15, 250), days(30, 390), days(45, 540)],
 
   translations: {
     it: {
       title: 'Noleggio scooter Elettrico One',
       slug: 'scooter-elettrico-one-a-noleggio-per-disabili-ed-anziani',
-      shortDescription: 'Libertà e movimento! Noleggia il tuo Scooter One e riscopri la tua indipendenza! Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni. Consegna a domicilio: 30€ + 30€ per il ritiro. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Libertà e movimento! Noleggia il tuo Scooter One e riscopri la tua indipendenza! Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni. Consegna a domicilio: 30€ + 30€ per il ritiro. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio scooter elettrico One per anziani e disabili',
-      metaDescription: 'Noleggio scooter elettrico One per anziani e disabili a Roma e Firenze. Scooter elettrico con autonomia fino a 30 km, comfort e consegna rapida.',
+      metaDescription:
+        'Noleggio scooter elettrico One per anziani e disabili a Roma e Firenze. Scooter elettrico con autonomia fino a 30 km, comfort e consegna rapida.',
       description: [
         '<h3>Scopri l’Italia con sicurezza e comfort!<br />Eleganza, sicurezza e autonomia per vivere Roma e Firenze senza limiti.</h3>',
         '<p>Che tu voglia percorrere i vicoli storici di <strong>Roma</strong>, attraversare le piazze di <strong>Firenze</strong> o semplicemente goderti un weekend fuori porta, il noleggio <strong>Scooter Elettrico ONE</strong> per anziani e disabili è il compagno di viaggio perfetto. <strong>Compatto, potente e confortevole</strong>, ti offre tutto ciò che serve per vivere l’esterno in autonomia e sicurezza.</p>',
@@ -60,14 +56,16 @@ export const oneScooter = electricWheelchairsAndScootersHire.rental({
     en: {
       title: 'One electric scooter for hire',
       slug: 'scooter-elettrico-one-a-noleggio-per-disabili-ed-anziani',
-      shortDescription: 'Freedom and movement! Rent your Scooter One and rediscover your independence! Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals. Home delivery: 30€ + 30€ for withdrawal. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'Freedom and movement! Rent your Scooter One and rediscover your independence! Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals. Home delivery: 30€ + 30€ for withdrawal. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'One electric scooter hire | Rome and Florence',
-      metaDescription: 'Hire the One mobility scooter in Rome and Florence: up to 30 km on a charge, 140 kg capacity, pneumatic tyres, quick delivery.',
+      metaDescription:
+        'Hire the One mobility scooter in Rome and Florence: up to 30 km on a charge, 140 kg capacity, pneumatic tyres, quick delivery.',
       description: [
         '<h3>Discover Italy with confidence and comfort!<br />Elegance, security and autonomy to experience Rome and Florence without limits.</h3>',
         '<p>Whether you want to walk the historic alleys of <strong>Rome</strong>, cross the squares of <strong>Florence</strong> or simply enjoy a weekend away, the rental <strong>Electric Scooter ONE</strong> It is the perfect travel companion for the elderly and disabled. <strong>Compact, powerful and comfortable</strong>It offers you everything you need to experience the outdoors independently and safely.</p>',
         '<h3>One electric scooter rental: features and benefits</h3>',
-        '<ul><li><strong>Ideal for urban and outdoor environments</strong>don\'t let its compactness fool you. The air wheels guarantee a smooth and cushioned ride even on uneven surfaces, pavements and cobblestones.</li><li><strong>Enhanced autonomy</strong>thanks to the <strong>25 Ah</strong>walk to <strong>30 km</strong> in serenity, perfect for your days in the city.</li><li><strong>High comfort</strong>ergonomic seat, adjustable armrests and a structure designed for maximum comfort during prolonged use.</li><li><strong>Easily disassembled</strong>Transporting it in the car or storing it at home is easy. It disassembles in seconds without the need for tools.</li><li><strong>Intuitive LED display</strong>Check the battery status at a glance thanks to the handy digital screen.</li><li><strong>Customisable</strong>choose your style every day! The scooter includes <strong>four interchangeable covers</strong> in different colours.</li></ul>',
+        "<ul><li><strong>Ideal for urban and outdoor environments</strong>don't let its compactness fool you. The air wheels guarantee a smooth and cushioned ride even on uneven surfaces, pavements and cobblestones.</li><li><strong>Enhanced autonomy</strong>thanks to the <strong>25 Ah</strong>walk to <strong>30 km</strong> in serenity, perfect for your days in the city.</li><li><strong>High comfort</strong>ergonomic seat, adjustable armrests and a structure designed for maximum comfort during prolonged use.</li><li><strong>Easily disassembled</strong>Transporting it in the car or storing it at home is easy. It disassembles in seconds without the need for tools.</li><li><strong>Intuitive LED display</strong>Check the battery status at a glance thanks to the handy digital screen.</li><li><strong>Customisable</strong>choose your style every day! The scooter includes <strong>four interchangeable covers</strong> in different colours.</li></ul>",
         '<h3>Main technical characteristics of the ONE electric scooter</h3>',
         '<ul><li><strong>Maximum speed</strong>8 km/h</li><li><strong>Autonomy</strong>up to 30 km</li><li><strong>Load capacity</strong>140 kg</li><li><strong>Motor</strong>: 270W</li><li><strong>Batteries</strong>: 2 x 12V 25 Ah</li><li><strong>Dimensions</strong>: 103 cm (length) × 49 cm (width) × 88 cm (height)</li><li><strong>Weight</strong>Lightweight and easily disassembled for transport</li><li><strong>Wheels</strong>: pneumatics for superior comfort on outdoor routes</li><li><strong>Colour</strong>: 4 interchangeable covers included</li></ul>',
         '<h3><strong>Rent the One electric scooter for your urban mobility with freedom</strong></h3>',

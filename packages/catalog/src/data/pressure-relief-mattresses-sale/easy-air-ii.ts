@@ -22,7 +22,8 @@ export const easyAirIi = pressureReliefMattressesSale.fixed({
       slug: 'vendita-materasso-antidecubito',
       shortDescription: 'Non perdere l’Offerta speciale! Fino ad esaurimento scorte.',
       metaTitle: 'Vendita materasso antidecubito con compressore -',
-      metaDescription: 'Vendita materasso antidecubito con compressore per anziani e disabili EASY AIR II. Consegna in tutta l\'Italia, prezzo migliore del web.',
+      metaDescription:
+        "Vendita materasso antidecubito con compressore per anziani e disabili EASY AIR II. Consegna in tutta l'Italia, prezzo migliore del web.",
       description: [
         '<p>Scopri il <strong>servizio di Vendita Materasso Antidecubito con compressore Mia Medical</strong>: il miglior Sistema Antidecubito a Bolle d’Aria EASY AIR II &#8211; Protezione e Comfort per il Riposo </p>',
         '<h4><strong><a href="/wp-admin/about.php">Cos’è un Materasso Antidecubito e Perché è Importante?</a></strong></h4>',
@@ -55,7 +56,8 @@ export const easyAirIi = pressureReliefMattressesSale.fixed({
       slug: 'vendita-materasso-antidecubito',
       shortDescription: 'Do not miss the special offer! While stocks last.',
       metaTitle: 'Pressure-relief mattress with compressor for sale',
-      metaDescription: 'EASY AIR II pressure-relief mattress with compressor for older and disabled users, for sale. Delivery across Italy, best price.',
+      metaDescription:
+        'EASY AIR II pressure-relief mattress with compressor for older and disabled users, for sale. Delivery across Italy, best price.',
       description: [
         '<p>Discover the <strong>sales service Antidecubitus mattress with compressor Mia Medical</strong>the best EASY AIR II Antidecubitus Air Bubble System - Protection and Comfort for Sleep </p>',
         '<h4><strong><a href="/wp-admin/about.php">What is an Antidecubitus Mattress and Why is it Important?</a></strong></h4>',
@@ -69,7 +71,7 @@ export const easyAirIi = pressureReliefMattressesSale.fixed({
         '<h4>What makes the EASY AIR II System special?</h4>',
         '<p>The&nbsp;<strong>EASY AIR II anti-decubitus system</strong>&nbsp;is composed of a&nbsp;<strong>bubble mattress and a compressor with pressure regulator</strong>. It works through a&nbsp;<strong>alternating inflation system</strong>which continuously changes the points of contact with the skin, improving circulation and preventing injury.</p>',
         '<h4><strong><a href="https://www.wimed.it/wp-content/uploads/2024/08/WI-H_ST-20023_SISTEMA-EASY-AIR-2_94131010_rev.2.pdf">Main Features</a></strong></h4>',
-        '<ul><li><strong>Air bubble system</strong>helps reduce pressure on the most delicate areas of the body.</li><li><strong>Compressor with pressure regulation</strong>allows the inflation to be adapted to the patient\'s needs.</li><li><strong>Alternating cycle every 12 minutes</strong>for continuous relief and effective support.</li><li><strong>Low noise (&lt;36 dB)</strong>ideal for a peaceful and disturbance-free sleep.</li><li><strong>Durable PVC material</strong>easy to clean and durable.</li><li><strong>Easy installation and minimal maintenance</strong>.</li></ul>',
+        "<ul><li><strong>Air bubble system</strong>helps reduce pressure on the most delicate areas of the body.</li><li><strong>Compressor with pressure regulation</strong>allows the inflation to be adapted to the patient's needs.</li><li><strong>Alternating cycle every 12 minutes</strong>for continuous relief and effective support.</li><li><strong>Low noise (&lt;36 dB)</strong>ideal for a peaceful and disturbance-free sleep.</li><li><strong>Durable PVC material</strong>easy to clean and durable.</li><li><strong>Easy installation and minimal maintenance</strong>.</li></ul>",
         '<p>Click <a href="https://www.wimed.it/wp-content/uploads/2024/08/WI-H_ST-20023_SISTEMA-EASY-AIR-2_94131010_rev.2.pdf">HERE</a> to consult the complete data sheet. </p>',
         '<h4><strong>The Benefits of the EASY AIR II Anti-Decubitus System</strong></h4>',
         '<ul><li><strong>Prevents pressure sores</strong>&nbsp;first stage.</li><li><strong>Improves comfort and rest</strong>&nbsp;of the patient.</li><li><strong>Easy to use and clean</strong>perfect for home use.</li><li><strong>Reduces pressure on risk areas</strong>improving blood circulation.</li><li><strong>Suitable for standard beds</strong>without the need to replace the mattress.</li></ul>',

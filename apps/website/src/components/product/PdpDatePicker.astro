@@ -86,8 +86,7 @@ const navButton =
   'grid size-11 flex-none place-items-center rounded-lg bg-tint text-[15px] cursor-pointer hover:bg-tint-2';
 ---
 
-{
-  /*
+{/*
     THE GATE sits on the OUTER block, not on either of the two date controls.
     The script hides whichever one is not in use, and a hidden block is read as
     "nothing asked" — so gating the native row would silently stop asking for a
@@ -97,8 +96,7 @@ const navButton =
     Focus goes to the calendar trigger when there is one; the proxy resolves to
     null while `[data-cal-block]` is still hidden, and the gate's own scan finds
     the native input instead. See `discoverGates` in lib/form-validation.ts.
-  */
-}
+  */}
 <div
   class="relative flex flex-col gap-2.5"
   data-date-block
@@ -107,7 +105,9 @@ const navButton =
 >
   {/* ---- no-JavaScript control, and the source of truth in both modes ---- */}
   <div class="flex flex-col gap-1.5" data-date-native>
-    <label class={PDP_LABEL} for="pdp-start-date">{text('pdp.startDate')}</label>
+    <label class={PDP_LABEL} for="pdp-start-date">
+      {text('pdp.startDate')}
+    </label>
     <input
       class={nativeField}
       id="pdp-start-date"
@@ -119,13 +119,13 @@ const navButton =
     />
   </div>
 
-  {
-    /* ---- enhanced control: one date, one line ----
+  {/* ---- enhanced control: one date, one line ----
       ONE field, because there is one date to pick. The return is a consequence
-      of the package, so it belongs to the overview, not to this field. */
-  }
+      of the package, so it belongs to the overview, not to this field. */}
   <div class="flex flex-col gap-1.5" hidden data-cal-block>
-    <span class={PDP_LABEL} id="pdp-cal-label">{text('pdp.startDate')}</span>
+    <span class={PDP_LABEL} id="pdp-cal-label">
+      {text('pdp.startDate')}
+    </span>
     <button
       class={`${PDP_FIELD} cursor-pointer aria-expanded:border-accent focus-visible:border-accent`}
       type="button"
@@ -152,18 +152,14 @@ const navButton =
     </button>
   </div>
 
-  {
-    /* AFTER both date blocks, because it is needed in both and belongs below
+  {/* AFTER both date blocks, because it is needed in both and belongs below
       whichever one is showing: the script hides the native row once the calendar
       mounts, and an hour package cannot be ordered without a time, so nesting
-      this inside either block would leave one path unable to express it. */
-  }
-  {
-    /* Direct child of the date block, so the gate's focus scan reads this block
+      this inside either block would leave one path unable to express it. */}
+  {/* Direct child of the date block, so the gate's focus scan reads this block
       and lands on whichever of the two date controls is currently showing.
       Placed here, under both of them and above the time row, because the message
-      belongs to the control it is about. */
-  }
+      belongs to the control it is about. */}
   <p
     class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
     data-field-error="startDate"
@@ -172,68 +168,58 @@ const navButton =
     Scegli la data di inizio del noleggio.
   </p>
 
-  {
-    /* Its OWN gate, nested inside the date block's. An hourly package cannot be
+  {/* Its OWN gate, nested inside the date block's. An hourly package cannot be
        ordered without a time, but the row is `hidden` until one is chosen — and a
        hidden gate asks nothing, so this becomes required exactly when the package
-       makes it so. `answersIn` stops the date above from answering for it. */
-  }
-  {
-    hasHourPackage && (
-      <div class="flex flex-col gap-1.5" data-time-row hidden data-gate="startTime">
-        <label class={PDP_LABEL} for="pdp-start-time">
-          Scegli l'ora di inizio
-        </label>
-        <input
-          class={nativeField}
-          id="pdp-start-time"
-          type="time"
-          name={FIELD.startTime}
-          step="900"
-          data-est-time
-        />
-        <p
-          class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
-          data-field-error="startTime"
-          hidden
-        >
-          Indica l'ora di inizio: il pacchetto scelto è a ore.
-        </p>
-      </div>
-    )
-  }
+       makes it so. `answersIn` stops the date above from answering for it. */}
+  {hasHourPackage && (
+    <div class="flex flex-col gap-1.5" data-time-row hidden data-gate="startTime">
+      <label class={PDP_LABEL} for="pdp-start-time">
+        Scegli l'ora di inizio
+      </label>
+      <input
+        class={nativeField}
+        id="pdp-start-time"
+        type="time"
+        name={FIELD.startTime}
+        step="900"
+        data-est-time
+      />
+      <p
+        class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+        data-field-error="startTime"
+        hidden
+      >
+        Indica l'ora di inizio: il pacchetto scelto è a ore.
+      </p>
+    </div>
+  )}
 
-  {
-    /* The city the customer already chose, stated rather than asked. It is not
+  {/* The city the customer already chose, stated rather than asked. It is not
       a field: this page cannot change it — the home search set it and the
       confirmation call settles the street — so making it look editable would
-      promise something the panel does not do. */
-  }
-  {
-    deliveryCity && (
-      <p class="text-ink-2 m-0 flex items-center gap-1.5 text-[13px]">
-        <svg
-          class="size-4 shrink-0"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          aria-hidden="true"
-        >
-          <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" />
-          <circle cx="12" cy="10" r="2.5" />
-        </svg>
-        Consegna a {deliveryCity}
-      </p>
-    )
-  }
+      promise something the panel does not do. */}
+  {deliveryCity && (
+    <p class="text-ink-2 m-0 flex items-center gap-1.5 text-[13px]">
+      <svg
+        class="size-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </svg>
+      Consegna a {deliveryCity}
+    </p>
+  )}
 
-  {
-    /* Visibility is the `hidden` ATTRIBUTE alone — Tailwind's preflight makes
+  {/* Visibility is the `hidden` ATTRIBUTE alone — Tailwind's preflight makes
       `[hidden]` `display:none !important`, so it beats the `flex` below and the
       script has exactly one thing to toggle. A `hidden` CLASS here would survive
-      the attribute being removed and keep the popover silently collapsed. */
-  }
+      the attribute being removed and keep the popover silently collapsed. */}
   <div
     class="border-hair rounded-field shadow-pdp-cal absolute top-[calc(100%-6px)] left-1/2 z-30 flex max-h-[62vh] w-92 max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col gap-3 overflow-x-clip overflow-y-auto border bg-white p-2.5"
     hidden
@@ -258,12 +244,16 @@ const navButton =
       class="text-ink-2 grid grid-cols-7 gap-0.5 text-center text-[11px] font-bold"
       aria-hidden="true"
     >
-      {weekdays.map((day) => <span>{day}</span>)}
+      {weekdays.map((day) => (
+        <span>{day}</span>
+      ))}
     </div>
 
     <div class="grid grid-cols-7 gap-0.5" data-cal-grid></div>
 
-    <p class="text-ink-2 m-0 text-[13px]" data-cal-hint>{text('pdp.chooseStartDay')}</p>
+    <p class="text-ink-2 m-0 text-[13px]" data-cal-hint>
+      {text('pdp.chooseStartDay')}
+    </p>
 
     <button
       class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[14.5px] font-semibold text-white"
@@ -274,9 +264,7 @@ const navButton =
     </button>
   </div>
 
-  {
-    /* The day-cell class list lives on the server so the script never hard-codes
-      design tokens; it clones this template for each of the 42 cells. */
-  }
+  {/* The day-cell class list lives on the server so the script never hard-codes
+      design tokens; it clones this template for each of the 42 cells. */}
   <template data-cal-cell-class={dayCell}></template>
 </div>

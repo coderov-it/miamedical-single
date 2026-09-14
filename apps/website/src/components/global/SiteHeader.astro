@@ -149,20 +149,17 @@ const headerIconClass =
   'text-[var(--color-ink)] hover:bg-[rgb(11_18_32_/_0.09)] hover:text-[var(--color-accent)]';
 ---
 
-{
-  /* `font-ui` because the chrome is not prose: the reference site sets its nav
+{/* `font-ui` because the chrome is not prose: the reference site sets its nav
      in the display face (Lexend 16/700) and keeps its text face for running
      copy, so the header names the face rather than inheriting the editorial
-     theme's body face. */
-}
+     theme's body face. */}
 <header
   class:list={[
     EDITORIAL_THEME,
     'font-ui sticky top-0 z-50 border-b border-[var(--color-line)] bg-white',
   ]}
 >
-  {
-    /* THE ROW READS LEFT TO RIGHT AND STAYS THERE: brand, a little space, the
+  {/* THE ROW READS LEFT TO RIGHT AND STAYS THERE: brand, a little space, the
        nav, then every remaining pixel in one shove (`me-auto`) so the controls
        sit hard against the right edge. The bar's gap is the "little space" and
        nothing else — the nav's auto margin eats the only other gap in the row —
@@ -178,8 +175,7 @@ const headerIconClass =
        wears its short name, and the pills give back what they can — their
        padding ramp bottoms out at 4px and the gap between them closes to 0.
        Each small, all confined to the band that needs them,
-       and none of them touching the full-width header (owner, 2026-09-05). */
-  }
+       and none of them touching the full-width header (owner, 2026-09-05). */}
   <div
     class:list={[
       EDITORIAL_CONTAINER,
@@ -191,14 +187,12 @@ const headerIconClass =
       href={routePath(locale, 'home')}
       aria-label={text('header.brand')}
     >
-      {
-        /* The legacy lockup, at the client's instruction (2026-09-08). A 1.86:1
+      {/* The legacy lockup, at the client's instruction (2026-09-08). A 1.86:1
            stacked mark where the old one was a 5.70:1 wordmark, so it could not
            keep the old heights — 24px tall is 45px wide with a 6px wordmark.
            These fill the header band with ~6px of air at every breakpoint, the
            largest the mark goes without growing the band.
-           Measurements and the two remedies: docs/code/storefront-brand-mark.md */
-      }
+           Measurements and the two remedies: docs/code/storefront-brand-mark.md */}
       <img
         class="mid:h-10 wide:h-13 h-9.5 w-auto"
         src="/img/logo.svg"
@@ -213,28 +207,22 @@ const headerIconClass =
       class="mid:flex mid:max-wide:gap-0 me-auto hidden items-center gap-0.5"
       aria-label={text('navigation.primary')}
     >
-      {
-        nav.map((item) => (
-          <a
-            class={navLinkClass}
-            href={item.href}
-            aria-current={isActive(item) ? 'page' : undefined}
-          >
-            {item.short ? (
-              /* 1200, not `wide`: the full names need ~1120px of bar and the
+      {nav.map((item) => (
+        <a class={navLinkClass} href={item.href} aria-current={isActive(item) ? 'page' : undefined}>
+          {item.short ? (
+            /* 1200, not `wide`: the full names need ~1120px of bar and the
                  `wide` query fires at a 1100 VIEWPORT, which is 1085 of usable
                  width once a scrollbar is out. The band gets its short names
                  until they genuinely fit. */
-              <>
-                <span class="min-[1200px]:hidden">{item.short}</span>
-                <span class="max-[1199px]:hidden">{item.label}</span>
-              </>
-            ) : (
-              item.label
-            )}
-          </a>
-        ))
-      }
+            <>
+              <span class="min-[1200px]:hidden">{item.short}</span>
+              <span class="max-[1199px]:hidden">{item.label}</span>
+            </>
+          ) : (
+            item.label
+          )}
+        </a>
+      ))}
     </nav>
 
     <div class="ms-auto flex items-center gap-[clamp(6px,calc(0.36vw+3.4px),8px)]">
@@ -257,26 +245,20 @@ const headerIconClass =
           stroke-linecap="round"
           aria-hidden="true"
         >
-          <path
-            d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
-          ></path>
+          <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"></path>
         </svg>
         <span class="mid:max-wide:hidden">{CONTACT.phoneDisplay}</span>
       </a>
 
-      {
-        /*
+      {/*
           The badge is never rendered on the server: it ships empty and `hidden`,
           and the script below fills it from the same store the cart page reads —
           a cached page cannot carry a wrong number, only no number. It is
           `aria-hidden` because the script rewrites the LINK's label with the
           count; two announcements of one number is worse than one.
-        */
-      }
-      {
-        /* Phones only: search has no slot in the four-tab bar, so typed
-           search lives here — the reference's own arrangement. */
-      }
+        */}
+      {/* Phones only: search has no slot in the four-tab bar, so typed
+           search lives here — the reference's own arrangement. */}
       <a
         class:list={[headerIconClass, 'mid:hidden']}
         href={routePath(locale, 'search')}
@@ -325,7 +307,8 @@ const headerIconClass =
           class="absolute -top-1.25 -right-1.25 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-[var(--color-accent)] px-1 text-[0.6563rem] font-bold text-white tabular-nums"
           data-cart-count
           aria-hidden="true"
-          hidden></span>
+          hidden
+        ></span>
       </a>
 
       <a

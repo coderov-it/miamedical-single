@@ -34,5 +34,13 @@ export const reclinerArmchairsSale = defineCategory({
     },
   },
 
-  specs: { ...loadAndWeight, ...overallDimensions, ...seatWidth, ...recliningBackrest, ...removableArmrests, ...upholstery, ...colour },
+  specs: {
+    ...loadAndWeight,
+    ...overallDimensions,
+    ...seatWidth,
+    ...recliningBackrest,
+    ...removableArmrests,
+    ...upholstery,
+    ...colour,
+  },
 });

@@ -25,20 +25,17 @@ export const walkerWheelchairAndBed = hospitalBedsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 176),
-    days(30, 231),
-    days(60, 378),
-    days(90, 490),
-  ],
+  packages: [days(15, 176), days(30, 231), days(60, 378), days(90, 490)],
 
   translations: {
     it: {
       title: 'Deambulatore + Carrozzina + Letto 1 piazza',
       slug: 'noleggio-deambulatore-carrozzina-e-letto',
-      shortDescription: 'Noleggio Combinato Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a domicilio incluso di montaggio a partire da 65€. Il costo sarà maggiorato in caso di consegna al piano senza ascensore. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 80€.',
+      shortDescription:
+        'Noleggio Combinato Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a domicilio incluso di montaggio a partire da 65€. Il costo sarà maggiorato in caso di consegna al piano senza ascensore. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 80€.',
       metaTitle: 'Deambulatore + Carrozzina + Letto 1 piazza - Mia Medical Italia',
-      metaDescription: 'Noleggio deambulatore carrozzina e letto con materasso antidecubito. Combo perfetto per la riabilitazione post frattura del femore. Prenota online!',
+      metaDescription:
+        'Noleggio deambulatore carrozzina e letto con materasso antidecubito. Combo perfetto per la riabilitazione post frattura del femore. Prenota online!',
       description: [
         '<h4><strong>Noleggio Combinato Deambulatore , Carrozzina e Letto Ortopedico 1 piazza</strong></h4>',
         '<p><strong>La soluzione completa per assistenza, degenza e riabilitazione a domicilio</strong></p>',
@@ -96,14 +93,16 @@ export const walkerWheelchairAndBed = hospitalBedsHire.rental({
     en: {
       title: 'Walking frame + wheelchair + single bed, combined hire',
       slug: 'noleggio-deambulatore-carrozzina-e-letto',
-      shortDescription: 'Combined Hire Easy booking, clear costs, state-of-the-art aids. No deposit! Home delivery including installation from 65€. The cost will be increased in the case of delivery to a floor without a lift. For hygiene reasons, it compulsory to buy the mattress cover for €80.',
+      shortDescription:
+        'Combined Hire Easy booking, clear costs, state-of-the-art aids. No deposit! Home delivery including installation from 65€. The cost will be increased in the case of delivery to a floor without a lift. For hygiene reasons, it compulsory to buy the mattress cover for €80.',
       metaTitle: 'Walking frame + wheelchair + single bed - Mia Medical Italia',
-      metaDescription: 'Combined hire of a walking frame, a wheelchair and a bed with a pressure-relief mattress. The right set for recovery after a hip fracture.',
+      metaDescription:
+        'Combined hire of a walking frame, a wheelchair and a bed with a pressure-relief mattress. The right set for recovery after a hip fracture.',
       description: [
         '<h4><strong>Combined Rental of a Walker, Wheelchair and 1-Square Orthopaedic Bed</strong></h4>',
         '<p><strong>The complete solution for home care, in-patient care and rehabilitation</strong></p>',
         '<p>In the event of reduced motor autonomy, whether temporary or prolonged, it is essential to be able to rely on&nbsp;<strong>appropriate, safe and compatible medical aids</strong>. The service of&nbsp;<strong>combined rental Mia Medical Italia</strong>&nbsp;it is created to meet a practical need: to offer&nbsp;<strong>a complete package of professional medical devices</strong>, already configured to work together, reducing time, costs and organisational difficulties.</p>',
-        '<p>This formula is designed to allow the patient to&nbsp;<strong>staying in one\'s home environment</strong>, while guaranteeing&nbsp;<strong>high standards of care</strong>, comparable to those of a healthcare facility.</p>',
+        "<p>This formula is designed to allow the patient to&nbsp;<strong>staying in one's home environment</strong>, while guaranteeing&nbsp;<strong>high standards of care</strong>, comparable to those of a healthcare facility.</p>",
         '<h3><strong>Who is the combined rental of a walking frame, wheelchair and single orthopaedic bed suitable for?</strong></h3>',
         '<p>The package is particularly suitable in all those cases where the patient presents:</p>',
         '<ul><li>partial or total restriction of mobility</li><li>difficulty in transferring from bed to chair</li><li>reduced muscle strength</li><li>need for assistance during the hospital stay</li><li>gradual rehabilitation pathway</li></ul>',
@@ -150,7 +149,7 @@ export const walkerWheelchairAndBed = hospitalBedsHire.rental({
         '<p>Every clinical situation is different, which is why the Mia Medical Italia team offers a&nbsp;<strong>free personalised consultancy</strong>, to help you choose the solution that best suits your needs. Call us now at&nbsp;<strong><a href="https://wa.me/393926509237">+39 392 6509237</a> to request more information!</strong></p>',
         '<h4><strong>Why choose Mia Medical Italia</strong></h4>',
         '<ul><li>established experience in the medical sector</li><li>certified and sanitised aids</li><li>real, non-automated assistance</li><li>no security deposit</li><li>rapid delivery</li><li>customised solutions</li><li>human support at a delicate time</li></ul>',
-        '<p>With Mia Medical Italia you don\'t just rent devices<strong>&nbsp;but we build a safe, functional and tailor-made care path together.</strong></p>',
+        "<p>With Mia Medical Italia you don't just rent devices<strong>&nbsp;but we build a safe, functional and tailor-made care path together.</strong></p>",
       ].join(''),
     },
   },
@@ -164,7 +163,10 @@ export const walkerWheelchairAndBed = hospitalBedsHire.rental({
     thumbnail: 'walker-wheelchair-and-bed-1.jpg',
     gallery: [
       'walker-wheelchair-and-bed-2.jpg',
-      { file: 'walker-wheelchair-and-bed-3.jpg', alt: { it: 'Affitto carrozzina pieghevole ad autospinta' } },
+      {
+        file: 'walker-wheelchair-and-bed-3.jpg',
+        alt: { it: 'Affitto carrozzina pieghevole ad autospinta' },
+      },
       'walker-wheelchair-and-bed-4.jpg',
       'walker-wheelchair-and-bed-5.jpg',
     ],

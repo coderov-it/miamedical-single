@@ -24,9 +24,11 @@ export const bariatricWheelchairSale = wheelchairsSale.fixed({
     it: {
       title: 'Carrozzina bariatrica pieghevole per pazienti obesi',
       slug: 'carrozzina-bariatrica-pieghevole',
-      shortDescription: 'Vendita Sedia a rotelle pieghevole bariatrica Portata fino a 200kg! Spedizione GRATUITA in tutta Italia Prenota subito online!',
+      shortDescription:
+        'Vendita Sedia a rotelle pieghevole bariatrica Portata fino a 200kg! Spedizione GRATUITA in tutta Italia Prenota subito online!',
       metaTitle: 'Carrozzina bariatrica pieghevole fino a 200 kg | MIA Medical',
-      metaDescription: 'Acquista una carrozzina bariatrica pieghevole fino a 200 kg. Struttura rinforzata, comfort e sicurezza per pazienti con ridotta mobilità.',
+      metaDescription:
+        'Acquista una carrozzina bariatrica pieghevole fino a 200 kg. Struttura rinforzata, comfort e sicurezza per pazienti con ridotta mobilità.',
       description: [
         '<p>La <strong>carrozzina bariatrica pieghevole per pazienti obesi</strong> è la soluzione ideale per chi necessita di un ausilio robusto, sicuro e confortevole per garantire maggiore autonomia negli spostamenti quotidiani. La carrozzina bariatrica è progettata per offrire il massimo della stabilità e della sicurezza, con una struttura rinforzata e una portata elevata fino a <strong>200 kg</strong>, senza rinunciare alla praticità di un modello pieghevole facilmente trasportabile e riponibile.</p>',
         '<p>Grazie alla sua struttura con <strong>doppia crociera in acciaio verniciato</strong>, questa carrozzina è indicata per persone con ridotta capacità di deambulazione, pazienti in fase di recupero post-operatorio, soggetti bariatrici o utenti che necessitano di un supporto affidabile per gli spostamenti quotidiani.</p>',
@@ -60,9 +62,11 @@ export const bariatricWheelchairSale = wheelchairsSale.fixed({
     en: {
       title: 'Folding bariatric wheelchair for obese patients',
       slug: 'carrozzina-bariatrica-pieghevole',
-      shortDescription: 'Sale of bariatric foldable wheelchair Capacity of up to 200kg! Shipping FREE throughout Italy Book online now!',
+      shortDescription:
+        'Sale of bariatric foldable wheelchair Capacity of up to 200kg! Shipping FREE throughout Italy Book online now!',
       metaTitle: 'Folding bariatric wheelchair up to 200 kg | MIA Medical',
-      metaDescription: 'Buy a folding bariatric wheelchair rated to 200 kg: reinforced double-cross-brace steel frame, padded washable nylon seat, anti-tip wheels.',
+      metaDescription:
+        'Buy a folding bariatric wheelchair rated to 200 kg: reinforced double-cross-brace steel frame, padded washable nylon seat, anti-tip wheels.',
       description: [
         '<p>La <strong>folding bariatric wheelchair for obese patients</strong> it is the ideal solution for those who need a robust, safe and comfortable aid to guarantee greater autonomy in daily travel. The bariatric wheelchair is designed to offer maximum stability and safety, with a reinforced structure and a high weight capacity of up to <strong>200 kg</strong>, without sacrificing the practicality of a foldable model that is easy to transport and store.</p>',
         '<p>Thanks to its structure with <strong>double painted steel crossbar</strong>, this wheelchair is suitable for people with reduced mobility, patients in the post-operative recovery phase, bariatric individuals or users who need reliable support for daily travel.</p>',
@@ -73,7 +77,7 @@ export const bariatricWheelchairSale = wheelchairsSale.fixed({
         '<h2>Comfort and safety of the bariatric wheelchair</h2>',
         '<p>When choosing a <strong>folding bariatric wheelchair</strong> It is essential to evaluate safety, stability and comfort.</p>',
         '<p>The wheelchair offers an extremely sturdy structure thanks to the reinforced frame, the double cross-brace and the anti-tip small wheels which increase safety while moving around.</p>',
-        '<p>The padded seat and ergonomic backrest ensure a high level of comfort, while the removable armrests and adjustable footrests make it easy to adapt the wheelchair to the user\'s needs.</p>',
+        "<p>The padded seat and ergonomic backrest ensure a high level of comfort, while the removable armrests and adjustable footrests make it easy to adapt the wheelchair to the user's needs.</p>",
         '<p>For those who spend many hours sitting, it is also recommended to use a <strong>anti-decubitus pillow</strong>, available on our website, to help prevent pressure ulcers.</p>',
         '<h2>Easy-to-transport foldable bariatric wheelchair</h2>',
         '<p>One of the main advantages of <strong>folding bariatric wheelchair</strong> it is the possibility of completely folding up the structure, making it easier to transport and store.</p>',
@@ -84,7 +88,7 @@ export const bariatricWheelchairSale = wheelchairsSale.fixed({
         '</li><li>Maximum overall dimensions: <ul><li>Seat height 60 cm → 83 cm</li></ul>',
         '</li><li>Dimensions when closed: <strong>32 cm</strong></li><li>Painted steel frame with double cross-brace</li><li>Upholstered and wipe-clean seat and backrest</li><li>Solid rear wheels Ø 60 cm</li><li>Front wheels Ø 20 cm</li><li>Removable armrests</li><li>Adjustable and removable footrests</li><li>Anti-tip wheels</li></ul>',
         '<h2>Secure purchase</h2>',
-        '<p>All wheelchairs available at M.I.A. Medical are selected to guarantee quality, safety and reliability. Our staff is on hand to help you choose the most suitable aid for the user\'s needs.</p>',
+        "<p>All wheelchairs available at M.I.A. Medical are selected to guarantee quality, safety and reliability. Our staff is on hand to help you choose the most suitable aid for the user's needs.</p>",
         '<p>If you are looking for other mobility aids, please also visit our category <a href="/en/sale-catalog/"><strong>Wheelchairs for disabled people</strong>.</a></p>',
         '<p>If you are looking for other aids, please also visit our category for sale</p>',
         '<h2>Buy your foldable bariatric wheelchair</h2>',
@@ -101,7 +105,10 @@ export const bariatricWheelchairSale = wheelchairsSale.fixed({
     upholstery: { it: 'Nylon nero imbottito e lavabile', en: 'Padded, washable black nylon' },
     'wheel-type': 'solid',
     'rear-wheels': { it: 'Piene Ø 60 cm in poliuretano', en: 'Solid polyurethane, Ø 60 cm' },
-    'front-wheels': { it: 'Ø 20 cm con forcella regolabile in acciaio', en: 'Ø 20 cm on an adjustable steel fork' },
+    'front-wheels': {
+      it: 'Ø 20 cm con forcella regolabile in acciaio',
+      en: 'Ø 20 cm on an adjustable steel fork',
+    },
     foldable: true,
     'removable-armrests': true,
     'removable-footrests': true,
@@ -109,7 +116,10 @@ export const bariatricWheelchairSale = wheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'bariatric-wheelchair-1.jpg', alt: { it: 'Carrozzina bariatrica pieghevole' } },
+    thumbnail: {
+      file: 'bariatric-wheelchair-1.jpg',
+      alt: { it: 'Carrozzina bariatrica pieghevole' },
+    },
   },
   terms: [generalTerms],
 });

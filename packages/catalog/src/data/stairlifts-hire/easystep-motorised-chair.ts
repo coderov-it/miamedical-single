@@ -32,9 +32,11 @@ export const easystepMotorisedChair = stairliftsHire.rental({
     it: {
       title: 'Noleggio Sedia Motorizzata Easystep',
       slug: 'noleggio-sedia-motorizzata-sali-scendiscale',
-      shortDescription: 'Il Sali/Scendi, carrozzina elettrica per salire e scendere le scale. Consegna a domicilio soltanto a Roma e Firenze a partire da 45€. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto:Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Il Sali/Scendi, carrozzina elettrica per salire e scendere le scale. Consegna a domicilio soltanto a Roma e Firenze a partire da 45€. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto:Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio sedia motorizzata montascale: salire e scendere le scale',
-      metaDescription: 'Noleggio sedia motorizzata Montascale elettrico per salire e scendere le scale. Migliore Prezzo Garantito. Scopri i nostri prezzi imbattibili.',
+      metaDescription:
+        'Noleggio sedia motorizzata Montascale elettrico per salire e scendere le scale. Migliore Prezzo Garantito. Scopri i nostri prezzi imbattibili.',
       description: [
         '<p>Hai bisogno di un <strong>noleggio sedia motorizzata montascale o di un noleggio montascale elettrico</strong> per aiutare una persona cara a salire e scendere le scale in sicurezza? La nostra sedia elettrica a cingoli è la soluzione ideale per edifici con scale dritte, anche senza ascensore. </p>',
         '<p>Con il servizio di&nbsp;<strong>noleggio M.I.A. Medical Italia</strong>, puoi riceverla direttamente a casa tua, con&nbsp;<strong>consegna rapida</strong>,&nbsp;<strong>dimostrazione all’utilizzo inclusa</strong>&nbsp;e&nbsp;<strong>supporto tecnico costante</strong>.</p>',
@@ -73,9 +75,11 @@ export const easystepMotorisedChair = stairliftsHire.rental({
     en: {
       title: 'Easystep motorised stair chair, for hire',
       slug: 'noleggio-sedia-motorizzata-sali-scendiscale',
-      shortDescription: 'The up-and-down: an electric chair for getting up and down stairs. Home delivery in Rome and Florence only, from €45. Free delivery on hires of 45 days or more. Collection and return of aids at the warehouse are free.',
+      shortDescription:
+        'The up-and-down: an electric chair for getting up and down stairs. Home delivery in Rome and Florence only, from €45. Free delivery on hires of 45 days or more. Collection and return of aids at the warehouse are free.',
       metaTitle: 'Motorised stair chair hire: getting up and down stairs',
-      metaDescription: 'Hire a motorised electric stair chair for getting up and down stairs. Best price guaranteed — see our prices.',
+      metaDescription:
+        'Hire a motorised electric stair chair for getting up and down stairs. Best price guaranteed — see our prices.',
       description: [
         '<p>You need a <strong>hire motorised stairlift chair or electric stairlift hire</strong> to help a loved one go up and down the stairs safely? Our tracked stair lift is the ideal solution for buildings with straight stairs, even without a lift. </p>',
         '<p>With the service of&nbsp;<strong>M.I.A. Medical Italia rental</strong>, you can receive it directly at your home, with&nbsp;<strong>rapid delivery</strong>,&nbsp;<strong>demonstration of use included</strong>&nbsp;e&nbsp;<strong>ongoing technical support</strong>.</p>',
@@ -114,7 +118,10 @@ export const easystepMotorisedChair = stairliftsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'easystep-motorised-chair-1.png', alt: { it: 'Noleggio sedia motorizzata montascale' } },
+    thumbnail: {
+      file: 'easystep-motorised-chair-1.png',
+      alt: { it: 'Noleggio sedia motorizzata montascale' },
+    },
     gallery: [
       'easystep-motorised-chair-2.png',
       'easystep-motorised-chair-3.png',

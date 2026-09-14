@@ -26,21 +26,17 @@ export const superwheelElectric = electricWheelchairsAndScootersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(3, 110),
-    days(7, 160),
-    days(15, 250),
-    days(30, 390),
-    days(45, 540),
-  ],
+  packages: [days(3, 110), days(7, 160), days(15, 250), days(30, 390), days(45, 540)],
 
   translations: {
     it: {
       title: 'Noleggio carrozzina Elettrica Superwheel',
       slug: 'carrozzina-elettrica-superwheel-a-noleggio',
-      shortDescription: 'Libertà di movimento. Noleggia la tua carrozzina elettrica Superwheel e riscopri la comodità di muoverti senza fatica! Completamente elettrica: il joystick gestisce guida, schienale e pedane. Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita per i noleggi da 30 giorni; altrimenti 30€ + 30€ per il ritiro. Deposito richiesto: 400€.',
+      shortDescription:
+        'Libertà di movimento. Noleggia la tua carrozzina elettrica Superwheel e riscopri la comodità di muoverti senza fatica! Completamente elettrica: il joystick gestisce guida, schienale e pedane. Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita per i noleggi da 30 giorni; altrimenti 30€ + 30€ per il ritiro. Deposito richiesto: 400€.',
       metaTitle: 'Noleggio carrozzina Elettrica Superwheel',
-      metaDescription: 'Noleggio carrozzina elettrica superwheel da esterno e interno per anziani e disabili. Fino a 25 km di autonomia, consegna a Roma e Firenze. Prenota subito.',
+      metaDescription:
+        'Noleggio carrozzina elettrica superwheel da esterno e interno per anziani e disabili. Fino a 25 km di autonomia, consegna a Roma e Firenze. Prenota subito.',
       description: [
         '<p><strong>Noleggio Carrozzina Elettrica Superwheel da esterno ed interno per anziani e disabili: scopri l’Italia con autonomia e comfort!</strong><br />Eleganza, sicurezza e praticità per vivere Roma e Firenze senza limiti.</p>',
         '<p>Se desideri muoverti liberamente e senza fatica tra le meraviglie di <strong>Roma</strong> o l’eleganza rinascimentale di <strong>Firenze</strong>, la carrozzina elettrica <strong>Superwheel</strong> da interno ed esterno è il compagno di viaggio perfetto. Con il suo design all’avanguardia, completamente smontabile e pieghevole, garantisce autonomia, comfort e sicurezza totale.</p>',
@@ -65,21 +61,23 @@ export const superwheelElectric = electricWheelchairsAndScootersHire.rental({
     en: {
       title: 'Superwheel electric wheelchair for hire',
       slug: 'carrozzina-elettrica-superwheel-a-noleggio',
-      shortDescription: 'Freedom of movement Rent your Superwheel electric wheelchair and rediscover the comfort of effortless movement! Fully electric. The electric joystick controls the entire wheelchair: steering, backrest and footrests in total simplicity. Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Home delivery: 30€ + 30€ for collection. Deposit required: 400€ For the rental of this article, a deposit of 400€.',
+      shortDescription:
+        'Freedom of movement Rent your Superwheel electric wheelchair and rediscover the comfort of effortless movement! Fully electric. The electric joystick controls the entire wheelchair: steering, backrest and footrests in total simplicity. Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Home delivery: 30€ + 30€ for collection. Deposit required: 400€ For the rental of this article, a deposit of 400€.',
       metaTitle: 'Superwheel electric wheelchair hire',
-      metaDescription: 'Hire the Superwheel indoor-outdoor electric wheelchair: up to 25 km on a charge, joystick control of drive, backrest and footrests. Rome and Florence.',
+      metaDescription:
+        'Hire the Superwheel indoor-outdoor electric wheelchair: up to 25 km on a charge, joystick control of drive, backrest and footrests. Rome and Florence.',
       description: [
         '<p><strong>Electric Wheelchair Hire Superwheel for Outdoor and Indoor Use for the Elderly and Disabled: Discover Italy with Autonomy and Comfort!</strong><br />Elegance, safety and practicality to experience Rome and Florence without limits.</p>',
-        '<p>If you wish to move freely and effortlessly among the wonders of <strong>Rome</strong> or the Renaissance elegance of <strong>Florence</strong>, the electric wheelchair <strong>Superwheel</strong> From indoor and outdoor use, it\'s the perfect travel companion. With its cutting-edge, fully dismantlable and foldable design, it guarantees independence, comfort, and total safety.</p>',
+        "<p>If you wish to move freely and effortlessly among the wonders of <strong>Rome</strong> or the Renaissance elegance of <strong>Florence</strong>, the electric wheelchair <strong>Superwheel</strong> From indoor and outdoor use, it's the perfect travel companion. With its cutting-edge, fully dismantlable and foldable design, it guarantees independence, comfort, and total safety.</p>",
         '<h3>Why choose the Superwheel Electric Wheelchair rental?</h3>',
-        '<ul><li><strong>Maximum comfort:</strong> 43 cm ergonomic seat, reclining backrest and elevating footrests with extension for head support, adjustable armrests.</li><li><strong>High autonomy:</strong> travel up to 25 km with upgraded lithium batteries - ideal for a full day\'s visit.</li><li><strong>Joystick:</strong> With one joystick you control everything: direction, speed, backrest and adjustable footpegs.</li><li><strong>Guaranteed security:</strong> intuitive electric joystick, 4×4 pneumatic wheels for all terrain, reliable brakes and stability on any surface.</li><li><strong>Simple transport:</strong> fully foldable and removable, perfect for transport in the car; removable rear basket.</li><li><strong>Versatile design:</strong> compact with a total footprint of 63 cm open, load capacity up to 150 kg, suitable for all ages.</li></ul>',
+        "<ul><li><strong>Maximum comfort:</strong> 43 cm ergonomic seat, reclining backrest and elevating footrests with extension for head support, adjustable armrests.</li><li><strong>High autonomy:</strong> travel up to 25 km with upgraded lithium batteries - ideal for a full day's visit.</li><li><strong>Joystick:</strong> With one joystick you control everything: direction, speed, backrest and adjustable footpegs.</li><li><strong>Guaranteed security:</strong> intuitive electric joystick, 4×4 pneumatic wheels for all terrain, reliable brakes and stability on any surface.</li><li><strong>Simple transport:</strong> fully foldable and removable, perfect for transport in the car; removable rear basket.</li><li><strong>Versatile design:</strong> compact with a total footprint of 63 cm open, load capacity up to 150 kg, suitable for all ages.</li></ul>",
         '<h3>Technical features and practical details</h3>',
         '<ul><li>Maximum speed: 8 km/h</li><li>Autonomy: 13 km (standard) - 25 km (upgraded batteries)</li><li>Load capacity: 135 kg</li><li>Seat: 43 cm</li><li>Backrest: reclining with head extension</li><li>Motor: 2 x 250W</li><li>Batteries: Lithium, weight 1.3 kg</li><li>Wheels: 4×4 pneumatic with inner tube</li><li>Controls: electric joystick for the user</li></ul>',
         '<p><strong>Your journey without limits with Mia Medical Italia and the Superwheel Electric Wheelchair for the elderly and disabled for hire!</strong></p>',
         '<p>Whether you want to explore the <strong>Colosseum</strong> or walk on the <strong>Old Bridge</strong>, the <strong>Superwheel</strong> offers you the freedom to enjoy every moment with serenity. It is ideal for:</p>',
         '<ul><li>Senior travellers or persons with reduced mobility</li><li>Those seeking a comfortable experience even over long distances</li><li>Pregnant women or those who wish to move around safely and comfortably</li></ul>',
         '<p><strong>How rental works with Mia Medical</strong></p>',
-        '<p>La <strong>Superwheel Electric Wheelchair</strong> from internal and external for the elderly and disabled is available for delivery and collection at <strong>Rome and Florence</strong>. Book it online or call us at <strong>+39 392 65 09 237</strong>we\'ll take care of the rest! Book your wheelchair now and discover Italy in complete freedom.</p>',
+        "<p>La <strong>Superwheel Electric Wheelchair</strong> from internal and external for the elderly and disabled is available for delivery and collection at <strong>Rome and Florence</strong>. Book it online or call us at <strong>+39 392 65 09 237</strong>we'll take care of the rest! Book your wheelchair now and discover Italy in complete freedom.</p>",
         '<p><strong>Please note:</strong> always consult our rental conditions.</p>',
         '<p>Move carefree and enjoy the wonders of Italian cities... one step... or one wheel at a time.</p>',
         '<p><strong>Useful addresses</strong></p>',
@@ -99,7 +97,10 @@ export const superwheelElectric = electricWheelchairsAndScootersHire.rental({
     'battery-range': { min: 13, max: 25 },
     motor: { it: '2 x 250 W', en: '2 × 250 W' },
     battery: { it: 'Litio, peso 1,3 kg', en: 'Lithium, 1.3 kg' },
-    controls: { it: 'Joystick elettrico per l’utente', en: 'Electric joystick, operated by the user' },
+    controls: {
+      it: 'Joystick elettrico per l’utente',
+      en: 'Electric joystick, operated by the user',
+    },
     'seat-width': { min: 43, max: 43 },
     'total-width': { min: 63, max: 63 },
     'wheel-type': 'pneumatic',
@@ -112,7 +113,10 @@ export const superwheelElectric = electricWheelchairsAndScootersHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'superwheel-electric-1.png', alt: { it: 'Vendita carrozzina elettrica Superwheel' } },
+    thumbnail: {
+      file: 'superwheel-electric-1.png',
+      alt: { it: 'Vendita carrozzina elettrica Superwheel' },
+    },
     gallery: [
       'superwheel-electric-2.png',
       'superwheel-electric-3.png',

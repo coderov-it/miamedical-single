@@ -32,8 +32,7 @@ import { EYEBROW, FIELD_INPUT } from './styles';
 <div class="border-hair mt-1.5 flex flex-col gap-3.5 border-t pt-5" data-return-block>
   <span class={EYEBROW}>{t('returnStage')}</span>
 
-  {
-    /*
+  {/*
       Checked by default, and server-rendered checked so it is already true before
       any script runs. Unticking it is the deliberate act, which is the right way
       round: almost every rental goes back where it came from.
@@ -42,8 +41,7 @@ import { EYEBROW, FIELD_INPUT } from './styles';
       its Tailwind pseudo-element utilities. The two labels ride on the element as data
       attributes rather than being imported, for the same reason the delivery cards
       carry theirs: the page script must not pull in the label catalog.
-    */
-  }
+    */}
   <label class="flex cursor-pointer items-center gap-3 text-[15px]">
     <input
       class="relative size-4.5 min-h-0 min-w-0 flex-none cursor-pointer accent-accent after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
@@ -55,23 +53,21 @@ import { EYEBROW, FIELD_INPUT } from './styles';
     <span
       data-return-same-label
       data-label-home={t('returnSameAddress')}
-      data-label-pickup={t('returnSameBranch')}>{t('returnSameAddress')}</span
+      data-label-pickup={t('returnSameBranch')}
     >
+      {t('returnSameAddress')}
+    </span>
   </label>
 
-  {
-    /*
+  {/*
       One line, and deliberately not the comune/CAP ladder above. That ladder exists
       to key a PRICE and the return prices nothing — the fee was settled by the
       outbound comune. What is left is an address a driver reads, so the placeholder
       asks for the whole thing at once.
-    */
-  }
-  {
-    /* `hidden` until the box is unticked, and the gate reads a hidden block as
+    */}
+  {/* `hidden` until the box is unticked, and the gate reads a hidden block as
       "nothing asked" — so the address becomes required by the same act that
-      reveals it, with no second rule to keep in step. */
-  }
+      reveals it, with no second rule to keep in step. */}
   <div data-return-address-field hidden>
     <CheckoutField
       label={t('returnAddressLabel')}

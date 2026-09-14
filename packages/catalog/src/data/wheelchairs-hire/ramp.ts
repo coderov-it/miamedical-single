@@ -41,9 +41,11 @@ export const ramp = wheelchairsHire.rental({
     it: {
       title: 'Noleggio rampa e pedane per disabili',
       slug: 'noleggio-rampa-pedana-per-disabili',
-      shortDescription: 'Noleggio e affitto rampa o pedana per disabili Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio solo a Roma e Firenze a partire da 30€. Il ritiro degli ausili in magazzino è gratuito.',
+      shortDescription:
+        'Noleggio e affitto rampa o pedana per disabili Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio solo a Roma e Firenze a partire da 30€. Il ritiro degli ausili in magazzino è gratuito.',
       metaTitle: 'Affitto rampe per le scale per disabili a noleggio',
-      metaDescription: 'Affitto rampe per le scale per disabili a noleggio: pedane leggere e pieghevoli per sedia a rotelle, passeggini e bici. Prenota ora!',
+      metaDescription:
+        'Affitto rampe per le scale per disabili a noleggio: pedane leggere e pieghevoli per sedia a rotelle, passeggini e bici. Prenota ora!',
       description: [
         '<p>La <strong>rampa o pedana a noleggio</strong> è la soluzione ideale per chi cerca <strong>affitto rampe per le scale per disabili a noleggio</strong>. Questa pedana permette di superare gradini e ostacoli quotidiani in completa sicurezza, rendendo più semplice la vita a chi utilizza <strong>sedia a rotelle</strong>, <strong>passeggini</strong> o anche per caricare <strong>biciclette</strong> sull’auto.</p>',
         '<p>Realizzata in <strong>lega d’alluminio di elevata qualità</strong>, la rampa è leggera, resistente e duratura. La <strong>superficie antiscivolo in PVC</strong> e i bordi alti garantiscono la massima sicurezza durante l’utilizzo. La pedana è <strong>pieghevole</strong>, chiudibile come una valigia, e dotata di <strong>maniglia pratica</strong> per il trasporto a mano o in auto.</p>',
@@ -62,9 +64,11 @@ export const ramp = wheelchairsHire.rental({
     en: {
       title: 'Ramp and threshold plate hire',
       slug: 'noleggio-rampa-pedana-per-disabili',
-      shortDescription: 'Hire and rental of ramps or platforms for the disabled. Hire for 1 day: 15€ with pick-up on site only. Home delivery and collection only in Rome and Florence starting from €30. Picking up aids from the warehouse is free of charge.',
+      shortDescription:
+        'Hire and rental of ramps or platforms for the disabled. Hire for 1 day: 15€ with pick-up on site only. Home delivery and collection only in Rome and Florence starting from €30. Picking up aids from the warehouse is free of charge.',
       metaTitle: 'Wheelchair ramp hire | Rome and Florence',
-      metaDescription: 'Hire a folding aluminium ramp: 91 × 73 cm, 7 kg, rated to 272 kg. Non-slip PVC surface and a carry handle.',
+      metaDescription:
+        'Hire a folding aluminium ramp: 91 × 73 cm, 7 kg, rated to 272 kg. Non-slip PVC surface and a carry handle.',
       description: [
         '<p>La <strong>rental ramp or platform</strong> it is the ideal solution for those looking for <strong>handicapped stair ramps for hire</strong>. This ramp makes it possible to overcome steps and everyday obstacles in complete safety, making life easier for those who use <strong>wheelchair</strong>, <strong>prams</strong> or even to load <strong>bicycles</strong> in the car.</p>',
         '<p>Made of <strong>high-grade aluminium alloy</strong>, the ramp is lightweight, strong and durable. The <strong>non-slip PVC surface</strong> and the high edges guarantee maximum safety during use. The platform is <strong>foldable</strong>, which can be closed like a suitcase, and equipped with <strong>practical handle</strong> for hand or car transport.</p>',
@@ -94,12 +98,7 @@ export const ramp = wheelchairsHire.rental({
 
   media: {
     thumbnail: { file: 'ramp-1.jpg', alt: { it: 'rampa per disabili' } },
-    gallery: [
-      'ramp-2.png',
-      'ramp-3.jpg',
-      'ramp-4.jpg',
-      'ramp-5.jpg',
-    ],
+    gallery: ['ramp-2.png', 'ramp-3.jpg', 'ramp-4.jpg', 'ramp-5.jpg'],
   },
 
   addons: [homeDelivery(30)],

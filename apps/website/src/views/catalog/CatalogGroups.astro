@@ -37,33 +37,31 @@ const pillClass =
   'rounded-field px-4 font-display text-base font-semibold no-underline';
 ---
 
-{
-  pills.length > 0 && (
-    <ul class="max-mid:-mx-gutter max-mid:w-[calc(100%+2*var(--spacing-gutter))] max-mid:px-gutter max-mid:flex-nowrap max-mid:overflow-x-auto mid:flex-wrap mid:pb-6.5 max-mid:pb-3 flex [scrollbar-width:none] items-center gap-2.25 [&::-webkit-scrollbar]:hidden">
-      {pills.map((pill) => (
-        <li class="flex-none">
-          <a
+{pills.length > 0 && (
+  <ul class="max-mid:-mx-gutter max-mid:w-[calc(100%+2*var(--spacing-gutter))] max-mid:px-gutter max-mid:flex-nowrap max-mid:overflow-x-auto mid:flex-wrap mid:pb-6.5 max-mid:pb-3 flex [scrollbar-width:none] items-center gap-2.25 [&::-webkit-scrollbar]:hidden">
+    {pills.map((pill) => (
+      <li class="flex-none">
+        <a
+          class:list={[
+            pillClass,
+            pill.isActive
+              ? 'hover:bg-accent-deep border-accent bg-accent text-white'
+              : 'hover:bg-accent-tint border-hair-strong bg-white text-accent',
+          ]}
+          href={pill.href}
+          aria-current={pill.isActive ? 'true' : undefined}
+        >
+          {pill.label}
+          <span
             class:list={[
-              pillClass,
-              pill.isActive
-                ? 'hover:bg-accent-deep border-accent bg-accent text-white'
-                : 'hover:bg-accent-tint border-hair-strong bg-white text-accent',
+              'font-ui font-normal tabular-nums',
+              pill.isActive ? 'text-white/70' : 'text-ink-2',
             ]}
-            href={pill.href}
-            aria-current={pill.isActive ? 'true' : undefined}
           >
-            {pill.label}
-            <span
-              class:list={[
-                'font-ui font-normal tabular-nums',
-                pill.isActive ? 'text-white/70' : 'text-ink-2',
-              ]}
-            >
-              {pill.count}
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  )
-}
+            {pill.count}
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

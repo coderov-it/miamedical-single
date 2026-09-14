@@ -18,11 +18,14 @@ export const easystepTrackChair = stairliftsSale.fixed({
 
   translations: {
     it: {
-      title: 'Vendita Montascale Easystep – Sedia Motorizzata a Cingoli per Salire e Scendere le Scale',
+      title:
+        'Vendita Montascale Easystep – Sedia Motorizzata a Cingoli per Salire e Scendere le Scale',
       slug: 'vendita-montascale-easystep',
-      shortDescription: 'Vendita Montascale a Cingoli Easystep Easystep è una sedia motorizzata a cingoli per salire e scendere le scale, ideale per abitazioni private, strutture sanitarie ed edifici pubblici senza ascensore. Il montascale Easystep non richiede installazione né opere murarie ed è pronto all’uso fin da subito. Informazioni sulla vendita Prodotto certificato e conforme alle normative, con supporto tecnico, ricambi disponibili e assistenza specializzata M.I.A. Medical Italia.',
+      shortDescription:
+        'Vendita Montascale a Cingoli Easystep Easystep è una sedia motorizzata a cingoli per salire e scendere le scale, ideale per abitazioni private, strutture sanitarie ed edifici pubblici senza ascensore. Il montascale Easystep non richiede installazione né opere murarie ed è pronto all’uso fin da subito. Informazioni sulla vendita Prodotto certificato e conforme alle normative, con supporto tecnico, ricambi disponibili e assistenza specializzata M.I.A. Medical Italia.',
       metaTitle: 'Vendita Montascale a Cingoli Easystep | Sedia Motorizzata',
-      metaDescription: 'Vendita montascale a cingoli Easystep:sedia motorizzata a cingoli per salire e scendere le scale in sicurezza. Ideale per casa, scuole, strutture sanitarie.',
+      metaDescription:
+        'Vendita montascale a cingoli Easystep:sedia motorizzata a cingoli per salire e scendere le scale in sicurezza. Ideale per casa, scuole, strutture sanitarie.',
       description: [
         '<p><strong>La soluzione professionale per superare le scale in sicurezza, senza ascensore</strong>.<br />La <strong>vendita montascale a cingoli Easystep</strong> è pensata per chi necessita di una soluzione sicura, affidabile e immediatamente pronta all’uso per salire e scendere le scale senza ascensore.<br />Il Montascale Easystep è una sedia motorizzata a cingoli progettata per consentire la salita e la discesa delle scale in totale sicurezza, senza sforzo per l’accompagnatore e senza interventi strutturali sull’edificio.</p>',
         '<h2>Cos’è il Montascale a cingoli Easystep</h2>',
@@ -52,9 +55,11 @@ export const easystepTrackChair = stairliftsSale.fixed({
     en: {
       title: 'Easystep stair climber for sale — motorised tracked chair for stairs',
       slug: 'vendita-montascale-easystep',
-      shortDescription: 'Easystep Tracked Stairlifts for Sale Easystep is a motorised tracked chair for going up and down stairs, ideal for private homes, healthcare facilities and public buildings without a lift. The Easystep stairlift requires no installation nor any masonry work required, and it is ready to use immediately. Sale information Product certified and compliant with regulations, with technical support, spare parts available and specialist assistance from M.I.A. Medical Italia.',
+      shortDescription:
+        'Easystep Tracked Stairlifts for Sale Easystep is a motorised tracked chair for going up and down stairs, ideal for private homes, healthcare facilities and public buildings without a lift. The Easystep stairlift requires no installation nor any masonry work required, and it is ready to use immediately. Sale information Product certified and compliant with regulations, with technical support, spare parts available and specialist assistance from M.I.A. Medical Italia.',
       metaTitle: 'Easystep tracked stair climber for sale | Motorised chair',
-      metaDescription: 'Easystep tracked stair climber for sale: a motorised tracked chair for getting up and down stairs safely. For homes, schools and public buildings.',
+      metaDescription:
+        'Easystep tracked stair climber for sale: a motorised tracked chair for getting up and down stairs safely. For homes, schools and public buildings.',
       description: [
         '<p><strong>The professional solution for safely navigating stairs when there is no lift</strong>.<br />La <strong>Easystep tracked stairlifts for sale</strong> it is designed for those who need a secure, reliable and immediately ready-to-use solution for going up and down stairs without a lift.<br />The Easystep Stair Climber is a tracked motorised chair designed to allow stairs to be ascended and descended in complete safety, effortlessly for the attendant and without structural work on the building.</p>',
         '<h2>What is the Easystep tracked stairlift</h2>',
@@ -88,7 +93,10 @@ export const easystepTrackChair = stairliftsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'easystep-track-chair-1.png', alt: { it: 'Noleggio sedia motorizzata montascale' } },
+    thumbnail: {
+      file: 'easystep-track-chair-1.png',
+      alt: { it: 'Noleggio sedia motorizzata montascale' },
+    },
     gallery: [
       'easystep-track-chair-2.png',
       'easystep-track-chair-3.png',

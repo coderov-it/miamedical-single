@@ -23,9 +23,11 @@ export const highRiskMattress = pressureReliefMattressesSale.fixed({
     it: {
       title: 'Vendita Materasso Antidecubito ad Alto rischio',
       slug: 'vendita-materasso-antidecubito-ad-alto-rischio',
-      shortDescription: 'Non perdere l’Offerta speciale! Fino ad esaurimento scorte. In più, la consegna è gratuita!',
+      shortDescription:
+        'Non perdere l’Offerta speciale! Fino ad esaurimento scorte. In più, la consegna è gratuita!',
       metaTitle: 'Vendita Materasso Antidecubito ad Alto rischio - Mia Medical Italia',
-      metaDescription: 'Vendita materasso antidecubito ad alto rischio. Consegna gratuita in tutta Italia. Disponibilità immediata. Offerta speciale fino ad esaurimento scorte.',
+      metaDescription:
+        'Vendita materasso antidecubito ad alto rischio. Consegna gratuita in tutta Italia. Disponibilità immediata. Offerta speciale fino ad esaurimento scorte.',
       description: [
         '<p>Se tu o un tuo familiare, soprattutto se di età avanzata, avete mobilità ridotta o siete costretti a letto per lunghi periodi di tempo, il rischio di contrarre delle lesioni da decubito è alto! La soluzione? Uno speciale materasso medico. Per fortuna siete nel posto giusto. Infatti, noi di Mia Medical ci occupiamo anche di <strong>vendita di materassi antidecubito ad alto rischio</strong>, e non! </p>',
         '<h2>Cosa è un materasso antidecubito?</h2>',
@@ -68,12 +70,13 @@ export const highRiskMattress = pressureReliefMattressesSale.fixed({
       slug: 'vendita-materasso-antidecubito-ad-alto-rischio',
       shortDescription: 'Do not miss the special offer! While stocks last. And delivery is free.',
       metaTitle: 'High-risk pressure-relief mattress for sale - Mia Medical Italia',
-      metaDescription: 'High-risk pressure-relief mattress for sale. Free delivery across Italy, available immediately, special offer while stocks last.',
+      metaDescription:
+        'High-risk pressure-relief mattress for sale. Free delivery across Italy, available immediately, special offer while stocks last.',
       description: [
         '<p>If you or a member of your family, especially an older person, has reduced mobility or is bedridden for long periods of time, the risk of bedsores is high! The solution? A special medical mattress. Fortunately, you are in the right place. In fact, we at Mia Medical also take care of <strong>sale of high-risk anti-decubitus mattresses</strong>and not! </p>',
         '<h2>What is an anti-decubitus mattress?</h2>',
         '<p>A <strong>anti-decubitus mattress</strong> is a medical device designed to prevent and alleviate the<br /><strong><a href="https://www.google.com/url?sa=t&amp;source=web&amp;rct=j&amp;opi=89978449&amp;url=https://www.humanitas.it/malattie/piaghe-da-decubito/&amp;ved=2ahUKEwij-OzXsaKLAxXy_rsIHZRCAMEQFnoECCAQAQ&amp;usg=AOvVaw3M5VGonCk64ecmjdLgTVN3">bedsores</a></strong>also known as <strong>pressure injuries</strong>. These lesions develop in the<br />areas of the body subject to prolonged pressure, especially in patients with reduced mobility or<br />bedridden for long periods.</p>',
-        '<p>The <strong>best anti-decubitus mattress</strong> is the one that adapts to the patient\'s needs, guaranteeing:<br />- Uniform pressure distribution<br />- Improved blood circulation<br />- Comfort and safety for long hospital stays</p>',
+        "<p>The <strong>best anti-decubitus mattress</strong> is the one that adapts to the patient's needs, guaranteeing:<br />- Uniform pressure distribution<br />- Improved blood circulation<br />- Comfort and safety for long hospital stays</p>",
         '<p>Mia Medical takes care of <strong>sale of high-risk anti-decubitus mattresses</strong>and others, to ensure maximum relief for patients who already have pressure ulcers, and help with prevention for those at risk. </p>',
         '<h2>What is an anti-decubitus mattress for?</h2>',
         '<p>The <strong>anti-decubitus mattress</strong> air uses a<strong> alternating compression technology</strong> for <strong>reduce<br />pressure </strong>on the most delicate areas of the body, <strong>improving</strong> the <strong>flow</strong><strong>sanguine</strong> e <strong>preventing</strong> the<br /><strong>ulcers</strong> from pressure.</p>',
@@ -87,7 +90,7 @@ export const highRiskMattress = pressureReliefMattressesSale.fixed({
         '<p>If you are looking for the best pressure ulcer mattress, the HIGH CURE model is the <strong>ideal solution!</strong></p>',
         '<h2>How to choose the best anti-decubitus mattress</h2>',
         '<p>Each patient has <strong>different needs</strong>which is why it is important to choose an anti-decubitus mattress<br />right. The following criteria must be taken into account: </p>',
-        '<ul><li>Patient\'s degree of risk</li><li>Duration of allurement</li><li>Comfort and customised adjustment</li></ul>',
+        "<ul><li>Patient's degree of risk</li><li>Duration of allurement</li><li>Comfort and customised adjustment</li></ul>",
         '<p>Read our article that will guide you to an informed choice. If you still have doubts, contact us!</p>',
         '<h2>Choose the best high risk andidecubitus mattress</h2>',
         '<p>The <strong>anti-decubitus mattress</strong> high risk <strong>HIGH CURE</strong> is the best choice for those who need a<br />advanced pressure sore prevention system. Includes:</p>',

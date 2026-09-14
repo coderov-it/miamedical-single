@@ -103,10 +103,7 @@ export async function findMany(
   return { rows: rows as RentalRow[], total: totals[0]?.value ?? 0 };
 }
 
-export async function findByOrderId(
-  db: Database,
-  orderId: string,
-): Promise<RentalRow | undefined> {
+export async function findByOrderId(db: Database, orderId: string): Promise<RentalRow | undefined> {
   const rows = await db
     .select(selectFields)
     .from(orderItems)

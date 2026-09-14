@@ -20,13 +20,7 @@ import { listBlogPosts } from './blog.ts';
 import { type CachePolicy, cached } from './cache.ts';
 import { listAllProducts } from './catalog.ts';
 import { LOCALES, SOURCE_LANGUAGE, type SiteLocale } from './i18n.ts';
-import {
-  blogPostPath,
-  PRIVATE_ROUTES,
-  productPath,
-  type RouteKey,
-  routePaths,
-} from './routes.ts';
+import { blogPostPath, PRIVATE_ROUTES, productPath, type RouteKey, routePaths } from './routes.ts';
 
 /**
  * One piece of content, in every language it exists in.

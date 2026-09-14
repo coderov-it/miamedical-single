@@ -148,9 +148,7 @@
           },
         }),
       );
-      toast.success(
-        `Rental ${renewOrderNumber} renewed — the new contract is out for signature.`,
-      );
+      toast.success(`Rental ${renewOrderNumber} renewed — the new contract is out for signature.`);
       renewDialogOpen = false;
       rentals.refresh();
     } catch (err) {
@@ -167,7 +165,6 @@
   function copyPaymentLink(_orderId: string, orderNumber: string) {
     toast.info(`Payment link for ${orderNumber} — coming soon`);
   }
-
 </script>
 
 <section class="admin-page">
@@ -269,7 +266,7 @@
                   {rental.productTitle}
                 </span>
               </Table.Cell>
-              <Table.Cell class="text-muted-foreground whitespace-nowrap">
+              <Table.Cell class="whitespace-nowrap text-muted-foreground">
                 {formatDate(rental.rentalStartDate)} – {formatDate(rental.rentalEndDate)}
               </Table.Cell>
               <Table.Cell>
@@ -277,7 +274,7 @@
                      from the raw date would be a second copy of the rule. -->
                 <span
                   class={cn(
-                    'whitespace-nowrap font-medium',
+                    'font-medium whitespace-nowrap',
                     rental.status === 'overdue'
                       ? 'text-rose-600 dark:text-rose-400'
                       : 'text-muted-foreground',
@@ -295,11 +292,7 @@
               <Table.Cell>
                 {#if rental.contractId}
                   {@const cMeta = contractStatusMeta(rental.contractStatus ?? '')}
-                  <a
-                    href={routes.contractDetail(rental.contractId)}
-                    class="inline-flex"
-                    onclick={(e) => e.stopPropagation()}
-                  >
+                  <a href={routes.contractDetail(rental.contractId)} class="inline-flex">
                     <Badge variant="outline" class={cMeta.tone}>
                       <span class={cn('size-1.5 rounded-full', cMeta.dot)}></span>
                       {cMeta.label}
@@ -358,9 +351,7 @@
                           <FileSignatureIcon class="size-4" />
                           Resend contract
                         </DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          onSelect={() => copySigningLink(rental.contractId!)}
-                        >
+                        <DropdownMenu.Item onSelect={() => copySigningLink(rental.contractId!)}>
                           <ClipboardIcon class="size-4" />
                           Copy signing link
                         </DropdownMenu.Item>

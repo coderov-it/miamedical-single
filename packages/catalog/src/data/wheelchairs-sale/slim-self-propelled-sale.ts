@@ -21,9 +21,11 @@ export const slimSelfPropelledSale = wheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina per disabili piccola ad autospinta SLIM',
       slug: 'vendita-carrozzina-per-disabili-piccola-ad-autospinta-slim',
-      shortDescription: 'Carrozzina SLIM per Disabili Piccola ad Autospinta Compatta e ideale per spazi ridotti. Struttura pieghevole, leggera e facile da trasportare! Disponibile con seduta da 40 cm e 43 cm per adattarsi a diverse esigenze. Ideale per uso domestico, riabilitazione e spostamenti quotidiani. Acquista ora o contattaci per maggiori informazioni!',
+      shortDescription:
+        'Carrozzina SLIM per Disabili Piccola ad Autospinta Compatta e ideale per spazi ridotti. Struttura pieghevole, leggera e facile da trasportare! Disponibile con seduta da 40 cm e 43 cm per adattarsi a diverse esigenze. Ideale per uso domestico, riabilitazione e spostamenti quotidiani. Acquista ora o contattaci per maggiori informazioni!',
       metaTitle: 'Carrozzina per disabili piccola ad autospinta SLIM | Vendita',
-      metaDescription: 'Carrozzina SLIM per disabili piccola ad autospinta: struttura compatta, facile da usare e ideale per ambienti stretti. Disponibile per acquisto immediato.',
+      metaDescription:
+        'Carrozzina SLIM per disabili piccola ad autospinta: struttura compatta, facile da usare e ideale per ambienti stretti. Disponibile per acquisto immediato.',
       description: [
         '<p>La carrozzina per disabili piccola ad autospinta SLIM è la soluzione ideale per chi cerca un ausilio compatto, leggero e facile da manovrare negli spazi ridotti. Progettata per garantire comfort, sicurezza e autonomia, è perfetta sia per l’utilizzo domestico che per ambienti sanitari o esterni.</p>',
         '<p>Grazie alle sue dimensioni contenute, questo modello rappresenta una delle migliori scelte per chi ha bisogno di una carrozzina maneggevole ma stabile, adatta anche a passaggi stretti come corridoi, ascensori piccoli e bagni con spazi limitati.</p>',
@@ -74,9 +76,11 @@ export const slimSelfPropelledSale = wheelchairsSale.fixed({
     en: {
       title: 'Small self-propelled SLIM wheelchair for sale',
       slug: 'vendita-carrozzina-per-disabili-piccola-ad-autospinta-slim',
-      shortDescription: 'SLIM Lightweight Self-Propelled Wheelchair for Disabled Compact and ideal for small spaces. Foldable, lightweight and easy to transport! Available with a 40 cm and 43 cm seat to suit different needs. Ideal for domestic use, rehabilitation, and daily commutes. Buy now or contact us for more information!',
+      shortDescription:
+        'SLIM Lightweight Self-Propelled Wheelchair for Disabled Compact and ideal for small spaces. Foldable, lightweight and easy to transport! Available with a 40 cm and 43 cm seat to suit different needs. Ideal for domestic use, rehabilitation, and daily commutes. Buy now or contact us for more information!',
       metaTitle: 'Small self-propelled SLIM wheelchair | For sale',
-      metaDescription: 'Buy the compact SLIM self-propelled wheelchair: 40 or 43 cm seat, folding frame, removable armrests and footrests, up to about 80 kg.',
+      metaDescription:
+        'Buy the compact SLIM self-propelled wheelchair: 40 or 43 cm seat, folding frame, removable armrests and footrests, up to about 80 kg.',
       description: [
         '<p>The SLIM small self-propelled wheelchair for disabled people is the ideal solution for anyone looking for a compact, lightweight aid that is easy to manoeuvre in confined spaces. Designed to guarantee comfort, safety and independence, it is perfect for both domestic use and in healthcare environments or outdoors.</p>',
         '<p>Thanks to its compact dimensions, this model represents one of the best choices for those who need a wheelchair that is manoeuvrable but stable, also suitable for narrow passages such as corridors, small lifts, and bathrooms with limited space.</p>',
@@ -137,10 +141,11 @@ export const slimSelfPropelledSale = wheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'slim-self-propelled-1.jpg', alt: { it: 'carrozzina per disabili piccola ad autospinta SLIM' } },
-    gallery: [
-      'slim-self-propelled-2.jpg',
-    ],
+    thumbnail: {
+      file: 'slim-self-propelled-1.jpg',
+      alt: { it: 'carrozzina per disabili piccola ad autospinta SLIM' },
+    },
+    gallery: ['slim-self-propelled-2.jpg'],
   },
   terms: [generalTerms],
 });

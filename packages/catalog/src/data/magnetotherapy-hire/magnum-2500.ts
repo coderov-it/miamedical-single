@@ -19,20 +19,17 @@ export const magnum2500 = magnetotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 100),
-    days(30, 125),
-    days(45, 160),
-    days(60, 210),
-  ],
+  packages: [days(20, 100), days(30, 125), days(45, 160), days(60, 210)],
 
   translations: {
     it: {
       title: 'Magnetoterapia Magnum 2500',
       slug: 'magnetoterapia-cemp-magnum-2500',
-      shortDescription: 'Noleggio Magnetoterapia CEMP MAGNUM 2500 Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Magnetoterapia CEMP MAGNUM 2500 Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Magnetoterapia CEMP MAGNUM 2500',
-      metaDescription: 'Noleggio Magnetoterapia Cemp Magnum 2500 da soli 2,00€ al giorno. Trasporto gratuito. Nessun Deposito. disponibilità immediata. Prenota online ora!',
+      metaDescription:
+        'Noleggio Magnetoterapia Cemp Magnum 2500 da soli 2,00€ al giorno. Trasporto gratuito. Nessun Deposito. disponibilità immediata. Prenota online ora!',
       description: [
         '<p>Il <strong><a href="https://www.globuscorporation.com/it/prodotti-domiciliari/magnum-2500/">dispositivo MAGNUM 2500 </a></strong> è una magnetoterapia <strong>CEMP a bassa frequenza e alta intensità</strong>, progettata per un <strong>uso professionale</strong>, adatta anche al <strong>trattamento domiciliare</strong>. Grazie alla potenza fino a 250 Gauss per canale e alla presenza di due canali indipendenti, permette terapie efficaci su una o più aree del corpo contemporaneamente.</p>',
         '<p>La tecnologia dei <strong>Campi Elettromagnetici Pulsati (CEMP) </strong>stimola la <strong>rigenerazione cellulare, favorisce la guarigione ossea e riduce l’infiammazione</strong>, risultando particolarmente utile nel trattamento di <strong>fratture, artrosi, lombalgie, tendiniti e osteoporosi.</strong></p>',
@@ -54,13 +51,15 @@ export const magnum2500 = magnetotherapyHire.rental({
     en: {
       title: 'Magnum 2500 magnetotherapy, for hire',
       slug: 'magnetoterapia-cemp-magnum-2500',
-      shortDescription: 'Hire Magnetotherapy CEMP MAGNUM 2500 Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
+      shortDescription:
+        'Hire Magnetotherapy CEMP MAGNUM 2500 Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
       metaTitle: 'CEMP Magnum 2500 magnetotherapy hire',
-      metaDescription: 'CEMP Magnum 2500 magnetotherapy hire from just €2.00 a day. Free transport, no deposit, available immediately.',
+      metaDescription:
+        'CEMP Magnum 2500 magnetotherapy hire from just €2.00 a day. Free transport, no deposit, available immediately.',
       description: [
         '<p>The <strong><a href="https://www.globuscorporation.com/it/prodotti-domiciliari/magnum-2500/">MAGNUM 2500 device </a></strong> is magnetotherapy <strong>Low frequency and high intensity PEMF</strong>designed for a <strong>professional use</strong>, also suitable for <strong>home treatment</strong>. With power up to 250 Gauss per channel and two independent channels, it allows effective therapies on one or more areas of the body simultaneously.</p>',
         '<p>The technology of <strong>Pulsed Electromagnetic Fields (PEMF) </strong>stimulates <strong>cell regeneration, promotes bone healing and reduces inflammation</strong>particularly useful in the treatment of <strong>fractures, arthrosis, lumbago, tendinitis and osteoporosis.</strong></p>',
-        '<p>The <strong>MAGNUM 2500 </strong>is equipped with 30 pre-set programmes for the most common diseases and 20 customisable programmes, allowing flexible and targeted therapy management according to the patient\'s needs.</p>',
+        "<p>The <strong>MAGNUM 2500 </strong>is equipped with 30 pre-set programmes for the most common diseases and 20 customisable programmes, allowing flexible and targeted therapy management according to the patient's needs.</p>",
         '<h4>Magnetotherapy MAGNUM 2500 rental: main features device </h4>',
         '<ul><li>Low-frequency magnetotherapy (PEMF)</li><li>Adjustable intensity up to 250 Gauss per channel</li><li>2 independent channels for multiple treatments</li><li>30 preset + 20 programmable programmes</li><li>Timer from 5 to 90 minutes</li><li>Large backlit display</li><li>Mains power supply</li><li>Accessories included: solenoids, therapy band, user manual</li></ul>',
         '<p>Renting the magnetotherapy device <strong>MAGNUM 2500</strong> is the ideal choice for those looking for a <strong>effective treatment of joint pain, bone and inflammatory diseases, directly at home</strong>.<br />Contact us today at +<strong>39 392 65 09 237</strong> and rent your magnetotherapy, fast delivery!</p>',
@@ -78,15 +77,15 @@ export const magnum2500 = magnetotherapyHire.rental({
   },
 
   specs: {
-    'included-accessories': { it: 'Solenoidi, fascia terapeutica, manuale d’uso', en: 'Solenoids, therapeutic band, instruction manual' },
+    'included-accessories': {
+      it: 'Solenoidi, fascia terapeutica, manuale d’uso',
+      en: 'Solenoids, therapeutic band, instruction manual',
+    },
   },
 
   media: {
     thumbnail: 'magnum-2500-1.jpg',
-    gallery: [
-      'magnum-2500-2.jpg',
-      'magnum-2500-3.jpeg',
-    ],
+    gallery: ['magnum-2500-2.jpg', 'magnum-2500-3.jpeg'],
   },
 
   addons: [homeDeliveryOnly(15), homeCollection(15)],

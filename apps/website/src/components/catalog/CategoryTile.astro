@@ -23,10 +23,8 @@ const { tile, headingLevel = 3, compact = false } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 ---
 
-{
-  /* Centered composition since 2026-08-31, matching the reference tiles:
-    the art on top, the name and the offer centered under it. */
-}
+{/* Centered composition since 2026-08-31, matching the reference tiles:
+    the art on top, the name and the offer centered under it. */}
 <a
   class:list={[
     'group/category border-hair hover:border-hair-strong block h-full w-full border bg-white text-center no-underline',
@@ -36,40 +34,34 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
   ]}
   href={tile.href}
 >
-  {
-    /* The art sits straight on the card, as it does on the reference tiles —
+  {/* The art sits straight on the card, as it does on the reference tiles —
        no tint well. The category icons carry their own white ground, so a well
        here would frame a white rectangle in a grey box; `mix-blend-multiply`
-       makes that ground disappear into the card instead. */
-  }
-  {
-    /* The art is a desktop 104px; a phone grid of eight of these paid 1047px
-      for it, so it comes down a step below `mid`. */
-  }
+       makes that ground disappear into the card instead. */}
+  {/* The art is a desktop 104px; a phone grid of eight of these paid 1047px
+      for it, so it comes down a step below `mid`. */}
   <span class:list={['block', compact ? 'mb-2 h-20.5' : 'mid:h-26 max-mid:h-20 mb-2.25']}>
-    {
-      tile.imagePath && (
-        <img
-          class="block size-full object-contain mix-blend-multiply"
-          src={mediaUrl(tile.imagePath)}
-          alt=""
-          loading="lazy"
-        />
-      )
-    }
+    {tile.imagePath && (
+      <img
+        class="block size-full object-contain mix-blend-multiply"
+        src={mediaUrl(tile.imagePath)}
+        alt=""
+        loading="lazy"
+      />
+    )}
   </span>
   {/* Lexend on the name, Atkinson on the offer — the reference's own split. */}
   <Heading
     class:list={[
       'font-ui font-bold group-hover/category:text-accent',
       compact ? 'text-base/[1.28]' : 'text-[1.0313rem]/[1.28]',
-    ]}>{tile.name}</Heading
+    ]}
   >
-  {
-    /* A price is an offer and a count is inventory — same slot, different ink.
+    {tile.name}
+  </Heading>
+  {/* A price is an offer and a count is inventory — same slot, different ink.
        One class or the other, never both: two colour utilities on one element
-       is a coin toss decided by the stylesheet's order, not by this file. */
-  }
+       is a coin toss decided by the stylesheet's order, not by this file. */}
   <p
     class:list={[
       'font-body text-base/[1.25] tabular-nums',

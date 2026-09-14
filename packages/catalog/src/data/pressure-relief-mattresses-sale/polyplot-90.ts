@@ -20,9 +20,11 @@ export const polyplot90 = pressureReliefMattressesSale.fixed({
     it: {
       title: 'Vendita Materasso antidecubito Polyplot 90CM',
       slug: 'vendita-materasso-antidecubito-polyplot-90cm',
-      shortDescription: 'Materasso antidecubito Disponibile gratuitamente con il noleggio del letto elettrico ortopedico.',
+      shortDescription:
+        'Materasso antidecubito Disponibile gratuitamente con il noleggio del letto elettrico ortopedico.',
       metaTitle: 'Vendita materasso preventivo antidecubito Polyplot',
-      metaDescription: 'Vendita materasso preventivo antidecubito PolyPlot. Prezzo offerta , Spedizione in tutta l\'Italia. Disponibilità immediata.Chiama subito 3926509237',
+      metaDescription:
+        "Vendita materasso preventivo antidecubito PolyPlot. Prezzo offerta , Spedizione in tutta l'Italia. Disponibilità immediata.Chiama subito 3926509237",
       description: [
         '<p>Se una persona è costretta a letto per molto tempo a causa di un infortunio o di una patologia, è importante prendere delle precauzioni. Noi di <strong>Mia Medical</strong>, con il nostro servizio di <strong>vendita</strong> vi garantiamo la <strong>migliore qualità di materasso preventivo antidecubito</strong> sul mercato: il modello <strong>PolyPlot</strong> da 90cm.</p>',
         '<h4><strong><a href="/materasso-antidecubito-guida-alla-scelta-roma-e-firenze/">Cos’è un Materasso Antidecubito e a Cosa Serve?</a></strong></h4>',
@@ -55,9 +57,11 @@ export const polyplot90 = pressureReliefMattressesSale.fixed({
     en: {
       title: 'Polyplot 90 cm pressure-relief mattress, for sale',
       slug: 'vendita-materasso-antidecubito-polyplot-90cm',
-      shortDescription: 'Pressure-relief mattress. Supplied free with the hire of an electric orthopaedic bed.',
+      shortDescription:
+        'Pressure-relief mattress. Supplied free with the hire of an electric orthopaedic bed.',
       metaTitle: 'Polyplot preventive pressure-relief mattress for sale',
-      metaDescription: 'PolyPlot preventive pressure-relief mattress for sale. Offer price, shipping across Italy, available immediately.',
+      metaDescription:
+        'PolyPlot preventive pressure-relief mattress for sale. Offer price, shipping across Italy, available immediately.',
       description: [
         '<p>If a person is bedridden for a long time due to an injury or illness, it is important to take precautions. We at <strong>Mia Medical</strong>with our <strong>for sale</strong> we guarantee you the <strong>best quality preventive anti-decubitus mattress</strong> on the market: the model <strong>PolyPlot</strong> by 90cm.</p>',
         '<h4><strong><a href="/en/materasso-antidecubito-guida-alla-scelta-roma-e-firenze/">What is an Antidecubitus Mattress and What is it for?</a></strong></h4>',

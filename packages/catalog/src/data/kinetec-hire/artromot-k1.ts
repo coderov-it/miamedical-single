@@ -20,20 +20,17 @@ export const artromotK1 = kinetecHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 150),
-    days(20, 200),
-    days(30, 260),
-    days(60, 480),
-  ],
+  packages: [days(15, 150), days(20, 200), days(30, 260), days(60, 480)],
 
   translations: {
     it: {
       title: 'Kinetec Artromot K1 Ginocchio Anca',
       slug: 'noleggio-kinetec-artromot-k1-ginocchio-anca-riabilitazione',
-      shortDescription: 'I ritiri in magazzino sono Gratuiti Chiamaci o prenota online subito! Consegna a domicilio solo a Roma e Firenze: 30€ + 30€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 30 giorni.',
+      shortDescription:
+        'I ritiri in magazzino sono Gratuiti Chiamaci o prenota online subito! Consegna a domicilio solo a Roma e Firenze: 30€ + 30€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 30 giorni.',
       metaTitle: 'Noleggio Kinetec Artromot K1 per riabilitazione ginocchio e anca',
-      metaDescription: 'Noleggio Kinetec Artromot K1 per riabilitazione del ginocchio e anca a partire da 8,00€ al giorno. Consegna a domicilio. Prenota ora online!',
+      metaDescription:
+        'Noleggio Kinetec Artromot K1 per riabilitazione del ginocchio e anca a partire da 8,00€ al giorno. Consegna a domicilio. Prenota ora online!',
       description: [
         '<p>Scopri il servizio di <strong>noleggio</strong> del <strong>Kinetec</strong><strong><a href="https://www.chattanoogarehab.com/it/artromot-k1-80-00-04x-it">Artromot K1</a></strong>: un apparecchio per la <strong>mobilizzazione passiva continua (CPM)</strong>, progettato per favorire la <strong>riabilitazione delle articolazioni del ginocchio e dell’anca in fase post-operatoria o post-traumatica</strong>.</p>',
         '<p>È la soluzione ideale per chi desidera <strong>recuperare mobilità e funzionalità in modo efficace, sicuro e comodo, direttamente a casa.</strong></p>',
@@ -62,9 +59,11 @@ export const artromotK1 = kinetecHire.rental({
     en: {
       title: 'Kinetec Artromot K1 knee and hip CPM, for hire',
       slug: 'noleggio-kinetec-artromot-k1-ginocchio-anca-riabilitazione',
-      shortDescription: 'Collection at the warehouse is free. Call us or book online now! Home delivery in Rome and Florence only: €30 out and €30 back. Free delivery on hires of 30 days or more.',
+      shortDescription:
+        'Collection at the warehouse is free. Call us or book online now! Home delivery in Rome and Florence only: €30 out and €30 back. Free delivery on hires of 30 days or more.',
       metaTitle: 'Kinetec Artromot K1 hire for knee and hip rehabilitation',
-      metaDescription: 'Kinetec Artromot K1 hire for knee and hip rehabilitation from €8.00 a day, delivered to your door. Book online.',
+      metaDescription:
+        'Kinetec Artromot K1 hire for knee and hip rehabilitation from €8.00 a day, delivered to your door. Book online.',
       description: [
         '<p>Discover the service of <strong>rental</strong> of <strong>Kinetec</strong><strong><a href="https://www.chattanoogarehab.com/it/artromot-k1-80-00-04x-it">Artromot K1</a></strong>an apparatus for the <strong>continuous passive mobilisation (CPM)</strong>designed to promote the <strong>rehabilitation of knee and hip joints in the post-operative or post-traumatic phase</strong>.</p>',
         '<p>It is the ideal solution for those who want to <strong>regain mobility and functionality in an effective, safe and comfortable way, right at home.</strong></p>',
@@ -94,9 +93,7 @@ export const artromotK1 = kinetecHire.rental({
 
   media: {
     thumbnail: 'artromot-k1-1.jpg',
-    gallery: [
-      'artromot-k1-2.png',
-    ],
+    gallery: ['artromot-k1-2.png'],
   },
 
   addons: [homeDeliveryOnly(30), homeCollection(30)],

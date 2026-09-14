@@ -19,9 +19,11 @@ export const cryopushCompressionSale = cryotherapySale.fixed({
     it: {
       title: 'Vendita Crioterapia Compressiva Cryopush',
       slug: 'vendita-crioterapia-compressiva-cryopush',
-      shortDescription: 'CRIOTERAPIA Cryopush Dispositivo professionale di ultima generazione progettato per l’utilizzo sia clinico che domiciliare. - Riduce il dolore senza l’utilizzo di medicinali - Controlla edema e gonfiore post-traumatico o post-operatorio - Stimola il flusso sanguigno arterioso migliorando l’ossigenazione dei tessuti - Accelera il recupero muscolare e il riassorbimento dell’acido lattico - Migliora la mobilità articolare e la funzionalità muscolare',
+      shortDescription:
+        'CRIOTERAPIA Cryopush Dispositivo professionale di ultima generazione progettato per l’utilizzo sia clinico che domiciliare. - Riduce il dolore senza l’utilizzo di medicinali - Controlla edema e gonfiore post-traumatico o post-operatorio - Stimola il flusso sanguigno arterioso migliorando l’ossigenazione dei tessuti - Accelera il recupero muscolare e il riassorbimento dell’acido lattico - Migliora la mobilità articolare e la funzionalità muscolare',
       metaTitle: 'Vendita crioterapia compressiva cryopush',
-      metaDescription: 'Vendita crioterapia compressiva a domicilio. Per accelerare i meccanismi di guarigione naturali del corpo. Chiama il +39 3926509237.',
+      metaDescription:
+        'Vendita crioterapia compressiva a domicilio. Per accelerare i meccanismi di guarigione naturali del corpo. Chiama il +39 3926509237.',
       description: [
         '<h2><strong>Vendita Crioterapia Compressiva CRYOPUSH: Tecnologia medicale avanzata per il recupero muscolare e post-operatorio</strong></h2>',
         '<p>La vendita della<strong> crioterapia compressiva CRYOPUSH</strong> è una delle soluzioni medicali più evolute per il <strong>trattamento del dolore, delle infiammazioni e degli edemi</strong>, utilizzato da <strong>fisioterapisti, centri di riabilitazione, atleti professionisti e pazienti in fase post-operatoria</strong>.</p>',
@@ -79,13 +81,15 @@ export const cryopushCompressionSale = cryotherapySale.fixed({
     en: {
       title: 'Cryopush compression cryotherapy, for sale',
       slug: 'vendita-crioterapia-compressiva-cryopush',
-      shortDescription: 'Cryopush CRIOTHERAPY State-of-the-art professional device designed for both clinical and home use. - Reduces pain without the use of medication - Controls post-traumatic or post-operative oedema and swelling - Stimulates arterial blood flow, improving tissue oxygenation - Accelerates muscle recovery and lactic acid reabsorption - Improves joint mobility and muscle function',
+      shortDescription:
+        'Cryopush CRIOTHERAPY State-of-the-art professional device designed for both clinical and home use. - Reduces pain without the use of medication - Controls post-traumatic or post-operative oedema and swelling - Stimulates arterial blood flow, improving tissue oxygenation - Accelerates muscle recovery and lactic acid reabsorption - Improves joint mobility and muscle function',
       metaTitle: 'Cryopush compression cryotherapy for sale',
-      metaDescription: 'Compression cryotherapy for sale, for use at home — to speed up the body’s own healing. Call +39 392 650 9237',
+      metaDescription:
+        'Compression cryotherapy for sale, for use at home — to speed up the body’s own healing. Call +39 392 650 9237',
       description: [
         '<h2><strong>CRYOPUSH Compression Cryotherapy Sale: Advanced medical technology for muscle and post-operative recovery</strong></h2>',
         '<p>The sale of the<strong> compressive cryotherapy CRYOPUSH</strong> is one of the most advanced medical solutions for the <strong>treatment of pain, inflammation and oedema</strong>, used by <strong>physiotherapists, rehabilitation centres, professional athletes and post-operative patients</strong>.</p>',
-        '<p>Thanks to the combination of&nbsp;<strong>controlled cold</strong>&nbsp;e&nbsp;<strong>intermittent pneumatic compression</strong>, CRYOPUSH accelerates the&nbsp;<strong>the body\'s natural healing mechanisms</strong>, improving functional recovery in a way&nbsp;<strong>safe, effective and non-pharmacological</strong>.</p>',
+        "<p>Thanks to the combination of&nbsp;<strong>controlled cold</strong>&nbsp;e&nbsp;<strong>intermittent pneumatic compression</strong>, CRYOPUSH accelerates the&nbsp;<strong>the body's natural healing mechanisms</strong>, improving functional recovery in a way&nbsp;<strong>safe, effective and non-pharmacological</strong>.</p>",
         '<p><strong><a href="https://wa.me/393926509237">Contact us now</a></strong>&nbsp;to receive information on the availability and price of the device.</p>',
         '<h3><strong>What is CRYOPUSH and how does it work</strong></h3>',
         '<p>CRYOPUSH is a&nbsp;<strong>compression cryotherapy device</strong>&nbsp;combining two fundamental therapeutic treatments:</p>',
@@ -130,7 +134,7 @@ export const cryopushCompressionSale = cryotherapySale.fixed({
         '<ul><li>Certified medical device</li><li>Specialised technical support</li><li>Personalised pre- and post-purchase advice</li><li>Reliable assistance</li><li>Transparency and professionalism</li></ul>',
         '<p>&nbsp;<strong><a href="https://wa.me/393926509237">Contact us today</a></strong>&nbsp;to receive a customised quotation or more information about the product.</p>',
         '<h4><strong>Buy CRYOPUSH now</strong></h4>',
-        '<p>Improve your recovery, reduce pain and speed up healing! Don\'t give up a technology used by rehabilitation professionals. With&nbsp;<strong>CRYOPUSH</strong>&nbsp;you take home an advanced, safe and effective system for your daily well-being.</p>',
+        "<p>Improve your recovery, reduce pain and speed up healing! Don't give up a technology used by rehabilitation professionals. With&nbsp;<strong>CRYOPUSH</strong>&nbsp;you take home an advanced, safe and effective system for your daily well-being.</p>",
         '<ul><li><strong>Call us now</strong>: +39 392 65 09 237</li><li><strong>Write us on <a href="https://wa.me/393926509237">WhatsApp</a></strong></li><li><strong><a href="/en/">Visit our website</a></strong>&nbsp;to discover all available medical devices</li></ul>',
         '<p>We are ready to help you choose the&nbsp;<strong>best solution for your needs</strong>.</p>',
         '<p>Visit our&nbsp;<a href="/en/blog/">blog</a>&nbsp;and read&nbsp;<a href="/en/noleggio-criocompressione-riabilitazione-e-recupero-muscolare/">the article</a>&nbsp;dedicated!</p>',
@@ -139,7 +143,10 @@ export const cryopushCompressionSale = cryotherapySale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'cryopush-compression-1.png', alt: { it: 'Vendita crioterapia compressiva' } },
+    thumbnail: {
+      file: 'cryopush-compression-1.png',
+      alt: { it: 'Vendita crioterapia compressiva' },
+    },
     gallery: [
       'cryopush-compression-2.png',
       'cryopush-compression-3.png',

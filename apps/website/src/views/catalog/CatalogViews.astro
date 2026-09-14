@@ -34,24 +34,22 @@ const locale = localeForRequest();
   role="group"
   aria-label={translate(locale, 'catalog.viewFilter')}
 >
-  {
-    pills.map((pill, index) => (
-      <a
-        class:list={[
-          /* The padding halves on a phone. Four segments at the desktop 20px
+  {pills.map((pill, index) => (
+    <a
+      class:list={[
+        /* The padding halves on a phone. Four segments at the desktop 20px
              ran 40px past a 390px screen and clipped "Usato" — a control that
              hides one of its four answers. */
-          'font-display max-mid:flex-1 max-mid:min-w-0 max-mid:px-2 mid:px-5 inline-flex min-h-12 items-center justify-center text-center text-base font-semibold no-underline',
-          index > 0 && 'border-hair border-s',
-          pill.isActive
-            ? 'hover:bg-accent-deep bg-accent text-white'
-            : 'hover:bg-accent-tint text-ink-2 bg-white',
-        ]}
-        href={pill.href}
-        aria-current={pill.isActive ? 'true' : undefined}
-      >
-        {pill.label}
-      </a>
-    ))
-  }
+        'font-display max-mid:flex-1 max-mid:min-w-0 max-mid:px-2 mid:px-5 inline-flex min-h-12 items-center justify-center text-center text-base font-semibold no-underline',
+        index > 0 && 'border-hair border-s',
+        pill.isActive
+          ? 'hover:bg-accent-deep bg-accent text-white'
+          : 'hover:bg-accent-tint text-ink-2 bg-white',
+      ]}
+      href={pill.href}
+      aria-current={pill.isActive ? 'true' : undefined}
+    >
+      {pill.label}
+    </a>
+  ))}
 </div>

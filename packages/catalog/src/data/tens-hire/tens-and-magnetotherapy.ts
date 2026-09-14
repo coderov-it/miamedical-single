@@ -26,20 +26,22 @@ export const tensAndMagnetotherapy = tensHire.rental({
   pricingMode: 'rental',
   rentalUnit: 'day',
   packages: [
-    days(10, 110),  // 10 giorni - 110 € — label (the charged price bundles the compulsory electrode pack)
-    days(20, 190),  // 20 giorni - 190 € — label (the charged price bundles the compulsory electrode pack)
-    days(30, 220),  // 30 giorni - 220 € — label (the charged price bundles the compulsory electrode pack)
-    days(45, 300),  // 45 giorni - 300 € — label (the charged price bundles the compulsory electrode pack)
-    days(60, 360),  // 60 giorni - 360 € — label (the charged price bundles the compulsory electrode pack)
+    days(10, 110), // 10 giorni - 110 € — label (the charged price bundles the compulsory electrode pack)
+    days(20, 190), // 20 giorni - 190 € — label (the charged price bundles the compulsory electrode pack)
+    days(30, 220), // 30 giorni - 220 € — label (the charged price bundles the compulsory electrode pack)
+    days(45, 300), // 45 giorni - 300 € — label (the charged price bundles the compulsory electrode pack)
+    days(60, 360), // 60 giorni - 360 € — label (the charged price bundles the compulsory electrode pack)
   ],
 
   translations: {
     it: {
       title: 'Noleggio Elettrostimolatore TENS + Magnetoterapia',
       slug: 'elettrostimolatore-e-magnetoterapia',
-      shortDescription: 'Noleggio Tens elettrostimolatore abbinato con la Magnetoterapia Cemp bio compatibile Consegna gratuita per i noleggi da 30 giorni, in tutta l’Italia! Per noleggi di durata minore onsegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Ricordati di acquistare anche gli elettrodi, necessari per usare l’elettrostimolatore Tens. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Tens elettrostimolatore abbinato con la Magnetoterapia Cemp bio compatibile Consegna gratuita per i noleggi da 30 giorni, in tutta l’Italia! Per noleggi di durata minore onsegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Ricordati di acquistare anche gli elettrodi, necessari per usare l’elettrostimolatore Tens. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Tens e Magnetoterapia Cemp',
-      metaDescription: 'Noleggio Tens e magnetoterapia Cemp per fisioterapia post traumatica, dolori muscolari e recupero veloce. Chiama 3926509237',
+      metaDescription:
+        'Noleggio Tens e magnetoterapia Cemp per fisioterapia post traumatica, dolori muscolari e recupero veloce. Chiama 3926509237',
       description: [
         '<p><strong>La soluzione completa per la gestione del dolore e la riabilitazione a domicilio</strong></p>',
         '<p>Il&nbsp;<strong>noleggio combinato TENS elettrostimolatore + magnetoterapia CEMP</strong>&nbsp;rappresenta una soluzione professionale, efficace e flessibile per chi necessita di trattamenti fisioterapici domiciliari, riabilitazione post-traumatica e controllo del dolore muscolare e articolare.</p>',
@@ -100,9 +102,11 @@ export const tensAndMagnetotherapy = tensHire.rental({
     en: {
       title: 'TENS stimulator + magnetotherapy, combined hire',
       slug: 'elettrostimolatore-e-magnetoterapia',
-      shortDescription: 'Rental Tens electrostimulator combined with bio-compatible Cemp Magnetotherapy Free delivery for 30-day rentals, all over Italy! For shorter rentals, home delivery throughout Italy starts at €15 + €15 for collection. Remember to also buy the electrodes, which are needed to use the Tens electro-stimulator. No deposit required!',
+      shortDescription:
+        'Rental Tens electrostimulator combined with bio-compatible Cemp Magnetotherapy Free delivery for 30-day rentals, all over Italy! For shorter rentals, home delivery throughout Italy starts at €15 + €15 for collection. Remember to also buy the electrodes, which are needed to use the Tens electro-stimulator. No deposit required!',
       metaTitle: 'TENS and CEMP magnetotherapy hire',
-      metaDescription: 'Hire a TENS unit with CEMP magnetotherapy for physiotherapy after an injury, muscle pain and a quicker recovery. Call +39 392 650 9237',
+      metaDescription:
+        'Hire a TENS unit with CEMP magnetotherapy for physiotherapy after an injury, muscle pain and a quicker recovery. Call +39 392 650 9237',
       description: [
         '<p><strong>The complete solution for pain management and rehabilitation at home</strong></p>',
         '<p>The&nbsp;<strong>combined TENS electrostimulator + PEMF magnetotherapy rental</strong>&nbsp;is a professional, effective and flexible solution for those in need of home physiotherapy treatments, post-traumatic rehabilitation and muscle and joint pain control.</p>',
@@ -115,7 +119,7 @@ export const tensAndMagnetotherapy = tensHire.rental({
         '<h3><strong>What the combined TENS Electrostimulator + PEMF Magnetotherapy rental consists of</strong></h3>',
         '<p>The package includes two professional electro-medical devices used daily in rehabilitation.</p>',
         '<h4><strong><a href="/en/rental-catalog/">Biocompatible PEMF magnetotherapy</a></strong></h4>',
-        '<p>Pulsed Electromagnetic Field (PEMF) therapy is a physical therapy that uses low-frequency magnetic fields to stimulate the body\'s natural regeneration processes.</p>',
+        "<p>Pulsed Electromagnetic Field (PEMF) therapy is a physical therapy that uses low-frequency magnetic fields to stimulate the body's natural regeneration processes.</p>",
         '<p><strong>Clinical benefits of magnetotherapy</strong></p>',
         '<ul><li>reduction of inflammation</li><li>stimulation of bone regeneration</li><li>improvement of tissue trophism</li><li>reduction of pain</li><li>acceleration of recovery times</li></ul>',
         '<p>It is particularly suitable for cases of:</p>',
@@ -123,7 +127,7 @@ export const tensAndMagnetotherapy = tensHire.rental({
         '<p><strong>Contraindications of magnetotherapy</strong></p>',
         '<p>Magnet therapy is generally well-tolerated, but it is contraindicated in the presence of:</p>',
         '<ul><li>pacemakers or implanted electronic devices</li><li>active tumour pathologies</li><li>pregnancy (as a precaution)</li></ul>',
-        '<p>You must always follow the doctor\'s instructions and the device manual.</p>',
+        "<p>You must always follow the doctor's instructions and the device manual.</p>",
         '<h4><strong><a href="/en/rental-catalog/">TENS : Transcutaneous Nerve Stimulation</a></strong></h4>',
         '<p>TENS is a non-invasive pain relief therapy that uses low-intensity electrical impulses applied via adhesive electrodes placed on the skin. The impulses are perceived as a mild, completely painless tingling sensation.</p>',
         '<p><strong>How TENS works</strong></p>',
@@ -165,14 +169,22 @@ export const tensAndMagnetotherapy = tensHire.rental({
   media: {
     thumbnail: { file: 'tens-and-magnetotherapy-1.jpg', alt: { it: 'combo magneto + tens' } },
     gallery: [
-      { file: 'tens-and-magnetotherapy-2.jpg', alt: { it: 'Noleggio ausili per terapia a domicilio' } },
+      {
+        file: 'tens-and-magnetotherapy-2.jpg',
+        alt: { it: 'Noleggio ausili per terapia a domicilio' },
+      },
       'tens-and-magnetotherapy-3.jpg',
       'tens-and-magnetotherapy-4.jpg',
       'tens-and-magnetotherapy-5.jpeg',
     ],
   },
 
-  addons: [electrodes('5 x 5 cm', 8), electrodes('9 x 5 cm', 13), homeDeliveryOnly(15), homeCollection(15)],
+  addons: [
+    electrodes('5 x 5 cm', 8),
+    electrodes('9 x 5 cm', 13),
+    homeDeliveryOnly(15),
+    homeCollection(15),
+  ],
 
   questions: [...hireIntake],
   terms: [generalTerms],

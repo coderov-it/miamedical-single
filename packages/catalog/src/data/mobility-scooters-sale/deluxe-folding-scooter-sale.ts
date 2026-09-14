@@ -19,9 +19,11 @@ export const deluxeFoldingScooterSale = mobilityScootersSale.fixed({
     it: {
       title: 'Vendita Scooter pieghevole Deluxe con braccioli',
       slug: 'vendita-scooter-pieghevole-deluxe-con-braccioli',
-      shortDescription: 'Libertà e autonomia Acquista il tuo scooter elettrico pieghevole con braccioli Deluxe e muoviti in totale indipendenza ogni giorno. Compatto, leggero e progettato per il comfort, grazie alla scocca richiudibile è facilmente trasportabile e ideale anche per chi viaggia o necessita di un supporto pratico alla mobilità. Disponibile per acquisto con assistenza dedicata prima e dopo la vendita.',
+      shortDescription:
+        'Libertà e autonomia Acquista il tuo scooter elettrico pieghevole con braccioli Deluxe e muoviti in totale indipendenza ogni giorno. Compatto, leggero e progettato per il comfort, grazie alla scocca richiudibile è facilmente trasportabile e ideale anche per chi viaggia o necessita di un supporto pratico alla mobilità. Disponibile per acquisto con assistenza dedicata prima e dopo la vendita.',
       metaTitle: 'Vendita Scooter Pieghevole Deluxe con Braccioli | Mia Medical',
-      metaDescription: 'Acquista scooter elettrico pieghevole con braccioli Deluxe: comfort, autonomia 15 km, facile da trasportare. Ideale per anziani e disabili.',
+      metaDescription:
+        'Acquista scooter elettrico pieghevole con braccioli Deluxe: comfort, autonomia 15 km, facile da trasportare. Ideale per anziani e disabili.',
       description: [
         '<h2>Scooter Elettrico Pieghevole con Braccioli Deluxe: più comfort, più autonomia, più libertà</h2>',
         '<p>Lo scooter elettrico pieghevole con braccioli Deluxe è una soluzione pensata per chi desidera muoversi in autonomia senza rinunciare al comfort. Grazie alla struttura compatta e al sistema di chiusura intelligente, può essere facilmente trasportato e riposto, rendendolo adatto sia all’uso quotidiano che ai viaggi.</p>',
@@ -47,9 +49,11 @@ export const deluxeFoldingScooterSale = mobilityScootersSale.fixed({
     en: {
       title: 'Deluxe folding scooter with armrests, for sale',
       slug: 'vendita-scooter-pieghevole-deluxe-con-braccioli',
-      shortDescription: 'Freedom and autonomy Buy your Deluxe folding electric mobility scooter and get around in total independence every day. Compact, lightweight and designed for comfort, thanks to its foldable frame it is easily transportable and ideal even for those who travel or need practical mobility support. Available to buy with dedicated pre- and post-sales support.',
+      shortDescription:
+        'Freedom and autonomy Buy your Deluxe folding electric mobility scooter and get around in total independence every day. Compact, lightweight and designed for comfort, thanks to its foldable frame it is easily transportable and ideal even for those who travel or need practical mobility support. Available to buy with dedicated pre- and post-sales support.',
       metaTitle: 'Deluxe folding scooter with armrests for sale | Mia Medical',
-      metaDescription: 'Buy the Deluxe folding mobility scooter with armrests: comfortable, 15 km on a charge, easy to carry. Right for older and disabled users.',
+      metaDescription:
+        'Buy the Deluxe folding mobility scooter with armrests: comfortable, 15 km on a charge, easy to carry. Right for older and disabled users.',
       description: [
         '<h2>Foldable Electric Scooter with Deluxe Armrests: more comfort, more range, more freedom</h2>',
         '<p>The Deluxe folding electric mobility scooter is a solution designed for those who want to move around independently without compromising on comfort. Thanks to its compact structure and intelligent folding system, it can be easily transported and stored, making it suitable for both daily use and travel.</p>',
@@ -88,10 +92,11 @@ export const deluxeFoldingScooterSale = mobilityScootersSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'deluxe-folding-scooter-1.png', alt: { it: 'Noleggio scooter pieghevole con braccioli' } },
-    gallery: [
-      'deluxe-folding-scooter-2.jpg',
-    ],
+    thumbnail: {
+      file: 'deluxe-folding-scooter-1.png',
+      alt: { it: 'Noleggio scooter pieghevole con braccioli' },
+    },
+    gallery: ['deluxe-folding-scooter-2.jpg'],
   },
   terms: [generalTerms],
 });

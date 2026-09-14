@@ -25,9 +25,7 @@ const locale = localeFromLocals(Astro.locals);
       <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">
         {translate(locale, 'notFound.heading')}
       </h1>
-      <p class="text-lead text-ink-2 mt-4">
-        {translate(locale, 'notFound.detail')}
-      </p>
+      <p class="text-lead text-ink-2 mt-4">{translate(locale, 'notFound.detail')}</p>
 
       <div class="mt-8 flex flex-wrap gap-3">
         <a

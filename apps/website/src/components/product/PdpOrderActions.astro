@@ -34,8 +34,7 @@ const { isRental, productTitle } = Astro.props;
 const locale = localeForRequest();
 ---
 
-{
-  /*
+{/*
   Three actions, in three weights, because they are three different sizes of
   commitment: go and confirm this one now, put it aside and keep looking, or
   ask a human. Solid → accent outline → neutral outline, so the hierarchy is
@@ -47,11 +46,9 @@ const locale = localeForRequest();
   `/carrello/` — the cart renders it server-side and folds it into the store
   on mount. The script below only upgrades that to "stay on the page"; it
   never becomes the only way to add something.
-*/
-}
+*/}
 <div class="flex flex-col gap-2.5">
-  {
-    /*
+  {/*
     BOTH ACTIONS STAY CLICKABLE, ALWAYS. This button used to disable itself
     whenever a rental was missing its package or its start date, which stopped
     the customer without telling them anything — they clicked a dead control
@@ -61,8 +58,7 @@ const locale = localeForRequest();
 
     With no JavaScript the click is a plain submit and the server answers,
     which is the same complete path it always was.
-  */
-  }
+  */}
   <button
     class="hover:bg-accent-deep min-h-12 cursor-pointer rounded-full border-0 bg-accent px-5 text-[15.5px] font-semibold text-white focus-visible:shadow-[0_0_0_6px_var(--color-ink)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
     type="submit"
@@ -83,15 +79,13 @@ const locale = localeForRequest();
   </button>
 </div>
 
-{
-  /*
+{/*
   The confirmation, revealed by the script after a successful add. Ships with
   the `hidden` attribute rather than a `hidden:` utility, for the reason the
   calendar popover and the checkout's step bodies both do: preflight makes
   `[hidden]` `display: none !important`, so the attribute is the ONE thing
   that decides visibility and a utility class cannot fight it.
-*/
-}
+*/}
 <div
   class="bg-ok/8 rounded-field flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-[13.5px]"
   data-cart-added
@@ -103,8 +97,7 @@ const locale = localeForRequest();
   </a>
 </div>
 
-{
-  /*
+{/*
   The spoken half of that confirmation, and a separate element on purpose.
   Revealing a `role="status"` region announces it once; adding a second time
   changes nothing in the DOM, so a screen-reader user would hear nothing at
@@ -114,8 +107,7 @@ const locale = localeForRequest();
 
   The template is a value, not an identifier, so Italian belongs in it. The
   island's own live region is built the same way.
-*/
-}
+*/}
 <p
   class="sr-only"
   role="status"
@@ -124,11 +116,9 @@ const locale = localeForRequest();
   data-message-template={translate(locale, 'product.addedAnnouncement')}
   data-count-one={translate(locale, 'cartCountOne')}
   data-count-many={translate(locale, 'cartCountMany')}
->
-</p>
+></p>
 
-{
-  /*
+{/*
   The spoken half of the form gate. The visible half is the message under
   each field; this says HOW MANY are outstanding, for a reader who cannot see
   that focus has just landed on the first of them.
@@ -136,8 +126,7 @@ const locale = localeForRequest();
   It counts for the same reason the cart announcement ends in the cart's
   size: the text has to differ between two failed attempts, or a live region
   whose content did not change announces nothing the second time.
-*/
-}
+*/}
 <p
   class="sr-only"
   role="status"
@@ -145,5 +134,4 @@ const locale = localeForRequest();
   data-order-gate-announce
   data-message-one={translate(locale, 'errorCountOne')}
   data-message-many={translate(locale, 'errorCountMany')}
->
-</p>
+></p>

@@ -31,20 +31,17 @@ export const electricStandingHoist = standingFramesHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 110),
-    days(30, 180),
-    days(60, 280),
-    days(90, 390),
-  ],
+  packages: [days(15, 110), days(30, 180), days(60, 280), days(90, 390)],
 
   translations: {
     it: {
       title: 'Noleggio Verticalizzatore Elettrico',
       slug: 'noleggio-verticalizzatore-a-domicilio',
-      shortDescription: 'Noleggio verticalizzatore con imbracatura. Ideal per il bagno. Consegna a Roma e Firenze a partire da 45€ + 45€ per il ritiro Consegna gratuita per i noleggi da 60 giorni ! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Noleggio verticalizzatore con imbracatura. Ideal per il bagno. Consegna a Roma e Firenze a partire da 45€ + 45€ per il ritiro Consegna gratuita per i noleggi da 60 giorni ! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio Verticalizzatore elettrico per anziani e disabili',
-      metaDescription: 'Noleggio Verticalizzatore elettrico per anziani e disabili. Da 3,70€ al giorno. Migliore Prezzo Garantito. Esperti al tuo servizio. Prezzi imbattibili.',
+      metaDescription:
+        'Noleggio Verticalizzatore elettrico per anziani e disabili. Da 3,70€ al giorno. Migliore Prezzo Garantito. Esperti al tuo servizio. Prezzi imbattibili.',
       description: [
         '<h3>Noleggio Verticalizzatore elettrico per anziani e disabili</h3>',
         '<p>Mia Medical Italia offre un servizio di <strong>noleggio di verticalizzatore elettrico</strong><strong>per anziani e persone con disabilità</strong> , un dispositivo medicale progettato per aiutare le persone con ridotta mobilità a passare dalla posizione seduta a quella eretta in modo sicuro, assistito e senza sforzo. È particolarmente utile nella fase di <strong>riabilitazione</strong> o per l<strong>’assistenza quotidiana domiciliare ed ospedaliera.</strong></p>',
@@ -69,9 +66,11 @@ export const electricStandingHoist = standingFramesHire.rental({
     en: {
       title: 'Electric standing hoist for hire',
       slug: 'noleggio-verticalizzatore-a-domicilio',
-      shortDescription: 'Rental of verticaliser with sling. Ideal for the bathroom. Delivery in Rome and Florence starting from €45 + €45 for collection Free delivery for 60-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Rental of verticaliser with sling. Ideal for the bathroom. Delivery in Rome and Florence starting from €45 + €45 for collection Free delivery for 60-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Electric standing hoist hire for older and disabled users',
-      metaDescription: 'Electric standing hoist hire for older and disabled users, from €3.70 a day. Best price guaranteed, experts on hand.',
+      metaDescription:
+        'Electric standing hoist hire for older and disabled users, from €3.70 a day. Best price guaranteed, experts on hand.',
       description: [
         '<h3>Hire of an electric hoist for the elderly and disabled</h3>',
         '<p>Mia Medical Italia offers a service of <strong>rental of electric verticaliser</strong><strong>for elderly people and people with disabilities</strong> a medical device designed to help people with reduced mobility move from a sitting to a standing position in a safe, assisted and effortless manner. It is particularly useful during <strong>rehabilitation</strong> or for the<strong>daily home and hospital care.</strong></p>',
@@ -106,10 +105,11 @@ export const electricStandingHoist = standingFramesHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'electric-standing-hoist-1.jpg', alt: { it: 'Noleggio Verticalizzatore elettrico' } },
-    gallery: [
-      'electric-standing-hoist-2.jpg',
-    ],
+    thumbnail: {
+      file: 'electric-standing-hoist-1.jpg',
+      alt: { it: 'Noleggio Verticalizzatore elettrico' },
+    },
+    gallery: ['electric-standing-hoist-2.jpg'],
   },
 
   addons: [homeDeliveryOnly(45), homeCollection(45)],

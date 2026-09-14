@@ -95,137 +95,131 @@ const proseClass =
 ---
 
 <section class="pdp-tabs">
-  {
-    tabs.map((tab, index) => (
-      <input
-        class={inputClasses[index]}
-        type="radio"
-        name="pdp-info-tab"
-        id={`pdp-tab-${index}`}
-        checked={index === 0}
-        form="pdp-detached"
-        aria-label={tab.title}
-      />
-    ))
-  }
+  {tabs.map((tab, index) => (
+    <input
+      class={inputClasses[index]}
+      type="radio"
+      name="pdp-info-tab"
+      id={`pdp-tab-${index}`}
+      checked={index === 0}
+      form="pdp-detached"
+      aria-label={tab.title}
+    />
+  ))}
 
   <div class:list={['border-hair flex gap-1 overflow-x-auto border-b', tabbarStateClass]}>
-    {
-      tabs.map((tab, index) => (
-        <label
-          class={`pdp-tab-label-${index} text-ink-2 cursor-pointer px-4.5 py-3 text-[14.5px] font-semibold whitespace-nowrap hover:text-accent`}
-          for={`pdp-tab-${index}`}
-        >
-          {tab.title}
-        </label>
-      ))
-    }
+    {tabs.map((tab, index) => (
+      <label
+        class={`pdp-tab-label-${index} text-ink-2 cursor-pointer px-4.5 py-3 text-[14.5px] font-semibold whitespace-nowrap hover:text-accent`}
+        for={`pdp-tab-${index}`}
+      >
+        {tab.title}
+      </label>
+    ))}
   </div>
 
   <div class:list={['text-ink-2 pt-6 text-[15px]/[1.65]', panelStateClass]}>
-    {
-      tabs.map((tab, index) => (
-        <div class={`pdp-panel-${index} hidden`}>
-          {tab.key === 'description' && (
-            <div class={proseClass} lang={productLang} set:html={product.description} />
-          )}
+    {tabs.map((tab, index) => (
+      <div class={`pdp-panel-${index} hidden`}>
+        {tab.key === 'description' && (
+          <div class={proseClass} lang={productLang} set:html={product.description} />
+        )}
 
-          {tab.key === 'faq' && (
-            <div class="flex max-w-180 flex-col">
-              {product.faqs.map((faq) => (
-                <details class="border-hair group border-b">
-                  <summary class="text-ink flex min-h-12 cursor-pointer list-none items-center justify-between gap-5 py-3.5 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
-                    {faq.question}
+        {tab.key === 'faq' && (
+          <div class="flex max-w-180 flex-col">
+            {product.faqs.map((faq) => (
+              <details class="border-hair group border-b">
+                <summary class="text-ink flex min-h-12 cursor-pointer list-none items-center justify-between gap-5 py-3.5 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
+                  {faq.question}
+                  <svg
+                    class="size-4.5 flex-none transition-transform duration-200 group-open:rotate-180"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </summary>
+                <p class="m-0 max-w-[68ch] pb-4 text-pretty">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        )}
+
+        {tab.key === 'delivery' && (
+          <div class="grid max-w-180 gap-8 min-[560px]:grid-cols-2">
+            <div>
+              <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">
+                {text(isRental ? 'pdp.includedRental' : 'pdp.includedSale')}
+              </h3>
+              <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+                {includes.map((item) => (
+                  <li class={checkRow}>
                     <svg
-                      class="size-4.5 flex-none transition-transform duration-200 group-open:rotate-180"
+                      class="text-ok size-4.5 flex-none"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      stroke-width="2.4"
+                      stroke-width="2.5"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       aria-hidden="true"
                     >
-                      <path d="M6 9l6 6 6-6" />
+                      <path d="M20 6L9 17l-5-5" />
                     </svg>
-                  </summary>
-                  <p class="m-0 max-w-[68ch] pb-4 text-pretty">{faq.answer}</p>
-                </details>
-              ))}
-            </div>
-          )}
-
-          {tab.key === 'delivery' && (
-            <div class="grid max-w-180 gap-8 min-[560px]:grid-cols-2">
-              <div>
-                <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">
-                  {text(isRental ? 'pdp.includedRental' : 'pdp.includedSale')}
-                </h3>
-                <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
-                  {includes.map((item) => (
-                    <li class={checkRow}>
-                      <svg
-                        class="text-ok size-4.5 flex-none"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">
-                  {text('pdp.hygieneHeading')}
-                </h3>
-                <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
-                  {hygiene.map((item) => (
-                    <li class={checkRow}>
-                      <svg
-                        class="text-ok size-4.5 flex-none"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        aria-hidden="true"
-                      >
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {tab.key === 'terms' && (
-            <div class="flex max-w-180 flex-col gap-3">
-              <p class="m-0">{text('pdp.termsIntro')}</p>
-              <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
-                {product.terms.map((terms) => (
-                  <li>
-                    <a
-                      class="inline-flex min-h-10 items-center text-[14.5px] font-semibold text-accent"
-                      href={`/${terms.slug}/`}
-                    >
-                      {terms.title}
-                    </a>
+                    {item}
                   </li>
                 ))}
               </ul>
             </div>
-          )}
-        </div>
-      ))
-    }
+            <div>
+              <h3 class="text-ink m-0 mb-3.5 text-[15.5px] font-bold">
+                {text('pdp.hygieneHeading')}
+              </h3>
+              <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+                {hygiene.map((item) => (
+                  <li class={checkRow}>
+                    <svg
+                      class="text-ok size-4.5 flex-none"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {tab.key === 'terms' && (
+          <div class="flex max-w-180 flex-col gap-3">
+            <p class="m-0">{text('pdp.termsIntro')}</p>
+            <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
+              {product.terms.map((terms) => (
+                <li>
+                  <a
+                    class="inline-flex min-h-10 items-center text-[14.5px] font-semibold text-accent"
+                    href={`/${terms.slug}/`}
+                  >
+                    {terms.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    ))}
   </div>
 </section>

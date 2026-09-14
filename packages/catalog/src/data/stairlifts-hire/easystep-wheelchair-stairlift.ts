@@ -41,9 +41,11 @@ export const easystepWheelchairStairlift = stairliftsHire.rental({
     it: {
       title: 'Noleggio Montascale per carrozzine Easystep',
       slug: 'noleggio-montascale-per-carrozzine-easystep',
-      shortDescription: 'Noleggio montascale elettrico per carrozzine per salire e scendere le scale. Seduta minima della carrozzina: 44cm Adatto sia a carrozzine con ruote grandi che con ruote piccole Consegna a domicilio soltanto a Roma e Firenze a partire da 45€ +45€ per il ritiro Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Noleggio montascale elettrico per carrozzine per salire e scendere le scale. Seduta minima della carrozzina: 44cm Adatto sia a carrozzine con ruote grandi che con ruote piccole Consegna a domicilio soltanto a Roma e Firenze a partire da 45€ +45€ per il ritiro Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio Montascale EasyStep per Carrozzine',
-      metaDescription: 'Supera le scale senza sforzo con il montascale EasyStep. Trasporta carrozzine e carichi fino a 200 kg in totale sicurezza. Consegna rapida a Roma e Firenze',
+      metaDescription:
+        'Supera le scale senza sforzo con il montascale EasyStep. Trasporta carrozzine e carichi fino a 200 kg in totale sicurezza. Consegna rapida a Roma e Firenze',
       description: [
         '<h2>Hai bisogno di superare le scale in totale sicurezza con la tua carrozzina?</h2>',
         '<p>Salire e scendere le scale in edifici senza ascensore non deve più essere un ostacolo. Il nostro <strong>Montascale Mobile Universale EasyStep</strong> a noleggio è la soluzione definitiva: un sistema motorizzato a cingoli progettato per trasportare <strong>carrozzine manuali</strong> (e carichi) in modo fluido, sicuro e senza alcuno sforzo fisico per l&#8217;accompagnatore.</p>',
@@ -71,9 +73,11 @@ export const easystepWheelchairStairlift = stairliftsHire.rental({
     en: {
       title: 'Easystep wheelchair stair climber, for hire',
       slug: 'noleggio-montascale-per-carrozzine-easystep',
-      shortDescription: 'Hire of electric wheelchair lifts for ascending and descending stairs. Minimum wheelchair seat: 44cm Suitable for both wheelchairs with large and small wheels Home delivery only in Rome and Florence starting from €45 +€45 for collection Free delivery if you purchase a rental for a minimum of 45 days. The collection and return of aids to the warehouse are Free. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'Hire of electric wheelchair lifts for ascending and descending stairs. Minimum wheelchair seat: 44cm Suitable for both wheelchairs with large and small wheels Home delivery only in Rome and Florence starting from €45 +€45 for collection Free delivery if you purchase a rental for a minimum of 45 days. The collection and return of aids to the warehouse are Free. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'EasyStep wheelchair stair climber hire',
-      metaDescription: 'Get up the stairs without the strain, with the EasyStep stair climber. Carries wheelchairs and loads to 200 kg safely.',
+      metaDescription:
+        'Get up the stairs without the strain, with the EasyStep stair climber. Carries wheelchairs and loads to 200 kg safely.',
       description: [
         '<h2>Do you need to climb stairs safely with your wheelchair?</h2>',
         '<p>Walking up and down stairs in buildings without a lift no longer has to be an obstacle. Our <strong>EasyStep Universal Mobile Stairlift</strong> rental is the ultimate solution: a motorized tracked system designed to transport <strong>manual wheelchairs</strong> and loads) smoothly, safely and without any physical effort for the attendant.</p>',

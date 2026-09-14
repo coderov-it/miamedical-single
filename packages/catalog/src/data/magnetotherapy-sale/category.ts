@@ -31,8 +31,7 @@ export const magnetotherapySale = defineCategory({
     en: {
       name: 'Magnetotherapy for sale',
       slug: 'vendita-magnetoterapia',
-      description:
-        'Professional PEMF magnetotherapy devices for sale, from €1,490.',
+      description: 'Professional PEMF magnetotherapy devices for sale, from €1,490.',
       metaTitle: 'Professional magnetotherapy for sale | Mia Medical Italia',
       metaDescription:
         'Buy the MAGNUM 2500 and THERAPIST® 150 Plus professional magnetotherapy devices. Fast shipping across Italy and dedicated support.',

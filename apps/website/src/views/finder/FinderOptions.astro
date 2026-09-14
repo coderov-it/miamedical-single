@@ -47,15 +47,14 @@ const hasImages = options.some((option) => option.imagePath);
       'wide:grid-cols-3 mid:grid-cols-2',
     ]}
   >
-    {
-      options.map((option) => (
-        <li class="flex">
-          <a
-            class:list={[
-              'group/option border-hair rounded-card w-full min-w-0 border bg-white no-underline hover:border-accent',
-              /* Desktop: photo beside a text column, both centred in the card. */
-              'mid:flex mid:min-h-25 mid:items-center mid:gap-4 mid:p-4',
-              /* Phone: the ProductCard row — photo, text, chevron.
+    {options.map((option) => (
+      <li class="flex">
+        <a
+          class:list={[
+            'group/option border-hair rounded-card w-full min-w-0 border bg-white no-underline hover:border-accent',
+            /* Desktop: photo beside a text column, both centred in the card. */
+            'mid:flex mid:min-h-25 mid:items-center mid:gap-4 mid:p-4',
+            /* Phone: the ProductCard row — photo, text, chevron.
 
                  THE TEMPLATE FOLLOWS THE QUESTION. The text has to be the
                  `1fr` column or the chevron stops being right-aligned: with a
@@ -64,56 +63,55 @@ const hasImages = options.some((option) => option.imagePath);
                  one, which parks it against the text with the rest of the row
                  empty beside it. "Dove" and "Durata" have no photos, so they
                  get the two-column template. */
-              'max-mid:grid max-mid:items-center max-mid:gap-x-3.5 max-mid:p-3.5',
-              hasImages
-                ? 'max-mid:grid-cols-[auto_minmax(0,1fr)_auto]'
-                : 'max-mid:grid-cols-[minmax(0,1fr)_auto]',
-            ]}
-            href={option.href}
-          >
-            {option.imagePath ? (
-              /* The art sits straight on the card, as it does on CategoryTile:
+            'max-mid:grid max-mid:items-center max-mid:gap-x-3.5 max-mid:p-3.5',
+            hasImages
+              ? 'max-mid:grid-cols-[auto_minmax(0,1fr)_auto]'
+              : 'max-mid:grid-cols-[minmax(0,1fr)_auto]',
+          ]}
+          href={option.href}
+        >
+          {option.imagePath ? (
+            /* The art sits straight on the card, as it does on CategoryTile:
                  the category icons carry their own white ground, so a tint well
                  here would frame a white rectangle in a grey box.
                  `mix-blend-multiply` makes that ground disappear into the card. */
-              <span class="mid:size-18 max-mid:size-16 block flex-none">
-                <img
-                  class="block size-full object-contain mix-blend-multiply"
-                  src={mediaUrl(option.imagePath)}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-              </span>
-            ) : (
-              /* Holds the grid column open on a phone so a question with no
-                 photos still lines its text up with one that has them. */
-              hasImages && <span class="mid:size-18 max-mid:size-16 block flex-none" />
-            )}
-
-            <span class="block min-w-0">
-              <span class="font-ui text-ink block text-[1.0625rem]/[1.3] font-bold group-hover/option:text-accent">
-                {option.label}
-              </span>
-              <span class="text-ink-2 mt-1 block text-base/[1.4]">{option.hint}</span>
+            <span class="mid:size-18 max-mid:size-16 block flex-none">
+              <img
+                class="block size-full object-contain mix-blend-multiply"
+                src={mediaUrl(option.imagePath)}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
             </span>
+          ) : (
+            /* Holds the grid column open on a phone so a question with no
+                 photos still lines its text up with one that has them. */
+            hasImages && <span class="mid:size-18 max-mid:size-16 block flex-none" />
+          )}
 
-            {/* The affordance a row needs and a card does not. */}
-            <svg
-              class="text-ink-decorative mid:hidden size-5 flex-none group-hover/option:text-accent"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m9 6 6 6-6 6" />
-            </svg>
-          </a>
-        </li>
-      ))
-    }
+          <span class="block min-w-0">
+            <span class="font-ui text-ink block text-[1.0625rem]/[1.3] font-bold group-hover/option:text-accent">
+              {option.label}
+            </span>
+            <span class="text-ink-2 mt-1 block text-base/[1.4]">{option.hint}</span>
+          </span>
+
+          {/* The affordance a row needs and a card does not. */}
+          <svg
+            class="text-ink-decorative mid:hidden size-5 flex-none group-hover/option:text-accent"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </a>
+      </li>
+    ))}
   </ul>
 </section>

@@ -24,14 +24,14 @@ three keys fails the build rather than rendering a raw id.
 
 ## URL state
 
-| parameter | means | example |
-| --- | --- | --- |
-| `type` | a product type | `/catalogo/?type=move` |
-| `group` | a subdivision of that type | `/catalogo/?type=move&group=wheelchairs` |
-| `category` | one category code, the old way in | `/catalogo/?category=carrozzine` |
-| `q` | a typed query | `/catalogo/?q=carrozzina` |
-| `stock` | `1` for "solo disponibili" | `/catalogo/?type=bed&stock=1` |
-| `layout` | `list`; `grid` is the default and never written | `/catalogo/?layout=list` |
+| parameter  | means                                           | example                                  |
+| ---------- | ----------------------------------------------- | ---------------------------------------- |
+| `type`     | a product type                                  | `/catalogo/?type=move`                   |
+| `group`    | a subdivision of that type                      | `/catalogo/?type=move&group=wheelchairs` |
+| `category` | one category code, the old way in               | `/catalogo/?category=carrozzine`         |
+| `q`        | a typed query                                   | `/catalogo/?q=carrozzina`                |
+| `stock`    | `1` for "solo disponibili"                      | `/catalogo/?type=bed&stock=1`            |
+| `layout`   | `list`; `grid` is the default and never written | `/catalogo/?layout=list`                 |
 
 **One narrowing at a time**, decided in `readCatalogQuery` and nowhere else:
 

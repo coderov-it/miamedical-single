@@ -20,9 +20,11 @@ export const oneScooterSale = mobilityScootersSale.fixed({
     it: {
       title: 'Vendita Scooter Elettrico ONE',
       slug: 'vendita-scooter-elettrico-one',
-      shortDescription: 'Libertà e movimento! Il piu venduto della sua categoria ! Acquista il tuo Scooter One e riscopri la tua indipendenza ogni giorno! Disponibile per acquisto immediato.',
+      shortDescription:
+        'Libertà e movimento! Il piu venduto della sua categoria ! Acquista il tuo Scooter One e riscopri la tua indipendenza ogni giorno! Disponibile per acquisto immediato.',
       metaTitle: 'Vendita Scooter Elettrico ONE | Mia medical',
-      metaDescription: 'Scooter elettrico ONE in vendita: compatto, potente e facile da trasportare. Autonomia fino a 30 km, comfort elevato e ideale e urbana per persone con mobilità ridotta.',
+      metaDescription:
+        'Scooter elettrico ONE in vendita: compatto, potente e facile da trasportare. Autonomia fino a 30 km, comfort elevato e ideale e urbana per persone con mobilità ridotta.',
       description: [
         '<h3>Libertà, comfort e autonomia per muoverti senza limiti</h3>',
         '<p>Lo <strong>Scooter Elettrico ONE</strong> è la soluzione ideale per chi desidera mantenere indipendenza e mobilità in totale sicurezza, sia in città che negli spostamenti quotidiani. Compatto, affidabile e facile da utilizzare, è progettato per offrire comfort elevato e prestazioni costanti nel tempo.</p>',
@@ -45,9 +47,11 @@ export const oneScooterSale = mobilityScootersSale.fixed({
     en: {
       title: 'ONE electric scooter for sale',
       slug: 'vendita-scooter-elettrico-one',
-      shortDescription: 'Freedom and movement! The best seller in its category! Buy your Scooter One and rediscover your independence every day! Available for immediate purchase.',
+      shortDescription:
+        'Freedom and movement! The best seller in its category! Buy your Scooter One and rediscover your independence every day! Available for immediate purchase.',
       metaTitle: 'ONE electric scooter for sale | Mia Medical',
-      metaDescription: 'ONE mobility scooter for sale: compact, powerful and easy to transport. Up to 30 km on a charge, comfortable, and made for town.',
+      metaDescription:
+        'ONE mobility scooter for sale: compact, powerful and easy to transport. Up to 30 km on a charge, comfortable, and made for town.',
       description: [
         '<h3>Freedom, comfort and autonomy to move without limits</h3>',
         '<p>Lo <strong>Electric Scooter ONE</strong> It is the ideal solution for those wishing to maintain independence and mobility in complete safety, both in the city and for daily travel. Compact, reliable and easy to use, it is designed to offer high comfort and consistent performance over time.</p>',

@@ -26,22 +26,17 @@ export const walkerAndWheelchair = walkersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 55),
-    days(15, 64),
-    days(30, 90),
-    days(45, 120),
-    days(60, 145),
-    days(90, 180),
-  ],
+  packages: [days(7, 55), days(15, 64), days(30, 90), days(45, 120), days(60, 145), days(90, 180)],
 
   translations: {
     it: {
       title: 'Deambulatore + Carrozzina',
       slug: 'deambulatore-carrozzina',
-      shortDescription: 'Consegna e Ritiro in magazzino sono Gratuiti Consegna a domicilio a partire da 30€. Prenota online o contattaci tramite WhatsApp.',
+      shortDescription:
+        'Consegna e Ritiro in magazzino sono Gratuiti Consegna a domicilio a partire da 30€. Prenota online o contattaci tramite WhatsApp.',
       metaTitle: 'noleggio-affito-Deambulatore + Carrozzina - Mia Medical Italia',
-      metaDescription: 'noleggio e affitto combinato della carrozzine e del deambulatore comodamente a casa tua. Combo ideale per la fisioterapia a casa. Chiama ora! 3926509237',
+      metaDescription:
+        'noleggio e affitto combinato della carrozzine e del deambulatore comodamente a casa tua. Combo ideale per la fisioterapia a casa. Chiama ora! 3926509237',
       description: [
         '<h3><strong>Noleggio combinato di deambulatore e carrozzina per supporto completo alla mobilità nelle diverse fasi della riabilitazione</strong></h3>',
         '<p>Il&nbsp;<strong>noleggio combinato di deambulatore e carrozzina</strong>&nbsp;è una soluzione pensata sia per accompagnare il paziente durante le&nbsp;<strong>diverse fasi del recupero motorio</strong>, offrendo un&nbsp;<strong>supporto attivo alla deambulazione</strong>, sia un&nbsp;<strong>ausilio sicuro per gli spostamenti quando la fatica o la limitazione funzionale aumentano</strong>.</p>',
@@ -89,13 +84,15 @@ export const walkerAndWheelchair = walkersHire.rental({
     en: {
       title: 'Walking frame + wheelchair, combined hire',
       slug: 'deambulatore-carrozzina',
-      shortDescription: 'Delivery and collection at the warehouse are free. Home delivery from €30. Book online or contact us on WhatsApp.',
+      shortDescription:
+        'Delivery and collection at the warehouse are free. Home delivery from €30. Book online or contact us on WhatsApp.',
       metaTitle: 'Walking frame + wheelchair combined hire - Mia Medical Italia',
-      metaDescription: 'Combined hire of a wheelchair and a walking frame, delivered to your home. The right pairing for physiotherapy at home. Call +39 392 650 9237',
+      metaDescription:
+        'Combined hire of a wheelchair and a walking frame, delivered to your home. The right pairing for physiotherapy at home. Call +39 392 650 9237',
       description: [
         '<h3><strong>Combined walker and wheelchair rental for complete mobility support throughout the various stages of rehabilitation</strong></h3>',
         '<p>The&nbsp;<strong>combined walker and wheelchair hire</strong>&nbsp;it is a solution designed both to accompany the patient during the&nbsp;<strong>different stages of motor recovery</strong>, offering a&nbsp;<strong>active walking support</strong>, is a&nbsp;<strong>safe travel aid when fatigue or functional limitation increases</strong>.</p>',
-        '<p>This package is ideal for use on&nbsp;<strong>post-operative, post-traumatic or geriatric rehabilitation</strong>, where motor skills can vary over time and require different aids depending on the time of day or the patient\'s physical state.</p>',
+        "<p>This package is ideal for use on&nbsp;<strong>post-operative, post-traumatic or geriatric rehabilitation</strong>, where motor skills can vary over time and require different aids depending on the time of day or the patient's physical state.</p>",
         '<h3><strong>Who is the combined rental of a walker and wheelchair suitable for?&nbsp;</strong></h3>',
         '<p>The package is indicated for:</p>',
         '<ul><li>patients recovering after surgery</li><li>people with reduced stability or muscle strength</li><li>individuals who alternate between assisted walking and the need to sit</li><li>elderly patients in functional rehabilitation</li><li>situations of temporarily compromised mobility</li><li>progressive autonomy recovery pathways</li></ul>',
@@ -119,7 +116,7 @@ export const walkerAndWheelchair = walkersHire.rental({
         '<p>It is a fundamental tool for maintaining:</p>',
         '<ul><li>autonomy in internal travel</li><li>possibility of going out safely</li><li>Continuity of social relationships</li><li>Quality of life during rehabilitation</li></ul>',
         '<p>The model is selected taking into account</p>',
-        '<ul><li>clinical picture</li><li>patient\'s build</li><li>level of autonomy</li><li>domestic environment</li><li>Need assistance</li></ul>',
+        "<ul><li>clinical picture</li><li>patient's build</li><li>level of autonomy</li><li>domestic environment</li><li>Need assistance</li></ul>",
         '<h4><strong>Types of wheelchairs available for hire</strong></h4>',
         '<p>Mia Medical Italia provides different types of wheelchairs to suit every clinical and living scenario.</p>',
         '<p>Available models:</p>',

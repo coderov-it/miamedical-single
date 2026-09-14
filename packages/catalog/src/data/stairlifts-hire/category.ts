@@ -43,5 +43,17 @@ export const stairliftsHire = defineCategory({
     },
   },
 
-  specs: { ...loadAndWeight, ...maxSpeed, ...batteryRange, ...motor, ...battery, ...overallDimensions, ...foldedSize, ...seatWidth, ...frameMaterial, ...colour, ...foldable },
+  specs: {
+    ...loadAndWeight,
+    ...maxSpeed,
+    ...batteryRange,
+    ...motor,
+    ...battery,
+    ...overallDimensions,
+    ...foldedSize,
+    ...seatWidth,
+    ...frameMaterial,
+    ...colour,
+    ...foldable,
+  },
 });

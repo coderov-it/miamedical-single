@@ -28,19 +28,17 @@ export const kinetecAndCryotherapy = kinetecHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 320),
-    days(20, 420),
-    days(30, 550),
-  ],
+  packages: [days(15, 320), days(20, 420), days(30, 550)],
 
   translations: {
     it: {
       title: 'Noleggio Kinetec Ginocchio + Crioterapia',
       slug: 'noleggio-kinetec-ginocchio-e-crioterapia',
-      shortDescription: 'Noleggio Kinetec ginocchio abbinato alla Crioterapia compressiva Consegna gratuita per i noleggi da 30 giorni, in tutta l’Italia! Per i noleggi di durata minore consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Ricordati di richiedere il tutore per il ginocchio e gli accessori per la crioterapia in fase di prenotazione, così da ricevere tutto il necessario per iniziare subito la terapia. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Kinetec ginocchio abbinato alla Crioterapia compressiva Consegna gratuita per i noleggi da 30 giorni, in tutta l’Italia! Per i noleggi di durata minore consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Ricordati di richiedere il tutore per il ginocchio e gli accessori per la crioterapia in fase di prenotazione, così da ricevere tutto il necessario per iniziare subito la terapia. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio combinato Kinetec Ginocchio + Crioterapia',
-      metaDescription: 'Noleggio combinato del Kinetec Ginocchio e della Crioterapia, eccellente combo per un recupero veloce. Chiama : 3926509237',
+      metaDescription:
+        'Noleggio combinato del Kinetec Ginocchio e della Crioterapia, eccellente combo per un recupero veloce. Chiama : 3926509237',
       description: [
         '<h2><strong><br />Noleggio Combinato Kinetec Ginocchio e Crioterapia Compressiva</strong></h2>',
         '<p><strong>La soluzione completa per il recupero post-operatorio e post-traumatico del ginocchio</strong></p>',
@@ -96,9 +94,11 @@ export const kinetecAndCryotherapy = kinetecHire.rental({
     en: {
       title: 'Kinetec knee CPM + cryotherapy, combined hire',
       slug: 'noleggio-kinetec-ginocchio-e-crioterapia',
-      shortDescription: 'Kinetec knee rental combined with compression cryotherapy Free delivery for 30-day rentals, all over Italy! For shorter rental periods home delivery throughout Italy from 15€ + 15€ for collection. Remember to request the knee brace and cryotherapy accessories when booking, so that you receive everything you need to start therapy immediately. No deposit required!',
+      shortDescription:
+        'Kinetec knee rental combined with compression cryotherapy Free delivery for 30-day rentals, all over Italy! For shorter rental periods home delivery throughout Italy from 15€ + 15€ for collection. Remember to request the knee brace and cryotherapy accessories when booking, so that you receive everything you need to start therapy immediately. No deposit required!',
       metaTitle: 'Kinetec knee + cryotherapy combined hire',
-      metaDescription: 'Combined hire of a knee CPM machine and compression cryotherapy — an excellent pairing for a fast recovery. Call +39 392 650 9237',
+      metaDescription:
+        'Combined hire of a knee CPM machine and compression cryotherapy — an excellent pairing for a fast recovery. Call +39 392 650 9237',
       description: [
         '<h2><strong><br />Kinetec Knee and Cryotherapy Compressions Combination Hire</strong></h2>',
         '<p><strong>The complete solution for post-operative and post-traumatic knee recovery</strong></p>',
@@ -133,7 +133,7 @@ export const kinetecAndCryotherapy = kinetecHire.rental({
         '<h3><strong>Kinetec rental and compression cryotherapy: a more effective combined treatment</strong></h3>',
         '<p>The combination of Kinetec and compression cryotherapy makes it possible to</p>',
         '<ul><li>mobilising the joint safely</li><li>reduce pain after sessions</li><li>controlling oedema</li><li>improve response to rehabilitation treatments</li><li>speed up recovery time</li></ul>',
-        '<p>For maximum benefit, it is advisable to use cryotherapy before or after passive mobilisation sessions, according to the doctor\'s or physiotherapist\'s instructions.</p>',
+        "<p>For maximum benefit, it is advisable to use cryotherapy before or after passive mobilisation sessions, according to the doctor's or physiotherapist's instructions.</p>",
         '<h4><strong>Why choose kinetec and cryotherapy compression home hire&nbsp;</strong></h4>',
         '<p>The rental allows</p>',
         '<ul><li>carry out the treatment every day</li><li>repeat sessions even several times a day</li><li>avoid the limits of outpatient sessions</li><li>reduce overall costs</li><li>adapt the duration to actual clinical needs</li><li>extend the rental based on the recovery trend</li></ul>',
@@ -154,10 +154,19 @@ export const kinetecAndCryotherapy = kinetecHire.rental({
   },
 
   specs: {
-    'range-of-motion': { it: 'Estensione/flessione da -10° a 120°', en: 'Extension and flexion from -10° to 120°' },
+    'range-of-motion': {
+      it: 'Estensione/flessione da -10° a 120°',
+      en: 'Extension and flexion from -10° to 120°',
+    },
     'patient-height': { min: 120, max: 200 },
-    'treatment-timer': { it: '1–59 minuti, 1–24 ore o uso continuo', en: '1–59 minutes, 1–24 hours or continuous' },
-    programmes: { it: 'Inversione del carico in fasi regolabile da 1 a 25', en: 'Load reversal adjustable in 25 steps' },
+    'treatment-timer': {
+      it: '1–59 minuti, 1–24 ore o uso continuo',
+      en: '1–59 minutes, 1–24 hours or continuous',
+    },
+    programmes: {
+      it: 'Inversione del carico in fasi regolabile da 1 a 25',
+      en: 'Load reversal adjustable in 25 steps',
+    },
     'total-length': { min: 97, max: 97 },
     'total-width': { min: 36, max: 36 },
     'total-height': { min: 23, max: 23 },

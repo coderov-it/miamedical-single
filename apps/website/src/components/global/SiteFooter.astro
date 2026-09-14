@@ -82,23 +82,19 @@ const socialLinkClass =
   <div class={EDITORIAL_CONTAINER}>
     <div class="wide:flex wide:items-start wide:gap-22 grid gap-11 min-[760px]:grid-cols-2">
       <div class="wide:me-auto wide:max-w-100">
-        {
-          /* The wordmark and its line are display type, like the reference's
+        {/* The wordmark and its line are display type, like the reference's
              footer column titles; the links and contact lines below stay in the
-             body face, which is what the reference sets on them. */
-        }
+             body face, which is what the reference sets on them. */}
         <a
           class="font-ui flex-none text-[clamp(1.0625rem,calc(0.536vw+0.821rem),1.25rem)] font-extrabold tracking-[-0.01em] text-white no-underline"
-          href={routePath(locale, 'home')}>MIA-MEDICAL</a
+          href={routePath(locale, 'home')}
         >
-        <p
-          class="font-ui mt-1.5 text-[0.8125rem] font-semibold tracking-[0.09em] text-[#8b94a8] uppercase"
-        >
+          MIA-MEDICAL
+        </a>
+        <p class="font-ui mt-1.5 text-[0.8125rem] font-semibold tracking-[0.09em] text-[#8b94a8] uppercase">
           Moving in autonomy
         </p>
-        <p class="mt-4.5 max-w-[34ch] text-base leading-[1.6]">
-          {text('footer.about')}
-        </p>
+        <p class="mt-4.5 max-w-[34ch] text-base leading-[1.6]">{text('footer.about')}</p>
         <a
           class="mt-5.5 inline-flex items-center gap-2.5 text-[1.1875rem] font-bold text-white tabular-nums no-underline hover:underline hover:underline-offset-5"
           href={`tel:${CONTACT.phoneE164}`}
@@ -116,9 +112,7 @@ const socialLinkClass =
             stroke-linecap="round"
             aria-hidden="true"
           >
-            <path
-              d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"
-            ></path>
+            <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"></path>
           </svg>
           {CONTACT.phoneDisplay}
         </a>
@@ -127,124 +121,119 @@ const socialLinkClass =
         </p>
 
         <div class="mt-4.5 flex gap-2">
-          {
-            socials.map((social) => (
-              <a
-                class={socialLinkClass}
-                href={social.href}
-                target="_blank"
-                rel="noopener"
-                aria-label={social.label}
-              >
-                {social.icon === 'facebook' && (
-                  <svg
-                    width="19"
-                    height="19"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d="M13.5 21.5v-7.4h2.5l.4-2.9h-2.9V9.3c0-.85.23-1.43 1.45-1.43l1.55-.01V5.27c-.27-.04-1.19-.12-2.26-.12-2.24 0-3.77 1.37-3.77 3.88v2.16H8v2.9h2.47v7.4Z" />
-                  </svg>
-                )}
-                {social.icon === 'instagram' && (
-                  <svg
-                    width="19"
-                    height="19"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.9"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" />
-                    <circle cx="12" cy="12" r="4.1" />
-                    <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none" />
-                  </svg>
-                )}
-                {social.icon === 'x' && (
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.3l-4.9-6.4L5.2 21H2.1l7.3-8.3L2 3h6.4l4.4 5.9L17.8 3Zm-1.1 16.1h1.7L7.4 4.8H5.6l11.1 14.3Z" />
-                  </svg>
-                )}
-                {social.icon === 'maps' && (
-                  <svg
-                    width="19"
-                    height="19"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.9"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z" />
-                    <circle cx="12" cy="10" r="2.5" />
-                  </svg>
-                )}
-              </a>
-            ))
-          }
+          {socials.map((social) => (
+            <a
+              class={socialLinkClass}
+              href={social.href}
+              target="_blank"
+              rel="noopener"
+              aria-label={social.label}
+            >
+              {social.icon === 'facebook' && (
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M13.5 21.5v-7.4h2.5l.4-2.9h-2.9V9.3c0-.85.23-1.43 1.45-1.43l1.55-.01V5.27c-.27-.04-1.19-.12-2.26-.12-2.24 0-3.77 1.37-3.77 3.88v2.16H8v2.9h2.47v7.4Z" />
+                </svg>
+              )}
+              {social.icon === 'instagram' && (
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" />
+                  <circle cx="12" cy="12" r="4.1" />
+                  <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none" />
+                </svg>
+              )}
+              {social.icon === 'x' && (
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.3l-4.9-6.4L5.2 21H2.1l7.3-8.3L2 3h6.4l4.4 5.9L17.8 3Zm-1.1 16.1h1.7L7.4 4.8H5.6l11.1 14.3Z" />
+                </svg>
+              )}
+              {social.icon === 'maps' && (
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z" />
+                  <circle cx="12" cy="10" r="2.5" />
+                </svg>
+              )}
+            </a>
+          ))}
         </div>
       </div>
 
       <nav aria-labelledby="foot-catalog-heading">
-        <h2 class={footerHeadingClass} id="foot-catalog-heading">{text('footer.rental')}</h2>
+        <h2 class={footerHeadingClass} id="foot-catalog-heading">
+          {text('footer.rental')}
+        </h2>
         <div class={footerLinksClass}>
-          {
-            rentalLinks.map((link) => (
-              <a class={footerLinkClass} href={link.href}>
-                {link.label}
-              </a>
-            ))
-          }
+          {rentalLinks.map((link) => (
+            <a class={footerLinkClass} href={link.href}>
+              {link.label}
+            </a>
+          ))}
         </div>
       </nav>
 
       <nav aria-labelledby="foot-support-heading">
-        <h2 class={footerHeadingClass} id="foot-support-heading">{text('footer.support')}</h2>
+        <h2 class={footerHeadingClass} id="foot-support-heading">
+          {text('footer.support')}
+        </h2>
         <div class={footerLinksClass}>
-          {
-            supportLinks.map((link) => (
-              <a class={footerLinkClass} href={link.href}>
-                {link.label}
-              </a>
-            ))
-          }
+          {supportLinks.map((link) => (
+            <a class={footerLinkClass} href={link.href}>
+              {link.label}
+            </a>
+          ))}
         </div>
       </nav>
 
       <nav aria-labelledby="foot-info-heading">
-        <h2 class={footerHeadingClass} id="foot-info-heading">{text('footer.information')}</h2>
+        <h2 class={footerHeadingClass} id="foot-info-heading">
+          {text('footer.information')}
+        </h2>
         <div class={footerLinksClass}>
-          {
-            informationLinks.map((link) => (
-              <a class={footerLinkClass} href={link.href}>
-                {link.label}
-              </a>
-            ))
-          }
+          {informationLinks.map((link) => (
+            <a class={footerLinkClass} href={link.href}>
+              {link.label}
+            </a>
+          ))}
         </div>
       </nav>
     </div>
 
-    <div
-      class="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-2.5 border-t border-white/12 pt-6 text-[0.9375rem] text-[#8b94a8] [&_a]:text-inherit [&_a]:no-underline [&_a:hover]:text-white"
-    >
+    <div class="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-2.5 border-t border-white/12 pt-6 text-[0.9375rem] text-[#8b94a8] [&_a]:text-inherit [&_a]:no-underline [&_a:hover]:text-white">
       <p>{`© ${year} ${COMPANY.legalName} · P.IVA ${COMPANY.vat}`}</p>
       <p>
-        <a href={routePath(locale, 'privacy')}>Privacy</a> · <a href={routePath(locale, 'cookies')}
-          >Cookie</a
-        >
+        <a href={routePath(locale, 'privacy')}>Privacy</a> ·{' '}
+        <a href={routePath(locale, 'cookies')}>Cookie</a>
       </p>
     </div>
   </div>

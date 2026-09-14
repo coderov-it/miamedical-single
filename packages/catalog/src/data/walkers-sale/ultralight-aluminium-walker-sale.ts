@@ -24,9 +24,11 @@ export const ultralightAluminiumWalkerSale = walkersSale.fixed({
     it: {
       title: 'Vendita Deambulatore in alluminio pieghevole ultraleggero',
       slug: 'deambulatore-in-alluminio-pieghevole-ultraleggero-in-vendita',
-      shortDescription: 'Deambulatore in alluminio pieghevole ultraleggero Acquista ora! Spedizione gratuita in tutta l’Italia.',
+      shortDescription:
+        'Deambulatore in alluminio pieghevole ultraleggero Acquista ora! Spedizione gratuita in tutta l’Italia.',
       metaTitle: 'Deambulatore in alluminio pieghevole ultraleggero in vendita',
-      metaDescription: 'Acquista il rollator pieghevole in alluminio leggero e resistente, con ruote, seduta e cestino. Spedizione gratuita in tutta Italia.',
+      metaDescription:
+        'Acquista il rollator pieghevole in alluminio leggero e resistente, con ruote, seduta e cestino. Spedizione gratuita in tutta Italia.',
       description: [
         '<p>Hai bisogno di un supporto sicuro per camminare? Il nostro <strong>deambulatore in alluminio pieghevole e ultraleggero a quattro ruote</strong> è la soluzione ideale per migliorare la tua mobilità in modo pratico e confortevole.</p>',
         '<h3>Cos’è un Deambulatore Pieghevole e Ultraleggero a Quattro Ruote?</h3>',
@@ -49,19 +51,21 @@ export const ultralightAluminiumWalkerSale = walkersSale.fixed({
     en: {
       title: 'Ultralight folding aluminium walking frame, for sale',
       slug: 'deambulatore-in-alluminio-pieghevole-ultraleggero-in-vendita',
-      shortDescription: 'Ultralight folding aluminium walking frame. Buy now! Free shipping across Italy.',
+      shortDescription:
+        'Ultralight folding aluminium walking frame. Buy now! Free shipping across Italy.',
       metaTitle: 'Ultralight folding aluminium walker for sale',
-      metaDescription: 'Buy a light, sturdy folding aluminium rollator with wheels, a seat and a basket. Free shipping across Italy.',
+      metaDescription:
+        'Buy a light, sturdy folding aluminium rollator with wheels, a seat and a basket. Free shipping across Italy.',
       description: [
         '<p>Do you need safe support for walking? Our <strong>foldable, ultralight aluminium walker with four wheels</strong> is the ideal solution to improve your mobility in a practical and comfortable way.</p>',
         '<h3>What is a Foldable and Ultralight Four-Wheel Walker?</h3>',
         '<p>A walker is a mobility aid designed to provide&nbsp;<strong>stability, safety and ease of movement</strong>. This model, made of&nbsp;<strong>lightweight aluminium</strong>, is equipped with&nbsp;<strong>four-wheelers</strong>,&nbsp;<strong>ergonomic handles</strong>&nbsp;and a practical braking system for safe use both indoors and outdoors. In addition, its function&nbsp;<strong>foldable</strong>&nbsp;makes it easy to transport.</p>',
         '<h3>For whom is this walker suitable? </h3>',
-        '<p>Walkers&nbsp;<strong>are indicated during gait re-education in elderly individuals or individuals with functional limitations of various kinds</strong>. They offer stability, ease of use and improve the user\'s feeling of balance.</p>',
+        "<p>Walkers&nbsp;<strong>are indicated during gait re-education in elderly individuals or individuals with functional limitations of various kinds</strong>. They offer stability, ease of use and improve the user's feeling of balance.</p>",
         '<p>The ultralight folding aluminium walker with four wheels is ideal for:</p>',
         '<ul><li><strong>People with motor difficulties</strong> who need a stable support for walking.</li><li><strong>Patients undergoing rehabilitation</strong> after surgery or trauma to the lower limbs.</li><li><strong>Elderly people with balance problems</strong> who are looking for an aid that is safe and easy to manoeuvre.</li><li><strong>People with muscle weakness</strong> who want to reduce the effort in walking.</li></ul>',
         '<h3>Technical Specifications of the Ultralight and Foldable Walker</h3>',
-        '<ul><li><strong>Lightweight aluminium construction</strong>durable and easy to transport.</li><li><strong>Four swivel castors</strong> for excellent manoeuvrability.</li><li><strong>Safety brakes</strong> for greater control during use.</li><li><strong>Ergonomic handles</strong> for a comfortable and secure grip.</li><li><strong>Ultralight and Foldable</strong> to adapt to each person\'s needs.</li></ul>',
+        "<ul><li><strong>Lightweight aluminium construction</strong>durable and easy to transport.</li><li><strong>Four swivel castors</strong> for excellent manoeuvrability.</li><li><strong>Safety brakes</strong> for greater control during use.</li><li><strong>Ergonomic handles</strong> for a comfortable and secure grip.</li><li><strong>Ultralight and Foldable</strong> to adapt to each person's needs.</li></ul>",
         '<h3>The Benefits</h3>',
         '<ul><li><strong>Greater independence</strong> in the daily commute.</li><li><strong>Ease of use</strong>even for those with little strength in their hands.</li><li><strong>Suitable for indoors </strong>thanks to manoeuvrable wheels.</li><li><strong>Safety and comfort</strong>design to reduce the risk of falls.</li></ul>',
         '<p>In this sense it is an ideal tool for moving in&nbsp;<strong>home.</strong></p>',

@@ -27,15 +27,11 @@ const locale = localeForRequest();
     {translate(locale, 'catalog.browse')}
   </h2>
 
-  <ul
-    class="wide:grid-cols-4 mid:grid-cols-3 mt-3.5 grid grid-cols-2 gap-3.5 [&>li]:flex [&>li]:min-w-0"
-  >
-    {
-      tiles.map((tile) => (
-        <li>
-          <CategoryTile {tile} headingLevel={3} compact />
-        </li>
-      ))
-    }
+  <ul class="wide:grid-cols-4 mid:grid-cols-3 mt-3.5 grid grid-cols-2 gap-3.5 [&>li]:flex [&>li]:min-w-0">
+    {tiles.map((tile) => (
+      <li>
+        <CategoryTile {tile} headingLevel={3} compact />
+      </li>
+    ))}
   </ul>
 </section>

@@ -26,9 +26,11 @@ export const superwheelElectricSale = electricWheelchairsSale.fixed({
     it: {
       title: 'Vendita carrozzina Elettrica Superwheel',
       slug: 'carrozzina-elettrica-superwheel-in-vendita',
-      shortDescription: 'Libertà di movimento Acquista la carrozzina elettrica Superwheel e riscopri la comodità di muoverti senza fatica! Il joystick elettrico gestisce l’intera carrozzina: guida, schienale e pedane in totale semplicità. Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze.',
+      shortDescription:
+        'Libertà di movimento Acquista la carrozzina elettrica Superwheel e riscopri la comodità di muoverti senza fatica! Il joystick elettrico gestisce l’intera carrozzina: guida, schienale e pedane in totale semplicità. Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze.',
       metaTitle: 'Vendita carrozzina elettrica Superwheel per anziani e disabili',
-      metaDescription: 'Vendita carrozzina elettrica Superwheel da esterno e interno per anziani e disabili. Autonomia fino a 25 km, comfort e sicurezza. Disponibilità immediata.',
+      metaDescription:
+        'Vendita carrozzina elettrica Superwheel da esterno e interno per anziani e disabili. Autonomia fino a 25 km, comfort e sicurezza. Disponibilità immediata.',
       description: [
         '<p>La vendita carrozzina elettrica Superwheel è pensata per anziani e disabili che desiderano vivere ogni giornata con maggiore autonomia, comfort e sicurezza. Questa carrozzina elettrica da esterno e interno unisce design moderno, praticità e alte prestazioni, risultando ideale sia per l’utilizzo quotidiano sia per gli spostamenti in città come Roma, Milano e Firenze.</p>',
         '<p>Grazie alla struttura pieghevole e completamente smontabile, la carrozzina elettrica Superwheel è facile da trasportare in auto e garantisce massima libertà di movimento.</p>',
@@ -48,9 +50,11 @@ export const superwheelElectricSale = electricWheelchairsSale.fixed({
     en: {
       title: 'Superwheel electric wheelchair for sale',
       slug: 'carrozzina-elettrica-superwheel-in-vendita',
-      shortDescription: 'Freedom of movement Purchase the Superwheel electric wheelchair and rediscover the convenience of moving around effortlessly! The electric joystick controls the entire wheelchair: steering, backrest and footrests in total simplicity. Pick-up at the warehouse is free. We are in Rome and Florence.',
+      shortDescription:
+        'Freedom of movement Purchase the Superwheel electric wheelchair and rediscover the convenience of moving around effortlessly! The electric joystick controls the entire wheelchair: steering, backrest and footrests in total simplicity. Pick-up at the warehouse is free. We are in Rome and Florence.',
       metaTitle: 'Superwheel electric wheelchair for sale, for older and disabled users',
-      metaDescription: 'Superwheel indoor-outdoor electric wheelchair for sale, for older and disabled users. Up to 25 km on a charge, comfortable and safe.',
+      metaDescription:
+        'Superwheel indoor-outdoor electric wheelchair for sale, for older and disabled users. Up to 25 km on a charge, comfortable and safe.',
       description: [
         '<p>The sale of the Superwheel electric wheelchair is designed for elderly people and individuals with disabilities who want to live every day with greater independence, comfort and safety. This outdoor and indoor electric wheelchair combines modern design, practicality and high performance, making it ideal both for daily use and for getting around cities such as Rome, Milan and Florence.</p>',
         '<p>Thanks to its folding and completely detachable structure, the Superwheel electric wheelchair is easy to transport in a car and guarantees maximum freedom of movement.</p>',
@@ -77,7 +81,10 @@ export const superwheelElectricSale = electricWheelchairsSale.fixed({
     'battery-range': { min: 13, max: 25 },
     motor: { it: '2 x 250 W', en: '2 × 250 W' },
     battery: { it: 'Litio, peso 1,3 kg', en: 'Lithium, 1.3 kg' },
-    controls: { it: 'Joystick elettrico per l’utente', en: 'Electric joystick, operated by the user' },
+    controls: {
+      it: 'Joystick elettrico per l’utente',
+      en: 'Electric joystick, operated by the user',
+    },
     'seat-width': { min: 43, max: 43 },
     'wheel-type': 'pneumatic',
     'rear-wheels': { it: 'Pneumatiche 4×4 con camera d’aria', en: 'Pneumatic 4×4, inner tube' },
@@ -88,7 +95,10 @@ export const superwheelElectricSale = electricWheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'superwheel-electric-1.png', alt: { it: 'Vendita carrozzina elettrica Superwheel' } },
+    thumbnail: {
+      file: 'superwheel-electric-1.png',
+      alt: { it: 'Vendita carrozzina elettrica Superwheel' },
+    },
     gallery: [
       'superwheel-electric-2.png',
       'superwheel-electric-3.png',

@@ -43,15 +43,13 @@ const { label, gate, error, class: className } = Astro.props;
 <label class:list={[FIELD_LABEL, className]} data-gate={gate}>
   <span>{label}</span>
   <slot />
-  {
-    gate && error && (
-      <p
-        class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
-        data-field-error={gate}
-        hidden
-      >
-        {error}
-      </p>
-    )
-  }
+  {gate && error && (
+    <p
+      class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+      data-field-error={gate}
+      hidden
+    >
+      {error}
+    </p>
+  )}
 </label>

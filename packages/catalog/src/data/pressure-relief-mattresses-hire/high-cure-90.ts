@@ -22,21 +22,18 @@ export const highCure90 = pressureReliefMattressesHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 90),
-    days(30, 120),
-    days(45, 160),
-    days(60, 210),
-    days(90, 290),
-  ],
+  packages: [days(15, 90), days(30, 120), days(45, 160), days(60, 210), days(90, 290)],
 
   translations: {
     it: {
       title: 'Noleggio Materasso Antidecubito 90cm ad Alto Rischio High Cure',
       slug: 'noleggio-materasso-antidecubito-ad-alto-rischio',
-      shortDescription: 'Noleggio Materasso Antidecubito Noleggio del Materasso ad Alto Rischio per decubito fino al 4° stadio. Portata fino a 300KG. Noleggialo e lo consegneremo direttamente a casa tua! Il prezzo del trasporto è di 45€ e include la consegna e l’installazione a domicilio + 45€ di ritiro. Materasso antidecubito disponibile anche in vendita. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 150€.',
-      metaTitle: 'Noleggio Materasso Antidecubito 90cm ad Alto Rischio High Cure - Mia Medical Italia',
-      metaDescription: 'Noleggio materasso antidecubito Ad Alto Rischio DOMUS 4 fino al 4 stadio di decubito. Sanificato, con copertura e Kit compressore. Consegna immediata.',
+      shortDescription:
+        'Noleggio Materasso Antidecubito Noleggio del Materasso ad Alto Rischio per decubito fino al 4° stadio. Portata fino a 300KG. Noleggialo e lo consegneremo direttamente a casa tua! Il prezzo del trasporto è di 45€ e include la consegna e l’installazione a domicilio + 45€ di ritiro. Materasso antidecubito disponibile anche in vendita. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 150€.',
+      metaTitle:
+        'Noleggio Materasso Antidecubito 90cm ad Alto Rischio High Cure - Mia Medical Italia',
+      metaDescription:
+        'Noleggio materasso antidecubito Ad Alto Rischio DOMUS 4 fino al 4 stadio di decubito. Sanificato, con copertura e Kit compressore. Consegna immediata.',
       description: [
         '<p>Hai appena subito un’operazione e sei costretto a letto? Hai un genitore o un familiare anziano che ormai ha una mobilità ridotta? Ottieni il massimo del comfort e della sicurezza, previeni la comparsa di piaghe da decubito o alleviarne il fastidio tramite il noleggio di un materasso antidecubito ad alto rischio HIGH CURE.</p>',
         '<h2>Cosa è un Materasso Antidecubito? </h2>',
@@ -80,9 +77,11 @@ export const highCure90 = pressureReliefMattressesHire.rental({
     en: {
       title: 'High Cure 90 cm high-risk pressure-relief mattress, for hire',
       slug: 'noleggio-materasso-antidecubito-ad-alto-rischio',
-      shortDescription: 'Antidecubitus Mattress Hire Rental of the High-risk mattress for decubitus up to stage 4. Capacity up to 300KG. Rent it and we will deliver it directly to your home! The transport price is €45 and includes home delivery and installation, plus €45 for collection. Anti-decubitus mattress also available for sale. For hygiene reasons, it compulsory purchase of the mattress protector for €150.',
+      shortDescription:
+        'Antidecubitus Mattress Hire Rental of the High-risk mattress for decubitus up to stage 4. Capacity up to 300KG. Rent it and we will deliver it directly to your home! The transport price is €45 and includes home delivery and installation, plus €45 for collection. Anti-decubitus mattress also available for sale. For hygiene reasons, it compulsory purchase of the mattress protector for €150.',
       metaTitle: 'High Cure 90 cm high-risk pressure-relief mattress hire',
-      metaDescription: 'Hire a DOMUS 4 high-risk pressure-relief mattress rated to stage 4 pressure sores. Sanitised, with a cover and compressor kit.',
+      metaDescription:
+        'Hire a DOMUS 4 high-risk pressure-relief mattress rated to stage 4 pressure sores. Sanitised, with a cover and compressor kit.',
       description: [
         '<p>Have you just undergone surgery and are bedridden? Do you have an elderly parent or family member with limited mobility? Achieve maximum comfort and safety, prevent the development of pressure sores or relieve discomfort by renting a HIGH CURE high-risk anti-decubitus mattress.</p>',
         '<h2>What is an Antidecubitus Mattress? </h2>',
@@ -90,7 +89,7 @@ export const highCure90 = pressureReliefMattressesHire.rental({
         '<h2>What is it for?</h2>',
         '<p>So, these advanced medical devices use a&nbsp;<strong>alternating pressure technology,&nbsp;</strong>which reduces pressure on the areas most at risk,&nbsp;<strong>improving blood circulation,&nbsp;</strong>and ensuring optimal comfort. Especially on:</p>',
         '<ul><li>Back and Sacral Zone</li><li>Heels and Ankles</li><li>Elbows and Scapulae</li></ul>',
-        '<p>High-risk\' mattresses are necessary for patients who already have medium to advanced stages of pressure sores, but are also optimal for prevention, and recommended for those with less severe stages to avoid worsening. </p>',
+        "<p>High-risk' mattresses are necessary for patients who already have medium to advanced stages of pressure sores, but are also optimal for prevention, and recommended for those with less severe stages to avoid worsening. </p>",
         '<h4> How to Recognise the 4 Stages of DECUBITY</h4>',
         '<ol><li>The FIRST STAGE, takes into account superficial phenomena, such as skin colouring. </li><li>The SECOND STAGE, involves a partial skin lesion affecting the dermis. </li><li>The THIRD STAGE, detects a full thickness skin lesion, involving subcutaneous tissues. </li><li>The FOURTH STAGE, the injury is total to the extent that muscles and/or joints are affected. </li></ol>',
         '<p>If you suffer from <strong>pressure injuries</strong>don\'t worry. Our trusted nurse <strong><a href="http://www.arnaldiandrea.com">Andrea Arnaldi</a></strong> specialises precisely in the treatment of skin lesions and also has experience in home care. <strong>Do not hesitate to contact him</strong>! </p>',
@@ -99,8 +98,8 @@ export const highCure90 = pressureReliefMattressesHire.rental({
         '<ul><li><strong>Elderly people with reduced mobility</strong>who spend a lot of time in bed or in a wheelchair.</li><li><strong>Post-operative Patients,&nbsp;</strong>who have undergone surgery and have to remain in bed for an extended period of time.</li><li><strong>Patients with disabilities,&nbsp;</strong>who suffer from neurological or muscular pathologies that limit their movement.&nbsp;</li><li><strong>Oncological or Palliative Care patients,&nbsp;</strong>who have particularly delicate skin due to treatments or medical conditions.</li><li><strong>Anyone suffering from Circulatory Problems or Skin Fragility,&nbsp;</strong>who run a higher risk of contracting pressure ulcers.&nbsp;</li></ul>',
         '<p>Renting an anti-decubitus mattress, high-risk or not, can really make a difference!</p>',
         '<h2>How to Choose the Mattress that Best Fits Your Needs</h2>',
-        '<p>There are various types of decubitus mattresses, so there are elements that must be taken into consideration when deciding which model best suits the patient\'s needs. These are:&nbsp;</p>',
-        '<ul><li><strong>Patient\'s degree of risk</strong></li><li><strong>Duration of allurement</strong>.</li><li><strong>Desired comfort level</strong></li></ul>',
+        "<p>There are various types of decubitus mattresses, so there are elements that must be taken into consideration when deciding which model best suits the patient's needs. These are:&nbsp;</p>",
+        "<ul><li><strong>Patient's degree of risk</strong></li><li><strong>Duration of allurement</strong>.</li><li><strong>Desired comfort level</strong></li></ul>",
         '<p>Read our guide to choosing the perfect mattress for you! </p>',
         '<p>If you do not know which one to choose, contact us: we will help you find the perfect solution.</p>',
         '<h2>The Best on the Market: HIGH CURE Antidecubitus Mattress</h2>',
@@ -118,7 +117,7 @@ export const highCure90 = pressureReliefMattressesHire.rental({
         '<p>The&nbsp;<strong>HIGH CURE MODEL</strong>&nbsp;uses a&nbsp;<strong>digital compressor</strong>&nbsp;that inflates and deflates the&nbsp;<strong>air cells in alternating mode</strong>, ensuring:</p>',
         '<ul><li><strong>Uniform weight distribution</strong>&nbsp;to avoid prolonged pressure points.</li><li><strong>Better blood flow to the tissues</strong>&nbsp;for faster regeneration.</li><li><strong>Constant ventilation</strong>&nbsp;to keep the skin dry. </li></ul>',
         '<p><strong>Simply switch on the compressor and the system will work autonomously for maximum comfort and prevention.&nbsp;</strong></p>',
-        '<p>Furthermore, as the 20 elements are made using the CELL-ON-CELL technique, the mattress is divided into 2 SECTIONS, of which the lower one remains constantly inflated to avoid an excessive \'sinking\' effect, ensuring safety in the event of a power failure.&nbsp;</p>',
+        "<p>Furthermore, as the 20 elements are made using the CELL-ON-CELL technique, the mattress is divided into 2 SECTIONS, of which the lower one remains constantly inflated to avoid an excessive 'sinking' effect, ensuring safety in the event of a power failure.&nbsp;</p>",
         '<ul><li>The first three elements of the mattress are static for the head.</li><li>The 9 central elements are micro-drilled ensuring forced ventilation</li></ul>',
         '<p>Have we convinced you that renting a High Risk Anti-Decubitus Mattress is the best solution for you? </p>',
       ].join(''),

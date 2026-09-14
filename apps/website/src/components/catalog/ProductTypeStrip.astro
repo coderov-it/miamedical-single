@@ -70,59 +70,57 @@ const locale = localeForRequest();
   class="max-mid:-mx-gutter max-mid:w-[calc(100%+2*var(--spacing-gutter))] max-mid:px-gutter max-mid:overflow-x-auto mid:flex-wrap mid:pb-6.5 max-mid:pb-3 flex [scrollbar-width:none] gap-3.5 [&::-webkit-scrollbar]:hidden"
   aria-label={translate(locale, 'catalog.type.filter')}
 >
-  {
-    tiles.map((tile) => (
-      <a
-        class:list={[
-          'group/type font-ui max-mid:w-31 mid:min-w-28 mid:max-w-36 mid:flex-1 mid:basis-0 rounded-field flex flex-none flex-col items-center gap-2.5 border px-3 pt-3.5 pb-3.5 text-center no-underline',
-          tile.isActive
-            ? 'bg-accent-tint border-accent/30 text-accent'
-            : 'border-hair hover:border-hair-strong text-ink bg-white',
-        ]}
-        href={tile.href}
-        aria-current={tile.isActive ? 'true' : undefined}
-      >
-        {/* A fixed height at every width, so the names below start on one line
+  {tiles.map((tile) => (
+    <a
+      class:list={[
+        'group/type font-ui max-mid:w-31 mid:min-w-28 mid:max-w-36 mid:flex-1 mid:basis-0 rounded-field flex flex-none flex-col items-center gap-2.5 border px-3 pt-3.5 pb-3.5 text-center no-underline',
+        tile.isActive
+          ? 'bg-accent-tint border-accent/30 text-accent'
+          : 'border-hair hover:border-hair-strong text-ink bg-white',
+      ]}
+      href={tile.href}
+      aria-current={tile.isActive ? 'true' : undefined}
+    >
+      {/* A fixed height at every width, so the names below start on one line
             across the row whatever shape the art inside turns out to be. */}
-        <span class="grid h-14 w-full flex-none place-items-center" aria-hidden="true">
-          {tile.imagePath ? (
-            /* CAPPED IN PIXELS, and `max-h-14` has to keep step with the `h-14`
+      <span class="grid h-14 w-full flex-none place-items-center" aria-hidden="true">
+        {tile.imagePath ? (
+          /* CAPPED IN PIXELS, and `max-h-14` has to keep step with the `h-14`
                above. Neither `size-full` nor `max-h-full` works here: a centred
                grid item is sized by its CONTENT, so the row it sits in is
                auto-sized, so a percentage against it is circular and resolves to
                `auto` — which let a 500px icon draw at full size straight through
                the label below. */
-            <img
-              class="block max-h-14 max-w-full object-contain mix-blend-multiply"
-              src={mediaUrl(tile.imagePath)}
-              alt=""
-              loading="lazy"
-            />
-          ) : (
-            /* "Tutti" has no category to borrow a picture from, and the grid
+          <img
+            class="block max-h-14 max-w-full object-contain mix-blend-multiply"
+            src={mediaUrl(tile.imagePath)}
+            alt=""
+            loading="lazy"
+          />
+        ) : (
+          /* "Tutti" has no category to borrow a picture from, and the grid
                glyph is what the catalogue is marked with everywhere else. */
-            <svg
-              class="text-ink-2 size-7"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            >
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-          )}
-        </span>
-        {/* Two lines reserved, as the product card reserves two for its name:
+          <svg
+            class="text-ink-2 size-7"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        )}
+      </span>
+      {/* Two lines reserved, as the product card reserves two for its name:
             a one-word type and a three-word one then hang from the same
             baseline instead of floating at different heights down the row. */}
-        <span class="min-h-[2.6em] text-sm/[1.3] font-medium group-hover/type:text-accent">
-          {tile.label}
-        </span>
-      </a>
-    ))
-  }
+      <span class="min-h-[2.6em] text-sm/[1.3] font-medium group-hover/type:text-accent">
+        {tile.label}
+      </span>
+    </a>
+  ))}
 </nav>

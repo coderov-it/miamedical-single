@@ -36,17 +36,15 @@ const locale = localeForRequest();
 
 <div class="flex flex-col gap-1">
   {help && <p class="text-ink-2 m-0 text-[12.5px] font-normal">{help}</p>}
-  {
-    gate && (
-      <p
-        class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
-        data-field-error={gate}
-        hidden
-      >
-        {prompt
-          ? translate(locale, 'field.answerPrompt', { prompt })
-          : translate(locale, 'field.answerToContinue')}
-      </p>
-    )
-  }
+  {gate && (
+    <p
+      class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+      data-field-error={gate}
+      hidden
+    >
+      {prompt
+        ? translate(locale, 'field.answerPrompt', { prompt })
+        : translate(locale, 'field.answerToContinue')}
+    </p>
+  )}
 </div>

@@ -57,92 +57,76 @@ const specChips =
 const hasChips = product.chips.length > 0 || specChips.length > 0;
 ---
 
-{
-  /*
+{/*
     `--pdp-well` is the ceiling on the stretched photo well. Past it a very long
     title would keep growing the well and start floating a small photograph in a
     large grey field, which is the bug this layout exists to remove.
-  */
-}
-<section
-  class="mid:grid mid:grid-cols-[minmax(0,21rem)_minmax(0,1fr)] mid:gap-x-9 mid:gap-y-7 flex flex-col gap-6 [--pdp-well:25rem]"
->
+  */}
+<section class="mid:grid mid:grid-cols-[minmax(0,21rem)_minmax(0,1fr)] mid:gap-x-9 mid:gap-y-7 flex flex-col gap-6 [--pdp-well:25rem]">
   {/* ------------------------------------------------ the photograph */}
   <div class="flex min-w-0 flex-col gap-3">
-    {
-      /*
+    {/*
         Phone: a plain 4:3 well, because there is no second cell to match. From
         `mid` up the ratio is dropped for `flex-1`, so the well takes the band's
         height — floored at `min-h`, capped at `--pdp-well`.
-      */
-    }
-    <div
-      class="bg-tint rounded-field mid:aspect-auto mid:min-h-72 mid:max-h-(--pdp-well) mid:flex-1 relative grid aspect-4/3 w-full place-items-center"
-    >
-      {
-        main && (
-          <img
-            class="absolute inset-0 size-full object-contain p-4 mix-blend-multiply"
-            src={mediaUrl(main.path)}
-            alt={main.alt ?? product.title}
-            loading="eager"
-            fetchpriority="high"
-            decoding="sync"
-            data-pdp-main-img
-          />
-        )
-      }
+      */}
+    <div class="bg-tint rounded-field mid:aspect-auto mid:min-h-72 mid:max-h-(--pdp-well) mid:flex-1 relative grid aspect-4/3 w-full place-items-center">
+      {main && (
+        <img
+          class="absolute inset-0 size-full object-contain p-4 mix-blend-multiply"
+          src={mediaUrl(main.path)}
+          alt={main.alt ?? product.title}
+          loading="eager"
+          fetchpriority="high"
+          decoding="sync"
+          data-pdp-main-img
+        />
+      )}
     </div>
-    {
-      images.length > 1 && (
-        <ul class="m-0 flex list-none gap-2.5 p-0">
-          {images.slice(0, 4).map((item, index) => (
-            <li>
-              <button
-                type="button"
-                class:list={[
-                  'bg-tint mid:w-19 block aspect-square w-17 cursor-pointer rounded-lg border-[1.5px] p-1',
-                  index === 0 ? 'border-accent' : 'border-transparent',
-                ]}
-                data-pdp-thumb
-                data-src={mediaUrl(item.path)}
-                data-alt={item.alt ?? product.title}
-                aria-label={text('pdp.imageOf', {
-                  index: index + 1,
-                  total: Math.min(images.length, 4),
-                })}
-                aria-current={index === 0 ? 'true' : undefined}
-              >
-                <img
-                  class="size-full object-contain mix-blend-multiply"
-                  src={mediaUrl(item.path)}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )
-    }
+    {images.length > 1 && (
+      <ul class="m-0 flex list-none gap-2.5 p-0">
+        {images.slice(0, 4).map((item, index) => (
+          <li>
+            <button
+              type="button"
+              class:list={[
+                'bg-tint mid:w-19 block aspect-square w-17 cursor-pointer rounded-lg border-[1.5px] p-1',
+                index === 0 ? 'border-accent' : 'border-transparent',
+              ]}
+              data-pdp-thumb
+              data-src={mediaUrl(item.path)}
+              data-alt={item.alt ?? product.title}
+              aria-label={text('pdp.imageOf', {
+                index: index + 1,
+                total: Math.min(images.length, 4),
+              })}
+              aria-current={index === 0 ? 'true' : undefined}
+            >
+              <img
+                class="size-full object-contain mix-blend-multiply"
+                src={mediaUrl(item.path)}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
 
-  {
-    /* --------------------------------------------- the identity band
+  {/* --------------------------------------------- the identity band
        Three facts and no fourth. Everything that used to follow the price here
        is in the prose row below, which is what lets this cell and the well end
-       on the same line. */
-  }
+       on the same line. */}
   <div class="flex min-w-0 flex-col gap-4">
-    {
-      /*
+    {/*
         BOTH halves come from the same language. The category name is data and the
         suffix is a label, and resolving the label in the PAGE's locale produced
         "MATERASSI ANTIDECUBITO AD ALTO RISCHIO · RENTAL" on `/en/` — an Italian
         category with an English word bolted on (owner, 2026-09-01).
-      */
-    }
+      */}
     <span class="text-[12px] font-bold tracking-[0.12em] text-accent uppercase" lang={productLang}>
       {product.category.name} · {productText(isRental ? 'product.rental' : 'product.sale')}
     </span>
@@ -154,47 +138,41 @@ const hasChips = product.chips.length > 0 || specChips.length > 0;
       {product.title}
     </h1>
 
-    {
-      price && (
-        <p class="m-0 flex flex-wrap items-baseline gap-2">
-          {price.prefix && <span class="text-ink-2 text-[14px]">{price.prefix}</span>}
-          {/* Money is display type, like every price on the reference site. */}
-          <span class="font-ui text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
-            {price.text}
-          </span>
-          <span class="text-ink-2 text-[14px]">{text('vatIncluded')}</span>
-        </p>
-      )
-    }
+    {price && (
+      <p class="m-0 flex flex-wrap items-baseline gap-2">
+        {price.prefix && <span class="text-ink-2 text-[14px]">{price.prefix}</span>}
+        {/* Money is display type, like every price on the reference site. */}
+        <span class="font-ui text-[24px] font-bold tracking-[-0.01em] text-accent tabular-nums">
+          {price.text}
+        </span>
+        <span class="text-ink-2 text-[14px]">{text('vatIncluded')}</span>
+      </p>
+    )}
   </div>
 
-  {
-    /* ------------------------------------------------- the prose row
+  {/* ------------------------------------------------- the prose row
        Spans both cells. `max-w-[68ch]` because 730px of 16px text is a 95-character
-       measure and nobody reads that twice. */
-  }
-  {
-    (hasChips || product.shortDescription) && (
-      <div class="mid:col-span-2 flex min-w-0 flex-col gap-3.5">
-        {hasChips && (
-          <ul class="m-0 flex list-none flex-wrap gap-2 p-0" lang={productLang}>
-            {product.chips.map((chip) => (
-              <li class={`${chipClass} text-ink font-medium`}>{chip}</li>
-            ))}
-            {specChips.map((spec) => (
-              <li class={chipClass}>
-                {spec.label} <strong class="text-ink">{spec.displayValue}</strong>
-              </li>
-            ))}
-          </ul>
-        )}
+       measure and nobody reads that twice. */}
+  {(hasChips || product.shortDescription) && (
+    <div class="mid:col-span-2 flex min-w-0 flex-col gap-3.5">
+      {hasChips && (
+        <ul class="m-0 flex list-none flex-wrap gap-2 p-0" lang={productLang}>
+          {product.chips.map((chip) => (
+            <li class={`${chipClass} text-ink font-medium`}>{chip}</li>
+          ))}
+          {specChips.map((spec) => (
+            <li class={chipClass}>
+              {spec.label} <strong class="text-ink">{spec.displayValue}</strong>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        {product.shortDescription && (
-          <p class="text-ink-2 m-0 max-w-[68ch] text-[15px]/[1.6] text-pretty" lang={productLang}>
-            {product.shortDescription}
-          </p>
-        )}
-      </div>
-    )
-  }
+      {product.shortDescription && (
+        <p class="text-ink-2 m-0 max-w-[68ch] text-[15px]/[1.6] text-pretty" lang={productLang}>
+          {product.shortDescription}
+        </p>
+      )}
+    </div>
+  )}
 </section>

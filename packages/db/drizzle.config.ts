@@ -20,6 +20,7 @@ export default defineConfig({
   out: './drizzle',
   dbCredentials: { url },
   casing: 'snake_case',
+  verbose: false,
   strict: true,
   // Managed Postgres (Xata, some others) preinstalls pg_stat_statements in
   // `public`; without this, `push` tries to drop the extension's views.

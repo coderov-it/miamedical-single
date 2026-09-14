@@ -45,36 +45,30 @@ const copy = cartCopy();
 ---
 
 <BaseLayout title={t('cartMetaTitle')} description={t('cartMetaDescription')} noindex>
-  {
-    /*
+  {/*
       The island's first paint is a loading plate, because only the browser can read
       the cart out of `localStorage`. With scripting off that plate can never
       resolve, so it is hidden and the <noscript> block below speaks instead. A
       stylesheet cannot ask whether JavaScript runs; a <noscript> in the head can,
       and this is the one thing it is for.
-    */
-  }
-  <noscript slot="head"
-    ><style is:inline>
+    */}
+  <noscript slot="head">
+    <style is:inline>
       [data-cart-boot] {
         display: none;
       }
-    </style></noscript
-  >
-  <div
-    class="cart px-gutter mid:pb-24 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
-  >
+    </style>
+  </noscript>
+  <div class="cart px-gutter mid:pb-24 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-nav)+1.25rem)]">
     <Breadcrumbs
       items={[{ label: t('home'), href: routePath(locale, 'home') }, { label: t('cart') }]}
     />
 
-    {
-      /*
+    {/*
         `client:load` rather than `client:visible`: the island is the page. Waiting
         for an intersection would leave a customer looking at a server-rendered
         empty cart while their actual cart sat unread in `localStorage`.
-      */
-    }
+      */}
     <CartContainer
       client:load
       {initial}
@@ -85,8 +79,7 @@ const copy = cartCopy();
       locale={localeTag(locale)}
     />
 
-    {
-      /*
+    {/*
         One helper line, not a card with a call button.
 
         Still outside the island on purpose: a phone call is a successful conversion
@@ -98,35 +91,27 @@ const copy = cartCopy();
 
         `showFree={false}` because "gratuito" is in the sentence: the qualifier is
         not dropped, only moved out of the link so the link is just the number.
-      */
-    }
-    {
-      /* Centred under the cart, not ranged left against it: the closing line of the
-         page rather than a footnote to the last row (owner, 2026-08-20). */
-    }
+      */}
+    {/* Centred under the cart, not ranged left against it: the closing line of the
+         page rather than a footnote to the last row (owner, 2026-08-20). */}
     <p class="border-hair text-ink-2 mt-12 border-t pt-7 text-center text-[16px] leading-[1.55]">
-      <strong class="text-ink font-semibold">{t('cartHelpTitle')}</strong>
-      {' '}{t('cartHelpDetail')}{' '}
-      <PhoneCta variant="inline" showFree={false} />
-      {' '}<span class="whitespace-nowrap">· {translate(locale, CONTACT_HOURS_KEY)}</span>
+      <strong class="text-ink font-semibold">{t('cartHelpTitle')}</strong> {t('cartHelpDetail')}{' '}
+      <PhoneCta variant="inline" showFree={false} />{' '}
+      <span class="whitespace-nowrap">· {translate(locale, CONTACT_HOURS_KEY)}</span>
     </p>
 
-    {
-      /*
+    {/*
         Scripting off, and nothing in the URL to render: the island is showing a
         plate that will never resolve (hidden by the head style above), so say why.
         Not rendered on the hand-off path — there the server HAS the line, the page
         works without a single byte of JavaScript, and this would contradict it.
-      */
-    }
-    {
-      urlLines.length === 0 && (
-        <noscript>
-          <p class="border-hair text-ink-2 rounded-card border bg-white p-6 text-center text-[16px]">
-            {t('cartNoScript')}
-          </p>
-        </noscript>
-      )
-    }
+      */}
+    {urlLines.length === 0 && (
+      <noscript>
+        <p class="border-hair text-ink-2 rounded-card border bg-white p-6 text-center text-[16px]">
+          {t('cartNoScript')}
+        </p>
+      </noscript>
+    )}
   </div>
 </BaseLayout>

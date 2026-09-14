@@ -79,8 +79,10 @@ const jsonLd = [
         <p class="text-ui text-ink-2 flex-1">{text('support.emailDetail')}</p>
         <a
           class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
-          href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a
+          href={`mailto:${CONTACT.email}`}
         >
+          {CONTACT.email}
+        </a>
       </li>
     </ul>
 
@@ -89,24 +91,24 @@ const jsonLd = [
 
       <div class="rounded-card bg-tint overflow-hidden">
         <ul class="mid:grid-cols-2 grid">
-          {
-            LOCATIONS.map((location, index) => (
-              <li
-                class:list={[
-                  'mid:px-7 px-5 py-5.5',
-                  index > 0 &&
-                    'mid:shadow-[inset_1px_0_0_var(--color-hair-strong)] shadow-[inset_0_1px_0_var(--color-hair-strong)]',
-                ]}
-              >
-                <h3 class="text-lead">{location.city}</h3>
-                <p class="text-ui text-ink-2 mt-1.75">{location.street}</p>
-              </li>
-            ))
-          }
+          {LOCATIONS.map((location, index) => (
+            <li
+              class:list={[
+                'mid:px-7 px-5 py-5.5',
+                index > 0 &&
+                  'mid:shadow-[inset_1px_0_0_var(--color-hair-strong)] shadow-[inset_0_1px_0_var(--color-hair-strong)]',
+              ]}
+            >
+              <h3 class="text-lead">{location.city}</h3>
+              <p class="text-ui text-ink-2 mt-1.75">{location.street}</p>
+            </li>
+          ))}
         </ul>
         <p class="border-hair text-ui text-ink-2 mid:px-7 border-t bg-white px-5 py-4.5">
           {text('support.deliveryBefore')}{' '}
-          <a class="text-accent" href={`tel:${CONTACT.phoneE164}`}>{text('support.callUs')}</a>
+          <a class="text-accent" href={`tel:${CONTACT.phoneE164}`}>
+            {text('support.callUs')}
+          </a>
           {text('support.deliveryAfter')}
         </p>
       </div>
@@ -116,33 +118,31 @@ const jsonLd = [
       <SectionHeading id="support-faq" heading={text('support.launcher.page')} />
 
       <ul class="grid gap-2.5">
-        {
-          faq.map((item, index) => (
-            <li>
-              <details
-                class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
-                open={index === 0}
-              >
-                <summary class="font-display text-h4 flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-semibold [&::-webkit-details-marker]:hidden">
-                  {item.question}
-                  <svg
-                    class="text-ink-2 size-5.5 flex-none transition-transform duration-200 group-open:rotate-180"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.4"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </summary>
-                <p class="text-ui-strong text-ink-2 max-w-[68ch] pb-5.5">{item.answer}</p>
-              </details>
-            </li>
-          ))
-        }
+        {faq.map((item, index) => (
+          <li>
+            <details
+              class="group rounded-field border-hair bg-tint mid:px-6 border px-4"
+              open={index === 0}
+            >
+              <summary class="font-display text-h4 flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-semibold [&::-webkit-details-marker]:hidden">
+                {item.question}
+                <svg
+                  class="text-ink-2 size-5.5 flex-none transition-transform duration-200 group-open:rotate-180"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p class="text-ui-strong text-ink-2 max-w-[68ch] pb-5.5">{item.answer}</p>
+            </details>
+          </li>
+        ))}
       </ul>
     </section>
 
@@ -154,8 +154,10 @@ const jsonLd = [
       />
       <a
         class="font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-7 font-semibold text-white no-underline"
-        href={routePath(locale, 'catalog')}>{text('goToCatalog')}</a
+        href={routePath(locale, 'catalog')}
       >
+        {text('goToCatalog')}
+      </a>
     </section>
   </div>
 </BaseLayout>

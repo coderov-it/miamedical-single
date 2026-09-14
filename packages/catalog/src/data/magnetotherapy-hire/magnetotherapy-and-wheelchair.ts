@@ -26,20 +26,17 @@ export const magnetotherapyAndWheelchair = magnetotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 100),
-    days(30, 130),
-    days(45, 170),
-    days(60, 210),
-  ],
+  packages: [days(20, 100), days(30, 130), days(45, 170), days(60, 210)],
 
   translations: {
     it: {
       title: 'Noleggio Magnetoterapia + Carrozzina',
       slug: 'noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina',
-      shortDescription: 'Carrozzina + Magnetoterapia Cemp BIO compatibile Consegna a Roma e Firenze a partire da 30€. Consegna gratuita per i noleggi da 45 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Carrozzina + Magnetoterapia Cemp BIO compatibile Consegna a Roma e Firenze a partire da 30€. Consegna gratuita per i noleggi da 45 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio Magnetoterapia + Carrozzina - Mia Medical Italia',
-      metaDescription: 'Noleggio combinato della carrozzina e della magnetoterapia Cemp. Combo perfetto per la riabilitazione a casa tua, prezzi bassi. Prenota online!',
+      metaDescription:
+        'Noleggio combinato della carrozzina e della magnetoterapia Cemp. Combo perfetto per la riabilitazione a casa tua, prezzi bassi. Prenota online!',
       description: [
         '<p><strong>Supporto alla mobilità e terapia rigenerativa direttamente a domicilio</strong></p>',
         '<p>Il&nbsp;<strong>noleggio combinato carrozzina + magnetoterapia CEMP biocompatibile</strong>&nbsp;rappresenta una soluzione completa per pazienti che necessitano di&nbsp;<strong>supporto alla mobilità temporaneo o prolungato</strong>, associato a un&nbsp;<strong>trattamento terapeutico mirato alla riduzione del dolore e alla rigenerazione dei tessuti</strong>.</p>',
@@ -96,9 +93,11 @@ export const magnetotherapyAndWheelchair = magnetotherapyHire.rental({
     en: {
       title: 'Magnetotherapy + wheelchair, combined hire',
       slug: 'noleggio-e-affitto-della-magnetoterapia-e-della-carrozzina',
-      shortDescription: 'Wheelchair + biocompatible CEMP magnetotherapy. Delivery in Rome and Florence from €30. Free delivery on hires of 45 days or more. No deposit required. Delivery and collection at the warehouse are FREE!',
+      shortDescription:
+        'Wheelchair + biocompatible CEMP magnetotherapy. Delivery in Rome and Florence from €30. Free delivery on hires of 45 days or more. No deposit required. Delivery and collection at the warehouse are FREE!',
       metaTitle: 'Magnetotherapy + wheelchair hire - Mia Medical Italia',
-      metaDescription: 'Combined hire of a wheelchair and CEMP magnetotherapy. The right pairing for rehabilitation at home, at low prices.',
+      metaDescription:
+        'Combined hire of a wheelchair and CEMP magnetotherapy. The right pairing for rehabilitation at home, at low prices.',
       description: [
         '<p><strong>Mobility support and regenerative therapy directly at home</strong></p>',
         '<p>The&nbsp;<strong>combined wheelchair + PEMF biocompatible magnetotherapy rental</strong>&nbsp;is a complete solution for patients requiring&nbsp;<strong>temporary or extended mobility support</strong>, associated with a&nbsp;<strong>therapeutic treatment aimed at pain reduction and tissue regeneration</strong>.</p>',
@@ -115,14 +114,14 @@ export const magnetotherapyAndWheelchair = magnetotherapyHire.rental({
         '<p>It is a fundamental tool for maintaining:</p>',
         '<ul><li>autonomy in internal travel</li><li>possibility of going out safely</li><li>Continuity of social relationships</li><li>Quality of life during rehabilitation</li></ul>',
         '<p>The model is selected taking into account</p>',
-        '<ul><li>clinical picture</li><li>patient\'s build</li><li>level of autonomy</li><li>domestic environment</li><li>Need assistance</li></ul>',
+        "<ul><li>clinical picture</li><li>patient's build</li><li>level of autonomy</li><li>domestic environment</li><li>Need assistance</li></ul>",
         '<h4><strong>Types of wheelchairs available for hire</strong></h4>',
         '<p>Mia Medical Italia provides different types of wheelchairs to suit every clinical and living scenario.</p>',
         '<p>Available models:</p>',
         '<ul><li>self-propelled folding wheelchair</li><li>folding transit wheelchair</li><li>reclining wheelchair</li><li>bariatric wheelchair</li><li>folding paediatric wheelchair</li></ul>',
         '<p>The choice is always made with the support of our team, to ensure&nbsp;<strong>maximum safety, comfort and ergonomics</strong>.</p>',
         '<h4><strong><a href="/en/rental-catalog/">Biocompatible PEMF magnetotherapy</a></strong></h4>',
-        '<p>Pulsed Electromagnetic Field (PEMF) therapy is a non-invasive physical therapy that uses low-frequency magnetic fields to stimulate the body\'s natural recovery processes.</p>',
+        "<p>Pulsed Electromagnetic Field (PEMF) therapy is a non-invasive physical therapy that uses low-frequency magnetic fields to stimulate the body's natural recovery processes.</p>",
         '<p><strong>Mechanism of action</strong></p>',
         '<p>The pulsed magnetic field acts on biological tissues by promoting:</p>',
         '<ul><li>reactivation of cell metabolism</li><li>improvement of ion exchange</li><li>increase in tissue oxygenation</li><li>stimulation of bone regeneration processes</li></ul>',
@@ -155,10 +154,16 @@ export const magnetotherapyAndWheelchair = magnetotherapyHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'magnetotherapy-and-wheelchair-1.jpg', alt: { it: 'COMBO CARROZZINA + MAGNETOTERAPIA' } },
+    thumbnail: {
+      file: 'magnetotherapy-and-wheelchair-1.jpg',
+      alt: { it: 'COMBO CARROZZINA + MAGNETOTERAPIA' },
+    },
     gallery: [
       'magnetotherapy-and-wheelchair-2.jpg',
-      { file: 'magnetotherapy-and-wheelchair-3.jpg', alt: { it: 'Affitto carrozzina pieghevole ad autospinta' } },
+      {
+        file: 'magnetotherapy-and-wheelchair-3.jpg',
+        alt: { it: 'Affitto carrozzina pieghevole ad autospinta' },
+      },
       'magnetotherapy-and-wheelchair-4.jpg',
     ],
   },

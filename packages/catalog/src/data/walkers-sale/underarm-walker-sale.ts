@@ -20,9 +20,11 @@ export const underarmWalkerSale = walkersSale.fixed({
     it: {
       title: 'Vendita Deambulatore con sotto-ascellari',
       slug: 'deambulatore-con-sotto-ascellari-in-vendita',
-      shortDescription: 'Deambulatore con sotto-ascellari Dispositivo sicuro, robusto e progettato per garantire stabilità e comfort nella deambulazione. Consegna Gratuita!',
+      shortDescription:
+        'Deambulatore con sotto-ascellari Dispositivo sicuro, robusto e progettato per garantire stabilità e comfort nella deambulazione. Consegna Gratuita!',
       metaTitle: 'Deambulatore con sotto-ascellari in vendita',
-      metaDescription: 'Acquista il tuo deambulatore con sotto-ascellari regolabili a Roma e Firenze. Stabile, sicuro e comodo per anziani e pazienti in riabilitazione. Scopri l’offerta Mia Medical!',
+      metaDescription:
+        'Acquista il tuo deambulatore con sotto-ascellari regolabili a Roma e Firenze. Stabile, sicuro e comodo per anziani e pazienti in riabilitazione. Scopri l’offerta Mia Medical!',
       description: [
         '<h3>Vendita Deambulatore con Sotto-ascellari Regolabili | Roma e Firenze</h3>',
         '<p>Se stai cercando un <strong>deambulatore con sotto-ascellari in vendita</strong>, Mia Medical ti offre un dispositivo sicuro, robusto e progettato per garantire <strong>stabilità e comfort</strong> nella deambulazione. Questo ausilio è ideale per chi necessita di un supporto costante a casa o durante i percorsi di fisioterapia e riabilitazione.</p>',
@@ -47,9 +49,11 @@ export const underarmWalkerSale = walkersSale.fixed({
     en: {
       title: 'Walking frame with underarm supports, for sale',
       slug: 'deambulatore-con-sotto-ascellari-in-vendita',
-      shortDescription: 'Walking frame with underarm supports. A safe, sturdy aid built to give stability and comfort when walking. Free delivery!',
+      shortDescription:
+        'Walking frame with underarm supports. A safe, sturdy aid built to give stability and comfort when walking. Free delivery!',
       metaTitle: 'Walking frame with underarm supports for sale',
-      metaDescription: 'Buy a walking frame with adjustable underarm supports in Rome and Florence. Stable, safe and comfortable for older users and patients in rehabilitation.',
+      metaDescription:
+        'Buy a walking frame with adjustable underarm supports in Rome and Florence. Stable, safe and comfortable for older users and patients in rehabilitation.',
       description: [
         '<h3>Adjustable Underjaw Walkers for Sale | Rome and Florence</h3>',
         '<p>If you are looking for a <strong>walker with sub-axles for sale</strong>, Mia Medical offers you a device that is safe, robust and designed to guarantee <strong>stability and comfort</strong> when walking. This aid is ideal for those who need constant support at home or during physiotherapy and rehabilitation.</p>',

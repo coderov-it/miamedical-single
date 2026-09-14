@@ -30,20 +30,17 @@ export const tiltingCareChair = wheelchairsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 70),
-    days(15, 110),
-    days(30, 180),
-    days(45, 250),
-  ],
+  packages: [days(7, 70), days(15, 110), days(30, 180), days(45, 250)],
 
   translations: {
     it: {
       title: 'Noleggio seggiolone polifunzionale basculante',
       slug: 'noleggio-seggiolone-polifunzionale-basculante',
-      shortDescription: 'Seggiolone polifunzionale Affitto e noleggio del seggiolone polifunzionale a Roma e provincia e Firenze e provincia. Consegna a partire da 40€. Il ritiro in magazzino è gratuito. Guarda anche la versione elettrica: seggiolone polifunzionale basculante elettrico Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Seggiolone polifunzionale Affitto e noleggio del seggiolone polifunzionale a Roma e provincia e Firenze e provincia. Consegna a partire da 40€. Il ritiro in magazzino è gratuito. Guarda anche la versione elettrica: seggiolone polifunzionale basculante elettrico Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio seggiolone polifunzionale per disabili | Roma e Firenze',
-      metaDescription: 'Noleggio seggiolone polifunzionale basculante per disabili a Roma e Firenze. Noleggio rapido. Prenota online con disponibilità immediata.',
+      metaDescription:
+        'Noleggio seggiolone polifunzionale basculante per disabili a Roma e Firenze. Noleggio rapido. Prenota online con disponibilità immediata.',
       description: [
         '<h2>Seggiolone polifunzionale basculante per disabili: comfort e sicurezza</h2>',
         '<p>Il <strong>noleggio seggiolone polifunzionale basculante per disabili</strong> è la soluzione ideale per garantire comfort, sicurezza e un corretto posizionamento posturale durante tutta la giornata. Questo ausilio è pensato per persone con difficoltà motorie o posturali che necessitano di una seduta stabile, regolabile e confortevole, sia in ambito domiciliare sia assistenziale.</p>',
@@ -65,22 +62,24 @@ export const tiltingCareChair = wheelchairsHire.rental({
     en: {
       title: 'Multifunctional tilt-in-space care chair for hire',
       slug: 'noleggio-seggiolone-polifunzionale-basculante',
-      shortDescription: 'Multifunctional care chair. Rental and hire in Rome and its province and Florence and its province. Delivery starting from €40. Collection from the warehouse is free of charge. See also the electric version. Deposit required: €300 — a deposit of €300 is required to hire this item.',
+      shortDescription:
+        'Multifunctional care chair. Rental and hire in Rome and its province and Florence and its province. Delivery starting from €40. Collection from the warehouse is free of charge. See also the electric version. Deposit required: €300 — a deposit of €300 is required to hire this item.',
       metaTitle: 'Multifunctional care chair hire | Rome and Florence',
-      metaDescription: 'Hire a multifunctional tilt-in-space care chair in Rome and Florence. Quick hire, book online, available immediately.',
+      metaDescription:
+        'Hire a multifunctional tilt-in-space care chair in Rome and Florence. Quick hire, book online, available immediately.',
       description: [
         '<h2>multifunctional tilt-in-space care chair for the disabled: comfort and safety</h2>',
         '<p>The <strong>rental of multifunctional tilt-in-space care chair for the disabled</strong> it is the ideal solution to guarantee comfort, safety and correct postural alignment throughout the day. This aid is designed for people with motor or postural difficulties who require a stable, adjustable and comfortable seat, both at home and in care environments.</p>',
-        '<p>Practical and reliable, the multifunctional care chair for hire helps to improve the patient\'s quality of life and makes the work of caregivers easier.</p>',
+        "<p>Practical and reliable, the multifunctional care chair for hire helps to improve the patient's quality of life and makes the work of caregivers easier.</p>",
         '<h2>Tilting system and reclining backrest</h2>',
         '<p>The <strong>multifunctional tilt-in-space care chair for the disabled</strong> it features a reclining backrest and an easy tilt-in-space system that allows the entire seat to be tilted into a lie-down position. This function helps to reduce pressure points, promoting relaxation and patient well-being even during prolonged use.</p>',
         '<p>The tilting system allows correct and continuous positioning, adapting to the specific needs of the assisted person at all times of the day.</p>',
         '<h2>Full adjustments and anti-decubitus cushions</h2>',
-        '<p>The multifunctional care chair is <strong>fully adjustable</strong>, detachable and equipped with <strong>anti-decubitus cushions</strong>, designed to offer maximum comfort and prevent postural problems. Every element is designed to guarantee stability, support and adaptability to the patient\'s various needs.</p>',
+        "<p>The multifunctional care chair is <strong>fully adjustable</strong>, detachable and equipped with <strong>anti-decubitus cushions</strong>, designed to offer maximum comfort and prevent postural problems. Every element is designed to guarantee stability, support and adaptability to the patient's various needs.</p>",
         '<p>Thanks to its solid and modular structure, the <strong>rental of multifunctional tilt-in-space care chair for the disabled</strong> is a professional and safe solution.</p>',
         '<h2>Not just a seat: a multifunctional postural solution</h2>',
         '<p>This aid is not only a seating system, but a truly multifunctional solution. The care chair also performs the function of <strong>assisted care chair</strong> and of <strong>ergonomic postural chair</strong>, adapting to multiple contexts of use and clinical needs.</p>',
-        '<p><strong>Attention:</strong> the multifunctional care chair <strong>It\'s not foldable</strong>.</p>',
+        "<p><strong>Attention:</strong> the multifunctional care chair <strong>It's not foldable</strong>.</p>",
         '<h2>multifunctional care chair hire in Rome and Florence</h2>',
         '<p>We offer <strong>rental and hire of multifunctional tilt-in-space care chair for the disabled in Rome and province and Florence and province</strong>, with the option of home delivery or free warehouse collection.</p>',
         '<p>Book online now the <strong>rental of multifunctional tilt-in-space care chair for the disabled</strong> and ensure a professional, comfortable and immediately available aid.</p>',
@@ -100,9 +99,7 @@ export const tiltingCareChair = wheelchairsHire.rental({
 
   media: {
     thumbnail: 'tilting-care-chair-1.jpg',
-    gallery: [
-      'tilting-care-chair-2.jpg',
-    ],
+    gallery: ['tilting-care-chair-2.jpg'],
   },
 
   addons: [homeDelivery(40)],

@@ -19,20 +19,17 @@ export const magnetocempEliteGlobus = magnetotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 100),
-    days(30, 125),
-    days(45, 160),
-    days(60, 210),
-  ],
+  packages: [days(20, 100), days(30, 125), days(45, 160), days(60, 210)],
 
   translations: {
     it: {
       title: 'Noleggio Magnetocemp Elite Globus',
       slug: 'noleggio-magnetocemp-elite-globus',
-      shortDescription: 'Noleggio Magnetoterapia magnetocemp Elite Globus Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Magnetoterapia magnetocemp Elite Globus Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Magnetocemp Elite Globus',
-      metaDescription: 'Noleggio Magnetocemp Elite Glubus a partire da 2,90 Euro al giorno. Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare.',
+      metaDescription:
+        'Noleggio Magnetocemp Elite Glubus a partire da 2,90 Euro al giorno. Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare.',
       description: [
         '<p>Il <strong>dispositivo professionale per magnetoterapia</strong> è un apparecchio CEMP a bassa frequenza e alta intensità, ideale per trattamenti mirati contro infiammazioni articolari, artrosi, edemi ossei e patologie del sistema muscolo-scheletrico. Grazie alla tecnologia dei <strong>Campi Elettromagnetici Pulsati</strong>, stimola la rigenerazione tissutale e favorisce una guarigione naturale, sicura e non invasiva.</p>',
         '<p>Progettato per un uso ambulatoriale e domiciliare, questo dispositivo è semplice da utilizzare ma altamente performante: permette trattamenti efficaci direttamente a casa, seguendo il piano terapeutico prescritto dal medico o fisioterapista.</p>',
@@ -55,9 +52,11 @@ export const magnetocempEliteGlobus = magnetotherapyHire.rental({
     en: {
       title: 'Globus Magnetocemp Elite, for hire',
       slug: 'noleggio-magnetocemp-elite-globus',
-      shortDescription: 'Hire Magnetotherapy Magnetocemp Elite Globus Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
+      shortDescription:
+        'Hire Magnetotherapy Magnetocemp Elite Globus Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
       metaTitle: 'Globus Magnetocemp Elite hire',
-      metaDescription: 'Globus Magnetocemp Elite hire from €2.90 a day, delivered to your door. Safe, reliable machines that are easy to use.',
+      metaDescription:
+        'Globus Magnetocemp Elite hire from €2.90 a day, delivered to your door. Safe, reliable machines that are easy to use.',
       description: [
         '<p>The <strong>professional magnetotherapy device</strong> is a low-frequency, high-intensity PEMF device, ideal for targeted treatments against joint inflammation, arthrosis, bone oedema and musculoskeletal system disorders. Thanks to the <strong>Pulsed Electromagnetic Fields</strong>It stimulates tissue regeneration and promotes natural, safe and non-invasive healing.</p>',
         '<p>Designed for outpatient and home use, this device is simple to use but highly efficient: it allows effective treatments directly at home, following the therapeutic plan prescribed by the doctor or physiotherapist.</p>',
@@ -80,7 +79,10 @@ export const magnetocempEliteGlobus = magnetotherapyHire.rental({
   },
 
   specs: {
-    'included-accessories': { it: 'Fascia terapeutica, solenoidi, manuale', en: 'Therapeutic band, solenoids, manual' },
+    'included-accessories': {
+      it: 'Fascia terapeutica, solenoidi, manuale',
+      en: 'Therapeutic band, solenoids, manual',
+    },
   },
 
   media: {

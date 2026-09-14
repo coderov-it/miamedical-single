@@ -34,16 +34,18 @@ export const slimSelfPropelled = wheelchairsHire.rental({
     days(30, 50),
     days(45, 65),
     days(60, 80),
-    days(90, 100),  // 90 giorni - 100 € — label — THE VARIATION PRICE IS 0 ON THE LIVE SITE
+    days(90, 100), // 90 giorni - 100 € — label — THE VARIATION PRICE IS 0 ON THE LIVE SITE
   ],
 
   translations: {
     it: {
       title: 'Affitto carrozzina di piccole dimensioni ad autospinta – SLIM',
       slug: 'affitto-carrozzina-per-disabili-di-piccole-dimensioni-autospinta-slim',
-      shortDescription: 'Noleggio Sedia a Rotelle Piccola Adatta per chi ha poco spazio. Il ritiro e la riconsegna delle carrozzine in magazzino è gratuito! Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio a Roma e Firenze da 30€. Prenota online o contattaci tramite WhatsApp!',
+      shortDescription:
+        'Noleggio Sedia a Rotelle Piccola Adatta per chi ha poco spazio. Il ritiro e la riconsegna delle carrozzine in magazzino è gratuito! Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio a Roma e Firenze da 30€. Prenota online o contattaci tramite WhatsApp!',
       metaTitle: 'Affitto carrozzina per disabili piccola ad autospinta',
-      metaDescription: 'Affitto carrozzina per disabili di piccole dimensioni autospinta - SLIM. Disponibilità immediata. Consegna a domicilio! Chiamaci al +393926509237',
+      metaDescription:
+        'Affitto carrozzina per disabili di piccole dimensioni autospinta - SLIM. Disponibilità immediata. Consegna a domicilio! Chiamaci al +393926509237',
       description: [
         '<p>L’affitto carrozzina per disabili piccola ad autospinta è la soluzione ideale per chi necessita di un ausilio pratico, compatto e facilmente manovrabile in ambienti con spazi ridotti. Questo tipo di carrozzina è progettato per garantire comfort, sicurezza e autonomia sia in casa che in strutture sanitarie o ambienti esterni.</p>',
         '<p>La carrozzina SLIM è uno dei modelli più richiesti per il noleggio grazie alle sue dimensioni ridotte e alla struttura leggera ma resistente, perfetta per chi ha bisogno di muoversi con facilità anche in corridoi stretti, ascensori piccoli o bagni angusti.</p>',
@@ -97,9 +99,11 @@ export const slimSelfPropelled = wheelchairsHire.rental({
     en: {
       title: 'Small self-propelled wheelchair for hire – SLIM',
       slug: 'affitto-carrozzina-per-disabili-di-piccole-dimensioni-autospinta-slim',
-      shortDescription: 'Small Wheelchair Hire. Suitable for those with limited space. Collection and return of wheelchairs to the warehouse is free of charge! Hire for 1 day: 15€ with pick-up on site only. Home delivery and pick-up in Rome and Florence from 30€. Book online or contact us via WhatsApp!',
+      shortDescription:
+        'Small Wheelchair Hire. Suitable for those with limited space. Collection and return of wheelchairs to the warehouse is free of charge! Hire for 1 day: 15€ with pick-up on site only. Home delivery and pick-up in Rome and Florence from 30€. Book online or contact us via WhatsApp!',
       metaTitle: 'Small self-propelled wheelchair hire',
-      metaDescription: 'Hire a small self-propelled wheelchair for disabled users — SLIM. Available immediately. Delivered to your door. Call us on +393926509237',
+      metaDescription:
+        'Hire a small self-propelled wheelchair for disabled users — SLIM. Available immediately. Delivered to your door. Call us on +393926509237',
       description: [
         '<p>Renting a small, self-propelled wheelchair for people with disabilities is the ideal solution for those who need a practical, compact and easily manoeuvrable aid in confined spaces. This type of wheelchair is designed to ensure comfort, safety and independence both at home and in healthcare facilities or outdoor settings.</p>',
         '<p>The SLIM wheelchair is one of the most popular models for hire thanks to its compact size and lightweight yet sturdy frame, making it perfect for anyone who needs to move around easily, even in narrow corridors, small lifts or cramped bathrooms.</p>',
@@ -164,10 +168,11 @@ export const slimSelfPropelled = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'slim-self-propelled-1.jpg', alt: { it: 'carrozzina per disabili piccola ad autospinta SLIM' } },
-    gallery: [
-      'slim-self-propelled-2.jpg',
-    ],
+    thumbnail: {
+      file: 'slim-self-propelled-1.jpg',
+      alt: { it: 'carrozzina per disabili piccola ad autospinta SLIM' },
+    },
+    gallery: ['slim-self-propelled-2.jpg'],
   },
 
   addons: [homeDelivery(30)],

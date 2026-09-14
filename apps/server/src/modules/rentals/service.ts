@@ -87,10 +87,12 @@ export async function renew(
   });
 }
 
-export async function finish(
-  db: Database,
-  orderId: string,
-  user: SessionUser,
-): Promise<void> {
-  await orderService.moveStatus(db, orderId, 'fulfilled', 'Rental finished via Rent Management.', user);
+export async function finish(db: Database, orderId: string, user: SessionUser): Promise<void> {
+  await orderService.moveStatus(
+    db,
+    orderId,
+    'fulfilled',
+    'Rental finished via Rent Management.',
+    user,
+  );
 }

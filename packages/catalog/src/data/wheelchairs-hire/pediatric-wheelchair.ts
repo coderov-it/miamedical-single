@@ -24,22 +24,17 @@ export const pediatricWheelchair = wheelchairsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   translations: {
     it: {
       title: 'Noleggio Carrozzina Pediatrica Pieghevole',
       slug: 'noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso',
-      shortDescription: 'Noleggio Carrozzina Il ritiro e la riconsegna delle carrozzine in magazzino è gratuito! Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Disponibilità immediata. Prenota online o contattaci tramite WhatsApp! Consegna e ritiro a domicilio a Roma e Firenze da 30€.',
+      shortDescription:
+        'Noleggio Carrozzina Il ritiro e la riconsegna delle carrozzine in magazzino è gratuito! Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Disponibilità immediata. Prenota online o contattaci tramite WhatsApp! Consegna e ritiro a domicilio a Roma e Firenze da 30€.',
       metaTitle: 'Noleggio Carrozzina Pediatrica Pieghevole',
-      metaDescription: 'Noleggio carrozzina pediatrica pieghevole Jazz S50 Kids, dai 2 anni in su, con alzata per il gesso. Disponibilità immediata. Contattaci al +393926509237',
+      metaDescription:
+        'Noleggio carrozzina pediatrica pieghevole Jazz S50 Kids, dai 2 anni in su, con alzata per il gesso. Disponibilità immediata. Contattaci al +393926509237',
       description: [
         '<h4>Noleggio Carrozzina Manuale Pieghevole Pediatrica Jazz S50 Kids: Comfort, Sicurezza e Libertà per i Più Piccoli</h4>',
         '<p>Una <strong>carrozzina pediatrica</strong> è un <strong>ausilio per la mobilità</strong> progettato specificatamente per bambini con <strong>disabilità motorie temporanee o permanenti</strong>. A differenza delle carrozzine per adulti, quelle pediatriche offrono un maggiore supporto posturale, misure ridotte e materiale leggeri, pensati per garantire comfort e sicurezza ai più piccoli.</p>',
@@ -61,9 +56,11 @@ export const pediatricWheelchair = wheelchairsHire.rental({
     en: {
       title: 'Paediatric folding wheelchair for hire',
       slug: 'noleggio-carrozzina-pediatrica-pieghevole-per-bambini-con-alzata-per-il-gesso',
-      shortDescription: 'Wheelchair Hire The collection and return of wheelchairs to the warehouse is free of charge! Hire for 1 day: 15€ with pick-up on site only. Immediate availability. Book online or contact us via WhatsApp! Home delivery and pick-up in Rome and Florence from 30€.',
+      shortDescription:
+        'Wheelchair Hire The collection and return of wheelchairs to the warehouse is free of charge! Hire for 1 day: 15€ with pick-up on site only. Immediate availability. Book online or contact us via WhatsApp! Home delivery and pick-up in Rome and Florence from 30€.',
       metaTitle: 'Paediatric folding wheelchair hire | Jazz S50 Kids',
-      metaDescription: 'Hire a Vermeiren Jazz S50 Kids paediatric wheelchair: light aluminium frame, 60 kg limit, seat adjustable in width and depth.',
+      metaDescription:
+        'Hire a Vermeiren Jazz S50 Kids paediatric wheelchair: light aluminium frame, 60 kg limit, seat adjustable in width and depth.',
       description: [
         '<h4>Hire Pediatric Manual Folding Wheelchair Jazz S50 Kids: Comfort, Safety and Freedom for Little Ones</h4>',
         '<p>A <strong>paediatric wheelchair</strong> is a <strong>mobility aid</strong> designed specifically for children with <strong>temporary or permanent motor disabilities</strong>. Unlike wheelchairs for adults, paediatric wheelchairs offer greater postural support, smaller sizes and lightweight materials designed to ensure comfort and safety for the little ones.</p>',

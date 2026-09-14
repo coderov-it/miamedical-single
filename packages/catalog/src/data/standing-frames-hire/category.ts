@@ -20,7 +20,12 @@
  */
 import { defineCategory } from '../../lib/define.ts';
 import { loadAndWeight } from '../shared/specs.ts';
-import { adjustableHeight, foldable, overallDimensions, wheelDiameter } from '../shared/specs-chassis.ts';
+import {
+  adjustableHeight,
+  foldable,
+  overallDimensions,
+  wheelDiameter,
+} from '../shared/specs-chassis.ts';
 import { armLength, includesSling, liftsPerCharge } from '../shared/specs-bed.ts';
 
 export const standingFramesHire = defineCategory({

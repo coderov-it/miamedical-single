@@ -49,5 +49,15 @@ export const usedDealsSale = defineCategory({
     },
   },
 
-  specs: { ...condition, ...propulsion, ...loadAndWeight, ...maxSpeed, ...batteryRange, ...maxGradient, ...battery, ...controls, ...foldable },
+  specs: {
+    ...condition,
+    ...propulsion,
+    ...loadAndWeight,
+    ...maxSpeed,
+    ...batteryRange,
+    ...maxGradient,
+    ...battery,
+    ...controls,
+    ...foldable,
+  },
 });

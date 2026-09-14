@@ -22,9 +22,11 @@ export const aluminiumRollatorSale = walkersSale.fixed({
     it: {
       title: 'Vendita Deambulatore Rollatore in alluminio',
       slug: 'vendita-deambulatore-rollatore-in-alluminio',
-      shortDescription: 'Rollator deambulatore pieghevole compatto. In alluminio anodizzato dal facile trasporto si ripone in piccoli spazi. Acquista ora! Spedizione gratuita in tutta l’Italia.',
+      shortDescription:
+        'Rollator deambulatore pieghevole compatto. In alluminio anodizzato dal facile trasporto si ripone in piccoli spazi. Acquista ora! Spedizione gratuita in tutta l’Italia.',
       metaTitle: 'Vendita Deambulatore Rollator in Alluminio',
-      metaDescription: 'Vendita Deambulatore Rollator in Alluminio leggero per anziani. Al miglior prezzo sul mercato. Prenota Online. consegna gratuita!',
+      metaDescription:
+        'Vendita Deambulatore Rollator in Alluminio leggero per anziani. Al miglior prezzo sul mercato. Prenota Online. consegna gratuita!',
       description: [
         '<h2>Vendita <strong>Deambulatore Rollator pieghevole in Alluminio ultraleggero per uso interno ed esterno</strong></h2>',
         '<p>Il&nbsp;<strong>Rollator Oceano 2.0 MOPEDIA</strong>&nbsp;è un&nbsp;<strong>deambulatore in alluminio anodizzato ultraleggero</strong>, progettato per garantire&nbsp;<strong>massima sicurezza, stabilità e autonomia</strong>&nbsp;alle persone con difficoltà di deambulazione.</p>',
@@ -72,9 +74,11 @@ export const aluminiumRollatorSale = walkersSale.fixed({
     en: {
       title: 'Aluminium rollator for sale',
       slug: 'vendita-deambulatore-rollatore-in-alluminio',
-      shortDescription: 'Compact folding rollator. Anodised aluminium, easy to carry and stores in a small space. Buy now! Free shipping across Italy.',
+      shortDescription:
+        'Compact folding rollator. Anodised aluminium, easy to carry and stores in a small space. Buy now! Free shipping across Italy.',
       metaTitle: 'Aluminium rollator for sale',
-      metaDescription: 'Buy a light anodised aluminium rollator for older users, at the best price on the market. Order online, free delivery.',
+      metaDescription:
+        'Buy a light anodised aluminium rollator for older users, at the best price on the market. Order online, free delivery.',
       description: [
         '<h2>For sale <strong>Ultralight Folding Aluminium Rollator for indoor and outdoor use</strong></h2>',
         '<p>The&nbsp;<strong>Rollator Oceano 2.0 MOPEDIA</strong>&nbsp;is a&nbsp;<strong>ultralight anodised aluminium walker</strong>, designed to ensure&nbsp;<strong>maximum security, stability and autonomy</strong>&nbsp;to people with walking difficulties.</p>',
@@ -99,7 +103,7 @@ export const aluminiumRollatorSale = walkersSale.fixed({
         '<h4><strong>Reliable braking system</strong></h4>',
         '<ul><li><strong>Ergonomic lever brakes</strong></li><li>Function of&nbsp;<strong>parking</strong>&nbsp;to stop safely</li><li>Greater control during the session and breaks</li></ul>',
         '<h4><strong>Adjustable anatomical handles</strong></h4>',
-        '<ul><li>Ergonomic handles</li><li><strong>Height adjustable</strong>&nbsp;to suit the user\'s needs</li><li>Secure and comfortable grip</li><li>Integrated reflectors for greater visibility</li></ul>',
+        "<ul><li>Ergonomic handles</li><li><strong>Height adjustable</strong>&nbsp;to suit the user's needs</li><li>Secure and comfortable grip</li><li>Integrated reflectors for greater visibility</li></ul>",
         '<p><strong>Height adjustable:</strong>&nbsp;79 – 92 cm</p>',
         '<h4><strong>Integrated accessories included</strong></h4>',
         '<p>The Aluminium Rollator Walker for sale comes complete with:</p>',
@@ -140,7 +144,10 @@ export const aluminiumRollatorSale = walkersSale.fixed({
   media: {
     thumbnail: 'aluminium-rollator-1.jpg',
     gallery: [
-      { file: 'aluminium-rollator-2.jpg', alt: { it: 'deambulatore rollatore de interno/esterno' } },
+      {
+        file: 'aluminium-rollator-2.jpg',
+        alt: { it: 'deambulatore rollatore de interno/esterno' },
+      },
       'aluminium-rollator-3.jpg',
       'aluminium-rollator-4.jpg',
     ],

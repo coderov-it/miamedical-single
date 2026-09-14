@@ -21,20 +21,17 @@ export const boomHoist = patientLiftsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 80),
-    days(30, 120),
-    days(60, 200),
-    days(90, 250),
-  ],
+  packages: [days(15, 80), days(30, 120), days(60, 200), days(90, 250)],
 
   translations: {
     it: {
       title: 'Noleggio Sollevatore elettrico con asta',
       slug: 'sollevatore-elettrico-forfait-imbattibili',
-      shortDescription: 'Noleggio sollevatore elettrico con imbracatura. Consegna a Roma e Firenze a partire da 45€. Consegna gratuita per i noleggi da 60 giorni ! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Noleggio sollevatore elettrico con imbracatura. Consegna a Roma e Firenze a partire da 45€. Consegna gratuita per i noleggi da 60 giorni ! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Sollevatore elettrico con asta: noleggio da 2,50€ al giorno',
-      metaDescription: 'Noleggio Sollevatore elettrico con asta per anziani e persone con disabilità. Contattaci al +39 392 65 09 237 per maggiori informazioni.',
+      metaDescription:
+        'Noleggio Sollevatore elettrico con asta per anziani e persone con disabilità. Contattaci al +39 392 65 09 237 per maggiori informazioni.',
       description: [
         '<h3>Sollevatore elettrico con asta per anziani e disabili: per chi assiste ogni giorno con cura, forza e responsabilità.</h3>',
         '<p>Assistere una persona con mobilità ridotta è una missione che richiede attenzione, competenza e gli strumenti giusti. Il servizio di noleggio del <strong>sollevatore elettrico con asta MUEVO RI828</strong> è stato progettato per garantire massima sicurezza e potenza anche nei trasferimenti più complessi, supportando utenti fino a 200 kg di peso. Si tratta di un <strong>sollevatore per anziani e per persone con disabilità</strong>, una soluzione resistente, affidabile e pensata per agevolare il lavoro di caregiver e operatori sanitari a domicilio o in clinica.</p>',
@@ -63,9 +60,11 @@ export const boomHoist = patientLiftsHire.rental({
     en: {
       title: 'Electric boom hoist for hire',
       slug: 'sollevatore-elettrico-forfait-imbattibili',
-      shortDescription: 'Hire of electric hoist with sling. Delivery in Rome and Florence from €45. Free delivery for 60-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Hire of electric hoist with sling. Delivery in Rome and Florence from €45. Free delivery for 60-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Electric boom hoist: hire from €2.50 a day',
-      metaDescription: 'Hire an electric boom hoist for older and disabled users. Call +39 392 65 09 237 for more.',
+      metaDescription:
+        'Hire an electric boom hoist for older and disabled users. Call +39 392 65 09 237 for more.',
       description: [
         '<h3>Electric hoist with mast for the elderly and disabled: for those who care every day with dedication, strength and responsibility.</h3>',
         '<p>Assisting a person with reduced mobility is a mission that requires attention, competence and the right tools. The rental service of <strong>MUEVO RI828 electric pole lift</strong> It has been designed to guarantee maximum safety and power even in the most complex transfers, supporting users weighing up to 200 kg. This is a <strong>hoist for elderly people and people with disabilities</strong>, a durable, reliable solution designed to make life easier for carers and healthcare professionals, whether at home or in a clinic.</p>',
@@ -102,9 +101,7 @@ export const boomHoist = patientLiftsHire.rental({
 
   media: {
     thumbnail: { file: 'boom-hoist-1.jpg', alt: { it: 'Sollevatore elettrico con asta MUEVO' } },
-    gallery: [
-      'boom-hoist-2.jpg',
-    ],
+    gallery: ['boom-hoist-2.jpg'],
   },
 
   addons: [homeDelivery(45)],

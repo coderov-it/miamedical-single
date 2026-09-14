@@ -57,15 +57,11 @@ const columns = 'flex flex-wrap items-start gap-x-12 gap-y-10 pt-3';
 const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
 ---
 
-{
-  /*
+{/*
     The bottom padding clears BOTH fixed bars on phones: the price bar and the
     persistent navigation under it.
-  */
-}
-<div
-  class="pdp px-gutter mid:pb-20 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]"
->
+  */}
+<div class="pdp px-gutter mid:pb-20 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]">
   <Breadcrumbs
     items={[
       { label: translate(locale, 'home'), href: routePath(locale, 'home') },
@@ -74,65 +70,57 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
     ]}
   />
 
-  {
-    inStock ? (
-      <form
-        id="quote-form"
-        method="get"
-        action={routePath(locale, 'checkout')}
-        class={columns}
-        data-est-base={product.pricing.price ?? ''}
-        data-est-mode={product.pricing.mode}
-        data-est-currency={product.pricing.currency}
+  {inStock ? (
+    <form
+      id="quote-form"
+      method="get"
+      action={routePath(locale, 'checkout')}
+      class={columns}
+      data-est-base={product.pricing.price ?? ''}
+      data-est-mode={product.pricing.mode}
+      data-est-currency={product.pricing.currency}
+    >
+      <input type="hidden" name={FIELD.product} value={product.slug} />
+
+      <main class={leftColumn}>
+        <PdpHero {product} {images} />
+        {product.addons.length > 0 && <PdpAddons addons={product.addons} />}
+        {product.questions.length > 0 && <PdpQuestions questions={product.questions} />}
+        {product.specifications.length > 0 && <PdpSpecs specifications={product.specifications} />}
+        <PdpInfoTabs {product} />
+      </main>
+
+      <PdpOrderPanel
+        {product}
+        deliveryCity={answers.deliveryCity}
+        startDate={answers.startDate}
+        today={answers.today}
+      />
+    </form>
+  ) : (
+    <div class={columns}>
+      <main class={leftColumn}>
+        <PdpHero {product} {images} />
+        {product.specifications.length > 0 && <PdpSpecs specifications={product.specifications} />}
+        <PdpInfoTabs {product} />
+      </main>
+
+      <aside
+        id="order"
+        class="bg-tint flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-4 rounded-2xl p-6"
       >
-        <input type="hidden" name={FIELD.product} value={product.slug} />
-
-        <main class={leftColumn}>
-          <PdpHero {product} {images} />
-          {product.addons.length > 0 && <PdpAddons addons={product.addons} />}
-          {product.questions.length > 0 && <PdpQuestions questions={product.questions} />}
-          {product.specifications.length > 0 && (
-            <PdpSpecs specifications={product.specifications} />
-          )}
-          <PdpInfoTabs {product} />
-        </main>
-
-        <PdpOrderPanel
-          {product}
-          deliveryCity={answers.deliveryCity}
-          startDate={answers.startDate}
-          today={answers.today}
-        />
-      </form>
-    ) : (
-      <div class={columns}>
-        <main class={leftColumn}>
-          <PdpHero {product} {images} />
-          {product.specifications.length > 0 && (
-            <PdpSpecs specifications={product.specifications} />
-          )}
-          <PdpInfoTabs {product} />
-        </main>
-
-        <aside
-          id="order"
-          class="bg-tint flex max-w-100 min-w-0 flex-[1_1_320px] scroll-mt-24 flex-col gap-4 rounded-2xl p-6"
-        >
-          <p class="m-0">{translate(locale, 'product.outOfStock')}</p>
-          <PhoneCta variant="primary" />
-        </aside>
-      </div>
-    )
-  }
+        <p class="m-0">{translate(locale, 'product.outOfStock')}</p>
+        <PhoneCta variant="primary" />
+      </aside>
+    </div>
+  )}
 </div>
 
-{
-  /*
+{/*
     The mobile price bar sits directly ABOVE the persistent bottom navigation
     rather than fighting it for `bottom: 0` — two overlapping bars means one of
     them is unusable, and the navigation already reserves the safe-area inset.
-  */
-}
+  */}
 <div
   class="bg-ink mid:hidden px-gutter fixed inset-x-0 bottom-[calc(var(--spacing-mobile-nav)+env(safe-area-inset-bottom,0px))] z-65 py-4"
   data-pdp-price-bar

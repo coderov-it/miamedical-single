@@ -36,8 +36,7 @@ const jsonLd = {
 ---
 
 <nav class="mid:pb-4 max-mid:pb-2" aria-label={translate(locale, 'breadcrumbs.label')}>
-  {
-    /* 14px, regular, muted — a trail kept for structured data and orientation,
+  {/* 14px, regular, muted — a trail kept for structured data and orientation,
        not a second heading. It used to render 16px/600 with a bold near-black
        current item, so a category page opened with the same word twice: once in
        the trail and once as the h1 under it (owner, 2026-08-30).
@@ -49,15 +48,11 @@ const jsonLd = {
        orientation at a glance. It is not body copy, and the JSON-LD carries the
        same strings at full fidelity whatever this renders at, so search engines
        and assistive technology lose nothing. It stays a real, focusable link
-       with the full 48px hit area; only the paint shrinks. */
-  }
-  <ol
-    class="mid:gap-2 mid:text-[14px] max-mid:gap-1.5 max-mid:text-[11px] max-mid:font-light flex flex-wrap items-center"
-  >
-    {
-      items.map((crumb, index) => (
-        <li class="flex items-center gap-2">
-          {/*
+       with the full 48px hit area; only the paint shrinks. */}
+  <ol class="mid:gap-2 mid:text-[14px] max-mid:gap-1.5 max-mid:text-[11px] max-mid:font-light flex flex-wrap items-center">
+    {items.map((crumb, index) => (
+      <li class="flex items-center gap-2">
+        {/*
             Breadcrumb links are navigation, not prose, so they keep the full
             48px target rather than the WCAG 2.5.8 inline exception. They no
             longer PAINT at 48px, though: a 48px-tall box around 13.5px text
@@ -65,31 +60,30 @@ const jsonLd = {
             Tailwind's pseudo-element target utilities keep the paint on the
             text while the hit area remains 48×48.
           */}
-          {crumb.href ? (
-            <a
-              class="text-ink-2 relative inline-flex items-center font-normal after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
-              href={crumb.href}
-            >
-              {crumb.label}
-            </a>
-          ) : (
-            <span class="text-ink-2 mid:font-bold max-mid:font-normal" aria-current="page">
-              {crumb.label}
-            </span>
-          )}
-          {/*
+        {crumb.href ? (
+          <a
+            class="text-ink-2 relative inline-flex items-center font-normal after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
+            href={crumb.href}
+          >
+            {crumb.label}
+          </a>
+        ) : (
+          <span class="text-ink-2 mid:font-bold max-mid:font-normal" aria-current="page">
+            {crumb.label}
+          </span>
+        )}
+        {/*
             Decorative only: it carries no information and is hidden from
             assistive technology, so the lighter tone is acceptable here.
           */}
-          {index < items.length - 1 && (
-            <span class="text-ink-decorative" aria-hidden="true">
-              ›
-            </span>
-          )}
-        </li>
-      ))
-    }
+        {index < items.length - 1 && (
+          <span class="text-ink-decorative" aria-hidden="true">
+            ›
+          </span>
+        )}
+      </li>
+    ))}
   </ol>
 </nav>
 
-<script type="application/ld+json" is:inline set:html={serializeJsonLd(jsonLd)} />
+<script type="application/ld+json" is:inline set:html={serializeJsonLd(jsonLd)}></script>

@@ -19,9 +19,11 @@ export const forearmSupportWalkerSale = walkersSale.fixed({
     it: {
       title: 'Vendita Deambulatore con tavoletta per appoggio antibrachiale',
       slug: 'deambulatore-con-tavoletta-per-appoggio-antibrachiale-in-vendita',
-      shortDescription: 'Deambulatore con tavoletta per appoggio antibrachiale Dispositivo sicuro, robusto e progettato per garantire stabilità e comfort nella deambulazione. Consegna Gratuita!',
+      shortDescription:
+        'Deambulatore con tavoletta per appoggio antibrachiale Dispositivo sicuro, robusto e progettato per garantire stabilità e comfort nella deambulazione. Consegna Gratuita!',
       metaTitle: 'Deambulatore con tavoletta per appoggio antibrachiale in vendita',
-      metaDescription: 'Deambulatore con tavoletta per appoggio antibrachiale in vendita. Consegna rapida e assistenza garantita da Mia Medical.',
+      metaDescription:
+        'Deambulatore con tavoletta per appoggio antibrachiale in vendita. Consegna rapida e assistenza garantita da Mia Medical.',
       description: [
         '<p>Hai difficoltà a camminare e cerchi un supporto stabile e confortevole per muoverti in autonomia? Il <strong>deambulatore con tavoletta per appoggio antibrachiale</strong> è la soluzione ideale. Pensato per offrire stabilità, sicurezza e comfort, questo ausilio ti permette di deambulare senza affaticare mani e polsi, migliorando la tua autonomia quotidiana.</p>',
         '<h3><a href="https://www.my-personaltrainer.it/salute-benessere/deambulatore.html">Cos’è un Deambulatore con Tavoletta per Appoggio Antibrachiale?</a></h3>',
@@ -43,9 +45,11 @@ export const forearmSupportWalkerSale = walkersSale.fixed({
     en: {
       title: 'Walking frame with forearm support platform, for sale',
       slug: 'deambulatore-con-tavoletta-per-appoggio-antibrachiale-in-vendita',
-      shortDescription: 'Walking frame with a forearm support platform. A safe, sturdy aid built to give stability and comfort when walking. Free delivery!',
+      shortDescription:
+        'Walking frame with a forearm support platform. A safe, sturdy aid built to give stability and comfort when walking. Free delivery!',
       metaTitle: 'Walking frame with forearm support platform for sale',
-      metaDescription: 'Buy a walking frame with a forearm support platform. Quick delivery and support from Mia Medical.',
+      metaDescription:
+        'Buy a walking frame with a forearm support platform. Quick delivery and support from Mia Medical.',
       description: [
         '<p>Do you have difficulty walking and are looking for a stable and comfortable support to move around independently? The <strong>walker with antibrachial support board</strong> is the ideal solution. Designed to offer stability, safety and comfort, this aid allows you to walk without tiring your hands and wrists, improving your daily autonomy.</p>',
         '<h3><a href="https://www.my-personaltrainer.it/salute-benessere/deambulatore.html">What is a Walker with Anti-Abrachial Support Board?</a></h3>',

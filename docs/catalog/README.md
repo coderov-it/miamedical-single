@@ -6,12 +6,12 @@ sentence in `packages/catalog/src/data/` was read from that crawl. Nothing was
 invented, and where the source is wrong or contradicts itself the source is
 recorded and the problem is listed below rather than quietly corrected.
 
-| | |
-|---|---|
-| Categories | **34** (every `product_cat` leaf term, flat) |
-| Products | **108** (every published product) |
-| Rental packages | **283** across 58 hire products |
-| Product photos | **355** references, 246 distinct files, ~93 MB |
+|                 |                                                |
+| --------------- | ---------------------------------------------- |
+| Categories      | **34** (every `product_cat` leaf term, flat)   |
+| Products        | **108** (every published product)              |
+| Rental packages | **283** across 58 hire products                |
+| Product photos  | **355** references, 246 distinct files, ~93 MB |
 
 ## What is where
 
@@ -58,8 +58,7 @@ the site. Each was placed once:
   `Occasione usato`, because all six are `simple` products with a sale price and
   no hire packages at all.
 
-`docs/catalog/source/placement.json` records the choice and the reason for all
-108. Two categories therefore hold nothing: `used-deals-hire` (its six items are
+`docs/catalog/source/placement.json` records the choice and the reason for all 108. Two categories therefore hold nothing: `used-deals-hire` (its six items are
 the sale ones) and `electromedical-sale` (empty on the live site too). Both are
 kept, because their URLs are indexed.
 
@@ -115,21 +114,21 @@ file saying so. They are the shop's to fix on the live site.
 
 ### Prices
 
-| Product | Problem | What was recorded |
-|---|---|---|
-| 8947 `slim-self-propelled` | The 90-day variation (13614) is priced **0 €**. Its label says 100 €, and all nine sibling chairs price 90 days at 100 €. | 100 €, from the label |
-| 8853 `electric-standing-hoist` | Label "90 giorni 360 €", charges 390 € | 390 € |
-| 9603 `powerpress-4` | Label "60 giorni - 240 €", charges 250 € | 250 € |
-| 11090 `seated-hoist` | Label "30 giorni - 240 €", charges 260 € | 260 € |
-| 9444 `kinetec-and-wheelchair` | Attribute term says "30 giorni - 290 €", charges 296 € | 296 € |
-| 13504 `starlight-ultralight` | `Opzione di acquisto` attribute says 1690 €, the product price is 1490 € | 1490 €, the price a customer is charged |
+| Product                        | Problem                                                                                                                   | What was recorded                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| 8947 `slim-self-propelled`     | The 90-day variation (13614) is priced **0 €**. Its label says 100 €, and all nine sibling chairs price 90 days at 100 €. | 100 €, from the label                   |
+| 8853 `electric-standing-hoist` | Label "90 giorni 360 €", charges 390 €                                                                                    | 390 €                                   |
+| 9603 `powerpress-4`            | Label "60 giorni - 240 €", charges 250 €                                                                                  | 250 €                                   |
+| 11090 `seated-hoist`           | Label "30 giorni - 240 €", charges 260 €                                                                                  | 260 €                                   |
+| 9444 `kinetec-and-wheelchair`  | Attribute term says "30 giorni - 290 €", charges 296 €                                                                    | 296 €                                   |
+| 13504 `starlight-ultralight`   | `Opzione di acquisto` attribute says 1690 €, the product price is 1490 €                                                  | 1490 €, the price a customer is charged |
 
 ### Labels and durations
 
-| Product | Problem |
-|---|---|
-| 8988 `ramp` | A variation labelled **"32 giorni - 25 €"**. 25 € is every sibling's *three*-day price, and the ladder runs 7/15/30/45/60/90 around it, so the 32 is near-certainly a typo for 3. Recorded as 32. |
-| 12321 `pediatric-wheelchair` | Label "45 giorni 65 - €" — the euro sign has slipped past the number. The charge, 65 €, is right. |
+| Product                      | Problem                                                                                                                                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 8988 `ramp`                  | A variation labelled **"32 giorni - 25 €"**. 25 € is every sibling's _three_-day price, and the ladder runs 7/15/30/45/60/90 around it, so the 32 is near-certainly a typo for 3. Recorded as 32. |
+| 12321 `pediatric-wheelchair` | Label "45 giorni 65 - €" — the euro sign has slipped past the number. The charge, 65 €, is right.                                                                                                 |
 
 ### Broken HTML in the source descriptions
 
@@ -139,16 +138,16 @@ no faithful reading — the shop's intent is unambiguous in each case, and repro
 the breakage would corrupt whatever the storefront renders after it. Every repair only
 balances tags; not one word of copy changed.
 
-| Product | What the source has | Repair |
-|---|---|---|
-| 8793 `padded-commode-chair` | The Vermeiren dimensions table is truncated mid-row and spans 37 array entries, using `</p>` where `</td>` belongs and never closing `td`/`tr`/`tbody`/`table`/`figure`. | Rewritten as one well-formed table carrying the same 12 diagram images and the same 12 values (820, 950, 560, 420, 528, 420, 375, 226, 1530, 5 l, 13, 120). |
-| 9486 `walker-wheelchair-and-bed` | `<figure><table>…</table>` with no `</figure>` | `</figure>` added |
-| 9699 `high-cure-90` | same | `</figure>` added |
-| 9030 `high-risk-mattress` | same | `</figure>` added |
-| 15557 `easystep-wheelchair-stairlift` | `<blockquote><p>…</p>` with no `</blockquote>` | `</blockquote>` added |
-| 8852 `boom-hoist` | same | `</blockquote>` added |
-| 12347 `soft-bath-hoist` | same | `</blockquote>` added |
-| 14188 `globus-premium-400-sale` | Tags shifted by one: the two "Come funziona" bodies open `<h4>` and close `</p>`, while the `EMS` and `IONOFORESI` headings open `<p>` and close `</h4>`. | Restored to the pattern the same description uses correctly for `IONOFORESI`'s body and `MICROCORRENTI`'s heading |
+| Product                               | What the source has                                                                                                                                                      | Repair                                                                                                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 8793 `padded-commode-chair`           | The Vermeiren dimensions table is truncated mid-row and spans 37 array entries, using `</p>` where `</td>` belongs and never closing `td`/`tr`/`tbody`/`table`/`figure`. | Rewritten as one well-formed table carrying the same 12 diagram images and the same 12 values (820, 950, 560, 420, 528, 420, 375, 226, 1530, 5 l, 13, 120). |
+| 9486 `walker-wheelchair-and-bed`      | `<figure><table>…</table>` with no `</figure>`                                                                                                                           | `</figure>` added                                                                                                                                           |
+| 9699 `high-cure-90`                   | same                                                                                                                                                                     | `</figure>` added                                                                                                                                           |
+| 9030 `high-risk-mattress`             | same                                                                                                                                                                     | `</figure>` added                                                                                                                                           |
+| 15557 `easystep-wheelchair-stairlift` | `<blockquote><p>…</p>` with no `</blockquote>`                                                                                                                           | `</blockquote>` added                                                                                                                                       |
+| 8852 `boom-hoist`                     | same                                                                                                                                                                     | `</blockquote>` added                                                                                                                                       |
+| 12347 `soft-bath-hoist`               | same                                                                                                                                                                     | `</blockquote>` added                                                                                                                                       |
+| 14188 `globus-premium-400-sale`       | Tags shifted by one: the two "Come funziona" bodies open `<h4>` and close `</p>`, while the `EMS` and `IONOFORESI` headings open `<p>` and close `</h4>`.                | Restored to the pattern the same description uses correctly for `IONOFORESI`'s body and `MICROCORRENTI`'s heading                                           |
 
 Unbalanced markup is now checked, not trusted: all 496 rich-text fields in the
 catalogue parse with every container closed.
@@ -167,46 +166,46 @@ own product copy, and they are the only images in the catalogue that need the ne
 
 ### Figures that contradict each other
 
-| Product | Problem | What was recorded |
-|---|---|---|
-| 8842 `electric-bed-90` | Prose says 212 cm long and 30–80 cm high; the attribute table says 210 cm and 30–70 cm. Its `Maximum capacity` attribute lists **eight** values (100/115/120/130/150/180/200/250 kg) — the shop's global term list showing through. | The prose, which is what a customer sees: 212 cm, 30–80 cm, 130 kg patient / 180 kg safe working load |
-| 8853 `electric-standing-hoist` | Attribute table 180 kg, prose 200 kg | 180 kg — the lower, because a load limit is a safety figure |
-| 14542 / 14602 Superwheel | **Both** pages carry both figures, swapped: the hire page's selling point says 150 kg and its spec block says 135 kg, while the sale page's selling point says 135 kg and its spec block says 150 kg | Each takes its own spec block: 135 kg on hire, 150 kg on sale. One machine, two ratings — the shop needs to settle which |
-| 15557 / 15569 Easystep wheelchair climber | Hire page 160 kg ("una delle più alte della categoria"), sale page 200 kg | Each carries its own page's figure |
-| 15094 `fantastica-electric` | Opening paragraph "soli 16 kg senza batteria", bullet beneath "appena 18 kg", spec list "Peso: 18 kg" | 18 kg, from the spec list. Both sentences stay in the description. |
-| 8801 `fantastica-power-smart` | `Maximum capacity` attribute lists 130 Kg and 150 Kg | 130 kg, the lower |
-| 9085 `aluminium-rollator` | `Seating height` attribute lists four values at once (45-50, 49-50, 53, 54 cm) — the global term list again | 54 cm, which its own `Altezza sedile da terra` row states |
-| 14363 / 14371 used Fantastica | One page says 16 kg without the battery, its sibling says 18 kg | Each carries its own page's figure |
-| 9085 `aluminium-rollator` | Attribute table says 150 kg; the page's own selling points say 136 kg, and so does the sale twin (8996) | 136 kg — the lower, and the corroborated one |
-| 8842 `electric-bed-90` | Attribute `Superficie per degenza` says 195 × 90 cm; the prose says "Superficie netta 195×95 cm" | 195 × 95 cm, from the prose |
-| 8793 `padded-commode-chair` | Its `Maximum capacity` attribute says **100 kg**; the Vermeiren dimensions table embedded in its own description says users weight **120 kg** — and those diagrams are captioned "Toilet chair wheels", a different model from the one being sold. | 100 kg, from the shop's own attribute table |
+| Product                                   | Problem                                                                                                                                                                                                                                            | What was recorded                                                                                                        |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 8842 `electric-bed-90`                    | Prose says 212 cm long and 30–80 cm high; the attribute table says 210 cm and 30–70 cm. Its `Maximum capacity` attribute lists **eight** values (100/115/120/130/150/180/200/250 kg) — the shop's global term list showing through.                | The prose, which is what a customer sees: 212 cm, 30–80 cm, 130 kg patient / 180 kg safe working load                    |
+| 8853 `electric-standing-hoist`            | Attribute table 180 kg, prose 200 kg                                                                                                                                                                                                               | 180 kg — the lower, because a load limit is a safety figure                                                              |
+| 14542 / 14602 Superwheel                  | **Both** pages carry both figures, swapped: the hire page's selling point says 150 kg and its spec block says 135 kg, while the sale page's selling point says 135 kg and its spec block says 150 kg                                               | Each takes its own spec block: 135 kg on hire, 150 kg on sale. One machine, two ratings — the shop needs to settle which |
+| 15557 / 15569 Easystep wheelchair climber | Hire page 160 kg ("una delle più alte della categoria"), sale page 200 kg                                                                                                                                                                          | Each carries its own page's figure                                                                                       |
+| 15094 `fantastica-electric`               | Opening paragraph "soli 16 kg senza batteria", bullet beneath "appena 18 kg", spec list "Peso: 18 kg"                                                                                                                                              | 18 kg, from the spec list. Both sentences stay in the description.                                                       |
+| 8801 `fantastica-power-smart`             | `Maximum capacity` attribute lists 130 Kg and 150 Kg                                                                                                                                                                                               | 130 kg, the lower                                                                                                        |
+| 9085 `aluminium-rollator`                 | `Seating height` attribute lists four values at once (45-50, 49-50, 53, 54 cm) — the global term list again                                                                                                                                        | 54 cm, which its own `Altezza sedile da terra` row states                                                                |
+| 14363 / 14371 used Fantastica             | One page says 16 kg without the battery, its sibling says 18 kg                                                                                                                                                                                    | Each carries its own page's figure                                                                                       |
+| 9085 `aluminium-rollator`                 | Attribute table says 150 kg; the page's own selling points say 136 kg, and so does the sale twin (8996)                                                                                                                                            | 136 kg — the lower, and the corroborated one                                                                             |
+| 8842 `electric-bed-90`                    | Attribute `Superficie per degenza` says 195 × 90 cm; the prose says "Superficie netta 195×95 cm"                                                                                                                                                   | 195 × 95 cm, from the prose                                                                                              |
+| 8793 `padded-commode-chair`               | Its `Maximum capacity` attribute says **100 kg**; the Vermeiren dimensions table embedded in its own description says users weight **120 kg** — and those diagrams are captioned "Toilet chair wheels", a different model from the one being sold. | 100 kg, from the shop's own attribute table                                                                              |
 
 ### Duplicate listings
 
-| Products | Problem |
-|---|---|
-| 9603 and 12141 | The **same pressotherapy machine listed twice**, same name, same accessories. 15- and 30-day prices match; the 60-day is 250 € on one and 240 € on the other. Both carried. |
-| 12465 and 13274 | The **same Cryopush listed twice**, with different package ladders — 15/20/30 days at 150/190/260 € against 10/20/30 days at 160/280/360 €. Both carried. |
-| 8988 and 12361 | The long ramp and the "short" one print **identical figures** — 91 × 73 cm, 7 kg, 272 kg. The copy is duplicated on the live site. |
+| Products        | Problem                                                                                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 9603 and 12141  | The **same pressotherapy machine listed twice**, same name, same accessories. 15- and 30-day prices match; the 60-day is 250 € on one and 240 € on the other. Both carried. |
+| 12465 and 13274 | The **same Cryopush listed twice**, with different package ladders — 15/20/30 days at 150/190/260 € against 10/20/30 days at 160/280/360 €. Both carried.                   |
+| 8988 and 12361  | The long ramp and the "short" one print **identical figures** — 91 × 73 cm, 7 kg, 272 kg. The copy is duplicated on the live site.                                          |
 
 ### Copy that does not match its product
 
-| Product | Problem |
-|---|---|
-| 14723 `therapist-150-plus-sale` | Its Yoast description is the **hire** listing's, word for word: "da soli 2,90€ al giorno. Trasporto gratuito. Nessun Deposito" — on a page that sells the device outright. |
-| `magnetotherapy-sale` category | Description says "Acquista subito i dispositivi a partire da € 1.490"; its two products are 499 € and 650 €. |
-| `tens-sale` category | Description says "a partire da € 249"; its one product is 379 €. |
-| 8801 `fantastica-power-smart` | Its attribute table carries a `COSTO` row of **rental** prices ("7 GG 70€ - 15 GG 130€ - 30 GG 240€ - 45 GG - 350€") on a page that sells outright. Not recorded as packages: the product is `pricingMode: 'fixed'`, which is what the site sells it as. |
-| 14191 `globus-medisound-3000` | Its category says "a partire da 4,60 € al giorno", its own page says "4,00 Euro al giorno". |
-| 15102 / 15569 | Their EN titles come out as "Motorised Crawler Chair" — TranslatePress reading *cingoli* (tracks) as *crawler*. Corrected in the English written here. |
+| Product                         | Problem                                                                                                                                                                                                                                                  |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 14723 `therapist-150-plus-sale` | Its Yoast description is the **hire** listing's, word for word: "da soli 2,90€ al giorno. Trasporto gratuito. Nessun Deposito" — on a page that sells the device outright.                                                                               |
+| `magnetotherapy-sale` category  | Description says "Acquista subito i dispositivi a partire da € 1.490"; its two products are 499 € and 650 €.                                                                                                                                             |
+| `tens-sale` category            | Description says "a partire da € 249"; its one product is 379 €.                                                                                                                                                                                         |
+| 8801 `fantastica-power-smart`   | Its attribute table carries a `COSTO` row of **rental** prices ("7 GG 70€ - 15 GG 130€ - 30 GG 240€ - 45 GG - 350€") on a page that sells outright. Not recorded as packages: the product is `pricingMode: 'fixed'`, which is what the site sells it as. |
+| 14191 `globus-medisound-3000`   | Its category says "a partire da 4,60 € al giorno", its own page says "4,00 Euro al giorno".                                                                                                                                                              |
+| 15102 / 15569                   | Their EN titles come out as "Motorised Crawler Chair" — TranslatePress reading _cingoli_ (tracks) as _crawler_. Corrected in the English written here.                                                                                                   |
 
 ### Products with no category on the live site
 
-| Product | Filed under | Why |
-|---|---|---|
-| 15839 Vendita Carrozzina SLIM da transito | `wheelchairs-sale` | No `product_cat` term at all; placed from its title |
-| 15650 Vendita Scooter Elettrico Maximo | `mobility-scooters-sale` | No term at all; placed from its title |
-| 8801 Fantastica Power Smart | `electric-wheelchairs-sale` | Only the `Vendita` container, no leaf |
+| Product                                   | Filed under                 | Why                                                 |
+| ----------------------------------------- | --------------------------- | --------------------------------------------------- |
+| 15839 Vendita Carrozzina SLIM da transito | `wheelchairs-sale`          | No `product_cat` term at all; placed from its title |
+| 15650 Vendita Scooter Elettrico Maximo    | `mobility-scooters-sale`    | No term at all; placed from its title               |
+| 8801 Fantastica Power Smart               | `electric-wheelchairs-sale` | Only the `Vendita` container, no leaf               |
 
 ### Out of stock
 
@@ -235,7 +234,7 @@ and rightly so. But two hire products require the electrode pack — WooCommerce
 makes it a second variation axis, so a 10-day hire of 9455 listed at 110 €
 charges 118 € or 123 €. They are modelled as two add-ons carrying the 8 € and
 13 € difference, which makes the total right when a customer picks one, but the
-site's *compulsion* is lost. The two pressure-relief mattresses have the same
+site's _compulsion_ is lost. The two pressure-relief mattresses have the same
 problem with their 150 € mattress protector, which their pages require for
 hygiene.
 
@@ -254,17 +253,17 @@ diffed field by field against `docs/catalog/source/`.
 
 **The Italian is verifiably 1:1.** Out of 108 products:
 
-| Field | Exact match |
-|---|---|
-| `title` | 108 / 108 |
-| `slug` | 108 / 108 |
-| `metaTitle` | 108 / 108 |
-| `metaDescription` | 108 / 108 |
-| `basePrice` / `pricingMode` | 108 / 108 |
-| Packages — every duration and price | 108 / 108 |
-| Photo count per product | 108 / 108 |
-| `description` — no word lost | 104 / 108 |
-| `shortDescription` | 105 / 108 |
+| Field                               | Exact match |
+| ----------------------------------- | ----------- |
+| `title`                             | 108 / 108   |
+| `slug`                              | 108 / 108   |
+| `metaTitle`                         | 108 / 108   |
+| `metaDescription`                   | 108 / 108   |
+| `basePrice` / `pricingMode`         | 108 / 108   |
+| Packages — every duration and price | 108 / 108   |
+| Photo count per product             | 108 / 108   |
+| `description` — no word lost        | 104 / 108   |
+| `shortDescription`                  | 105 / 108   |
 
 The four description differences are the `www.miamedicalitalia.it` and `https`
 tokens dropped when absolute links became relative — deliberate. The three
@@ -281,12 +280,12 @@ zone"). The 101 `single_select` values are word-judgements rather than literals 
 
 That pass caught five real over-claims, since fixed:
 
-| Product | Was | The page actually says |
-|---|---|---|
-| `underarm-walker` | `foldable` | "struttura in acciaio **smontabile**" — it comes apart, it does not fold. Now `dismountable`. |
-| `superwheel-electric` (both) | `removable-armrests` | "braccioli **regolabili**" — adjustable, not removable |
-| `deluxe-folding-scooter` (both) | `removable-armrests` | "**Braccioli integrati**" — the opposite |
-| `albatros-2` (both) | `includes-sling` | neither page mentions a sling |
+| Product                         | Was                  | The page actually says                                                                        |
+| ------------------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| `underarm-walker`               | `foldable`           | "struttura in acciaio **smontabile**" — it comes apart, it does not fold. Now `dismountable`. |
+| `superwheel-electric` (both)    | `removable-armrests` | "braccioli **regolabili**" — adjustable, not removable                                        |
+| `deluxe-folding-scooter` (both) | `removable-armrests` | "**Braccioli integrati**" — the opposite                                                      |
+| `albatros-2` (both)             | `includes-sling`     | neither page mentions a sling                                                                 |
 
 One spec is knowingly weak and says so in its file:
 `ultralight-aluminium-walker-sale`'s `has-seat` comes from the shop's Yoast
@@ -298,12 +297,12 @@ rather than carried; the 67 short descriptions kept verbatim were already sound.
 The long descriptions are still the site's machine translation with errors of
 fact corrected, and across ~2,200 sentences the residual roughness measures:
 
-| | |
-|---|---|
-| Doubled subject ("… **it is** a professional service") | 60 hits in 41 products |
-| Sentence starting lower-case | 11 hits in 10 products |
-| Half-translated Italian word | 3 remaining, all inside link text the site itself left as a URL |
-| Wrong currency, "high chair", "pram" | 0 |
+|                                                        |                                                                 |
+| ------------------------------------------------------ | --------------------------------------------------------------- |
+| Doubled subject ("… **it is** a professional service") | 60 hits in 41 products                                          |
+| Sentence starting lower-case                           | 11 hits in 10 products                                          |
+| Half-translated Italian word                           | 3 remaining, all inside link text the site itself left as a URL |
+| Wrong currency, "high chair", "pram"                   | 0                                                               |
 
 So: **treat the Italian, the prices, the packages and the specs as production
 data. Treat `translations.en.description` as a good draft that still needs a

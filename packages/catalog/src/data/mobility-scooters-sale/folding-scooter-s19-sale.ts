@@ -20,9 +20,11 @@ export const foldingScooterS19Sale = mobilityScootersSale.fixed({
     it: {
       title: 'Vendita scooter elettrico pieghevole S19',
       slug: 'vendita-scooter-elettrico-pieghevole-s19',
-      shortDescription: 'Libertà e Movimento! Acquista il tuo scooter pieghevole e riscopri la tua indipendenza! Consegna in tutta Italia.',
+      shortDescription:
+        'Libertà e Movimento! Acquista il tuo scooter pieghevole e riscopri la tua indipendenza! Consegna in tutta Italia.',
       metaTitle: 'Scooter Elettrico Pieghevole S19 in vendita',
-      metaDescription: 'Scopri lo scooter elettrico pieghevole S19, leggero, sicuro e adatto ad anziani e persone con mobilità ridotta. Acquistalo ora!',
+      metaDescription:
+        'Scopri lo scooter elettrico pieghevole S19, leggero, sicuro e adatto ad anziani e persone con mobilità ridotta. Acquistalo ora!',
       description: [
         '<p><strong>Scooter Elettrico Pieghevole in vendita per anziani e disabili.</strong><br />Acquista il tuo compagno di viaggio. Autonomia a portata di mano, Semplice, Sicuro, Conveniente! Per una mobilità senza limiti. È la tua chiave per l&#8217;indipendenza.</p>',
         '<p>Leggero, compatto, elettrico: il tuo alleato quotidiano e di viaggio nelle meraviglie italiane!</p>',
@@ -48,9 +50,11 @@ export const foldingScooterS19Sale = mobilityScootersSale.fixed({
     en: {
       title: 'Folding electric scooter S19, for sale',
       slug: 'vendita-scooter-elettrico-pieghevole-s19',
-      shortDescription: 'Freedom and Movement! Buy your folding scooter and rediscover your independence! Delivery throughout Italy.',
+      shortDescription:
+        'Freedom and Movement! Buy your folding scooter and rediscover your independence! Delivery throughout Italy.',
       metaTitle: 'Folding electric scooter S19 for sale',
-      metaDescription: 'Meet the S19 folding mobility scooter: light, safe and suited to older people and anyone with reduced mobility. Buy it now!',
+      metaDescription:
+        'Meet the S19 folding mobility scooter: light, safe and suited to older people and anyone with reduced mobility. Buy it now!',
       description: [
         '<p><strong>Folding electric scooters for sale for the elderly and people with disabilities.</strong><br />Buy your travel companion. Range at your fingertips, Simple, Secure, Affordable! For limitless mobility. It is your key to independence.</p>',
         '<p>Lightweight, compact, electric: your everyday and travel companion as you explore the wonders of Italy!</p>',
@@ -87,7 +91,12 @@ export const foldingScooterS19Sale = mobilityScootersSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'folding-scooter-s19-1.png', alt: { it: 'Noleggio Scooter elettrico pieghevole, scooter elettrico per anziani e per disabili' } },
+    thumbnail: {
+      file: 'folding-scooter-s19-1.png',
+      alt: {
+        it: 'Noleggio Scooter elettrico pieghevole, scooter elettrico per anziani e per disabili',
+      },
+    },
     gallery: [
       'folding-scooter-s19-2.png',
       'folding-scooter-s19-3.png',

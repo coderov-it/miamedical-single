@@ -46,8 +46,7 @@ const pkgRow =
 ---
 
 <div class="flex flex-col gap-4">
-  {
-    /*
+  {/*
     The reference design's disclosure, unchanged in shape. The one thing
     the new pricing model moves is what it opens onto: there is no
     "Nessun pacchetto" row any more, because a rental has no rate to fall
@@ -56,28 +55,26 @@ const pkgRow =
     The checkbox carries `form="pdp-detached"` (an id that exists nowhere)
     so the disclosure state never joins the GET submission; the radios
     inside DO belong to the form.
-  */
-  }
-  {
-    /*
+  */}
+  {/*
       THE GATE. A rental has no price without a package, so this is the
       first thing the customer must answer and the first thing the order
       actions check — see `lib/form-validation.ts`. Focus is pointed at the
       trigger because the radios themselves are `sr-only`: a browser will
       not scroll to a one-pixel control, and Chrome refuses to focus one at
       all, which is why native `required` cannot do this job here.
-    */
-  }
+    */}
   <div
     class="relative flex flex-col gap-1.5"
     data-gate="package"
     data-gate-focus="[data-pkg-trigger]"
   >
-    <label class={PDP_LABEL} for="pdp-pkg-open"> {text('pickPackage')} </label>
-    {
-      /* Opening the list is not choosing from it — `data-gate-ignore`
-          keeps this checkbox from answering the question it reveals. */
-    }
+    <label class={PDP_LABEL} for="pdp-pkg-open">
+      {' '}
+      {text('pickPackage')}{' '}
+    </label>
+    {/* Opening the list is not choosing from it — `data-gate-ignore`
+          keeps this checkbox from answering the question it reveals. */}
     <input
       class="peer sr-only"
       type="checkbox"
@@ -91,7 +88,10 @@ const pkgRow =
       for="pdp-pkg-open"
       data-pkg-trigger
     >
-      <span class="min-w-0 flex-1 truncate" data-pkg-title> {text('pickPackage')} </span>
+      <span class="min-w-0 flex-1 truncate" data-pkg-title>
+        {' '}
+        {text('pickPackage')}{' '}
+      </span>
       <span
         class="text-ink-2 text-[11px] transition-transform duration-150"
         data-chev
@@ -101,41 +101,37 @@ const pkgRow =
       </span>
     </label>
 
-    <div
-      class="border-hair rounded-field shadow-pdp-pop absolute inset-x-0 top-[calc(100%+6px)] z-20 hidden max-h-75 flex-col gap-0.5 overflow-x-clip overflow-y-auto border bg-white p-1.5 peer-checked:flex"
-    >
-      {
-        packages.map((pkg) => (
-          <span>
-            <input
-              class="peer sr-only"
-              type="radio"
-              name={FIELD.rentalPackage}
-              id={`pdp-pkg-${pkg.code}`}
-              value={pkg.code}
-              data-est-kind="package"
-              data-est-price={pkg.price}
-              data-est-duration={pkg.duration}
-              data-est-unit={pkg.unit}
-              data-est-label={pkg.name}
-              data-est-detail={pkg.label}
-            />
-            <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
-              <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
-                <strong class="text-[14px]" data-pkg-name>
-                  {pkg.name}
-                </strong>
-                {/* An unnamed package falls back to its own duration label,
-                  and printing "3 giorni" twice says nothing. */}
-                {pkg.name !== pkg.label && <span class="text-ink-2 text-[13px]">{pkg.label}</span>}
-              </span>
-              <strong class="text-[14px] whitespace-nowrap tabular-nums">
-                {formatMoney(pkg.price, currency, localeTag(locale))}
+    <div class="border-hair rounded-field shadow-pdp-pop absolute inset-x-0 top-[calc(100%+6px)] z-20 hidden max-h-75 flex-col gap-0.5 overflow-x-clip overflow-y-auto border bg-white p-1.5 peer-checked:flex">
+      {packages.map((pkg) => (
+        <span>
+          <input
+            class="peer sr-only"
+            type="radio"
+            name={FIELD.rentalPackage}
+            id={`pdp-pkg-${pkg.code}`}
+            value={pkg.code}
+            data-est-kind="package"
+            data-est-price={pkg.price}
+            data-est-duration={pkg.duration}
+            data-est-unit={pkg.unit}
+            data-est-label={pkg.name}
+            data-est-detail={pkg.label}
+          />
+          <label class={pkgRow} for={`pdp-pkg-${pkg.code}`}>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+              <strong class="text-[14px]" data-pkg-name>
+                {pkg.name}
               </strong>
-            </label>
-          </span>
-        ))
-      }
+              {/* An unnamed package falls back to its own duration label,
+                  and printing "3 giorni" twice says nothing. */}
+              {pkg.name !== pkg.label && <span class="text-ink-2 text-[13px]">{pkg.label}</span>}
+            </span>
+            <strong class="text-[14px] whitespace-nowrap tabular-nums">
+              {formatMoney(pkg.price, currency, localeTag(locale))}
+            </strong>
+          </label>
+        </span>
+      ))}
     </div>
 
     <p

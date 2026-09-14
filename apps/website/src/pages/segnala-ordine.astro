@@ -49,20 +49,23 @@ const label = 'mb-1.5 block text-sm font-medium';
       data-error
       hidden
       class="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm"
-    >
-    </div>
+    ></div>
 
     <div data-form-wrap>
       <p class="mt-3 text-[15px] text-neutral-600">{text('account.report.lede')}</p>
 
       <form data-form class="mt-6 space-y-4" novalidate>
         <div>
-          <label class={label} for="phone">{text('account.report.phone')}</label>
+          <label class={label} for="phone">
+            {text('account.report.phone')}
+          </label>
           <input class={field} id="phone" name="phone" type="tel" autocomplete="tel" required />
           <p class="mt-1.5 text-xs text-neutral-500">{text('account.report.phoneNote')}</p>
         </div>
         <div>
-          <label class={label} for="message">{text('account.report.message')}</label>
+          <label class={label} for="message">
+            {text('account.report.message')}
+          </label>
           <textarea class={field} id="message" name="message" rows="4" required></textarea>
         </div>
         <button

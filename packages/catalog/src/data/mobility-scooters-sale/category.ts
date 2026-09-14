@@ -12,10 +12,33 @@
  */
 import { defineCategory } from '../../lib/define.ts';
 import { colour, condition, frameMaterial, loadAndWeight } from '../shared/specs.ts';
-import { brakes, foldable, foldedSize, overallDimensions, rearWheels, wheelType } from '../shared/specs-chassis.ts';
-import { battery, batteryRange, controls, maxGradient, maxSpeed, motor, obstacleHeight, turningRadius } from '../shared/specs-drive.ts';
+import {
+  brakes,
+  foldable,
+  foldedSize,
+  overallDimensions,
+  rearWheels,
+  wheelType,
+} from '../shared/specs-chassis.ts';
+import {
+  battery,
+  batteryRange,
+  controls,
+  maxGradient,
+  maxSpeed,
+  motor,
+  obstacleHeight,
+  turningRadius,
+} from '../shared/specs-drive.ts';
 import { indoorOutdoor, propulsion } from '../shared/specs-mobility.ts';
-import { elevatingLegrests, headrest, recliningBackrest, removableArmrests, seatHeight, seatWidth } from '../shared/specs-seating.ts';
+import {
+  elevatingLegrests,
+  headrest,
+  recliningBackrest,
+  removableArmrests,
+  seatHeight,
+  seatWidth,
+} from '../shared/specs-seating.ts';
 
 export const mobilityScootersSale = defineCategory({
   code: 'mobility-scooters-sale',
@@ -41,5 +64,32 @@ export const mobilityScootersSale = defineCategory({
     },
   },
 
-  specs: { ...propulsion, ...indoorOutdoor, ...loadAndWeight, ...maxSpeed, ...batteryRange, ...maxGradient, ...obstacleHeight, ...turningRadius, ...motor, ...battery, ...controls, ...overallDimensions, ...foldedSize, ...seatWidth, ...seatHeight, ...frameMaterial, ...colour, ...wheelType, ...rearWheels, ...brakes, ...recliningBackrest, ...headrest, ...elevatingLegrests, ...removableArmrests, ...foldable, ...condition },
+  specs: {
+    ...propulsion,
+    ...indoorOutdoor,
+    ...loadAndWeight,
+    ...maxSpeed,
+    ...batteryRange,
+    ...maxGradient,
+    ...obstacleHeight,
+    ...turningRadius,
+    ...motor,
+    ...battery,
+    ...controls,
+    ...overallDimensions,
+    ...foldedSize,
+    ...seatWidth,
+    ...seatHeight,
+    ...frameMaterial,
+    ...colour,
+    ...wheelType,
+    ...rearWheels,
+    ...brakes,
+    ...recliningBackrest,
+    ...headrest,
+    ...elevatingLegrests,
+    ...removableArmrests,
+    ...foldable,
+    ...condition,
+  },
 });

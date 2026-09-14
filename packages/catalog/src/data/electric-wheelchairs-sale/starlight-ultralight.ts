@@ -27,9 +27,11 @@ export const starlightUltralight = electricWheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina Elettrica Ultraleggera Pieghevole Starlight',
       slug: 'vendita-carrozzina-elettrica-ultraleggera-pieghevole',
-      shortDescription: 'Non perdere l’Offerta speciale! Carrozzina Elettrica Pieghevole Ultraleggera ✔ Doppia batteria per più autonomia ✔ Pieghevole e trasportabile in auto ✔ Ruote grandi ad aria: stabile anche all’esterno Massima libertà di movimento, ogni giorno Prenota subito online! 📞 Oppure Contattaci ora per info e disponibilità Spedizione gratuita in tutta Italia.',
+      shortDescription:
+        'Non perdere l’Offerta speciale! Carrozzina Elettrica Pieghevole Ultraleggera ✔ Doppia batteria per più autonomia ✔ Pieghevole e trasportabile in auto ✔ Ruote grandi ad aria: stabile anche all’esterno Massima libertà di movimento, ogni giorno Prenota subito online! 📞 Oppure Contattaci ora per info e disponibilità Spedizione gratuita in tutta Italia.',
       metaTitle: 'Vendita Carrozzina Elettrica Ultraleggera',
-      metaDescription: 'Vendita Carrozzina elettrica pieghevole ultraleggera da interno ed esterno STARLIGHT, per anziani e disabili, solo 14,5kg, spedizione Gratuita.',
+      metaDescription:
+        'Vendita Carrozzina elettrica pieghevole ultraleggera da interno ed esterno STARLIGHT, per anziani e disabili, solo 14,5kg, spedizione Gratuita.',
       description: [
         '<h2>Carrozzina Elettrica Pieghevole Ultraleggera STARLIGHT</h2>',
         '<p><strong>La vendita carrozzina elettrica ultraleggera STARLIGHT</strong> rappresenta la soluzione ideale per chi desidera muoversi in totale autonomia, sicurezza e comfort. La carrozzina elettrica per anziani e la carrozzina elettrica per disabili STARLIGHT è progettata per offrire il <strong>massimo comfort </strong>anche durante utilizzi prolungati. Ideata e pensata per anziani e persone con disabilità, questa carrozzina elettrica <strong>da interno ed esterno </strong>unisce tecnologia avanzata, leggerezza estrema e praticità d’uso. La carrozzina elettrica da interno è perfetta per l’utilizzo domestico, mentre la carrozzina elettrica da esterno garantisce stabilità e sicurezza negli spostamenti quotidiani. Grazie alla sua struttura <strong>innovativa e pieghevole</strong>, STARLIGHT è perfetta per la vita quotidiana e per gli spostamenti in città come Roma, Milano, Firenze e in tutta Italia. È una delle soluzioni più richieste nel settore della mobilità assistita grazie al suo equilibrio tra prestazioni e facilità di trasporto.</p>',
@@ -105,9 +107,11 @@ export const starlightUltralight = electricWheelchairsSale.fixed({
     en: {
       title: 'Starlight ultralight folding electric wheelchair, for sale',
       slug: 'vendita-carrozzina-elettrica-ultraleggera-pieghevole',
-      shortDescription: 'Don\'t miss the Special Offer! Ultralight Folding Electric Wheelchair ✔ Dual battery for extended range ✔ Foldable and transportable in the car ✔ Large pneumatic wheels: stable even outdoors Maximum freedom of movement, every day Book online now! 📞 Or contact us now for info and availability Shipping free of charge throughout Italy.',
+      shortDescription:
+        "Don't miss the Special Offer! Ultralight Folding Electric Wheelchair ✔ Dual battery for extended range ✔ Foldable and transportable in the car ✔ Large pneumatic wheels: stable even outdoors Maximum freedom of movement, every day Book online now! 📞 Or contact us now for info and availability Shipping free of charge throughout Italy.",
       metaTitle: 'Ultralight electric wheelchair for sale',
-      metaDescription: 'STARLIGHT ultralight folding electric wheelchair for sale, for indoors and out, for older and disabled users — only 14.5 kg, shipped.',
+      metaDescription:
+        'STARLIGHT ultralight folding electric wheelchair for sale, for indoors and out, for older and disabled users — only 14.5 kg, shipped.',
       description: [
         '<h2>Ultralight Folding Electric Wheelchair STARLIGHT</h2>',
         '<p><strong>The STARLIGHT ultra-light electric wheelchair for sale</strong> it represents the ideal solution for those who want to move around in complete independence, safety and comfort. The STARLIGHT electric wheelchair for the elderly and disabled is designed to offer the <strong>maximum comfort </strong>even during prolonged use. Designed and conceived for the elderly and people with disabilities, this electric wheelchair <strong>indoor and outdoor </strong>combines advanced technology, extreme lightness and ease of use. The indoor electric wheelchair is perfect for home use, while the outdoor electric wheelchair guarantees stability and safety during everyday travel. Thanks to its structure <strong>innovative and foldable</strong>, STARLIGHT is perfect for daily life and getting around cities like Rome, Milan, Florence and throughout Italy. It is one of the most sought-after solutions in the assisted mobility sector thanks to its balance of performance and ease of transport.</p>',
@@ -134,7 +138,7 @@ export const starlightUltralight = electricWheelchairsSale.fixed({
         '<ul><li>High-density padded cushion</li><li>Adjustable backrest</li><li>Adjustable armrests</li><li>Foldable footplates to make access easier</li></ul>',
         '<p>La <strong>ultralight electric wheelchair STARLIGHT</strong> it is designed to offer a comfortable seat both indoors and outdoors.</p>',
         '<h2>Autonomy and high performance</h2>',
-        '<p>One of STARLIGHT\'s main strengths is its autonomy.</p>',
+        "<p>One of STARLIGHT's main strengths is its autonomy.</p>",
         '<p>Thanks to its efficient motor and long-lasting battery, this ultra-light electric wheelchair ensures smooth and safe travel throughout the day.</p>',
         '<p>Features:</p>',
         '<ul><li>Extended autonomy</li><li>Quiet and powerful motor</li><li>Rapid recharging</li><li>Suitable for ramps and urban surfaces</li></ul>',
@@ -190,13 +194,19 @@ export const starlightUltralight = electricWheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'starlight-ultralight-1.jpg', alt: { it: 'carrozzina elettrica da esterno' } },
+    thumbnail: {
+      file: 'starlight-ultralight-1.jpg',
+      alt: { it: 'carrozzina elettrica da esterno' },
+    },
     gallery: [
       'starlight-ultralight-2.jpeg',
       'starlight-ultralight-3.png',
       { file: 'starlight-ultralight-4.png', alt: { it: 'joystick accompagnatore' } },
       'starlight-ultralight-5.png',
-      { file: 'starlight-ultralight-6.png', alt: { it: 'carrozzina ultra leggera con schienale pieghevole' } },
+      {
+        file: 'starlight-ultralight-6.png',
+        alt: { it: 'carrozzina ultra leggera con schienale pieghevole' },
+      },
       'starlight-ultralight-7.png',
     ],
   },

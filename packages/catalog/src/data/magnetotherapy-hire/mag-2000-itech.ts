@@ -20,20 +20,17 @@ export const mag2000Itech = magnetotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 100),
-    days(30, 125),
-    days(45, 160),
-    days(60, 210),
-  ],
+  packages: [days(20, 100), days(30, 125), days(45, 160), days(60, 210)],
 
   translations: {
     it: {
       title: 'Magnetoterapia CEMP MAG 2000 ITECH',
       slug: 'magnetoterapia-cemp-mag-2000',
-      shortDescription: 'Noleggio magnetoterapia CEMP Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio magnetoterapia CEMP Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Magnetoterapia CEMP MAG 2000 ITECH',
-      metaDescription: 'Noleggio Magnetoterapia Cemp Professionale da soli 3,50€ al giorno. Nessun Deposito. disponibilità immediata. Prenota online ora !',
+      metaDescription:
+        'Noleggio Magnetoterapia Cemp Professionale da soli 3,50€ al giorno. Nessun Deposito. disponibilità immediata. Prenota online ora !',
       description: [
         '<h4><a href="https://www.my-personaltrainer.it/salute/magnetoterapia.html">Trattamento Efficace per dolori articolari, infiammazioni e fratture</a></h4>',
         '<p><strong>Noleggio Magnetorerapia CEMP MAG 2000 ITECH: descrizione del macchinario</strong></p>',
@@ -53,14 +50,16 @@ export const mag2000Itech = magnetotherapyHire.rental({
     en: {
       title: 'ITECH MAG 2000 PEMF magnetotherapy, for hire',
       slug: 'magnetoterapia-cemp-mag-2000',
-      shortDescription: 'PEMF magnetotherapy hire Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
+      shortDescription:
+        'PEMF magnetotherapy hire Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
       metaTitle: 'ITECH MAG 2000 PEMF magnetotherapy hire',
-      metaDescription: 'Professional CEMP magnetotherapy hire from just €3.50 a day. No deposit, available immediately. Book online now.',
+      metaDescription:
+        'Professional CEMP magnetotherapy hire from just €3.50 a day. No deposit, available immediately. Book online now.',
       description: [
         '<h4><a href="https://www.my-personaltrainer.it/salute/magnetoterapia.html">Effective treatment for joint pain, inflammation and fractures</a></h4>',
         '<p><strong>Rental Magnetorotherapy CEMP MAG 2000 ITECH: machine description</strong></p>',
         '<p>The <strong>CEMP MAG 2000 I-TECH</strong> is a professional device for <strong>magnetotherapy</strong> a <strong>low frequency </strong>(<strong>PEMF - Pulsed Electromagnetic Fields</strong>), designed for home use. Equipped with preset programmes for the main osteoarticular and muscular pathologies, it allows targeted, safe and customisable treatments.</p>',
-        '<p>Thanks to the two independent channels, different areas of the body can be treated simultaneously. L\'<strong>interface</strong><strong>simple</strong> and intuitive makes it ideal even for those without experience with medical devices.</p>',
+        "<p>Thanks to the two independent channels, different areas of the body can be treated simultaneously. L'<strong>interface</strong><strong>simple</strong> and intuitive makes it ideal even for those without experience with medical devices.</p>",
         '<h4>Main features:</h4>',
         '<ul><li>20 pre-set + 14 customisable programmes</li><li>Frequencies up to 100 Hz</li><li>Adjustable intensity up to 200 Gauss per channel</li><li>Timer from 5 to 90 minutes</li><li>Mains power supply</li><li>Accessories included: therapeutic elastic band, transformer, user manual</li></ul>',
         '<h4><p><strong>Why hire MAG 2000 I-TECH</strong></h4>',
@@ -75,7 +74,10 @@ export const mag2000Itech = magnetotherapyHire.rental({
   },
 
   specs: {
-    'included-accessories': { it: 'Fascia elastica terapeutica, trasformatore, manuale d’uso', en: 'Therapeutic elastic band, transformer, instruction manual' },
+    'included-accessories': {
+      it: 'Fascia elastica terapeutica, trasformatore, manuale d’uso',
+      en: 'Therapeutic elastic band, transformer, instruction manual',
+    },
   },
 
   media: {

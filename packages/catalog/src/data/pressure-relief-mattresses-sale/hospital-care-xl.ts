@@ -21,9 +21,11 @@ export const hospitalCareXl = pressureReliefMattressesSale.fixed({
     it: {
       title: 'Vendita Materasso Antidecubito ad Alto Rischio HOSPITAL CARE XL',
       slug: 'vendita-materasso-antidecubito-alto-rischio-hospital-care-xl',
-      shortDescription: 'Materasso Antidecubito ad Alto Rischio Hospital Care XL (120cm) Vendita del Materasso Antidecubito ad Alto Rischio per la prevenzione e cura delle piaghe da decubito fino al IV stadio. Portata terapeutica fino a 340 kg. Dispositivo medico professionale per uso domiciliare e clinico. Acquistalo con consegna gratuita in tutta Italia! Nessun costo aggiuntivo per spedizione o accessori. Copertura del materasso inclusa nel prezzo Massima igiene, sicurezza e praticità fin dal primo utilizzo.',
+      shortDescription:
+        'Materasso Antidecubito ad Alto Rischio Hospital Care XL (120cm) Vendita del Materasso Antidecubito ad Alto Rischio per la prevenzione e cura delle piaghe da decubito fino al IV stadio. Portata terapeutica fino a 340 kg. Dispositivo medico professionale per uso domiciliare e clinico. Acquistalo con consegna gratuita in tutta Italia! Nessun costo aggiuntivo per spedizione o accessori. Copertura del materasso inclusa nel prezzo Massima igiene, sicurezza e praticità fin dal primo utilizzo.',
       metaTitle: 'Materasso Antidecubito Alto Rischio 120cm | Vendita',
-      metaDescription: 'Vendita materasso antidecubito ad alto rischio Hospital Care XL per prevenzione e cura delle piaghe da decubito fino al IV stadio. Supporta fino a 340 kg.',
+      metaDescription:
+        'Vendita materasso antidecubito ad alto rischio Hospital Care XL per prevenzione e cura delle piaghe da decubito fino al IV stadio. Supporta fino a 340 kg.',
       description: [
         '<p>Hai bisogno di una soluzione definitiva e altamente professionale per la gestione di pazienti allettati con esigenze cliniche elevate?<br />Il <strong>materasso antidecubito ad alto rischio HOSPITAL CARE XL</strong> è progettato per offrire <strong>massima protezione cutanea, sicurezza e comfort</strong>, anche nei casi più complessi e prolungati nel tempo.</p>',
         '<p>Ideale <strong>sia per la prevenzione che per il trattamento delle ulcere da pressione fino al IV stadio</strong>, rappresenta una scelta affidabile per <strong>assistenza domiciliare, RSA e strutture ospedaliere</strong>.</p>',
@@ -54,9 +56,11 @@ export const hospitalCareXl = pressureReliefMattressesSale.fixed({
     en: {
       title: 'HOSPITAL CARE XL high-risk pressure-relief mattress, for sale',
       slug: 'vendita-materasso-antidecubito-alto-rischio-hospital-care-xl',
-      shortDescription: 'Hospital Care XL High Risk Antidecubitus Mattress (120cm) Sale of the High Risk Antidecubitus Mattress for the prevention and treatment of pressure sores up to Stage IV. Therapeutic range up to 340 kg. Professional medical device for home and clinical use. Buy it with free delivery throughout Italy! No additional costs for shipping or accessories. Mattress cover included Maximum hygiene, safety and practicality from the very first use.',
+      shortDescription:
+        'Hospital Care XL High Risk Antidecubitus Mattress (120cm) Sale of the High Risk Antidecubitus Mattress for the prevention and treatment of pressure sores up to Stage IV. Therapeutic range up to 340 kg. Professional medical device for home and clinical use. Buy it with free delivery throughout Italy! No additional costs for shipping or accessories. Mattress cover included Maximum hygiene, safety and practicality from the very first use.',
       metaTitle: 'High-risk 120 cm pressure-relief mattress | For sale',
-      metaDescription: 'Buy the Hospital Care XL high-risk pressure-relief mattress, for preventing and treating pressure sores up to stage IV.',
+      metaDescription:
+        'Buy the Hospital Care XL high-risk pressure-relief mattress, for preventing and treating pressure sores up to stage IV.',
       description: [
         '<p>Do you need a definitive and highly professional solution for the management of bedridden patients with high clinical demands?<br />The <strong>HOSPITAL CARE XL high-risk anti-decubitus mattress</strong> is designed to offer <strong>maximum skin protection, safety and comfort</strong>, even in the most complex and prolonged cases.</p>',
         '<p>Ideal <strong>for both the prevention and treatment of pressure ulcers up to stage IV</strong>, is a reliable choice for <strong>home care, RSA and hospital facilities</strong>.</p>',
@@ -81,7 +85,7 @@ export const hospitalCareXl = pressureReliefMattressesSale.fixed({
         '<p>The system is managed by a <strong>advanced electronic compressor</strong> which automatically adjusts the inflation of the cells, allowing</p>',
         '<ul><li>Uniform body weight distribution</li><li>Reduction of prolonged pressure points</li><li>Improved tissue oxygenation</li><li>Increased patient comfort</li></ul>',
         '<p>The function <strong>“Zero Pressure”</strong> allows the injured areas to be temporarily unloaded, while the <strong>P Max</strong> facilitates care manoeuvres and patient management by healthcare personnel or caregivers.</p>',
-        '<p>📞 <strong>Contact us for more information or for support in choosing the device best suited to the patient\'s needs.</strong></p>',
+        "<p>📞 <strong>Contact us for more information or for support in choosing the device best suited to the patient's needs.</strong></p>",
       ].join(''),
     },
   },

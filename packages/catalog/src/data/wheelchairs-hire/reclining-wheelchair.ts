@@ -43,9 +43,11 @@ export const recliningWheelchair = wheelchairsHire.rental({
     it: {
       title: 'Noleggio Carrozzina Reclinabile',
       slug: 'noleggio-carrozzina-reclinabile-pieghevole-roma-e-firenze',
-      shortDescription: 'Noleggio carrozzina Consegna e ritiro a domicilio a Roma e Firenze da 30€. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro in magazzino è gratuito. Prenota online subito!',
+      shortDescription:
+        'Noleggio carrozzina Consegna e ritiro a domicilio a Roma e Firenze da 30€. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro in magazzino è gratuito. Prenota online subito!',
       metaTitle: 'Noleggio affitto carrozzina reclinabile Roma Firenze e Provincia',
-      metaDescription: 'Noleggio affitto carrozzina reclinabile. Risparmia con le nostre offerte imbattibile. Prenota online. Migliore Prezzo Garantito.',
+      metaDescription:
+        'Noleggio affitto carrozzina reclinabile. Risparmia con le nostre offerte imbattibile. Prenota online. Migliore Prezzo Garantito.',
       description: [
         '<p>Il <strong>Noleggio affitto carrozzina reclinabile</strong> è la soluzione ideale per anziani e persone con mobilità ridotta, garantendo <strong>massimo comfort, sicurezza e praticità</strong> in ogni situazione.<br />La nostra carrozzina è progettata per essere <strong>comoda, resistente e facile da utilizzare</strong>, anche in ambienti domestici con spazi stretti o per chi necessita di assistenza continua.</p>',
         '<h3>Caratteristiche principali del noleggio carrozzina reclinabile</h3>',
@@ -70,13 +72,15 @@ export const recliningWheelchair = wheelchairsHire.rental({
     en: {
       title: 'Reclining Wheelchair Hire',
       slug: 'noleggio-carrozzina-reclinabile-pieghevole-roma-e-firenze',
-      shortDescription: 'Wheelchair hire Home delivery and pick-up in Rome and Florence from 30€. Hire for 1 day: 15€ with pick-up on site only. Collection from the warehouse is free of charge. Book online now!',
+      shortDescription:
+        'Wheelchair hire Home delivery and pick-up in Rome and Florence from 30€. Hire for 1 day: 15€ with pick-up on site only. Collection from the warehouse is free of charge. Book online now!',
       metaTitle: 'Reclining wheelchair hire | Rome, Florence and province',
-      metaDescription: 'Hire a folding reclining wheelchair with headrest and elevating legrests. Sanitised and ready to use, delivered in Rome and Florence.',
+      metaDescription:
+        'Hire a folding reclining wheelchair with headrest and elevating legrests. Sanitised and ready to use, delivered in Rome and Florence.',
       description: [
         '<p>The <strong>Reclining wheelchair rental</strong> it is the ideal solution for the elderly and people with reduced mobility, guaranteeing <strong>maximum comfort, safety and practicality</strong> in every situation.<br />Our wheelchair is designed to be <strong>comfortable, durable and easy to use</strong>, even in domestic environments with tight spaces or for those who need continuous assistance.</p>',
         '<h3>Main features of the reclining wheelchair rental</h3>',
-        '<ul><li><strong>Reclining backrest</strong> to ensure relaxation and constant support</li><li><strong>Adjustable and removable footrests</strong> for maximum foot comfort</li><li><strong>Removable armrests</strong>, easy to adapt to the user\'s needs</li><li><strong>Headrest and leg lift</strong> for comprehensive support</li><li><strong>Folding frame</strong>, easy to transport and store</li></ul>',
+        "<ul><li><strong>Reclining backrest</strong> to ensure relaxation and constant support</li><li><strong>Adjustable and removable footrests</strong> for maximum foot comfort</li><li><strong>Removable armrests</strong>, easy to adapt to the user's needs</li><li><strong>Headrest and leg lift</strong> for comprehensive support</li><li><strong>Folding frame</strong>, easy to transport and store</li></ul>",
         '<p>These features make our wheelchair perfect for people in need of assistance or for health care facilities and nursing homes.</p>',
         '<h3>Ideal for:</h3>',
         '<ul><li>Seniors</li><li>Persons with reduced mobility</li><li>Users who have recently undergone surgery</li><li>People in nursing homes</li></ul>',
@@ -120,11 +124,11 @@ export const recliningWheelchair = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'reclining-wheelchair-1.jpg', alt: { it: 'carrozzina con schienale reclinabile' } },
-    gallery: [
-      'reclining-wheelchair-2.jpg',
-      'reclining-wheelchair-3.jpg',
-    ],
+    thumbnail: {
+      file: 'reclining-wheelchair-1.jpg',
+      alt: { it: 'carrozzina con schienale reclinabile' },
+    },
+    gallery: ['reclining-wheelchair-2.jpg', 'reclining-wheelchair-3.jpg'],
   },
 
   addons: [homeDelivery(30)],

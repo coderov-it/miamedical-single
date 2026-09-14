@@ -30,22 +30,20 @@ const { categories } = Astro.props;
 const locale = localeForRequest();
 ---
 
-{
-  categories.length > 0 && (
-    <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="categories-title">
-      <div class={EDITORIAL_CONTAINER}>
-        <h2 class={HOME_TITLE} id="categories-title">
-          {translate(locale, 'home.categories.title')}
-        </h2>
+{categories.length > 0 && (
+  <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby="categories-title">
+    <div class={EDITORIAL_CONTAINER}>
+      <h2 class={HOME_TITLE} id="categories-title">
+        {translate(locale, 'home.categories.title')}
+      </h2>
 
-        <ul class={CATEGORY_GRID}>
-          {categories.map((tile) => (
-            <li>
-              <CategoryTile {tile} headingLevel={3} />
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
+      <ul class={CATEGORY_GRID}>
+        {categories.map((tile) => (
+          <li>
+            <CategoryTile {tile} headingLevel={3} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}

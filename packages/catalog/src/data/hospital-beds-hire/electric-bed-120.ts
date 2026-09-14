@@ -18,21 +18,18 @@ export const electricBed120 = hospitalBedsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 155),
-    days(30, 195),
-    days(45, 270),
-    days(60, 330),
-    days(90, 435),
-  ],
+  packages: [days(15, 155), days(30, 195), days(45, 270), days(60, 330), days(90, 435)],
 
   translations: {
     it: {
-      title: 'Noleggio Letto Ospedaliero Elettrico 120cm ( 1 piazza e mezzo) con Materasso Antidecubito',
+      title:
+        'Noleggio Letto Ospedaliero Elettrico 120cm ( 1 piazza e mezzo) con Materasso Antidecubito',
       slug: 'noleggio-letto-ospedaliero-elettrico-120cm-per-disabili-e-anziani-a-domicilio',
-      shortDescription: 'Noleggio Letto Ospedaliero Elettrico 120cm con materasso antidecubito Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a domicilio incluso di montaggio a partire da 75€ soltanto nel Lazio e Toscana. Lo stesso prezzo vale anche per il ritiro! Il costo sarà maggiorato in caso di consegna al piano senza ascensore. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 120€.',
+      shortDescription:
+        'Noleggio Letto Ospedaliero Elettrico 120cm con materasso antidecubito Prenotazione facile, costi chiari, ausili di ultima generazione. Nessun deposito! Consegna a domicilio incluso di montaggio a partire da 75€ soltanto nel Lazio e Toscana. Lo stesso prezzo vale anche per il ritiro! Il costo sarà maggiorato in caso di consegna al piano senza ascensore. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 120€.',
       metaTitle: 'Noleggio Letto Ospedaliero 120cm + Materasso Antidecubito | Roma e Firenze',
-      metaDescription: 'Noleggio letto ortopedico ospedaliero elettrico da 120cm a Roma e Firenze per anziani e disabili con antidecubito, sponde. I migliori prezzi del web.',
+      metaDescription:
+        'Noleggio letto ortopedico ospedaliero elettrico da 120cm a Roma e Firenze per anziani e disabili con antidecubito, sponde. I migliori prezzi del web.',
       description: [
         '<p><strong>Noleggia un letto ospedaliero ortopedico per degenza a casa con materasso antidecubito a Roma e Firenze per garantire comfort e sicurezza a chi ne ha bisogno. Scegli l’alternativa da 120 cm (1 piazza e mezzo) per ottenere un supporto ergonomico ancora più avanzato. Consegna rapida e assistenza professionale.</strong></p>',
         '<h4><a href="/come-scegliere-un-letto-ospedaliero/">Cosa è un letto ortopedico e quale scegliere</a></h4>',
@@ -64,9 +61,11 @@ export const electricBed120 = hospitalBedsHire.rental({
     en: {
       title: 'Electric hospital bed, 120 cm, with pressure-relief mattress, for hire',
       slug: 'noleggio-letto-ospedaliero-elettrico-120cm-per-disabili-e-anziani-a-domicilio',
-      shortDescription: '120 cm Electric Hospital Bed Rental with Anti-Decubitus Mattress Easy booking, clear costs, state-of-the-art aids. No deposit! Home delivery installation included from only €75 in Lazio and Tuscany alone. The same price also applies for collection! The cost will be increased in the case of delivery to a floor without a lift. For hygiene reasons, it mandatory purchase of the mattress cover at €120.',
+      shortDescription:
+        '120 cm Electric Hospital Bed Rental with Anti-Decubitus Mattress Easy booking, clear costs, state-of-the-art aids. No deposit! Home delivery installation included from only €75 in Lazio and Tuscany alone. The same price also applies for collection! The cost will be increased in the case of delivery to a floor without a lift. For hygiene reasons, it mandatory purchase of the mattress cover at €120.',
       metaTitle: '120 cm hospital bed + pressure-relief mattress | Rome and Florence',
-      metaDescription: 'Hire a 120 cm electric orthopaedic hospital bed in Rome and Florence for older and disabled users, with pressure-relief mattress and side rails.',
+      metaDescription:
+        'Hire a 120 cm electric orthopaedic hospital bed in Rome and Florence for older and disabled users, with pressure-relief mattress and side rails.',
       description: [
         '<p><strong>Hire an orthopedic hospital bed for home care with an anti-decubitus mattress in Rome and Florence to ensure comfort and safety for those who need it. Choose the 120 cm (double/large single) option for even more advanced ergonomic support. Fast delivery and professional assistance.</strong></p>',
         '<h4><a href="/en/come-scegliere-un-letto-ospedaliero/">What is an orthopaedic bed and which one to choose</a></h4>',
@@ -88,9 +87,9 @@ export const electricBed120 = hospitalBedsHire.rental({
         '<ul><li>full electric adjustment.</li><li>Net surface area: 195×115 cm;</li><li>Total length: 212 cm;</li><li>Total width: 135 cm.</li><li>Maximum patient weight: 150 kg;</li><li>Maximum safe load: 180 kg.</li><li>Height adjustment with remote control: minimum: 30 cm. - maximum: 80 cm.</li></ul>',
         '<p><strong>All our electric beds are sanitised and disinfected before delivery. The preventive anti-decubitus mattress has full sanitary coverage</strong>.</p>',
         '<h4>The Benefits of Renting an Electric Orthopaedic Bed with an Anti-Decubitus Mattress – Rome and Florence</h4>',
-        '<ul><li><strong>Improves sleep quality</strong> thanks to customised adjustment</li><li><strong>Facilitates assistance </strong>reducing the carer\'s effort </li><li><strong>Prevents</strong> the occurrence of bed sores thanks to the included mattress</li><li><strong>Increasing security</strong> with side rails and wheel block</li></ul>',
+        "<ul><li><strong>Improves sleep quality</strong> thanks to customised adjustment</li><li><strong>Facilitates assistance </strong>reducing the carer's effort </li><li><strong>Prevents</strong> the occurrence of bed sores thanks to the included mattress</li><li><strong>Increasing security</strong> with side rails and wheel block</li></ul>",
         '<h4>Why choose our service for the rental of a 120 cm hospital bed in Rome and Florence?</h4>',
-        '<ul><li><strong>Adjustable electric orthopaedic bed of the best quality on the market at prices</strong>i <strong>super convenient</strong>i for unrivalled comfort</li><li><strong>Including anti-decubitus mattress</strong>&nbsp;to prevent pressure sores</li><li><strong>Flexible rental</strong>&nbsp;with customised options</li><li><strong>Fast service and delivery</strong>&nbsp;at home in Lazio and Tuscany</li><li>The bed allows customers to enjoy a peaceful night\'s sleep. <strong>home care</strong>, not only in structure </li></ul>',
+        "<ul><li><strong>Adjustable electric orthopaedic bed of the best quality on the market at prices</strong>i <strong>super convenient</strong>i for unrivalled comfort</li><li><strong>Including anti-decubitus mattress</strong>&nbsp;to prevent pressure sores</li><li><strong>Flexible rental</strong>&nbsp;with customised options</li><li><strong>Fast service and delivery</strong>&nbsp;at home in Lazio and Tuscany</li><li>The bed allows customers to enjoy a peaceful night's sleep. <strong>home care</strong>, not only in structure </li></ul>",
         '<p>Call us on +<strong>39 06 5309 6674</strong> o <a href="https://wa.me/393926509237">contact us on whatsapp</a> to rent your orthopaedic hospital bed today. </p>',
         '<p><strong>Choose Mia Medical Italia!</strong></p>',
       ].join(''),
@@ -111,9 +110,7 @@ export const electricBed120 = hospitalBedsHire.rental({
 
   media: {
     thumbnail: 'electric-bed-120-1.jpg',
-    gallery: [
-      'electric-bed-120-2.jpg',
-    ],
+    gallery: ['electric-bed-120-2.jpg'],
   },
 
   addons: [homeDelivery(75)],
