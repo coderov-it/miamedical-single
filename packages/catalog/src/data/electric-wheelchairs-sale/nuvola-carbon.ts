@@ -31,9 +31,11 @@ export const nuvolaCarbon = electricWheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina Elettrica In Carbonio Nuvola',
       slug: 'vendita-carrozzina-elettrica-nuvola-in-carbonio',
-      shortDescription: 'Leggerezza e libertà Acquista la carrozzina elettrica Nuvola in Carbonio e muoviti ogni giorno senza fatica! Carrozzina Elettrica Pieghevole UltraLeggera Doppia batteria per più autonomia Pieghevole e trasportabile in auto Massima libertà di movimento, ogni giorno Prenota subito online! Oppure Contattaci ora per info e disponibilità Spedizione gratuita in tutta Italia.',
+      shortDescription:
+        'Leggerezza e libertà Acquista la carrozzina elettrica Nuvola in Carbonio e muoviti ogni giorno senza fatica! Carrozzina Elettrica Pieghevole UltraLeggera Doppia batteria per più autonomia Pieghevole e trasportabile in auto Massima libertà di movimento, ogni giorno Prenota subito online! Oppure Contattaci ora per info e disponibilità Spedizione gratuita in tutta Italia.',
       metaTitle: 'Vendita Carrozzina Elettrica Nuvola in Carbonio',
-      metaDescription: 'Vendita Carrozzina Elettrica Nuvola in Carbonio ultra leggera e pieghevole. Autonomia fino a 24 km, ideale per uso interno ed esterno. Contattaci ora!',
+      metaDescription:
+        'Vendita Carrozzina Elettrica Nuvola in Carbonio ultra leggera e pieghevole. Autonomia fino a 24 km, ideale per uso interno ed esterno. Contattaci ora!',
       description: [
         '<h2>Vendita Carrozzina Elettrica in Carbonio Nuvola </h2>',
         '<p><strong>Vendita Carrozzina Elettrica Nuvola in Carbonio:</strong> scopri la leggerezza della libertà con la carrozzina elettrica Nuvola in Carbonio, dotata di tecnologia avanzata, design ultraleggero e massima praticità per muoverti ogni giorno senza limiti.</p>',
@@ -60,9 +62,11 @@ export const nuvolaCarbon = electricWheelchairsSale.fixed({
     en: {
       title: 'Nuvola carbon fibre electric wheelchair, for sale',
       slug: 'vendita-carrozzina-elettrica-nuvola-in-carbonio',
-      shortDescription: 'Lightness and freedom Buy the Nuvola electric wheelchair in Carbon and move around every day effortlessly! Ultra-Lightweight Folding Electric Wheelchair Dual battery for greater autonomy Foldable and transportable in a car Maximum freedom of movement, every day Book online now! Or Contact us now for info and availability Shipping free of charge throughout Italy.',
+      shortDescription:
+        'Lightness and freedom Buy the Nuvola electric wheelchair in Carbon and move around every day effortlessly! Ultra-Lightweight Folding Electric Wheelchair Dual battery for greater autonomy Foldable and transportable in a car Maximum freedom of movement, every day Book online now! Or Contact us now for info and availability Shipping free of charge throughout Italy.',
       metaTitle: 'Nuvola carbon fibre electric wheelchair for sale',
-      metaDescription: 'Nuvola carbon fibre electric wheelchair for sale: ultralight and folding, up to 24 km on a charge, right for indoors and out.',
+      metaDescription:
+        'Nuvola carbon fibre electric wheelchair for sale: ultralight and folding, up to 24 km on a charge, right for indoors and out.',
       description: [
         '<h2>Nuvola Carbon Fibre Electric Wheelchair for Sale </h2>',
         '<p><strong>For Sale: Nuvola Electric Carbon Fibre Wheelchair</strong> Discover the lightness of freedom with the Nuvola Carbon Electric Wheelchair, featuring advanced technology, ultralight design and maximum practicality to move around every day without limits.</p>',
@@ -111,13 +115,25 @@ export const nuvolaCarbon = electricWheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'nuvola-carbon-1.png', alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' } },
+    thumbnail: {
+      file: 'nuvola-carbon-1.png',
+      alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' },
+    },
     gallery: [
-      { file: 'nuvola-carbon-2.png', alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' } },
+      {
+        file: 'nuvola-carbon-2.png',
+        alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' },
+      },
       'nuvola-carbon-3.png',
       'nuvola-carbon-4.png',
-      { file: 'nuvola-carbon-5.png', alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' } },
-      { file: 'nuvola-carbon-6.png', alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' } },
+      {
+        file: 'nuvola-carbon-5.png',
+        alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' },
+      },
+      {
+        file: 'nuvola-carbon-6.png',
+        alt: { it: 'Vendita Carrozzina Elettrica Nuvola in Carbonio' },
+      },
     ],
   },
   terms: [generalTerms],

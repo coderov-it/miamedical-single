@@ -83,14 +83,18 @@ const jsonLd = buildProductJsonLd({ product, hero, inStock, origin: Astro.url.or
 ---
 
 <BaseLayout
-  title={product.seo.title ??
-    `${product.title} | ${translate(locale, isRental ? 'product.rental' : 'product.sale')} — Mia Medical Italia`}
-  description={product.seo.description ??
+  title={
+    product.seo.title ??
+    `${product.title} | ${translate(locale, isRental ? 'product.rental' : 'product.sale')} — Mia Medical Italia`
+  }
+  description={
+    product.seo.description ??
     product.shortDescription?.slice(0, 155) ??
     translate(locale, 'product.metaFallback', {
       type: translate(locale, isRental ? 'product.rental' : 'product.sale'),
       title: product.title,
-    })}
+    })
+  }
   canonical={new URL(productPath(product.slug, {}, locale), site).href}
   ogImage={hero ? new URL(mediaUrl(hero.path), Astro.url.origin).href : undefined}
   {jsonLd}
@@ -99,20 +103,17 @@ const jsonLd = buildProductJsonLd({ product, hero, inStock, origin: Astro.url.or
   <ProductBody {product} {images} {answers} {inStock} />
 </BaseLayout>
 
-{
-  /*
+{/*
     The words the page scripts need, as data. They cannot import `~/lib/labels`
     without pulling the whole storefront catalog into the bundle — the same deal
     the checkout's own label island makes. See `scripts/product/labels.ts`.
-  */
-}
+  */}
 <script
   type="application/json"
   data-pdp-labels
   is:inline
   set:html={JSON.stringify(pdpScriptLabels(locale))}
-/>
-
+></script>
 <script>
   import '~/scripts/product/index.ts';
 </script>

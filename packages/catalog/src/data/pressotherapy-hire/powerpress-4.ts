@@ -23,19 +23,17 @@ export const powerpress4 = pressotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 90),
-    days(30, 140),
-    days(60, 250),
-  ],
+  packages: [days(15, 90), days(30, 140), days(60, 250)],
 
   translations: {
     it: {
       title: 'Noleggio Pressoterapia Professionale',
       slug: 'pressoterapia-professionale-a-casa-tua',
-      shortDescription: 'Noleggio Pressoterapia Include 2 gambali, la fascia addominale, il bracciale e una tutina protettiva. Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 60 giorni. Nessun deposito richiesto!',
+      shortDescription:
+        'Noleggio Pressoterapia Include 2 gambali, la fascia addominale, il bracciale e una tutina protettiva. Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 60 giorni. Nessun deposito richiesto!',
       metaTitle: 'PRESSOTERAPIA a noleggio comodo a casa da 4€ al giorno',
-      metaDescription: 'Noleggio Pressoterapia Proffessionale . Prezzi imbattibili.Perfetto per il trattamento contro la cellulite. Prenota online ora i chiama al 3926509237.',
+      metaDescription:
+        'Noleggio Pressoterapia Proffessionale . Prezzi imbattibili.Perfetto per il trattamento contro la cellulite. Prenota online ora i chiama al 3926509237.',
       description: [
         '<p>Il nostro servizio di noleggio di macchinari per Pressoterapia PowerPress 4 fornisce un dispositivo professionale pensato per migliorare la circolazione venosa e linfatica, combattere gonfiori, ritenzione idrica e stanchezza degli arti inferiori, con benefici anche a livello estetico. Facile da usare, silenziosa ed efficace, è la scelta ideale per chi cerca un trattamento completo, comodo e rilassante da svolgere direttamente a casa.</p>',
         '<h4>Cosa è la pressoterapia e come funziona</h4>',
@@ -59,14 +57,16 @@ export const powerpress4 = pressotherapyHire.rental({
     en: {
       title: 'Professional pressotherapy, for hire',
       slug: 'pressoterapia-professionale-a-casa-tua',
-      shortDescription: 'Pressotherapy hire. Includes two leg sleeves, the abdominal belt, the arm sleeve and a protective suit. Home delivery anywhere in Italy from €15 out and €15 back. Free delivery on hires of 60 days or more. No deposit required.',
+      shortDescription:
+        'Pressotherapy hire. Includes two leg sleeves, the abdominal belt, the arm sleeve and a protective suit. Home delivery anywhere in Italy from €15 out and €15 back. Free delivery on hires of 60 days or more. No deposit required.',
       metaTitle: 'PRESSOTHERAPY for hire at home from €4 a day',
-      metaDescription: 'Professional pressotherapy hire at unbeatable prices. Ideal for treating cellulite. Book online now.',
+      metaDescription:
+        'Professional pressotherapy hire at unbeatable prices. Ideal for treating cellulite. Book online now.',
       description: [
         '<p>Our PowerPress 4 pressotherapy equipment rental service provides a professional device designed to improve venous and lymphatic circulation, combat swelling, water retention and tiredness in the lower limbs, with aesthetic benefits too. Easy to use, quiet and effective, it is the ideal choice for those looking for a complete, comfortable and relaxing treatment to be carried out directly at home.</p>',
         '<h4>What is pressotherapy and how does it work?</h4>',
         '<p>The PowerPress 4 is a sequential pneumatic pressure device: thanks to special air chamber leg cuffs, it exerts gradual compression on the lower limbs, reactivating venous and lymphatic flow and improving the drainage of excess fluids.</p>',
-        '<p>It operates fully automatically, but can be customised in terms of pressure, duration and frequency, according to the patient\'s needs and the objectives of the therapy.</p>',
+        "<p>It operates fully automatically, but can be customised in terms of pressure, duration and frequency, according to the patient's needs and the objectives of the therapy.</p>",
         '<ul><li><strong>MODE A:</strong>&nbsp;The programme sequence involves inflating and deflating the leg from foot to thigh one sector at a time. At the end of the pressure time, the compressed air is held for a further 3 seconds in each sector;</li><li><strong>MODE B:</strong>&nbsp;pressure is exerted from only one chamber at a time in a sequential manner;</li><li><strong>MODE C:</strong>&nbsp;the programme sequence applies pressure starting from the foot and keeping all previous chambers inflated until the entire part is inflated;</li><li><strong>MODE D:</strong>&nbsp;this mode is a mixture of B and C modes.</li></ul>',
         '<h4>Benefits of pressure therapy </h4>',
         '<ul><li>Lymphatic drainage and reduction of water retention;</li><li>Relief of heavy legs, swelling and venous stasis;</li><li>Stimulation of microcirculation and improvement of circulation;</li><li>Support in the treatment of lymphoedema and venous pathologies;</li><li>Invigorating and relaxing effect;</li><li>Also used in aesthetics to reduce cellulite and promote reshaping.</li></ul>',
@@ -85,16 +85,16 @@ export const powerpress4 = pressotherapyHire.rental({
   },
 
   specs: {
-    channels: { it: '2 gambali, fascia addominale, bracciale e tutina protettiva', en: 'Two leg sleeves, an abdominal belt, an arm sleeve and a protective suit' },
+    channels: {
+      it: '2 gambali, fascia addominale, bracciale e tutina protettiva',
+      en: 'Two leg sleeves, an abdominal belt, an arm sleeve and a protective suit',
+    },
     programmes: { it: '4 programmi di trattamento', en: 'Four treatment programmes' },
   },
 
   media: {
     thumbnail: 'powerpress-4-1.jpg',
-    gallery: [
-      'powerpress-4-2.jpeg',
-      'powerpress-4-3.jpeg',
-    ],
+    gallery: ['powerpress-4-2.jpeg', 'powerpress-4-3.jpeg'],
   },
 
   addons: [homeDeliveryOnly(15), homeCollection(15)],

@@ -19,20 +19,17 @@ export const therapist150Plus = magnetotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 120),
-    days(30, 150),
-    days(45, 225),
-    days(60, 290),
-  ],
+  packages: [days(20, 120), days(30, 150), days(45, 225), days(60, 290)],
 
   translations: {
     it: {
       title: 'Noleggio Magnetoterapia Therapist® 150 Plus',
       slug: 'magnetoterapia-therapist-150-plus',
-      shortDescription: 'Noleggio Magnetoterapia THERAPIST 150 Plus Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Magnetoterapia THERAPIST 150 Plus Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Magnetoterapia THERAPIST 150 PLUS',
-      metaDescription: 'Noleggio Magnetoterapia Therapist 150 plus da soli 2,90€ al giorno. Trasporto gratuito. Nessun Deposito. disponibilità immediata. Prenota online ora!',
+      metaDescription:
+        'Noleggio Magnetoterapia Therapist 150 plus da soli 2,90€ al giorno. Trasporto gratuito. Nessun Deposito. disponibilità immediata. Prenota online ora!',
       description: [
         '<p>Il dispositivo <strong>THERAPIST® 150 Plus</strong> è una magnetoterapia professionale compatta e portatile, progettata per un uso domiciliare e professionale. Grazie al solenoide brevettato integrato, consente di indirizzare il 100% del flusso magnetico verso la zona da trattare, garantendo terapie efficaci per dolori acuti e cronici, fratture, infiammazioni, artrosi e osteoporosi.</p>',
         '<p>La tecnologia dei Campi Elettromagnetici Pulsati (CEMP) stimola la rigenerazione cellulare, accelera la guarigione ossea e riduce l’infiammazione, risultando particolarmente utile in caso di traumi muscolari, tendiniti, periartriti, lombalgie e sindrome del tunnel carpale. THERAPIST® 150 Plus è silenzioso, non vibra ed è completamente privo di fili, per un utilizzo semplice anche sopra vestiti o gessi.</p>',
@@ -54,9 +51,11 @@ export const therapist150Plus = magnetotherapyHire.rental({
     en: {
       title: 'Therapist® 150 Plus magnetotherapy, for hire',
       slug: 'magnetoterapia-therapist-150-plus',
-      shortDescription: 'Hire Magnetotherapy THERAPIST 150 Plus Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
+      shortDescription:
+        'Hire Magnetotherapy THERAPIST 150 Plus Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
       metaTitle: 'THERAPIST 150 PLUS magnetotherapy hire',
-      metaDescription: 'Therapist 150 Plus magnetotherapy hire from just €2.90 a day. Free transport, no deposit, available immediately.',
+      metaDescription:
+        'Therapist 150 Plus magnetotherapy hire from just €2.90 a day. Free transport, no deposit, available immediately.',
       description: [
         '<p>The device <strong>THERAPIST® 150 Plus</strong> is a compact and portable professional magnetotherapy device designed for home and professional use. Thanks to the integrated patented solenoid, it directs the 100% magnetic flux to the area to be treated, providing effective therapies for acute and chronic pain, fractures, inflammation, arthrosis and osteoporosis.</p>',
         '<p>Pulsed Electromagnetic Fields (PEMF) technology stimulates cell regeneration, accelerates bone healing and reduces inflammation, making it particularly useful in cases of muscle trauma, tendonitis, periarthritis, lower back pain and carpal tunnel syndrome. THERAPIST® 150 Plus is silent, does not vibrate and is completely wireless, making it easy to use even over clothes or casts.</p>',
@@ -78,15 +77,15 @@ export const therapist150Plus = magnetotherapyHire.rental({
   },
 
   specs: {
-    'included-accessories': { it: 'Fascia elastica, manuale d’uso', en: 'Elastic band, instruction manual' },
+    'included-accessories': {
+      it: 'Fascia elastica, manuale d’uso',
+      en: 'Elastic band, instruction manual',
+    },
   },
 
   media: {
     thumbnail: 'therapist-150-plus-1.png',
-    gallery: [
-      'therapist-150-plus-2.png',
-      'therapist-150-plus-3.png',
-    ],
+    gallery: ['therapist-150-plus-2.png', 'therapist-150-plus-3.png'],
   },
 
   addons: [homeDeliveryOnly(15), homeCollection(15)],

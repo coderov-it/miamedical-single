@@ -38,5 +38,13 @@ export const accessoriesSale = defineCategory({
     },
   },
 
-  specs: { ...loadAndWeight, ...overallDimensions, ...adjustableHeight, ...seatDimensions, ...upholstery, ...colour, ...dismountable },
+  specs: {
+    ...loadAndWeight,
+    ...overallDimensions,
+    ...adjustableHeight,
+    ...seatDimensions,
+    ...upholstery,
+    ...colour,
+    ...dismountable,
+  },
 });

@@ -20,9 +20,11 @@ export const rollatorWithSeatSale = walkersSale.fixed({
     it: {
       title: 'Vendita deambulatore rollatore con seduta',
       slug: 'deambulatore-rollatore-con-seduta-in-vendita',
-      shortDescription: 'Consegna Gratuita Ausilio ideale per garantire sicurezza e autonomia nella deambulazione! Acquistalo ora!',
+      shortDescription:
+        'Consegna Gratuita Ausilio ideale per garantire sicurezza e autonomia nella deambulazione! Acquistalo ora!',
       metaTitle: 'Deambulatore rollatore con seduta in vendita',
-      metaDescription: 'Acquista il tuo deambulatore rollator pieghevole in alluminio: leggero, sicuro e con seduta regolabile. Consegna gratuita. Scopri ora Mia Medical!',
+      metaDescription:
+        'Acquista il tuo deambulatore rollator pieghevole in alluminio: leggero, sicuro e con seduta regolabile. Consegna gratuita. Scopri ora Mia Medical!',
       description: [
         '<h3>Deambulatore Rollator Pieghevole in Alluminio</h3>',
         '<p>Scopri il nostro <strong>rollator 4 ruote con seduta in alluminio</strong>, l’ausilio ideale per garantire sicurezza e autonomia nella deambulazione. Progettato per supportare le persone con difficoltà motorie, questo dispositivo è perfetto per l’uso quotidiano in ambienti interni ed esterni ed è disponibile per l’acquisto con <strong>consegna gratuita in tutta Italia</strong>. </p>',
@@ -47,9 +49,11 @@ export const rollatorWithSeatSale = walkersSale.fixed({
     en: {
       title: 'Rollator with a seat, for sale',
       slug: 'deambulatore-rollatore-con-seduta-in-vendita',
-      shortDescription: 'Free delivery. The aid to make walking safe and independent again — buy it now!',
+      shortDescription:
+        'Free delivery. The aid to make walking safe and independent again — buy it now!',
       metaTitle: 'Rollator with a seat for sale',
-      metaDescription: 'Buy a folding aluminium rollator: light, safe, with an adjustable seat. Free delivery from Mia Medical.',
+      metaDescription:
+        'Buy a folding aluminium rollator: light, safe, with an adjustable seat. Free delivery from Mia Medical.',
       description: [
         '<h3>Aluminium Folding Rollator Walker</h3>',
         '<p>Discover our <strong>4-wheel rollator with aluminium seat</strong>, the ideal aid for safe and independent walking. Designed to support people with mobility impairments, this device is perfect for everyday indoor and outdoor use and is available for purchase with <strong>free delivery throughout Italy</strong>. </p>',

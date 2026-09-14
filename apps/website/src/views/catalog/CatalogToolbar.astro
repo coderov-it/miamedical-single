@@ -76,16 +76,12 @@ const layouts = [
 ] as const;
 ---
 
-<div
-  class="mid:flex-row mid:items-center mid:justify-between mid:gap-4 mid:pb-5 max-mid:gap-2.5 max-mid:pb-4 flex flex-col"
->
+<div class="mid:flex-row mid:items-center mid:justify-between mid:gap-4 mid:pb-5 max-mid:gap-2.5 max-mid:pb-4 flex flex-col">
   <p class="font-ui text-ink text-[1.0625rem] font-semibold tabular-nums">{countLabel}</p>
 
   <div class="mid:justify-end flex flex-wrap items-center gap-2.5">
-    {
-      /* A real checkbox glyph, drawn rather than native, because the control is
-         a link — the tick has to follow the URL, not a form value. */
-    }
+    {/* A real checkbox glyph, drawn rather than native, because the control is
+         a link — the tick has to follow the URL, not a form value. */}
     <a
       class="font-display text-ink inline-flex min-h-12 items-center gap-2.25 px-1.5 text-base font-medium no-underline"
       href={stockHref}
@@ -99,21 +95,19 @@ const layouts = [
         ]}
         aria-hidden="true"
       >
-        {
-          query.inStock && (
-            <svg
-              class="size-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="3.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m5 12.5 5 5 9-11" />
-            </svg>
-          )
-        }
+        {query.inStock && (
+          <svg
+            class="size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m5 12.5 5 5 9-11" />
+          </svg>
+        )}
       </span>
       {text('catalog.inStockOnly')}
     </a>
@@ -159,61 +153,57 @@ const layouts = [
       </noscript>
     </form>
 
-    {
-      /* Two links in one well, the segment shape the mode control uses — same
+    {/* Two links in one well, the segment shape the mode control uses — same
          question, same answer, one step quieter because it changes nothing
-         about WHAT is listed. */
-    }
+         about WHAT is listed. */}
     <div
       class="border-hair max-wide:hidden rounded-field inline-flex flex-none overflow-hidden border bg-white"
       role="group"
       aria-label={text('catalog.layoutFilter')}
     >
-      {
-        layouts.map((option, index) => (
-          <a
-            class:list={[
-              layoutClass,
-              index > 0 && 'border-hair border-s',
-              query.layout === option.id
-                ? 'bg-accent-tint text-accent'
-                : 'hover:bg-accent-tint text-ink-2 bg-white',
-            ]}
-            href={catalogPath({ ...state, inStock: query.inStock, layout: option.id }, locale)}
-            aria-current={query.layout === option.id ? 'true' : undefined}
-          >
-            {option.id === 'grid' ? (
-              <svg
-                class="size-4.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            ) : (
-              <svg
-                class="size-4.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                aria-hidden="true"
-              >
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-            {option.label}
-          </a>
-        ))
-      }
+      {layouts.map((option, index) => (
+        <a
+          class:list={[
+            layoutClass,
+            index > 0 && 'border-hair border-s',
+            query.layout === option.id
+              ? 'bg-accent-tint text-accent'
+              : 'hover:bg-accent-tint text-ink-2 bg-white',
+          ]}
+          href={catalogPath({ ...state, inStock: query.inStock, layout: option.id }, locale)}
+          aria-current={query.layout === option.id ? 'true' : undefined}
+        >
+          {option.id === 'grid' ? (
+            <svg
+              class="size-4.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          ) : (
+            <svg
+              class="size-4.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
+          {option.label}
+        </a>
+      ))}
     </div>
   </div>
 </div>

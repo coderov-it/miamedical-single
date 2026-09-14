@@ -53,10 +53,8 @@ const text = (key: string) => translate(locale, key);
   {query.context.from && <input type="hidden" name="from" value={query.context.from} />}
   {query.context.for && <input type="hidden" name="for" value={query.context.for} />}
 
-  {
-    /* The wrapper owns the focus ring and the field inside it draws nothing —
-       see app.css § smooth text-field and the `data-focus-owner` opt-out. */
-  }
+  {/* The wrapper owns the focus ring and the field inside it draws nothing —
+       see app.css § smooth text-field and the `data-focus-owner` opt-out. */}
   <label
     class="rounded-field border-hair flex min-h-12 min-w-0 flex-1 cursor-text items-center gap-3 border bg-white px-4 transition-[border-color,box-shadow] duration-150 focus-within:border-accent focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]"
     for="catalog-search"

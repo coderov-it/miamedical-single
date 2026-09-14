@@ -58,12 +58,10 @@ const originCrumb =
     : { label: t('yourRequest'), href: routePath(locale, 'cart') };
 ---
 
-{
-  /*
+{/*
     The bottom padding clears the persistent bottom navigation on phones; the
     reference design's own 96px takes over from `mid` up.
-  */
-}
+  */}
 <div
   class="checkout px-gutter mid:pb-24 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
   data-checkout
@@ -79,79 +77,75 @@ const originCrumb =
 
   <h1 class="mb-7 text-[30px] font-bold tracking-[-0.015em]">{t('checkout')}</h1>
 
-  {
-    items.length > 0 ? (
-      <div class="flex flex-wrap items-start gap-12">
-        <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-4">
-          <CheckoutStep index={1} title={t('yourDetails')}>
-            <CheckoutDetails />
-          </CheckoutStep>
+  {items.length > 0 ? (
+    <div class="flex flex-wrap items-start gap-12">
+      <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-4">
+        <CheckoutStep index={1} title={t('yourDetails')}>
+          <CheckoutDetails />
+        </CheckoutStep>
 
-          <CheckoutStep index={2} title={t('delivery')} bodyGap="gap-3.5">
-            {/*
+        <CheckoutStep index={2} title={t('delivery')} bodyGap="gap-3.5">
+          {/*
                 Two questions, in the order they happen: where it goes, then where
                 it comes back from. The second only exists for a rental, and the
                 forward button sits after BOTH — a "Continua" rendered above an
                 unanswered question invites the customer to skip it.
               */}
-            <CheckoutDelivery labelStage={hasRental} />
-            {hasRental && <CheckoutReturn />}
-            <button class={CTA} type="button" data-step-continue="2" hidden>
-              {t('continueToConfirmation')}
-            </button>
-          </CheckoutStep>
+          <CheckoutDelivery labelStage={hasRental} />
+          {hasRental && <CheckoutReturn />}
+          <button class={CTA} type="button" data-step-continue="2" hidden>
+            {t('continueToConfirmation')}
+          </button>
+        </CheckoutStep>
 
-          <CheckoutStep index={3} title={t('confirmRequest')} editable={false}>
-            <CheckoutConfirm
-              whatsappHref={whatsappUrl(handoverMessage)}
-              whatsappBase={handoverMessage}
-              blocked={checkout.blocked}
-              blockedItem={checkout.blockedItem}
-              backHref={
-                /* The blocking item's own page when there is one, so a
+        <CheckoutStep index={3} title={t('confirmRequest')} editable={false}>
+          <CheckoutConfirm
+            whatsappHref={whatsappUrl(handoverMessage)}
+            whatsappBase={handoverMessage}
+            blocked={checkout.blocked}
+            blockedItem={checkout.blockedItem}
+            backHref={
+              /* The blocking item's own page when there is one, so a
                    multi-item cart sends the customer to the row that needs
                    fixing rather than to the list. */
-                checkout.blockedItem && !single
-                  ? productPath(checkout.blockedItem.product.slug, {}, locale)
-                  : originCrumb.href
-              }
-            />
-          </CheckoutStep>
-        </main>
+              checkout.blockedItem && !single
+                ? productPath(checkout.blockedItem.product.slug, {}, locale)
+                : originCrumb.href
+            }
+          />
+        </CheckoutStep>
+      </main>
 
-        <CheckoutOverview {checkout} />
-      </div>
-    ) : (
-      /*
+      <CheckoutOverview {checkout} />
+    </div>
+  ) : (
+    /*
         The reference design has no empty state — it always has a cart behind it.
         Arriving here with nothing resolvable is normal all the same (a shared
         link, a product since unpublished), and it must not be a dead end.
       */
-      <div class="border-hair shadow-pdp-card flex max-w-150 flex-col items-start gap-4 rounded-[14px] border bg-white p-7">
-        <h2 class="text-[17px] font-bold">{t('nothingToConfirm')}</h2>
-        <p class="text-ink-2 m-0 text-[15px] leading-[1.55]">{t('nothingToConfirmDetail')}</p>
-        <a
-          class="bg-tint text-ink hover:bg-tint-2 rounded-full px-5.5 py-2.75 text-[15.5px] font-semibold no-underline hover:text-accent"
-          href={routePath(locale, 'catalog')}
-        >
-          {t('goToCatalog')}
-        </a>
-        <p class="text-ink-2 m-0 text-[13.5px]">{translate(locale, CONTACT_HOURS_KEY)}</p>
-        <PhoneCta variant="primary" />
-      </div>
-    )
-  }
+    <div class="border-hair shadow-pdp-card flex max-w-150 flex-col items-start gap-4 rounded-[14px] border bg-white p-7">
+      <h2 class="text-[17px] font-bold">{t('nothingToConfirm')}</h2>
+      <p class="text-ink-2 m-0 text-[15px] leading-[1.55]">{t('nothingToConfirmDetail')}</p>
+      <a
+        class="bg-tint text-ink hover:bg-tint-2 rounded-full px-5.5 py-2.75 text-[15.5px] font-semibold no-underline hover:text-accent"
+        href={routePath(locale, 'catalog')}
+      >
+        {t('goToCatalog')}
+      </a>
+      <p class="text-ink-2 m-0 text-[13.5px]">{translate(locale, CONTACT_HOURS_KEY)}</p>
+      <PhoneCta variant="primary" />
+    </div>
+  )}
 
-  {
-    /*
+  {/*
       The spoken half of the form gate, for BOTH steps — only one is ever open, so
       a shared region cannot be overwritten by the other.
 
       It counts rather than naming a field: the visible messages already name the
       fields, and a count is what changes between two failed attempts. A live
       region whose text did not change announces nothing the second time.
-    */
-  }
+    */}
   <p
     class="sr-only"
     role="status"
@@ -159,6 +153,5 @@ const originCrumb =
     data-checkout-gate-announce
     data-message-one={t('errorCountOne')}
     data-message-many={t('errorCountMany')}
-  >
-  </p>
+  ></p>
 </div>

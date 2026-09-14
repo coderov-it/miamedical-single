@@ -28,13 +28,11 @@ const { on = false } = Astro.props;
 const locale = localeForRequest();
 ---
 
-{
-  on && (
-    <>
-      <span class="text-ink-2 ml-0.5 font-normal" aria-hidden="true">
-        *
-      </span>
-      <span class="sr-only">{translate(locale, 'field.required')}</span>
-    </>
-  )
-}
+{on && (
+  <>
+    <span class="text-ink-2 ml-0.5 font-normal" aria-hidden="true">
+      *
+    </span>
+    <span class="sr-only">{translate(locale, 'field.required')}</span>
+  </>
+)}

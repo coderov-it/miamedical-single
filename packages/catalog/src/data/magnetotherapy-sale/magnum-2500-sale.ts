@@ -19,9 +19,11 @@ export const magnum2500Sale = magnetotherapySale.fixed({
     it: {
       title: 'Vendita Magnetoterapia Magnum 2500',
       slug: 'magnetoterapia-cemp-magnum-2500-2',
-      shortDescription: 'MAGNETOTERAPIA CEMP Magnum 2500 Apparecchio professionale ad alta frequenza progettato per l’utilizzo sia CLINICO che DOMICILIARE. - Favorisce rigenerazione ossea e tissutale - Riduce dolore e infiammazione in modo naturale - Migliora circolazione e ossigenazione dei tessuti - Accelera guarigione di fratture, edemi e traumi muscolo-scheletrici - Utile per artrosi, osteoporosi, tendiniti e disturbi reumatici Acquista ora!',
+      shortDescription:
+        'MAGNETOTERAPIA CEMP Magnum 2500 Apparecchio professionale ad alta frequenza progettato per l’utilizzo sia CLINICO che DOMICILIARE. - Favorisce rigenerazione ossea e tissutale - Riduce dolore e infiammazione in modo naturale - Migliora circolazione e ossigenazione dei tessuti - Accelera guarigione di fratture, edemi e traumi muscolo-scheletrici - Utile per artrosi, osteoporosi, tendiniti e disturbi reumatici Acquista ora!',
       metaTitle: 'Vendita Magnetoterapia CEMP MAGNUM 2500',
-      metaDescription: 'Acquista ora la Magnetoterapia CEMP Magnum 2500 a un prezzo vantaggioso. Disponibilità immediata. Ordina online in pochi click!',
+      metaDescription:
+        'Acquista ora la Magnetoterapia CEMP Magnum 2500 a un prezzo vantaggioso. Disponibilità immediata. Ordina online in pochi click!',
       description: [
         '<p>Il <strong><a href="https://www.globuscorporation.com/it/prodotti-domiciliari/magnum-2500/">dispositivo MAGNUM 2500 </a></strong>Globus è una magnetoterapia <strong>CEMP a bassa frequenza e alta intensità</strong>, progettata per un <strong>uso professionale</strong>, adatta anche al <strong>trattamento domiciliare</strong>. Grazie alla potenza fino a 250 Gauss per canale e alla presenza di due canali indipendenti, permette terapie efficaci su una o più aree del corpo contemporaneamente.</p>',
         '<p>La tecnologia dei <strong>Campi Elettromagnetici Pulsati (CEMP) </strong>stimola la <strong>rigenerazione cellulare, favorisce la guarigione ossea e riduce l’infiammazione</strong>, risultando particolarmente utile nel trattamento di <strong>fratture, artrosi, lombalgie, tendiniti e osteoporosi.</strong></p>',
@@ -37,13 +39,15 @@ export const magnum2500Sale = magnetotherapySale.fixed({
     en: {
       title: 'Magnum 2500 magnetotherapy, for sale',
       slug: 'magnetoterapia-cemp-magnum-2500-2',
-      shortDescription: 'MAGNETOTHERAPY PEMP Magnum 2500 Professional high-frequency device designed for both CLINICAL and DOMICULTURAL use. - Promotes bone and tissue regeneration - Reduces pain and inflammation naturally - Improves circulation and oxygenation of tissues - Accelerates healing of fractures, oedemas and musculoskeletal injuries - Useful for arthrosis, osteoporosis, tendinitis and rheumatic disorders Buy now!',
+      shortDescription:
+        'MAGNETOTHERAPY PEMP Magnum 2500 Professional high-frequency device designed for both CLINICAL and DOMICULTURAL use. - Promotes bone and tissue regeneration - Reduces pain and inflammation naturally - Improves circulation and oxygenation of tissues - Accelerates healing of fractures, oedemas and musculoskeletal injuries - Useful for arthrosis, osteoporosis, tendinitis and rheumatic disorders Buy now!',
       metaTitle: 'CEMP Magnum 2500 magnetotherapy for sale',
-      metaDescription: 'Buy the CEMP Magnum 2500 magnetotherapy device at a good price. Available immediately, order online in a few clicks.',
+      metaDescription:
+        'Buy the CEMP Magnum 2500 magnetotherapy device at a good price. Available immediately, order online in a few clicks.',
       description: [
         '<p>The <strong><a href="https://www.globuscorporation.com/it/prodotti-domiciliari/magnum-2500/">MAGNUM 2500 device </a></strong>Globus is a magnetotherapy <strong>Low frequency and high intensity PEMF</strong>designed for a <strong>professional use</strong>, also suitable for <strong>home treatment</strong>. With power up to 250 Gauss per channel and two independent channels, it allows effective therapies on one or more areas of the body simultaneously.</p>',
         '<p>The technology of <strong>Pulsed Electromagnetic Fields (PEMF) </strong>stimulates <strong>cell regeneration, promotes bone healing and reduces inflammation</strong>particularly useful in the treatment of <strong>fractures, arthrosis, lumbago, tendinitis and osteoporosis.</strong></p>',
-        '<p>The <strong>MAGNUM 2500 </strong>is equipped with 30 pre-set programmes for the most common diseases and 20 customisable programmes, allowing flexible and targeted therapy management according to the patient\'s needs.</p>',
+        "<p>The <strong>MAGNUM 2500 </strong>is equipped with 30 pre-set programmes for the most common diseases and 20 customisable programmes, allowing flexible and targeted therapy management according to the patient's needs.</p>",
         '<h4>Main features of the device:</h4>',
         '<ul><li>Low-frequency magnetotherapy (PEMF)</li><li>Adjustable intensity up to 250 Gauss per channel</li><li>2 independent channels for multiple treatments</li><li>30 preset + 20 programmable programmes</li><li>Timer from 5 to 90 minutes</li><li>Large backlit display</li><li>Mains power supply</li><li>Accessories included: solenoids, therapy band, user manual</li></ul>',
         '<p>Purchasing the magnetotherapy device <strong>MAGNUM 2500</strong> is the ideal choice for those looking for a <strong>effective treatment of joint pain, bone and inflammatory diseases, directly at home</strong>.<br />Contact us today at +<strong>39 392 65 09 237</strong> and buy your magnetotherapy, fast delivery!</p>',
@@ -55,15 +59,15 @@ export const magnum2500Sale = magnetotherapySale.fixed({
   },
 
   specs: {
-    'included-accessories': { it: 'Solenoidi, fascia terapeutica, manuale d’uso', en: 'Solenoids, therapeutic band, instruction manual' },
+    'included-accessories': {
+      it: 'Solenoidi, fascia terapeutica, manuale d’uso',
+      en: 'Solenoids, therapeutic band, instruction manual',
+    },
   },
 
   media: {
     thumbnail: 'magnum-2500-1.jpg',
-    gallery: [
-      'magnum-2500-2.jpg',
-      'magnum-2500-3.jpeg',
-    ],
+    gallery: ['magnum-2500-2.jpg', 'magnum-2500-3.jpeg'],
   },
   terms: [generalTerms],
 });

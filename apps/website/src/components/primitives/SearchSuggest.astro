@@ -75,11 +75,9 @@ const listboxId = `${id}-listbox`;
       <circle cx="11" cy="11" r="6.5"></circle>
       <path d="m20 20-4.2-4.2"></path>
     </svg>
-    {
-      /* `role="combobox"` on the input itself is the ARIA 1.2 shape — the older
+    {/* `role="combobox"` on the input itself is the ARIA 1.2 shape — the older
          pattern wrapped it in a combobox div, which screen readers now read as
-         two controls. `aria-expanded` starts false and the script owns it. */
-    }
+         two controls. `aria-expanded` starts false and the script owns it. */}
     <input
       class="placeholder:text-ink-placeholder font-ui text-ink mid:text-[1.0625rem] min-h-0 w-full min-w-0 self-stretch border-0 bg-transparent p-0 text-[1.0313rem] font-semibold placeholder:font-normal placeholder:opacity-100"
       {id}
@@ -101,10 +99,8 @@ const listboxId = `${id}-listbox`;
     />
   </label>
 
-  {
-    /* Rendered empty and hidden. The script owns its children, so there is no
-       server-rendered list to keep in step with the client's filtering. */
-  }
+  {/* Rendered empty and hidden. The script owns its children, so there is no
+       server-rendered list to keep in step with the client's filtering. */}
   <div
     class="rounded-card border-hair absolute inset-x-0 top-[calc(100%+8px)] z-40 max-h-[min(60vh,26rem)] overflow-y-auto border bg-white p-1.5 shadow-[0_18px_44px_rgb(11_18_32_/_0.16)]"
     id={listboxId}
@@ -112,10 +108,14 @@ const listboxId = `${id}-listbox`;
     aria-label={translate(locale, 'search.suggest.label')}
     data-suggest-listbox
     hidden
-  >
-  </div>
+  ></div>
 
-  <script type="application/json" data-suggest-index set:html={JSON.stringify(items)} is:inline />
+  <script
+    type="application/json"
+    data-suggest-index
+    set:html={JSON.stringify(items)}
+    is:inline
+  ></script>
 </div>
 
 <script>

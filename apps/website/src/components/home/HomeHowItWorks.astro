@@ -40,39 +40,33 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
 }));
 ---
 
-{
-  /* `id` is the header nav's target — "Come funziona" is a section of the
-    home page, not a page of its own, so the nav link is `/#how-it-works`. */
-}
+{/* `id` is the header nav's target — "Come funziona" is a section of the
+    home page, not a page of its own, so the nav link is `/#how-it-works`. */}
 <section class:list={[EDITORIAL_THEME, HOME_BAND]} id="how-it-works" aria-labelledby="how-title">
   <div class={EDITORIAL_CONTAINER}>
-    <h2 class={HOME_TITLE} id="how-title">{text('home.how.title')}</h2>
+    <h2 class={HOME_TITLE} id="how-title">
+      {text('home.how.title')}
+    </h2>
     <p class={HOME_LEAD}>{text('home.how.lede')}</p>
 
-    <ol
-      class="mid:mt-6 mid:gap-4.5 max-mid:mt-3 max-mid:gap-2 grid list-none grid-cols-1 min-[900px]:grid-cols-3"
-    >
-      {
-        steps.map((step, index) => (
-          <li class="rounded-card mid:gap-x-4 mid:gap-y-1.5 mid:px-5.5 mid:py-5.5 max-mid:gap-x-3.5 max-mid:gap-y-1 max-mid:px-3.5 max-mid:py-3.5 grid grid-cols-[auto_1fr] content-start items-center border border-[var(--color-line)] bg-white">
-            <span
-              class="bg-accent-tint mid:size-11 mid:text-[1.0625rem] max-mid:size-8 max-mid:rounded-[10px] max-mid:text-base grid place-items-center rounded-[12px] font-bold text-[var(--color-accent)] tabular-nums"
-              aria-hidden="true"
-            >
-              {index + 1}
-            </span>
-            <h3 class="mid:text-[1.0625rem] max-mid:text-base font-bold">{step.name}</h3>
-            <p class="mid:text-[0.9688rem] mid:leading-[1.6] max-mid:text-(length:--text-phone-body) max-mid:leading-[1.45] col-start-2 text-[var(--color-ink-soft)]">
-              {step.text}
-            </p>
-          </li>
-        ))
-      }
+    <ol class="mid:mt-6 mid:gap-4.5 max-mid:mt-3 max-mid:gap-2 grid list-none grid-cols-1 min-[900px]:grid-cols-3">
+      {steps.map((step, index) => (
+        <li class="rounded-card mid:gap-x-4 mid:gap-y-1.5 mid:px-5.5 mid:py-5.5 max-mid:gap-x-3.5 max-mid:gap-y-1 max-mid:px-3.5 max-mid:py-3.5 grid grid-cols-[auto_1fr] content-start items-center border border-[var(--color-line)] bg-white">
+          <span
+            class="bg-accent-tint mid:size-11 mid:text-[1.0625rem] max-mid:size-8 max-mid:rounded-[10px] max-mid:text-base grid place-items-center rounded-[12px] font-bold text-[var(--color-accent)] tabular-nums"
+            aria-hidden="true"
+          >
+            {index + 1}
+          </span>
+          <h3 class="mid:text-[1.0625rem] max-mid:text-base font-bold">{step.name}</h3>
+          <p class="mid:text-[0.9688rem] mid:leading-[1.6] max-mid:text-(length:--text-phone-body) max-mid:leading-[1.45] col-start-2 text-[var(--color-ink-soft)]">
+            {step.text}
+          </p>
+        </li>
+      ))}
     </ol>
 
-    <p
-      class="mid:mt-4.5 mid:px-5.5 mid:py-4 mid:text-[0.9688rem] mid:leading-[1.6] max-mid:mt-2 max-mid:gap-2.5 max-mid:px-3.5 max-mid:py-3 max-mid:text-(length:--text-phone-body) max-mid:leading-[1.45] flex items-center gap-3 rounded-[14px] bg-[var(--color-phone-tint)] text-[var(--color-phone-ink)]"
-    >
+    <p class="mid:mt-4.5 mid:px-5.5 mid:py-4 mid:text-[0.9688rem] mid:leading-[1.6] max-mid:mt-2 max-mid:gap-2.5 max-mid:px-3.5 max-mid:py-3 max-mid:text-(length:--text-phone-body) max-mid:leading-[1.45] flex items-center gap-3 rounded-[14px] bg-[var(--color-phone-tint)] text-[var(--color-phone-ink)]">
       <svg
         class="flex-none"
         width="20"
@@ -88,8 +82,7 @@ const steps = ['step1', 'step2', 'step3'].map((step) => ({
         <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
       </svg>
       <span>
-        <strong class="font-bold">{text('home.how.noteStrong')}</strong>{' '}
-        {text('home.how.noteText')}
+        <strong class="font-bold">{text('home.how.noteStrong')}</strong> {text('home.how.noteText')}
       </span>
     </p>
   </div>

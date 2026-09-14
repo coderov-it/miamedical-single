@@ -21,9 +21,11 @@ export const maximoScooterSale = mobilityScootersSale.fixed({
     it: {
       title: 'Vendita Scooter Elettrico Maximo',
       slug: 'vendita-scooter-elettrico-maximo',
-      shortDescription: 'Libertà e movimento Acquista il tuo scooter e riscopri la tua indipendenza! Consulenza personalizzata gratuita. Siamo a Roma e Firenze. Spedizione gratuita in tutta Italia!',
+      shortDescription:
+        'Libertà e movimento Acquista il tuo scooter e riscopri la tua indipendenza! Consulenza personalizzata gratuita. Siamo a Roma e Firenze. Spedizione gratuita in tutta Italia!',
       metaTitle: 'Vendita Scooter Elettrico Maximo per Anziani e Disabili',
-      metaDescription: 'Vendita scooter elettrico Maximo per anziani e disabili: comodo, sicuro e con autonomia fino a 35 km. Scopri offerte e consulenza dedicata.',
+      metaDescription:
+        'Vendita scooter elettrico Maximo per anziani e disabili: comodo, sicuro e con autonomia fino a 35 km. Scopri offerte e consulenza dedicata.',
       description: [
         '<h2>Scooter Elettrico MAXIMO per anziani e disabili: acquista la tua libertà di movimento</h2>',
         '<p>La vendita scooter elettrico Maximo è pensata per chi desidera muoversi in totale autonomia, con comfort, sicurezza e prestazioni elevate. Ideale per passeggiate quotidiane e spostamenti più lunghi, MAXIMO ti aiuta a ritrovare indipendenza e serenità ogni giorno.</p>',
@@ -53,9 +55,11 @@ export const maximoScooterSale = mobilityScootersSale.fixed({
     en: {
       title: 'Maximo electric scooter for sale',
       slug: 'vendita-scooter-elettrico-maximo',
-      shortDescription: 'Freedom and movement Buy your scooter and rediscover your independence! Personalised advice free. We are in Rome and Florence. Free shipping across Italy!',
+      shortDescription:
+        'Freedom and movement Buy your scooter and rediscover your independence! Personalised advice free. We are in Rome and Florence. Free shipping across Italy!',
       metaTitle: 'Maximo electric scooter for sale, for older and disabled users',
-      metaDescription: 'Maximo mobility scooter for sale: comfortable, safe, and up to 35 km on a charge. Ask about offers and advice.',
+      metaDescription:
+        'Maximo mobility scooter for sale: comfortable, safe, and up to 35 km on a charge. Ask about offers and advice.',
       description: [
         '<h2>MAXIMO Electric Mobility Scooter for the elderly and disabled: buy your freedom of movement</h2>',
         '<p>The Maximo electric scooter sale is designed for those who want to get around with total independence, comfort, safety, and high performance. Ideal for daily walks and longer journeys, MAXIMO helps you rediscover your independence and peace of mind every day.</p>',
@@ -73,7 +77,7 @@ export const maximoScooterSale = mobilityScootersSale.fixed({
         '<p>The MAXIMO electric scooter is ideal for:</p>',
         '<ul><li>Elderly people</li><li>Persons with reduced mobility</li><li>Who desires more independence in their travel</li><li>Pregnant women</li><li>Someone looking for comfort and safety in their daily commute</li></ul>',
         '<h2>Why buy it from Mia Medical Italia?</h2>',
-        '<p>With <strong>Mia Medical Italia</strong> you aren\'t just buying a scooter, but a complete mobility solution:</p>',
+        "<p>With <strong>Mia Medical Italia</strong> you aren't just buying a scooter, but a complete mobility solution:</p>",
         '<ul><li>Free personalised counselling</li><li>Model selection support</li><li>Dedicated after-sales support</li><li>Possibility of bespoke accessories and configurations</li></ul>',
         '<h2>Buy your MAXIMO scooter now</h2>',
         '<p>Rediscover the pleasure of moving freely, in complete safety and comfort.<br />The MAXIMO electric scooter is your key to independence.</p>',
@@ -91,7 +95,10 @@ export const maximoScooterSale = mobilityScootersSale.fixed({
     'max-speed': 12.8,
     'battery-range': { min: 25, max: 35 },
     motor: { it: '470 W', en: '470 W' },
-    battery: { it: '2 x 12 V 36 Ah, potenziate 2 x 12 V 50 Ah', en: '2 × 12 V 36 Ah, or 2 × 12 V 50 Ah upgraded' },
+    battery: {
+      it: '2 x 12 V 36 Ah, potenziate 2 x 12 V 50 Ah',
+      en: '2 × 12 V 36 Ah, or 2 × 12 V 50 Ah upgraded',
+    },
     'total-length': { min: 120, max: 120 },
     'total-width': { min: 58, max: 58 },
   },

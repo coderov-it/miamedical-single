@@ -2,6 +2,7 @@
   import { P } from '@mia/permissions';
   import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
   import InboxIcon from '@lucide/svelte/icons/inbox';
+  import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
   import SearchIcon from '@lucide/svelte/icons/search';
   import type { InferResponseType } from 'hono/client';
 
@@ -27,6 +28,7 @@
   import { unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
+  import { rowClick } from '~/lib/row-click';
   import { session } from '~/lib/session.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.orders.$get, 200>;
@@ -114,7 +116,16 @@
     eyebrow="Sales"
     title="Orders"
     description="The queue, oldest work first. Open an order to move it along."
-  />
+  >
+    {#snippet actions()}
+      <!-- Stays clickable while a fetch is in flight: a second click supersedes
+           the first, and a control that vanishes mid-load reads as broken. -->
+      <Button variant="outline" onclick={() => orders.refresh()}>
+        <RefreshCwIcon class={cn(orders.loading && 'animate-spin')} />
+        Refresh
+      </Button>
+    {/snippet}
+  </PageHeader>
 
   <!-- KPI strip. `pageValue` is labelled "this page" because that is exactly
        what it sums — a money figure must never imply more than it covers. -->
@@ -245,7 +256,7 @@
           {#each rows as order (order.id)}
             <Table.Row
               class="cursor-pointer"
-              onclick={() => openDrawer(order.id)}
+              onclick={rowClick(() => openDrawer(order.id))}
               aria-selected={openId === order.id}
             >
               <Table.Cell class="font-mono font-medium">{order.number}</Table.Cell>
@@ -276,13 +287,13 @@
               </Table.Cell>
               <Table.Cell>
                 <!-- A real link out of a row that is otherwise a drawer trigger,
-                     so the order can still be opened in a new tab. -->
+                     so the order can still be opened in a new tab. The row's
+                     handler steps aside for it; see lib/row-click.ts. -->
                 <Button
                   href={routes.orderDetail(order.id)}
                   variant="ghost"
                   size="icon-sm"
                   aria-label="Open {order.number} as a page"
-                  onclick={(event) => event.stopPropagation()}
                 >
                   <ExternalLinkIcon />
                 </Button>

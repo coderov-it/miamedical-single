@@ -81,23 +81,23 @@ const iconPad = variant === 'hero' ? 'pe-7' : 'ps-11';
   <label
     class:list={['core-date-label font-display text-ink-2 block font-bold', labelVariants[variant]]}
     id={labelId}
-    for={id}>{label}</label
+    for={id}
   >
+    {label}
+  </label>
 
   <div class="relative">
-    {
-      hasIcon && (
-        <span
-          class:list={[
-            'text-ink-2 pointer-events-none absolute top-1/2 z-1 grid size-4.5 -translate-y-1/2 place-items-center [&_img]:block [&_img]:size-4.5 [&_svg]:block [&_svg]:size-4.5',
-            iconSide,
-          ]}
-          aria-hidden="true"
-        >
-          <slot name="icon" />
-        </span>
-      )
-    }
+    {hasIcon && (
+      <span
+        class:list={[
+          'text-ink-2 pointer-events-none absolute top-1/2 z-1 grid size-4.5 -translate-y-1/2 place-items-center [&_img]:block [&_img]:size-4.5 [&_svg]:block [&_svg]:size-4.5',
+          iconSide,
+        ]}
+        aria-hidden="true"
+      >
+        <slot name="icon" />
+      </span>
+    )}
 
     <input
       class:list={[controlClass, hasIcon && iconPad]}

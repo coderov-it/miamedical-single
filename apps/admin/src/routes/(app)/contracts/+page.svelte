@@ -232,7 +232,6 @@
                   <a
                     href={routes.orderDetail(contract.orderId)}
                     class="font-mono text-muted-foreground hover:underline"
-                    onclick={(event) => event.stopPropagation()}
                   >
                     {contract.orderNumber}
                   </a>

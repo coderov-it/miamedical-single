@@ -22,9 +22,11 @@ export const globusPremium400Sale = tensSale.fixed({
     it: {
       title: 'Vendita TENS Elettrostimolatore GLOBUS Premium 400',
       slug: 'vendita-tens-elettrostimolatore-globus-premium-400',
-      shortDescription: 'Vendita Tens Elettrostimolatore Ricordati di acquistare anche gli elettrodi, necessari per usare l’elettrostimolatore Tens.',
+      shortDescription:
+        'Vendita Tens Elettrostimolatore Ricordati di acquistare anche gli elettrodi, necessari per usare l’elettrostimolatore Tens.',
       metaTitle: 'Vendita TENS Elettrostimolatore GLOBUS Premium 400',
-      metaDescription: 'Vendita TENS Elettrostimolatore a 379 Euro. Consegna a domicilio. Apparecchi per la Tens sicuri, affidabili e facili da usare.',
+      metaDescription:
+        'Vendita TENS Elettrostimolatore a 379 Euro. Consegna a domicilio. Apparecchi per la Tens sicuri, affidabili e facili da usare.',
       description: [
         '<p><strong>Acquista il dispositivo GLOBUS Premium 400</strong>, <a href="https://www.globuscorporation.com/it/prodotti-domiciliari/premium-400/">l’elettrostimolatore professionale</a> ideale per trattare il dolore, rafforzare i muscoli e favorire il recupero funzionale direttamente a casa. Disponibile anche a noleggio con il servizio completo di <strong>Mia Medical Italia</strong>.</p>',
         '<h4>Cosa è la terapia TENS?</h4>',
@@ -72,9 +74,11 @@ export const globusPremium400Sale = tensSale.fixed({
     en: {
       title: 'GLOBUS Premium 400 TENS stimulator, for sale',
       slug: 'vendita-tens-elettrostimolatore-globus-premium-400',
-      shortDescription: 'TENS stimulator for sale. Remember to buy electrodes as well — the stimulator cannot be used without them.',
+      shortDescription:
+        'TENS stimulator for sale. Remember to buy electrodes as well — the stimulator cannot be used without them.',
       metaTitle: 'GLOBUS Premium 400 TENS stimulator for sale',
-      metaDescription: 'TENS stimulator for sale at €379, delivered to your door. Safe, reliable TENS units that are easy to use.',
+      metaDescription:
+        'TENS stimulator for sale at €379, delivered to your door. Safe, reliable TENS units that are easy to use.',
       description: [
         '<p><strong>Buy the GLOBUS Premium 400 device</strong>, <a href="https://www.globuscorporation.com/it/prodotti-domiciliari/premium-400/">the professional electrostimulator</a> ideal for treating pain, strengthening muscles and promoting functional recovery right at home. Also available for hire with the full service of <strong>Mia Medical Italia</strong>.</p>',
         '<h4>What is TENS therapy?</h4>',
@@ -82,14 +86,14 @@ export const globusPremium400Sale = tensSale.fixed({
         '<p>The effect is&nbsp;<strong>immediate</strong>The patient begins to feel noticeably better after about 15 minutes, but this effect tends to wear off just as quickly, after about 4-5 hours. It is therefore important to complete a therapeutic cycle of about 10-20 sessions, each lasting 30-50 minutes: in this way, the reflex muscle contracture subsides from session to session and the catabolites eliminated allow a significant resolution of the problem.</p>',
         '<h4><strong>Sale Tens Electrostimulator <br />GLOBUS Premium 400: Device features</strong></h4>',
         '<p>The GLOBUS Premium 400 is a high-end electrostimulator designed for home and professional use.<br />Among its&nbsp;<strong>main technical features</strong>:</p>',
-        '<ul><li><strong>4 independent channels</strong>&nbsp;to treat several areas simultaneously</li><li><strong>TENS, EMS, iontophoresis and microcurrents</strong>&nbsp;for diversified treatment</li><li>Large&nbsp;<strong>backlit display</strong>&nbsp;and intuitive interface</li><li><strong>Preset programmes</strong>&nbsp;for over 400 treatments</li><li>Function&nbsp;<strong>\'AutoStim\'</strong>&nbsp;for ease of use even for the less experienced</li><li>Long-lasting rechargeable battery power supply</li></ul>',
+        "<ul><li><strong>4 independent channels</strong>&nbsp;to treat several areas simultaneously</li><li><strong>TENS, EMS, iontophoresis and microcurrents</strong>&nbsp;for diversified treatment</li><li>Large&nbsp;<strong>backlit display</strong>&nbsp;and intuitive interface</li><li><strong>Preset programmes</strong>&nbsp;for over 400 treatments</li><li>Function&nbsp;<strong>'AutoStim'</strong>&nbsp;for ease of use even for the less experienced</li><li>Long-lasting rechargeable battery power supply</li></ul>",
         '<h4>Who would benefit from purchasing GLOBUS Premium 400?</h4>',
         '<p>The diseases that can be treated with GLOBUS Premium 400 are varied, including:</p>',
         '<ul><li><strong>Muscle and joint pain</strong>&nbsp;(lumbago, cervicalgia, tendinitis)</li><li><strong>Neuralgia</strong>&nbsp;(sciatica, carpal tunnel)</li><li><strong>Post-operative disorders</strong>&nbsp;(rehabilitation and analgesia)</li><li><strong>Sports injuries</strong>&nbsp;(contractures, strains)</li><li><strong>Circulation problems and lymph drainage</strong></li><li><strong>Muscle atrophies</strong>&nbsp;o&nbsp;<strong>post-traumatic hypotonia</strong></li></ul>',
         '<h4><strong>Benefits of Electrotherapy with GLOBUS Premium 400</strong></h4>',
         '<ul><li><strong>Immediate pain reduction</strong>&nbsp;without drugs</li><li><strong>Faster muscle recovery</strong></li><li><strong>Improved joint mobility</strong></li><li><strong>Prevention of atrophy</strong>&nbsp;in case of immobilisation</li><li><strong>Draining and toning action</strong>&nbsp;for general well-being</li></ul>',
         '<h4><strong>Which programme to use? TENS, EMS, Iontophoresis or microcurrents: the differences explained</strong></h4>',
-        '<p>The GLOBUS Premium 400 is a multifunctional electrostimulator designed to offer&nbsp;<strong>different types of treatment</strong>&nbsp;depending on the user\'s needs. Here is a guide to choosing&nbsp;<strong>the right programme at the right time</strong>.</p>',
+        "<p>The GLOBUS Premium 400 is a multifunctional electrostimulator designed to offer&nbsp;<strong>different types of treatment</strong>&nbsp;depending on the user's needs. Here is a guide to choosing&nbsp;<strong>the right programme at the right time</strong>.</p>",
         '<h4><strong>TENS</strong></h4>',
         '<p><strong>When to use it</strong>: in the presence of <strong>acute or chronic pain</strong>, such as:</p>',
         '<ul><li>Lumbago, cervicalgia, sciatica</li><li>Neuralgia and post-operative pain</li><li>Muscle pain from overload</li></ul>',
@@ -106,7 +110,7 @@ export const globusPremium400Sale = tensSale.fixed({
         '<p><strong>When to use it</strong>: in case of&nbsp;<strong>muscle injuries, oedema or mild inflammation</strong>:</p>',
         '<ul><li>Sports injuries, bruises, sprains</li><li>Post-operative recovery</li></ul>',
         '<p><strong>How it works</strong>: stimulates&nbsp;<strong>cell regeneration and lymphatic circulation</strong>&nbsp;with very low intensity pulses. Ideal for speeding up recovery times and promoting the&nbsp;<strong>tissue healing</strong>.</p>',
-        '<p><strong>Expert\'s advice</strong>:<br />If in doubt, always seek advice from your physiotherapist or our service team. Using the correct programme is essential to achieve the&nbsp;<strong>maximum benefits</strong>&nbsp;from your GLOBUS Premium 400 electrostimulator.</p>',
+        "<p><strong>Expert's advice</strong>:<br />If in doubt, always seek advice from your physiotherapist or our service team. Using the correct programme is essential to achieve the&nbsp;<strong>maximum benefits</strong>&nbsp;from your GLOBUS Premium 400 electrostimulator.</p>",
         '<h4><strong>Contraindications and Possible Side Effects</strong></h4>',
         '<p><strong>ATTENTION</strong>: Like all electromedical devices, the use of the GLOBUS Premium 400 must be carefully considered. The device is <strong>CONTRAINDICATED</strong> in cases of:</p>',
         '<ul><li><strong>Pacemaker wearers</strong></li><li><strong>Pregnancy</strong></li><li><strong>Epilepsy</strong></li><li><strong>Open skin lesions</strong></li><li><strong>Uncontrolled heart disease</strong></li></ul>',
@@ -122,11 +126,11 @@ export const globusPremium400Sale = tensSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'globus-premium-400-1.jpg', alt: { it: 'Noleggio ausili per terapia a domicilio' } },
-    gallery: [
-      'globus-premium-400-2.jpeg',
-      'globus-premium-400-3.jpeg',
-    ],
+    thumbnail: {
+      file: 'globus-premium-400-1.jpg',
+      alt: { it: 'Noleggio ausili per terapia a domicilio' },
+    },
+    gallery: ['globus-premium-400-2.jpeg', 'globus-premium-400-3.jpeg'],
   },
 
   addons: [electrodes('5 x 5 cm', 8), electrodes('5 x 9 cm', 13)],

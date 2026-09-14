@@ -25,21 +25,17 @@ export const fantasticaElectric = electricWheelchairsAndScootersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(3, 110),
-    days(7, 160),
-    days(15, 250),
-    days(30, 390),
-    days(45, 540),
-  ],
+  packages: [days(3, 110), days(7, 160), days(15, 250), days(30, 390), days(45, 540)],
 
   translations: {
     it: {
       title: 'Noleggio Carrozzina Elettrica Pieghevole FANTASTICA',
       slug: 'noleggio-carrozzina-elettrica-fantastica',
-      shortDescription: 'Noleggio carrozzina elettrica FANTASTICA Compatta, leggera e completamente elettrica. Batteria al litio estraibile, pratica da ricaricare ovunque. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Consegna a domicilio: 30€ + 30€ per il ritiro. Il ritiro in magazzino è gratuito. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Noleggio carrozzina elettrica FANTASTICA Compatta, leggera e completamente elettrica. Batteria al litio estraibile, pratica da ricaricare ovunque. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Consegna a domicilio: 30€ + 30€ per il ritiro. Il ritiro in magazzino è gratuito. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio Carrozzina Elettrica Pieghevole Fantastica',
-      metaDescription: 'Noleggio carrozzina elettrica pieghevole per uso interno ed esterno. Ottima come carrozzina elettrica per anziani e carrozzina elettrica per disabili.',
+      metaDescription:
+        'Noleggio carrozzina elettrica pieghevole per uso interno ed esterno. Ottima come carrozzina elettrica per anziani e carrozzina elettrica per disabili.',
       description: [
         '<h3>Carrozzina elettrica pieghevole da uso esterno ed interno: compatta, leggera e pratica!</h3>',
         '<p>La carrozzina elettrica pieghevole Fantastica a noleggio è la soluzione ideale per chi cerca un ausilio pratico e affidabile, pensato per <strong>uso esterno e interno</strong>, perfetto per anziani e persone con disabilità che desiderano maggiore autonomia negli spostamenti quotidiani.</p>',
@@ -72,13 +68,15 @@ export const fantasticaElectric = electricWheelchairsAndScootersHire.rental({
     en: {
       title: 'FANTASTICA folding electric wheelchair for hire',
       slug: 'noleggio-carrozzina-elettrica-fantastica',
-      shortDescription: 'Electric wheelchair hire FANTASTICA Compact, lightweight and fully electric. Battery extractable lithium, convenient to recharge anywhere. Free delivery in Rome and Florence for rentals of 30 days or more! Home delivery: €30 + €30 for collection. Collection from the warehouse is free of charge. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'Electric wheelchair hire FANTASTICA Compact, lightweight and fully electric. Battery extractable lithium, convenient to recharge anywhere. Free delivery in Rome and Florence for rentals of 30 days or more! Home delivery: €30 + €30 for collection. Collection from the warehouse is free of charge. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'FANTASTICA folding electric wheelchair hire',
-      metaDescription: 'Hire the Fantastica folding electric wheelchair for indoors and out: 18 kg without its battery, removable lithium pack, ambidextrous joystick.',
+      metaDescription:
+        'Hire the Fantastica folding electric wheelchair for indoors and out: 18 kg without its battery, removable lithium pack, ambidextrous joystick.',
       description: [
         '<h3>Foldable electric wheelchair for indoor and outdoor use: compact, lightweight and practical!</h3>',
         '<p>The rental Fantastica folding electric wheelchair is the ideal solution for anyone looking for a practical and reliable aid, designed for <strong>for indoor and outdoor use</strong>, perfect for elderly people and people with disabilities who want greater independence in their daily travel.</p>',
-        '<p>It\'s a <strong>electric wheelchair for the elderly and disabled</strong> designed to guarantee comfort, safety and ease of use, both indoors and outdoors.</p>',
+        "<p>It's a <strong>electric wheelchair for the elderly and disabled</strong> designed to guarantee comfort, safety and ease of use, both indoors and outdoors.</p>",
         '<p>Thanks to its compact design, it is also a valuable <strong>electric wheelchair for outdoor use</strong>, ideal for walks, trips and getting around town.</p>',
         '<p>Its compact size and fold-out mechanism mean it can be folded away quickly, taking up very little space: perfect for carrying in the car or on public transport.</p>',
         '<p>With a weight of <strong>only 16 kg without battery</strong>, it is one of the lightest folding electric wheelchairs in its category.</p>',
@@ -86,7 +84,7 @@ export const fantasticaElectric = electricWheelchairsAndScootersHire.rental({
         '<p><strong>Ultra-light and transportable</strong><br />With just <strong>18 kg without battery</strong>, it is easy to lift, load and store, even for carers or family members.</p>',
         '<p><strong>Foldable and compact</strong><br />The fold-flat design reduces the footprint to a minimum, making it perfect for tight spaces and travel.</p>',
         '<p><strong>Indoor and outdoor use</strong><br />This <strong>folding electric wheelchair</strong> it is ideal for indoor and outdoor use. Handy and stable, it fits naturally into home environments as well as for walks and urban travel.</p>',
-        '<p><strong>Ambidextrous joystick</strong><br />The joystick can be positioned <strong>right or left</strong>, ensuring intuitive and customisable control according to the user\'s needs.</p>',
+        "<p><strong>Ambidextrous joystick</strong><br />The joystick can be positioned <strong>right or left</strong>, ensuring intuitive and customisable control according to the user's needs.</p>",
         '<p><strong>Removable lithium battery</strong><br />Equipped with <strong>lithium battery</strong>, easily removable for practical and quick charging, even without moving the entire wheelchair.</p>',
         '<p><strong>Load capacity up to 120 kg</strong><br />Solid and reliable structure, with <strong>maximum load capacity of 120 kg</strong>. Also available are versions with <strong>larger sizes and capacity up to 150 kg</strong>.</p>',
         '<h2>Main features</h2>',
@@ -117,7 +115,10 @@ export const fantasticaElectric = electricWheelchairsAndScootersHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'fantastica-electric-1.png', alt: { it: 'Noleggio carrozzina elettrica pieghevole' } },
+    thumbnail: {
+      file: 'fantastica-electric-1.png',
+      alt: { it: 'Noleggio carrozzina elettrica pieghevole' },
+    },
   },
 
   addons: [homeDeliveryOnly(30), homeCollection(30)],

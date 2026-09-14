@@ -5,6 +5,8 @@
   import SearchIcon from '@lucide/svelte/icons/search';
   import type { InferResponseType } from 'hono/client';
 
+  import { goto } from '$app/navigation';
+
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
@@ -149,10 +151,7 @@
         <Table.Body>
           {#each rows as post (post.id)}
             {@const meta = blogStatusMeta(post.status)}
-            <Table.Row
-              class="cursor-pointer"
-              onclick={() => window.location.assign(routes.blogDetail(post.id))}
-            >
+            <Table.Row class="cursor-pointer" onclick={() => void goto(routes.blogDetail(post.id))}>
               <Table.Cell>
                 <p class="font-medium">{postTitle(post)}</p>
                 {#if post.translations?.it?.slug}

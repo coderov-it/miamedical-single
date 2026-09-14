@@ -113,17 +113,17 @@ const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalHref} />
-    {
-      showAlternates && (
-        <>
-          {alternates.map((alternate) => (
-            <link rel="alternate" hreflang={alternate.code} href={alternate.href} />
-          ))}
-          {/* What a visitor whose language is none of ours should be served. */}
-          {sourceAlternate && <link rel="alternate" hreflang="x-default" href={sourceAlternate.href} />}
-        </>
-      )
-    }
+    {showAlternates && (
+      <>
+        {alternates.map((alternate) => (
+          <link rel="alternate" hreflang={alternate.code} href={alternate.href} />
+        ))}
+        {/* What a visitor whose language is none of ours should be served. */}
+        {sourceAlternate && (
+          <link rel="alternate" hreflang="x-default" href={sourceAlternate.href} />
+        )}
+      </>
+    )}
     <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
     <link rel="icon" type="image/png" href="/favicon.png" sizes="512x512" />
@@ -139,8 +139,7 @@ const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE
     <meta property="og:url" content={canonicalHref} />
     {ogImage && <meta property="og:image" content={ogImage} />}
 
-    {
-      /*
+    {/*
         TWO preloads, for the two faces that both paint above the fold on every
         page (see theme.css § fonts): Lexend dresses the sticky header and every
         heading — including the h1, which is the LCP element on most pages and
@@ -153,8 +152,7 @@ const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE
         first round trip on the files that need it least. Inter is not preloaded
         at all — nothing has referenced it since 2026-08-31, and an unreferenced
         face downloads nothing.
-      */
-    }
+      */}
     <link
       rel="preload"
       href="/fonts/lexend-variable-latin.woff2"
@@ -170,11 +168,9 @@ const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE
       crossorigin
     />
 
-    {
-      jsonLd.map((block) => (
-        <script type="application/ld+json" is:inline set:html={serializeJsonLd(block)} />
-      ))
-    }
+    {jsonLd.map((block) => (
+      <script type="application/ld+json" is:inline set:html={serializeJsonLd(block)}></script>
+    ))}
 
     <slot name="head" />
   </head>

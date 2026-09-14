@@ -26,9 +26,11 @@ export const paddedCommodeChair = accessoriesSale.fixed({
     it: {
       title: 'Vendita Sedia comoda imbottita',
       slug: 'vendita-sedia-comoda-imbottita',
-      shortDescription: 'Vendita Sedia Comoda Vendita della sedia comoda imbottita con dimensioni ridotte. È essenziale ma completa nei particolari. Completamente smontabile. DISPONIBILITÀ IMMEDIATA IN TUTTA L’ITALIA',
+      shortDescription:
+        'Vendita Sedia Comoda Vendita della sedia comoda imbottita con dimensioni ridotte. È essenziale ma completa nei particolari. Completamente smontabile. DISPONIBILITÀ IMMEDIATA IN TUTTA L’ITALIA',
       metaTitle: 'Vendita Sedia comoda imbottita per anziani - Mia Medical Italia',
-      metaDescription: 'Vendita Sedia comoda imbottita per anziani leggera. Prezzo imbattibile! Disponibilità immediata. consegna gratuità . chiamaci subito.!',
+      metaDescription:
+        'Vendita Sedia comoda imbottita per anziani leggera. Prezzo imbattibile! Disponibilità immediata. consegna gratuità . chiamaci subito.!',
       description: [
         '<h2><strong>Vendita Sedia Comoda Imbottita Multifunzionale: Comfort, sicurezza e autonomia per l’igiene quotidiana</strong></h2>',
         '<p>La&nbsp;<strong>sedia comoda imbottita multifunzionale</strong>&nbsp;è un ausilio sanitario progettato per offrire&nbsp;<strong>massima praticità, comfort e sicurezza</strong>&nbsp;alle persone con difficoltà motorie, anziani o pazienti in fase post-operatoria.</p>',
@@ -73,9 +75,11 @@ export const paddedCommodeChair = accessoriesSale.fixed({
     en: {
       title: 'Padded commode chair, for sale',
       slug: 'vendita-sedia-comoda-imbottita',
-      shortDescription: 'Commode chair for sale. A padded commode chair with a small footprint — pared back but complete in the details. Comes fully apart. AVAILABLE IMMEDIATELY ACROSS ITALY',
+      shortDescription:
+        'Commode chair for sale. A padded commode chair with a small footprint — pared back but complete in the details. Comes fully apart. AVAILABLE IMMEDIATELY ACROSS ITALY',
       metaTitle: 'Padded commode chair for older users for sale - Mia Medical Italia',
-      metaDescription: 'Light padded commode chair for older users, for sale. Unbeatable price, available immediately, free delivery — call us.',
+      metaDescription:
+        'Light padded commode chair for older users, for sale. Unbeatable price, available immediately, free delivery — call us.',
       description: [
         '<h2><strong>Sale of Multifunctional Padded Commode Chair: Comfort, safety and independence for daily hygiene</strong></h2>',
         '<p>La&nbsp;<strong>comfortable upholstered multifunctional chair</strong>&nbsp;it is a medical aid designed to offer&nbsp;<strong>maximum practicality, comfort and safety</strong>&nbsp;to people with mobility difficulties, the elderly or post-operative patients.</p>',

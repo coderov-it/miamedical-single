@@ -73,129 +73,119 @@ const chipClass =
 
     <header class="pt-2 pb-8">
       <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{heading}</h1>
-      <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">
-        {translate(locale, 'blog.intro')}
-      </p>
-      {
-        meta.total > 0 && (
-          <p class="font-display text-ui text-ink-2 mt-3.5 font-semibold">
-            {`${meta.total} ${translate(locale, meta.total === 1 ? 'blog.article.one' : 'blog.article.many')}`}
-            {meta.pageCount > 1 && (
-              <span>{` · ${translate(locale, 'blog.page', { page: meta.page, total: meta.pageCount })}`}</span>
-            )}
-          </p>
-        )
-      }
+      <p class="text-lead text-ink-2 mt-3 max-w-[56ch]">{translate(locale, 'blog.intro')}</p>
+      {meta.total > 0 && (
+        <p class="font-display text-ui text-ink-2 mt-3.5 font-semibold">
+          {`${meta.total} ${translate(locale, meta.total === 1 ? 'blog.article.one' : 'blog.article.many')}`}
+          {meta.pageCount > 1 && (
+            <span>{` · ${translate(locale, 'blog.page', { page: meta.page, total: meta.pageCount })}`}</span>
+          )}
+        </p>
+      )}
     </header>
 
-    {
-      categories.length > 0 && (
-        <section class="pb-10" aria-labelledby="browse-categories">
-          <h2 id="browse-categories" class="sr-only">
-            {translate(locale, 'blog.categories')}
-          </h2>
-          <ul class="flex flex-wrap gap-2">
+    {categories.length > 0 && (
+      <section class="pb-10" aria-labelledby="browse-categories">
+        <h2 id="browse-categories" class="sr-only">
+          {translate(locale, 'blog.categories')}
+        </h2>
+        <ul class="flex flex-wrap gap-2">
+          <li>
+            <a
+              class:list={[
+                chipClass,
+                !categoria ? 'bg-accent-tint text-accent' : 'bg-tint text-ink hover:bg-tint-2',
+              ]}
+              href={blogPath({}, locale)}
+              aria-current={!categoria ? 'true' : undefined}
+            >
+              {translate(locale, 'blog.all')}
+            </a>
+          </li>
+          {categories.map((cat) => (
             <li>
               <a
                 class:list={[
                   chipClass,
-                  !categoria ? 'bg-accent-tint text-accent' : 'bg-tint text-ink hover:bg-tint-2',
+                  cat.slug === categoria
+                    ? 'bg-accent-tint text-accent'
+                    : 'bg-tint text-ink hover:bg-tint-2',
                 ]}
-                href={blogPath({}, locale)}
-                aria-current={!categoria ? 'true' : undefined}
+                href={blogPath({ categoria: cat.slug }, locale)}
+                aria-current={cat.slug === categoria ? 'true' : undefined}
               >
-                {translate(locale, 'blog.all')}
+                {pickLocalized(cat.name as Localized, locale)}
               </a>
             </li>
-            {categories.map((cat) => (
-              <li>
-                <a
-                  class:list={[
-                    chipClass,
-                    cat.slug === categoria
-                      ? 'bg-accent-tint text-accent'
-                      : 'bg-tint text-ink hover:bg-tint-2',
-                  ]}
-                  href={blogPath({ categoria: cat.slug }, locale)}
-                  aria-current={cat.slug === categoria ? 'true' : undefined}
-                >
-                  {pickLocalized(cat.name as Localized, locale)}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
+          ))}
+        </ul>
+      </section>
+    )}
 
     <section aria-labelledby="posts-title">
-      <h2 id="posts-title" class="sr-only">{translate(locale, 'blog.posts')}</h2>
+      <h2 id="posts-title" class="sr-only">
+        {translate(locale, 'blog.posts')}
+      </h2>
 
-      {
-        posts.length === 0 ? (
-          <div class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6">
-            <p class="font-display text-h4 font-semibold">
-              {translate(locale, 'blog.empty.title')}
-            </p>
-            <p>{translate(locale, 'blog.empty.detail')}</p>
-          </div>
-        ) : (
-          <ul class="wide:grid-cols-3 mid:grid-cols-2 grid grid-cols-1 gap-5">
-            {posts.map((post, index) => (
-              <li class="flex">
-                <BlogPostCard {post} priority={isFirstPage && index === 0} headingLevel={3} />
-              </li>
-            ))}
-          </ul>
-        )
-      }
+      {posts.length === 0 ? (
+        <div class="rounded-card bg-tint mid:p-8 grid justify-items-start gap-4 p-6">
+          <p class="font-display text-h4 font-semibold">{translate(locale, 'blog.empty.title')}</p>
+          <p>{translate(locale, 'blog.empty.detail')}</p>
+        </div>
+      ) : (
+        <ul class="wide:grid-cols-3 mid:grid-cols-2 grid grid-cols-1 gap-5">
+          {posts.map((post, index) => (
+            <li class="flex">
+              <BlogPostCard {post} priority={isFirstPage && index === 0} headingLevel={3} />
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
 
-    {
-      meta.pageCount > 1 && (
-        <nav
-          class="border-hair mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6"
-          aria-label="Pagine del blog"
-        >
-          {prevUrl ? (
-            <a
-              class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
-              href={prevUrl}
-              rel="prev"
-            >
-              {translate(locale, 'blog.previous')}
-            </a>
-          ) : (
-            <span
-              class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
-              aria-hidden="true"
-            >
-              {translate(locale, 'blog.previous')}
-            </span>
-          )}
+    {meta.pageCount > 1 && (
+      <nav
+        class="border-hair mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6"
+        aria-label="Pagine del blog"
+      >
+        {prevUrl ? (
+          <a
+            class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+            href={prevUrl}
+            rel="prev"
+          >
+            {translate(locale, 'blog.previous')}
+          </a>
+        ) : (
+          <span
+            class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
+            aria-hidden="true"
+          >
+            {translate(locale, 'blog.previous')}
+          </span>
+        )}
 
-          <p class="font-display text-ui text-ink-2 font-semibold">
-            {translate(locale, 'blog.page', { page: meta.page, total: meta.pageCount })}
-          </p>
+        <p class="font-display text-ui text-ink-2 font-semibold">
+          {translate(locale, 'blog.page', { page: meta.page, total: meta.pageCount })}
+        </p>
 
-          {nextUrl ? (
-            <a
-              class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
-              href={nextUrl}
-              rel="next"
-            >
-              {translate(locale, 'blog.next')}
-            </a>
-          ) : (
-            <span
-              class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
-              aria-hidden="true"
-            >
-              {translate(locale, 'blog.next')}
-            </span>
-          )}
-        </nav>
-      )
-    }
+        {nextUrl ? (
+          <a
+            class="font-display text-ui-strong bg-tint text-ink hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline"
+            href={nextUrl}
+            rel="next"
+          >
+            {translate(locale, 'blog.next')}
+          </a>
+        ) : (
+          <span
+            class="font-display text-ui-strong bg-tint text-ink-2 hover:bg-tint-2 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full px-7 font-semibold no-underline opacity-60"
+            aria-hidden="true"
+          >
+            {translate(locale, 'blog.next')}
+          </span>
+        )}
+      </nav>
+    )}
   </div>
 </BaseLayout>

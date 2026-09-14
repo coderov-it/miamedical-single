@@ -23,9 +23,11 @@ export const slimTransitSale = wheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina SLIM da transito – Piccole dimensioni',
       slug: 'vendita-carrozzina-slim-da-transito-piccole-dimensioni',
-      shortDescription: 'Vendita Carrozzina Slim di Transito Ideale per gli spazi ridotti! Consegna gratuita in tutta Italia. Disponibilità immediata.',
+      shortDescription:
+        'Vendita Carrozzina Slim di Transito Ideale per gli spazi ridotti! Consegna gratuita in tutta Italia. Disponibilità immediata.',
       metaTitle: 'Carrozzina da Transito piccole dimensioni SLIM | Vendita',
-      metaDescription: 'La carrozzina da transito piccole dimensioni SLIM è ideale per passaggi stretti, ascensori e uso domestico. Leggera, pieghevole e sanificata.',
+      metaDescription:
+        'La carrozzina da transito piccole dimensioni SLIM è ideale per passaggi stretti, ascensori e uso domestico. Leggera, pieghevole e sanificata.',
       description: [
         '<p>La <strong>carrozzina da transito piccole dimensioni</strong> SLIM è progettata per garantire massima maneggevolezza in spazi ridotti. Ideale per uso domestico e assistenza, rappresenta la soluzione perfetta per chi necessita di una sedia a rotelle compatta, pratica e facilmente trasportabile.</p>',
         '<p>Grazie alla sua struttura stretta, è perfetta per muoversi agilmente in ambienti con passaggi limitati come bagni, ascensori e corridoi.</p>',
@@ -59,9 +61,11 @@ export const slimTransitSale = wheelchairsSale.fixed({
     en: {
       title: 'Small SLIM transit wheelchair for sale',
       slug: 'vendita-carrozzina-slim-da-transito-piccole-dimensioni',
-      shortDescription: 'Slim transit wheelchair for sale. Ideal where space is tight. Free delivery across Italy. Available immediately.',
+      shortDescription:
+        'Slim transit wheelchair for sale. Ideal where space is tight. Free delivery across Italy. Available immediately.',
       metaTitle: 'Small SLIM transit wheelchair | For sale',
-      metaDescription: 'Buy the narrow SLIM transit wheelchair: 40 or 43 cm seat, folding frame, twin brakes, rated to 80 kg. Free delivery across Italy.',
+      metaDescription:
+        'Buy the narrow SLIM transit wheelchair: 40 or 43 cm seat, folding frame, twin brakes, rated to 80 kg. Free delivery across Italy.',
       description: [
         '<p>La <strong>compact transit wheelchair</strong> SLIM is designed to guarantee maximum manoeuvrability in confined spaces. Ideal for home use and caregiving, it is the perfect solution for anyone in need of a compact, practical and easily transportable wheelchair.</p>',
         '<p>Thanks to its narrow frame, it is perfect for moving around smoothly in tight spaces such as bathrooms, lifts and corridors.</p>',
@@ -105,10 +109,11 @@ export const slimTransitSale = wheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'slim-transit-1.jpg', alt: { it: 'Affitto carrozzina per disabili di piccole dimensioni' } },
-    gallery: [
-      'slim-transit-2.jpg',
-    ],
+    thumbnail: {
+      file: 'slim-transit-1.jpg',
+      alt: { it: 'Affitto carrozzina per disabili di piccole dimensioni' },
+    },
+    gallery: ['slim-transit-2.jpg'],
   },
   terms: [generalTerms],
 });

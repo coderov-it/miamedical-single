@@ -62,120 +62,116 @@ const segPill =
 
   <div class="border-hair shadow-pdp-card rounded-[14px] border bg-white p-6">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-3.5 gap-y-4">
-      {
-        questions.map((question) => {
-          const name = `${QUESTION_PREFIX}${question.key}`;
-          const promptId = `q-${question.id}-label`;
-          const wide = isWide(question);
-          /* Every required question is gated, whatever kind it is: the option
+      {questions.map((question) => {
+        const name = `${QUESTION_PREFIX}${question.key}`;
+        const promptId = `q-${question.id}-label`;
+        const wide = isWide(question);
+        /* Every required question is gated, whatever kind it is: the option
              groups never carried `required` at all, and the ones that did lose
              native validation the moment the script turns it off. */
-          const gate = question.isRequired ? `question-${question.id}` : undefined;
+        const gate = question.isRequired ? `question-${question.id}` : undefined;
 
-          if (question.options.length > 0 || question.valueType === 'boolean') {
-            const multiple = question.valueType === 'multi_select';
-            const options =
-              question.options.length > 0
-                ? question.options.map((option) => ({
-                    key: option.id,
-                    value: option.value,
-                    label: option.label,
-                  }))
-                : [
-                    { key: 'yes', value: BOOLEAN_VALUES.yes, label: t('yes') },
-                    { key: 'no', value: BOOLEAN_VALUES.no, label: t('no') },
-                  ];
+        if (question.options.length > 0 || question.valueType === 'boolean') {
+          const multiple = question.valueType === 'multi_select';
+          const options =
+            question.options.length > 0
+              ? question.options.map((option) => ({
+                  key: option.id,
+                  value: option.value,
+                  label: option.label,
+                }))
+              : [
+                  { key: 'yes', value: BOOLEAN_VALUES.yes, label: t('yes') },
+                  { key: 'no', value: BOOLEAN_VALUES.no, label: t('no') },
+                ];
 
-            return (
-              <div
-                class:list={[cell, wide && 'col-span-full']}
-                role="group"
-                aria-labelledby={promptId}
-                data-gate={gate}
-              >
-                <span class={promptLabel} id={promptId}>
-                  {question.prompt}
-                  <RequiredMark on={question.isRequired} />
-                </span>
-                <span class="flex flex-wrap items-end gap-2">
-                  {options.map((option, index) => (
-                    <span class="flex min-w-24 flex-1">
-                      {/*
+          return (
+            <div
+              class:list={[cell, wide && 'col-span-full']}
+              role="group"
+              aria-labelledby={promptId}
+              data-gate={gate}
+            >
+              <span class={promptLabel} id={promptId}>
+                {question.prompt}
+                <RequiredMark on={question.isRequired} />
+              </span>
+              <span class="flex flex-wrap items-end gap-2">
+                {options.map((option, index) => (
+                  <span class="flex min-w-24 flex-1">
+                    {/*
                         `required` on ONE radio requires the whole group, which is
                         what the no-JavaScript path needs. It is deliberately not
                         set on checkboxes: there it would demand every box be
                         ticked rather than one of them, so a required multi-select
                         is left to the gate and to the server.
                       */}
-                      <input
-                        class="peer sr-only"
-                        type={multiple ? 'checkbox' : 'radio'}
-                        name={name}
-                        id={`q-${question.id}-${option.key}`}
-                        value={option.value}
-                        required={question.isRequired && !multiple && index === 0}
-                      />
-                      <label class={segPill} for={`q-${question.id}-${option.key}`}>
-                        {option.label}
-                      </label>
-                    </span>
-                  ))}
-                </span>
-                <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
-              </div>
-            );
-          }
+                    <input
+                      class="peer sr-only"
+                      type={multiple ? 'checkbox' : 'radio'}
+                      name={name}
+                      id={`q-${question.id}-${option.key}`}
+                      value={option.value}
+                      required={question.isRequired && !multiple && index === 0}
+                    />
+                    <label class={segPill} for={`q-${question.id}-${option.key}`}>
+                      {option.label}
+                    </label>
+                  </span>
+                ))}
+              </span>
+              <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
+            </div>
+          );
+        }
 
-          if (question.valueType === 'text') {
-            return (
-              <div class:list={[cell, 'col-span-full']} data-gate={gate}>
-                <label class={promptLabel} for={`q-${question.id}`}>
-                  {question.prompt}
-                  <RequiredMark on={question.isRequired} />
-                </label>
-                <textarea
-                  id={`q-${question.id}`}
-                  class:list={[textInput, 'resize-y self-end']}
-                  name={name}
-                  rows="2"
-                  maxlength={question.maxLength ?? 300}
-                  required={question.isRequired}
-                />
-                <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
-              </div>
-            );
-          }
-
+        if (question.valueType === 'text') {
           return (
-            <div class={cell} data-gate={gate}>
+            <div class:list={[cell, 'col-span-full']} data-gate={gate}>
               <label class={promptLabel} for={`q-${question.id}`}>
                 {question.prompt}
                 <RequiredMark on={question.isRequired} />
               </label>
-              <input
+              <textarea
                 id={`q-${question.id}`}
-                class:list={[textInput, 'self-end']}
+                class:list={[textInput, 'resize-y self-end']}
                 name={name}
-                type={
-                  question.valueType === 'number'
-                    ? 'number'
-                    : question.valueType === 'date'
-                      ? 'date'
-                      : 'text'
-                }
-                min={question.min ?? undefined}
-                max={question.max ?? undefined}
-                maxlength={
-                  question.valueType === 'string' ? (question.maxLength ?? 300) : undefined
-                }
+                rows="2"
+                maxlength={question.maxLength ?? 300}
                 required={question.isRequired}
-                inputmode={question.valueType === 'number' ? 'numeric' : undefined}
-              />
+              ></textarea>
               <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
             </div>
           );
-        })
-      }
+        }
+
+        return (
+          <div class={cell} data-gate={gate}>
+            <label class={promptLabel} for={`q-${question.id}`}>
+              {question.prompt}
+              <RequiredMark on={question.isRequired} />
+            </label>
+            <input
+              id={`q-${question.id}`}
+              class:list={[textInput, 'self-end']}
+              name={name}
+              type={
+                question.valueType === 'number'
+                  ? 'number'
+                  : question.valueType === 'date'
+                    ? 'date'
+                    : 'text'
+              }
+              min={question.min ?? undefined}
+              max={question.max ?? undefined}
+              maxlength={question.valueType === 'string' ? (question.maxLength ?? 300) : undefined}
+              required={question.isRequired}
+              inputmode={question.valueType === 'number' ? 'numeric' : undefined}
+            />
+            <FieldFoot help={question.helpText} gate={gate} prompt={question.prompt} />
+          </div>
+        );
+      })}
     </div>
   </div>
 </section>

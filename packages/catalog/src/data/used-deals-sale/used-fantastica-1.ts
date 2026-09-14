@@ -24,9 +24,11 @@ export const usedFantastica1 = usedDealsSale.fixed({
     it: {
       title: 'Vendita carrozzina usata modello “Fantastica” 1',
       slug: 'vendita-carrozzina-usata-modello-fantastica-1',
-      shortDescription: 'Carrozzina elettrica fantastica Compatta e pieghevole per uso interno ed esterno. Solo 16 kg senza batteria, facile da trasportare. Maneggevole, con chiusura a libretto e joystick ambidestro. La batteria è estraibile per una ricarica pratica e veloce',
+      shortDescription:
+        'Carrozzina elettrica fantastica Compatta e pieghevole per uso interno ed esterno. Solo 16 kg senza batteria, facile da trasportare. Maneggevole, con chiusura a libretto e joystick ambidestro. La batteria è estraibile per una ricarica pratica e veloce',
       metaTitle: 'Vendita carrozzina usata modello "Fantastica" 1 - Mia Medical Italia',
-      metaDescription: 'Carrozzina usata modello fantastica in vendita. Disponibilità immediata. Consegna rapida 24/48h. Il miglior rapporto qualità prezzo sul mercato! Chiama ora.',
+      metaDescription:
+        'Carrozzina usata modello fantastica in vendita. Disponibilità immediata. Consegna rapida 24/48h. Il miglior rapporto qualità prezzo sul mercato! Chiama ora.',
       description: [
         '<p>La carrozzina elettrica <strong>Fantastica</strong> è pensata per uso interno ed esterno. <br />Ha dimensioni ridotte, per ingombri piccoli.<br />Maneggevole e con chiusura a libretto. <br />Joystick posizionabile a sinistra o destra. <br />La batteria è estraibile facilmente. <br />Il peso della carrozzina senza la batteria è di soli 16kg !!! </p>',
         '<p>Portata fino a 130kg.</p>',
@@ -42,9 +44,11 @@ export const usedFantastica1 = usedDealsSale.fixed({
     en: {
       title: 'Used "Fantastica" wheelchair 1, for sale',
       slug: 'vendita-carrozzina-usata-modello-fantastica-1',
-      shortDescription: 'Fantastic electric wheelchair Compact and foldable for indoor and outdoor use. Only 16 kg without battery, easy to transport. Handy, with booklet closure and ambidextrous joystick. The battery is removable for quick and convenient charging',
+      shortDescription:
+        'Fantastic electric wheelchair Compact and foldable for indoor and outdoor use. Only 16 kg without battery, easy to transport. Handy, with booklet closure and ambidextrous joystick. The battery is removable for quick and convenient charging',
       metaTitle: 'Used "Fantastica" wheelchair 1 for sale - Mia Medical Italia',
-      metaDescription: 'Used Fantastica wheelchair for sale. Available immediately, delivered in 24–48 hours. The best quality for the money.',
+      metaDescription:
+        'Used Fantastica wheelchair for sale. Available immediately, delivered in 24–48 hours. The best quality for the money.',
       description: [
         '<p>The electric wheelchair <strong>Fantastic</strong> is designed for indoor and outdoor use. <br />It has small dimensions for small footprints.<br />Handy and with booklet closure. <br />Joystick can be positioned to the left or right. <br />The battery is easily removable. <br />The weight of the wheelchair without the battery is only 16kg !!! </p>',
         '<p>Load capacity up to 130kg.</p>',

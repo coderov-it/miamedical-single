@@ -88,86 +88,80 @@ const bodyGap = heading || showCount ? 'mt-3.5' : '';
 ---
 
 <section aria-labelledby="products-title">
-  {
-    heading ? (
-      <Fragment>
-        <h2 class="text-[1.375rem]/[1.28] font-bold" id="products-title">
-          {heading}
-        </h2>
-        <span class="sr-only">{countLabel}</span>
-      </Fragment>
-    ) : (
-      <h2 class:list={[showCount ? 'text-ink-2 font-semibold' : 'sr-only']} id="products-title">
-        {countLabel}
+  {heading ? (
+    <Fragment>
+      <h2 class="text-[1.375rem]/[1.28] font-bold" id="products-title">
+        {heading}
       </h2>
-    )
-  }
+      <span class="sr-only">{countLabel}</span>
+    </Fragment>
+  ) : (
+    <h2 class:list={[showCount ? 'text-ink-2 font-semibold' : 'sr-only']} id="products-title">
+      {countLabel}
+    </h2>
+  )}
 
-  {
-    products.length === 0 ? (
-      <div
-        class:list={[
-          'rounded-card border-hair mid:p-8 grid justify-items-start gap-4 border bg-white p-6',
-          bodyGap,
-        ]}
-      >
-        <p class="text-[1.1875rem] font-bold">{translate(locale, 'catalog.empty')}</p>
-        <p class="text-ink-2">{translate(locale, 'catalog.helpDetail')}</p>
-        <PhoneCta variant="primary" />
-      </div>
-    ) : (
-      <ul
-        class:list={[
-          'mid:gap-4 max-mid:gap-3 grid grid-cols-1',
-          !asRow && 'wide:grid-cols-3 mid:grid-cols-2',
-          bodyGap,
-        ]}
-      >
-        {products.map((product, index) => (
-          <li class="flex">
-            <ProductCard
-              {product}
-              priority={meta.page === 1 && index === 0}
-              headingLevel={3}
-              row={asRow}
-              {context}
-            />
-          </li>
-        ))}
-      </ul>
-    )
-  }
+  {products.length === 0 ? (
+    <div
+      class:list={[
+        'rounded-card border-hair mid:p-8 grid justify-items-start gap-4 border bg-white p-6',
+        bodyGap,
+      ]}
+    >
+      <p class="text-[1.1875rem] font-bold">{translate(locale, 'catalog.empty')}</p>
+      <p class="text-ink-2">{translate(locale, 'catalog.helpDetail')}</p>
+      <PhoneCta variant="primary" />
+    </div>
+  ) : (
+    <ul
+      class:list={[
+        'mid:gap-4 max-mid:gap-3 grid grid-cols-1',
+        !asRow && 'wide:grid-cols-3 mid:grid-cols-2',
+        bodyGap,
+      ]}
+    >
+      {products.map((product, index) => (
+        <li class="flex">
+          <ProductCard
+            {product}
+            priority={meta.page === 1 && index === 0}
+            headingLevel={3}
+            row={asRow}
+            {context}
+          />
+        </li>
+      ))}
+    </ul>
+  )}
 </section>
 
-{
-  meta.pageCount > 1 && (
-    <nav
-      class="mt-8 flex flex-wrap items-center justify-between gap-4"
-      aria-label={translate(locale, 'catalog.pagination')}
-    >
-      {prevUrl ? (
-        <a class={pagerClass} href={prevUrl} rel="prev">
-          {translate(locale, 'catalog.previous')}
-        </a>
-      ) : (
-        <span class:list={[pagerClass, 'text-ink-2 opacity-60']} aria-hidden="true">
-          {translate(locale, 'catalog.previous')}
-        </span>
-      )}
+{meta.pageCount > 1 && (
+  <nav
+    class="mt-8 flex flex-wrap items-center justify-between gap-4"
+    aria-label={translate(locale, 'catalog.pagination')}
+  >
+    {prevUrl ? (
+      <a class={pagerClass} href={prevUrl} rel="prev">
+        {translate(locale, 'catalog.previous')}
+      </a>
+    ) : (
+      <span class:list={[pagerClass, 'text-ink-2 opacity-60']} aria-hidden="true">
+        {translate(locale, 'catalog.previous')}
+      </span>
+    )}
 
-      <p class="text-ink-2 font-semibold">
-        {translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}
-      </p>
+    <p class="text-ink-2 font-semibold">
+      {translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}
+    </p>
 
-      {nextUrl ? (
-        <a class={pagerClass} href={nextUrl} rel="next">
-          {translate(locale, 'catalog.next')}
-        </a>
-      ) : (
-        <span class:list={[pagerClass, 'text-ink-2 opacity-60']} aria-hidden="true">
-          {translate(locale, 'catalog.next')}
-        </span>
-      )}
-    </nav>
-  )
-}
+    {nextUrl ? (
+      <a class={pagerClass} href={nextUrl} rel="next">
+        {translate(locale, 'catalog.next')}
+      </a>
+    ) : (
+      <span class:list={[pagerClass, 'text-ink-2 opacity-60']} aria-hidden="true">
+        {translate(locale, 'catalog.next')}
+      </span>
+    )}
+  </nav>
+)}

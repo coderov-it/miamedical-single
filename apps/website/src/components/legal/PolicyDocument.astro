@@ -53,30 +53,28 @@ const effectiveDate = document?.publishedAt
     <article class="max-w-[78ch]">
       <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14]">{title}</h1>
 
-      {
-        document ? (
-          <Fragment>
-            <p class="text-ui text-ink-2 mt-3 mb-6">
-              {text('legal.version', { version: document.version })}
-              {effectiveDate && text('legal.effective', { date: effectiveDate })}
-            </p>
-            <div class="whitespace-pre-line">{body}</div>
-          </Fragment>
-        ) : (
-          <div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
-            <p>{text('legal.unpublished')}</p>
-            <p class="text-ui text-ink-2">{translate(locale, CONTACT_HOURS_KEY)}</p>
-            <PhoneCta variant="primary" />
-            <p>
-              {text('legal.orWriteTo')}{' '}
-              <a class="text-accent underline" href={`mailto:${CONTACT.email}`}>
-                {CONTACT.email}
-              </a>
-              .
-            </p>
-          </div>
-        )
-      }
+      {document ? (
+        <Fragment>
+          <p class="text-ui text-ink-2 mt-3 mb-6">
+            {text('legal.version', { version: document.version })}
+            {effectiveDate && text('legal.effective', { date: effectiveDate })}
+          </p>
+          <div class="whitespace-pre-line">{body}</div>
+        </Fragment>
+      ) : (
+        <div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
+          <p>{text('legal.unpublished')}</p>
+          <p class="text-ui text-ink-2">{translate(locale, CONTACT_HOURS_KEY)}</p>
+          <PhoneCta variant="primary" />
+          <p>
+            {text('legal.orWriteTo')}{' '}
+            <a class="text-accent underline" href={`mailto:${CONTACT.email}`}>
+              {CONTACT.email}
+            </a>
+            .
+          </p>
+        </div>
+      )}
     </article>
   </div>
 </BaseLayout>

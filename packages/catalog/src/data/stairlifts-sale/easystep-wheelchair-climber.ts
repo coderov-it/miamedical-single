@@ -29,9 +29,11 @@ export const easystepWheelchairClimber = stairliftsSale.fixed({
     it: {
       title: 'Vendita Montascale per carrozzina Easystep',
       slug: 'vendita-montascale-per-carrozzine-easystep',
-      shortDescription: 'Vendita Montascale per Carrozzine EasyStep. Seduta minima della carrozzina: 44cm. Adatto sia a carrozzine con ruote grandi che con ruote piccole. EasyStep è un montascale mobile motorizzato a cingoli per carrozzine, ideale per abitazioni private, condomini, strutture sanitarie e edifici pubblici. Non richiede installazione né lavori murari ed è pronto all’uso fin da subito. Portata fino a 200 kg.',
+      shortDescription:
+        'Vendita Montascale per Carrozzine EasyStep. Seduta minima della carrozzina: 44cm. Adatto sia a carrozzine con ruote grandi che con ruote piccole. EasyStep è un montascale mobile motorizzato a cingoli per carrozzine, ideale per abitazioni private, condomini, strutture sanitarie e edifici pubblici. Non richiede installazione né lavori murari ed è pronto all’uso fin da subito. Portata fino a 200 kg.',
       metaTitle: 'Vendita Montascale per Carrozzina EasyStep',
-      metaDescription: 'Acquista il Montascale EasyStep per carrozzine: sicurezza, autonomia e zero sforzo per salire e scendere scale. Consegna a domicilio.',
+      metaDescription:
+        'Acquista il Montascale EasyStep per carrozzine: sicurezza, autonomia e zero sforzo per salire e scendere scale. Consegna a domicilio.',
       description: [
         '<h2>Supera le scale senza sforzo con EasyStep – Montascale Mobile Universale in vendita</h2>',
         '<p>Non lasciare che le scale limitino la tua autonomia. Con la <strong>vendita montascale per carrozzine EasyStep</strong> di M.I.A. Medical Italia puoi salire e scendere scale in totale sicurezza, senza sforzo fisico e senza continui trasferimenti dalla tua carrozzina.</p>',
@@ -52,12 +54,14 @@ export const easystepWheelchairClimber = stairliftsSale.fixed({
     en: {
       title: 'Easystep wheelchair stair climber, for sale',
       slug: 'vendita-montascale-per-carrozzine-easystep',
-      shortDescription: 'EasyStep wheelchair stair climber for sale. Smallest wheelchair seat it takes: 44 cm. Suits wheelchairs with large wheels and small ones alike. EasyStep is a motorised mobile tracked stair climber for wheelchairs, made for private homes, blocks of flats, care settings and public buildings. It needs no installation and no building work, and it is ready to use straight away. Rated to 200 kg.',
+      shortDescription:
+        'EasyStep wheelchair stair climber for sale. Smallest wheelchair seat it takes: 44 cm. Suits wheelchairs with large wheels and small ones alike. EasyStep is a motorised mobile tracked stair climber for wheelchairs, made for private homes, blocks of flats, care settings and public buildings. It needs no installation and no building work, and it is ready to use straight away. Rated to 200 kg.',
       metaTitle: 'EasyStep wheelchair stair climber for sale',
-      metaDescription: 'Buy the EasyStep wheelchair stair climber: safe, independent, effortless stairs. Delivered to your door.',
+      metaDescription:
+        'Buy the EasyStep wheelchair stair climber: safe, independent, effortless stairs. Delivered to your door.',
       description: [
         '<h2>Glide up the stairs effortlessly with EasyStep – Universal Mobile Stairlift for sale</h2>',
-        '<p>Don\'t let the stairs limit your autonomy. With the <strong>EasyStep wheelchair lift for sale</strong> of M.I.A. Medical Italia you can ascend and descend stairs in total safety, without physical effort and without constant transferring from your wheelchair.</p>',
+        "<p>Don't let the stairs limit your autonomy. With the <strong>EasyStep wheelchair lift for sale</strong> of M.I.A. Medical Italia you can ascend and descend stairs in total safety, without physical effort and without constant transferring from your wheelchair.</p>",
         '<h2>Why choose EasyStep</h2>',
         '<ul><li><strong>Motorised track system</strong>stable and safe even on steep stairs.</li><li><strong>Compatible with most manual wheelchairs</strong> thanks to the adjustable platform.</li><li><strong>Load capacity up to 200 kg</strong>also ideal for transporting goods or heavy loads.</li><li><strong>Easy to use</strong>Simply position the wheelchair, dock it and press the button to get in or out.</li><li><strong>Guaranteed security</strong>electromagnetic brakes and high-grip tracks.</li></ul>',
         '<h2>Who can benefit from EasyStep</h2>',
@@ -66,7 +70,7 @@ export const easystepWheelchairClimber = stairliftsSale.fixed({
         '<ul><li>Quick delivery to Rome and Florence.</li><li>Practical training included: one of our technicians will show you how to use the device safely.</li><li>Guaranteed service and maintenance.</li><li>A one-off investment for your independence: no ongoing rentals and a ready-to-use product.</li></ul>',
         '<p><strong>Note:</strong> for weights above 100 kg we recommend two operators.</p>',
         '<p><strong>Contact us now</strong></p>',
-        '<p>Don\'t let the stairs be an obstacle. Buy your EasyStep today!</p>',
+        "<p>Don't let the stairs be an obstacle. Buy your EasyStep today!</p>",
         '<ul><li>Telephone: +39 392 65 09 237</li><li>WhatsApp: Write to us now</li><li>Email: info@miamedicalitalia.it</li></ul>',
         '<p>Also discover our <strong><a href="/en/rental-catalog/">rental of wheelchair lifts</a></strong></p>',
         '<p><strong>Tackle architectural barriers with EasyStep: safety, autonomy and zero effort.</strong></p>',

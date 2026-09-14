@@ -23,9 +23,11 @@ export const passepartoutMagnesium = electricWheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina Elettrica PassePartout in magnesio',
       slug: 'vendita-carrozzina-elettrica-passepartout-in-magnesio',
-      shortDescription: 'Libertà e leggerezza ogni giorno Carrozzina Elettrica Pieghevole Leggera ✔ Doppia batteria per più autonomia ✔ Pieghevole e trasportabile in auto ✔ Ruote grandi ad aria: stabile anche all’esterno ✔ Zaino + Doppia Batteria in omaggio Massima libertà di movimento, ogni giorno Prenota subito online! 📞 Oppure Contattaci ora per info e disponibilità Spedizione gratuita in tutta Italia.',
+      shortDescription:
+        'Libertà e leggerezza ogni giorno Carrozzina Elettrica Pieghevole Leggera ✔ Doppia batteria per più autonomia ✔ Pieghevole e trasportabile in auto ✔ Ruote grandi ad aria: stabile anche all’esterno ✔ Zaino + Doppia Batteria in omaggio Massima libertà di movimento, ogni giorno Prenota subito online! 📞 Oppure Contattaci ora per info e disponibilità Spedizione gratuita in tutta Italia.',
       metaTitle: 'Vendita carrozzina elettrica in magnesio Passepartout | 2 Batterie',
-      metaDescription: 'Vendita carrozzina elettrica PassePartout in magnesio pieghevole con doppia batteria, ruote grandi ad aria e autonomia fino a 20 km.',
+      metaDescription:
+        'Vendita carrozzina elettrica PassePartout in magnesio pieghevole con doppia batteria, ruote grandi ad aria e autonomia fino a 20 km.',
       description: [
         '<h2>Vendita carrozzina elettrica PassePartout in magnesio</h2>',
         '<p>Leggera, pieghevole e pronta ad accompagnarti ovunque.<br />La vendita carrozzina elettrica PassePartout in magnesio è pensata per offrire autonomia, comfort e sicurezza sia in casa che all’aperto.</p>',
@@ -69,9 +71,11 @@ export const passepartoutMagnesium = electricWheelchairsSale.fixed({
     en: {
       title: 'PassePartout magnesium electric wheelchair, for sale',
       slug: 'vendita-carrozzina-elettrica-passepartout-in-magnesio',
-      shortDescription: 'Freedom and lightness every day Lightweight Folding Electric Wheelchair ✔ Dual battery for extended range ✔ Foldable and transportable in the car ✔ Large pneumatic wheels: stable even outdoors ✔ Backpack + Dual Battery complimentary Maximum freedom of movement, every day Book online now! 📞 Or contact us now for info and availability Shipping free of charge throughout Italy.',
+      shortDescription:
+        'Freedom and lightness every day Lightweight Folding Electric Wheelchair ✔ Dual battery for extended range ✔ Foldable and transportable in the car ✔ Large pneumatic wheels: stable even outdoors ✔ Backpack + Dual Battery complimentary Maximum freedom of movement, every day Book online now! 📞 Or contact us now for info and availability Shipping free of charge throughout Italy.',
       metaTitle: 'Magnesium PassePartout electric wheelchair | Two batteries',
-      metaDescription: 'PassePartout folding magnesium electric wheelchair for sale, with two batteries, large pneumatic wheels and up to 20 km on a charge.',
+      metaDescription:
+        'PassePartout folding magnesium electric wheelchair for sale, with two batteries, large pneumatic wheels and up to 20 km on a charge.',
       description: [
         '<h2>PassePartout magnesium electric wheelchair for sale</h2>',
         '<p>Lightweight, foldable and ready to accompany you anywhere.<br />The sale of the PassePartout magnesium electric wheelchair is designed to offer autonomy, comfort and safety both indoors and outdoors.</p>',
@@ -124,18 +128,48 @@ export const passepartoutMagnesium = electricWheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'passepartout-magnesium-1.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
+    thumbnail: {
+      file: 'passepartout-magnesium-1.png',
+      alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+    },
     gallery: [
-      { file: 'passepartout-magnesium-2.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-3.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-4.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
+      {
+        file: 'passepartout-magnesium-2.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-3.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-4.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
       'passepartout-magnesium-5.png',
-      { file: 'passepartout-magnesium-6.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-7.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-8.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-9.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-10.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
-      { file: 'passepartout-magnesium-11.png', alt: { it: 'Vendita carrozzina elettrica in magnesio' } },
+      {
+        file: 'passepartout-magnesium-6.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-7.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-8.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-9.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-10.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
+      {
+        file: 'passepartout-magnesium-11.png',
+        alt: { it: 'Vendita carrozzina elettrica in magnesio' },
+      },
     ],
   },
   terms: [generalTerms],

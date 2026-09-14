@@ -27,20 +27,15 @@ const ExportQuerySchema = v.object({
 });
 
 export const paymentAdminRoutes = new Hono<AppEnv>()
-  .get(
-    '/',
-    requirePermission(P.PAYMENT_READ),
-    validate('query', PaymentQuerySchema),
-    async (c) => {
-      const query = c.req.valid('query');
-      const result = await service.list(c.get('db'), query);
-      return c.json({
-        data: result.rows.map(toPaymentSummary),
-        meta: toPageMeta(query.page, query.perPage, result.total),
-        stats: result.stats,
-      });
-    },
-  )
+  .get('/', requirePermission(P.PAYMENT_READ), validate('query', PaymentQuerySchema), async (c) => {
+    const query = c.req.valid('query');
+    const result = await service.list(c.get('db'), query);
+    return c.json({
+      data: result.rows.map(toPaymentSummary),
+      meta: toPageMeta(query.page, query.perPage, result.total),
+      stats: result.stats,
+    });
+  })
   .get(
     '/export',
     requirePermission(P.PAYMENT_READ),

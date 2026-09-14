@@ -23,21 +23,17 @@ export const globusMedisound3000 = ultrasoundHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 120),
-    days(30, 150),
-    days(45, 200),
-    days(60, 280),
-    days(90, 420),
-  ],
+  packages: [days(20, 120), days(30, 150), days(45, 200), days(60, 280), days(90, 420)],
 
   translations: {
     it: {
       title: 'Noleggio Ultrasuono GLOBUS Medisound 3000',
       slug: 'noleggio-ultrasuono-globus-medisound-3000',
-      shortDescription: 'Noleggio Ultrasuono Globus Medisound 3000 Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Ultrasuono Globus Medisound 3000 Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Ultrasuono GLOBUS Medisound 3000',
-      metaDescription: 'Noleggio Ultrasuono Glubus Medisound 3000 a partire da 4,00 Euro al giorno. Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare.',
+      metaDescription:
+        'Noleggio Ultrasuono Glubus Medisound 3000 a partire da 4,00 Euro al giorno. Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare.',
       description: [
         '<p><strong>Scopri il servizio di noleggio del dispositivo GLOBUS Medisound 3000, l’ultrasuonoterapico professionale ideale per trattare il dolore, ridurre l’infiammazione e favorire il recupero funzionale direttamente a casa. </strong></p>',
         '<h3>Cos’è l’Ultrasuonoterapia?</h3>',
@@ -78,9 +74,11 @@ export const globusMedisound3000 = ultrasoundHire.rental({
     en: {
       title: 'GLOBUS Medisound 3000 ultrasound, for hire',
       slug: 'noleggio-ultrasuono-globus-medisound-3000',
-      shortDescription: 'Globus Medisound 3000 Ultrasound Hire Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
+      shortDescription:
+        'Globus Medisound 3000 Ultrasound Hire Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. No deposit required!',
       metaTitle: 'GLOBUS Medisound 3000 ultrasound hire',
-      metaDescription: 'Globus Medisound 3000 ultrasound hire from €4.00 a day, delivered to your door. Safe, reliable machines that are easy to use.',
+      metaDescription:
+        'Globus Medisound 3000 ultrasound hire from €4.00 a day, delivered to your door. Safe, reliable machines that are easy to use.',
       description: [
         '<p><strong>Discover the rental service for the GLOBUS Medisound 3000 device, the ideal professional ultrasound therapy unit for treating pain, reducing inflammation and promoting functional recovery directly at home. </strong></p>',
         '<h3>What is Ultrasound Therapy?</h3>',
@@ -103,7 +101,7 @@ export const globusMedisound3000 = ultrasoundHire.rental({
         '<p><strong>When to use pulsed emission</strong></p>',
         '<ul><li>Acute inflammation</li><li>Tendinitis</li><li>Recent muscle injuries<br />Ideal for treating inflamed tissue without overheating it.</li></ul>',
         '<p><strong>Contact treatment</strong>is used with conductive gel on the skin.<br /><strong>Immersion treatment</strong>perfect for small and irregular areas (hands, feet), to be performed with the part immersed in water together with the handpiece.</p>',
-        '<h3>Expert\'s advice:</h3>',
+        "<h3>Expert's advice:</h3>",
         '<p>If in doubt about the most suitable setting, always ask your physiotherapist for advice or contact our team. Choosing the right programme and modality is crucial to achieving the <strong>better therapeutic results</strong>.</p>',
         '<h3>Contraindications and Possible Side Effects</h3>',
         '<p>WARNING: Use of the Medisound 3000 is <strong>CONTRAINDICATED</strong> in the following cases:</p>',
@@ -111,7 +109,7 @@ export const globusMedisound3000 = ultrasoundHire.rental({
         '<p><strong>Possible side effects:</strong></p>',
         '<ul><li>Redness or slight temporary skin irritation</li><li>Sensation of heat or muscle fatigue</li><li>Rarely transient discomfort in sensitive individuals</li></ul>',
         '<p>It is always recommended to consult a doctor before use.</p>',
-        '<h3>Mia Medical Italia\'s Rental Service: your health comes first</h3>',
+        "<h3>Mia Medical Italia's Rental Service: your health comes first</h3>",
         '<p>Hiring the GLOBUS Medisound 3000 represents a <strong>safe, cost-effective and flexible solution</strong> for those who wish to carry out a course of treatments at home or test the device before a possible purchase.</p>',
         '<p>With <strong>Mia Medical Italia</strong>you have access to a comprehensive and professional service:</p>',
         '<ul><li><strong>Certified and guaranteed devices</strong></li><li><strong>Free, personalised counselling</strong></li><li><strong>Dedicated customer support</strong></li><li><strong>Fast delivery throughout Italy</strong></li><li><strong>Usage support and detailed instructions</strong></li></ul>',

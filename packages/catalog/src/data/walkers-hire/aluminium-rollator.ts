@@ -35,22 +35,17 @@ export const aluminiumRollator = walkersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   translations: {
     it: {
       title: 'Noleggio deambulatore rollator in alluminio',
       slug: 'noleggio-deambulatore-rollatore-in-alluminio',
-      shortDescription: 'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio Deambulatore Rollator Pieghevole a Roma e Firenze',
-      metaDescription: 'Noleggio e vendita Deambulatore pieghevole leggero, freni e seduta. Migliore Prezzo Garantito. Fidati di noi. Siamo esperti nel noleggio e la vendita.',
+      metaDescription:
+        'Noleggio e vendita Deambulatore pieghevole leggero, freni e seduta. Migliore Prezzo Garantito. Fidati di noi. Siamo esperti nel noleggio e la vendita.',
       description: [
         '<p>Scopri il nostro rollator <strong>Oceano 2.0</strong> della linea <strong><a href="https://www.morettispa.com/mopedia/">MOPEDIA</a></strong>, l’ausilio perfetto per chi desidera muoversi con <strong>sicurezza</strong> e <strong>comodità</strong>. Grazie al suo <strong>design intelligente</strong> e alle sue <strong>numerose funzionalità</strong>, questo <strong>rollator pieghevole</strong> garantisce una <strong>mobilità completa</strong>, sia per <strong>l’uso quotidiano in casa</strong> che per brevi <strong>spostamenti all’esterno</strong>. Il <strong>noleggio del nostro rollator pieghevole a 4 ruote</strong> è la scelta ottimale per chi cerca <strong>qualità e praticità</strong> a <strong>Roma</strong> e <strong>Firenze</strong>.</p>',
         '<h4>Caratteristiche Tecniche e Funzionalità :</h4>',
@@ -72,16 +67,18 @@ export const aluminiumRollator = walkersHire.rental({
     en: {
       title: 'Aluminium rollator for hire',
       slug: 'noleggio-deambulatore-rollatore-in-alluminio',
-      shortDescription: 'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Folding rollator hire | Rome and Florence',
-      metaDescription: 'Hire or buy a light folding rollator with brakes and a seat. Best price guaranteed — we know hire and sale inside out.',
+      metaDescription:
+        'Hire or buy a light folding rollator with brakes and a seat. Best price guaranteed — we know hire and sale inside out.',
       description: [
         '<p>Discover our rollator <strong>Ocean 2.0</strong> of the line <strong><a href="https://www.morettispa.com/mopedia/">MOPEDIA</a></strong>the perfect aid for those who want to move with <strong>security</strong> e <strong>comfort</strong>. Thanks to its <strong>intelligent design</strong> and its <strong>numerous functionalities</strong>, this <strong>foldable rollator</strong> guarantees a <strong>full mobility</strong>both for <strong>daily use in the home</strong> that for short <strong>moving outside</strong>. The <strong>rental of our folding 4-wheel rollator</strong> is the optimal choice for those seeking <strong>quality and practicality</strong> a <strong>Rome</strong> e <strong>Florence</strong>.</p>',
         '<h4>Technical Features and Functionality :</h4>',
         '<ul><li><strong>Robust and Lightweight Structure:</strong> Made of painted aluminium tubing, the Oceano 2.0 rollator combines strength and lightness to ensure durability without weighing the user down.</li><li><strong>Foldable and Demountable Design:</strong> It facilitates transport and storage, making it perfect even for small spaces.</li><li><strong>4 Ø 20 cm wheels:</strong></li><li><strong>Pivoting fronts:</strong> Equipped with full fork and reflectors for increased visibility and manoeuvrability.</li><li><strong>Rear Fixed with Dual Function Brakes:</strong> They ensure stability and safety in every situation.</li><li><strong>Height-adjustable anatomic handles:</strong> They offer maximum comfort, adapting to individual needs and ensuring a secure grip, complete with reflector for added safety.</li><li><strong>Ultralight design,</strong> only <strong>7kg</strong>.</li><li><strong>Maximum capacity</strong> until <strong>136 kg.</strong></li></ul>',
         '<p><strong>Integrated Accessories:</strong></p>',
         '<ul><li><strong>Seat included:</strong> With optimal dimensions for a short rest while walking.</li><li><strong>Backrest, Bag and Baton/Bracket:</strong> All that is needed for complete and functional support.</li></ul>',
-        '<h4>Curiosity and Innovation: why choose the \'Oceano 2.0\' model</h4>',
+        "<h4>Curiosity and Innovation: why choose the 'Oceano 2.0' model</h4>",
         '<ul><li><strong>Revolutionary Design:</strong> The <strong>folding system</strong> and the <strong>integrated accessories</strong> make this rollator an ideal companion for those who want to experience every day as an adventure.</li><li><strong>A World of Comfort:</strong> Le <strong>adjustable anatomical handles</strong> and the <strong>built-in seat </strong>offer a <strong>tailor-made support</strong>, <strong>reducing fatigue</strong> e <strong>promoting correct posture.</strong></li><li><strong>Safety First:</strong> Details such as the <strong>reflectors</strong> and the <strong>dual-function brakes </strong>emphasise our commitment to ensuring the <strong>maximum safety in every movement.</strong></li></ul>',
         '<h4>Why choose Mia Medical Rollator Rental in Rome and Florence?</h4>',
         '<p><strong>Economic and Flexibility Benefits </strong></p>',
@@ -109,7 +106,10 @@ export const aluminiumRollator = walkersHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'aluminium-rollator-1.jpg', alt: { it: 'deambulatore rollatore de interno/esterno' } },
+    thumbnail: {
+      file: 'aluminium-rollator-1.jpg',
+      alt: { it: 'deambulatore rollatore de interno/esterno' },
+    },
     gallery: [
       'aluminium-rollator-2.jpg',
       'aluminium-rollator-3.jpg',

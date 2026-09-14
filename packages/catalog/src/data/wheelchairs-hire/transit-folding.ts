@@ -34,9 +34,11 @@ export const transitFolding = wheelchairsHire.rental({
     it: {
       title: 'Noleggio e Affitto carrozzina da transito pieghevole',
       slug: 'noleggio-carrozzina-pieghevole-da-transito',
-      shortDescription: 'Carrozzina personalizzabile Carrozzina con seduta personalizzabile e telaio pieghevole per massima praticità. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio a Roma e Firenze da 30€. Il ritiro in magazzino è gratuito. Prenota online ora!',
+      shortDescription:
+        'Carrozzina personalizzabile Carrozzina con seduta personalizzabile e telaio pieghevole per massima praticità. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Consegna e ritiro a domicilio a Roma e Firenze da 30€. Il ritiro in magazzino è gratuito. Prenota online ora!',
       metaTitle: 'Noleggio sedia a rotelle pieghevole da transito in Toscana e Lazio',
-      metaDescription: 'Noleggio sedia a rotelle pieghevole da transito a Roma e Firenze. Prenota online o al +393926509237. Consegna a domicilio. Disponibilità immediata.',
+      metaDescription:
+        'Noleggio sedia a rotelle pieghevole da transito a Roma e Firenze. Prenota online o al +393926509237. Consegna a domicilio. Disponibilità immediata.',
       description: [
         '<p>Il <strong>noleggio della sedia a rotelle pieghevole da transito</strong><strong>a Firenze e provincia e a Roma e provincia </strong>è indispensabile per le persone disabili, anziani, con ridotta capacità di deambulazione o per chi deve fare la riabilitazione.</p>',
         '<p>La carrozzina viene fornita con le <strong>pedane</strong> per i piedi ed i <strong>braccioli</strong>. Entrambi rimovibili in qualsiasi momento e con estrema facilità. Al momento della consegna un nostro tecnico vi farà vedere come chiudere e riaprire la sedia a rotelle e di conseguenza come montare e smontare braccioli e pedante. Inoltre la sedia a rotelle è dotata di due <strong>freni per poter bloccare le ruote.</strong></p>',
@@ -55,9 +57,11 @@ export const transitFolding = wheelchairsHire.rental({
     en: {
       title: 'Folding transit wheelchair for hire',
       slug: 'noleggio-carrozzina-pieghevole-da-transito',
-      shortDescription: 'Customisable wheelchair Wheelchair with customisable seat and folding frame for maximum convenience. Hire for 1 day: 15€ with pick-up on site only. Home delivery and pick-up in Rome and Florence from 30€. Collection from the warehouse is free of charge. Book online now!',
+      shortDescription:
+        'Customisable wheelchair Wheelchair with customisable seat and folding frame for maximum convenience. Hire for 1 day: 15€ with pick-up on site only. Home delivery and pick-up in Rome and Florence from 30€. Collection from the warehouse is free of charge. Book online now!',
       metaTitle: 'Folding transit wheelchair hire | Rome and Florence',
-      metaDescription: 'Hire a light, sturdy folding transit wheelchair carrying up to 130 kg, in seat sizes from 40 to 50 cm.',
+      metaDescription:
+        'Hire a light, sturdy folding transit wheelchair carrying up to 130 kg, in seat sizes from 40 to 50 cm.',
       description: [
         '<p>The <strong>rental of the folding transit wheelchair</strong><strong>in Florence and its province and in Rome and its province </strong>is indispensable for people with disabilities, elderly people, people with reduced mobility or people who need rehabilitation.</p>',
         '<p>The wheelchair comes with the <strong>podiums</strong> for feet and <strong>armrests</strong>. Both can be easily removed at any time. Upon delivery, one of our technicians will show you how to close and re-open the wheelchair and how to fit and remove armrests and footrests. In addition, the wheelchair is equipped with two <strong>brakes in order to lock the wheels.</strong></p>',
@@ -88,10 +92,11 @@ export const transitFolding = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'transit-folding-1.jpg', alt: { it: 'Carrozzina da transito o da autospinta' } },
-    gallery: [
-      'transit-folding-2.jpg',
-    ],
+    thumbnail: {
+      file: 'transit-folding-1.jpg',
+      alt: { it: 'Carrozzina da transito o da autospinta' },
+    },
+    gallery: ['transit-folding-2.jpg'],
   },
 
   addons: [homeDelivery(30), legRaiser],

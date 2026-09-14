@@ -21,20 +21,17 @@ export const softBathHoist = patientLiftsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 100),
-    days(30, 160),
-    days(45, 200),
-    days(60, 240),
-  ],
+  packages: [days(15, 100), days(30, 160), days(45, 200), days(60, 240)],
 
   translations: {
     it: {
       title: 'Noleggio sollevatore elettrico SOFT da bagno',
       slug: 'noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno',
-      shortDescription: 'Noleggio sollevatore elettrico con seduta ed imbracatura. Consegna a Roma e Firenze a partire da 45€. Consegna gratuita per i noleggi da 45 giorni ! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Noleggio sollevatore elettrico con seduta ed imbracatura. Consegna a Roma e Firenze a partire da 45€. Consegna gratuita per i noleggi da 45 giorni ! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio sollevatore elettrico da bagno | Lazio e Toscana',
-      metaDescription: 'Servizio di noleggio sollevatore elettrico da bagno per anziani e persone con disabilità. Pieghevole, sicuro e compatto con consegna rapida',
+      metaDescription:
+        'Servizio di noleggio sollevatore elettrico da bagno per anziani e persone con disabilità. Pieghevole, sicuro e compatto con consegna rapida',
       description: [
         '<h2>Noleggio sollevatore elettrico da bagno per anziani e disabili</h2>',
         '<p>Il servizio di <strong>noleggio e affitto sollevatore elettrico da bagno</strong> SOFT pieghevole è pensato per anziani e persone con disabilità che necessitano di un supporto sicuro per gli spostamenti quotidiani. Questo <strong>ausilio</strong> consente di accompagnare facilmente il paziente dal letto alla carrozzina, al bagno o all’auto, garantendo comfort, sicurezza e facilità d’uso anche in ambienti piccoli.</p>',
@@ -64,9 +61,11 @@ export const softBathHoist = patientLiftsHire.rental({
     en: {
       title: 'SOFT folding electric bath hoist, for hire',
       slug: 'noleggio-sollevatore-elettrico-soft-pieghevole-da-bagno',
-      shortDescription: 'Hire of electric hoist with seat and sling. Delivery in Rome and Florence from €45. Free delivery for 45-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Hire of electric hoist with seat and sling. Delivery in Rome and Florence from €45. Free delivery for 45-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Electric bath hoist hire | Lazio and Tuscany',
-      metaDescription: 'Electric bath hoist hire for older and disabled users. Folding, safe and compact, with delivery.',
+      metaDescription:
+        'Electric bath hoist hire for older and disabled users. Folding, safe and compact, with delivery.',
       description: [
         '<h2>Electric bathroom hoist hire for the elderly and disabled</h2>',
         '<p>The service of <strong>electric bathroom hoist hire and rental</strong> The foldable SOFT is designed for the elderly and people with disabilities who need secure support for their daily movements. This <strong>help</strong> It makes it easy to transfer the patient from the bed to a wheelchair, the bathroom or a car, ensuring comfort, safety and ease of use even in confined spaces.</p>',
@@ -84,7 +83,7 @@ export const softBathHoist = patientLiftsHire.rental({
         '<p>Find out on our website about all the models and aids available as part of the <strong>electric bathroom hoist hire</strong> and other mobility devices<strong>: tools designed to support people every day on their journey towards a new sense of independence.</strong></p>',
         '<p>Every day we strive to provide our customers with all the tools they need for home care, so that they can receive the care they need surrounded by the affection of their loved ones. </p>',
         '<p>Our aids are carefully selected from the best suppliers in order to guarantee a <strong>top quality service, with constant assistance from our professionals, fast home delivery in 24/48 hours.</strong><br />We have a wide range of mobility aids designed for the elderly and people with disabilities. <br />Call us on +39 392 65 09 237!</p>',
-        '<h3>Why choose M.I.A. Medical Italia\'s rental service as your partner?</h3>',
+        "<h3>Why choose M.I.A. Medical Italia's rental service as your partner?</h3>",
         '<p>By choosing Mia Medical Italia for your electric bathroom hoist hire:</p>',
         '<ul><li>Hai&nbsp;<strong>personalised assistance</strong>&nbsp;and delivery of the device directly to&nbsp;<strong>clinic, hospital or flat</strong>.</li><li>Find devices&nbsp;<strong>sanitised, safe and controlled</strong>&nbsp;by qualified personnel.</li><li>Hai&nbsp;<strong>immediate local support</strong>in both Rome and Florence.</li><li>Book easily, with transparent rates and flexible options even for several days.</li><li><strong><a href="https://www.morettispa.com/prodotto/sollevatore-elettrico-muevo-home-portata-max-135-kg-copia/">Latest generation devices and best quality on the market</a></strong></li></ul>',
         '<blockquote><p>Our service of <strong>electric bathroom hoist hire</strong> it is active with fast delivery in 24/48h.</p></blockquote>',
@@ -106,7 +105,10 @@ export const softBathHoist = patientLiftsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'soft-bath-hoist-1.jpg', alt: { it: 'Noleggio sollevatore elettrico da bagno per anziani e disabili' } },
+    thumbnail: {
+      file: 'soft-bath-hoist-1.jpg',
+      alt: { it: 'Noleggio sollevatore elettrico da bagno per anziani e disabili' },
+    },
     gallery: [
       { file: 'soft-bath-hoist-2.jpg', alt: { it: 'sollevatore up soft mia medical' } },
       'soft-bath-hoist-3.jpeg',

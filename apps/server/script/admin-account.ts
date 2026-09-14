@@ -73,9 +73,7 @@ export async function applyAdminAccount(
 }
 
 /** `applyAdminAccount` on a connection of its own, for a standalone script. */
-export async function upsertAdminAccount(
-  input: AdminAccountInput,
-): Promise<'created' | 'updated'> {
+export async function upsertAdminAccount(input: AdminAccountInput): Promise<'created' | 'updated'> {
   const db = createDatabase({ url: env.DATABASE_URL, logger: false });
   try {
     return await applyAdminAccount(db, input);

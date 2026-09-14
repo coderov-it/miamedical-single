@@ -24,19 +24,21 @@ export const globusPremium400 = tensHire.rental({
   pricingMode: 'rental',
   rentalUnit: 'day',
   packages: [
-    days(20, 100),  // 20 giorni - 100 € — label (the charged price bundles the compulsory electrode pack)
-    days(30, 125),  // 30 giorni - 125 € — label (the charged price bundles the compulsory electrode pack)
-    days(45, 160),  // 45 giorni - 160 € — label (the charged price bundles the compulsory electrode pack)
-    days(60, 210),  // 60 giorni - 210 € — label (the charged price bundles the compulsory electrode pack)
+    days(20, 100), // 20 giorni - 100 € — label (the charged price bundles the compulsory electrode pack)
+    days(30, 125), // 30 giorni - 125 € — label (the charged price bundles the compulsory electrode pack)
+    days(45, 160), // 45 giorni - 160 € — label (the charged price bundles the compulsory electrode pack)
+    days(60, 210), // 60 giorni - 210 € — label (the charged price bundles the compulsory electrode pack)
   ],
 
   translations: {
     it: {
       title: 'Noleggio TENS Elettrostimolatore GLOBUS Premium 400',
       slug: 'noleggio-tens-elettrostimolatore-globus-premium-400',
-      shortDescription: 'Noleggio Tens elettrostimolatore Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Ricordati di acquistare anche gli elettrodi, necessari per usare l’elettrostimolatore Tens. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Tens elettrostimolatore Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Ricordati di acquistare anche gli elettrodi, necessari per usare l’elettrostimolatore Tens. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio TENS Elettrostimolatore GLOBUS Premium 400',
-      metaDescription: 'Noleggio TENS Elettrostimolatore a partire da 2,90 Euro al giorno. Consegna a domicilio. Apparecchi per la Tens sicuri, affidabili e facili da usare.',
+      metaDescription:
+        'Noleggio TENS Elettrostimolatore a partire da 2,90 Euro al giorno. Consegna a domicilio. Apparecchi per la Tens sicuri, affidabili e facili da usare.',
       description: [
         '<p>Scopri il servizio di <strong>noleggio del dispositivo GLOBUS Premium 400</strong>, <a href="https://www.globuscorporation.com/it/prodotti-domiciliari/premium-400/">l’elettrostimolatore professionale</a> ideale per trattare il dolore, rafforzare i muscoli e favorire il recupero funzionale direttamente a casa. Disponibile anche a noleggio con il servizio completo di&nbsp;<strong>Mia Medical Italia</strong>.</p>',
         '<h4>Cosa è la terapia TENS?</h4>',
@@ -84,9 +86,11 @@ export const globusPremium400 = tensHire.rental({
     en: {
       title: 'GLOBUS Premium 400 TENS stimulator, for hire',
       slug: 'noleggio-tens-elettrostimolatore-globus-premium-400',
-      shortDescription: 'Tens electrostimulator rental Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. Remember to also buy the electrodes, which are needed to use the Tens electro-stimulator. No deposit required!',
+      shortDescription:
+        'Tens electrostimulator rental Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 45 days. Remember to also buy the electrodes, which are needed to use the Tens electro-stimulator. No deposit required!',
       metaTitle: 'GLOBUS Premium 400 TENS stimulator hire',
-      metaDescription: 'TENS stimulator hire from €2.90 a day, delivered to your door. Safe, reliable TENS units that are easy to use.',
+      metaDescription:
+        'TENS stimulator hire from €2.90 a day, delivered to your door. Safe, reliable TENS units that are easy to use.',
       description: [
         '<p>Discover the service of <strong>GLOBUS Premium 400 device rental</strong>, <a href="https://www.globuscorporation.com/it/prodotti-domiciliari/premium-400/">the professional electrostimulator</a> ideal for treating pain, strengthening muscles and promoting functional recovery right at home. Also available for hire with the full service of&nbsp;<strong>Mia Medical Italia</strong>.</p>',
         '<h4>What is TENS therapy?</h4>',
@@ -94,14 +98,14 @@ export const globusPremium400 = tensHire.rental({
         '<p>The effect is&nbsp;<strong>immediate</strong>The patient begins to feel noticeably better after about 15 minutes, but this effect tends to wear off just as quickly, after about 4-5 hours. It is therefore important to complete a therapeutic cycle of about 10-20 sessions, each lasting 30-50 minutes: in this way, the reflex muscle contracture subsides from session to session and the catabolites eliminated allow a significant resolution of the problem.</p>',
         '<h4>Tens Electrostimulator Hire <strong>GLOBUS Premium 400: Device features</strong></h4>',
         '<p>The GLOBUS Premium 400 is a high-end electrostimulator designed for home and professional use.<br />Among its&nbsp;<strong>main technical features</strong>:</p>',
-        '<ul><li><strong>4 independent channels</strong>&nbsp;to treat several areas simultaneously</li><li><strong>TENS, EMS, iontophoresis and microcurrents</strong>&nbsp;for diversified treatment</li><li>Large&nbsp;<strong>backlit display</strong>&nbsp;and intuitive interface</li><li><strong>Preset programmes</strong>&nbsp;for over 400 treatments</li><li>Function&nbsp;<strong>\'AutoStim\'</strong>&nbsp;for ease of use even for the less experienced</li><li>Long-lasting rechargeable battery power supply</li></ul>',
+        "<ul><li><strong>4 independent channels</strong>&nbsp;to treat several areas simultaneously</li><li><strong>TENS, EMS, iontophoresis and microcurrents</strong>&nbsp;for diversified treatment</li><li>Large&nbsp;<strong>backlit display</strong>&nbsp;and intuitive interface</li><li><strong>Preset programmes</strong>&nbsp;for over 400 treatments</li><li>Function&nbsp;<strong>'AutoStim'</strong>&nbsp;for ease of use even for the less experienced</li><li>Long-lasting rechargeable battery power supply</li></ul>",
         '<h4>Who benefits from GLOBUS Premium 400 Rental</h4>',
         '<p>The diseases that can be treated with GLOBUS Premium 400 are varied, including:</p>',
         '<ul><li><strong>Muscle and joint pain</strong>&nbsp;(lumbago, cervicalgia, tendinitis)</li><li><strong>Neuralgia</strong>&nbsp;(sciatica, carpal tunnel)</li><li><strong>Post-operative disorders</strong>&nbsp;(rehabilitation and analgesia)</li><li><strong>Sports injuries</strong>&nbsp;(contractures, strains)</li><li><strong>Circulation problems and lymph drainage</strong></li><li><strong>Muscle atrophies</strong>&nbsp;o&nbsp;<strong>post-traumatic hypotonia</strong></li></ul>',
         '<h4>Benefits of Electrotherapy with GLOBUS Premium 400</h4>',
         '<ul><li><strong>Immediate pain reduction</strong>&nbsp;without drugs</li><li><strong>Faster muscle recovery</strong></li><li><strong>Improved joint mobility</strong></li><li><strong>Prevention of atrophy</strong>&nbsp;in case of immobilisation</li><li><strong>Draining and toning action</strong>&nbsp;for general well-being</li></ul>',
         '<h4><strong>Which programme to use? TENS, EMS, Iontophoresis or microcurrents: the differences explained</strong></h4>',
-        '<p>The GLOBUS Premium 400 is a multifunctional electrostimulator designed to offer <strong>different types of treatment</strong> depending on the user\'s needs. Here is a guide to choosing <strong>the right programme at the right time</strong>.</p>',
+        "<p>The GLOBUS Premium 400 is a multifunctional electrostimulator designed to offer <strong>different types of treatment</strong> depending on the user's needs. Here is a guide to choosing <strong>the right programme at the right time</strong>.</p>",
         '<p><strong>TENS</strong></p>',
         '<p><strong>When to use it</strong>: in the presence of <strong>acute or chronic pain</strong>, such as:</p>',
         '<ul><li>Lumbago, cervicalgia, sciatica</li><li>Neuralgia and post-operative pain</li><li>Muscle pain from overload</li></ul>',
@@ -118,14 +122,14 @@ export const globusPremium400 = tensHire.rental({
         '<p><strong>When to use it</strong>: in case of&nbsp;<strong>muscle injuries, oedema or mild inflammation</strong>:</p>',
         '<ul><li>Sports injuries, bruises, sprains</li><li>Post-operative recovery</li></ul>',
         '<p><strong>How it works</strong>: stimulates&nbsp;<strong>cell regeneration and lymphatic circulation</strong>&nbsp;with very low intensity pulses. Ideal for speeding up recovery times and promoting the&nbsp;<strong>tissue healing</strong>.</p>',
-        '<p><strong>Expert\'s advice</strong>:<br />If in doubt, always seek advice from your physiotherapist or our service team. Using the correct programme is essential to achieve the&nbsp;<strong>maximum benefits</strong>&nbsp;from your GLOBUS Premium 400 electrostimulator.</p>',
+        "<p><strong>Expert's advice</strong>:<br />If in doubt, always seek advice from your physiotherapist or our service team. Using the correct programme is essential to achieve the&nbsp;<strong>maximum benefits</strong>&nbsp;from your GLOBUS Premium 400 electrostimulator.</p>",
         '<h4>Contraindications and Possible Side Effects </h4>',
         '<p><strong>ATTENTION</strong>: Like all electromedical devices, the use of the GLOBUS Premium 400 must be carefully considered. The device is <strong>CONTRAINDICATED</strong> in cases of:</p>',
         '<ul><li><strong>Pacemaker wearers</strong></li><li><strong>Pregnancy</strong></li><li><strong>Epilepsy</strong></li><li><strong>Open skin lesions</strong></li><li><strong>Uncontrolled heart disease</strong></li></ul>',
         '<p><strong>Possible side effects:</strong></p>',
         '<ul><li><strong>Skin irritation</strong>&nbsp;at electrode application points</li><li><strong>Excessive muscle contractions</strong>&nbsp;if the device is not used correctly</li><li><strong>Temporary malaise</strong>&nbsp;in very sensitive subjects</li></ul>',
         '<p>It is always advisable to consult a doctor before use.</p>',
-        '<h4>Mia Medical Italia\'s Rental Service: your health comes first </h4>',
+        "<h4>Mia Medical Italia's Rental Service: your health comes first </h4>",
         '<p>Hiring the GLOBUS Premium 400 is a solution&nbsp;<strong>cheap, flexible and accessible</strong>&nbsp;for those who need temporary treatments or wish to test the device before purchase. By choosing&nbsp;<em>Mia Medical Italia</em>you have access to a reliable and professional service:</p>',
         '<ul><li><strong>Certified and safe devices</strong>from the best suppliers on the market</li><li><strong>Free personalised counselling</strong>, without obligation</li><li><strong>Dedicated customer support</strong></li><li><strong>Fast delivery throughout Italy</strong></li><li><strong>Clear operating instructions and continuous support</strong></li></ul>',
         '<p>What are you waiting for! Recover faster, relieve pain and improve your quality of life, choose the service of <strong>rental of the GLOBUS Premium 400 TENS electro-stimulator</strong>.<br /><strong>Contact us now</strong>&nbsp;at <strong>+39 392 65 09 237</strong> to request rental information or to reserve your device.</p>',
@@ -134,14 +138,19 @@ export const globusPremium400 = tensHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'globus-premium-400-1.jpg', alt: { it: 'Noleggio ausili per terapia a domicilio' } },
-    gallery: [
-      'globus-premium-400-2.jpg',
-      'globus-premium-400-3.jpg',
-    ],
+    thumbnail: {
+      file: 'globus-premium-400-1.jpg',
+      alt: { it: 'Noleggio ausili per terapia a domicilio' },
+    },
+    gallery: ['globus-premium-400-2.jpg', 'globus-premium-400-3.jpg'],
   },
 
-  addons: [electrodes('5 x 5 cm', 8), electrodes('5 x 9 cm', 13), homeDeliveryOnly(15), homeCollection(15)],
+  addons: [
+    electrodes('5 x 5 cm', 8),
+    electrodes('5 x 9 cm', 13),
+    homeDeliveryOnly(15),
+    homeCollection(15),
+  ],
 
   questions: [...hireIntake],
   terms: [generalTerms],

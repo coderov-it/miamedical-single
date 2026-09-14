@@ -23,9 +23,11 @@ export const therapist150PlusSale = magnetotherapySale.fixed({
     it: {
       title: 'Vendita Magnetoterapia THERAPIST® 150 Plus',
       slug: 'magnetoterapia-therapist-150-plus-vendita',
-      shortDescription: 'MAGNETOTERAPIA THERAPIST® 150 Plus Dispositivo professionale compatto e portatile per uso domiciliare e ambulatoriale. - 100% flusso magnetico diretto verso la zona da trattare - Ideale per dolori, infiammazioni, fratture e artrosi - Utilizzabile anche sopra vestiti o gessi - Batteria a lunga durata e app di controllo dedicata Spedizione gratuita in 24/48 ore! Acquista ora il tuo THERAPIST® 150 Plus!',
+      shortDescription:
+        'MAGNETOTERAPIA THERAPIST® 150 Plus Dispositivo professionale compatto e portatile per uso domiciliare e ambulatoriale. - 100% flusso magnetico diretto verso la zona da trattare - Ideale per dolori, infiammazioni, fratture e artrosi - Utilizzabile anche sopra vestiti o gessi - Batteria a lunga durata e app di controllo dedicata Spedizione gratuita in 24/48 ore! Acquista ora il tuo THERAPIST® 150 Plus!',
       metaTitle: 'Vendita Magnetoterapia THERAPIST 150 PLUS',
-      metaDescription: 'Vendita Magnetoterapia Therapist 150 plus da soli 2,90€ al giorno. Trasporto gratuito. Nessun Deposito. disponibilità immediata. Prenota online ora!',
+      metaDescription:
+        'Vendita Magnetoterapia Therapist 150 plus da soli 2,90€ al giorno. Trasporto gratuito. Nessun Deposito. disponibilità immediata. Prenota online ora!',
       description: [
         '<p><strong>THERAPIST® 150 Plus</strong> è una <strong>magnetoterapia professionale compatta e portatile</strong>, ideale sia per uso domiciliare che ambulatoriale. Grazie al <strong>solenoide brevettato integrato</strong>, è in grado di indirizzare il <strong>100% del flusso magnetico</strong> verso la zona da trattare, offrendo un’azione mirata ed efficace per <strong>dolori acuti e cronici, fratture, infiammazioni, artrosi e osteoporosi</strong>.</p>',
         '<p>La tecnologia dei <strong>Campi Elettromagnetici Pulsati (CEMP)</strong> stimola la rigenerazione cellulare, accelera la guarigione ossea e riduce l’infiammazione. È particolarmente indicata in caso di <strong>traumi muscolari, tendiniti, periartriti, lombalgie e sindrome del tunnel carpale</strong>.</p>',
@@ -45,9 +47,11 @@ export const therapist150PlusSale = magnetotherapySale.fixed({
     en: {
       title: 'THERAPIST® 150 Plus magnetotherapy, for sale',
       slug: 'magnetoterapia-therapist-150-plus-vendita',
-      shortDescription: 'THERAPIST® 150 Plus MAGNETIC THERAPY Compact and portable professional device for home and outpatient use. - 100% magnetic flux directed towards the area to be treated - Ideal for pain, inflammation, fractures and arthrosis - Can also be used over clothes or plasters - Long battery life and dedicated control app Free shipping within 24/48 hours! Purchase your THERAPIST® 150 Plus now!',
+      shortDescription:
+        'THERAPIST® 150 Plus MAGNETIC THERAPY Compact and portable professional device for home and outpatient use. - 100% magnetic flux directed towards the area to be treated - Ideal for pain, inflammation, fractures and arthrosis - Can also be used over clothes or plasters - Long battery life and dedicated control app Free shipping within 24/48 hours! Purchase your THERAPIST® 150 Plus now!',
       metaTitle: 'THERAPIST 150 PLUS magnetotherapy for sale',
-      metaDescription: 'Therapist 150 Plus magnetotherapy: a compact, portable professional device for use at home or in a clinic.',
+      metaDescription:
+        'Therapist 150 Plus magnetotherapy: a compact, portable professional device for use at home or in a clinic.',
       description: [
         '<p><strong>THERAPIST® 150 Plus</strong> is a <strong>compact and portable professional magnetotherapy</strong>, ideal for both home and outpatient use. Thanks to the <strong>patented integrated solenoid</strong>, is able to direct the <strong>100% of magnetic flux</strong> towards the area to be treated, offering targeted and effective action for <strong>acute and chronic pain, fractures, inflammation, arthrosis and osteoporosis</strong>.</p>',
         '<p>The technology of <strong>Pulsed Electromagnetic Fields (PEMF)</strong> stimulates cell regeneration, accelerates bone healing and reduces inflammation. It is particularly recommended in cases of <strong>muscle traumas, tendinitis, periarthritis, lumbago and carpal tunnel syndrome</strong>.</p>',
@@ -67,15 +71,15 @@ export const therapist150PlusSale = magnetotherapySale.fixed({
   },
 
   specs: {
-    'included-accessories': { it: 'Fascia elastica, manuale d’uso', en: 'Elastic band, instruction manual' },
+    'included-accessories': {
+      it: 'Fascia elastica, manuale d’uso',
+      en: 'Elastic band, instruction manual',
+    },
   },
 
   media: {
     thumbnail: 'therapist-150-plus-1.png',
-    gallery: [
-      'therapist-150-plus-2.png',
-      'therapist-150-plus-3.png',
-    ],
+    gallery: ['therapist-150-plus-2.png', 'therapist-150-plus-3.png'],
   },
   terms: [generalTerms],
 });

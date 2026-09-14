@@ -23,9 +23,11 @@ export const threeJointElectricBed = hospitalBedsSale.fixed({
     it: {
       title: 'Vendita Letto Elettrico Ospedaliero 3 snodi per disabili e anziani',
       slug: 'vendita-letto-elettrico-elevabile-3-snodi-per-disabili-e-anziani',
-      shortDescription: 'OFFERTA Elevabile in altezza. Presidio medico certificato Facilissimo da usare sia dal paziente che dall’operatore. Montaggio livello base DISPONIBILITA IMMEDIATA',
+      shortDescription:
+        'OFFERTA Elevabile in altezza. Presidio medico certificato Facilissimo da usare sia dal paziente che dall’operatore. Montaggio livello base DISPONIBILITA IMMEDIATA',
       metaTitle: 'Vendita Letti Elettrici Ortopedici a 3 Snodi: per disabili e anziani',
-      metaDescription: 'Vendita online di letti elettrici ortopedici per disabili, Comodi e semplici da usare. Altezza variabile. Telecomando. Iva agevolata. Anche usato!',
+      metaDescription:
+        'Vendita online di letti elettrici ortopedici per disabili, Comodi e semplici da usare. Altezza variabile. Telecomando. Iva agevolata. Anche usato!',
       description: [
         '<p><strong>Vendita Letti elettrici ortopedici a 3 snodi regolabili con poggiatesta e poggiagambe inclinabili, funzione Trendelenburg e telecomando. Il letto ideale per una lunga degenza a casa e assistenza domiciliare.</strong></p>',
         '<ul><li><strong>Poggiatesta inclinabile fino a 75°</strong></li><li><strong>Poggiagambe regolabile fino a 40°</strong></li><li><strong>Altezza regolabile elettricamente</strong></li><li><strong>Sponde laterali abbattibili e asta solleva-malato</strong></li><li><strong>Struttura elegante in legno, perfetta per l’uso domestico</strong></li></ul>',
@@ -53,9 +55,11 @@ export const threeJointElectricBed = hospitalBedsSale.fixed({
     en: {
       title: 'Three-joint electric hospital bed for disabled and older users, for sale',
       slug: 'vendita-letto-elettrico-elevabile-3-snodi-per-disabili-e-anziani',
-      shortDescription: 'OFFER. Height-adjustable. A certified medical device. Very easy to use, for the patient and for whoever is helping. Basic assembly. Available immediately.',
+      shortDescription:
+        'OFFER. Height-adjustable. A certified medical device. Very easy to use, for the patient and for whoever is helping. Basic assembly. Available immediately.',
       metaTitle: 'Three-joint electric orthopaedic beds for sale: disabled and older users',
-      metaDescription: 'Electric orthopaedic beds for disabled users, sold online. Comfortable and simple to use, height-adjustable, with a handset. Reduced VAT.',
+      metaDescription:
+        'Electric orthopaedic beds for disabled users, sold online. Comfortable and simple to use, height-adjustable, with a handset. Reduced VAT.',
       description: [
         '<p><strong>Sale of orthopaedic electric beds with 3 adjustable joints, reclining headrest and leg rest, Trendelenburg function and remote control. The ideal bed for long-term home care and home nursing.</strong></p>',
         '<ul><li><strong>Headrest tiltable up to 75°.</strong></li><li><strong>Leg rest adjustable up to 40°.</strong></li><li><strong>Electrically adjustable height</strong></li><li><strong>Collapsible side rails and lifter rod</strong></li><li><strong>Elegant wooden structure, perfect for home use</strong></li></ul>',
@@ -83,15 +87,18 @@ export const threeJointElectricBed = hospitalBedsSale.fixed({
   },
 
   specs: {
-    articulation: { it: 'Tre snodi, movimentazione elettrica, poggiatesta inclinabile fino a 75°', en: 'Three joints, electrically driven, headrest tilting to 75°' },
+    articulation: {
+      it: 'Tre snodi, movimentazione elettrica, poggiatesta inclinabile fino a 75°',
+      en: 'Three joints, electrically driven, headrest tilting to 75°',
+    },
   },
 
   media: {
-    thumbnail: { file: 'three-joint-electric-bed-1.jpg', alt: { it: 'letto a noleggio electrico' } },
-    gallery: [
-      'three-joint-electric-bed-2.png',
-      'three-joint-electric-bed-3.jpg',
-    ],
+    thumbnail: {
+      file: 'three-joint-electric-bed-1.jpg',
+      alt: { it: 'letto a noleggio electrico' },
+    },
+    gallery: ['three-joint-electric-bed-2.png', 'three-joint-electric-bed-3.jpg'],
   },
   terms: [generalTerms],
 });

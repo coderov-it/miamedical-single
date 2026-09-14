@@ -28,19 +28,17 @@ export const kinetecAndWheelchair = kinetecHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 180),
-    days(20, 230),
-    days(30, 296),
-  ],
+  packages: [days(15, 180), days(20, 230), days(30, 296)],
 
   translations: {
     it: {
       title: 'Noleggio Kinetec CEMP + Carrozzina',
       slug: 'noleggio-kinetec-carrozzina',
-      shortDescription: 'Consegna a Roma e Firenze Consegna a partire da 30€. Consegna gratuita per i noleggi da 30 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Consegna a Roma e Firenze Consegna a partire da 30€. Consegna gratuita per i noleggi da 30 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio del Noleggio Kinetec CEMP + Carrozzina - Mia Medical Italia',
-      metaDescription: 'Noleggio combo della carrozzina e il kinetec per ginocchio, perfetto per una riabilitazione veloce a casa tua, con consegna. Prenota online ora!',
+      metaDescription:
+        'Noleggio combo della carrozzina e il kinetec per ginocchio, perfetto per una riabilitazione veloce a casa tua, con consegna. Prenota online ora!',
       description: [
         '<h2><strong>Noleggio Combinato Kinetec + Carrozzina</strong></h2>',
         '<p><strong>La soluzione completa per il recupero post-operatorio e la mobilità assistita a domicilio</strong></p>',
@@ -104,9 +102,11 @@ export const kinetecAndWheelchair = kinetecHire.rental({
     en: {
       title: 'Kinetec CPM + wheelchair, combined hire',
       slug: 'noleggio-kinetec-carrozzina',
-      shortDescription: 'Delivery in Rome and Florence. Delivery from €30. Free delivery on hires of 30 days or more! No deposit required. Delivery and collection at the warehouse are FREE!',
+      shortDescription:
+        'Delivery in Rome and Florence. Delivery from €30. Free delivery on hires of 30 days or more! No deposit required. Delivery and collection at the warehouse are FREE!',
       metaTitle: 'Kinetec CPM + wheelchair combined hire - Mia Medical Italia',
-      metaDescription: 'Combined hire of a wheelchair and a knee CPM machine — the right pairing for a quick recovery at home, delivered. Book now.',
+      metaDescription:
+        'Combined hire of a wheelchair and a knee CPM machine — the right pairing for a quick recovery at home, delivered. Book now.',
       description: [
         '<h2><strong>Combined Kinetec + Wheelchair Rental</strong></h2>',
         '<p><strong>The complete solution for post-operative recovery and assisted mobility at home</strong></p>',
@@ -133,7 +133,7 @@ export const kinetecAndWheelchair = kinetecHire.rental({
         '<p>The wheelchair allows the patient to make short, daily movements in total safety, avoiding joint overload and fatigue.</p>',
         '<p>It is an essential tool for:</p>',
         '<ul><li>moving around inside the home</li><li>controlled exits</li><li>maintaining social connection</li></ul>',
-        '<p>The model is chosen based on clinical needs, the patient\'s physical build and the home environment.</p>',
+        "<p>The model is chosen based on clinical needs, the patient's physical build and the home environment.</p>",
         '<p><strong>Types of wheelchairs available for hire</strong></p>',
         '<p>Mia Medical Italia offers the choice of several types of wheelchairs, to adapt to every clinical and home scenario.</p>',
         '<p>Available models:</p>',
@@ -172,7 +172,10 @@ export const kinetecAndWheelchair = kinetecHire.rental({
   media: {
     thumbnail: 'kinetec-and-wheelchair-1.jpg',
     gallery: [
-      { file: 'kinetec-and-wheelchair-2.jpg', alt: { it: 'Affitto carrozzina pieghevole ad autospinta' } },
+      {
+        file: 'kinetec-and-wheelchair-2.jpg',
+        alt: { it: 'Affitto carrozzina pieghevole ad autospinta' },
+      },
       'kinetec-and-wheelchair-3.jpg',
       'kinetec-and-wheelchair-4.jpg',
     ],

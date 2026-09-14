@@ -22,21 +22,17 @@ export const maximoScooter = electricWheelchairsAndScootersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(3, 120),
-    days(7, 200),
-    days(15, 300),
-    days(30, 490),
-    days(45, 610),
-  ],
+  packages: [days(3, 120), days(7, 200), days(15, 300), days(30, 490), days(45, 610)],
 
   translations: {
     it: {
       title: 'Scooter Elettrico Maximo',
       slug: 'scooter-elettrico-maximo-a-noleggio',
-      shortDescription: 'Libertà e movimento Noleggia il tuo scooter e riscopri la tua indipendenza! Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Consegna a domicilio: 33€ + 35€ per il ritiro. Deposito richiesto: 400€ Per il noleggio di questo articolo è richiesto un deposito di 400€.',
+      shortDescription:
+        'Libertà e movimento Noleggia il tuo scooter e riscopri la tua indipendenza! Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Consegna a domicilio: 33€ + 35€ per il ritiro. Deposito richiesto: 400€ Per il noleggio di questo articolo è richiesto un deposito di 400€.',
       metaTitle: 'Noleggio Scooter Elettrico Maximo per disabili ed anziani.',
-      metaDescription: 'Noleggio Scooter Elettrico Maximo bariatrico per anziani e disabili: Batteria fino a 35km. Disponibilità immediata. Fino a 160kg.',
+      metaDescription:
+        'Noleggio Scooter Elettrico Maximo bariatrico per anziani e disabili: Batteria fino a 35km. Disponibilità immediata. Fino a 160kg.',
       description: [
         '<h3>Noleggio Scooter Elettrico Maximo per anziani e disabili: scopri l’Italia con sicurezza e comfort! Eleganza, sicurezza e autonomia per vivere Roma e Firenze senza limiti.</h3>',
         '<p><strong>Il noleggio scooter elettrico Maximo è la soluzione ideale per chi cerca uno scooter elettrico bariatrico per anziani e disabili che desiderano visitare Roma e Firenze in totale sicurezza e autonomia. Eleganza, comfort e libertà per vivere l’Italia senza limiti.</strong></p>',
@@ -62,9 +58,11 @@ export const maximoScooter = electricWheelchairsAndScootersHire.rental({
     en: {
       title: 'Maximo electric scooter for hire',
       slug: 'scooter-elettrico-maximo-a-noleggio',
-      shortDescription: 'Freedom and movement Rent your scooter and rediscover your independence! Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Home delivery: 33€ + 35€ for collection. Deposit required: 400€ For the rental of this article, a deposit of 400€.',
+      shortDescription:
+        'Freedom and movement Rent your scooter and rediscover your independence! Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Home delivery: 33€ + 35€ for collection. Deposit required: 400€ For the rental of this article, a deposit of 400€.',
       metaTitle: 'Maximo electric scooter hire | Up to 160 kg',
-      metaDescription: 'Hire the bariatric Maximo mobility scooter: up to 160 kg, 12.8 km/h, and 25–35 km on a charge. Available immediately.',
+      metaDescription:
+        'Hire the bariatric Maximo mobility scooter: up to 160 kg, 12.8 km/h, and 25–35 km on a charge. Available immediately.',
       description: [
         '<h3>Maximo Electric Mobility Scooter rental for the elderly and disabled: discover Italy in safety and comfort! Elegance, safety and autonomy to experience Rome and Florence without limits.</h3>',
         '<p><strong>The Maximo electric scooter rental is the ideal solution for anyone looking for a bariatric electric scooter for seniors and people with disabilities who want to visit Rome and Florence in complete safety and independence. Elegance, comfort and freedom to experience Italy without limits.</strong></p>',
@@ -96,17 +94,17 @@ export const maximoScooter = electricWheelchairsAndScootersHire.rental({
     'max-speed': 12.8,
     'battery-range': { min: 25, max: 35 },
     motor: { it: '470 W', en: '470 W' },
-    battery: { it: '2 x 12 V 36 Ah, potenziate 2 x 12 V 50 Ah', en: '2 × 12 V 36 Ah, or 2 × 12 V 50 Ah upgraded' },
+    battery: {
+      it: '2 x 12 V 36 Ah, potenziate 2 x 12 V 50 Ah',
+      en: '2 × 12 V 36 Ah, or 2 × 12 V 50 Ah upgraded',
+    },
     'total-length': { min: 120, max: 120 },
     'total-width': { min: 58, max: 58 },
   },
 
   media: {
     thumbnail: { file: 'maximo-scooter-1.png', alt: { it: 'Vendita Scooter Elettrico Maximo' } },
-    gallery: [
-      'maximo-scooter-2.jpg',
-      'maximo-scooter-3.jpg',
-    ],
+    gallery: ['maximo-scooter-2.jpg', 'maximo-scooter-3.jpg'],
   },
 
   addons: [homeDeliveryOnly(33), homeCollection(35)],

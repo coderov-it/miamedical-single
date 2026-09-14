@@ -5,6 +5,4 @@
 import { reclinerArmchairsSale } from './category.ts';
 import { ladySlimPlus } from './lady-slim-plus.ts';
 
-export default reclinerArmchairsSale.withProducts([
-  ladySlimPlus,
-]);
+export default reclinerArmchairsSale.withProducts([ladySlimPlus]);

@@ -21,9 +21,11 @@ export const rollatorMini = walkersSale.fixed({
     it: {
       title: 'Vendita Rollator Pieghevole Mini',
       slug: 'rollator-pieghevole-mini-in-vendita',
-      shortDescription: 'Rollator pieghevole MINI MINI con le sue dimensioni ridotte e design pieghevole, si adatta perfettamente agli spazi ristretti, in casa o in viaggio. Acquista ora! Spedizione gratuita in tutta l’Italia.',
+      shortDescription:
+        'Rollator pieghevole MINI MINI con le sue dimensioni ridotte e design pieghevole, si adatta perfettamente agli spazi ristretti, in casa o in viaggio. Acquista ora! Spedizione gratuita in tutta l’Italia.',
       metaTitle: 'Rollator pieghevole Mini in vendita',
-      metaDescription: 'Scopri il Rollator pieghevole MINI, l’ausilio compatto e leggero per la mobilità. Seduta imbottita, ruote piroettanti e pieghevole per trasporto semplice',
+      metaDescription:
+        'Scopri il Rollator pieghevole MINI, l’ausilio compatto e leggero per la mobilità. Seduta imbottita, ruote piroettanti e pieghevole per trasporto semplice',
       description: [
         '<h3><strong>Rollator pieghevole MINI: compatto, leggero e pratico</strong></h3>',
         '<p>Cerchi un ausilio per la mobilità che sia leggero, maneggevole e facile da trasportare? Il <strong>Rollator pieghevole MINI</strong> è la soluzione ideale per chi desidera un supporto sicuro senza rinunciare alla compattezza. Grazie alle sue dimensioni ridotte e al design pieghevole, si adatta perfettamente agli spazi ristretti, in casa o in viaggio.</p>',
@@ -42,9 +44,11 @@ export const rollatorMini = walkersSale.fixed({
     en: {
       title: 'Mini folding rollator for sale',
       slug: 'rollator-pieghevole-mini-in-vendita',
-      shortDescription: 'MINI folding rollator. Small and folding, the MINI fits where space is tight, at home or travelling. Buy now! Free shipping across Italy.',
+      shortDescription:
+        'MINI folding rollator. Small and folding, the MINI fits where space is tight, at home or travelling. Buy now! Free shipping across Italy.',
       metaTitle: 'Mini folding rollator for sale',
-      metaDescription: 'Meet the MINI folding rollator: compact, light, a padded seat, castoring wheels, and it folds for easy carrying.',
+      metaDescription:
+        'Meet the MINI folding rollator: compact, light, a padded seat, castoring wheels, and it folds for easy carrying.',
       description: [
         '<h3><strong>Folding rollator MINI: compact, lightweight and practical</strong></h3>',
         '<p>Are you looking for a mobility aid that is light, handy and easy to carry? The <strong>Folding rollator MINI</strong> is the ideal solution for those who want secure support without sacrificing compactness. Thanks to its small size and foldable design, it fits perfectly in tight spaces, at home or on the move.</p>',
@@ -67,7 +71,10 @@ export const rollatorMini = walkersSale.fixed({
     weight: { min: 5.9, max: 5.9 },
     'has-seat': true,
     'reclining-backrest': false,
-    upholstery: { it: 'Seduta imbottita 31 × 31 cm con schienale integrato', en: 'Padded 31 × 31 cm seat with an integrated backrest' },
+    upholstery: {
+      it: 'Seduta imbottita 31 × 31 cm con schienale integrato',
+      en: 'Padded 31 × 31 cm seat with an integrated backrest',
+    },
     foldable: true,
   },
 

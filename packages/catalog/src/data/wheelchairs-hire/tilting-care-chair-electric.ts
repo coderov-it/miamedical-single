@@ -21,20 +21,17 @@ export const tiltingCareChairElectric = wheelchairsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 90),
-    days(15, 130),
-    days(30, 240),
-    days(45, 315),
-  ],
+  packages: [days(7, 90), days(15, 130), days(30, 240), days(45, 315)],
 
   translations: {
     it: {
       title: 'Noleggio seggiolone elettrico polifunzionale',
       slug: 'noleggio-seggiolone-polifunzionale-basculante-elettrico',
-      shortDescription: 'Seggiolone polifunzionale Affitto e noleggio del seggiolone polifunzionale a Roma e provincia e Firenze e provincia. Consegna a partire da 35€. Il ritiro in magazzino è gratuito. Guarda anche la versione manuale: seggiolone polifunzionale basculante Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Seggiolone polifunzionale Affitto e noleggio del seggiolone polifunzionale a Roma e provincia e Firenze e provincia. Consegna a partire da 35€. Il ritiro in magazzino è gratuito. Guarda anche la versione manuale: seggiolone polifunzionale basculante Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio Seggiolone Polifunzionale basculante per disabili',
-      metaDescription: 'Noleggio seggiolone polifunzionale basculante a Roma e Firenze. Con schienale reclinabile, telecomando e consegna rapida. Prenota online.',
+      metaDescription:
+        'Noleggio seggiolone polifunzionale basculante a Roma e Firenze. Con schienale reclinabile, telecomando e consegna rapida. Prenota online.',
       description: [
         '<h3>Noleggio seggiolone polifunzionale basculante per disabili</h3>',
         '<p>Il <strong>noleggio seggiolone polifunzionale basculante per disabili</strong> è una soluzione pensata per garantire comfort, sicurezza e una corretta postura nella vita quotidiana di persone con ridotta mobilità.</p>',
@@ -66,13 +63,15 @@ export const tiltingCareChairElectric = wheelchairsHire.rental({
     en: {
       title: 'Multifunctional electric care chair for hire',
       slug: 'noleggio-seggiolone-polifunzionale-basculante-elettrico',
-      shortDescription: 'Multifunctional care chair. Rental and hire in Rome and its province and Florence and its province. Delivery from €35. Collection from the warehouse is free of charge. See also the manual version. Deposit required: €300 — a deposit of €300 is required to hire this item.',
+      shortDescription:
+        'Multifunctional care chair. Rental and hire in Rome and its province and Florence and its province. Delivery from €35. Collection from the warehouse is free of charge. See also the manual version. Deposit required: €300 — a deposit of €300 is required to hire this item.',
       metaTitle: 'Multifunctional electric care chair hire',
-      metaDescription: 'Hire a multifunctional electric tilt-in-space care chair: handset-driven recline and tilt, pressure-relief cushions included.',
+      metaDescription:
+        'Hire a multifunctional electric tilt-in-space care chair: handset-driven recline and tilt, pressure-relief cushions included.',
       description: [
         '<h3>Hire of multifunctional tilt-in-space care chair for the disabled</h3>',
         '<p>The <strong>rental of multifunctional tilt-in-space care chair for the disabled</strong> It is a solution designed to ensure comfort, safety, and correct posture in the daily lives of people with reduced mobility.</p>',
-        '<p>Thanks to its advanced structure, this device allows for ergonomic and personalised positioning based on the user\'s different needs.</p>',
+        "<p>Thanks to its advanced structure, this device allows for ergonomic and personalised positioning based on the user's different needs.</p>",
         '<h2>Features of the multifunctional care chair hire service</h2>',
         '<p>The multifunctional care chair available for hire is equipped with:</p>',
         '<h3>Reclining backrest and tilt mechanism</h3>',
@@ -82,12 +81,12 @@ export const tiltingCareChairElectric = wheelchairsHire.rental({
         '<h3>Anti-bedsore cushions included</h3>',
         '<p>Anti-decubitus cushions are included, which help prevent pressure sores and improve comfort during prolonged use.</p>',
         '<h2>Functions and benefits of the multifunctional care chair</h2>',
-        '<p>This <strong>rental of multifunctional tilt-in-space care chair for the disabled</strong> It\'s not just a simple seat, but a veritable electric postural system.</p>',
+        "<p>This <strong>rental of multifunctional tilt-in-space care chair for the disabled</strong> It's not just a simple seat, but a veritable electric postural system.</p>",
         '<p>It allows you to:</p>',
         '<ul><li>maintain good posture throughout the day</li><li>to reduce the risk of pain and postural complications</li><li>to make the day-to-day management of the patient easier</li><li>to ensure greater independence and comfort</li></ul>',
         '<p>Thanks to the remote control, the seat can be reclined to the fully flat position safely and in a controlled manner.</p>',
         '<h2>Important: technical information</h2>',
-        '<p>The multi-purpose electric care chair <strong>It\'s not foldable</strong>.</p>',
+        "<p>The multi-purpose electric care chair <strong>It's not foldable</strong>.</p>",
         '<p>This feature should be taken into account when transporting and storing the device.</p>',
         '<h2><strong>Rental of multi-purpose reclining care chair in Rome and Florence</strong></h2>',
         '<p>We offer the<strong> multifunctional tilt-in-space care chair for people with disabilities in Rome and the surrounding area, and Florence and the surrounding area</strong>, with immediate availability.</p>',
@@ -110,7 +109,10 @@ export const tiltingCareChairElectric = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'tilting-care-chair-electric-1.png', alt: { it: 'Noleggio seggiolone polifunzionale basculante' } },
+    thumbnail: {
+      file: 'tilting-care-chair-electric-1.png',
+      alt: { it: 'Noleggio seggiolone polifunzionale basculante' },
+    },
     gallery: [
       'tilting-care-chair-electric-2.jpg',
       'tilting-care-chair-electric-3.jpeg',

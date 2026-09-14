@@ -18,22 +18,17 @@ export const ultralightAluminiumWalker = walkersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   translations: {
     it: {
       title: 'Noleggio Deambulatore in alluminio pieghevole ultraleggero | Roma e Firenze',
       slug: 'noleggio-deambulatore-in-alluminio',
-      shortDescription: 'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio deambulatore pieghevole leggero | Roma e Firenze',
-      metaDescription: 'Noleggio Deambulatore leggero a Roma e Firenze. Migliore Prezzo Garantito. Prenotazione Online. Disponibilità immediata. Visita il nostro Sit',
+      metaDescription:
+        'Noleggio Deambulatore leggero a Roma e Firenze. Migliore Prezzo Garantito. Prenotazione Online. Disponibilità immediata. Visita il nostro Sit',
       description: [
         '<p>Hai bisogno di un supporto sicuro per camminare? Il nostro servizio di <strong>noleggio di&nbsp;deambulatore in alluminio pieghevole e ultraleggero a quattro ruote</strong>&nbsp;è la soluzione ideale per migliorare la tua mobilità in modo pratico e confortevole.</p>',
         '<h4>Cos’è un Deambulatore Pieghevole e Ultraleggero a Quattro Ruote?</h4>',
@@ -60,22 +55,24 @@ export const ultralightAluminiumWalker = walkersHire.rental({
     en: {
       title: 'Ultralight folding aluminium walking frame, for hire | Rome and Florence',
       slug: 'noleggio-deambulatore-in-alluminio',
-      shortDescription: 'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Light folding walker hire | Rome and Florence',
-      metaDescription: 'Hire a light walking frame in Rome and Florence. Best price guaranteed, book online, available immediately.',
+      metaDescription:
+        'Hire a light walking frame in Rome and Florence. Best price guaranteed, book online, available immediately.',
       description: [
         '<p>Do you need a safe walking support? Our service of <strong>rental of foldable, ultralight aluminium four-wheel walker</strong>&nbsp;is the ideal solution to improve your mobility in a practical and comfortable way.</p>',
         '<h4>What is a Foldable and Ultralight Four-Wheel Walker?</h4>',
         '<p>A walker is a mobility aid designed to provide&nbsp;<strong>stability, safety and ease of movement</strong>. This model, made of&nbsp;<strong>lightweight aluminium</strong>, is equipped with&nbsp;<strong>four-wheelers</strong>, <strong>ergonomic handles</strong> and a practical braking system for safe use both indoors and outdoors. In addition, its function <strong>foldable</strong> makes it easy to transport. </p>',
         '<h4>For whom is a walker rental service indicated? - Rome and Florence </h4>',
-        '<p>Walkers&nbsp;<strong>are indicated during gait re-education in elderly individuals or individuals with functional limitations of various kinds</strong>. They offer stability, ease of use and improve the user\'s feeling of balance.</p>',
+        "<p>Walkers&nbsp;<strong>are indicated during gait re-education in elderly individuals or individuals with functional limitations of various kinds</strong>. They offer stability, ease of use and improve the user's feeling of balance.</p>",
         '<p>The ultralight folding aluminium walker with four wheels is ideal for:</p>',
         '<ul><li><strong>People with motor difficulties</strong>&nbsp;who need a stable support for walking.</li><li><strong>Patients undergoing rehabilitation</strong>&nbsp;after surgery or trauma to the lower limbs.</li><li><strong>Elderly people with balance problems</strong>&nbsp;who are looking for an aid that is safe and easy to manoeuvre.</li><li><strong>People with muscle weakness</strong>&nbsp;who want to reduce the effort in walking.</li></ul>',
         '<h4>Why rent a walker instead of buying one?</h4>',
         '<p>Renting an ultralight, foldable four-wheel walker in Rome and Florence is the most convenient solution if you only need support for a limited period, such as during post-operative recovery or rehabilitation therapy.</p>',
         '<ul><li><strong>Saving money</strong>&nbsp;compared to the purchase.</li><li><strong>Maximum flexibility</strong>use it only for as long as necessary.</li><li><strong>Sanitised and ready to use</strong>maintenance-free.</li><li><strong>Possibility of replacement or upgrade</strong>&nbsp;according to your needs.</li></ul>',
         '<h4>Technical Specifications of the Ultralight and Foldable Walker </h4>',
-        '<ul><li><strong>Lightweight aluminium construction</strong>durable and easy to transport.</li><li><strong>Four swivel castors</strong> for excellent manoeuvrability.</li><li><strong>Safety brakes</strong> for greater control during use.</li><li><strong>Ergonomic handles</strong> for a comfortable and secure grip.</li><li><strong>Ultralight and Foldable</strong> to adapt to each person\'s needs.</li></ul>',
+        "<ul><li><strong>Lightweight aluminium construction</strong>durable and easy to transport.</li><li><strong>Four swivel castors</strong> for excellent manoeuvrability.</li><li><strong>Safety brakes</strong> for greater control during use.</li><li><strong>Ergonomic handles</strong> for a comfortable and secure grip.</li><li><strong>Ultralight and Foldable</strong> to adapt to each person's needs.</li></ul>",
         '<h4>The Benefits</h4>',
         '<ul><li><strong>Greater independence</strong> in the daily commute.</li><li><strong>Ease of use</strong>even for those with little strength in their hands.</li><li><strong>Suitable for indoors </strong> thanks to manoeuvrable wheels.</li><li><strong>Safety and comfort</strong>design to reduce the risk of falls.</li></ul>',
         '<p>In this sense it is an ideal tool for moving in&nbsp;<strong>home. </strong></p>',
@@ -95,9 +92,7 @@ export const ultralightAluminiumWalker = walkersHire.rental({
 
   media: {
     thumbnail: 'ultralight-aluminium-walker-1.jpg',
-    gallery: [
-      'ultralight-aluminium-walker-2.jpg',
-    ],
+    gallery: ['ultralight-aluminium-walker-2.jpg'],
   },
 
   addons: [homeDelivery(30)],

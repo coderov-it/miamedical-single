@@ -18,19 +18,17 @@ export const cryopushCompression = cryotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 150),
-    days(20, 190),
-    days(30, 260),
-  ],
+  packages: [days(15, 150), days(20, 190), days(30, 260)],
 
   translations: {
     it: {
       title: 'Noleggio Crioterapia compressiva Cryopush',
       slug: 'noleggio-cryoterapia-compressiva-cryopush',
-      shortDescription: 'Noleggio Crioterapia (terapia del freddo) professionale con compressione Facilissimo da usare, con altissimi risultati in pochissimi giorni. Cryopush è l’evoluzione nella terapia post traumatica. Consegna e ritiro a domicilio in tutta Italia a partire da 15€ +15€. Gratuito per i noleggi a partire da 30 giorni. Consegna gratis se acquisti un noleggio per un minimo di 20 giorni. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Crioterapia (terapia del freddo) professionale con compressione Facilissimo da usare, con altissimi risultati in pochissimi giorni. Cryopush è l’evoluzione nella terapia post traumatica. Consegna e ritiro a domicilio in tutta Italia a partire da 15€ +15€. Gratuito per i noleggi a partire da 30 giorni. Consegna gratis se acquisti un noleggio per un minimo di 20 giorni. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio crioterapia compressiva CRYOPUSH',
-      metaDescription: 'CRYOPUSH: il nostro macchinario terapeutico di crioterapia compressiva a noleggio. Disponibilità immediata. Prenota ora, chiamaci al +39 392 65 09 237 !',
+      metaDescription:
+        'CRYOPUSH: il nostro macchinario terapeutico di crioterapia compressiva a noleggio. Disponibilità immediata. Prenota ora, chiamaci al +39 392 65 09 237 !',
       description: [
         '<p>Noleggia CRYOPUSH, il sistema per <strong><a href="https://www.my-personaltrainer.it/benessere/crioterapia.html">crioterapia compressiva</a></strong>, una terapia che combina il <strong>freddo controllato</strong> con la <strong>compressione pneumatica intermittente</strong> per ridurre dolore, infiammazione e gonfiore, accelerando i tempi di recupero muscolare e post-operatorio.</p>',
         '<p><strong>CRYOPUSH</strong> è uno dei dispositivi medicali più avanzati in questo ambito, utilizzato anche da fisioterapisti, sportivi professionisti e centri di riabilitazione. </p>',
@@ -53,9 +51,11 @@ export const cryopushCompression = cryotherapyHire.rental({
     en: {
       title: 'Cryopush compression cryotherapy, for hire',
       slug: 'noleggio-cryoterapia-compressiva-cryopush',
-      shortDescription: 'Hire Professional Cryotherapy (cold therapy) with compression Very easy to use, with very high results in just a few days. Cryopush is the evolution in post-trauma therapy. Home delivery and collection throughout Italy starting from €15 + €15. Free for rentals of 30 days or more. Free delivery if you purchase a rental for a minimum of 20 days. No deposit required!',
+      shortDescription:
+        'Hire Professional Cryotherapy (cold therapy) with compression Very easy to use, with very high results in just a few days. Cryopush is the evolution in post-trauma therapy. Home delivery and collection throughout Italy starting from €15 + €15. Free for rentals of 30 days or more. Free delivery if you purchase a rental for a minimum of 20 days. No deposit required!',
       metaTitle: 'CRYOPUSH compression cryotherapy hire',
-      metaDescription: 'CRYOPUSH: our compression cryotherapy machine, for hire. Available immediately — book now or call us.',
+      metaDescription:
+        'CRYOPUSH: our compression cryotherapy machine, for hire. Available immediately — book now or call us.',
       description: [
         '<p>Rent CRYOPUSH, the system for <strong><a href="https://www.my-personaltrainer.it/benessere/crioterapia.html">compression cryotherapy</a></strong>a therapy that combines the <strong>controlled cold</strong> with the <strong>intermittent pneumatic compression</strong> to reduce pain, inflammation and swelling, accelerating muscle and post-operative recovery times.</p>',
         '<p><strong>CRYOPUSH</strong> is one of the most advanced medical devices in this field, also used by physiotherapists, professional athletes and rehabilitation centres. </p>',
@@ -78,7 +78,10 @@ export const cryopushCompression = cryotherapyHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'cryopush-compression-1.png', alt: { it: 'Vendita crioterapia compressiva' } },
+    thumbnail: {
+      file: 'cryopush-compression-1.png',
+      alt: { it: 'Vendita crioterapia compressiva' },
+    },
     gallery: [
       'cryopush-compression-2.png',
       'cryopush-compression-3.png',

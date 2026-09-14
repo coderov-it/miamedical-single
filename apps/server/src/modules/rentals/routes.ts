@@ -13,19 +13,14 @@ import * as service from './service.ts';
 const IdParam = v.object({ id: UuidSchema });
 
 export const rentalAdminRoutes = new Hono<AppEnv>()
-  .get(
-    '/',
-    requirePermission(P.RENTAL_READ),
-    validate('query', RentalQuerySchema),
-    async (c) => {
-      const query = c.req.valid('query');
-      const result = await service.list(c.get('db'), query);
-      return c.json({
-        data: result.rows.map(toRentalSummary),
-        meta: toPageMeta(query.page, query.perPage, result.total),
-      });
-    },
-  )
+  .get('/', requirePermission(P.RENTAL_READ), validate('query', RentalQuerySchema), async (c) => {
+    const query = c.req.valid('query');
+    const result = await service.list(c.get('db'), query);
+    return c.json({
+      data: result.rows.map(toRentalSummary),
+      meta: toPageMeta(query.page, query.perPage, result.total),
+    });
+  })
   .post(
     '/:id/reminder',
     requirePermission(P.RENTAL_UPDATE),

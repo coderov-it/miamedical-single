@@ -25,58 +25,55 @@ interface Props {
 const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
 ---
 
-{
-  /*
+{/*
     `scroll-mt-24` clears the sticky site header when the script scrolls a step
     into view; without it a forward step's badge lands behind the bar.
-  */
-}
+  */}
 <section
   class="group/step border-hair shadow-pdp-card scroll-mt-24 overflow-hidden rounded-[14px] border bg-white"
   data-step={index}
   data-state={index === 1 ? 'active' : 'todo'}
 >
   <header class="flex items-center gap-3.5 px-7 py-5">
-    {
-      /*
+    {/*
         Both glyphs stay in the DOM and CSS picks one, so the page's visible
         numbering is never something a script has to write.
-      */
-    }
+      */}
     <span
       class="bg-tint text-ink-2 grid size-7.5 flex-none place-items-center rounded-full text-[13.5px] font-bold group-data-[state=active]/step:bg-accent group-data-[state=active]/step:text-white group-data-[state=done]/step:bg-accent group-data-[state=done]/step:text-[15px] group-data-[state=done]/step:text-white"
       data-step-badge
       aria-hidden="true"
     >
-      <span class="group-data-[state=done]/step:hidden" data-badge-number>{index}</span>
-      <span class="hidden group-data-[state=done]/step:block" data-badge-tick>✓</span>
+      <span class="group-data-[state=done]/step:hidden" data-badge-number>
+        {index}
+      </span>
+      <span class="hidden group-data-[state=done]/step:block" data-badge-tick>
+        ✓
+      </span>
     </span>
 
     <span class="flex flex-1 flex-col gap-px">
       <strong class="text-[17px]">{title}</strong>
-      {
-        /*
+      {/*
           Filled only with values the customer typed on this page, and shown only
           while the step is collapsed: it is the receipt for a section they can no
           longer see.
-        */
-      }
+        */}
       <span
         class="text-ink-2 hidden text-[13.5px] group-data-[state=done]/step:block"
-        data-step-summary></span>
+        data-step-summary
+      ></span>
     </span>
 
-    {
-      editable && (
-        <button
-          class="bg-accent-tint relative hidden min-h-0 min-w-0 cursor-pointer rounded-full px-4 py-1.75 text-[14px] font-semibold text-accent group-data-[state=done]/step:block after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent hover:text-white"
-          type="button"
-          data-step-edit={index}
-        >
-          {t('edit')}
-        </button>
-      )
-    }
+    {editable && (
+      <button
+        class="bg-accent-tint relative hidden min-h-0 min-w-0 cursor-pointer rounded-full px-4 py-1.75 text-[14px] font-semibold text-accent group-data-[state=done]/step:block after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-accent hover:text-white"
+        type="button"
+        data-step-edit={index}
+      >
+        {t('edit')}
+      </button>
+    )}
   </header>
 
   <div class:list={['flex flex-col px-7 pt-2 pb-7', bodyGap]} data-step-body={index}>

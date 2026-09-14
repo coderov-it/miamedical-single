@@ -21,21 +21,17 @@ export const foldingScooterS19 = electricWheelchairsAndScootersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(3, 90),
-    days(7, 140),
-    days(15, 225),
-    days(30, 300),
-    days(45, 360),
-  ],
+  packages: [days(3, 90), days(7, 140), days(15, 225), days(30, 300), days(45, 360)],
 
   translations: {
     it: {
       title: 'Noleggio scooter elettrico pieghevole S19',
       slug: 'scooter-elettrico-pieghevole-s19',
-      shortDescription: 'Libertà e Movimento! Noleggia il tuo scooter pieghevole e riscopri la tua indipendenza! Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Libertà e Movimento! Noleggia il tuo scooter pieghevole e riscopri la tua indipendenza! Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio scooter elettrico Pieghevole S19 per disabili e anziani',
-      metaDescription: 'Noleggio scooter elettrico pieghevole S19 per anziani e disabili. Leggero, compatto e facile da trasportare. A Roma e Firenze con consegna e ritiro.',
+      metaDescription:
+        'Noleggio scooter elettrico pieghevole S19 per anziani e disabili. Leggero, compatto e facile da trasportare. A Roma e Firenze con consegna e ritiro.',
       description: [
         '<h3>Noleggio <strong>Scooter Elettrico pieghevole per anziani e disabili</strong>.</h3>',
         '<p><strong>Il noleggio scooter elettrico pieghevole S19 per anziani e disabili è la soluzione ideale per muoversi in libertà durante i tuoi viaggi in Italia.</strong> Affitta il tuo compagno di viaggio: autonomia a portata di mano, semplice, sicuro e conveniente! Per una mobilità senza limiti è la tua chiave per l’indipendenza.</p>',
@@ -61,9 +57,11 @@ export const foldingScooterS19 = electricWheelchairsAndScootersHire.rental({
     en: {
       title: 'Folding electric scooter S19 for hire',
       slug: 'scooter-elettrico-pieghevole-s19',
-      shortDescription: 'Freedom and Movement! Rent your folding scooter and rediscover your independence! Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'Freedom and Movement! Rent your folding scooter and rediscover your independence! Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'Folding electric scooter S19 hire | For older and disabled users',
-      metaDescription: 'Hire the S19 folding mobility scooter: light, compact and easy to transport. Rome and Florence, with delivery and collection.',
+      metaDescription:
+        'Hire the S19 folding mobility scooter: light, compact and easy to transport. Rome and Florence, with delivery and collection.',
       description: [
         '<h3>Hire <strong>Folding electric scooter for the elderly and disabled</strong>.</h3>',
         '<p><strong>The S19 folding electric mobility scooter for the elderly and disabled is the ideal solution for getting around freely during your trips in Italy.</strong> Hire your travel companion: freedom at your fingertips, simple, safe and affordable! For limitless mobility, it is your key to independence.</p>',
@@ -100,7 +98,12 @@ export const foldingScooterS19 = electricWheelchairsAndScootersHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'folding-scooter-s19-1.png', alt: { it: 'Noleggio Scooter elettrico pieghevole, scooter elettrico per anziani e per disabili' } },
+    thumbnail: {
+      file: 'folding-scooter-s19-1.png',
+      alt: {
+        it: 'Noleggio Scooter elettrico pieghevole, scooter elettrico per anziani e per disabili',
+      },
+    },
     gallery: [
       'folding-scooter-s19-2.jpg',
       'folding-scooter-s19-3.png',

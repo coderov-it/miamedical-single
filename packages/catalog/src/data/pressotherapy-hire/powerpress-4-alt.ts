@@ -19,19 +19,17 @@ export const powerpress4Alt = pressotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 90),
-    days(30, 140),
-    days(60, 240),
-  ],
+  packages: [days(15, 90), days(30, 140), days(60, 240)],
 
   translations: {
     it: {
       title: 'Noleggio Pressoterapia Professionale',
       slug: 'noleggio-pressoterapia-professionale',
-      shortDescription: 'Noleggio Pressoterapia Include 2 gambali, la fascia addominale, il bracciale e una tutina protettiva. Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 60 giorni. Nessun deposito richiesto!',
+      shortDescription:
+        'Noleggio Pressoterapia Include 2 gambali, la fascia addominale, il bracciale e una tutina protettiva. Consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Consegna gratis se acquisti un noleggio per un minimo di 60 giorni. Nessun deposito richiesto!',
       metaTitle: 'Noleggio Pressoterapia Professionale per Uso Domiciliare',
-      metaDescription: 'Pressoterapia Proffessionale . Prezzi imbattibili. Perfetto per il trattamento contro la cellulite. Noleggiala. Chiama subito il 3926509237.',
+      metaDescription:
+        'Pressoterapia Proffessionale . Prezzi imbattibili. Perfetto per il trattamento contro la cellulite. Noleggiala. Chiama subito il 3926509237.',
       description: [
         '<p>Il <strong>noleggio pressoterapia professionale</strong> è la soluzione ideale per chi desidera migliorare la circolazione, ridurre gonfiori e affaticamento e prendersi cura del proprio benessere comodamente a casa. La pressoterapia è particolarmente indicata per alleviare <strong>disturbi legati alla cattiva circolazione</strong>, come mani e piedi freddi, pesantezza alle gambe, dolori articolari e stanchezza muscolare, anche in presenza di traumi post-incidente o ridotta attività fisica.</p>',
         '<h2>Benefici della pressoterapia</h2>',
@@ -52,9 +50,11 @@ export const powerpress4Alt = pressotherapyHire.rental({
     en: {
       title: 'Professional pressotherapy, for hire',
       slug: 'noleggio-pressoterapia-professionale',
-      shortDescription: 'Pressotherapy Hire Includes 2 leggings, abdominal band, armband and a protective onesie. Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 60 days. No deposit required!',
+      shortDescription:
+        'Pressotherapy Hire Includes 2 leggings, abdominal band, armband and a protective onesie. Home delivery throughout Italy from 15€ + 15€ for collection. Free delivery if you purchase a rental for a minimum of 60 days. No deposit required!',
       metaTitle: 'Professional pressotherapy hire for use at home',
-      metaDescription: 'Professional pressotherapy at unbeatable prices. Ideal for treating cellulite. Hire it — call +39 392 650 9237',
+      metaDescription:
+        'Professional pressotherapy at unbeatable prices. Ideal for treating cellulite. Hire it — call +39 392 650 9237',
       description: [
         '<p>The <strong>professional pressotherapy hire</strong> it is the ideal solution for those who want to improve circulation, reduce swelling and fatigue, and look after their well-being comfortably at home. Pressotherapy is particularly suitable for relieving <strong>disorders related to poor circulation</strong>, such as cold hands and feet, heavy legs, joint pain and muscle fatigue, even in the presence of post-accident trauma or reduced physical activity.</p>',
         '<h2>Benefits of pressure therapy</h2>',
@@ -62,7 +62,7 @@ export const powerpress4Alt = pressotherapyHire.rental({
         '<ul><li>Reduce swelling and fluid retention</li><li>Relieving muscle and joint pain</li><li>Counteracting limb fatigue</li><li>Improving the general wellbeing of legs and arms</li></ul>',
         '<p>The treatment acts naturally and non-invasively, making it suitable even for frequent cycles of use.</p>',
         '<h2>Pressotherapy FREE: professional digital device</h2>',
-        '<p>La <strong>FREE PRESSOTHERAPY</strong> it\'s a piece of machinery <strong>state-of-the-art professional</strong>, fully digital, also designed for a <strong>simple and safe home use</strong>.<br />It features <strong>remote control</strong> for the management of treatments and is <strong>light, compact and easily transportable</strong>, offering an experience of <strong>professional massage directly at home</strong>.</p>',
+        "<p>La <strong>FREE PRESSOTHERAPY</strong> it's a piece of machinery <strong>state-of-the-art professional</strong>, fully digital, also designed for a <strong>simple and safe home use</strong>.<br />It features <strong>remote control</strong> for the management of treatments and is <strong>light, compact and easily transportable</strong>, offering an experience of <strong>professional massage directly at home</strong>.</p>",
         '<p>The device features <strong>4 inflation programmes</strong>, designed to adapt to different therapeutic and comfort needs.</p>',
         '<h2>How pressotherapy works</h2>',
         '<p>The <strong>accessories</strong> main are the <strong>leggings with inflatable chambers</strong>, within which the device introduces air according to <strong>well-defined and sequential pressures</strong>.<br />Inflation proceeds from the <strong>limb periphery towards the root</strong>, creating a’<strong>peristaltic wave</strong> which promotes the movement of interstitial fluid in lymphatic and venous vessels, progressively stimulating their circulation.</p>',
@@ -75,15 +75,16 @@ export const powerpress4Alt = pressotherapyHire.rental({
   },
 
   specs: {
-    channels: { it: '2 gambali, fascia addominale, bracciale e tutina protettiva', en: 'Two leg sleeves, an abdominal belt, an arm sleeve and a protective suit' },
+    channels: {
+      it: '2 gambali, fascia addominale, bracciale e tutina protettiva',
+      en: 'Two leg sleeves, an abdominal belt, an arm sleeve and a protective suit',
+    },
     programmes: { it: '4 programmi di trattamento', en: 'Four treatment programmes' },
   },
 
   media: {
     thumbnail: 'powerpress-4-alt-1.jpg',
-    gallery: [
-      'powerpress-4-alt-2.jpg',
-    ],
+    gallery: ['powerpress-4-alt-2.jpg'],
   },
 
   addons: [homeDeliveryOnly(15), homeCollection(15)],

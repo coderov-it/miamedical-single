@@ -23,9 +23,11 @@ export const bobbyEvo = wheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina Da Transito BOBBY',
       slug: 'carrozzina-transito-bobby-evo',
-      shortDescription: 'Carrozzina da Transito Bobby EVO in Vendita Leggera,solo 12kg !!! pieghevole in 4 e ideale per accompagnamento e trasporti rapidi. Struttura compatta con schienale pieghevole e pedane removibili per il massimo comfort e praticità. Seduta larga e freni. Spedizione gratuita in tutta Italia! Consegna rapida direttamente a casa tua, senza costi aggiuntivi. Acquista online o contattaci su WhatsApp per maggiori informazioni!',
+      shortDescription:
+        'Carrozzina da Transito Bobby EVO in Vendita Leggera,solo 12kg !!! pieghevole in 4 e ideale per accompagnamento e trasporti rapidi. Struttura compatta con schienale pieghevole e pedane removibili per il massimo comfort e praticità. Seduta larga e freni. Spedizione gratuita in tutta Italia! Consegna rapida direttamente a casa tua, senza costi aggiuntivi. Acquista online o contattaci su WhatsApp per maggiori informazioni!',
       metaTitle: 'Carrozzina da transito Bobby EVO | Leggera e pieghevole',
-      metaDescription: 'carrozzina da transito Bobby EVO pieghevole e ultraleggera. Ideale per anziani e persone con mobilità ridotta. Facile da trasportare e sicura.',
+      metaDescription:
+        'carrozzina da transito Bobby EVO pieghevole e ultraleggera. Ideale per anziani e persone con mobilità ridotta. Facile da trasportare e sicura.',
       description: [
         '<h2>Carrozzina da Transito Bobby EVO Pieghevole e Ultraleggera</h2>',
         '<p>La carrozzina da transito Bobby EVO è una sedia a rotelle pieghevole e ultraleggera progettata per garantire comfort, sicurezza e praticità durante gli spostamenti quotidiani. Ideale per anziani, persone con mobilità ridotta e pazienti post-operatori, rappresenta una soluzione affidabile per il trasporto assistito sia in ambienti domestici che sanitari.</p>',
@@ -57,9 +59,11 @@ export const bobbyEvo = wheelchairsSale.fixed({
     en: {
       title: 'BOBBY transit wheelchair for sale',
       slug: 'carrozzina-transito-bobby-evo',
-      shortDescription: 'Bobby EVO Transit Wheelchair for Sale Lightweight – just 12kg!!! Folds into four sections and is ideal for taking with you and for quick transport. Compact frame with a foldable backrest and removable footrests for maximum comfort and practicality. Wide seat and brakes. Free shipping across the whole of Italy! Fast delivery straight to your door, at no extra cost. Shop online or contact us on WhatsApp for more information!',
+      shortDescription:
+        'Bobby EVO Transit Wheelchair for Sale Lightweight – just 12kg!!! Folds into four sections and is ideal for taking with you and for quick transport. Compact frame with a foldable backrest and removable footrests for maximum comfort and practicality. Wide seat and brakes. Free shipping across the whole of Italy! Fast delivery straight to your door, at no extra cost. Shop online or contact us on WhatsApp for more information!',
       metaTitle: 'Bobby EVO transit wheelchair | Light and folding',
-      metaDescription: 'Buy the Bobby EVO transit wheelchair: 12.4–13 kg, folds in four, folding backrest, swing-away armrests, dual brakes. Free delivery in Italy.',
+      metaDescription:
+        'Buy the Bobby EVO transit wheelchair: 12.4–13 kg, folds in four, folding backrest, swing-away armrests, dual brakes. Free delivery in Italy.',
       description: [
         '<h2>Bobby EVO Foldable and Ultralight Transit Wheelchair</h2>',
         '<p>The Bobby EVO transit wheelchair is a foldable and ultralightweight wheelchair designed to guarantee comfort, safety and practicality during daily journeys. Ideal for the elderly, people with reduced mobility and post-operative patients, it represents a reliable solution for assisted transport in both domestic and healthcare environments.</p>',
@@ -76,7 +80,7 @@ export const bobbyEvo = wheelchairsSale.fixed({
         '<h2>Dimensions and technical specifications</h2>',
         '<ul><li>Maximum weight supported: 115 kg</li><li>Total weight: approx. 12.4 – 13 kg</li><li>Seat width: 39 to 48 cm</li><li>Total width: 46 to 57 cm</li><li>Total length: 101 cm</li><li>Total height: 90 cm</li></ul>',
         '<h2>Safety and comfort when travelling</h2>',
-        '<p>The Bobby EVO folding wheelchair is designed to offer stability and comfort even during prolonged use. The integrated braking system guarantees greater control when on the move, while the ergonomic structure enhances the user\'s comfort.</p>',
+        "<p>The Bobby EVO folding wheelchair is designed to offer stability and comfort even during prolonged use. The integrated braking system guarantees greater control when on the move, while the ergonomic structure enhances the user's comfort.</p>",
         '<h2>Buy the Bobby EVO mobility scooter</h2>',
         '<p>Buy the Bobby EVO transit wheelchair online and choose a practical, durable and easy-to-transport solution. Contact us for information, availability and support in choosing the model best suited to your needs.</p>',
         '<p>With Bobby EVO, every journey becomes simpler and safer.</p>',

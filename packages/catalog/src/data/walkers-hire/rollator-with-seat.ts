@@ -18,22 +18,17 @@ export const rollatorWithSeat = walkersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   translations: {
     it: {
       title: 'Noleggio deambulatore rollatore con seduta',
       slug: 'noleggio-deambulatore-rollatore-in-alluminio-2',
-      shortDescription: 'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio Deambulatore Rollator Pieghevole a Roma e Firenze',
-      metaDescription: 'Noleggio e vendita Deambulatore Rollator pieghevole leggero, freni e seduta. Migliore Prezzo Garantito. Fidati di noi. Siamo esperti nel noleggio.',
+      metaDescription:
+        'Noleggio e vendita Deambulatore Rollator pieghevole leggero, freni e seduta. Migliore Prezzo Garantito. Fidati di noi. Siamo esperti nel noleggio.',
       description: [
         '<p><strong>Noleggio</strong><strong>Deambulatore adatto per uso interno ed esterno, piegevole, regolabile in altezza a Roma e Firenze.</strong></p>',
         '<p>Scopri il nostro&nbsp;<strong>rollator 4 ruote con seduta in alluminio</strong>, l’ausilio ideale per garantire sicurezza e autonomia nella deambulazione. Progettato per supportare le persone con difficoltà motorie, questo dispositivo è perfetto per l’uso quotidiano in ambienti interni ed esterni ed è disponibile per il noleggio nelle aree di&nbsp;<strong>Roma</strong>&nbsp;e&nbsp;<strong>Firenze</strong>.</p>',
@@ -54,14 +49,16 @@ export const rollatorWithSeat = walkersHire.rental({
     en: {
       title: 'Rollator with a seat, for hire',
       slug: 'noleggio-deambulatore-rollatore-in-alluminio-2',
-      shortDescription: 'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Folding rollator hire | Rome and Florence',
-      metaDescription: 'Hire a light folding rollator with brakes and a seat. Best price guaranteed — we know hire inside out.',
+      metaDescription:
+        'Hire a light folding rollator with brakes and a seat. Best price guaranteed — we know hire inside out.',
       description: [
         '<p><strong>Hire</strong><strong>Walker suitable for indoor and outdoor use, foldable, height adjustable in Rome and Florence.</strong></p>',
         '<p>Discover our&nbsp;<strong>4-wheel rollator with aluminium seat</strong>, the ideal aid for safe and independent walking. Designed to support people with mobility impairments, this device is perfect for everyday indoor and outdoor use and is available for rental in the areas of&nbsp;<strong>Rome</strong>&nbsp;e&nbsp;<strong>Florence</strong>.</p>',
         '<h4>Technical Features and Functionality </h4>',
-        '<ul><li><strong>Robust and Lightweight Structure</strong></li><li>Made of <strong>painted aluminium</strong>It combines strength and lightness for practical and durable use.</li><li><strong>Foldable design</strong></li><li>It closes easily with a single gesture, taking up little space for transport and storage.</li><li><strong>4 EVA wheels Ø 20 cm</strong></li><li><strong>Swivelling fronts with full fork and reflector</strong> → they guarantee handling and safety.</li><li><strong>Rear fixed with dual-function brakes</strong> → allow the rollator to be braked in motion or to be locked from a standstill.</li><li><strong>Anatomically adjustable handles</strong></li><li>Comfortable and adaptable to the user\'s height, complete with <strong>reflector</strong> for greater security.</li><li><strong>Padded seat and EVA backrest</strong></li><li><strong>Seat 38×34 cm upholstered and covered in PVC</strong>ideal for a moment\'s rest while walking.</li><li><strong>Padded EVA backrest</strong>ergonomic support for maximum comfort.</li><li><strong>Basket for Objects</strong> included, perfect for carrying small personal effects.</li></ul>',
+        "<ul><li><strong>Robust and Lightweight Structure</strong></li><li>Made of <strong>painted aluminium</strong>It combines strength and lightness for practical and durable use.</li><li><strong>Foldable design</strong></li><li>It closes easily with a single gesture, taking up little space for transport and storage.</li><li><strong>4 EVA wheels Ø 20 cm</strong></li><li><strong>Swivelling fronts with full fork and reflector</strong> → they guarantee handling and safety.</li><li><strong>Rear fixed with dual-function brakes</strong> → allow the rollator to be braked in motion or to be locked from a standstill.</li><li><strong>Anatomically adjustable handles</strong></li><li>Comfortable and adaptable to the user's height, complete with <strong>reflector</strong> for greater security.</li><li><strong>Padded seat and EVA backrest</strong></li><li><strong>Seat 38×34 cm upholstered and covered in PVC</strong>ideal for a moment's rest while walking.</li><li><strong>Padded EVA backrest</strong>ergonomic support for maximum comfort.</li><li><strong>Basket for Objects</strong> included, perfect for carrying small personal effects.</li></ul>",
         '<p><h4><strong>Innovation and Design: An Ally for Everyday Well-being</strong></h4>',
         '<p>Our folding 4-wheel aluminium rollator combines <strong>functionality and ergonomic design to make every move safer and more comfortable.</strong></p>',
         '<p><strong>Curiosity:</strong>&nbsp;Ergonomic studies show that using aids designed to maintain correct posture can significantly reduce muscle fatigue. The <strong>anatomical handles</strong> and the <strong>adjustable seat</strong> not only <strong>support walking</strong>but <strong>also contribute to improving the quality of life</strong>turning every step into a gesture of well-being.</p>',

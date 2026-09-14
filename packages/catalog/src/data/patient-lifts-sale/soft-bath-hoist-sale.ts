@@ -23,7 +23,8 @@ export const softBathHoistSale = patientLiftsSale.fixed({
       slug: 'vendita-sollevatore-elettrico-soft',
       shortDescription: 'Non perdere l’Offerta speciale! Fino ad esaurimento scorte.',
       metaTitle: 'Vendita sollevatore elettrico SOFT da bagno - Mia Medical Italia',
-      metaDescription: 'Sollevatore elettrico SOFT in vendita. Disponibilità immediata. Consegna rapida in 24/48h. Il miglior rapporto qualità prezzo sul mercato! Chiama ora.',
+      metaDescription:
+        'Sollevatore elettrico SOFT in vendita. Disponibilità immediata. Consegna rapida in 24/48h. Il miglior rapporto qualità prezzo sul mercato! Chiama ora.',
       description: [
         '<h4>Sollevatore elettrico SOFT per bagno e trasferimenti – pieghevole, compatto e facile da usare</h4>',
         '<p>Il <strong>sollevatore elettrico SOFT</strong> è un dispositivo medicale pensato per facilitare il sollevamento e il trasferimento di persone con ridotta mobilità, in totale comfort e sicurezza. Grazie alla sua <strong>morbida imbracatura</strong> e al <strong>sistema pieghevole a ingombro ridotto</strong>, è perfetto per l’utilizzo in ambienti domestici e professionali, anche con spazi limitati.</p>',
@@ -46,7 +47,8 @@ export const softBathHoistSale = patientLiftsSale.fixed({
       slug: 'vendita-sollevatore-elettrico-soft',
       shortDescription: 'Do not miss the special offer! While stocks last.',
       metaTitle: 'SOFT electric bath hoist for sale - Mia Medical Italia',
-      metaDescription: 'SOFT electric hoist for sale. Available immediately, delivered in 24–48 hours. The best quality for the money on the market.',
+      metaDescription:
+        'SOFT electric hoist for sale. Available immediately, delivered in 24–48 hours. The best quality for the money on the market.',
       description: [
         '<h4>SOFT electric hoist for baths and transfers - foldable, compact and easy to use</h4>',
         '<p>The <strong>SOFT electric hoist</strong> is a medical device designed to facilitate the lifting and transfer of persons with reduced mobility in total comfort and safety. Thanks to its <strong>soft harness</strong> and the <strong>space-saving folding system</strong>, It is perfect for use in home and professional environments, even with limited space.</p>',
@@ -76,7 +78,10 @@ export const softBathHoistSale = patientLiftsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'soft-bath-hoist-1.jpg', alt: { it: 'Noleggio sollevatore elettrico da bagno per anziani e disabili' } },
+    thumbnail: {
+      file: 'soft-bath-hoist-1.jpg',
+      alt: { it: 'Noleggio sollevatore elettrico da bagno per anziani e disabili' },
+    },
     gallery: [
       'soft-bath-hoist-2.jpg',
       { file: 'soft-bath-hoist-3.jpg', alt: { it: 'sollevatore up soft mia medical' } },

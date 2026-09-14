@@ -58,102 +58,98 @@ const card =
   <PdpSectionHead n="01" title={text('pdp.extras')} hint={text('pdp.extrasHint')} />
 
   <div class="grid [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))] gap-2.5">
-    {
-      addons.map((addon) => (
-        <span>
-          <input
-            class="peer sr-only"
-            type="checkbox"
-            name={FIELD.addon}
-            id={`addon-${addon.id}`}
-            value={addon.id}
-            data-est-kind="addon"
-            data-est-price={addon.pricing.price}
-            data-est-mode={addon.pricing.mode}
-            data-est-unit={addon.pricing.rentalUnit ?? ''}
-            data-est-label={addon.name}
-            data-addon-id={addon.id}
-          />
-          <label class={card} for={`addon-${addon.id}`}>
-            <span
-              class="grid size-5 flex-none place-items-center rounded-md bg-white"
-              data-box
-              aria-hidden="true"
+    {addons.map((addon) => (
+      <span>
+        <input
+          class="peer sr-only"
+          type="checkbox"
+          name={FIELD.addon}
+          id={`addon-${addon.id}`}
+          value={addon.id}
+          data-est-kind="addon"
+          data-est-price={addon.pricing.price}
+          data-est-mode={addon.pricing.mode}
+          data-est-unit={addon.pricing.rentalUnit ?? ''}
+          data-est-label={addon.name}
+          data-addon-id={addon.id}
+        />
+        <label class={card} for={`addon-${addon.id}`}>
+          <span
+            class="grid size-5 flex-none place-items-center rounded-md bg-white"
+            data-box
+            aria-hidden="true"
+          >
+            <svg
+              class="size-3.5 opacity-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <svg
-                class="size-3.5 opacity-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#fff"
-                stroke-width="3.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </span>
-            {addon.icon && (
-              <img
-                class="size-11 flex-none rounded-[9px] bg-white object-contain p-0.5"
-                src={mediaUrl(addon.icon)}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            )}
-            <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
-              <strong class="text-[14.5px]">{addon.name}</strong>
-              {addon.description && (
-                <span class="text-ink-2 text-[12.5px]">{addon.description}</span>
-              )}
-            </span>
-            <span class="text-[14px] font-semibold whitespace-nowrap tabular-nums">
-              {priceLabel(addon)}
-            </span>
-          </label>
-
-          {allowsMultiple(addon) && (
-            <span
-              class="mt-1.5 flex items-center justify-end gap-2.5 text-[13px]"
-              data-qty-row
-              data-addon-qty-row={addon.id}
-              hidden
-            >
-              <span class="text-ink-2">{text('quantity')}</span>
-              <span class="bg-tint flex items-center overflow-clip rounded-[10px]">
-                <button
-                  type="button"
-                  class="hover:bg-tint-2 grid size-9 cursor-pointer place-items-center border-0 bg-transparent text-lg font-bold"
-                  data-qty-dec
-                  aria-label={`Riduci quantità di ${addon.name}`}
-                >
-                  −
-                </button>
-                <input
-                  class="h-9 w-10 appearance-none border-0 bg-transparent text-center text-[14px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  type="number"
-                  name={`${ADDON_QUANTITY_PREFIX}${addon.id}`}
-                  value="1"
-                  min="1"
-                  max={addon.maxQuantity ?? MAX_ADDON_QUANTITY}
-                  inputmode="numeric"
-                  aria-label={translate(locale, 'quantityOf', { title: addon.name })}
-                  data-qty-input
-                  data-est-addon-qty={addon.id}
-                />
-                <button
-                  type="button"
-                  class="hover:bg-tint-2 grid size-9 cursor-pointer place-items-center border-0 bg-transparent text-lg font-bold"
-                  data-qty-inc
-                  aria-label={`Aumenta quantità di ${addon.name}`}
-                >
-                  +
-                </button>
-              </span>
-            </span>
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </span>
+          {addon.icon && (
+            <img
+              class="size-11 flex-none rounded-[9px] bg-white object-contain p-0.5"
+              src={mediaUrl(addon.icon)}
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
           )}
-        </span>
-      ))
-    }
+          <span class="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+            <strong class="text-[14.5px]">{addon.name}</strong>
+            {addon.description && <span class="text-ink-2 text-[12.5px]">{addon.description}</span>}
+          </span>
+          <span class="text-[14px] font-semibold whitespace-nowrap tabular-nums">
+            {priceLabel(addon)}
+          </span>
+        </label>
+
+        {allowsMultiple(addon) && (
+          <span
+            class="mt-1.5 flex items-center justify-end gap-2.5 text-[13px]"
+            data-qty-row
+            data-addon-qty-row={addon.id}
+            hidden
+          >
+            <span class="text-ink-2">{text('quantity')}</span>
+            <span class="bg-tint flex items-center overflow-clip rounded-[10px]">
+              <button
+                type="button"
+                class="hover:bg-tint-2 grid size-9 cursor-pointer place-items-center border-0 bg-transparent text-lg font-bold"
+                data-qty-dec
+                aria-label={`Riduci quantità di ${addon.name}`}
+              >
+                −
+              </button>
+              <input
+                class="h-9 w-10 appearance-none border-0 bg-transparent text-center text-[14px] font-bold tabular-nums [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                type="number"
+                name={`${ADDON_QUANTITY_PREFIX}${addon.id}`}
+                value="1"
+                min="1"
+                max={addon.maxQuantity ?? MAX_ADDON_QUANTITY}
+                inputmode="numeric"
+                aria-label={translate(locale, 'quantityOf', { title: addon.name })}
+                data-qty-input
+                data-est-addon-qty={addon.id}
+              />
+              <button
+                type="button"
+                class="hover:bg-tint-2 grid size-9 cursor-pointer place-items-center border-0 bg-transparent text-lg font-bold"
+                data-qty-inc
+                aria-label={`Aumenta quantità di ${addon.name}`}
+              >
+                +
+              </button>
+            </span>
+          </span>
+        )}
+      </span>
+    ))}
   </div>
 </section>

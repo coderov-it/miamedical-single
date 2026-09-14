@@ -57,22 +57,18 @@ interface Props {
 const { labelStage = false } = Astro.props;
 ---
 
-{
-  /*
+{/*
     Each card carries its own labels as data attributes. The page script reads
     them from there rather than importing them: importing would pull
     src/lib/checkout.ts — and with it the whole typed API client — into the
     browser bundle for the sake of two words.
-  */
-}
+  */}
 {labelStage && <span class={EYEBROW}>{t('deliveryStage')}</span>}
 
-{
-  /* GATED AS A GROUP. Nothing here is a form control — the options are cards with
+{/* GATED AS A GROUP. Nothing here is a form control — the options are cards with
     panels inside them, which an <input> cannot be — so there is no `required` to
     hang on anything and the gate's predicate reads the page's own `state.delivery`
-    instead. See `scripts/checkout/gates.ts`. */
-}
+    instead. See `scripts/checkout/gates.ts`. */}
 <div
   class="flex flex-col gap-3.5"
   role="radiogroup"
@@ -80,83 +76,82 @@ const { labelStage = false } = Astro.props;
   data-gate="deliveryMethod"
   data-delivery-group
 >
-  {
-    DELIVERY_METHODS.map((option) => (
-      <div
-        class="group/delivery bg-tint rounded-xl border-[1.5px] border-transparent data-selected:border-accent data-selected:bg-white"
-        data-delivery-card={option.id}
-        data-delivery-name={t(option.id)}
-        data-delivery-short={t(`${option.id}Short`)}
+  {DELIVERY_METHODS.map((option) => (
+    <div
+      class="group/delivery bg-tint rounded-xl border-[1.5px] border-transparent data-selected:border-accent data-selected:bg-white"
+      data-delivery-card={option.id}
+      data-delivery-name={t(option.id)}
+      data-delivery-short={t(`${option.id}Short`)}
+    >
+      <button
+        class="flex w-full cursor-pointer items-center gap-3.5 border-0 bg-transparent px-4.5 py-4 text-left"
+        type="button"
+        role="radio"
+        aria-checked="false"
+        data-delivery-select={option.id}
       >
-        <button
-          class="flex w-full cursor-pointer items-center gap-3.5 border-0 bg-transparent px-4.5 py-4 text-left"
-          type="button"
-          role="radio"
-          aria-checked="false"
-          data-delivery-select={option.id}
+        <span
+          class="box-border size-4 flex-none rounded-full bg-white group-data-selected/delivery:border-[5px] group-data-selected/delivery:border-accent"
+          data-delivery-dot
+        />
+
+        <span
+          class="text-ink-2 group-data-selected/delivery:bg-accent-tint grid size-10.5 flex-none place-items-center rounded-[10px] bg-white group-data-selected/delivery:text-accent"
+          data-delivery-icon
+          aria-hidden="true"
         >
-          <span
-            class="box-border size-4 flex-none rounded-full bg-white group-data-selected/delivery:border-[5px] group-data-selected/delivery:border-accent"
-            data-delivery-dot
-          />
+          {option.id === 'homeDelivery' && (
+            <svg
+              class="size-6"
+              viewBox="0 0 36 36"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M7 17 L18 7 L29 17" />
+              <path d="M10 15 V29 H26 V15" />
+              <rect x="15.5" y="21" width="5" height="8" />
+            </svg>
+          )}
+          {option.id === 'storePickup' && (
+            <svg
+              class="size-6"
+              viewBox="0 0 36 36"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M8 13 L10 7 H26 L28 13" />
+              <path d="M8 13 V29 H28 V13" />
+              <line x1="8" y1="13" x2="28" y2="13" />
+              <rect x="12" y="17" width="5" height="5" />
+              <rect x="20" y="17" width="4" height="12" />
+            </svg>
+          )}
+        </span>
 
-          <span
-            class="text-ink-2 group-data-selected/delivery:bg-accent-tint grid size-10.5 flex-none place-items-center rounded-[10px] bg-white group-data-selected/delivery:text-accent"
-            data-delivery-icon
-            aria-hidden="true"
-          >
-            {option.id === 'homeDelivery' && (
-              <svg
-                class="size-6"
-                viewBox="0 0 36 36"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M7 17 L18 7 L29 17" />
-                <path d="M10 15 V29 H26 V15" />
-                <rect x="15.5" y="21" width="5" height="8" />
-              </svg>
-            )}
-            {option.id === 'storePickup' && (
-              <svg
-                class="size-6"
-                viewBox="0 0 36 36"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M8 13 L10 7 H26 L28 13" />
-                <path d="M8 13 V29 H28 V13" />
-                <line x1="8" y1="13" x2="28" y2="13" />
-                <rect x="12" y="17" width="5" height="5" />
-                <rect x="20" y="17" width="4" height="12" />
-              </svg>
-            )}
-          </span>
+        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <strong class="text-[15.5px]">{t(option.id)}</strong>
+          <span class="text-ink-2 text-[13.5px] leading-[1.45]">{t(`${option.id}Detail`)}</span>
+        </span>
 
-          <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-            <strong class="text-[15.5px]">{t(option.id)}</strong>
-            <span class="text-ink-2 text-[13.5px] leading-[1.45]">{t(`${option.id}Detail`)}</span>
-          </span>
-
-          {/*
+        {/*
           Collection is free. Home delivery is not — it is unpriced, and this says
           so in the two words that fit beside an amount. The sentence that explains
           it sits in the panel below, where there is room for it.
         */}
-          <strong class="text-[15px] whitespace-nowrap tabular-nums">
-            {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
-          </strong>
-        </button>
+        <strong class="text-[15px] whitespace-nowrap tabular-nums">
+          {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
+        </strong>
+      </button>
 
-        {option.id === 'homeDelivery' && (
-          <div class={`${PANEL} flex flex-col gap-3.5`} data-delivery-panel={option.id} hidden>
-            {/*
+      {option.id === 'homeDelivery' && (
+        <div class={`${PANEL} flex flex-col gap-3.5`} data-delivery-panel={option.id} hidden>
+          {/*
               THE address, as one free-text block.
 
               This was four controls — regione, provincia, comune and CAP, picked
@@ -169,20 +164,20 @@ const { labelStage = false } = Astro.props;
               buzzer name. The customer knows how to write where they live better
               than a form does, and a human reads it at the other end.
             */}
-            <CheckoutField label={t('deliveryAddress')} gate="address" error={t('errorAddress')}>
-              <textarea
-                class={`${FIELD_INPUT} resize-none`}
-                name="delivery-address"
-                rows="2"
-                autocomplete="street-address"
-                placeholder={t('placeholderDeliveryAddress')}
-                data-bwignore
-                data-field="address"
-                data-autogrow
-              />
-            </CheckoutField>
+          <CheckoutField label={t('deliveryAddress')} gate="address" error={t('errorAddress')}>
+            <textarea
+              class={`${FIELD_INPUT} resize-none`}
+              name="delivery-address"
+              rows="2"
+              autocomplete="street-address"
+              placeholder={t('placeholderDeliveryAddress')}
+              data-bwignore
+              data-field="address"
+              data-autogrow
+            ></textarea>
+          </CheckoutField>
 
-            {/*
+          {/*
               What happens about the cost, in the customer's own words.
 
               Always shown, never toggled: there is no case where a home delivery
@@ -190,60 +185,59 @@ const { labelStage = false } = Astro.props;
               sometimes would be a branch with one outcome. It is a promise of a
               next step rather than a warning, because that is what it is.
             */}
-            <p class="text-ink-2 text-[13.5px] leading-[1.45]">{t('deliveryFeeOnRequest')}</p>
-          </div>
-        )}
+          <p class="text-ink-2 text-[13.5px] leading-[1.45]">{t('deliveryFeeOnRequest')}</p>
+        </div>
+      )}
 
-        {option.id === 'storePickup' && (
-          <div class={`${PANEL} flex flex-col gap-2.5`} data-delivery-panel={option.id} hidden>
-            <span class="text-ink-2 text-[13.5px]" id="checkout-pickup-label">
-              {t('choosePickupPoint')}
-            </span>
-            {/*
+      {option.id === 'storePickup' && (
+        <div class={`${PANEL} flex flex-col gap-2.5`} data-delivery-panel={option.id} hidden>
+          <span class="text-ink-2 text-[13.5px]" id="checkout-pickup-label">
+            {t('choosePickupPoint')}
+          </span>
+          {/*
               The reference file spreads the items across every store at once,
               which only makes sense for a multi-warehouse fleet. Here one order
               is collected from one branch, so this is a choice.
             */}
-            <div
-              class="flex flex-col gap-2.5"
-              role="radiogroup"
-              aria-labelledby="checkout-pickup-label"
-              data-gate="pickupPoint"
-            >
-              {PICKUP_POINTS.map((point, index) => (
-                <button
-                  class="group/pickup bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left data-selected:border-accent data-selected:bg-white"
-                  type="button"
-                  role="radio"
-                  aria-checked={index === 0 ? 'true' : 'false'}
-                  data-pickup-card={point.city}
-                >
-                  <span
-                    class="bg-accent-tint grid size-8.5 flex-none place-items-center rounded-lg text-[15px] font-bold text-accent"
-                    aria-hidden="true"
-                  >
-                    {index + 1}
-                  </span>
-                  <span class="flex min-w-0 flex-1 flex-col">
-                    <strong class="text-[15.5px]">{point.name}</strong>
-                    <span class="text-ink-2 mt-0.75 text-[13.5px]">{point.detail}</span>
-                  </span>
-                </button>
-              ))}
-
-              <p
-                class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
-                data-field-error="pickupPoint"
-                hidden
+          <div
+            class="flex flex-col gap-2.5"
+            role="radiogroup"
+            aria-labelledby="checkout-pickup-label"
+            data-gate="pickupPoint"
+          >
+            {PICKUP_POINTS.map((point, index) => (
+              <button
+                class="group/pickup bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left data-selected:border-accent data-selected:bg-white"
+                type="button"
+                role="radio"
+                aria-checked={index === 0 ? 'true' : 'false'}
+                data-pickup-card={point.city}
               >
-                {t('errorPickupPoint')}
-              </p>
-            </div>
+                <span
+                  class="bg-accent-tint grid size-8.5 flex-none place-items-center rounded-lg text-[15px] font-bold text-accent"
+                  aria-hidden="true"
+                >
+                  {index + 1}
+                </span>
+                <span class="flex min-w-0 flex-1 flex-col">
+                  <strong class="text-[15.5px]">{point.name}</strong>
+                  <span class="text-ink-2 mt-0.75 text-[13.5px]">{point.detail}</span>
+                </span>
+              </button>
+            ))}
+
+            <p
+              class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+              data-field-error="pickupPoint"
+              hidden
+            >
+              {t('errorPickupPoint')}
+            </p>
           </div>
-        )}
-      </div>
-    ))
-  }
+        </div>
+      )}
+    </div>
+  ))}
 
   <p
     class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
@@ -254,11 +248,9 @@ const { labelStage = false } = Astro.props;
   </p>
 </div>
 
-{
-  /*
+{/*
     The step's "Continua" button is NOT here. Step 2 can carry a Riconsegna block
     after this one, and a forward action rendered above a question it does not cover
     invites the customer to skip it — so the button belongs to the step, in
     `pages/checkout.astro`, after everything it commits.
-  */
-}
+  */}

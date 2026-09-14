@@ -28,9 +28,11 @@ export const q2200Power = pressotherapySale.fixed({
     it: {
       title: 'Vendita Pressoterapia Q2200 POWER',
       slug: 'vendita-pressoterapia-professionaleq2200-power',
-      shortDescription: 'PRESSOTERAPIA M.I.A. Q2200 Prodotto professionale di ultima generazione interamente digitale, ideato anche per l’utilizzo domiciliare. Combatte gli inestetismi della cellulite, riduce la ritenzione idrica, ridefinisce alcune parti del corpo (solitamente le gambe), incentiva l’eliminazione delle sostanze tossiche e favorisce lo snellimento di alcune zone. Incluso: 2 gambali + fascia addominale. Provala a noleggio 7 giorni per solo 50€. Guarda anche le nostre offerte di noleggio',
+      shortDescription:
+        'PRESSOTERAPIA M.I.A. Q2200 Prodotto professionale di ultima generazione interamente digitale, ideato anche per l’utilizzo domiciliare. Combatte gli inestetismi della cellulite, riduce la ritenzione idrica, ridefinisce alcune parti del corpo (solitamente le gambe), incentiva l’eliminazione delle sostanze tossiche e favorisce lo snellimento di alcune zone. Incluso: 2 gambali + fascia addominale. Provala a noleggio 7 giorni per solo 50€. Guarda anche le nostre offerte di noleggio',
       metaTitle: 'Vendita e noleggio PRESSOTERAPIA professionale a casa.',
-      metaDescription: 'Vendita pressoterapia professionale a domicilio. Per la cellulite e la pesantezza delle gambe. Chiama subito al +39 3926509237. Prezzi migliori del web.',
+      metaDescription:
+        'Vendita pressoterapia professionale a domicilio. Per la cellulite e la pesantezza delle gambe. Chiama subito al +39 3926509237. Prezzi migliori del web.',
       description: [
         '<h2><strong>Vendita Pressoterapia&nbsp;</strong>Q2200 POWER: pressoterapia professionale digitale per uso domiciliare e clinico</h2>',
         '<p>La&nbsp;<strong>Pressoterapia&nbsp;</strong>Q2200 POWER<strong>&nbsp;</strong>è un&nbsp;<strong>dispositivo professionale di ultima generazione</strong>, interamente digitale, progettato per offrire un&nbsp;<strong>trattamento di pressoterapia efficace, sicuro e personalizzabile</strong>, adatto sia all’<strong>uso domiciliare</strong>&nbsp;sia all’impiego in&nbsp;<strong>ambito professionale</strong>.</p>',
@@ -70,9 +72,11 @@ export const q2200Power = pressotherapySale.fixed({
     en: {
       title: 'Q2200 POWER pressotherapy, for sale',
       slug: 'vendita-pressoterapia-professionaleq2200-power',
-      shortDescription: 'M.I.A. Q2200 PRESSOTHERAPY Latest generation professional product, fully digital, also designed for home use. It combats cellulite, reduces water retention, redefines certain parts of the body (usually the legs), promotes the elimination of toxic substances and helps to slim down certain areas. Included: 2 leggings + abdominal band. Try it out on a 7-day hire for just €50. See also our rental offers',
+      shortDescription:
+        'M.I.A. Q2200 PRESSOTHERAPY Latest generation professional product, fully digital, also designed for home use. It combats cellulite, reduces water retention, redefines certain parts of the body (usually the legs), promotes the elimination of toxic substances and helps to slim down certain areas. Included: 2 leggings + abdominal band. Try it out on a 7-day hire for just €50. See also our rental offers',
       metaTitle: 'Professional PRESSOTHERAPY for sale and hire, at home',
-      metaDescription: 'Professional pressotherapy for sale, for use at home. For cellulite and heavy legs. Call +39 392 650 9237',
+      metaDescription:
+        'Professional pressotherapy for sale, for use at home. For cellulite and heavy legs. Call +39 392 650 9237',
       description: [
         '<h2><strong>Pressotherapy for sale&nbsp;</strong>Q2200 POWER: professional digital pressure therapy for home and clinical use</h2>',
         '<p>La&nbsp;<strong>Pressotherapy&nbsp;</strong>Q2200 POWER<strong>&nbsp;</strong>is a&nbsp;<strong>state-of-the-art professional device</strong>, entirely digital, designed to offer a&nbsp;<strong>effective, safe and customisable pressotherapy treatment</strong>, suitable for both’<strong>home use</strong>&nbsp;both for use in&nbsp;<strong>professional field</strong>.</p>',
@@ -82,7 +86,7 @@ export const q2200Power = pressotherapySale.fixed({
         '<p>La&nbsp;<strong>pressotherapy</strong>&nbsp;it is a therapy based on&nbsp;<strong>sequential pneumatic compression</strong>, carried out using boots equipped with air chambers that inflate and deflate in a controlled manner.</p>',
         '<p>La&nbsp;<strong>Pressotherapy&nbsp;</strong>:</p>',
         '<ul><li>reactivates lymphatic and venous flow</li><li>promotes the drainage of excess fluid</li><li>improves peripheral circulation</li><li>relieves swelling and heaviness</li></ul>',
-        '<p>The treatment is&nbsp;<strong>automatic</strong>, but completely&nbsp;<strong>customisable</strong>&nbsp;in the pressure and duration parameters, based on the user\'s requirements or the instructions of a doctor or physiotherapist.</p>',
+        "<p>The treatment is&nbsp;<strong>automatic</strong>, but completely&nbsp;<strong>customisable</strong>&nbsp;in the pressure and duration parameters, based on the user's requirements or the instructions of a doctor or physiotherapist.</p>",
         '<p><strong><a href="https://wa.me/393926509237">Call us for personalised guidance on using the device.</a></strong></p>',
         '<h4><strong>Inflation programmes of our professional pressotherapy for sale&nbsp;</strong></h4>',
         '<p>The Q2200 POWER Pressotherapy unit is equipped with&nbsp;<strong>4 professional programmes</strong>, designed to suit diverse therapeutic and aesthetic needs.</p>',
@@ -125,10 +129,7 @@ export const q2200Power = pressotherapySale.fixed({
 
   media: {
     thumbnail: 'q2200-power-1.jpg',
-    gallery: [
-      'q2200-power-2.jpg',
-      'q2200-power-3.jpg',
-    ],
+    gallery: ['q2200-power-2.jpg', 'q2200-power-3.jpg'],
   },
   terms: [generalTerms],
 });

@@ -45,15 +45,11 @@ const SCRIPT_KEYS = [
       data-error
       hidden
       class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
-    >
-    </div>
+    ></div>
 
     <!-- Loading state -->
     <div data-loading class="space-y-4 py-16 text-center">
-      <div
-        class="border-hair-strong mx-auto size-8 animate-spin rounded-full border-2 border-t-accent"
-      >
-      </div>
+      <div class="border-hair-strong mx-auto size-8 animate-spin rounded-full border-2 border-t-accent"></div>
       <p class="text-neutral-600">{text('contract.loading')}</p>
     </div>
 
@@ -79,8 +75,7 @@ const SCRIPT_KEYS = [
       <div
         data-contract-body
         class="border-hair overflow-hidden rounded-xl border bg-white shadow-sm"
-      >
-      </div>
+      ></div>
 
       <!-- Signature section -->
       <div data-signature-section id="signature-section" class="mt-8 scroll-mt-24">
@@ -92,7 +87,8 @@ const SCRIPT_KEYS = [
             data-signature-canvas
             class="bg-tint h-48 w-full cursor-crosshair touch-none rounded-xl"
             width="700"
-            height="200"></canvas>
+            height="200"
+          ></canvas>
           <button
             data-clear-signature
             type="button"

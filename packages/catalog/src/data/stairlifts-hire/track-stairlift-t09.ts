@@ -31,9 +31,11 @@ export const trackStairliftT09 = stairliftsHire.rental({
     it: {
       title: 'Noleggio Montascale a Cingoli T09',
       slug: 'noleggio-montascale-elettrico-a-cingoli-per-anziani-e-disabili-a-domicilio',
-      shortDescription: 'Per la salita e discesa delle scale con la sedia a rotelle. L’eccellente meccanica lo rendono affidabile e con una grande autonomia. Consegna a domicilio soltanto a Roma e Firenze a partire da 45€. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Per la salita e discesa delle scale con la sedia a rotelle. L’eccellente meccanica lo rendono affidabile e con una grande autonomia. Consegna a domicilio soltanto a Roma e Firenze a partire da 45€. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio montascale a cingoli T09: miglior prezzo sul mercato',
-      metaDescription: 'Noleggio Montascale a cingoli T09. Migliore Prezzo Garantito. Fidati dei nostri esperti. Scegli il nostro servizio e chiamaci al +39 392 65 09 237.',
+      metaDescription:
+        'Noleggio Montascale a cingoli T09. Migliore Prezzo Garantito. Fidati dei nostri esperti. Scegli il nostro servizio e chiamaci al +39 392 65 09 237.',
       description: [
         '<h4><strong>Noleggio Montascale a Cingoli T09 con consegna a domicilio a Roma e Firenze:&nbsp;&nbsp;sicurezza e libertà di movimento, ovunque!</strong></h4>',
         '<p>Hai bisogno di superare le barriere architettoniche di casa, condominio o spazi pubblici? Il servizio di noleggio di <strong>montascale a cingoli T09</strong> è la soluzione ideale per trasportare persone in carrozzina su e giù per le scale <strong>in totale sicurezza</strong>, senza necessità di interventi strutturali.</p>',
@@ -64,9 +66,11 @@ export const trackStairliftT09 = stairliftsHire.rental({
     en: {
       title: 'T09 tracked stair climber, for hire',
       slug: 'noleggio-montascale-elettrico-a-cingoli-per-anziani-e-disabili-a-domicilio',
-      shortDescription: 'For ascending and descending stairs with a wheelchair. The excellent mechanics make it reliable and with a great autonomy. Home delivery only in Rome and Florence from €45. Free delivery if you purchase a rental for a minimum of 45 days. The collection and return of aids to the warehouse are Free. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'For ascending and descending stairs with a wheelchair. The excellent mechanics make it reliable and with a great autonomy. Home delivery only in Rome and Florence from €45. Free delivery if you purchase a rental for a minimum of 45 days. The collection and return of aids to the warehouse are Free. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'T09 tracked stair climber hire: the best price on the market',
-      metaDescription: 'T09 tracked stair climber hire. Best price guaranteed — trust our specialists. Call us.',
+      metaDescription:
+        'T09 tracked stair climber hire. Best price guaranteed — trust our specialists. Call us.',
       description: [
         '<h4><strong>T09 stairlift rental with home delivery in Rome and Florence: safety and freedom of movement, anywhere!</strong></h4>',
         '<p>Do you need to overcome architectural barriers in your home, condominium or public space? The rental service of <strong>T09 crawler stairlift</strong> is the ideal solution for transporting people in wheelchairs up and down stairs <strong>in total safety</strong>, without the need for structural interventions.</p>',
@@ -98,10 +102,7 @@ export const trackStairliftT09 = stairliftsHire.rental({
 
   media: {
     thumbnail: 'track-stairlift-t09-1.jpg',
-    gallery: [
-      'track-stairlift-t09-2.jpg',
-      'track-stairlift-t09-3.jpg',
-    ],
+    gallery: ['track-stairlift-t09-2.jpg', 'track-stairlift-t09-3.jpg'],
   },
 
   addons: [homeDelivery(45)],

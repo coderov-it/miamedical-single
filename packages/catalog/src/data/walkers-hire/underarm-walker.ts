@@ -28,22 +28,17 @@ export const underarmWalker = walkersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   translations: {
     it: {
       title: 'Noleggio Deambulatore con sotto ascellare',
       slug: 'noleggio-deambulatore-con-sotto-ascellare-firenza-e-provincia-roma-e-provincia',
-      shortDescription: 'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio deambulatore ascellare Roma ProvinciaFirenze Provincia',
-      metaDescription: 'Noleggio del Deambulatore Ascellare o Antibracchiale a Roma e provincia e Firenze e provincia. Consegna a domicilio. Super offerte più noleggi meno paghi!',
+      metaDescription:
+        'Noleggio del Deambulatore Ascellare o Antibracchiale a Roma e provincia e Firenze e provincia. Consegna a domicilio. Super offerte più noleggi meno paghi!',
       description: [
         '<p><strong>Noleggio del Deambulatore con sotto ascellare a Roma e Provincia e a Firenze e Provincia per la fisioterapia domiciliare.</strong></p>',
         '<p>Se cerchi un ausilio pensato per la deambulazione in ambienti interni, il nostro&nbsp;<strong>deambulatore con sotto ascellari&nbsp;</strong>è la soluzione ideale per te. Progettato per garantire stabilità e facilità d’uso, questo dispositivo si adatta perfettamente alle esigenze di chi desidera muoversi in sicurezza all’interno della propria abitazione.</p>',
@@ -68,9 +63,11 @@ export const underarmWalker = walkersHire.rental({
     en: {
       title: 'Underarm walking frame for hire',
       slug: 'noleggio-deambulatore-con-sotto-ascellare-firenza-e-provincia-roma-e-provincia',
-      shortDescription: 'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Underarm walker hire | Rome and Florence and their provinces',
-      metaDescription: 'Hire an underarm or forearm walking frame in Rome and Florence and their provinces. Delivered to the door.',
+      metaDescription:
+        'Hire an underarm or forearm walking frame in Rome and Florence and their provinces. Delivered to the door.',
       description: [
         '<p><strong>Rental of walking frame with underarm in Rome and Province and in Florence and Province for home physiotherapy.</strong></p>',
         '<p>If you are looking for an aid designed for indoor walking, our&nbsp;<strong>walker with underarm&nbsp;</strong>is the ideal solution for you. Designed for stability and ease of use, this device is perfectly suited to the needs of those who want to move around their home safely.</p>',

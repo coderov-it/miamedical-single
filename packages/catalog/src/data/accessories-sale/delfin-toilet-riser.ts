@@ -25,9 +25,11 @@ export const delfinToiletRiser = accessoriesSale.fixed({
     it: {
       title: 'Rialzo per wc delfin',
       slug: 'rialzo-per-water-mia-medical',
-      shortDescription: 'Acquistalo Ora! Grazie ai due meccanismi di bloccaggio laterali, si adatta alla maggior parte dei WC.',
+      shortDescription:
+        'Acquistalo Ora! Grazie ai due meccanismi di bloccaggio laterali, si adatta alla maggior parte dei WC.',
       metaTitle: 'Rialzo per wc delfin - Mia Medical Italia',
-      metaDescription: 'Vendita di rialzo per wc, altezza da 10cm a 14cm. Disponibilità immediata. consegna in 12/24 ore. Chiama ora al 3926509237 o prenota online.',
+      metaDescription:
+        'Vendita di rialzo per wc, altezza da 10cm a 14cm. Disponibilità immediata. consegna in 12/24 ore. Chiama ora al 3926509237 o prenota online.',
       description: [
         '<h2><strong>Vendita Rialzo WC con Braccioli e Sistema di Bloccaggio Laterale: Maggiore comfort, sicurezza e autonomia nell’uso quotidiano</strong></h2>',
         '<p>Il&nbsp;<strong>rialzo per WC con braccioli e fissaggio laterale</strong>&nbsp;è un ausilio sanitario indispensabile per facilitare la seduta e la risalita dal water, migliorando la&nbsp;<strong>sicurezza</strong>, la&nbsp;<strong>postura</strong>&nbsp;e l’<strong>autonomia</strong>&nbsp;di persone con difficoltà motorie, anziani o pazienti in fase post-operatoria.</p>',
@@ -69,7 +71,8 @@ export const delfinToiletRiser = accessoriesSale.fixed({
       slug: 'rialzo-per-water-mia-medical',
       shortDescription: 'Buy it now! Two side locking mechanisms let it fit most toilets.',
       metaTitle: 'Delfin toilet riser - Mia Medical Italia',
-      metaDescription: 'Toilet riser for sale, 10 cm to 14 cm high. Available immediately, delivered in 12–24 hours. Call +39 392 650 9237 or book online.',
+      metaDescription:
+        'Toilet riser for sale, 10 cm to 14 cm high. Available immediately, delivered in 12–24 hours. Call +39 392 650 9237 or book online.',
       description: [
         '<h2><strong>Raised Toilet Seat with Armrests and Side Locking System Sale: Greater comfort, safety and independence in daily use</strong></h2>',
         '<p>The&nbsp;<strong>WC riser with armrests and side fixing</strong>&nbsp;it is an essential medical aid to facilitate sitting down and standing up from the toilet, improving&nbsp;<strong>security</strong>, the&nbsp;<strong>posture</strong>&nbsp;and the’<strong>autonomy</strong>&nbsp;of people with restricted mobility, the elderly or post-operative patients.</p>',
@@ -92,7 +95,7 @@ export const delfinToiletRiser = accessoriesSale.fixed({
         '<h3>WC riser for sale: <strong>Ideal for home and care use</strong></h3>',
         '<p>The toilet raiser is suitable for:</p>',
         '<ul><li>elderly people</li><li>post-operative patients (hip, knee, spine)</li><li>people with reduced mobility</li><li>people in rehabilitation</li><li>home care</li><li>healthcare facilities and RSAs</li></ul>',
-        '<p>It\'s a practical solution for&nbsp;<strong>make the bathroom more accessible</strong>, without having to replace the sanitary ware.</p>',
+        "<p>It's a practical solution for&nbsp;<strong>make the bathroom more accessible</strong>, without having to replace the sanitary ware.</p>",
         '<h3><strong>Main features of the WC riser</strong></h3>',
         '<ul><li>Ergonomic WC riser</li><li>Forward inclined seat for correct posture</li><li>Side support armrests</li><li>Double lateral locking system</li><li>Quick and easy installation</li><li>Robust and easy-to-clean construction</li><li>Compatible with most toilets</li></ul>',
         '<h3><strong>Why choose the MIA Medical toilet raiser</strong></h3>',
@@ -101,7 +104,7 @@ export const delfinToiletRiser = accessoriesSale.fixed({
         '<p><strong>Contact us now</strong>&nbsp;to receive all the information or a customised quote.</p>',
         '<p><strong>Buy the WC rise now</strong></p>',
         '<p>A simple solution to improve the quality of life. Making the bathroom safer is the first step towards greater independence.</p>',
-        '<p>The&nbsp;<strong>WC riser with armrests and side fixing</strong>&nbsp;it\'s a practical, safe and immediate choice.</p>',
+        "<p>The&nbsp;<strong>WC riser with armrests and side fixing</strong>&nbsp;it's a practical, safe and immediate choice.</p>",
         '<ul><li><strong>Call us now</strong>: +39 392 65 09 237</li><li><strong><a href="https://wa.me/393926509237">Write to us on WhatsApp</a></strong></li><li><strong><a href="/en/">Visit our website</a></strong> to discover all bathroom and mobility aids</li></ul>',
         '<p>Our team is always on hand to help you choose the&nbsp;<strong>most suited solution to your needs</strong>.</p>',
       ].join(''),
@@ -119,9 +122,7 @@ export const delfinToiletRiser = accessoriesSale.fixed({
 
   media: {
     thumbnail: 'delfin-toilet-riser-1.jpg',
-    gallery: [
-      'delfin-toilet-riser-2.jpg',
-    ],
+    gallery: ['delfin-toilet-riser-2.jpg'],
   },
   terms: [generalTerms],
 });

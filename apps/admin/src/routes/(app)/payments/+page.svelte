@@ -307,7 +307,7 @@
                 </div>
               </Table.Cell>
               <Table.Cell>
-                <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <span class="text-xs font-medium tracking-wider text-muted-foreground uppercase">
                   {payment.type === 'rental' ? 'Noleggio' : 'Vendita'}
                 </span>
               </Table.Cell>
@@ -339,22 +339,19 @@
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Content align="end">
                     <DropdownMenu.Item
-                      onSelect={() =>
-                        window.location.assign(routes.orderDetail(payment.orderId))}
+                      onSelect={() => window.location.assign(routes.orderDetail(payment.orderId))}
                     >
                       <ExternalLinkIcon class="size-4" />
                       View order
                     </DropdownMenu.Item>
                     <DropdownMenu.Item
-                      onSelect={() =>
-                        sendPaymentLink(payment.orderId, payment.orderNumber)}
+                      onSelect={() => sendPaymentLink(payment.orderId, payment.orderNumber)}
                     >
                       <CreditCardIcon class="size-4" />
                       Send payment link
                     </DropdownMenu.Item>
                     <DropdownMenu.Item
-                      onSelect={() =>
-                        copyPaymentLink(payment.orderId, payment.orderNumber)}
+                      onSelect={() => copyPaymentLink(payment.orderId, payment.orderNumber)}
                     >
                       <ClipboardIcon class="size-4" />
                       Copy payment link

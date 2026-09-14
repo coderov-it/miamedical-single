@@ -31,18 +31,18 @@ const { id, heading, lede, linkHref, linkLabel, class: className = '' } = Astro.
   ]}
 >
   <div>
-    <h2 id={`${id}-title`} class="mid:text-h2 text-[1.75rem]/[1.18]">{heading}</h2>
+    <h2 id={`${id}-title`} class="mid:text-h2 text-[1.75rem]/[1.18]">
+      {heading}
+    </h2>
     {lede && <p class="text-ink-2 mid:text-[19px] mt-2.5 max-w-[46ch]">{lede}</p>}
   </div>
 
-  {
-    linkHref && linkLabel && (
-      <a
-        class="font-display text-ui-strong inline-flex min-h-12 items-center font-semibold text-accent no-underline hover:underline hover:underline-offset-[5px]"
-        href={linkHref}
-      >
-        {linkLabel}
-      </a>
-    )
-  }
+  {linkHref && linkLabel && (
+    <a
+      class="font-display text-ui-strong inline-flex min-h-12 items-center font-semibold text-accent no-underline hover:underline hover:underline-offset-[5px]"
+      href={linkHref}
+    >
+      {linkLabel}
+    </a>
+  )}
 </div>

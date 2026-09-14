@@ -85,18 +85,14 @@ const title = query.q
     </header>
 
     <form class="mt-5" method="get" role="search" aria-label={text('search.title')}>
-      {
-        /* `area` has no control here — it is the delivery zone the customer
+      {/* `area` has no control here — it is the delivery zone the customer
            chose on the home page, carried so the product page can still print
-           it. A hidden input is what keeps it from being dropped on submit. */
-      }
+           it. A hidden input is what keeps it from being dropped on submit. */}
       {query.context.area && <input type="hidden" name="area" value={query.context.area} />}
 
       <div class="flex flex-wrap gap-2.5">
-        {
-          /* The well itself is the label, so the padding and the icon beside
-             the caret focus the field instead of swallowing the click. */
-        }
+        {/* The well itself is the label, so the padding and the icon beside
+             the caret focus the field instead of swallowing the click. */}
         <label
           class="rounded-field min-h-control-sm bg-tint relative flex min-w-0 flex-1 basis-80 cursor-text items-stretch gap-3 border border-transparent px-4 transition-[border-color,box-shadow,background-color] duration-150 after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] focus-within:border-accent focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgb(56_70_177/0.12)]"
           for="search-q"
@@ -144,13 +140,11 @@ const title = query.q
           variant="compact"
         />
 
-        {
-          /* "Da quando" is carried, not a filter: nothing here knows which
+        {/* "Da quando" is carried, not a filter: nothing here knows which
              units are already out on which dates, so a date that narrowed the
              list would be a promise the site cannot keep. It rides along to
              prefill the product page's start date. See routes.ts §
-             BrowseContext. */
-        }
+             BrowseContext. */}
         <DatePicker
           id="search-from"
           name="from"

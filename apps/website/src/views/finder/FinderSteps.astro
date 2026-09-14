@@ -45,50 +45,45 @@ const labelClass = 'font-ui text-ui-strong font-bold whitespace-nowrap';
 
 <nav aria-label={text('finder.steps.label')}>
   <ol class="mid:flex-wrap mid:gap-2.5 flex list-none items-center gap-1 p-0">
-    {
-      steps.map(({ index, label, isCurrent, isDone, href }) => (
-        <li class="max-mid:flex-1 max-mid:basis-0 flex min-w-0 items-center gap-2.5">
-          {/* The three states share one body so only the paint differs. */}
-          {href ? (
-            <a
-              class="max-mid:w-full max-mid:flex-col max-mid:gap-1 flex min-h-12 items-center gap-2.5 no-underline"
-              href={href}
-            >
-              <span class:list={[markerClass, 'bg-accent text-white']} aria-hidden="true">
-                ✓
-              </span>
-              <span class:list={[labelClass, 'text-ink max-mid:text-ui']}>{label}</span>
-              <span class="sr-only">— {text('finder.step.done')}</span>
-            </a>
-          ) : (
-            <span
-              class="max-mid:w-full max-mid:flex-col max-mid:gap-1 flex min-h-12 items-center gap-2.5"
-              aria-current={isCurrent ? 'step' : undefined}
-            >
-              <span
-                class:list={[
-                  markerClass,
-                  isCurrent || isDone
-                    ? 'bg-accent text-white'
-                    : 'border-hair text-ink-2 border-2 bg-white',
-                ]}
-                aria-hidden="true"
-              >
-                {isDone ? '✓' : index + 1}
-              </span>
-              <span
-                class:list={[
-                  labelClass,
-                  'max-mid:text-ui',
-                  isCurrent ? 'text-accent' : 'text-ink-2',
-                ]}
-              >
-                {label}
-              </span>
+    {steps.map(({ index, label, isCurrent, isDone, href }) => (
+      <li class="max-mid:flex-1 max-mid:basis-0 flex min-w-0 items-center gap-2.5">
+        {/* The three states share one body so only the paint differs. */}
+        {href ? (
+          <a
+            class="max-mid:w-full max-mid:flex-col max-mid:gap-1 flex min-h-12 items-center gap-2.5 no-underline"
+            href={href}
+          >
+            <span class:list={[markerClass, 'bg-accent text-white']} aria-hidden="true">
+              ✓
             </span>
-          )}
+            <span class:list={[labelClass, 'text-ink max-mid:text-ui']}>{label}</span>
+            <span class="sr-only">— {text('finder.step.done')}</span>
+          </a>
+        ) : (
+          <span
+            class="max-mid:w-full max-mid:flex-col max-mid:gap-1 flex min-h-12 items-center gap-2.5"
+            aria-current={isCurrent ? 'step' : undefined}
+          >
+            <span
+              class:list={[
+                markerClass,
+                isCurrent || isDone
+                  ? 'bg-accent text-white'
+                  : 'border-hair text-ink-2 border-2 bg-white',
+              ]}
+              aria-hidden="true"
+            >
+              {isDone ? '✓' : index + 1}
+            </span>
+            <span
+              class:list={[labelClass, 'max-mid:text-ui', isCurrent ? 'text-accent' : 'text-ink-2']}
+            >
+              {label}
+            </span>
+          </span>
+        )}
 
-          {/* Decorative rule between steps, desktop only — it says nothing the
+        {/* Decorative rule between steps, desktop only — it says nothing the
               order of the list does not already say.
 
               `hair-strong`, not `hair`: this is the one place the hairline has
@@ -97,14 +92,13 @@ const labelClass = 'font-ui text-ui-strong font-bold whitespace-nowrap';
               (owner, 2026-09-05). It grows with the room the bar has — 40px
               from `mid`, 64px once the panel is wide enough that four steps and
               three rules still fit on one line. */}
-          {index < steps.length - 1 && (
-            <span
-              class="bg-hair-strong max-mid:hidden wide:w-16 h-0.5 w-10 flex-none rounded-full"
-              aria-hidden="true"
-            />
-          )}
-        </li>
-      ))
-    }
+        {index < steps.length - 1 && (
+          <span
+            class="bg-hair-strong max-mid:hidden wide:w-16 h-0.5 w-10 flex-none rounded-full"
+            aria-hidden="true"
+          />
+        )}
+      </li>
+    ))}
   </ol>
 </nav>

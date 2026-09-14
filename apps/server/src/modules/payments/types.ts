@@ -3,13 +3,7 @@ export interface PaymentListFilters {
   perPage: number;
   q?: string | undefined;
   paymentStatus?:
-    | 'unpaid'
-    | 'authorized'
-    | 'paid'
-    | 'partially_refunded'
-    | 'refunded'
-    | 'failed'
-    | undefined;
+    'unpaid' | 'authorized' | 'paid' | 'partially_refunded' | 'refunded' | 'failed' | undefined;
   type?: 'rental' | 'fixed' | undefined;
   from?: string | undefined;
   to?: string | undefined;

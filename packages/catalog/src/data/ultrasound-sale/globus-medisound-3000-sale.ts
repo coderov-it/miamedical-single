@@ -21,9 +21,11 @@ export const globusMedisound3000Sale = ultrasoundSale.fixed({
     it: {
       title: 'Vendita Ultrasuono GLOBUS Medisound 3000',
       slug: 'acquista-ultrasuono-globus-medisound-3000',
-      shortDescription: 'Ultrasuono GLOBUS Medisound 3000 Riduce l’infiammazione, elimina il dolore e favorisce il recupero in autonomia. Spedizione gratuita in tutta l’Italia.',
+      shortDescription:
+        'Ultrasuono GLOBUS Medisound 3000 Riduce l’infiammazione, elimina il dolore e favorisce il recupero in autonomia. Spedizione gratuita in tutta l’Italia.',
       metaTitle: 'Vendita Ultrasuono GLOBUS Medisound 3000',
-      metaDescription: 'Acquista l\'Ultrasuono Glubus Medisound 3000 a 980 Euro. Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare.',
+      metaDescription:
+        "Acquista l'Ultrasuono Glubus Medisound 3000 a 980 Euro. Consegna a domicilio. Apparecchi sicuri, affidabili e facili da usare.",
       description: [
         '<p>Vendita Ultrasuono Globus Medisound 3000: <strong>Acquista il dispositivo GLOBUS Medisound 3000, l’ultrasuonoterapico professionale ideale per trattare il dolore, ridurre l’infiammazione e favorire il recupero funzionale direttamente a casa. </strong></p>',
         '<h3>Cos’è l’Ultrasuonoterapia?</h3>',
@@ -59,9 +61,11 @@ export const globusMedisound3000Sale = ultrasoundSale.fixed({
     en: {
       title: 'GLOBUS Medisound 3000 ultrasound, for sale',
       slug: 'acquista-ultrasuono-globus-medisound-3000',
-      shortDescription: 'GLOBUS Medisound 3000 ultrasound. Brings down inflammation, takes away pain and helps recovery along on your own. Free shipping across Italy.',
+      shortDescription:
+        'GLOBUS Medisound 3000 ultrasound. Brings down inflammation, takes away pain and helps recovery along on your own. Free shipping across Italy.',
       metaTitle: 'GLOBUS Medisound 3000 ultrasound for sale',
-      metaDescription: 'Buy the Globus Medisound 3000 ultrasound at €980, delivered to your door. Safe, reliable machines that are easy to use.',
+      metaDescription:
+        'Buy the Globus Medisound 3000 ultrasound at €980, delivered to your door. Safe, reliable machines that are easy to use.',
       description: [
         '<p>Sale Ultrasound Globus Medisound 3000: <strong>Buy the GLOBUS Medisound 3000 device, the professional ultrasound therapy device ideal for treating pain, reducing inflammation and promoting functional recovery directly at home. </strong></p>',
         '<h3>What is Ultrasound Therapy?</h3>',
@@ -84,7 +88,7 @@ export const globusMedisound3000Sale = ultrasoundSale.fixed({
         '<p><strong>When to use pulsed emission</strong></p>',
         '<ul><li>Acute inflammation</li><li>Tendinitis</li><li>Recent muscle injuries<br />Ideal for treating inflamed tissue without overheating it.</li></ul>',
         '<p><strong>Contact treatment</strong>is used with conductive gel on the skin.<br /><strong>Immersion treatment</strong>perfect for small and irregular areas (hands, feet), to be performed with the part immersed in water together with the handpiece.</p>',
-        '<h3>Expert\'s advice:</h3>',
+        "<h3>Expert's advice:</h3>",
         '<p>If in doubt about the most suitable setting, always ask your physiotherapist for advice or contact our team. Choosing the right programme and modality is crucial to achieving the <strong>better therapeutic results</strong>.</p>',
         '<h3>Contraindications and Possible Side Effects</h3>',
         '<p>WARNING: Use of the Medisound 3000 is <strong>CONTRAINDICATED</strong> in the following cases:</p>',

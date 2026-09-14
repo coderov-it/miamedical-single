@@ -74,91 +74,89 @@ const isActive = (item: (typeof items)[number]) =>
   class="border-hair mid:hidden shadow-tabbar sticky bottom-0 z-70 flex border-t bg-white px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
   aria-label={text('navigation.primary')}
 >
-  {
-    items.map((item) => (
-      <a
-        class:list={[
-          'rounded-field font-display flex min-h-15.25 flex-1 basis-0 flex-col items-center justify-center gap-0.75 px-0.5 py-1.25 text-base/[1.15] font-bold no-underline',
-          isActive(item) ? 'text-accent' : 'text-ink-2',
-        ]}
-        href={item.href}
-        aria-current={isActive(item) ? 'page' : undefined}
-      >
-        {/* 52×30 pill, the reference's own tab marker: it is wider than the
+  {items.map((item) => (
+    <a
+      class:list={[
+        'rounded-field font-display flex min-h-15.25 flex-1 basis-0 flex-col items-center justify-center gap-0.75 px-0.5 py-1.25 text-base/[1.15] font-bold no-underline',
+        isActive(item) ? 'text-accent' : 'text-ink-2',
+      ]}
+      href={item.href}
+      aria-current={isActive(item) ? 'page' : undefined}
+    >
+      {/* 52×30 pill, the reference's own tab marker: it is wider than the
             icon so the fill reads as a selected SLOT rather than a badge. */}
-        <span
-          class:list={[
-            'grid h-7.5 w-13 place-items-center rounded-[10px]',
-            isActive(item) && 'bg-accent-tint',
-          ]}
-          aria-hidden="true"
-        >
-          {item.icon === 'home' && (
-            <svg
-              class="size-5.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m3 11 9-8 9 8" />
-              <path d="M5 10v10h14V10M9 20v-6h6v6" />
-            </svg>
-          )}
-          {item.icon === 'catalog' && (
-            <svg
-              class="size-5.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            >
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-          )}
-          {/* The compass is the selector's mark everywhere it appears — the
+      <span
+        class:list={[
+          'grid h-7.5 w-13 place-items-center rounded-[10px]',
+          isActive(item) && 'bg-accent-tint',
+        ]}
+        aria-hidden="true"
+      >
+        {item.icon === 'home' && (
+          <svg
+            class="size-5.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m3 11 9-8 9 8" />
+            <path d="M5 10v10h14V10M9 20v-6h6v6" />
+          </svg>
+        )}
+        {item.icon === 'catalog' && (
+          <svg
+            class="size-5.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        )}
+        {/* The compass is the selector's mark everywhere it appears — the
               home search card and the catalogue entry band use this exact
               glyph, so the tab is recognisably the same door. */}
-          {item.icon === 'finder' && (
-            <svg
-              class="size-5.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="m15.5 8.5-2 5-5 2 2-5Z" />
-            </svg>
-          )}
-          {/* A headset, not a question mark: it promises a person on the phone,
+        {item.icon === 'finder' && (
+          <svg
+            class="size-5.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="m15.5 8.5-2 5-5 2 2-5Z" />
+          </svg>
+        )}
+        {/* A headset, not a question mark: it promises a person on the phone,
               which is what this page is, and it is the reference's own glyph. */}
-          {item.icon === 'help' && (
-            <svg
-              class="size-5.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M4 18v-6a8 8 0 0 1 16 0v6" />
-              <path d="M2.5 14.5h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1a2 2 0 0 1-2-2Z" />
-              <path d="M21.5 14.5h-3a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 0 2-2Z" />
-            </svg>
-          )}
-        </span>
-        <span>{item.label}</span>
-      </a>
-    ))
-  }
+        {item.icon === 'help' && (
+          <svg
+            class="size-5.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 18v-6a8 8 0 0 1 16 0v6" />
+            <path d="M2.5 14.5h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1a2 2 0 0 1-2-2Z" />
+            <path d="M21.5 14.5h-3a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 0 2-2Z" />
+          </svg>
+        )}
+      </span>
+      <span>{item.label}</span>
+    </a>
+  ))}
 </nav>

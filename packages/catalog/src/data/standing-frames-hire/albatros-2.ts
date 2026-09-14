@@ -19,19 +19,17 @@ export const albatros2 = standingFramesHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 225),
-    days(30, 390),
-    days(45, 540),
-  ],
+  packages: [days(15, 225), days(30, 390), days(45, 540)],
 
   translations: {
     it: {
       title: 'Noleggio verticalizzatore attivo Albatros 2',
       slug: 'verticalizzatore-attivo-albatros-2-a-noleggio',
-      shortDescription: 'Verticalizzatore stand-up elettrico Mette in posizione eretta senza sforzo da parte del paziente! Ideal per il bagno. Guarda il video per il funzionamento. Compatto, pieghevole e facile da usare. Batteria fino a 40 sollevamenti con una sola carica. Disponibilità immediata. Consegna a Roma e Firenze a partire da 45€ + 45€ per il ritiro',
+      shortDescription:
+        'Verticalizzatore stand-up elettrico Mette in posizione eretta senza sforzo da parte del paziente! Ideal per il bagno. Guarda il video per il funzionamento. Compatto, pieghevole e facile da usare. Batteria fino a 40 sollevamenti con una sola carica. Disponibilità immediata. Consegna a Roma e Firenze a partire da 45€ + 45€ per il ritiro',
       metaTitle: 'Noleggio Verticalizzatore Attivo Albatros2 | Roma e Firenze',
-      metaDescription: 'Noleggio verticalizzatore attivo Albatros2 per anziani e disabili. Sollevatore elettrico compatto, pieghevole e sicuro per bagno e trasferimenti.',
+      metaDescription:
+        'Noleggio verticalizzatore attivo Albatros2 per anziani e disabili. Sollevatore elettrico compatto, pieghevole e sicuro per bagno e trasferimenti.',
       description: [
         '<h3>Noleggio verticalizzatore attivo Albatros2: assistenza sicura e senza sforzo</h3>',
         '<p>Il servizio di <strong>noleggio verticalizzatore attivo Albatros2</strong> di Mia Medical Italia è pensato per anziani, <strong>persone con disabilità e pazienti con mobilità ridotta</strong> che necessitano di un supporto sicuro per alzarsi, trasferirsi e utilizzare il bagno senza sforzi. Compatto, pieghevole e semplice da usare, il verticalizzatore elettrico Albatros 2 è ideale per assistenza domiciliare, riabilitazione e strutture sanitarie. E&#8217; sia un verticalizzatore per anziani che un verticalizzatore per persone con disabilità che necessitano di supporto nei trasferimenti quotidiani.</p>',
@@ -60,13 +58,15 @@ export const albatros2 = standingFramesHire.rental({
     en: {
       title: 'Albatros 2 active standing hoist, for hire',
       slug: 'verticalizzatore-attivo-albatros-2-a-noleggio',
-      shortDescription: 'Electric stand-up standing hoist. Brings someone upright with no effort on their part. Made for the bathroom. Watch the video to see it work. Compact, folding and easy to use. The battery is good for up to 40 lifts on one charge.',
+      shortDescription:
+        'Electric stand-up standing hoist. Brings someone upright with no effort on their part. Made for the bathroom. Watch the video to see it work. Compact, folding and easy to use. The battery is good for up to 40 lifts on one charge.',
       metaTitle: 'Albatros 2 active standing hoist hire | Rome and Florence',
-      metaDescription: 'Hire the Albatros 2 active standing hoist for older and disabled users: a compact, folding, safe electric hoist for the bathroom and beyond.',
+      metaDescription:
+        'Hire the Albatros 2 active standing hoist for older and disabled users: a compact, folding, safe electric hoist for the bathroom and beyond.',
       description: [
         '<h3>Albatros2 active verticaliser rental: safe and effortless assistance</h3>',
         '<p>The service of <strong>rental Albatros2 active verticaliser</strong> of Mia Medical Italia is designed for elderly people, <strong>people with disabilities and patients with reduced mobility</strong> who require secure support to stand up, transfer and use the bathroom effortlessly. Compact, foldable and simple to use, the Albatros 2 electric standing aid is ideal for home care, rehabilitation and healthcare facilities. It functions both as a standing aid for the elderly and for people with disabilities who require support with daily transfers.</p>',
-        '<p>If you are looking for effective and simple assistance for supported mobility, the Albatros2 active standing hoist hire is the ideal solution. With its compact, foldable and easy-to-use design, it allows the person to be lifted and moved in complete safety, reducing the caregiver\'s effort and increasing the user\'s comfort. Ideal for taking people to the bathroom and washing them, it requires no participation from the patient.</p>',
+        "<p>If you are looking for effective and simple assistance for supported mobility, the Albatros2 active standing hoist hire is the ideal solution. With its compact, foldable and easy-to-use design, it allows the person to be lifted and moved in complete safety, reducing the caregiver's effort and increasing the user's comfort. Ideal for taking people to the bathroom and washing them, it requires no participation from the patient.</p>",
         '<h3>Why choose the Albatros2 active standing aid rental</h3>',
         '<p><strong>Maximum practicality</strong>foldable structure that closes in seconds for easy transport and storage.<br /><strong>Stability and comfort</strong>with Velcro straps and sling included for optimal safety and support.<br /><strong>Guaranteed autonomy</strong>rechargeable batteries with internal charger and approximately 40 lifts on a full charge.<br /><strong>Total security</strong>emergency stop, manual lowering and an acoustic warning beeper in case of low battery.<br /><strong>Reliable technology</strong>Linak motor and control unit, ergonomic remote control and high-quality components.</p>',
         '<h3>Albatros 2 active hoist for assisted mobility</h3>',
@@ -78,7 +78,7 @@ export const albatros2 = standingFramesHire.rental({
         '<ul><li>older people with reduced mobility</li><li>persons with motor disabilities</li><li>rehabilitation patients</li><li>caregivers and family members</li><li>RSAs and healthcare facilities</li></ul>',
         '<p>This aid allows safer and more comfortable transfers, reducing the physical strain on the carer.</p>',
         '<h3>How the Albatros2 active verticaliser rental works</h3>',
-        '<p>We deliver and collect the <strong>Lift Albatros 2</strong> directly to <strong>Rome and Florence</strong>.<br />You can book it online or call <strong>+39 392 65 09 237</strong>we\'ll take care of the rest!</p>',
+        "<p>We deliver and collect the <strong>Lift Albatros 2</strong> directly to <strong>Rome and Florence</strong>.<br />You can book it online or call <strong>+39 392 65 09 237</strong>we'll take care of the rest!</p>",
         '<ul><li>Quick delivery</li><li>Guaranteed assistance</li><li>Free, no-obligation consultation</li></ul>',
         '<h3>Useful addresses</h3>',
         '<p>Contact us for daily rates and availability.<br />Discover also the other models of <a href="/en/rental-catalog/">lifters</a>, <a href="/en/rental-catalog/">wheelchairs</a> e <a href="/en/rental-catalog/">mobility aids</a> which <strong>Mia Medical Italia</strong> makes available.</p>',
@@ -96,12 +96,11 @@ export const albatros2 = standingFramesHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'albatros-2-1.png', alt: { it: 'Noleggio verticalizzatore attivo Albatros2' } },
-    gallery: [
-      'albatros-2-2.png',
-      'albatros-2-3.jpg',
-      'albatros-2-4.jpg',
-    ],
+    thumbnail: {
+      file: 'albatros-2-1.png',
+      alt: { it: 'Noleggio verticalizzatore attivo Albatros2' },
+    },
+    gallery: ['albatros-2-2.png', 'albatros-2-3.jpg', 'albatros-2-4.jpg'],
   },
   terms: [generalTerms],
 });

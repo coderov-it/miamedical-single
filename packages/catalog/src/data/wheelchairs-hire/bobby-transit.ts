@@ -41,9 +41,11 @@ export const bobbyTransit = wheelchairsHire.rental({
     it: {
       title: 'Noleggio Carrozzina Da Transito BOBBY',
       slug: 'noleggio-carrozzina-transito-bobby',
-      shortDescription: 'Noleggio Carrozzina da Transito Bobby Leggera (solo 12kg), pieghevole in 4 e ideale per accompagnamento e trasporti rapidi. Struttura compatta con schienale pieghevole e pedane removibili per il massimo comfort e praticità. Seduta larga e freni. Il ritiro e la riconsegna delle carrozzine in magazzino è gratuito! Consegna a domicilio a Roma e Firenze a partire da 30€ + 30€ di ritiro. Prenota online o contattaci tramite WhatsApp!',
+      shortDescription:
+        'Noleggio Carrozzina da Transito Bobby Leggera (solo 12kg), pieghevole in 4 e ideale per accompagnamento e trasporti rapidi. Struttura compatta con schienale pieghevole e pedane removibili per il massimo comfort e praticità. Seduta larga e freni. Il ritiro e la riconsegna delle carrozzine in magazzino è gratuito! Consegna a domicilio a Roma e Firenze a partire da 30€ + 30€ di ritiro. Prenota online o contattaci tramite WhatsApp!',
       metaTitle: 'Noleggio carrozzina da transito Bobby | Leggera e pieghevole',
-      metaDescription: 'Noleggio carrozzina da transito Bobby leggera e pieghevole in alluminio. Ideale per trasporto persone, con schienale abbattibile e portata fino a 115 kg.',
+      metaDescription:
+        'Noleggio carrozzina da transito Bobby leggera e pieghevole in alluminio. Ideale per trasporto persone, con schienale abbattibile e portata fino a 115 kg.',
       description: [
         '<h3>Noleggio carrozzina da transito Bobby</h3>',
         '<p>Il <strong>noleggio della carrozzina da transito Bobby</strong> è la soluzione ideale per chi necessita di una sedia a rotelle leggera, pieghevole e facilmente trasportabile. Pensata per l’assistenza di persone con difficoltà motorie temporanee o permanenti, la Bobby garantisce comfort, sicurezza e praticità in ogni spostamento.</p>',
@@ -75,9 +77,11 @@ export const bobbyTransit = wheelchairsHire.rental({
     en: {
       title: 'BOBBY transit wheelchair for hire',
       slug: 'noleggio-carrozzina-transito-bobby',
-      shortDescription: 'Hire Transit Wheelchair Bobby Lightweight (only 12kg), foldable in 4 and ideal for accompaniment and quick transport. Compact frame with a foldable backrest and removable footrests for maximum comfort and practicality. Wide seat and brakes. Collection and return of wheelchairs to the warehouse is free of charge! Home delivery in Rome and Florence starting from €30 + €30 collection. Book online or contact us via WhatsApp!',
+      shortDescription:
+        'Hire Transit Wheelchair Bobby Lightweight (only 12kg), foldable in 4 and ideal for accompaniment and quick transport. Compact frame with a foldable backrest and removable footrests for maximum comfort and practicality. Wide seat and brakes. Collection and return of wheelchairs to the warehouse is free of charge! Home delivery in Rome and Florence starting from €30 + €30 collection. Book online or contact us via WhatsApp!',
       metaTitle: 'BOBBY transit wheelchair hire | Light and folding',
-      metaDescription: 'Hire the Bobby transit wheelchair: 12.4–13 kg, folds in four, folding backrest, removable footrests and a dual braking system.',
+      metaDescription:
+        'Hire the Bobby transit wheelchair: 12.4–13 kg, folds in four, folding backrest, removable footrests and a dual braking system.',
       description: [
         '<h3>Hire transit wheelchair Bobby</h3>',
         '<p>The <strong>rental of the Bobby transit wheelchair</strong> It is the ideal solution for those who need a lightweight, foldable, and easily transportable wheelchair. Designed to assist people with temporary or permanent mobility difficulties, the Bobby guarantees comfort, safety, and practicality in every movement.</p>',
@@ -97,8 +101,8 @@ export const bobbyTransit = wheelchairsHire.rental({
         '<p>The Bobby is designed to ensure stability and safety in all situations. Handbrakes for the user and attendant ensure maximum control during use, while the ergonomic structure improves comfort even on longer journeys.</p>',
         '<h3>Book the Bobby transit wheelchair rental</h3>',
         '<p>Choose the <strong>rental of the Bobby transit wheelchair</strong> For a practical, safe, and reliable solution. Contact customer support for information, availability, and advice on the model best suited to your needs.</p>',
-        '<p>Mobility shouldn\'t be a limitation: with Bobby, every journey becomes simpler.</p>',
-        '<h3>Book Bobby\'s wheelchair hire</h3>',
+        "<p>Mobility shouldn't be a limitation: with Bobby, every journey becomes simpler.</p>",
+        "<h3>Book Bobby's wheelchair hire</h3>",
         '<p>Book your Bobby transit wheelchair rental now or contact us for more information.</p>',
         '<p>📞 Phone / WhatsApp: +39 392 650 9237<br />✉ Email: info@miamedicalitalia.it</p>',
         '<p>We also have many other wheelchairs for hire, discover them by clicking here <a href="/en/rental-catalog/">here.</a></p>',
@@ -125,7 +129,10 @@ export const bobbyTransit = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'bobby-transit-1.jpg', alt: { it: 'Noleggio carrozzina da transito Bobby' } },
+    thumbnail: {
+      file: 'bobby-transit-1.jpg',
+      alt: { it: 'Noleggio carrozzina da transito Bobby' },
+    },
     gallery: [
       'bobby-transit-2.jpg',
       { file: 'bobby-transit-3.jpg', alt: { it: 'Carrozzina da transito Bobby EVO' } },

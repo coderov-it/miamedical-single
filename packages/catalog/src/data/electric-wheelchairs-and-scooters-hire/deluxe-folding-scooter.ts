@@ -20,21 +20,17 @@ export const deluxeFoldingScooter = electricWheelchairsAndScootersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(3, 90),
-    days(7, 140),
-    days(15, 225),
-    days(30, 300),
-    days(45, 360),
-  ],
+  packages: [days(3, 90), days(7, 140), days(15, 225), days(30, 300), days(45, 360)],
 
   translations: {
     it: {
       title: 'Scooter pieghevole Deluxe con braccioli',
       slug: 'scooter-elettrico-pieghevole-con-braccioli-deluxe',
-      shortDescription: 'Libertà e movimento Noleggia il tuo scooter pieghevole, riscopri la tua indipendenza! Leggero ed elegante. La sua scocca in lega di alluminio permette di ripiegarlo con facilità per trasportarlo all’interno dell’automobile. Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Libertà e movimento Noleggia il tuo scooter pieghevole, riscopri la tua indipendenza! Leggero ed elegante. La sua scocca in lega di alluminio permette di ripiegarlo con facilità per trasportarlo all’interno dell’automobile. Il ritiro in magazzino è gratuito. Siamo a Roma e Firenze. Consegna gratuita a Roma e Firenze per i noleggi da 30 giorni! Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio scooter elettrico con braccioli',
-      metaDescription: 'Noleggio Scooter Elettrico pieghevole con braccioli Deluxe per anziani e disabili: facilmente trasportabile in automobile.disponibilità immediata.',
+      metaDescription:
+        'Noleggio Scooter Elettrico pieghevole con braccioli Deluxe per anziani e disabili: facilmente trasportabile in automobile.disponibilità immediata.',
       description: [
         '<h3><strong>Noleggio scooter elettrico con braccioli: comfort e libertà in viaggio</strong></h3>',
         '<p>Vivere la magia di&nbsp;<strong><a href="/scooter-elettrici-per-mobilita-a-roma-i-vantaggi-del-noleggio/?_gl=1*1qofl61*_up*MQ..*_ga*NTgyMjUxNDg0LjE3NDQ0NDYyMjE.*_ga_D9FZ9V3LL7*MTc0NDQ2MTQ4NS40LjAuMTc0NDQ2MTQ4NS4wLjAuMA..">Roma</a></strong>&nbsp;o l’arte senza tempo di&nbsp;<strong><a href="/florence-accessible-travel-guide-the-citys-inclusive-attractions/?_gl=1*1mfn495*_up*MQ..*_ga*NTgyMjUxNDg0LjE3NDQ0NDYyMjE.*_ga_D9FZ9V3LL7*MTc0NDQ2MTQ4NS40LjEuMTc0NDQ2MTUwNS4wLjAuMA..">Firenze</a></strong>&nbsp;non dovrebbe mai essere limitato dal tempo o dalla fatica. Il servizio di <strong>Noleggio</strong> dello <strong>Scooter Elettrico Pieghevole con Braccioli Deluxe</strong>&nbsp;per anziani e disabili nasce per offrire una mobilità agile ma sofisticata, unendo la praticità del design compatto con un comfort superiore. Ideale per chi desidera viaggiare con indipendenza, senza rinunciare alla sicurezza.</p>',
@@ -59,9 +55,11 @@ export const deluxeFoldingScooter = electricWheelchairsAndScootersHire.rental({
     en: {
       title: 'Deluxe folding scooter with armrests for hire',
       slug: 'scooter-elettrico-pieghevole-con-braccioli-deluxe',
-      shortDescription: 'Freedom and movement Rent your folding scooter, rediscover your independence! Lightweight and elegant. Its aluminium alloy body allows it to be easily folded for transport inside the car. Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'Freedom and movement Rent your folding scooter, rediscover your independence! Lightweight and elegant. Its aluminium alloy body allows it to be easily folded for transport inside the car. Pick-up at the warehouse is free. We are in Rome and Florence. Free delivery in Rome and Florence for 30-day rentals! Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'Folding electric scooter with armrests for hire',
-      metaDescription: 'Hire the Deluxe folding mobility scooter with armrests: aluminium-alloy body that folds into a car boot. Available immediately.',
+      metaDescription:
+        'Hire the Deluxe folding mobility scooter with armrests: aluminium-alloy body that folds into a car boot. Available immediately.',
       description: [
         '<h3><strong>Electric scooter hire with armrests: comfort and freedom on your journey</strong></h3>',
         '<p>Experience the magic of&nbsp;<strong><a href="/en/scooter-elettrici-per-mobilita-a-roma-i-vantaggi-del-noleggio/?_gl=1*1qofl61*_up*MQ..*_ga*NTgyMjUxNDg0LjE3NDQ0NDYyMjE.*_ga_D9FZ9V3LL7*MTc0NDQ2MTQ4NS40LjAuMTc0NDQ2MTQ4NS4wLjAuMA..">Rome</a></strong>&nbsp;or the timeless art of&nbsp;<strong><a href="/en/florence-accessible-travel-guide-the-citys-inclusive-attractions/?_gl=1*1mfn495*_up*MQ..*_ga*NTgyMjUxNDg0LjE3NDQ0NDYyMjE.*_ga_D9FZ9V3LL7*MTc0NDQ2MTQ4NS40LjEuMTc0NDQ2MTUwNS4wLjAuMA..">Florence</a></strong>&nbsp;should never be limited by time or effort. The service of <strong>Hire</strong> of <strong>Deluxe Folding Electric Scooter with Armrests</strong>&nbsp;Created for the elderly and disabled, it aims to offer agile yet sophisticated mobility, combining the practicality of a compact design with superior comfort. Ideal for those who wish to travel independently, without sacrificing safety.</p>',
@@ -100,11 +98,11 @@ export const deluxeFoldingScooter = electricWheelchairsAndScootersHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'deluxe-folding-scooter-1.png', alt: { it: 'Noleggio scooter pieghevole con braccioli' } },
-    gallery: [
-      'deluxe-folding-scooter-2.jpg',
-      'deluxe-folding-scooter-3.jpg',
-    ],
+    thumbnail: {
+      file: 'deluxe-folding-scooter-1.png',
+      alt: { it: 'Noleggio scooter pieghevole con braccioli' },
+    },
+    gallery: ['deluxe-folding-scooter-2.jpg', 'deluxe-folding-scooter-3.jpg'],
   },
 
   questions: [...hireIntake],

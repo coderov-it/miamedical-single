@@ -32,9 +32,11 @@ export const slimTransit = wheelchairsHire.rental({
     it: {
       title: 'Affitto carrozzina di transito di piccole dimensioni – SLIM',
       slug: 'affitto-carrozzina-per-disabili-di-piccole-dimensioni-slim',
-      shortDescription: 'Noleggio Carrozzina Slim di Transito Consegna e ritiro a domicilio a Roma e Firenze da 30€. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro in magazzino è gratuito! Disponibilità immediata.',
+      shortDescription:
+        'Noleggio Carrozzina Slim di Transito Consegna e ritiro a domicilio a Roma e Firenze da 30€. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro in magazzino è gratuito! Disponibilità immediata.',
       metaTitle: 'Affitto carrozzina per disabili di piccole dimensioni - SLIM',
-      metaDescription: 'Affitto carrozzina per disabili da transito di piccole dimensioni SLIM. Disponibilità immediata. Possibilità di consegna a domicilio! Chiamaci al 3926509237',
+      metaDescription:
+        'Affitto carrozzina per disabili da transito di piccole dimensioni SLIM. Disponibilità immediata. Possibilità di consegna a domicilio! Chiamaci al 3926509237',
       description: [
         '<h2>Affitto carrozzina per disabili di piccole dimensioni</h2>',
         '<p>L’<strong>affitto carrozzina per disabili di piccole dimensioni</strong> è la soluzione ideale per chi ha problemi di spazio e necessita di una sedia a rotelle maneggevole e funzionale.<br />La carrozzina SLIM è una carrozzina da transito di piccole dimensioni progettata appositamente per passaggi stretti come:</p>',
@@ -69,15 +71,17 @@ export const slimTransit = wheelchairsHire.rental({
     en: {
       title: 'Small transit wheelchair for hire – SLIM',
       slug: 'affitto-carrozzina-per-disabili-di-piccole-dimensioni-slim',
-      shortDescription: 'Hire of Slim Transit Wheelchair. Home delivery and pick-up in Rome and Florence from 30€. Hire for 1 day: 15€ with pick-up on site only. Collection from the warehouse is free of charge! Immediate availability.',
+      shortDescription:
+        'Hire of Slim Transit Wheelchair. Home delivery and pick-up in Rome and Florence from 30€. Hire for 1 day: 15€ with pick-up on site only. Collection from the warehouse is free of charge! Immediate availability.',
       metaTitle: 'Small transit wheelchair hire — SLIM',
-      metaDescription: 'Hire a small transit wheelchair for disabled users in Lazio and Tuscany, with courier delivery across Italy. Seat 40 or 43 cm.',
+      metaDescription:
+        'Hire a small transit wheelchair for disabled users in Lazio and Tuscany, with courier delivery across Italy. Seat 40 or 43 cm.',
       description: [
         '<h2>Rental of small wheelchairs for people with disabilities</h2>',
-        '<p>L\'<strong>small wheelchair hire</strong> it is the ideal solution for those with space issues who need a manageable and functional wheelchair.<br />The SLIM wheelchair is a small transit wheelchair designed specifically for narrow doorways such as:</p>',
+        "<p>L'<strong>small wheelchair hire</strong> it is the ideal solution for those with space issues who need a manageable and functional wheelchair.<br />The SLIM wheelchair is a small transit wheelchair designed specifically for narrow doorways such as:</p>",
         '<ul><li>Toilets</li><li>Lifts</li><li>Corridors</li></ul>',
         '<h2>Who is the small wheelchair rental for?</h2>',
-        '<p>L\'<strong>small wheelchair hire</strong> is ideal for:</p>',
+        "<p>L'<strong>small wheelchair hire</strong> is ideal for:</p>",
         '<ul><li>Seniors</li><li>Persons with disabilities</li><li>People with temporary or permanent mobility difficulties</li></ul>',
         '<h2><strong>Main features</strong> of the SLIM wheelchair</h2>',
         '<p>The SLIM wheelchair offers comfort and practicality thanks to:</p>',
@@ -94,7 +98,7 @@ export const slimTransit = wheelchairsHire.rental({
         '<h2><strong>Hygiene and sanitation</strong></h2>',
         '<p>Every hire wheelchair is thoroughly <strong>cleaned and sanitised</strong> in its entirety.<br />Cleanliness and hygiene are an absolute priority for us.</p>',
         '<h2><strong>Rental and shipping zones</strong></h2>',
-        '<p>Let\'s carry out the <strong>hire of a small transit wheelchair</strong> in</p>',
+        "<p>Let's carry out the <strong>hire of a small transit wheelchair</strong> in</p>",
         '<ul><li><strong>Lazio</strong></li><li><strong>Tuscany</strong></li></ul>',
         '<p>It is also possible to request the <strong>courier delivery throughout Italy</strong>.</p>',
         '<h2><strong>How to book</strong></h2>',
@@ -117,10 +121,11 @@ export const slimTransit = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'slim-transit-1.jpg', alt: { it: 'Affitto carrozzina per disabili di piccole dimensioni' } },
-    gallery: [
-      'slim-transit-2.jpg',
-    ],
+    thumbnail: {
+      file: 'slim-transit-1.jpg',
+      alt: { it: 'Affitto carrozzina per disabili di piccole dimensioni' },
+    },
+    gallery: ['slim-transit-2.jpg'],
   },
 
   addons: [homeDelivery(30), legRaiser],

@@ -36,9 +36,11 @@ export const shortRamp = stairliftsHire.rental({
     it: {
       title: 'Noleggio rampa e pedane corta per disabili',
       slug: 'noleggio-rampa-e-pedane-corta-per-disabili',
-      shortDescription: 'Noleggio rampa o pedana per disabili Consegna e ritiro a domicilio solo a Roma e Firenze a partire da 30€. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro degli ausili in magazzino è gratuito.',
+      shortDescription:
+        'Noleggio rampa o pedana per disabili Consegna e ritiro a domicilio solo a Roma e Firenze a partire da 30€. Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro degli ausili in magazzino è gratuito.',
       metaTitle: 'Affitto rampe per le scale per disabili a noleggio.',
-      metaDescription: 'Noleggio rampe per le scale per disabili: pedane leggere, antiscivolo, ideali per sedie a rotelle, passeggini o biciclette. Prenota ora!',
+      metaDescription:
+        'Noleggio rampe per le scale per disabili: pedane leggere, antiscivolo, ideali per sedie a rotelle, passeggini o biciclette. Prenota ora!',
       description: [
         '<p>La <strong>rampa o pedana a noleggio</strong> è la soluzione ideale per chi cerca <strong>affitto rampe per le scale per disabili a noleggio</strong> in sicurezza e con la massima praticità. Realizzata in <strong>lega di alluminio di elevata qualità</strong>, questa pedana garantisce leggerezza, resistenza e lunga durata nel tempo. La superficie è rivestita in <strong>PVC antiscivolo</strong>, mentre i bordi alti assicurano stabilità e sicurezza durante l’utilizzo.</p>',
         '<p>Questa ampia rampa è perfetta per consentire a chi utilizza <strong>sedia a rotelle</strong> di salire gradini o entrare in auto senza sforzo. Grazie al suo design versatile, la pedana si adatta anche al carico di <strong>passeggini o biciclette</strong>, rendendo il trasporto facile e sicuro. Una pratica <strong>maniglia in plastica</strong> permette di trasportare la rampa comodamente ovunque serva.</p>',
@@ -55,9 +57,11 @@ export const shortRamp = stairliftsHire.rental({
     en: {
       title: 'Short ramp and threshold plate hire',
       slug: 'noleggio-rampa-e-pedane-corta-per-disabili',
-      shortDescription: 'Rental of a ramp or platform for the disabled Home delivery and collection only in Rome and Florence starting from €30. Hire for 1 day: 15€ with pick-up on site only. Picking up aids from the warehouse is free of charge.',
+      shortDescription:
+        'Rental of a ramp or platform for the disabled Home delivery and collection only in Rome and Florence starting from €30. Hire for 1 day: 15€ with pick-up on site only. Picking up aids from the warehouse is free of charge.',
       metaTitle: 'Disabled stair ramps for hire',
-      metaDescription: 'Stair ramp hire for disabled users: light, non-slip plates, right for wheelchairs, pushchairs or bicycles.',
+      metaDescription:
+        'Stair ramp hire for disabled users: light, non-slip plates, right for wheelchairs, pushchairs or bicycles.',
       description: [
         '<p>La <strong>rental ramp or platform</strong> it is the ideal solution for those looking for <strong>handicapped stair ramps for hire</strong> safely and with maximum practicality. Made of <strong>high-grade aluminium alloy</strong>, this platform guarantees lightness, strength and long-lasting durability. The surface is coated in <strong>Non-slip PVC</strong>, whilst the high edges ensure stability and safety during use.</p>',
         '<p>This wide ramp is perfect for allowing those who use <strong>wheelchair</strong> to climb steps or enter a car effortlessly. Thanks to its versatile design, the platform also fits the load of <strong>buggies or bicycles</strong>, making transport easy and safe. A practical <strong>plastic handle</strong> allows the ramp to be conveniently transported wherever it is needed.</p>',
@@ -85,11 +89,7 @@ export const shortRamp = stairliftsHire.rental({
 
   media: {
     thumbnail: 'short-ramp-1.jpg',
-    gallery: [
-      'short-ramp-2.png',
-      'short-ramp-3.jpg',
-      'short-ramp-4.jpg',
-    ],
+    gallery: ['short-ramp-2.png', 'short-ramp-3.jpg', 'short-ramp-4.jpg'],
   },
 
   addons: [homeDelivery(30)],

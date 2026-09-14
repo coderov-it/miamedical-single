@@ -21,21 +21,17 @@ export const hospitalCareXl120 = pressureReliefMattressesHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 130),
-    days(30, 210),
-    days(45, 292),
-    days(60, 360),
-    days(90, 450),
-  ],
+  packages: [days(15, 130), days(30, 210), days(45, 292), days(60, 360), days(90, 450)],
 
   translations: {
     it: {
       title: 'Noleggio Materasso Antidecubito 120cm ad Alto Rischio Hospital Care XL',
       slug: 'materasso-antidecubito-hospital-care-xl',
-      shortDescription: 'Noleggio Materasso Antidecubito Hospital Care XL (120cm) Noleggio del Materasso ad Alto Rischio per decubito fino al 4° stadio. Portata fino a 340KG. Materasso anti-decubito disponibile anche in vendita. Noleggialo con consegna a domicilio in tutta Italia! Consegna per il noleggio: 45€ consegna + 45€ ritiro. Il ritiro in magazzino è gratuito. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 150€.',
+      shortDescription:
+        'Noleggio Materasso Antidecubito Hospital Care XL (120cm) Noleggio del Materasso ad Alto Rischio per decubito fino al 4° stadio. Portata fino a 340KG. Materasso anti-decubito disponibile anche in vendita. Noleggialo con consegna a domicilio in tutta Italia! Consegna per il noleggio: 45€ consegna + 45€ ritiro. Il ritiro in magazzino è gratuito. Per motivi igienici, è obbligatorio acquistare la copertura del materasso a 150€.',
       metaTitle: 'Materasso Antidecubito Alto Rischio 120cm | Noleggio',
-      metaDescription: 'Noleggio materasso antidecubito ad alto rischio HOSPITAL CARE XL. Indicato per la prevenzione e cura delle piaghe da decubito Portata 340 kg.',
+      metaDescription:
+        'Noleggio materasso antidecubito ad alto rischio HOSPITAL CARE XL. Indicato per la prevenzione e cura delle piaghe da decubito Portata 340 kg.',
       description: [
         '<p>Hai bisogno di una soluzione avanzata per un paziente allettato con esigenze cliniche elevate? Il <strong>materasso antidecubito ad alto rischio HOSPITAL CARE XL</strong> è progettato per garantire <strong>massima sicurezza, comfort e protezione cutanea</strong>, anche nei casi più complessi.</p>',
         '<p>Ideale sia per la <strong>prevenzione</strong> che per la <strong>cura delle ulcere da pressione fino al IV stadio</strong>, questo materasso rappresenta una scelta eccellente per l’assistenza domiciliare e ospedaliera.</p>',
@@ -68,9 +64,11 @@ export const hospitalCareXl120 = pressureReliefMattressesHire.rental({
     en: {
       title: 'Hospital Care XL 120 cm high-risk pressure-relief mattress, for hire',
       slug: 'materasso-antidecubito-hospital-care-xl',
-      shortDescription: 'Hospital Care XL Antidecubitus Mattress Hire (120cm) Rental of the High-risk mattress for pressure sores up to stage 4. Scope up to 340KG. Anti-decubitus mattress also available for sale. Rent it with home delivery throughout Italy! Delivery for hire: €45 delivery + €45 collection. Pick-up at the warehouse is free. For hygiene reasons, it compulsory purchase of the mattress protector for €150.',
+      shortDescription:
+        'Hospital Care XL Antidecubitus Mattress Hire (120cm) Rental of the High-risk mattress for pressure sores up to stage 4. Scope up to 340KG. Anti-decubitus mattress also available for sale. Rent it with home delivery throughout Italy! Delivery for hire: €45 delivery + €45 collection. Pick-up at the warehouse is free. For hygiene reasons, it compulsory purchase of the mattress protector for €150.',
       metaTitle: 'High-risk 120 cm pressure-relief mattress | Hire',
-      metaDescription: 'Hire the HOSPITAL CARE XL high-risk pressure-relief mattress, for preventing and treating pressure sores. Rated to 340 kg.',
+      metaDescription:
+        'Hire the HOSPITAL CARE XL high-risk pressure-relief mattress, for preventing and treating pressure sores. Rated to 340 kg.',
       description: [
         '<p>Need an advanced solution for a bedridden patient with high clinical needs? The <strong>HOSPITAL CARE XL high-risk anti-decubitus mattress</strong> it is designed to ensure <strong>maximum safety, comfort and skin protection</strong>, even in the most complex cases.</p>',
         '<p>Ideal for both <strong>prevention</strong> than for the <strong>treatment of pressure ulcers up to stage IV</strong>, this mattress represents an excellent choice for home and hospital care.</p>',
@@ -97,7 +95,7 @@ export const hospitalCareXl120 = pressureReliefMattressesHire.rental({
         '<p>The function <strong>“Zero Pressure”</strong> allows the pressure in the injured areas to be temporarily reduced to zero, while the <strong>P Max</strong> it makes it easier for healthcare staff to assist during procedures on the patient.</p>',
         '<h2>Need a High Risk Antidecubitus Mattress</h2>',
         '<p>The <strong>rental of the HOSPITAL CARE XL mattress</strong> It is a professional, safe and flexible solution for addressing complex clinical situations.</p>',
-        '<p>📞 <strong>Contact us</strong>our team will help you choose the most suitable device for the patient\'s needs.</p>',
+        "<p>📞 <strong>Contact us</strong>our team will help you choose the most suitable device for the patient's needs.</p>",
       ].join(''),
     },
   },

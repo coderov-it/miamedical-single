@@ -134,16 +134,16 @@ a white rectangle inside a grey box.
 Corrected 2026-09-08 — this table claimed the header wordmark was an inline
 `<svg>` and that there was no `apple-touch-icon`. Neither was true.
 
-| File                                     | Size       | Rendered by                                 |
-| ---------------------------------------- | ---------- | ------------------------------------------- |
-| `apps/website/public/img/logo.svg`       | 1473 × 793 | `SiteHeader` — the brand mark               |
-| `apps/website/public/favicon-32x32.png`  | 32 × 32    | `BaseLayout`                                |
-| `apps/website/public/favicon-16x16.png`  | 16 × 16    | `BaseLayout`                                |
-| `apps/website/public/favicon.png`        | 512 × 512  | `BaseLayout`                                |
-| `apps/website/public/apple-touch-icon.png` | 180 × 180 | `BaseLayout`                               |
-| `apps/website/public/favicon.svg`        | 32 × 32    | nothing                                     |
-| `apps/website/public/img/logo.png`       | 2058 × 361 | nothing — was the header until 2026-09-08   |
-| `apps/website/public/img/logo-v2.png`    | 2172 × 724 | nothing                                     |
+| File                                       | Size       | Rendered by                               |
+| ------------------------------------------ | ---------- | ----------------------------------------- |
+| `apps/website/public/img/logo.svg`         | 1473 × 793 | `SiteHeader` — the brand mark             |
+| `apps/website/public/favicon-32x32.png`    | 32 × 32    | `BaseLayout`                              |
+| `apps/website/public/favicon-16x16.png`    | 16 × 16    | `BaseLayout`                              |
+| `apps/website/public/favicon.png`          | 512 × 512  | `BaseLayout`                              |
+| `apps/website/public/apple-touch-icon.png` | 180 × 180  | `BaseLayout`                              |
+| `apps/website/public/favicon.svg`          | 32 × 32    | nothing                                   |
+| `apps/website/public/img/logo.png`         | 2058 × 361 | nothing — was the header until 2026-09-08 |
+| `apps/website/public/img/logo-v2.png`      | 2172 × 724 | nothing                                   |
 
 `logo.svg` is an `<img>` in the header, not inline markup, and it is a PNG in an
 SVG wrapper rather than path data — see `docs/code/storefront-brand-mark.md` for

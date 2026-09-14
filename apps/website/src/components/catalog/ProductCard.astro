@@ -145,10 +145,8 @@ const actionClass =
   'font-ui inline-flex items-center justify-center text-base font-semibold ' + shape.action;
 ---
 
-{
-  /* The row's `align-content:center` centres the text block against the 92px
-     photo when the name runs to one line instead of two. */
-}
+{/* The row's `align-content:center` centres the text block against the 92px
+     photo when the name runs to one line instead of two. */}
 <a
   class:list={[
     'group/product rounded-card border-hair hover:border-hair-strong h-full w-full min-w-0 border bg-white no-underline',
@@ -156,8 +154,7 @@ const actionClass =
   ]}
   href={href}
 >
-  {
-    /* THE WELL IS THE CARD'S FULL WIDTH AT THE HOUSE 3:2, and both halves of
+  {/* THE WELL IS THE CARD'S FULL WIDTH AT THE HOUSE 3:2, and both halves of
        that matter (owner, 2026-09-05).
 
        It used to be `h-46 w-auto` under the `self-center` the phone row needs,
@@ -177,57 +174,46 @@ const actionClass =
        minimum is the photo's own height, and a 500×500 thumbnail at 325px wide
        demanded 325px, overruling the 235px the ratio asked for and making the
        well square again. Without this line `aspect-3/2` computes and then loses
-       silently. */
-  }
+       silently. */}
   <span class:list={['bg-tint block flex-none rounded-[14px]', shape.photo]}>
-    {
-      product.thumbnail && (
-        <img
-          class:list={['block size-full object-contain mix-blend-multiply', out && 'opacity-55']}
-          src={mediaUrl(product.thumbnail.path)}
-          alt=""
-          loading={priority ? 'eager' : 'lazy'}
-          fetchpriority={priority ? 'high' : 'auto'}
-          decoding={priority ? 'sync' : 'async'}
-        />
-      )
-    }
+    {product.thumbnail && (
+      <img
+        class:list={['block size-full object-contain mix-blend-multiply', out && 'opacity-55']}
+        src={mediaUrl(product.thumbnail.path)}
+        alt=""
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : 'auto'}
+        decoding={priority ? 'sync' : 'async'}
+      />
+    )}
   </span>
 
-  {
-    /* `text-ink` on the name, not on the link: with `a { color: inherit }` in
+  {/* `text-ink` on the name, not on the link: with `a { color: inherit }` in
        app.css § base a colour utility on the anchor loses to the inherited
-       scope colour, and the editorial home sections set their own. */
-  }
+       scope colour, and the editorial home sections set their own. */}
   <Heading class:list={['font-ui text-ink group-hover/product:text-accent', shape.title]}>
     {displayTitle ?? product.title}
   </Heading>
 
-  {
-    price && (
-      <p class:list={['text-ink-2 flex items-baseline text-[0.8438rem]', shape.price]}>
-        <b
-          class:list={['font-ui text-ink font-bold tracking-[-0.01em] tabular-nums', shape.figure]}
-        >
-          {price}
-        </b>
-        {unit}
-      </p>
-    )
-  }
+  {price && (
+    <p class:list={['text-ink-2 flex items-baseline text-[0.8438rem]', shape.price]}>
+      <b class:list={['font-ui text-ink font-bold tracking-[-0.01em] tabular-nums', shape.figure]}>
+        {price}
+      </b>
+      {unit}
+    </p>
+  )}
 
-  {
-    out ? (
-      <span class:list={[actionClass, 'bg-tint-2 text-ink-2']}>{text('card.outOfStock')}</span>
-    ) : (
-      <span
-        class:list={[
-          actionClass,
-          'bg-accent-tint text-accent group-hover/product:bg-accent group-hover/product:text-white',
-        ]}
-      >
-        {text(product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy')}
-      </span>
-    )
-  }
+  {out ? (
+    <span class:list={[actionClass, 'bg-tint-2 text-ink-2']}>{text('card.outOfStock')}</span>
+  ) : (
+    <span
+      class:list={[
+        actionClass,
+        'bg-accent-tint text-accent group-hover/product:bg-accent group-hover/product:text-white',
+      ]}
+    >
+      {text(product.pricing.mode === 'rental' ? 'card.rent' : 'card.buy')}
+    </span>
+  )}
 </a>

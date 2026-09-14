@@ -49,25 +49,21 @@ const orderItems = checkout.items.map((item) => item.order);
     data-checkout-labels
     is:inline
     set:html={JSON.stringify(checkoutScriptLabels())}
-  />
-
+  ></script>
   <script
     type="application/json"
     data-checkout-items
     is:inline
     set:html={JSON.stringify(orderItems)}
-  />
-
-  {
-    /*
+  ></script>
+  {/*
       Synchronous and inline on purpose. The step bodies are server-rendered OPEN
       and the stepper's forward buttons server-rendered hidden, so that a browser
       with no JavaScript gets one long readable form and a WhatsApp handover that
       already carries the line items — a complete path, not a degraded one. This
       flips that arrangement during parse, before first paint, which is what keeps
       the enhanced page from flashing every step open.
-    */
-  }
+    */}
   <script is:inline>
     (function () {
       var root = document.querySelector('[data-checkout]');

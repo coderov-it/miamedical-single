@@ -19,22 +19,17 @@ export const forearmSupportWalker = walkersHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(7, 30),
-    days(15, 35),
-    days(30, 50),
-    days(45, 65),
-    days(60, 80),
-    days(90, 100),
-  ],
+  packages: [days(7, 30), days(15, 35), days(30, 50), days(45, 65), days(60, 80), days(90, 100)],
 
   translations: {
     it: {
       title: 'Noleggio Deambulatore con tavoletta per appoggio antibrachiale',
       slug: 'noleggio-deambulatore-con-tavoletta-imbottita',
-      shortDescription: 'Noleggio Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Noleggio Consegna a Roma e Firenze a partire da 30€. Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio Deambulatore con tavoletta per appoggio antibrachiale',
-      metaDescription: 'Noleggio Deambulatore con tavoletta antibrachiale per la fisioterapia e riabilitazione. Riacquista la tua libertà grazie aio prodotti Mia Medical.',
+      metaDescription:
+        'Noleggio Deambulatore con tavoletta antibrachiale per la fisioterapia e riabilitazione. Riacquista la tua libertà grazie aio prodotti Mia Medical.',
       description: [
         '<p>Hai difficoltà a camminare e cerchi un supporto stabile e confortevole? Abbiamo la soluzione ideale per te! Recupera la tua autonomia. Scegli il servizio di <strong>noleggio di un Deambulatore con Tavoletta per Appoggio Anti brachiale</strong> e godi del massimo del supporto, comfort e sicurezza.</p>',
         '<p>Se hai bisogno di un&nbsp;<strong>sostegno sicuro per la deambulazione</strong>, il&nbsp;<strong>noleggio del deambulatore con tavoletta per appoggio antibrachiale</strong>&nbsp;è una scelta pratica e conveniente. Questo ausilio è progettato per offrire&nbsp;<strong>stabilità, comfort e facilità di movimento</strong>, ideale per chi ha difficoltà a sostenere il peso con le mani o i polsi.</p>',
@@ -62,9 +57,11 @@ export const forearmSupportWalker = walkersHire.rental({
     en: {
       title: 'Walking frame with forearm support platform, for hire',
       slug: 'noleggio-deambulatore-con-tavoletta-imbottita',
-      shortDescription: 'Hire. Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection at the warehouse are FREE!',
+      shortDescription:
+        'Hire. Delivery in Rome and Florence from 30€. No deposit required. Delivery and collection at the warehouse are FREE!',
       metaTitle: 'Forearm-support walking frame hire',
-      metaDescription: 'Hire a walking frame with a forearm support platform for physiotherapy and rehabilitation, from Mia Medical.',
+      metaDescription:
+        'Hire a walking frame with a forearm support platform for physiotherapy and rehabilitation, from Mia Medical.',
       description: [
         '<p>Do you have difficulty walking and are looking for a stable and comfortable support? We have the ideal solution for you! Recover your autonomy. Choose the <strong>rental of a Walker with Anti-Brachial Support Board</strong> and enjoy maximum support, comfort and safety.</p>',
         '<p>If you need a&nbsp;<strong>safe support for walking</strong>the&nbsp;<strong>rental of walker with antibrachial support board</strong>&nbsp;is a practical and convenient choice. This aid is designed to offer&nbsp;<strong>stability, comfort and ease of movement</strong>ideal for those who have difficulty supporting weight with their hands or wrists.</p>',
@@ -77,7 +74,7 @@ export const forearmSupportWalker = walkersHire.rental({
         '<p>The&nbsp;<strong>rental of a walker with anti-brachial board</strong>&nbsp;is a smart choice if you only need an aid for a limited period, e.g. during post-operative recovery or rehabilitation. The main advantages are:</p>',
         '<ul><li><strong>Saving money</strong>&nbsp;compared to the purchase.</li><li><strong>Maximum flexibility</strong>you can only use it for as long as necessary.</li><li><strong>No maintenance</strong>The device is delivered sanitised and ready for use.</li><li><strong>Possibility of replacement or upgrade</strong>&nbsp;if your needs change.</li></ul>',
         '<h4><strong>Technical Specifications of the Anti-Brachial Board Walker</strong></h4>',
-        '<ul><li><strong>Robust, lightweight frame</strong>&nbsp;aluminium or steel, to ensure stability without being too heavy.</li><li><strong>Padded, height-adjustable tablet</strong>to adapt to the most comfortable position for the user.</li><li><strong>Ergonomic handles</strong>&nbsp;for a secure and comfortable grip.</li><li><strong>Swivel castors</strong>&nbsp;with brakes, for greater safety and ease of movement.</li><li><strong>Height adjustment</strong>&nbsp;to adapt to each person\'s needs.</li></ul>',
+        "<ul><li><strong>Robust, lightweight frame</strong>&nbsp;aluminium or steel, to ensure stability without being too heavy.</li><li><strong>Padded, height-adjustable tablet</strong>to adapt to the most comfortable position for the user.</li><li><strong>Ergonomic handles</strong>&nbsp;for a secure and comfortable grip.</li><li><strong>Swivel castors</strong>&nbsp;with brakes, for greater safety and ease of movement.</li><li><strong>Height adjustment</strong>&nbsp;to adapt to each person's needs.</li></ul>",
         '<h4><strong>The Benefits of Renting a Walker with Anti-Brachial Board</strong></h4>',
         '<ul><li><strong>Greater stability and security</strong>&nbsp;during the walk.</li><li><strong>Reducing fatigue</strong>&nbsp;thanks to the support of the forearms.</li><li><strong>Less load on hands, wrists and shoulders</strong>ideal for those who have difficulty holding a normal walker.</li><li><strong>Ease of movement</strong>even for longer journeys.</li><li><strong>Suitable for indoor and outdoor use</strong>thanks to manoeuvrable wheels.</li></ul>',
         '<p>Are you the caregiver of an elderly or dependent person and need help? Our <strong>nurse</strong> trustworthy <strong><a href="http://www.arnaldiandrea.com">Andrea Arnaldi</a></strong> specialises in the field <em><strong>home care</strong></em>and is ready to support you in taking care of the comfort of your home.&nbsp;</p>',

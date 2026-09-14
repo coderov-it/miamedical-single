@@ -32,9 +32,11 @@ export const wheeledStairliftT10 = stairliftsHire.rental({
     it: {
       title: 'Noleggio Montascale a Ruote T10 a Roma e Firenze',
       slug: 'noleggio-montascale-a-ruote-roma-e-firenze',
-      shortDescription: 'Per la salita e discesa di tutti i tipi di scale, anche a chiocciola. Consegna a domicilio soltanto a Roma e Firenze a partire da 45€. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
+      shortDescription:
+        'Per la salita e discesa di tutti i tipi di scale, anche a chiocciola. Consegna a domicilio soltanto a Roma e Firenze a partire da 45€. Consegna gratis se acquisti un noleggio per un minimo di 45 giorni. Il ritiro e la riconsegna degli ausili in magazzino sono Gratuiti. Deposito richiesto: 300€ Per il noleggio di questo articolo è richiesto un deposito di 300€.',
       metaTitle: 'Noleggio montascale a ruote T10 mobile a Roma e Firenze',
-      metaDescription: 'Noleggio Montascale a ruote T10. Consegna rapida. Migliore Prezzo Garantito. Fidati dei nostri esperti. Scopri i nostri prezzi imbattibili, con i forfait.',
+      metaDescription:
+        'Noleggio Montascale a ruote T10. Consegna rapida. Migliore Prezzo Garantito. Fidati dei nostri esperti. Scopri i nostri prezzi imbattibili, con i forfait.',
       description: [
         '<p><strong>Noleggio Montascale Elettrico a Ruote T10 con consegna a domicilio a Roma e Firenze per sicurezza e libertà in ogni ambiente</strong></p>',
         '<p><strong>Ti sei mai trovato davanti a una scala e ti sei chiesto come superarla in sicurezza con una persona anziana o con mobilità ridotta?</strong><br />Il&nbsp;<strong>montascale a ruote T10</strong>&nbsp;è la risposta semplice, pratica ed efficace per superare ogni tipo di barriera architettonica, anche in ambienti con scale strette o gradini irregolari. <strong>Compatto, leggero e smontabile</strong>, è perfetto per l’uso in casa, in condominio o in viaggio. Con&nbsp;<strong>M.I.A. Medical Italia</strong>, puoi averlo a domicilio, pronto all’uso, in meno di 48 ore.</p>',
@@ -67,9 +69,11 @@ export const wheeledStairliftT10 = stairliftsHire.rental({
     en: {
       title: 'T10 wheeled stair climber, for hire, in Rome and Florence',
       slug: 'noleggio-montascale-a-ruote-roma-e-firenze',
-      shortDescription: 'For ascending and descending all types of stairs, including spiral stairs. Home delivery only in Rome and Florence from €45. Free delivery if you purchase a rental for a minimum of 45 days. The collection and return of aids to the warehouse are Free. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
+      shortDescription:
+        'For ascending and descending all types of stairs, including spiral stairs. Home delivery only in Rome and Florence from €45. Free delivery if you purchase a rental for a minimum of 45 days. The collection and return of aids to the warehouse are Free. Deposit required: 300€ For the rental of this article, a deposit of 300€.',
       metaTitle: 'Mobile T10 wheeled stair climber hire in Rome and Florence',
-      metaDescription: 'T10 wheeled stair climber hire. Quick delivery, best price guaranteed — trust our specialists.',
+      metaDescription:
+        'T10 wheeled stair climber hire. Quick delivery, best price guaranteed — trust our specialists.',
       description: [
         '<p><strong>T10 Electric Wheeled Stairlift Hire with home delivery in Rome and Florence for safety and freedom in any environment</strong></p>',
         '<p><strong>Have you ever stood in front of a ladder and wondered how to climb it safely with an elderly person or a person with reduced mobility?</strong><br />The&nbsp;<strong>T10 wheeled stairlift</strong>&nbsp;is the simple, practical and effective answer to overcome all kinds of architectural barriers, even in environments with narrow stairs or uneven steps. <strong>Compact, lightweight and demountable</strong>, It is perfect for use at home, in apartment buildings or on the road. With&nbsp;<strong>M.I.A. Medical Italy</strong>, you can have it at home, ready to use, in less than 48 hours.</p>',
@@ -107,10 +111,7 @@ export const wheeledStairliftT10 = stairliftsHire.rental({
 
   media: {
     thumbnail: 'wheeled-stairlift-t10-1.jpg',
-    gallery: [
-      'wheeled-stairlift-t10-2.jpg',
-      'wheeled-stairlift-t10-3.jpg',
-    ],
+    gallery: ['wheeled-stairlift-t10-2.jpg', 'wheeled-stairlift-t10-3.jpg'],
   },
 
   addons: [homeDelivery(45)],

@@ -32,9 +32,11 @@ export const kuarzScooter = mobilityScootersSale.fixed({
     it: {
       title: 'Vendita Scooter Elettrico Kuarz',
       slug: 'vendita-scooter-elettrico-kuarz',
-      shortDescription: 'Libertà di movimento Acquista lo scooter elettrico Vermeiren Kuarz e riscopri la libertà di muoverti in totale autonomia! Grazie ai comandi intuitivi e al potente motore, potrai spostarti comodamente e in sicurezza per le tue attività quotidiane. Siamo a Roma e Firenze.',
+      shortDescription:
+        'Libertà di movimento Acquista lo scooter elettrico Vermeiren Kuarz e riscopri la libertà di muoverti in totale autonomia! Grazie ai comandi intuitivi e al potente motore, potrai spostarti comodamente e in sicurezza per le tue attività quotidiane. Siamo a Roma e Firenze.',
       metaTitle: 'Scooter elettrico Kuarz per anziani e disabili – Comfort e autonomia',
-      metaDescription: 'Acquista lo scooter elettrico Kuarz per anziani e disabili: autonomia fino a 45 km, comfort, sicurezza e design moderno per muoversi senza limiti.',
+      metaDescription:
+        'Acquista lo scooter elettrico Kuarz per anziani e disabili: autonomia fino a 45 km, comfort, sicurezza e design moderno per muoversi senza limiti.',
       description: [
         '<p>Vendita scooter elettrico<strong> Kuarz</strong> da esterno per anziani e persone con mobilità ridotta: libertà, sicurezza e stile per muoverti senza limiti.</p>',
         '<p>Se desideri spostarti con autonomia e sicurezza durante le tue giornate, lo scooter elettrico <strong>Vermeiren Kuarz</strong> è la soluzione perfetta per ritrovare indipendenza e comfort. Ideale per passeggiate, commissioni quotidiane o momenti di relax all’aperto, questo scooter combina tecnologia avanzata, design moderno e massima stabilità su strada.</p>',
@@ -57,9 +59,11 @@ export const kuarzScooter = mobilityScootersSale.fixed({
     en: {
       title: 'Kuarz electric scooter for sale',
       slug: 'vendita-scooter-elettrico-kuarz',
-      shortDescription: 'Freedom of movement Buy the Vermeiren Kuarz electric scooter and rediscover the freedom to get about in complete independence! Thanks to its intuitive controls and powerful motor, you’ll be able to get about comfortably and safely as you go about your daily activities. We’re based in Rome and Florence.',
+      shortDescription:
+        'Freedom of movement Buy the Vermeiren Kuarz electric scooter and rediscover the freedom to get about in complete independence! Thanks to its intuitive controls and powerful motor, you’ll be able to get about comfortably and safely as you go about your daily activities. We’re based in Rome and Florence.',
       metaTitle: 'Kuarz mobility scooter for older and disabled users – comfort and range',
-      metaDescription: 'Buy the Kuarz mobility scooter for older and disabled users: up to 45 km on a charge, comfortable, safe and modern.',
+      metaDescription:
+        'Buy the Kuarz mobility scooter for older and disabled users: up to 45 km on a charge, comfortable, safe and modern.',
       description: [
         '<p>Electric scooter sales<strong> Kuarz</strong> Outdoor seating for older people and those with reduced mobility: freedom, safety and style to get about without limits.</p>',
         '<p>If you want to get about independently and safely throughout the day, the electric scooter <strong>Vermeiren Kuarz</strong> It is the perfect solution for regaining independence and comfort. Ideal for walks, daily errands or relaxing outdoors, this scooter combines advanced technology, modern design and maximum stability on the road.</p>',

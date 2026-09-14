@@ -20,19 +20,18 @@ export const cryoCuff = cryotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 120),
-    days(20, 150),
-    days(30, 180),
-  ],
+  packages: [days(15, 120), days(20, 150), days(30, 180)],
 
   translations: {
     it: {
-      title: 'Noleggio Cryo Cuff: crioterapia con compressione per recupero post-operatorio e riabilitativo',
+      title:
+        'Noleggio Cryo Cuff: crioterapia con compressione per recupero post-operatorio e riabilitativo',
       slug: 'noleggio-cryo-cuff',
-      shortDescription: 'Noleggio Cryo Cuff – crioterapia professionale post operatoria Facilissima da usare, ideale per il trattamento domiciliare. La Cryo Cuff utilizza la terapia del freddo con compressione passiva per ridurre dolore, gonfiore ed edema. Consegna gratis se acquisti un noleggio per un minimo di 20 giorni. Per noleggi di durata minore consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Nessuna cauzione richiesta!',
+      shortDescription:
+        'Noleggio Cryo Cuff – crioterapia professionale post operatoria Facilissima da usare, ideale per il trattamento domiciliare. La Cryo Cuff utilizza la terapia del freddo con compressione passiva per ridurre dolore, gonfiore ed edema. Consegna gratis se acquisti un noleggio per un minimo di 20 giorni. Per noleggi di durata minore consegna a domicilio in tutta Italia a partire da 15€ + 15€ per il ritiro. Nessuna cauzione richiesta!',
       metaTitle: 'Noleggio Cryo Cuff per crioterapia post operatoria e riabilitazione',
-      metaDescription: 'Noleggio Cryo Cuff per crioterapia post operatoria e post traumatica. Riduce dolore ed edema. Consegna rapida in tutta Italia.',
+      metaDescription:
+        'Noleggio Cryo Cuff per crioterapia post operatoria e post traumatica. Riduce dolore ed edema. Consegna rapida in tutta Italia.',
       description: [
         '<p>Il <strong>noleggio Cryo Cuff</strong> è una soluzione efficace di <strong>crioterapia con compressione</strong> che contribuisce al recupero post-operatorio, post-traumatico e riabilitativo.<br />La terapia del freddo associata alla compressione aiuta a <strong>ridurre il dolore</strong>, <strong>contenere edema e gonfiore</strong> e a <strong>limitare il ricorso a farmaci analgesici</strong>, favorendo una guarigione più rapida e naturale.</p>',
         '<p>Il noleggio della crioterapia compressiva <strong>Cryo Cuff</strong> è indicato per pazienti e sportivi che necessitano di un trattamento sicuro, semplice da utilizzare e adatto anche all’uso domiciliare.</p>',
@@ -69,11 +68,14 @@ export const cryoCuff = cryotherapyHire.rental({
       ].join(''),
     },
     en: {
-      title: 'Cryo Cuff: cryotherapy with compression for recovery after surgery and in rehabilitation, for hire',
+      title:
+        'Cryo Cuff: cryotherapy with compression for recovery after surgery and in rehabilitation, for hire',
       slug: 'noleggio-cryo-cuff',
-      shortDescription: 'Cryo Cuff hire – professional post-operative cryotherapy Easy to use, ideal for home treatment. The Cryo Cuff uses the cold therapy with passive compression to reduce pain, swelling and oedema. Free delivery if you purchase a rental for a minimum of 20 days. For shorter rentals, home delivery throughout Italy starts from €15 + €15 for collection. No deposit required!',
+      shortDescription:
+        'Cryo Cuff hire – professional post-operative cryotherapy Easy to use, ideal for home treatment. The Cryo Cuff uses the cold therapy with passive compression to reduce pain, swelling and oedema. Free delivery if you purchase a rental for a minimum of 20 days. For shorter rentals, home delivery throughout Italy starts from €15 + €15 for collection. No deposit required!',
       metaTitle: 'Cryo Cuff hire for post-operative cryotherapy and rehabilitation',
-      metaDescription: 'Cryo Cuff hire for cryotherapy after surgery or injury. Brings down pain and oedema. Quick delivery anywhere in Italy.',
+      metaDescription:
+        'Cryo Cuff hire for cryotherapy after surgery or injury. Brings down pain and oedema. Quick delivery anywhere in Italy.',
       description: [
         '<p>The <strong>Cryo Cuff hire</strong> it is an effective solution for <strong>cryotherapy with compression</strong> which contributes to post-operative, post-traumatic and rehabilitation recovery.<br />Cold therapy combined with compression helps to <strong>reduce pain</strong>, <strong>contain oedema and swelling</strong> and to <strong>limiting the use of analgesic drugs</strong>, promoting a quicker and more natural recovery.</p>',
         '<p>The rental of compression cryotherapy <strong>Cryo Cuff</strong> it is suitable for patients and athletes who require a safe, easy-to-use treatment that is also suitable for home use.</p>',
@@ -93,13 +95,13 @@ export const cryoCuff = cryotherapyHire.rental({
         '<h2>How does Cryo Cuff cryotherapy work?</h2>',
         '<p>La <strong>cryotherapy</strong> uses cold to lower the temperature of fabrics through <strong>thermal conduction</strong>.</p>',
         '<p>The main effects on the treated area are:</p>',
-        '<ul><li><strong>Initial vasoconstriction</strong>, which reduces bleeding and inflammation</li><li><strong>Reflex vasodilation</strong> after 20–30 minutes, the body\'s protective mechanism</li></ul>',
+        "<ul><li><strong>Initial vasoconstriction</strong>, which reduces bleeding and inflammation</li><li><strong>Reflex vasodilation</strong> after 20–30 minutes, the body's protective mechanism</li></ul>",
         '<p><h2>When is Cryo Cuff hire indicated?</h2>',
         '<p>The <strong>Cryo Cuff compression cryotherapy rental</strong> is indicated for:</p>',
         '<ul><li>Post-operative</li><li>Post-traumatic</li><li>Rehabilitation paths</li><li>Muscle and joint recovery</li></ul>',
         '<h2>Contraindications of cryotherapy</h2>',
         '<p>Cryotherapy <strong>it is not indicated</strong> in case of:</p>',
-        '<ul><li>Raynaud\'s disease</li><li>Vasospasm</li><li>Cold hypersensitivity</li><li>Local circulation disorders</li></ul>',
+        "<ul><li>Raynaud's disease</li><li>Vasospasm</li><li>Cold hypersensitivity</li><li>Local circulation disorders</li></ul>",
         '<p>It is always advisable to seek the advice of a doctor or physiotherapist before use.</p>',
         '<h2>Cryo/Cuff hire throughout Italy</h2>',
         '<p>The <strong>Cryo/Cuff hire</strong> is available <strong>throughout Italy</strong>, with:</p>',
@@ -113,10 +115,7 @@ export const cryoCuff = cryotherapyHire.rental({
 
   media: {
     thumbnail: 'cryo-cuff-1.png',
-    gallery: [
-      'cryo-cuff-2.png',
-      'cryo-cuff-3.png',
-    ],
+    gallery: ['cryo-cuff-2.png', 'cryo-cuff-3.png'],
   },
 
   addons: [homeDeliveryOnly(15), homeCollection(15)],

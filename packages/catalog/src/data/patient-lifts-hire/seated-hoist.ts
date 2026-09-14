@@ -22,20 +22,17 @@ export const seatedHoist = patientLiftsHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(15, 150),
-    days(30, 260),
-    days(45, 315),
-    days(60, 360),
-  ],
+  packages: [days(15, 150), days(30, 260), days(45, 315), days(60, 360)],
 
   translations: {
     it: {
       title: 'Noleggio sollevatore elettrico con seduta',
       slug: 'noleggio-sollevatore-elettrico-con-seduta-per-il-bagno',
-      shortDescription: 'Noleggio sollevatore elettrico con seduta ed imbracatura. Consegna a Roma e Firenze a partire da 45€. Consegna gratuita per i noleggi da 45 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
+      shortDescription:
+        'Noleggio sollevatore elettrico con seduta ed imbracatura. Consegna a Roma e Firenze a partire da 45€. Consegna gratuita per i noleggi da 45 giorni! Nessun deposito richiesto. La consegna e il ritiro in magazzino sono GRATUITI!',
       metaTitle: 'Noleggio sollevatore elettrico con seduta per il bagno',
-      metaDescription: 'Noleggio sollevatore elettrico con seduta per anziani e sollevatore per persone disabili MUEVO Home. Ideale per interni ed esterni. Chiamaci ora!',
+      metaDescription:
+        'Noleggio sollevatore elettrico con seduta per anziani e sollevatore per persone disabili MUEVO Home. Ideale per interni ed esterni. Chiamaci ora!',
       description: [
         '<h3>MUEVO HOME &#8211; noleggio sollevatore elettrico per anziani con seduta per uso domiciliare. Sostegno quotidiano per chi assiste e per chi è assistito.</h3>',
         '<p>Il noleggio sollevatore elettrico con seduta MUEVO HOME è la soluzione ideale per chi necessita di assistenza domestica sicura per il sollevamento di persone anziane o con ridotta mobilità.<br />È un dispositivo pensato anche come <strong>sollevatore per persone disabili</strong> per garantire trasferimenti sicuri e controllati.</p>',
@@ -66,9 +63,11 @@ export const seatedHoist = patientLiftsHire.rental({
     en: {
       title: 'Electric hoist with a seat, for hire',
       slug: 'noleggio-sollevatore-elettrico-con-seduta-per-il-bagno',
-      shortDescription: 'Hire of electric hoist with seat and sling. Delivery in Rome and Florence from €45. Free delivery for 45-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
+      shortDescription:
+        'Hire of electric hoist with seat and sling. Delivery in Rome and Florence from €45. Free delivery for 45-day rentals! No deposit required. Delivery and collection from the warehouse are FREE!',
       metaTitle: 'Electric hoist with a seat for the bathroom, for hire',
-      metaDescription: 'Hire the MUEVO Home electric hoist with a seat, for older and disabled users. Suits indoors and out.',
+      metaDescription:
+        'Hire the MUEVO Home electric hoist with a seat, for older and disabled users. Suits indoors and out.',
       description: [
         '<h3>MUEVO HOME – electric hoist hire for the elderly with a seat for home use. Daily support for both carers and those being cared for.</h3>',
         '<p>The MUEVO HOME electric seated hoist rental is the ideal solution for those who need safe home assistance for lifting elderly people or those with reduced mobility.<br />It is a device also designed as <strong>hoist for disabled persons</strong> to ensure safe and controlled transfers.</p>',
@@ -105,12 +104,11 @@ export const seatedHoist = patientLiftsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'seated-hoist-1.jpg', alt: { it: 'noleggio sollevatore elettrico con seduta MUEVO HOME' } },
-    gallery: [
-      'seated-hoist-2.png',
-      'seated-hoist-3.jpg',
-      'seated-hoist-4.jpg',
-    ],
+    thumbnail: {
+      file: 'seated-hoist-1.jpg',
+      alt: { it: 'noleggio sollevatore elettrico con seduta MUEVO HOME' },
+    },
+    gallery: ['seated-hoist-2.png', 'seated-hoist-3.jpg', 'seated-hoist-4.jpg'],
   },
 
   addons: [homeDelivery(45)],

@@ -29,9 +29,11 @@ export const foldingConvertible = wheelchairsSale.fixed({
     it: {
       title: 'Vendita Carrozzina pieghevole da transito o da autospinta',
       slug: 'vendita-carrozzina-pieghevole',
-      shortDescription: 'CarrozzinA di transito e da autospinta Consegna gratuita. Disponibilitàm immediata Prenota subito!',
+      shortDescription:
+        'CarrozzinA di transito e da autospinta Consegna gratuita. Disponibilitàm immediata Prenota subito!',
       metaTitle: 'Vendita carrozzina da transito o da autospinta',
-      metaDescription: 'Vendita Carrozzina da transito e da autospinta per anziani con seduta imbottita. Consegna a domicilio chiama al 3926509237 o prenota online!',
+      metaDescription:
+        'Vendita Carrozzina da transito e da autospinta per anziani con seduta imbottita. Consegna a domicilio chiama al 3926509237 o prenota online!',
       description: [
         '<p><strong>Vendita carrozzina da transito o da autospinta.</strong> Questa carrozzina pieghevole è progettata per offrire una soluzione pratica e versatile alla mobilità di persone anziane o con ridotta capacità motoria. Il modello è utilizzabile sia come carrozzina da transito, sia come carrozzina da autospinta, a seconda delle esigenze dell’utente e del contesto di utilizzo.</p>',
         '<p>La struttura è realizzata in acciaio verniciato, robusta e resistente all’uso quotidiano. È dotata di quattro ruote piene, pensate per garantire stabilità e ridurre la manutenzione, rendendola adatta sia per ambienti interni che per spostamenti all’esterno su superfici urbane.</p>',
@@ -52,11 +54,13 @@ export const foldingConvertible = wheelchairsSale.fixed({
     en: {
       title: 'Folding transit or self-propelled wheelchair for sale',
       slug: 'vendita-carrozzina-pieghevole',
-      shortDescription: 'Transit and self-propelled wheelchair. Free delivery. Available immediately. Order now!',
+      shortDescription:
+        'Transit and self-propelled wheelchair. Free delivery. Available immediately. Order now!',
       metaTitle: 'Transit or self-propelled wheelchair for sale',
-      metaDescription: 'Buy a folding wheelchair usable as a transit or a self-propelled chair: painted steel frame, four solid wheels, seats from 41 to 50 cm.',
+      metaDescription:
+        'Buy a folding wheelchair usable as a transit or a self-propelled chair: painted steel frame, four solid wheels, seats from 41 to 50 cm.',
       description: [
-        '<p><strong>Transit or self-propelled wheelchair for sale.</strong> This folding wheelchair is designed to offer a practical and versatile mobility solution for elderly people or those with reduced mobility. The model can be used both as a transit wheelchair and as a self-propelled wheelchair, depending on the user\'s needs and the context of use.</p>',
+        "<p><strong>Transit or self-propelled wheelchair for sale.</strong> This folding wheelchair is designed to offer a practical and versatile mobility solution for elderly people or those with reduced mobility. The model can be used both as a transit wheelchair and as a self-propelled wheelchair, depending on the user's needs and the context of use.</p>",
         '<p>The structure is made of painted steel, robust and resistant to daily use. It is equipped with four solid wheels, designed to guarantee stability and reduce maintenance, making it suitable both for indoor environments and for outdoor movement on urban surfaces.</p>',
         '<h2>Use</h2>',
         '<p><strong>Transit or self-propelled wheelchair for sale.</strong><br />The wheelchair can be used in two modes:</p>',
@@ -89,7 +93,10 @@ export const foldingConvertible = wheelchairsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'folding-convertible-1.jpg', alt: { it: 'Carrozzina da transito o da autospinta' } },
+    thumbnail: {
+      file: 'folding-convertible-1.jpg',
+      alt: { it: 'Carrozzina da transito o da autospinta' },
+    },
     gallery: [
       { file: 'folding-convertible-2.jpg', alt: { it: 'Noleggio ausili per terapia a domicilio' } },
       'folding-convertible-3.jpg',

@@ -37,9 +37,11 @@ export const bariatricWheelchair = wheelchairsHire.rental({
     it: {
       title: 'Affitto carrozzina bariatrica per pazienti obesi',
       slug: 'affitto-carrozzina-bariatrica-per-pazienti-obesi-bariatrica',
-      shortDescription: 'Noleggio Sedia a rotelle pieghevole bariatrica Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro in magazzino è GRATUITO! Prenota subito online! Consegna e ritiro a domicilio a Roma e Firenze da 30€.',
+      shortDescription:
+        'Noleggio Sedia a rotelle pieghevole bariatrica Noleggio per 1 giorno: 15€ con ritiro solamente in sede. Il ritiro in magazzino è GRATUITO! Prenota subito online! Consegna e ritiro a domicilio a Roma e Firenze da 30€.',
       metaTitle: 'Affitto carrozzina bariatrica per pazienti obesi',
-      metaDescription: 'Affitto carrozzina bariatrica pieghevole per pazienti obesi / bariatrica. Portata massima 250 kg. Disponibilità immediata. Contattaci al +393926509237',
+      metaDescription:
+        'Affitto carrozzina bariatrica pieghevole per pazienti obesi / bariatrica. Portata massima 250 kg. Disponibilità immediata. Contattaci al +393926509237',
       description: [
         '<p>L&#8217;<strong>affitto carrozzina bariatrica pieghevole per pazienti obesi</strong> è la soluzione ideale per chi necessita di un ausilio robusto, sicuro e confortevole per un periodo temporaneo. La carrozzina bariatrica è progettata per garantire il massimo della stabilità e della sicurezza durante gli spostamenti, offrendo una portata elevata fino a <strong>200 kg</strong> senza rinunciare alla praticità di una struttura pieghevole, facilmente trasportabile e riponibile.</p>',
         '<p>Grazie alla sua struttura rinforzata con <strong>doppia crociera in acciaio verniciato</strong>, questa carrozzina è indicata per persone con ridotta capacità di deambulazione, pazienti in fase di recupero post-operatorio, soggetti bariatrici o persone che necessitano di un supporto affidabile per gli spostamenti quotidiani.</p>',
@@ -72,11 +74,13 @@ export const bariatricWheelchair = wheelchairsHire.rental({
     en: {
       title: 'Bariatric wheelchair for hire, for obese patients',
       slug: 'affitto-carrozzina-bariatrica-per-pazienti-obesi-bariatrica',
-      shortDescription: 'Hire Bariatric folding wheelchair Hire for 1 day: 15€ with pick-up on site only. Pick-up at the warehouse is FREE! Book online now! Home delivery and pick-up in Rome and Florence from 30€.',
+      shortDescription:
+        'Hire Bariatric folding wheelchair Hire for 1 day: 15€ with pick-up on site only. Pick-up at the warehouse is FREE! Book online now! Home delivery and pick-up in Rome and Florence from 30€.',
       metaTitle: 'Bariatric wheelchair hire up to 200 kg',
-      metaDescription: 'Hire a folding bariatric wheelchair rated to 200 kg: reinforced double-cross-brace steel frame, 60 cm seat, 32 cm folded.',
+      metaDescription:
+        'Hire a folding bariatric wheelchair rated to 200 kg: reinforced double-cross-brace steel frame, 60 cm seat, 32 cm folded.',
       description: [
-        '<p>L\'<strong>hire of foldable bariatric wheelchair for obese patients</strong> it is the ideal solution for anyone who needs a robust, safe and comfortable aid for a temporary period. The bariatric wheelchair is designed to guarantee maximum stability and safety when moving around, offering a high weight capacity of up to <strong>200 kg</strong> without sacrificing the practicality of a folding structure that is easy to transport and store.</p>',
+        "<p>L'<strong>hire of foldable bariatric wheelchair for obese patients</strong> it is the ideal solution for anyone who needs a robust, safe and comfortable aid for a temporary period. The bariatric wheelchair is designed to guarantee maximum stability and safety when moving around, offering a high weight capacity of up to <strong>200 kg</strong> without sacrificing the practicality of a folding structure that is easy to transport and store.</p>",
         '<p>Thanks to its reinforced structure with <strong>double painted steel crossbar</strong>, this wheelchair is suitable for people with reduced mobility, post-operative recovery patients, bariatric individuals or those requiring reliable support for daily travel.</p>',
         '<h2><strong>Features of bariatric wheelchair rental</strong></h2>',
         '<p>The foldable bariatric wheelchair hire has been designed to offer maximum comfort even in the event of prolonged use.</p>',
@@ -85,7 +89,7 @@ export const bariatricWheelchair = wheelchairsHire.rental({
         '<h2>Comfort and safety </h2>',
         '<p>When choosing to hire a foldable bariatric wheelchair, it is essential to focus on safety.</p>',
         '<p>The wheelchair offers an extremely stable structure thanks to its reinforced frame, anti-tip wheels and solid tyres, which ensure high reliability even during everyday journeys.</p>',
-        '<p>The padded seat and ergonomic backrest ensure a high level of comfort, while the removable armrests and adjustable footrests make it easy to adapt the wheelchair to the patient\'s needs.</p>',
+        "<p>The padded seat and ergonomic backrest ensure a high level of comfort, while the removable armrests and adjustable footrests make it easy to adapt the wheelchair to the patient's needs.</p>",
         '<p>For those who spend many hours sitting, we also recommend the use of a <strong>anti-decubitus pillow</strong>, available for rental or purchase, to help reduce the risk of pressure ulcers.</p>',
         '<h2>Easy-to-transport folding wheelchair</h2>',
         '<p>One of the main advantages of’<strong>hire of foldable bariatric wheelchair for obese patients</strong> it is the possibility of completely closing the structure.</p>',
@@ -118,7 +122,10 @@ export const bariatricWheelchair = wheelchairsHire.rental({
     upholstery: { it: 'Nylon nero imbottito e lavabile', en: 'Padded, washable black nylon' },
     'wheel-type': 'solid',
     'rear-wheels': { it: 'Piene Ø 60 cm in poliuretano', en: 'Solid polyurethane, Ø 60 cm' },
-    'front-wheels': { it: 'Ø 20 cm con forcella regolabile in acciaio', en: 'Ø 20 cm on an adjustable steel fork' },
+    'front-wheels': {
+      it: 'Ø 20 cm con forcella regolabile in acciaio',
+      en: 'Ø 20 cm on an adjustable steel fork',
+    },
     foldable: true,
     'removable-armrests': true,
     'removable-footrests': true,
@@ -126,9 +133,15 @@ export const bariatricWheelchair = wheelchairsHire.rental({
   },
 
   media: {
-    thumbnail: { file: 'bariatric-wheelchair-1.jpg', alt: { it: 'Carrozzina bariatrica pieghevole' } },
+    thumbnail: {
+      file: 'bariatric-wheelchair-1.jpg',
+      alt: { it: 'Carrozzina bariatrica pieghevole' },
+    },
     gallery: [
-      { file: 'bariatric-wheelchair-2.jpg', alt: { it: 'Alzata per gesso carrozzina SLIM autospinta' } },
+      {
+        file: 'bariatric-wheelchair-2.jpg',
+        alt: { it: 'Alzata per gesso carrozzina SLIM autospinta' },
+      },
     ],
   },
 

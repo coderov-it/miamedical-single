@@ -27,9 +27,11 @@ export const cryopushDynamic = cryotherapySale.fixed({
     it: {
       title: 'Vendita Crioterapia Dinamica Cryopush',
       slug: 'vendita-crioterapia-dinamica-cryopush',
-      shortDescription: 'Cryopush Facilissimo da usare, con altissimi risultati in pochissimi giorni. Con Cryopush, puoi trattare due zone contemporaneamente. Ecco perché l’acquisto della crioterapia compressiva è ideale per il trattamento simultaneo. Cryopush è l’evoluzione nella terapia post traumatica.',
+      shortDescription:
+        'Cryopush Facilissimo da usare, con altissimi risultati in pochissimi giorni. Con Cryopush, puoi trattare due zone contemporaneamente. Ecco perché l’acquisto della crioterapia compressiva è ideale per il trattamento simultaneo. Cryopush è l’evoluzione nella terapia post traumatica.',
       metaTitle: 'Vendita Crioterapia Dinamica Cryopush',
-      metaDescription: 'Vendita Crioterapia Dinamica Cryopush a un prezzo imbattibile. Disponibilità immediata. Ordina online in pochi click! Chiamaci ora!',
+      metaDescription:
+        'Vendita Crioterapia Dinamica Cryopush a un prezzo imbattibile. Disponibilità immediata. Ordina online in pochi click! Chiamaci ora!',
       description: [
         '<h3>Vendita Crioterapia Dinamica Cryopush: sistema professionale di crioterapia con compressione per recupero, riabilitazione e controllo del dolore</h3>',
         '<p>La&nbsp;<strong>Crioterapia Compressiva Cryopush</strong>&nbsp;è un sistema avanzato che combina&nbsp;<strong>terapia del freddo controllata e compressione pneumatica</strong>, progettato per&nbsp;<strong>ridurre dolore, infiammazione ed edema</strong>, accelerando i naturali processi di guarigione del corpo.</p>',
@@ -82,12 +84,14 @@ export const cryopushDynamic = cryotherapySale.fixed({
     en: {
       title: 'Cryopush dynamic cryotherapy, for sale',
       slug: 'vendita-crioterapia-dinamica-cryopush',
-      shortDescription: 'Cryopush Very easy to use, with very high results in just a few days. With Cryopush, you can treat two areas simultaneously. That is why purchasing compressive cryotherapy is ideal for simultaneous treatment. Cryopush is the evolution in post-trauma therapy.',
+      shortDescription:
+        'Cryopush Very easy to use, with very high results in just a few days. With Cryopush, you can treat two areas simultaneously. That is why purchasing compressive cryotherapy is ideal for simultaneous treatment. Cryopush is the evolution in post-trauma therapy.',
       metaTitle: 'Cryopush dynamic cryotherapy for sale',
-      metaDescription: 'Buy Cryopush dynamic cryotherapy at an unbeatable price. Available immediately — order online in a few clicks.',
+      metaDescription:
+        'Buy Cryopush dynamic cryotherapy at an unbeatable price. Available immediately — order online in a few clicks.',
       description: [
         '<h3>Cryopush Dynamic Cryotherapy for sale: professional cryotherapy system with compression for recovery, rehabilitation and pain control</h3>',
-        '<p>La&nbsp;<strong>Cryopush compression cryotherapy</strong>&nbsp;it is an advanced system that combines&nbsp;<strong>controlled cold therapy and pneumatic compression</strong>designed for&nbsp;<strong>reduce pain, inflammation and oedema</strong>, accelerating the body\'s natural healing processes.</p>',
+        "<p>La&nbsp;<strong>Cryopush compression cryotherapy</strong>&nbsp;it is an advanced system that combines&nbsp;<strong>controlled cold therapy and pneumatic compression</strong>designed for&nbsp;<strong>reduce pain, inflammation and oedema</strong>, accelerating the body's natural healing processes.</p>",
         '<p>It is an ideal solution for:</p>',
         '<ul><li>post-operative rehabilitation patients</li><li>people with musculoskeletal disorders</li><li>professional and amateur athletes</li><li>physiotherapy practices and healthcare facilities</li><li>supervised home use</li></ul>',
         '<p><strong>Do you need to find out if Cryopush is suitable for your treatment plan? <a href="https://wa.me/393926509237">Contact us for a free consultation.</a></strong></p>',
@@ -137,7 +141,10 @@ export const cryopushDynamic = cryotherapySale.fixed({
   },
 
   specs: {
-    'power-supply': { it: 'CA 100–240 V, 50/60 H; uscita CC 12 V / 2 A', en: 'AC 100–240 V, 50/60 H; DC output 12 V / 2 A' },
+    'power-supply': {
+      it: 'CA 100–240 V, 50/60 H; uscita CC 12 V / 2 A',
+      en: 'AC 100–240 V, 50/60 H; DC output 12 V / 2 A',
+    },
     'treatment-pressure': { it: '60–120 mmHg', en: '60–120 mmHg' },
     'treatment-temperature': { it: '0 °C – 25 °C', en: '0 °C – 25 °C' },
     weight: { min: 1.78, max: 1.78 },
@@ -145,11 +152,11 @@ export const cryopushDynamic = cryotherapySale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'cryopush-dynamic-1.png', alt: { it: 'terapia del freddo con compressione' } },
-    gallery: [
-      'cryopush-dynamic-2.jpeg',
-      'cryopush-dynamic-3.jpeg',
-    ],
+    thumbnail: {
+      file: 'cryopush-dynamic-1.png',
+      alt: { it: 'terapia del freddo con compressione' },
+    },
+    gallery: ['cryopush-dynamic-2.jpeg', 'cryopush-dynamic-3.jpeg'],
   },
   terms: [generalTerms],
 });

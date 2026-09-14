@@ -19,9 +19,11 @@ export const goUpHoist = patientLiftsSale.fixed({
     it: {
       title: 'Vendita Sollevatore Elettrico GO UP',
       slug: 'vendita-sollevatore-elettrico-go-up',
-      shortDescription: 'Non perdere l’Offerta speciale! Il sollevatore elettrico GO UP è un dispositivo medicale progettato per il trasferimento sicuro e confortevole di persone con ridotta capacità motoria. Ideale per un utilizzo continuativo e quotidiano. Fino ad esaurimento scorte.',
+      shortDescription:
+        'Non perdere l’Offerta speciale! Il sollevatore elettrico GO UP è un dispositivo medicale progettato per il trasferimento sicuro e confortevole di persone con ridotta capacità motoria. Ideale per un utilizzo continuativo e quotidiano. Fino ad esaurimento scorte.',
       metaTitle: 'Vendita Sollevatore Elettrico GO UP - Mia Medical Italia',
-      metaDescription: 'Sollevatore elettrico GO UP da bagno per anziani in vendita. Disponibilità immediata. Consegna rapida in 24/48h. Il miglior qualità prezzo sul mercato!',
+      metaDescription:
+        'Sollevatore elettrico GO UP da bagno per anziani in vendita. Disponibilità immediata. Consegna rapida in 24/48h. Il miglior qualità prezzo sul mercato!',
       description: [
         '<h3>Vendita Sollevatore elettrico per anziani per uso sanitario al bagno : un supporto essenziale per la mobilità assistita.</h3>',
         '<p>Il <strong>sollevatore elettrico GO UP</strong> per anziani è un dispositivo medicale progettato per il <strong>trasferimento sicuro e confortevole di persone con ridotta capacità motoria e per l&#8217;uso in bagno.</strong> Ideale per un utilizzo continuativo e quotidiano, rappresenta una scelta strategica per chi desidera garantire assistenza costante nel tempo, in ambito domestico o professionale.</p>',
@@ -43,13 +45,15 @@ export const goUpHoist = patientLiftsSale.fixed({
     en: {
       title: 'GO UP electric hoist for sale',
       slug: 'vendita-sollevatore-elettrico-go-up',
-      shortDescription: 'Do not miss the special offer! The GO UP electric hoist is a medical device built to move someone with reduced mobility safely and comfortably. Made for daily, continuous use. While stocks last.',
+      shortDescription:
+        'Do not miss the special offer! The GO UP electric hoist is a medical device built to move someone with reduced mobility safely and comfortably. Made for daily, continuous use. While stocks last.',
       metaTitle: 'GO UP electric hoist for sale - Mia Medical Italia',
-      metaDescription: 'GO UP electric bath hoist for older users, for sale. Available immediately, delivered in 24–48 hours. The best quality for the money.',
+      metaDescription:
+        'GO UP electric bath hoist for older users, for sale. Available immediately, delivered in 24–48 hours. The best quality for the money.',
       description: [
         '<h3>For sale Electric hoist for elderly people for medical use in the bathroom: an essential support for assisted mobility.</h3>',
         '<p>The <strong>GO UP electric hoist</strong> for the elderly is a medical device designed for the <strong>safe and comfortable transfer of persons with reduced mobility and for use in the bathroom.</strong> Ideal for continuous, daily use, it is a strategic choice for those who want to ensure constant care over time, in the home or professional environment.</p>',
-        '<p>Indicated for the transition from bed to wheelchair or chair, it is especially ideal for the bathroom or in any situation of movement in small spaces, the GO UP proves to be an indispensable aid for maintaining the safety of the care recipient while improving the quality of the caregiver\'s work.</p>',
+        "<p>Indicated for the transition from bed to wheelchair or chair, it is especially ideal for the bathroom or in any situation of movement in small spaces, the GO UP proves to be an indispensable aid for maintaining the safety of the care recipient while improving the quality of the caregiver's work.</p>",
         '<h4>Technical characteristics of the GO UP model</h4>',
         '<ul><li>Electric lift with manual control</li><li>Height adjustable from 40 to 73 cm</li><li>Digital display with battery level indicator</li><li>Maximum load capacity: 150 kg</li><li>Sturdy structure and reinforced frame</li><li>4 swivel castors with rear brakes</li><li>Removable, waterproof, padded ergonomic seat</li><li>Upholstered backrest, armrests and non-slip footrests</li><li>Central opening in the seat for sanitary use (toilet function)</li></ul>',
         '<h3>To whom is the purchase of the GO UP electric lift recommended?</h3>',
@@ -71,7 +75,10 @@ export const goUpHoist = patientLiftsSale.fixed({
   },
 
   media: {
-    thumbnail: { file: 'go-up-hoist-1.jpeg', alt: { it: 'Vendita e Noleggio sollevatore elettrico GO UP' } },
+    thumbnail: {
+      file: 'go-up-hoist-1.jpeg',
+      alt: { it: 'Vendita e Noleggio sollevatore elettrico GO UP' },
+    },
     gallery: [
       { file: 'go-up-hoist-2.jpeg', alt: { it: 'Vendita e noleggio sollevatore elettrico GO UP' } },
       { file: 'go-up-hoist-3.jpeg', alt: { it: 'Noleggio Sollevatore Elettrico Go Up' } },

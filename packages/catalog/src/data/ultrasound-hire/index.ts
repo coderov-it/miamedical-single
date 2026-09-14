@@ -5,6 +5,4 @@
 import { ultrasoundHire } from './category.ts';
 import { globusMedisound3000 } from './globus-medisound-3000.ts';
 
-export default ultrasoundHire.withProducts([
-  globusMedisound3000,
-]);
+export default ultrasoundHire.withProducts([globusMedisound3000]);

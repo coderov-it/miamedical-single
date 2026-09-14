@@ -55,8 +55,7 @@ const manifest = JSON.parse(await readFile(MANIFEST, 'utf8')) as Manifest;
  */
 async function download(url: string, to: string): Promise<number> {
   const response = await fetch(url);
-  if (!response.ok || !response.body)
-    throw new Error(`HTTP ${String(response.status)} for ${url}`);
+  if (!response.ok || !response.body) throw new Error(`HTTP ${String(response.status)} for ${url}`);
   mkdirSync(dirname(to), { recursive: true });
   await pipeline(Readable.fromWeb(response.body as never), createWriteStream(to));
   return statSync(to).size;

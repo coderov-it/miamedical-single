@@ -20,19 +20,17 @@ export const cryocemp = cryomagnetotherapyHire.rental({
 
   pricingMode: 'rental',
   rentalUnit: 'day',
-  packages: [
-    days(20, 350),
-    days(30, 465),
-    days(45, 560),
-  ],
+  packages: [days(20, 350), days(30, 465), days(45, 560)],
 
   translations: {
     it: {
       title: 'Noleggio Criomagnetoterapia CRYOCEMP',
       slug: 'noleggio-criomagnetoterapia',
-      shortDescription: 'Noleggio Criomagnetoterapia: Magnetoterapia CEMP + Crioterapia Compressiva : “Due tecnologie, un’unica terapia”…. ……per ridurre dolore, infiammazione ed edema e favorire un recupero più rapido, Ideale dopo interventi, traumi o attività sportiva. Consegna in tutta Italia da 15€ + 15€ Consegna Gratuita per noleggi da 30 giorni Nessuna cauzione richiesta',
+      shortDescription:
+        'Noleggio Criomagnetoterapia: Magnetoterapia CEMP + Crioterapia Compressiva : “Due tecnologie, un’unica terapia”…. ……per ridurre dolore, infiammazione ed edema e favorire un recupero più rapido, Ideale dopo interventi, traumi o attività sportiva. Consegna in tutta Italia da 15€ + 15€ Consegna Gratuita per noleggi da 30 giorni Nessuna cauzione richiesta',
       metaTitle: 'Noleggio Criomagnetoterapia – Magnetoterapia + Crioterapia',
-      metaDescription: 'Noleggio criomagnetoterapia con magnetoterapia CEMP e crioterapia compressiva. Riduci dolore e infiammazione e accelera il recupero direttamente a casa.',
+      metaDescription:
+        'Noleggio criomagnetoterapia con magnetoterapia CEMP e crioterapia compressiva. Riduci dolore e infiammazione e accelera il recupero direttamente a casa.',
       description: [
         '<h2>Magnetoterapia CEMP + Crioterapia Compressiva</h2>',
         '<p>“Due tecnologie, un’unica terapia” </p>',
@@ -65,16 +63,18 @@ export const cryocemp = cryomagnetotherapyHire.rental({
     en: {
       title: 'CRYOCEMP cryomagnetotherapy, for hire',
       slug: 'noleggio-criomagnetoterapia',
-      shortDescription: 'Cryomagnetotherapy Rental: PEMF Magnetotherapy + Compressive Cryotherapy: “Two technologies, one therapy”... ...to reduce pain, inflammation and swelling and promote a faster recovery, Ideal after surgery, trauma, or sports activities. Delivery throughout Italy from €15 + €15 Free delivery for rentals from 30 days No deposit required',
+      shortDescription:
+        'Cryomagnetotherapy Rental: PEMF Magnetotherapy + Compressive Cryotherapy: “Two technologies, one therapy”... ...to reduce pain, inflammation and swelling and promote a faster recovery, Ideal after surgery, trauma, or sports activities. Delivery throughout Italy from €15 + €15 Free delivery for rentals from 30 days No deposit required',
       metaTitle: 'Cryomagnetotherapy hire — magnetotherapy + cryotherapy',
-      metaDescription: 'Cryomagnetotherapy hire with PEMF magnetotherapy and compression cryotherapy. Cut pain and inflammation and speed up recovery.',
+      metaDescription:
+        'Cryomagnetotherapy hire with PEMF magnetotherapy and compression cryotherapy. Cut pain and inflammation and speed up recovery.',
       description: [
         '<h2>PEMF magnetotherapy + compression cryotherapy</h2>',
         '<p>“Two technologies, one therapy” </p>',
         '<p>The <strong>combined PEMF magnetotherapy and compression cryotherapy rental</strong> It offers an effective and professional solution for pain treatment, inflammation, and musculoskeletal recovery, directly in your home. </p>',
         '<p>This therapeutic combination allows action on multiple levels: on the one hand, the <strong>compression cryotherapy</strong>, which rapidly reduces inflammation, oedema, and pain, on the other hand the <strong>PEMF magnetotherapy</strong>, which stimulates natural tissue regeneration processes and promotes bone and joint recovery.</p>',
         '<p>Rental allows <strong>professional physiotherapy therapies at home</strong>, avoiding the purchase of expensive devices and using them only for the time actually needed.</p>',
-        '<h2>La criomagnetoterapia è indicata per un\'ampia gamma di affezioni, tra cui: * **Traumatologia sportiva:** Rotture muscolari, distorsioni, contusioni, tendiniti ed epicondiliti. * **Patologie articolari:** Artrosi, artriti, condropatie e riabilitazione post-operatoria delle articolazioni. * **Dolore cronico:** Lombalgie, cervicalgie, sciatalgie, dolori muscoloscheletrici. * **Edemi e infiammazioni:** Strappi muscolari, edemi post-traumatici e post-operatori. * **Problemi circolatori:** Efficace anche nelle affezioni legate alla circolazione periferica e nel trattamento di ulcere venose. * **Recupero post-operatorio:** Accelerazione dei processi riparativi e riduzione del dolore. * **Dolore e infiammazione localizzati:** In generale, è utile per trattare dolori e infiammazioni in specifiche aree del corpo.</h2>',
+        "<h2>La criomagnetoterapia è indicata per un'ampia gamma di affezioni, tra cui: * **Traumatologia sportiva:** Rotture muscolari, distorsioni, contusioni, tendiniti ed epicondiliti. * **Patologie articolari:** Artrosi, artriti, condropatie e riabilitazione post-operatoria delle articolazioni. * **Dolore cronico:** Lombalgie, cervicalgie, sciatalgie, dolori muscoloscheletrici. * **Edemi e infiammazioni:** Strappi muscolari, edemi post-traumatici e post-operatori. * **Problemi circolatori:** Efficace anche nelle affezioni legate alla circolazione periferica e nel trattamento di ulcere venose. * **Recupero post-operatorio:** Accelerazione dei processi riparativi e riduzione del dolore. * **Dolore e infiammazione localizzati:** In generale, è utile per trattare dolori e infiammazioni in specifiche aree del corpo.</h2>",
         '<p>The treatment is indicated for:</p>',
         '<ul><li>muscle and joint pain</li><li>acute or chronic inflammation</li><li>sports injuries</li><li>distortions</li><li>oedemas and swelling</li><li>post-operative recovery</li><li>osteo-articular pathologies</li><li>rehabilitation after fractures or orthopaedic surgery</li></ul>',
         '<p>It is suitable for both private patients and physiotherapists and rehabilitation professionals.</p>',
@@ -90,7 +90,7 @@ export const cryocemp = cryomagnetotherapyHire.rental({
         '<p>It is widely used in orthopaedic rehabilitation and sports medicine.</p>',
         '<h2>Why choose cryomagnetotherapy rental</h2>',
         '<p>Combined rental allows</p>',
-        '<ul><li>reduce pain and inflammation naturally</li><li>accelerate post-traumatic and post-operative recovery</li><li>performing professional therapies at home</li><li>avoid buying expensive devices</li><li>adapt the duration of therapy to one\'s needs</li></ul>',
+        "<ul><li>reduce pain and inflammation naturally</li><li>accelerate post-traumatic and post-operative recovery</li><li>performing professional therapies at home</li><li>avoid buying expensive devices</li><li>adapt the duration of therapy to one's needs</li></ul>",
         '<h2>Delivery and Service</h2>',
         '<ul><li>delivery throughout Italy</li><li>free delivery for rentals from 30 days</li><li>no deposit required</li><li>technical assistance throughout the rental period</li></ul>',
         '<p><p>For information, availability and personalised advice, you can contact us at <strong>+39 392 6509237</strong> or write to us on WhatsApp.</p>',
@@ -100,7 +100,10 @@ export const cryocemp = cryomagnetotherapyHire.rental({
   },
 
   specs: {
-    channels: { it: 'Magnetoterapia CEMP e crioterapia compressiva', en: 'PEMF magnetotherapy and compression cryotherapy' },
+    channels: {
+      it: 'Magnetoterapia CEMP e crioterapia compressiva',
+      en: 'PEMF magnetotherapy and compression cryotherapy',
+    },
   },
 
   media: {

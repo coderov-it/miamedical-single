@@ -84,118 +84,116 @@ const arrowClass =
   'disabled:cursor-default disabled:opacity-35';
 ---
 
-{
-  products.length > 0 && (
-    <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby={`${id}-title`}>
-      <div class={EDITORIAL_CONTAINER}>
-        <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
-          <h2 class={HOME_TITLE} id={`${id}-title`}>
-            {title}
-          </h2>
-          <div class="flex items-center gap-6">
-            <a class={HOME_SEE_ALL} href={seeAllHref}>
-              {seeAllLabel}
-            </a>
-            {/* Phones swipe the rail; the arrows would overflow the header row. */}
-            <div class="mid:flex hidden gap-2">
-              <button
-                class={arrowClass}
-                type="button"
-                data-carousel-prev={id}
-                aria-label={text('home.rail.previous')}
-                disabled
+{products.length > 0 && (
+  <section class:list={[EDITORIAL_THEME, HOME_BAND]} aria-labelledby={`${id}-title`}>
+    <div class={EDITORIAL_CONTAINER}>
+      <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
+        <h2 class={HOME_TITLE} id={`${id}-title`}>
+          {title}
+        </h2>
+        <div class="flex items-center gap-6">
+          <a class={HOME_SEE_ALL} href={seeAllHref}>
+            {seeAllLabel}
+          </a>
+          {/* Phones swipe the rail; the arrows would overflow the header row. */}
+          <div class="mid:flex hidden gap-2">
+            <button
+              class={arrowClass}
+              type="button"
+              data-carousel-prev={id}
+              aria-label={text('home.rail.previous')}
+              disabled
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.3"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m14 6-6 6 6 6" />
-                </svg>
-              </button>
-              <button
-                class={arrowClass}
-                type="button"
-                data-carousel-next={id}
-                aria-label={text('home.rail.next')}
+                <path d="m14 6-6 6 6 6" />
+              </svg>
+            </button>
+            <button
+              class={arrowClass}
+              type="button"
+              data-carousel-next={id}
+              aria-label={text('home.rail.next')}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.3"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m10 6 6 6-6 6" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="wide:[--slide-size:25%] max-mid:mt-4 mt-6 [--slide-size:78%] [--slide-spacing:16px] min-[900px]:[--slide-size:33.3333%] sm:[--slide-size:50%]"
-          data-carousel-rail={id}
-        >
-          <div class="rail-viewport mid:overflow-hidden">
-            <ul class="mid:-ms-(--slide-spacing) mid:flex mid:flex-row max-mid:flex-col max-mid:gap-3 max-mid:[&>li:nth-child(n+5):not(:last-child)]:hidden flex touch-pan-y touch-pinch-zoom">
-              {products.map((product) => (
-                <li class="mid:flex-[0_0_var(--slide-size)] mid:ps-[var(--slide-spacing)] flex min-w-0 flex-none">
-                  <ProductCard {product} headingLevel={3} />
-                </li>
-              ))}
-              {total !== undefined && (
-                <li class="mid:flex-[0_0_var(--slide-size)] mid:ps-[var(--slide-spacing)] flex min-w-0 flex-none">
-                  {/* A slide in the deck above `mid`; the reference's
-                      full-width outlined button below it. */}
-                  <a
-                    class="group/browse rounded-card mid:flex-col mid:gap-4.5 mid:bg-[#e7ebf8] mid:p-6 max-mid:min-h-14 max-mid:gap-2.5 max-mid:rounded-[14px] max-mid:bg-white flex w-full flex-row items-center justify-center gap-4.5 border border-[#d5dcf0] p-6 text-center text-[var(--color-ink)] no-underline hover:border-[#b9c3e4]"
-                    href={seeAllHref}
-                  >
-                    <span class="mid:size-14 mid:border mid:bg-white max-mid:order-2 max-mid:size-6 max-mid:border-0 grid size-14 place-items-center rounded-full border border-[#d5dcf0] text-[var(--color-ink)] group-hover/browse:border-[var(--color-accent)] group-hover/browse:bg-[var(--color-accent)] group-hover/browse:text-white">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 12h16" />
-                        <path d="m14 6 6 6-6 6" />
-                      </svg>
-                    </span>
-                    <span class="max-mid:order-1">
-                      <span class="max-mid:text-accent block text-[1.0625rem] leading-[1.35] font-[650]">
-                        {text('home.rail.browseTitle')}
-                      </span>
-                      <span class="max-mid:hidden mt-1 block text-[0.9375rem] text-[var(--color-ink-soft)]">
-                        {browseCount}
-                      </span>
-                    </span>
-                  </a>
-                </li>
-              )}
-            </ul>
+                <path d="m10 6 6 6-6 6" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
-    </section>
-  )
-}
+
+      <div
+        class="wide:[--slide-size:25%] max-mid:mt-4 mt-6 [--slide-size:78%] [--slide-spacing:16px] min-[900px]:[--slide-size:33.3333%] sm:[--slide-size:50%]"
+        data-carousel-rail={id}
+      >
+        <div class="rail-viewport mid:overflow-hidden">
+          <ul class="mid:-ms-(--slide-spacing) mid:flex mid:flex-row max-mid:flex-col max-mid:gap-3 max-mid:[&>li:nth-child(n+5):not(:last-child)]:hidden flex touch-pan-y touch-pinch-zoom">
+            {products.map((product) => (
+              <li class="mid:flex-[0_0_var(--slide-size)] mid:ps-[var(--slide-spacing)] flex min-w-0 flex-none">
+                <ProductCard {product} headingLevel={3} />
+              </li>
+            ))}
+            {total !== undefined && (
+              <li class="mid:flex-[0_0_var(--slide-size)] mid:ps-[var(--slide-spacing)] flex min-w-0 flex-none">
+                {/* A slide in the deck above `mid`; the reference's
+                      full-width outlined button below it. */}
+                <a
+                  class="group/browse rounded-card mid:flex-col mid:gap-4.5 mid:bg-[#e7ebf8] mid:p-6 max-mid:min-h-14 max-mid:gap-2.5 max-mid:rounded-[14px] max-mid:bg-white flex w-full flex-row items-center justify-center gap-4.5 border border-[#d5dcf0] p-6 text-center text-[var(--color-ink)] no-underline hover:border-[#b9c3e4]"
+                  href={seeAllHref}
+                >
+                  <span class="mid:size-14 mid:border mid:bg-white max-mid:order-2 max-mid:size-6 max-mid:border-0 grid size-14 place-items-center rounded-full border border-[#d5dcf0] text-[var(--color-ink)] group-hover/browse:border-[var(--color-accent)] group-hover/browse:bg-[var(--color-accent)] group-hover/browse:text-white">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 12h16" />
+                      <path d="m14 6 6 6-6 6" />
+                    </svg>
+                  </span>
+                  <span class="max-mid:order-1">
+                    <span class="max-mid:text-accent block text-[1.0625rem] leading-[1.35] font-[650]">
+                      {text('home.rail.browseTitle')}
+                    </span>
+                    <span class="max-mid:hidden mt-1 block text-[0.9375rem] text-[var(--color-ink-soft)]">
+                      {browseCount}
+                    </span>
+                  </span>
+                </a>
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
 
 <script>
   /*
