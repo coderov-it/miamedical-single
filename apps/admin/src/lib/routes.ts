@@ -44,8 +44,18 @@ export const routes = {
    */
   privacyPolicy: '/legal/privacy-policy',
 
-  /** Operator-editable platform settings. */
-  notificationSettings: '/settings/notifications',
+  /**
+   * The notification inbox — what the back office has to say to YOU. Reached
+   * from the sidebar and from the bell in the topbar.
+   *
+   * Not to be confused with `settings`, which is where alert-EMAIL recipients
+   * are chosen. Those two both used to be called "Notifications" and sat one
+   * above the other in the sidebar, which read as one feature with two pages.
+   */
+  notifications: '/notifications',
+
+  /** Operator-editable platform settings, one section per decision. */
+  settings: '/settings',
 
   /** Back-office accounts and what each of them may reach. */
   adminUsers: '/access',

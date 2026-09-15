@@ -3,6 +3,18 @@ import * as v from 'valibot';
 const EnvSchema = v.object({
   NODE_ENV: v.optional(v.picklist(['development', 'test', 'production']), 'development'),
   DATABASE_URL: v.pipe(v.string(), v.minLength(1, 'DATABASE_URL is required.')),
+  /**
+   * Print every generated SQL statement. A debugging switch, not a dev-vs-prod
+   * one — see the reasoning in `@mia/db`'s `client.ts`, which reads the same
+   * variable so scripts and the server cannot disagree.
+   *
+   * Declared here so a typo fails at boot naming the variable, rather than
+   * reading as `false` and leaving somebody wondering why their logs are quiet.
+   */
+  DRIZZLE_LOG: v.pipe(
+    v.optional(v.picklist(['true', 'false']), 'false'),
+    v.transform((value) => value === 'true'),
+  ),
   API_PORT: v.pipe(
     v.optional(v.string(), '8787'),
     v.transform(Number),

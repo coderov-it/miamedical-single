@@ -19,6 +19,7 @@ import WalletIcon from '@lucide/svelte/icons/wallet';
 import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
 import ShieldCheckIcon from '@lucide/svelte/icons/shield-check';
+import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 import type { Component } from 'svelte';
 
@@ -39,7 +40,13 @@ export interface NavSection {
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
     title: 'Overview',
-    items: [{ title: 'Dashboard', url: routes.dashboard, icon: GaugeIcon }],
+    items: [
+      { title: 'Dashboard', url: routes.dashboard, icon: GaugeIcon },
+      /* The inbox, not the alert-email setting — that moved into Settings. The
+         bell in the topbar reaches the same page; this is here because a section
+         of the back office you can open should be findable in the nav. */
+      { title: 'Notifications', url: routes.notifications, icon: BellIcon },
+    ],
   },
   {
     title: 'Catalog',
@@ -70,7 +77,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   {
     title: 'Settings',
     items: [
-      { title: 'Notifications', url: routes.notificationSettings, icon: BellIcon },
+      { title: 'General', url: routes.settings, icon: SlidersHorizontalIcon },
       { title: 'Admin Users', url: routes.adminUsers, icon: UsersIcon },
     ],
   },

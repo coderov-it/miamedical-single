@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live notifications for the customer area</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/forgedoc@1.1.0/dist/themes/default.css" data-forgedoc="css" data-forgedoc-theme="default">
+</head>
+<body>
+
+<doc-page doc-id="mia-live-notifications" accent="indigo" density="comfortable" toc="docked">
+
+<doc-header kicker="Plan · apps/server · apps/website · apps/admin">
+  Live notifications for the customer area
+  <p slot="lede">
+    An in-app feed at <code>/area-clienti/</code> and in the back office, pushed over SSE and
+    fanned out by <code>pg_notify</code> from inside the transaction that caused it. One new
+    table, no queue, no vendor, no polling.
+  </p>
+</doc-header>
+
+<doc-chips>
+  <doc-chip kind="confirmed">Revision 4 · fully specified</doc-chip>
+  <doc-chip kind="info">1 new table</doc-chip>
+  <doc-chip kind="info">~9 new server files</doc-chip>
+  <doc-chip kind="info">3 phases</doc-chip>
+  <doc-chip kind="info">10k concurrent at peak</doc-chip>
+  <doc-chip kind="confirmed">All questions answered</doc-chip>
+  <doc-chip kind="action">Phase one ready to start</doc-chip>
+</doc-chips>
+
+<doc-section title="Where this starts">
+  <p>
+    <code>apps/server/src/modules/notifications/</code> exists today and sends email, nothing else.
+    It is fire-and-forget on purpose: <code>sendQuietly</code> logs a failure and carries on, because
+    the order is already a recorded fact and a provider outage must not turn a delivery problem into
+    a lost order. That reasoning still holds. What it costs is stated in the module's own
+    documentation, twice:
+  </p>
+
+  <doc-quote cite="docs/code/notifications-and-mail.md — Known gaps">
+    No send log. Whether a given customer was actually emailed is only answerable from application
+    logs, not from the database. … New orders do not alert the operator.
+  </doc-quote>
+
+  <p>
+    So a customer who misses one email has no second place to look, and an operator watching the
+    admin panel has no signal at all. The customer area is already a Svelte island with a live
+    session and its own router — it is the obvious place for a feed. And a feed row, written in the
+    same transaction as the fact it reports, is also the send log the email path never had.
+  </p>
+
+  <p>
+    You asked for four events: an <strong>upcoming order</strong>, an <strong>order status
+    change</strong>, a <strong>rental about to end</strong>, and a <strong>rental renewed</strong>.
+    Two of those are transactions that already run somewhere in <code>apps/server</code>. Two are
+    facts about a <em>date</em> that no transaction will ever produce — they become true while the
+    process sits idle. That split decides the shape of everything below: the first pair needs a hook,
+    the second pair needs a clock.
+  </p>
+
+  <h3>Admin first, then the customer area</h3>
+
+  <p>
+    Decided, and it is a better call than the one this plan originally recommended. I argued for
+    building both at once so the shared seam was opened only once. That reasoning ignored the
+    stronger argument: the admin panel has roughly five users on a known network, and the customer
+    area has ten thousand at peak. Shipping the pipeline to the small audience first means every
+    unknown in it — the listener reconnecting, the sweep's dedupe key, a stream surviving a deploy —
+    is discovered against five operators who can be asked what they saw, not against a Black Friday
+    crowd.
+  </p>
+
+  <p>
+    It also front-loads the part with no capacity risk at all. Five concurrent admin streams need
+    none of the tuning discussed later; by the time the customer half is built, the pipeline itself
+    is already proven and the only open question is connection count.
+  </p>
+
+  <doc-steps>
+    <doc-step title="Phase one — the pipeline and the admin feed" status="active">
+      <p>
+        The table, <code>write.ts</code>, <code>hub.ts</code>, <code>repo.ts</code>,
+        <code>sweep.ts</code>, <code>admin-routes.ts</code>, and the feed in the SvelteKit admin.
+        Events: <code>order.placed</code>, <code>order.link_disputed</code>,
+        <code>contract.signed</code>, <code>contract.unsigned_blocking</code>, and the operational
+        copy of <code>rental.ending_soon</code>. Closes the gap the mail module documents.
+      </p>
+    </doc-step>
+    <doc-step title="Phase two — the customer feed" status="pending">
+      <p>
+        <code>routes.ts</code>, the storefront island's new screen, the preference for reminder
+        email, and the customer-facing events. Adds the connection-count work, sized by the capacity
+        section.
+      </p>
+    </doc-step>
+    <doc-step title="Phase three — the language on the account, and localized email" status="pending">
+      <p>
+        <code>customer_accounts.language</code>, captured at checkout and changeable by both the
+        customer and an operator, plus per-language copy for the customer templates. Mostly writing
+        and reviewing copy rather than code. Nothing in phases one or two waits on it — see the
+        language section.
+      </p>
+    </doc-step>
+  </doc-steps>
+
+  <doc-note kind="warn" title="One consequence of going admin-first">
+    <p>
+      The admin runs on a different session and a different cookie
+      (<code>modules/auth</code>, not <code>customer-auth</code>), so phase one proves the SSE route
+      against the back-office guard rather than <code>requireCustomer</code>. The two are the same
+      shape, but phase two is not a pure copy — it is the same route written against the other
+      session, and the permission-scoped fan-out that phase one needs has no customer equivalent at
+      all.
+    </p>
+  </doc-note>
+</doc-section>
+
+<doc-section title="The shape">
+  <p>
+    Everything that produces a notification produces it <em>inside</em> the transaction that produced
+    the fact. The row and the push are two more statements in a <code>BEGIN</code> that is already
+    open. Email stays where it is — after the commit, best-effort, unchanged.
+  </p>
+
+  <doc-figure type="mermaid" caption="The write path. The UPDATE, the notification row and the pg_notify are three statements in one transaction — all of them, or none. COMMIT releases the queued NOTIFY to the listener; only then is email attempted, and it may fail without costing anything.">
+flowchart LR
+  A["applyTransition"] --> TX
+  B["rentals.renew"] --> TX
+  C["sweep"] --> TX
+  subgraph TX["transaction"]
+    direction TB
+    U["UPDATE"] --> I["INSERT"] --> N["pg_notify"]
+  end
+  TX --> K["COMMIT"]
+  K -->|released| L["LISTEN"]
+  K -->|then| M["mail.ts"]
+  </doc-figure>
+
+  <p>
+    The two channels having different durability is the point, not an accident. The feed row cannot
+    exist unless the order actually moved, because it shares the order's transaction and its
+    rollback. The email can be lost without losing anything, because the row is now the record.
+  </p>
+
+  <doc-decision id="ADR-N1" title="SSE, not WebSocket" status="accepted">
+    <p>
+      Traffic is one-way, server to browser. SSE rides the cookie you already have:
+      <code>EventSource</code> with <code>withCredentials</code> reuses
+      <code>mia_customer_session</code> through the same CORS allowlist the RPC client uses, and
+      <code>hono/csrf</code> only guards non-GET, so nothing in <code>app.ts</code> changes.
+      WebSocket cannot set headers either — the usual reason people reach for it — but it leaves the
+      upgrade, the reconnect loop and the heartbeat for us to write. The browser ships all three for
+      SSE.
+    </p>
+  </doc-decision>
+
+  <doc-decision id="ADR-N2" title="pg_notify inside the transaction, not an EventEmitter" status="accepted">
+    <p>
+      Postgres holds a <code>NOTIFY</code> until the transaction commits and discards it on rollback.
+      An in-process emitter has to be called after commit <em>by hand, at every call site</em>, and
+      one call placed before <code>await tx</code> resolves pushes a status change that was rolled
+      back. The database enforces for free what a convention would have to be trusted with. It also
+      turns out to be what makes clustering free — see the capacity section.
+    </p>
+  </doc-decision>
+
+  <doc-decision id="ADR-N3" title="The table is the truth; the stream is a hint" status="accepted">
+    <p>
+      The client's state comes from <code>GET /api/customer/notifications</code>. The stream only
+      says <em>something changed, look again</em>, carrying the new row as a convenience. Nothing is
+      ever reconstructed from the sequence of frames, which is what makes a dropped connection a
+      non-event rather than a correctness problem.
+    </p>
+  </doc-decision>
+
+  <doc-decision id="ADR-N4" title="A type and a payload, never a sentence" status="accepted">
+    <p>
+      A row stores <code>type: 'order.status_changed'</code> and
+      <code>data: { orderNumber, from, to }</code>. It does not store
+      <em>“Il tuo ordine è stato spedito”</em>. The storefront runs in four languages and a stored
+      Italian string cannot be one of the other three — nor can a copy fix reach a row written last
+      month. This is also the repo's own rule: the keys are wire format and stay English, the words
+      are content and live in <code>@mia/i18n</code>.
+    </p>
+  </doc-decision>
+
+  <doc-decision id="ADR-N5" title="One sweep and a unique index, not a scheduler" status="accepted">
+    <p>
+      “The rental ends in three days” comes from an hourly sweep, the same shape as
+      <code>media/sweep.ts</code>. Idempotency is a <code>dedupe_key</code> with a unique index and
+      <code>ON CONFLICT DO NOTHING</code>, so a restart, an overlapping tick and a second API process
+      all converge on the same single row. No watermark, no advisory lock, no decision about which
+      box runs the cron.
+    </p>
+  </doc-decision>
+</doc-section>
+
+<doc-section title="Two things I checked, because the plan rests on them">
+  <p>
+    You raised both of these, and they are the right two to have raised — if either had gone the
+    other way the design above would be wrong rather than merely arguable.
+  </p>
+
+  <h3>Postgres does not lock the database for a transaction</h3>
+
+  <p>
+    It uses MVCC. A writer takes a row-level lock on the rows it writes and a
+    <code>RowExclusiveLock</code> on the table — and that table lock conflicts only with
+    <code>ALTER TABLE</code>, <code>VACUUM FULL</code> and non-concurrent <code>CREATE INDEX</code>,
+    never with another write. Four concurrent transactions:
+  </p>
+
+  <doc-code lang="text" title="Two order transitions and a read, running at the same time">
+t=0ms   TX-A: BEGIN
+t=1ms   TX-A: UPDATE orders SET status='paid' WHERE id=A
+          → RowExclusiveLock on table orders   ← does NOT conflict with other DML
+          → exclusive lock on row A only
+
+t=2ms   TX-B: BEGIN
+t=3ms   TX-B: UPDATE orders SET status='paid' WHERE id=B
+          → same table lock, different row     → proceeds, zero wait
+
+t=4ms   TX-C: SELECT * FROM orders WHERE id=A
+          → MVCC: reads the last committed version
+          → proceeds, zero wait, sees status='pending'
+
+t=5ms   TX-D: UPDATE orders SET status='paid' WHERE id=A
+          → row A is taken                     → waits for TX-A   ← the only blocker
+
+t=6ms   TX-A: COMMIT                           → TX-D wakes, re-evaluates
+  </doc-code>
+
+  <p>
+    Writers block writers on the <em>same row</em>. They never block readers, and readers never block
+    writers. What this plan adds to that window is one <code>INSERT</code> into a table nothing
+    contends on — new rows cannot conflict — and <code>pg_notify</code>, which appends to a
+    backend-local list. Together, well under a millisecond on a transaction already doing an
+    <code>UPDATE</code> and an <code>INSERT</code>.
+  </p>
+
+  <doc-note kind="info" title="There is one genuine cluster-wide lock, and it is not a problem here">
+    <p>
+      At <code>COMMIT</code>, a backend carrying a pending <code>NOTIFY</code> briefly takes
+      <code>NotifyQueueLock</code> to write into the shared notify queue. It does serialize those
+      commits. It is held for microseconds and starts being measurable somewhere around
+      5,000–10,000 NOTIFY per second. The numbers in the next section put us three orders of
+      magnitude below that, which is why this is worth knowing about and not worth designing around.
+    </p>
+  </doc-note>
+
+  <h3>The vendor question</h3>
+
+  <p>
+    <a href="https://honker.dev/docs/">honker.dev</a> is a SQLite extension. It exists to give SQLite
+    the <code>NOTIFY</code>/<code>LISTEN</code> semantics that Postgres has natively, so that a
+    SQLite-backed app can keep its queue in the same file as its data. We are on Postgres. Adopting
+    it would mean moving the database to SQLite in order to get back something we already have.
+  </p>
+
+  <p>
+    The real category you were reaching for is notification-infrastructure products — Novu, Knock,
+    Courier. They earn their price on multi-channel orchestration: SMS and push and in-app and email
+    against a per-user preference matrix, digests and batching, templates edited by people who do not
+    deploy, deliverability analytics. For four event types on one product, that is more integration
+    surface — a network hop inside the order path or a webhook to authenticate, plus a second source
+    of truth for what we told a customer — than the entire feature proposed here.
+  </p>
+
+  <p>
+    What Postgres genuinely does not give us: retries, a dead-letter queue, and durable per-consumer
+    offsets. The design sidesteps all three by making the table the truth and the push a hint. The
+    day that stops being enough — “push it even though the API was down for an hour” — the answer is
+    an outbox worker reading the same table, not a vendor.
+  </p>
+</doc-section>
+
+<doc-section title="Capacity, and what actually breaks first">
+  <p>
+    Two numbers matter and they are independent: how many notifications per second the database
+    carries, and how many idle connections the box holds open. The first is not close to a limit. The
+    second is a tuning exercise, not an architecture one.
+  </p>
+
+  <p>
+    Taking roughly eight notifications across an order's life — placed, contract sent, contract
+    signed, paid, fulfilled, and three rental reminders:
+  </p>
+
+  <doc-stats>
+    <doc-stat label="NOTIFY/sec at 10k orders per month" value="~0.6" tone="good" diff="peak"></doc-stat>
+    <doc-stat label="NOTIFY/sec at 10k orders per day" value="~20" tone="good" diff="peak"></doc-stat>
+    <doc-stat label="Where NotifyQueueLock bites" value="5,000/s" tone="neutral"></doc-stat>
+    <doc-stat label="Table growth" value="~1M rows/yr" tone="neutral" diff="a few hundred MB"></doc-stat>
+  </doc-stats>
+
+  <p>
+    Connections are the interesting half. A single VPS holding ten thousand idle SSE streams is
+    ordinary — what I flagged earlier was an nginx <em>default</em>, not a hardware ceiling. The
+    budget per stream, end to end:
+  </p>
+
+  <doc-code lang="text" title="Per idle SSE stream, and at 10,000 of them">
+  kernel socket, client side     ~10 KB   →      100 MB
+  kernel socket, nginx↔node      ~10 KB   →      100 MB
+  nginx connection state          ~2 KB   →       20 MB
+  Node socket + HTTP response    ~20 KB   →      200 MB
+  Hono stream + hub closure      ~10 KB   →      100 MB
+                                ───────        ───────
+                                 ~52 KB          ~520 MB
+
+  CPU: 10,000 × one 20-byte write per 25 s = 400 writes/sec     ← noise
+  file descriptors: 2 per stream on nginx, 1 on node = 30,000
+  Postgres connections used by SSE: 0    (the listener is 1, process-wide)
+  </doc-code>
+
+  <p>
+    The Node line is the one I would measure rather than trust; the rest are well-established. Note
+    the last row — the resource people expect to exhaust is the one SSE never touches. A stream holds
+    a socket, not a database connection.
+  </p>
+
+  <h3>Scaling out is free, and that is a consequence of ADR-N2</h3>
+
+  <p>
+    Run the API under pm2 cluster mode and every worker independently <code>LISTEN</code>s. Postgres
+    delivers each notification to all of them; each fans out to its own subscriber map. Sessions live
+    in the database, so no sticky routing is needed, and the sweep running three times is already
+    safe because of the dedupe key.
+  </p>
+
+  <doc-figure type="mermaid" caption="pm2 -i 3, roughly 3,300 streams each. Every worker holds its own LISTEN connection and its own hub map; Postgres delivers each notification to all of them. No router, no Redis, no cross-process bus — an in-process emitter would have needed all three the moment a second worker appeared.">
+flowchart LR
+  PG[("NOTIFY")] --> W1["worker1"]
+  PG --> W2["worker2"]
+  PG --> W3["worker3"]
+  </doc-figure>
+
+  <doc-note kind="warn" title="These defaults stall silently, with nothing in any log naming the cause">
+    <p>
+      Each proxied stream is two connections, client-side and upstream. nginx
+      <code>worker_connections</code> defaults to 512–768 per worker, so you stop accepting somewhere
+      around a thousand streams with no error that points at nginx. A 1024 soft <code>ulimit</code>
+      on the Node process gives out at roughly the same place. Both are in the checklist near the end
+      of this plan.
+    </p>
+  </doc-note>
+
+  <h3>The target is 10,000 concurrent users, and that is not 10,000 per second</h3>
+
+  <p>
+    Settled: a holiday peak should hold ten thousand people with the site open at once. The full
+    tuning list applies, cluster mode included. But the second half of that target — “so it should
+    process 10k per second” — is a different quantity, and treating the two as the same number is
+    what would make this plan look impossible.
+  </p>
+
+  <p>
+    Concurrent users and notifications per second are decoupled here, because a notification is
+    produced by an <em>order</em>, not by somebody looking at a page. Ten thousand people browsing
+    the catalogue produce zero notifications between them. What those ten thousand connections cost
+    is one heartbeat each per 25 seconds:
+  </p>
+
+  <doc-code lang="text" title="A holiday peak, priced out">
+  10,000 concurrent visitors
+    → SSE heartbeat        10,000 ÷ 25 s          =    400 writes/sec   ← trivial
+    → catalogue browsing   Astro SSR's problem, not this pipeline's
+
+  Say 3% of them order within the same minute — a very good day:
+    → 300 orders/min                              =      5 orders/sec
+    → ~2 notifications each at placement time     =     10 NOTIFY/sec
+
+  NotifyQueueLock starts to matter at                 5,000 NOTIFY/sec
+  So: about 0.2% of the ceiling, at the busiest minute of the year.
+  </doc-code>
+
+  <p>
+    For 10,000 notifications per second you would need roughly 1,250 orders per second sustained —
+    about 108 million orders a day. Amazon's worldwide Prime Day peak is in the region of 4,000–5,000
+    orders per second. That number is not a forecast of this business; it is the concurrent-user
+    figure carried across into the wrong unit.
+  </p>
+
+  <doc-note kind="info" title="Where this design would genuinely stop working">
+    <p>
+      Sustained throughput above roughly 5,000 NOTIFY/sec — around 600 orders per second. At that
+      point <code>pg_notify</code> stops being the right fan-out and the answer is Redis pub/sub or
+      NATS carrying the envelope, with the outbox table unchanged behind it. It is a swap of
+      <code>hub.ts</code>, not a redesign, because everything else already treats the table as the
+      truth. Worth knowing the threshold exists; you are three orders of magnitude below it.
+    </p>
+  </doc-note>
+
+  <p>
+    So the work the 10k answer buys is entirely on the connection side — cluster mode, the file
+    descriptor and sysctl list, hidden-tab disconnect and the shared heartbeat timer. None of it is
+    database work.
+  </p>
+
+  <p>
+    Two changes cut the connection count before any tuning, and I would do both regardless. A stream
+    whose tab has been hidden for five minutes is holding 52 KB to do nothing, so it should close on
+    <code>visibilitychange</code> and reopen on focus at the cost of one snapshot fetch — in any real
+    deployment most “concurrent” connections are abandoned tabs, so this alone is likely a three- to
+    five-fold reduction. And the heartbeat belongs on one shared interval walking the hub map, not on
+    <code>stream.sleep()</code> inside each connection's loop, which would mean ten thousand pending
+    timers and ten thousand pending promises to save a single <code>setInterval</code>.
+  </p>
+</doc-section>
+
+<doc-section title="The events">
+  <p>
+    Your four, plus seven the existing flows make nearly free. Each of the additions is a place where
+    somebody is currently waiting on an email that may never have arrived.
+  </p>
+
+  <doc-table size="sm">
+    <table>
+      <thead>
+        <tr><th>type</th><th>Raised by</th><th>For</th><th>Channels</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>order.status_changed</code></td><td><code>orders/repo.applyTransition</code></td><td>customer</td><td>feed</td></tr>
+        <tr><td><code>order.upcoming</code></td><td>sweep — rental start in ≤ 2 days</td><td>customer</td><td>feed + mail</td></tr>
+        <tr><td><code>rental.ending_soon</code></td><td>sweep — at T−7, T−3, T−1</td><td>customer</td><td>feed + mail</td></tr>
+        <tr><td><code>rental.renewed</code></td><td><code>rentals/service.renew</code></td><td>customer</td><td>feed + mail</td></tr>
+        <tr><td><code>contract.awaiting_signature</code></td><td><code>contracts/service.send</code></td><td>customer</td><td>feed + mail</td></tr>
+        <tr><td><code>contract.signed</code></td><td><code>contracts/service.sign</code></td><td>customer + admin</td><td>feed</td></tr>
+        <tr><td><code>order.link_disputed</code></td><td><code>order-disputes/service.open</code></td><td>admin</td><td>feed + mail</td></tr>
+        <tr><td><code>order.placed</code></td><td><code>orders/repo.insertOrder</code></td><td>admin</td><td>feed</td></tr>
+        <tr><td><code>rental.ending_soon</code></td><td>sweep — operational copy, T−3</td><td>admin</td><td>feed</td></tr>
+        <tr><td><code>contract.unsigned_blocking</code></td><td>sweep — paid gate stalled &gt; 48 h</td><td>admin</td><td>feed</td></tr>
+      </tbody>
+    </table>
+  </doc-table>
+
+  <p>
+    <code>contract.awaiting_signature</code> is the addition I would argue hardest for. The status
+    machine refuses <code>pending → paid</code> on a rental order until its newest contract is
+    signed, so an unread contract email is not a missed notice — it is a <em>stalled order</em> that
+    nobody is looking at. <code>contract.unsigned_blocking</code> is the operator's half of the same
+    stall. <code>order.placed</code> closes the gap the mail module names outright, and the
+    recipients setting it would have used is already in place and already generic.
+  </p>
+
+  <h3>Payment status does not notify anybody, because nothing automatic moves it</h3>
+
+  <p>
+    An earlier draft of this plan asked which payment transitions should reach the customer. That
+    question had a bad premise and has been dropped. An order does carry two independent statuses —
+    <code>status</code> and <code>paymentStatus</code> — and they do move independently, which is
+    correct: a bank transfer clearing days after the goods went out is a real sequence. But
+    <code>paymentStatus</code> is only ever moved by <code>service.transition</code>, called from the
+    admin routes by a person. <code>modules/payments</code> is reporting and CSV export; there is no
+    gateway and no webhook anywhere in the repo.
+  </p>
+
+  <p>
+    So “the payment failed” is not an event the system discovers — it is an operator typing what they
+    already know, with the customer usually on the phone at the time. A notification saying it back
+    to them adds nothing. <code>order.payment_changed</code> is removed from the catalogue above.
+    When Nexi XPay lands and a webhook starts moving that column on its own, the question becomes
+    real and worth reopening — the row shape needs no change to accommodate it.
+  </p>
+
+  <h3>Rental reminders: feed and email, with the email switchable off</h3>
+
+  <p>
+    Decided. They are the only notifications in the set with a deadline attached, which is what
+    argues for email; they are also the only ones that recur on a schedule, which is what makes them
+    the ones people ask to switch off. One new preference on the account covers it.
+  </p>
+
+  <p>
+    Transactional mail is not part of that preference and is not listed in the UI at all — order
+    confirmations, activation links and password resets stay unconditional. The preference governs
+    <code>rental.ending_soon</code> and <code>order.upcoming</code>, which are the two the customer
+    could reasonably call a nuisance.
+  </p>
+</doc-section>
+
+<doc-section title="One table, two audiences">
+  <p>
+    Customer and admin notifications differ in who they point at and in nothing else. Two tables
+    would duplicate the hub, the route shape, the sweep and the read-state column in order to express
+    that one difference.
+  </p>
+
+  <doc-code lang="sql" title="packages/db/src/schema/notifications.ts">
+CREATE TYPE notification_audience AS ENUM ('customer', 'admin');
+
+CREATE TABLE notifications (
+  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  audience             notification_audience NOT NULL,
+  customer_account_id  uuid REFERENCES customer_accounts(id) ON DELETE CASCADE,
+  admin_user_id        uuid REFERENCES admin_users(id)       ON DELETE CASCADE,
+  type                 text NOT NULL,          -- 'order.status_changed'
+  data                 jsonb NOT NULL,         -- typed union, English keys
+  order_id             uuid REFERENCES orders(id) ON DELETE CASCADE,
+  dedupe_key           text,                   -- set by the sweep, never by an event
+  read_at              timestamptz,
+  created_at           timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT notifications_recipient_check CHECK (
+    (audience = 'customer' AND customer_account_id IS NOT NULL AND admin_user_id IS NULL)
+    OR
+    (audience = 'admin'    AND admin_user_id IS NOT NULL AND customer_account_id IS NULL)
+  )
+);
+
+-- Named explicitly. Byte counts against Postgres's 63-byte identifier limit:
+CREATE INDEX notifications_customer_feed_idx  ON notifications (customer_account_id, created_at DESC);  -- 31
+CREATE INDEX notifications_admin_feed_idx     ON notifications (admin_user_id, created_at DESC);        -- 28
+CREATE UNIQUE INDEX notifications_dedupe_key  ON notifications (dedupe_key) WHERE dedupe_key IS NOT NULL; -- 24
+  </doc-code>
+
+  <p>
+    The <code>CHECK</code> follows <code>orders_customer_link_check</code>: two columns that must
+    agree are made unable to disagree in the database rather than in a service. Drizzle's derived
+    foreign-key names here come to 57 and 45 bytes, so only the indexes strictly need naming — they
+    are named anyway, because a name that fits by luck is a name that breaks on the next column
+    rename.
+  </p>
+
+  <p>
+    An admin notification goes to every admin holding the relevant permission code from
+    <code>@mia/permissions</code>, as one row each. That is <em>N</em> inserts where <em>N</em> is the
+    size of the operations team — currently a handful. A shared row plus a
+    <code>notification_reads</code> join table would buy nothing at that size and would leave two
+    mechanisms answering “have I read this”. It is the one decision here that is clearly wrong at
+    fifty thousand recipients and clearly right at five.
+  </p>
+
+  <h3>What <code>emit()</code> looks like</h3>
+
+  <doc-code lang="ts" title="modules/notifications/write.ts">
+export async function emit(tx: Database, n: NotificationInput) {
+  const [row] = await tx.insert(notifications)
+    .values(n)
+    // The sweep passes a dedupeKey; event-driven callers pass none.
+    .onConflictDoNothing({ target: notifications.dedupeKey })
+    .returning({ id: notifications.id });
+
+  // Nothing was inserted — a repeated sweep tick. Say nothing.
+  if (!row) return;
+
+  const envelope = JSON.stringify({
+    id: row.id,
+    type: n.type,
+    audience: n.audience,
+    recipientId: n.customerAccountId ?? n.adminUserId,
+  });
+
+  // Queued by Postgres, delivered to listeners at COMMIT — or dropped with
+  // everything else if this transaction rolls back.
+  await tx.execute(sql`select pg_notify('notif', ${envelope})`);
+}
+  </doc-code>
+
+  <doc-note kind="tip" title="The envelope carries routing, not content">
+    <p>
+      <code>NOTIFY</code> payloads are capped at 8000 bytes and the error is raised
+      <em>at commit</em> — a fat payload would turn a notification into a failed order transition.
+      Four short fields can never approach the cap. The hub reads the row itself, and only when
+      somebody is listening for it.
+    </p>
+  </doc-note>
+
+  <p>
+    The one existing call site changes by a single line.
+    <code>applyTransition</code> already opens a transaction to keep the status column and its
+    <code>order_status_events</code> row from coming apart; the notification joins that same
+    invariant.
+  </p>
+
+  <doc-diff lang="ts" filename="apps/server/src/modules/orders/repo.ts">
+ export async function applyTransition(db: Database, event: StatusEventData) {
+   await db.transaction(async (tx) => {
+     await tx.update(orders).set({ [event.field]: event.toValue })
+       .where(eq(orders.id, event.orderId));
+     await tx.insert(orderStatusEvents).values(event);
++    await notifications.emitOrderTransition(tx, event);
+   });
+ }
+  </doc-diff>
+</doc-section>
+
+<doc-section title="The push path, and what happens when it breaks">
+  <p>
+    One process-wide listener, one in-memory map from recipient to open streams, and a row read that
+    only happens when that map has an entry for the recipient.
+  </p>
+
+  <doc-figure type="mermaid" caption="The push path. A ~140-byte envelope reaches one dedicated LISTEN connection, which hands it to the hub's recipient-to-streams map. The hub reads the row only if that recipient has a stream open, then writes one SSE frame to each of their tabs — so a customer with nothing open costs nothing, not even the read.">
+flowchart LR
+  K["COMMIT"] -->|envelope| L["LISTEN"]
+  L -->|onNotify| H["hub.ts"]
+  H -->|watched| DB[("notifications")]
+  H --> T1["tab1"]
+  H --> T2["tab2"]
+  </doc-figure>
+
+  <p>
+    <code>LISTEN</code> has no backlog. A payload sent while no process is listening is simply gone.
+    That is tolerable only because the row is already committed and the next snapshot fetch returns
+    it — which is why the snapshot is mandatory rather than an optimisation, and why the stream is
+    described everywhere in this plan as a hint.
+  </p>
+
+  <doc-figure type="mermaid" caption="A gap in the listener, and the recovery. postgres.js calls onlisten on the first LISTEN and on every reconnect — and a reconnect is exactly when a gap may have opened.">
+sequenceDiagram
+  participant B as Browser
+  participant H as Hub / LISTEN
+  participant D as notifications
+  B->>D: GET /notifications (snapshot)
+  D->>H: NOTIFY one
+  H->>B: event notification
+  Note over H: LISTEN connection drops
+  D--xH: NOTIFY two, lost
+  D--xH: NOTIFY three, lost
+  Note over H: postgres.js reconnects, onlisten fires
+  H->>B: event resync
+  B->>D: GET /notifications
+  D->>B: one, two, three
+  Note over B: feed correct
+  </doc-figure>
+
+  <p>
+    The obvious alternative is a monotonic <code>bigserial</code> and
+    <code>WHERE seq &gt; :lastSeen</code> on reconnect, driven by SSE's own
+    <code>Last-Event-ID</code>. It has a hole: a sequence number is taken when the
+    <code>INSERT</code> runs, but the row becomes visible at <code>COMMIT</code>, and commits do not
+    finish in sequence order. A transaction holding 41 can commit after one holding 42, and a client
+    that has already advanced past 42 never sees 41 again. Re-reading the newest page has no such
+    hole and costs one indexed query per reconnect per customer.
+  </p>
+
+  <doc-code lang="ts" title="modules/notifications/hub.ts">
+const streams = new Map&lt;string, Set&lt;SSEStreamingApi&gt;&gt;();
+
+export function start(sql: Sql) {
+  return sql.listen('notif',
+    async (payload) =&gt; {
+      const env = parseEnvelope(payload);
+      const open = streams.get(env.recipientId);
+      if (!open?.size) return;              // nobody watching: no query, no work
+      const row = await repo.findById(db, env.id);
+      for (const s of open) await push(s, 'notification', row);
+    },
+    () =&gt; broadcastAll('resync', {}),       // first LISTEN and every reconnect
+  );
+}
+  </doc-code>
+
+  <p>
+    The route itself is behind <code>requireCustomer</code> and sets two headers. The heartbeat is
+    doing two jobs at once: it keeps nginx's 60-second <code>proxy_read_timeout</code> and
+    Cloudflare's roughly 100-second idle timeout from closing an idle stream, and it is the only way
+    the server ever learns that a closed tab is gone — with no traffic, a dead socket looks exactly
+    like a quiet one.
+  </p>
+
+  <doc-note kind="success" title="No nginx change is needed to ship this">
+    <p>
+      <code>docs/nginx/miamedical_prod.conf</code> leaves <code>proxy_buffering</code> on and
+      <code>proxy_read_timeout</code> at the default. <code>X-Accel-Buffering: no</code> settles the
+      first per response; the 25-second heartbeat settles the second. Both are properties of the
+      response, so dev and prod behave identically without touching a vhost. The tuning in the
+      checklist below is about <em>scale</em>, not about making it work.
+    </p>
+  </doc-note>
+</doc-section>
+
+<doc-section title="The sweep">
+  <p>
+    “Three days left” is not an event. Nothing writes it and nothing commits it — it becomes true
+    while the process is idle. It needs a clock, and a clock needs a way to not repeat itself.
+  </p>
+
+  <doc-code lang="ts" title="modules/notifications/sweep.ts — the same shape as media/sweep.ts">
+const THRESHOLDS = [7, 3, 1] as const;   // days before rental_end_date
+
+async function run(db: Database) {
+  for (const days of THRESHOLDS) {
+    const due = await repo.rentalsEndingIn(db, days);   // Europe/Rome calendar days
+    for (const r of due) {
+      await db.transaction((tx) =&gt; emit(tx, {
+        audience: 'customer',
+        customerAccountId: r.customerAccountId,
+        type: 'rental.ending_soon',
+        orderId: r.orderId,
+        data: { orderNumber: r.orderNumber, endsOn: r.endsOn, daysLeft: days },
+        dedupeKey: `rental.ending_soon:${r.orderId}:${days}d`,
+      }));
+    }
+  }
+}
+
+// Hourly, unref'd, and run once at boot. All three are safe because the unique
+// index on dedupe_key makes a repeat a no-op rather than a duplicate.
+setInterval(() =&gt; void run(db), 3_600_000).unref();
+  </doc-code>
+
+  <doc-list marker="check" kind="positive" title="What the dedupe key buys">
+    <li>A restart does not re-notify — the key exists, the insert does nothing, and <code>emit</code> returns before it reaches <code>pg_notify</code>.</li>
+    <li>Two or three API workers are safe. They race on the unique index and all but one lose. No advisory lock, no leader election.</li>
+    <li>Bucketing is by calendar day in Europe/Rome, not by 72 hours — a customer told “3 days left” on a rental ending Friday means Tuesday, whatever time the tick fired.</li>
+  </doc-list>
+
+  <p>
+    An hourly tick is deliberately coarse. These notices are measured in days; scanning every minute
+    would run the same query sixty times over to move the delivery moment around inside the hour.
+  </p>
+</doc-section>
+
+<doc-section title="What the customer sees">
+  <p>
+    A fourth destination in <code>AccountNav</code>, a bell with a count in <code>AccountShell</code>,
+    and one new route declaration. The island already owns its routing, its session and its screen
+    switch, so this adds a screen rather than an app.
+  </p>
+
+  <doc-tree root="apps/website/src/">
+    <li>pages/area-clienti/
+      <ul><li>notifiche/index.astro — ~26 lines. Italian filename because it <em>is</em> the URL.</li></ul>
+    </li>
+    <li>components/account/
+      <ul>
+        <li>NotificationsScreen.svelte — ~120. The list, mark-read, empty state.</li>
+        <li>NotificationBell.svelte — ~80. The live count in the shell.</li>
+        <li>NotificationItem.svelte — ~70. One row, rendered from type + data.</li>
+        <li>AccountNav.svelte — one more destination.</li>
+        <li>titles.ts — one more screen's three names.</li>
+      </ul>
+    </li>
+    <li>lib/
+      <ul>
+        <li>notifications.svelte.ts — ~160. Snapshot, EventSource, resync.</li>
+        <li>account-routes.ts — one more path ⇄ screen pair, in four languages.</li>
+        <li>routes.ts — the new public path.</li>
+      </ul>
+    </li>
+  </doc-tree>
+
+  <p>
+    <code>notifications.svelte.ts</code> holds the feed and the unread count as <code>$state</code>.
+    <code>ready</code> and <code>resync</code> both trigger the same snapshot fetch; a
+    <code>notification</code> frame prepends the row it carries. Sign-out closes the stream, hung off
+    the 401 funnel already in <code>account-session.svelte.ts</code>.
+  </p>
+
+  <doc-note kind="warn" title="Two files must change together and nothing checks it">
+    <p>
+      <code>apps/website/src/lib/routes.ts</code> is the source of truth for public URLs, and
+      <code>apps/server/src/modules/notifications/links.ts</code> duplicates the paths because the
+      server cannot import from the website app. Adding <code>/area-clienti/notifiche/</code> means
+      both files, plus the four-locale case in <code>account-routes.test.ts</code>. This is a known
+      and accepted duplication, documented in <code>customer-accounts.md</code>, not something this
+      plan introduces.
+    </p>
+  </doc-note>
+</doc-section>
+
+<doc-section title="Server file plan">
+  <p>
+    <code>modules/notifications/</code> stops meaning “email” and starts meaning “a thing somebody is
+    told”. Today's <code>service.ts</code> becomes <code>mail.ts</code> unchanged — same two failure
+    policies, same callers, same reasoning.
+  </p>
+
+  <doc-tree root="apps/server/src/modules/notifications/">
+    <li>links.ts — 48 lines today, unchanged but for one path.</li>
+    <li>mail.ts — 207. Today's service.ts, renamed.</li>
+    <li>types.ts — ~90. The event union and the channel policy.</li>
+    <li>write.ts — ~80. emit(): the row and the NOTIFY, in one transaction.</li>
+    <li>hub.ts — ~110. LISTEN, the subscriber map, resync.</li>
+    <li>repo.ts — ~130. Feed page, unread count, mark read.</li>
+    <li>routes.ts — ~140. Customer feed, stream, mark-read.</li>
+    <li>admin-routes.ts — ~90. The same three on the admin session.</li>
+    <li>sweep.ts — ~150. The time-derived events.</li>
+  </doc-tree>
+
+  <doc-list marker="arrow" title="Touched elsewhere">
+    <li><code>packages/db/src/schema/notifications.ts</code> — ~90 lines, new.</li>
+    <li><code>packages/validators/src/notification.ts</code> — ~120 lines, the typed payload union shared by all three apps.</li>
+    <li><code>packages/db/src/client.ts</code> — expose the underlying <code>postgres</code> client; <code>listen()</code> opens its own connection and Drizzle does not wrap it.</li>
+    <li><code>apps/server/src/index.ts</code> — <code>hub.start()</code> and <code>startNotificationSweep()</code>, beside the existing staging sweep.</li>
+    <li><code>apps/server/src/app.ts</code> — two routes in the typed <code>.route()</code> chain.</li>
+    <li><code>docs/code/notifications-live.md</code> — the pipeline, kept beside the code.</li>
+  </doc-list>
+
+  <p>
+    Nine files where one would do, because the file that would do is nine hundred lines. Every one
+    sits inside the repo's 300–350 line target, and the two that come closest —
+    <code>sweep.ts</code> and <code>routes.ts</code> — are the two most likely to grow as events are
+    added, which is the argument for splitting them now rather than after.
+  </p>
+</doc-section>
+
+<doc-section title="Before it ships">
+  <p>
+    Configuration only, no code. You asked to note these for later — the 10,000-concurrent answer
+    moves most of them from later to phase two, so they are split by phase below rather than left as
+    a single list to triage.
+  </p>
+
+  <p>
+    Phase one is the admin feed, five concurrent streams, and needs none of the scale work. These
+    four are still worth doing in phase one because the first two fail silently and the last two are
+    the plan's own premises:
+  </p>
+
+  <doc-checklist>
+    <li>nginx: <code>worker_connections 16384;</code> and <code>worker_rlimit_nofile 65535;</code> — cheap now, and the failure mode later is a stall with nothing in any log naming the cause</li>
+    <li>pm2 or systemd: <code>LimitNOFILE=65535</code> on the API process</li>
+    <li>Place one order with <code>MAIL_TRANSPORT=console</code> and confirm the feed row and the log line both appear</li>
+    <li>Confirm a rolled-back transition writes no notification — the whole premise of ADR-N2, and the cheapest possible test of it</li>
+  </doc-checklist>
+
+  <p>
+    Phase two opens the feed to ten thousand concurrent customers. These are required, not optional,
+    and none of them is a code change:
+  </p>
+
+  <doc-checklist>
+    <li><code>net.ipv4.ip_local_port_range = 10000 65535</code> — nginx→Node upstream connections each hold a loopback ephemeral port and the default range gives about 28k</li>
+    <li><code>net.core.somaxconn = 4096</code></li>
+    <li>pm2 cluster mode, three workers, one core left for Postgres</li>
+    <li>Load-test with 10k idle streams before the first holiday peak, not during it — the failure modes here are all about exhaustion, and none of them appear at 100 connections</li>
+  </doc-checklist>
+
+  <p>
+    A unix-domain-socket upstream would remove the ephemeral-port limit outright and is the cleaner
+    fix — worth checking whether <code>@hono/node-server</code>'s listen options accept a socket path
+    before reaching for the sysctl.
+  </p>
+</doc-section>
+
+<doc-section title="Language, and who decides it">
+  <p>
+    You asked whether notifications can be multilingual. They already are, and it costs nothing —
+    which is the whole payoff of ADR-N4. Because a row stores
+    <code>type: 'rental.ending_soon'</code> and <code>{ orderNumber, endsOn, daysLeft }</code>
+    rather than a finished sentence, the language is chosen at <em>render</em> time, in the browser,
+    from the viewer's locale. The same row renders in Italian for one reader and German for another.
+  </p>
+
+  <p>
+    So the customer feed is multilingual in all four storefront languages from the first day, with no
+    per-language column, no duplicated rows, and no migration when a fifth language is added. A copy
+    fix reaches every row ever written, including ones from last year. Had the plan stored the
+    sentence, none of that would be true — which is why this is worth the indirection.
+  </p>
+
+  <doc-code lang="ts" title="One row, four renderings">
+// the row, written once
+{ type: 'rental.ending_soon', data: { orderNumber: 'MIA-2026-001000', daysLeft: 3 } }
+
+// @mia/i18n — the words, added per locale, never stored on the row
+'notification.rental.ending_soon.title': {
+  it: 'Il tuo noleggio sta per scadere',
+  en: 'Your rental is ending soon',
+  de: 'Ihre Miete endet bald',
+  fr: 'Votre location se termine bientôt',
+}
+  </doc-code>
+
+  <h3>Every language, both audiences, following each person's own setting</h3>
+
+  <p>
+    Decided: the static parts of a notification — “Order update”, “A customer placed an order” —
+    are translated into every registered language, and switching language switches the text, for an
+    operator exactly as for a customer. No language is singled out, including the admin's.
+  </p>
+
+  <p>
+    The admin half turns out to cost almost nothing, because the machinery is already built and is
+    waiting for exactly this. <code>apps/admin/src/lib/ui-lang.svelte.ts</code> is a global interface
+    language, chosen in the topbar and persisted; its own comment describes it as “the hook UI string
+    translation will hang off once the chrome is translated”. This feed is the first thing to hang
+    off it.
+  </p>
+
+  <doc-list marker="check" kind="positive" title="What already exists, in both apps">
+    <li><code>packages/validators/src/language.ts</code> — one registry; adding a language is the documented procedure in <code>adding-a-language.md</code> and does not touch this feature.</li>
+    <li><code>packages/i18n</code> — <code>createLabels()</code> over a <code>LabelCatalog</code>, with a graded fallback: a missing language degrades to English, then to a humanised key. A notification never renders blank because a translation is late.</li>
+    <li><code>apps/admin/src/lib/ui-lang.svelte.ts</code> — the operator's language, already persisted and already driving <code>documentElement.lang</code>.</li>
+    <li>The storefront resolves the customer's locale from the URL, which is how every other localized string on the site is chosen.</li>
+  </doc-list>
+
+  <p>
+    Because the feed renders client-side from <code>type</code> plus <code>data</code>, the server
+    needs no language handling at all for it — unlike the admin's product lists, which send
+    <code>?locale=</code> so the server can collapse a translated field before it goes out. One rule
+    keeps it that way, and it is worth stating because breaking it is easy and silent:
+  </p>
+
+  <doc-note kind="tip" title="A payload carries ids and locale-free values only">
+    <p>
+      <code>orderNumber</code>, a date, a count — never a product title. A translated string written
+      into <code>data</code> freezes that row into one language forever, which is the exact failure
+      ADR-N4 exists to prevent. Anything localized is referenced by id and resolved at render.
+    </p>
+  </doc-note>
+
+  <doc-note kind="warn" title="The feed will be ahead of the chrome around it">
+    <p>
+      The admin chrome is not translated yet — <code>ui-lang</code> was built for it and the work has
+      not happened. So an operator who switches to English gets an English notification feed inside a
+      panel whose buttons have not moved. That is the intended direction of travel rather than a
+      defect, but it will look odd for a while and is better expected than discovered.
+    </p>
+  </doc-note>
+
+  <h3>Email is the part this does not reach for free</h3>
+
+  <p>
+    The feed is cheap because it renders in a browser that knows its language. Email is rendered on
+    the server, into a message sent once, and <code>packages/templates</code> is Italian-only — every
+    customer message hardcodes Italian copy. So with no further work, a German customer would read a
+    German feed and receive an Italian reminder email.
+  </p>
+
+  <p>
+    Two things are missing, and neither is large on its own. <code>customer_accounts</code> has no
+    language column, so nothing records which language a customer reads — it would be captured at
+    checkout from the storefront locale, which is already known at that moment. And the templates
+    need per-language copy. There is a good precedent for the second:
+    <code>literal/contract/language.ts</code> defines <code>ContractLanguage</code> as deliberately
+    narrower than <code>LanguageCode</code>, precisely so that registering a new site language cannot
+    silently claim a translated document exists. A <code>NotificationEmailLanguage</code> union
+    following that pattern widens only when the copy has actually been written.
+  </p>
+
+  <h3>In scope, as phase three: a language on the account</h3>
+
+  <p>
+    Decided, and with a design: the account carries the language, it is set when the account is
+    created, the customer can change it afterwards, and anything we cannot place falls back to
+    English. Since an account only ever comes into existence through checkout — there is no signup
+    form and there will not be one — the moment of creation is the moment the storefront locale is
+    known, which is what makes capturing it free.
+  </p>
+
+  <doc-code lang="sql" title="One column, on the table that already exists">
+ALTER TABLE customer_accounts
+  ADD COLUMN language language_code NOT NULL DEFAULT 'en';
+  </doc-code>
+
+  <p>
+    It reuses the existing <code>language_code</code> pgEnum rather than introducing a second list.
+    <code>packages/validators/src/language.ts</code> is explicit that nothing anywhere may hardcode a
+    language code or count them, so a fifth language reaching this feature is the documented
+    <code>adding-a-language.md</code> procedure and nothing else.
+  </p>
+
+  <doc-table size="sm">
+    <table>
+      <thead><tr><th>Moment</th><th>Where the language comes from</th></tr></thead>
+      <tbody>
+        <tr><td>Account created by checkout</td><td>The storefront locale in the URL. Always one of the four, so the fallback never fires here.</td></tr>
+        <tr><td>Customer changes it</td><td>A control in the account area, phase two. Labelled as the language we <em>write</em> to them in.</td></tr>
+        <tr><td>Operator changes it</td><td>The customer detail screen in the admin — an operator on the phone with a tourist should be able to fix this without asking them to log in.</td></tr>
+        <tr><td>Anything else</td><td><code>en</code>. An order raised through the admin, a future integration, a row that predates the column.</td></tr>
+      </tbody>
+    </table>
+  </doc-table>
+
+  <doc-note kind="warn" title="The backfill is not English, and this is the one place I have overridden the rule you gave">
+    <p>
+      Existing accounts cannot have their language recovered: <code>orders</code> records no locale,
+      so there is nothing to read it from. Every one of them has been emailed in Italian since the
+      system started. Defaulting them to English would silently switch the language of every existing
+      customer's mail the day phase three ships — a regression dressed as a default.
+    </p>
+    <p>
+      So the migration backfills existing rows to <code>it</code> and leaves the column default at
+      <code>en</code> for new unknowns. Your rule applies exactly where you meant it — a language we
+      cannot place — and not to a population whose language we can infer from the fact that we have
+      been writing to them in it for a year. If you would rather they all move to English, it is one
+      <code>UPDATE</code>, and better run deliberately than as a side effect.
+    </p>
+  </doc-note>
+
+  <h3>The stored language governs what we send, not what they are looking at</h3>
+
+  <p>
+    A deliberate boundary. The storefront's own language stays URL-driven, as it is today: that is an
+    SEO commitment governed by <code>routes.ts</code>, and a stored preference that redirected people
+    away from the URL they asked for would fight it. So the feed renders in the language of the page
+    being read, and email renders in the language stored on the account.
+  </p>
+
+  <p>
+    That is coherent rather than a compromise: the feed is something you are looking at, and email is
+    somewhere we reach you when you are not. Labelling the account control “the language we write to
+    you in” rather than “your language” is what keeps it from reading as a bug.
+  </p>
+
+  <h3>What phase three actually contains</h3>
+
+  <doc-list marker="number">
+    <li>The column above, its migration, and the backfill to <code>it</code>.</li>
+    <li>Capture at checkout — the storefront already knows its locale; this passes it on the order payload and <code>resolveForOrder</code> writes it.</li>
+    <li>The control in the account area, and the same field on the admin's customer screen.</li>
+    <li>Per-language copy for the customer templates. This is the bulk of it, and it is writing and reviewing copy rather than code — four languages across the reminder messages first, then the four existing order and auth messages so that no Italian-only message is left behind.</li>
+    <li>A <code>NotificationEmailLanguage</code> union following <code>literal/contract/language.ts</code>, so registering a fifth site language cannot silently claim a translated email exists. Until a language is in that union, a customer holding it receives English.</li>
+  </doc-list>
+
+  <p>
+    Until phase three lands, every email stays Italian exactly as it is now. Nothing about phases one
+    and two depends on it, and the feed is multilingual from the day phase one ships.
+  </p>
+</doc-section>
+
+<doc-section title="What this deliberately does not do">
+  <doc-list marker="cross" kind="negative">
+    <li><strong>No web push, no service worker.</strong> A closed tab gets email or nothing. Push needs a VAPID key pair, a subscription table and an unsubscribe story — a separate project, and one that only pays off once the feed has shown which events people actually care about.</li>
+    <li><strong>No grouping or digest.</strong> An order that moves three times in an afternoon produces three rows. Collapsing them is a read-side concern and lands later without a migration.</li>
+    <li><strong>No retention.</strong> Nothing deletes a read notification. The existing expired-session sweep is where that belongs once the table is big enough to notice.</li>
+    <li><strong>No retries and no dead-letter.</strong> Deliberate: the table is the record, so there is nothing to retry. Revisit only if the requirement becomes “push it even though the API was down”.</li>
+    <li><strong>Thresholds are constants.</strong> T−7/T−3/T−1 lives in code. <code>platform_settings</code> is a key→jsonb bag and costs an INSERT, so moving them is cheap — no operator has asked.</li>
+    <li><strong>No delivery receipt.</strong> The feed records that a notification exists, not that a human saw it. <code>read_at</code> is the closest thing, and a customer who never opens the tab leaves it null forever.</li>
+  </doc-list>
+</doc-section>
+
+</doc-page>
+
+<script src="https://cdn.jsdelivr.net/npm/forgedoc@1.1.0/dist/forgedoc.iife.js" data-forgedoc="js" defer></script>
+</body>
+</html>

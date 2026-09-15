@@ -99,6 +99,13 @@
       "when": 1789440890215,
       "tag": "0013_add_legal_pages",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789452866815,
+      "tag": "0014_add_notifications",
+      "breakpoints": true
     }
   ]
 }

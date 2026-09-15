@@ -8,7 +8,13 @@ import { getNotificationRecipients } from '../settings/service.ts';
 import * as links from './links.ts';
 
 /**
- * Sending policy. Not a routed module — other modules call these.
+ * Sending policy for EMAIL. Not a routed module — other modules call these.
+ *
+ * This file was `service.ts` until the in-app feed arrived. The module now means
+ * "a thing somebody is told" rather than "a message we post", and mail is one of
+ * its two channels — `write.ts` is the other. Nothing about the policy below
+ * changed with the rename; the feed deliberately has the opposite one, and
+ * `write.ts` says why.
  *
  * The division of labour: `@mia/templates` decides what a message says, `links.ts`
  * where it points, `infra/mail` how it travels, and this file whether a failure to

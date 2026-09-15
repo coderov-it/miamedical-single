@@ -1,6 +1,7 @@
 <!--
-  Sticky page band: sidebar toggle, breadcrumb, then the two controls that are
-  genuinely global — the *interface* language and the theme.
+  Sticky page band: sidebar toggle, breadcrumb, then the three controls that are
+  genuinely global — the notification bell, the *interface* language and the
+  theme.
 
   The dropdown is the UI language: what the admin presents in (list names,
   and eventually the chrome itself). Which language a form *edits* is not
@@ -20,6 +21,7 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+  import NotificationBell from '~/lib/components/notification-bell.svelte';
   import { navTitleFor } from '~/lib/nav';
   import { routes } from '~/lib/routes';
   import { UI_LANGUAGES, uiLang, type UiLanguage } from '~/lib/ui-lang.svelte';
@@ -53,6 +55,8 @@
   </Breadcrumb.Root>
 
   <div class="ml-auto flex items-center gap-2">
+    <NotificationBell />
+
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class={buttonVariants({ variant: 'ghost', size: 'sm' })}

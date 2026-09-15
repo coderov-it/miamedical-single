@@ -5,7 +5,7 @@ import type { SessionUser } from '../../shared/http/context.ts';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 import * as contractRepo from '../contracts/repo.ts';
 import * as contractService from '../contracts/service.ts';
-import * as notifications from '../notifications/service.ts';
+import * as notifications from '../notifications/mail.ts';
 import * as orderService from '../orders/service.ts';
 import * as repo from './repo.ts';
 import type { RentalListFilters, RentalRow } from './types.ts';

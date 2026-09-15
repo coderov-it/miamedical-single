@@ -24,11 +24,15 @@ apps/server/src/
 
   modules/notifications/
     links.ts            where it POINTS          (absolute URLs)
-    service.ts          whether a failure MATTERS
+    mail.ts             whether a failure MATTERS
 ```
 
+`mail.ts` was `service.ts` until the in-app feed arrived. The module now means "a
+thing somebody is told" and mail is one of its two channels — see
+`notifications-live.md` for the other, which has the opposite failure policy.
+
 A transport never knows what an email is for. `@mia/templates` never knows how mail
-travels. Only `service.ts` decides what happens when a send fails — and that is the
+travels. Only `mail.ts` decides what happens when a send fails — and that is the
 one interesting decision in the whole subsystem.
 
 ## Failure policy
@@ -75,7 +79,7 @@ SES is there for when a production sending quota is granted. Switching is
 `MAIL_TRANSPORT` plus that provider's block in `.env` — no code change.
 
 There is **no failover between them**. `infra/mail/index.ts` builds exactly one, and a
-send that fails throws for `service.ts` to judge. Retrying a failed magic link through
+send that fails throws for `mail.ts` to judge. Retrying a failed magic link through
 a second provider would risk two copies of a single-use link whenever the first
 provider had in fact accepted the message and only its reply was lost. The `Record`
 over the transport union is also what makes adding a transport without wiring it a
@@ -434,7 +438,10 @@ read the log rather than trusting the absence of an error.
   well as in our database.
 - **No retry.** A failed send is logged and gone. For order mail that is deliberate;
   for a magic link the customer simply requests another.
-- **New orders do not alert the operator.** The recipients setting is generic and
-  ready for it — deliberately out of scope for this change.
+- ~~**New orders do not alert the operator.**~~ **Closed** by the in-app feed:
+  `order.placed` reaches every operator holding `order:read`, written inside the
+  order's own transaction. The recipients setting still governs email only.
 - **No send log.** Whether a given customer was actually emailed is only answerable
-  from application logs, not from the database.
+  from application logs, not from the database. Partly answered rather than closed:
+  a `notifications` row is a durable record that we _told_ someone, but the feed
+  and email are separate channels, so a row does not prove a message was sent.

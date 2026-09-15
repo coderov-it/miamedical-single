@@ -25,7 +25,7 @@ import {
    repo depends only on the schema, so no cycle — unlike contracts/service,
    which this module reaches through a dynamic import below. */
 import * as contractsRepo from '../contracts/repo.ts';
-import * as notifications from '../notifications/service.ts';
+import * as notifications from '../notifications/mail.ts';
 import * as productRepo from '../products/catalog/repo.ts';
 import { toPublicDetail } from '../products/mapper.ts';
 import { multiply, sumMoney } from './mapper.ts';
