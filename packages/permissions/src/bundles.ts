@@ -48,6 +48,7 @@ export const PERMISSION_BUNDLES: readonly PermissionBundle[] = [
       P.CONTRACT_READ,
       P.BLOG_READ,
       P.BLOG_CATEGORY_READ,
+      P.LEGAL_PAGE_READ,
       P.SETTING_READ,
     ],
   },
@@ -100,7 +101,7 @@ export const PERMISSION_BUNDLES: readonly PermissionBundle[] = [
   {
     key: 'content_editor',
     label: 'Content editor',
-    description: 'Write and publish blog posts.',
+    description: 'Write and publish blog posts and the site policies.',
     codes: [
       P.DASHBOARD_READ,
       P.BLOG_READ,
@@ -109,6 +110,8 @@ export const PERMISSION_BUNDLES: readonly PermissionBundle[] = [
       P.BLOG_PUBLISH,
       P.BLOG_CATEGORY_READ,
       P.BLOG_CATEGORY_MANAGE,
+      P.LEGAL_PAGE_READ,
+      P.LEGAL_PAGE_UPDATE,
       P.MEDIA_READ,
       P.MEDIA_UPLOAD,
       P.TERMS_READ,

@@ -13,12 +13,15 @@ import { localeFromLocals, translate } from '~/lib/i18n';
 
 export const prerender = false;
 
-/** Slugs the footer links to unconditionally, with their fallback headings. */
+/**
+ * Slugs the footer links to unconditionally, with their fallback headings.
+ *
+ * `privacy-policy` is deliberately absent: it is a legal page now, with its own
+ * table, its own editor and its own route file (`pages/privacy-policy.astro`),
+ * which Astro prefers over this dynamic route. Leaving it here would be a second
+ * owner of a URL only one of them serves.
+ */
 const REQUIRED_DOCUMENTS: Record<string, { title: string; description: string }> = {
-  'privacy-policy': {
-    title: 'Privacy policy',
-    description: 'Informativa sul trattamento dei dati personali di Mia Medical Italia.',
-  },
   'termini-e-condizioni': {
     title: 'Termini e condizioni',
     description:

@@ -38,6 +38,12 @@ export const routes = {
   blogDetail: (id: string) => `/blog/${id}`,
   blogCategories: '/blog/categories',
 
+  /**
+   * The site's own policies, one page each. Not `/terms`: that is the pool of
+   * rental and warranty conditions a PRODUCT links to.
+   */
+  privacyPolicy: '/legal/privacy-policy',
+
   /** Operator-editable platform settings. */
   notificationSettings: '/settings/notifications',
 

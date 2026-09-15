@@ -6,6 +6,7 @@ export * from './auth.ts';
 export * from './product.ts';
 export * from './category.ts';
 export * from './terms.ts';
+export * from './legal.ts';
 export * from './cart.ts';
 export * from './order.ts';
 export * from './settings.ts';

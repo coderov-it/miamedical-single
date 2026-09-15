@@ -32,6 +32,23 @@ export const PUBLIC_PAGE: HtmlCachePolicy = {
   staleIfError: 86400,
 };
 
+/**
+ * A page whose text is a published document: the privacy notice and whatever
+ * legal page joins it.
+ *
+ * Ten minutes at the shared cache, matching the ten `LEGAL_POLICY` spends in
+ * `lib/legal.ts` — so an edit made in the admin is live everywhere inside
+ * twenty minutes, and a policy costs the origin nothing in between. The week of
+ * `stale-if-error` is the part that matters most: a privacy notice must not
+ * become a 500 because the API is down, and a week-old copy of it is still the
+ * document that was in force.
+ */
+export const LEGAL_PAGE: HtmlCachePolicy = {
+  sMaxAge: 600,
+  staleWhileRevalidate: 86_400,
+  staleIfError: 604_800,
+};
+
 export function cacheHtml(headers: Headers, policy: HtmlCachePolicy = PUBLIC_PAGE): void {
   headers.set(
     'cache-control',

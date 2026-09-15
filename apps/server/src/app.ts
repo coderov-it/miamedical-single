@@ -26,6 +26,7 @@ import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import { rentalAdminRoutes } from './modules/rentals/routes.ts';
+import { legalAdminRoutes, legalPublicRoutes } from './modules/legal/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
 import { translationAdminRoutes } from './modules/translation/routes.ts';
 import { withCustomerSession } from './shared/auth/customer-session.ts';
@@ -79,6 +80,7 @@ const routes = app
   .route('/api/products', productPublicRoutes)
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)
+  .route('/api/legal', legalPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
   .route('/api/order-disputes', orderDisputePublicRoutes)
   .route('/api/customer/auth', customerAuthRoutes)
@@ -87,6 +89,7 @@ const routes = app
   .route('/api/admin/products', productAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)
   .route('/api/admin/terms', termsAdminRoutes)
+  .route('/api/admin/legal', legalAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)

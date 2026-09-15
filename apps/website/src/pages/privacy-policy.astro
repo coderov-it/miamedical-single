@@ -1,0 +1,20 @@
+---
+/**
+ * `/privacy-policy/` — the privacy notice, written in the back office.
+ *
+ * A route declaration, nothing more; the page is `views/legal/PolicyPage`. The
+ * other three languages reach this same file as middleware rewrites of
+ * `/en/privacy-policy/`, `/fr/politique-de-confidentialite/` and
+ * `/de/datenschutz/` — the paths are in `lib/routes.ts` under the `privacy` key,
+ * which is what `routeKey` below hands to the view.
+ *
+ * Astro gives a static route priority over a dynamic one, so this takes the URL
+ * from `[terms].astro`, which serves the product terms documents.
+ */
+import { LEGAL_PAGES } from '~/lib/legal';
+import PolicyPage from '~/views/legal/PolicyPage.astro';
+
+export const prerender = false;
+---
+
+<PolicyPage route={LEGAL_PAGES['privacy-policy']} />
