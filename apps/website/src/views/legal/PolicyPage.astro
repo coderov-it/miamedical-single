@@ -1,0 +1,251 @@
+---
+/**
+ * A legal page — the privacy notice today — written in the back office and
+ * served in every language it has been translated into.
+ *
+ * Generic over `code` and `routeKey` so the next one (a cookie notice, a
+ * service-wide terms page) is a route file and a `LEGAL_PAGE_CODES` entry, not
+ * a second copy of this.
+ *
+ * Three things here are not decoration:
+ *
+ *   • **`set:html`** — the body is operator HTML that the API sanitised against
+ *     an allowlist on write (`sanitizeRichText`: h2–h6, strong/em/u/s, lists,
+ *     blockquote, hr, links; no images, no `style`, no `class`). Markup this
+ *     system produced, never a request body.
+ *   • **The honest language set** — `availableLocales` comes from the API and
+ *     names the languages that really have this text. A locale outside it still
+ *     renders (in Italian, marked `lang="it"`), but points its canonical at the
+ *     Italian URL and is left out of `hreflang`, because asking Google to index
+ *     the same paragraphs under four URLs is how a legal page outranks itself.
+ *   • **The cache pair** — `LEGAL_PAGE` here and `LEGAL_POLICY` in `lib/legal.ts`,
+ *     ten minutes each. See docs/code/legal-pages.md § caching.
+ */
+import { richTextToPlain } from '@mia/validators';
+
+import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
+import UnpublishedNotice from '~/components/legal/UnpublishedNotice.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { cacheHtml, LEGAL_PAGE } from '~/lib/http-cache';
+import { localeFromLocals, localeTag, LOCALES, SOURCE_LANGUAGE, translate } from '~/lib/i18n';
+import { getLegalPage, type LegalPageRoute } from '~/lib/legal';
+import { renderDocument } from '~/lib/legal-document';
+import { PROSE_CLASS } from '~/lib/prose';
+import { routePath } from '~/lib/routes';
+
+interface Props {
+  /** The entry from `LEGAL_PAGES` — which document this is, and where it lives. */
+  route: LegalPageRoute;
+}
+
+const { code, routeKey, fallbackTitle, fallbackDescription } = Astro.props.route;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string, params?: Record<string, string | number>) =>
+  translate(locale, key, params);
+
+const page = await getLegalPage(code, locale);
+
+/*
+  Cached even while unwritten: the answer "there is no text yet" is as cheap to
+  serve from the edge as the document, and this page is linked from the footer
+  of every page on the site.
+*/
+cacheHtml(Astro.response.headers, LEGAL_PAGE);
+if (page) {
+  /* A validator a CDN can use on its own. The ETag comes from `middleware.ts`,
+     which hashes the rendered bytes of every public HTML response. */
+  Astro.response.headers.set('last-modified', new Date(page.updatedAt).toUTCString());
+}
+
+const site = Astro.site ?? Astro.url.origin;
+const title = page?.title ?? fallbackTitle;
+
+/* The language this page's TEXT is in. Equal to `locale` once translated. */
+const contentLocale = page?.contentLocale ?? SOURCE_LANGUAGE;
+const translated = page?.availableLocales.includes(locale) ?? false;
+
+/** Only the languages that really carry this text — see the header note. */
+const languagePaths = Object.fromEntries(
+  LOCALES.filter((candidate) => page?.availableLocales.includes(candidate)).map((candidate) => [
+    candidate,
+    routePath(candidate, routeKey),
+  ]),
+);
+const canonical = new URL(routePath(translated ? locale : SOURCE_LANGUAGE, routeKey), site).href;
+
+/* Section labels promoted to real headings, and every heading given an id —
+   see `lib/legal-document.ts`. */
+const documentHtml = page ? renderDocument(page.body) : '';
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat(localeTag(locale), {
+    dateStyle: 'long',
+    /* The operator picked a calendar date, stored as UTC midnight. Formatting it
+       in the server's own zone would print the day before it west of London. */
+    timeZone: 'UTC',
+  }).format(new Date(value));
+
+const effectiveDate = page?.effectiveAt ? formatDate(page.effectiveAt) : null;
+const updatedDate = page ? formatDate(page.updatedAt) : null;
+
+/**
+ * What a search result shows. The operator's meta description first; failing
+ * that the document's own opening, cut at a word rather than mid-syllable.
+ */
+function summarise(body: string): string {
+  const plain = richTextToPlain(body) ?? '';
+  if (plain.length <= 160) return plain;
+  const cut = plain.slice(0, 160);
+  return `${cut.slice(0, cut.lastIndexOf(' '))}…`;
+}
+
+const description = page ? (page.metaDescription ?? summarise(page.body)) : fallbackDescription;
+const pageTitle = page?.metaTitle ?? `${title} | Mia Medical Italia`;
+
+/**
+ * `WebPage` rather than `Article`: this is a standing document, not a piece
+ * published on a date, and `dateModified` is the field that matters for it.
+ * Every value comes from the record — nothing here is hand-written marketing.
+ */
+const jsonLd: Record<string, unknown>[] = page
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: title,
+        description,
+        url: canonical,
+        inLanguage: localeTag(contentLocale),
+        dateModified: page.updatedAt,
+        ...(page.effectiveAt ? { datePublished: page.effectiveAt } : {}),
+        publisher: {
+          '@type': 'Organization',
+          name: 'Mia Medical Italia',
+          url: new URL('/', site).href,
+        },
+      },
+    ]
+  : [];
+---
+
+<BaseLayout
+  title={pageTitle}
+  {description}
+  {canonical}
+  {jsonLd}
+  languagePaths={languagePaths}
+  noindex={!page}
+>
+  {/* `pt-*` because the trail is the first thing on the page: without it the
+      breadcrumb sits against the bottom edge of the sticky header. Pages that
+      open with a hero band get that clearance from the band. */}
+  <div class="max-w-page px-gutter pb-section-sm mid:pb-section mid:pt-7 mx-auto w-full pt-4">
+    {/*
+      One centred column — the trail, the title and the document on one axis,
+      rather than a page-wide header over a left-hugging article. No contents
+      rail beside it.
+
+      60rem, with the sheet's own padding inside it, sets this document at about
+      95 characters a line on a desktop. That is wide for prose and deliberate
+      for this page: a privacy notice is a reference document people scan for a
+      section, not an article they read top to bottom, and the section headings
+      are what carries them through it. The ceiling is the page container
+      (`max-w-page`, 1180px) — past 60rem the lines stop being scannable too.
+    */}
+    <div class="mx-auto max-w-240">
+      <Breadcrumbs
+        items={[{ label: text('home'), href: routePath(locale, 'home') }, { label: title }]}
+      />
+
+      <header class="mid:pt-5 mid:pb-9 pt-3 pb-7">
+        <h1 class="text-[clamp(2rem,3.2vw,2.5rem)]/[1.14] text-balance">{title}</h1>
+
+        {page && (effectiveDate || updatedDate) && (
+          <dl class="text-ui text-ink-2 mt-4 flex flex-wrap gap-x-7 gap-y-1">
+            {effectiveDate && (
+              <div class="flex gap-1.5">
+                <dt>{text('policy.effectiveLabel')}</dt>
+                <dd class="text-ink font-semibold">{effectiveDate}</dd>
+              </div>
+            )}
+            {updatedDate && (
+              <div class="flex gap-1.5">
+                <dt>{text('policy.updatedLabel')}</dt>
+                <dd class="text-ink font-semibold">{updatedDate}</dd>
+              </div>
+            )}
+          </dl>
+        )}
+      </header>
+
+      {/* The document as a sheet: white, on its own hairline, lifted just enough
+          to separate it from the page it sits on. */}
+      <article class="rounded-panel border-hair shadow-soft mid:px-12 mid:py-12 border bg-white px-5 py-7">
+        {page ? (
+          /*
+            `lang` only when the text is not in the page's language: a screen
+            reader must not read Italian with French pronunciation rules.
+
+            No font-size here. The site's ramp sets prose at 14px on a phone and
+            16px from `mid` up (theme.css § --text-phone-body), and a legal page
+            is the last place to sit under the floor. The document rhythm — the
+            leading, and the air a section opens with — is in the style block at
+            the foot of this file, because it styles markup that arrives through
+            `set:html` and carries no classes of its own.
+          */
+          <div
+            class:list={['policy-prose text-ink-2', PROSE_CLASS]}
+            lang={contentLocale === locale ? undefined : localeTag(contentLocale)}
+            set:html={documentHtml}
+          />
+        ) : (
+          <UnpublishedNotice />
+        )}
+      </article>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /*
+    The document's own rhythm. A style block rather than arbitrary variants
+    because everything here targets markup that arrives through `set:html`: it
+    carries no classes, and stating it as CSS keeps it readable next to
+    `PROSE_CLASS`, which owns the parts shared with the product page.
+
+    `:global()` is required for the same reason — Astro's scoping attribute is
+    never applied to injected nodes — and the scope still holds, because the
+    `.policy-prose` half of each selector is this component's.
+  */
+  .policy-prose {
+    line-height: 1.75;
+  }
+
+  /*
+    A section opens with air above it and sits tight to its first paragraph, so
+    the gap reads as "new section" rather than "new paragraph" — which is the
+    whole difference between a document and 134 undifferentiated blocks.
+  */
+  .policy-prose :global(h2) {
+    margin-top: 2.4em;
+    margin-bottom: 0.5em;
+    font-family: var(--font-display);
+    font-size: 1.25em;
+    line-height: 1.3;
+    color: var(--color-ink);
+    /* Where a link to `#section` lands: clear of the sticky site header, whose
+       height is SiteHeader.astro's own clamp. */
+    scroll-margin-top: calc(clamp(52px, 5.94vw, 76px) + 1.5rem);
+  }
+
+  .policy-prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  /* Pasted policies wrap each list item's text in its own paragraph. Preflight
+     zeroes those margins, so without this a multi-paragraph item runs together. */
+  .policy-prose :global(li > p + p) {
+    margin-top: 0.5em;
+  }
+</style>

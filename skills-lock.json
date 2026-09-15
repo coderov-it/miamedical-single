@@ -2,10 +2,10 @@
   "version": 1,
   "skills": {
     "better-plan": {
-      "source": "mrbns/plankit",
+      "source": "naz-ovh/forgedoc",
       "sourceType": "github",
       "skillPath": "skills/better-plan/SKILL.md",
-      "computedHash": "c1ad6ca9a4a78d6fa403ad2c051bb205ca2e7a53ce368e58be84712857450f95"
+      "computedHash": "e560f17c4a3474448990b666fc5b41660a8e76b13b3fa34849fe711985956ec1"
     },
     "design-control-loop": {
       "source": "humanlayer/skills",

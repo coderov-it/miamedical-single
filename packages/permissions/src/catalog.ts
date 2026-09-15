@@ -313,6 +313,24 @@ export const PERMISSION_DEFINITIONS = {
     label: 'Update payments',
     group: 'Payments',
   },
+
+  // --- 2500 · legal pages ----------------------------------------------------
+  // The storefront's own policies — privacy, and whatever joins it. Separate
+  // from the 1800 TERMS_* codes on purpose: those guard the pool of rental and
+  // warranty conditions a PRODUCT links to, and an operator trusted to edit
+  // those is not automatically trusted to rewrite the privacy notice.
+  LEGAL_PAGE_READ: {
+    code: 2500,
+    key: 'legal_page:read',
+    label: 'View legal pages',
+    group: 'Content',
+  },
+  LEGAL_PAGE_UPDATE: {
+    code: 2501,
+    key: 'legal_page:update',
+    label: 'Update legal pages',
+    group: 'Content',
+  },
 } as const satisfies Record<string, PermissionDefinition>;
 
 export type PermissionName = keyof typeof PERMISSION_DEFINITIONS;

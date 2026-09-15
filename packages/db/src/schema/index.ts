@@ -7,6 +7,7 @@ export * from './search.ts';
 export * from './admin-users.ts';
 export * from './customers.ts';
 export * from './content.ts';
+export * from './legal.ts';
 export * from './catalog.ts';
 export * from './orders.ts';
 export * from './customer-auth.ts';

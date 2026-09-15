@@ -18,6 +18,7 @@ import UsersIcon from '@lucide/svelte/icons/users';
 import WalletIcon from '@lucide/svelte/icons/wallet';
 import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
+import ShieldCheckIcon from '@lucide/svelte/icons/shield-check';
 import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 import type { Component } from 'svelte';
 
@@ -61,7 +62,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   },
   {
     title: 'Content',
-    items: [{ title: 'Blog Posts', url: routes.blog, icon: NewspaperIcon }],
+    items: [
+      { title: 'Blog Posts', url: routes.blog, icon: NewspaperIcon },
+      { title: 'Privacy Policy', url: routes.privacyPolicy, icon: ShieldCheckIcon },
+    ],
   },
   {
     title: 'Settings',

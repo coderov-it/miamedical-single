@@ -1,0 +1,34 @@
+---
+/**
+ * What stands in for a legal document that has not been written yet.
+ *
+ * It is a panel and not a 404 on purpose: the footer links these pages
+ * unconditionally, and a visitor looking for the privacy notice is asking a
+ * question somebody here can answer on the phone today. So the page exists, says
+ * plainly that the text is not online yet, and hands over the two ways to get it.
+ *
+ * Shared by the legal pages (`views/legal/PolicyPage.astro`) and the terms
+ * documents route (`components/legal/PolicyDocument.astro`), which is the whole
+ * reason it is its own file — two copies of this would drift the day the phone
+ * number changes.
+ */
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
+
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+---
+
+<div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
+  <p>{text('legal.unpublished')}</p>
+  <p class="text-ui text-ink-2">{text(CONTACT_HOURS_KEY)}</p>
+  <PhoneCta variant="primary" />
+  <p>
+    {text('legal.orWriteTo')}{' '}
+    <a class="text-accent underline" href={`mailto:${CONTACT.email}`}>
+      {CONTACT.email}
+    </a>
+    .
+  </p>
+</div>

@@ -20,6 +20,7 @@ import { listBlogPosts } from './blog.ts';
 import { type CachePolicy, cached } from './cache.ts';
 import { listAllProducts } from './catalog.ts';
 import { LOCALES, SOURCE_LANGUAGE, type SiteLocale } from './i18n.ts';
+import { getLegalPage, LEGAL_PAGES } from './legal.ts';
 import { blogPostPath, PRIVATE_ROUTES, productPath, type RouteKey, routePaths } from './routes.ts';
 
 /**
@@ -45,7 +46,15 @@ export interface LanguageSet {
  *   • `search` — `/cerca/` is a results page and renders `noindex`.
  *   • `product` — `/prodotto/` is the base path of `[slug].astro`, not a page.
  */
-const EXCLUDED_ROUTES = new Set<RouteKey>([...PRIVATE_ROUTES, 'search', 'product']);
+const EXCLUDED_ROUTES = new Set<RouteKey>([
+  ...PRIVATE_ROUTES,
+  'search',
+  'product',
+  /* Listed by `legalSets()` instead: a legal page knows its own `<lastmod>` and
+     which languages it has really been translated into, and neither of those is
+     derivable from the route table. */
+  ...Object.values(LEGAL_PAGES).map((page) => page.routeKey),
+]);
 
 /**
  * The static pages, in all three languages.
@@ -109,6 +118,31 @@ async function blogSets(): Promise<LanguageSet[]> {
 }
 
 /**
+ * The legal pages, each in the languages it has actually been translated into.
+ *
+ * Read in the source language only: the payload's `availableLocales` answers for
+ * every language at once, so this costs one API call and not four. A page that
+ * has not been written is simply absent — an unwritten notice renders a "call
+ * us" panel and is `noindex`, and a sitemap entry for it would be an invitation
+ * to crawl that.
+ */
+async function legalSets(): Promise<LanguageSet[]> {
+  const pages = await Promise.all(
+    Object.values(LEGAL_PAGES).map(async (entry): Promise<LanguageSet | null> => {
+      const page = await getLegalPage(entry.code, SOURCE_LANGUAGE);
+      if (!page) return null;
+      return {
+        paths: Object.fromEntries(
+          page.availableLocales.map((locale) => [locale, routePaths[locale][entry.routeKey]]),
+        ),
+        lastmod: page.updatedAt,
+      };
+    }),
+  );
+  return pages.filter((set): set is LanguageSet => set !== null);
+}
+
+/**
  * An hour fresh, six more served stale while a refresh runs behind it.
  *
  * A sitemap is read by crawlers, not customers, and it costs a full catalogue
@@ -122,18 +156,21 @@ const SITEMAP_POLICY: CachePolicy = { fresh: 3600, stale: 21600 };
 /**
  * What is NOT in here, and why it is not a bug:
  *
- * A legal document published from the admin under its own slug — `[terms].astro`
+ * A terms document published from the admin under its own slug — `[terms].astro`
  * serves any of them — cannot be enumerated, because the public API has no list
- * endpoint for terms, only `GET /api/terms/:slug`. The three the footer links
- * unconditionally (privacy, cookie, terms) are route keys, so they are already
- * in `staticSets()`. A fourth document would need `GET /api/terms` first.
+ * endpoint for terms, only `GET /api/terms/:slug`. The two the footer links
+ * unconditionally (cookie, terms) are route keys, so they are already in
+ * `staticSets()`. A third document would need `GET /api/terms` first.
+ *
+ * The privacy notice is not one of them any more: it is a legal page with its
+ * own table, so `legalSets()` lists it with a real `<lastmod>`.
  */
 export function sitemapSets(origin: string): Promise<LanguageSet[]> {
   return cached(
     `sitemap:${origin}`,
     async () => {
-      const [products, posts] = await Promise.all([productSets(), blogSets()]);
-      return [...staticSets(), ...products, ...posts];
+      const [products, posts, legal] = await Promise.all([productSets(), blogSets(), legalSets()]);
+      return [...staticSets(), ...legal, ...products, ...posts];
     },
     SITEMAP_POLICY,
   );

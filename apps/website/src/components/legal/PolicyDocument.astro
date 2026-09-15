@@ -7,12 +7,11 @@
  * legal page is the last place to hand markup privileges to stored content.
  */
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
-import PhoneCta from '~/components/global/PhoneCta.astro';
+import UnpublishedNotice from '~/components/legal/UnpublishedNotice.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import type { TermsDocument } from '~/lib/catalog';
 import { localeForRequest, localeTag, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
-import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 
 interface Props {
   /** `null` when the document exists as a route but is not published yet. */
@@ -62,18 +61,7 @@ const effectiveDate = document?.publishedAt
           <div class="whitespace-pre-line">{body}</div>
         </Fragment>
       ) : (
-        <div class="rounded-card border-hair bg-tint mid:p-8 mt-6 grid justify-items-start gap-4 border p-6">
-          <p>{text('legal.unpublished')}</p>
-          <p class="text-ui text-ink-2">{translate(locale, CONTACT_HOURS_KEY)}</p>
-          <PhoneCta variant="primary" />
-          <p>
-            {text('legal.orWriteTo')}{' '}
-            <a class="text-accent underline" href={`mailto:${CONTACT.email}`}>
-              {CONTACT.email}
-            </a>
-            .
-          </p>
-        </div>
+        <UnpublishedNotice />
       )}
     </article>
   </div>
