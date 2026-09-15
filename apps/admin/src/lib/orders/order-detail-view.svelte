@@ -10,7 +10,6 @@
 -->
 <script lang="ts">
   import { P, permissionByCode } from '@mia/permissions';
-  import type { RentalPeriod } from '@mia/pricing';
   import CheckIcon from '@lucide/svelte/icons/check';
   import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
   import LockIcon from '@lucide/svelte/icons/lock';
@@ -21,11 +20,12 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
-  import * as Table from '$lib/components/ui/table/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { api } from '~/lib/api';
   import MoneyInput from '~/lib/components/money-input.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
+  import OrderItemsCard from '~/lib/orders/order-items-card.svelte';
+  import OrderTimelineCard from '~/lib/orders/order-timeline-card.svelte';
   import { cn } from '$lib/utils.js';
   import { contractStatusMeta, variantLabel } from '~/lib/contracts/status';
   import {
@@ -34,21 +34,14 @@
     formatDateTime,
     formatMoney,
     orDash,
-    pluralize,
     relativeTime,
   } from '~/lib/format';
-  import {
-    FULFILMENT_STEPS,
-    orderStatusMeta,
-    paymentStatusMeta,
-    type OrderStatus,
-  } from '~/lib/orders/status';
+  import { FULFILMENT_STEPS, orderStatusMeta, type OrderStatus } from '~/lib/orders/status';
   import { errorMessage, unwrap } from '~/lib/request';
+  import type { OrderAddress, OrderDetail } from '~/lib/orders/types';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
-
-  type OrderDetail = InferResponseType<(typeof api.api.admin.orders)[':id']['$get'], 200>['data'];
 
   interface Props {
     order: OrderDetail;
@@ -111,12 +104,39 @@
     );
   }
 
-  const addresses = $derived(
-    [
-      { title: 'Shipping', value: order.shippingAddress },
-      { title: 'Billing', value: order.billingAddress },
-    ].filter((entry) => entry.value !== null),
-  );
+  const ADDRESS_FIELDS = [
+    'fullName',
+    'line1',
+    'line2',
+    'postalCode',
+    'city',
+    'region',
+    'country',
+    'phone',
+  ] as const satisfies ReadonlyArray<keyof OrderAddress>;
+
+  /**
+   * Most orders bill to the address they ship to, and two identical cards are a
+   * second thing to read that says nothing — they also hand the sidebar a card's
+   * worth of height the order beside it has no content to match. Matching
+   * addresses collapse to one card whose title names both; differing ones stand
+   * apart, which is the case an operator has to notice.
+   */
+  function addressCards() {
+    const shipping = order.shippingAddress;
+    const billing = order.billingAddress;
+    const same =
+      shipping !== null &&
+      billing !== null &&
+      ADDRESS_FIELDS.every((field) => shipping[field] === billing[field]);
+    if (same) return [{ title: 'Shipping & billing', value: shipping }];
+    return [
+      { title: 'Shipping', value: shipping },
+      { title: 'Billing', value: billing },
+    ].filter((entry) => entry.value !== null);
+  }
+
+  const addresses = $derived(addressCards());
 
   /**
    * How the order changes hands, in one line an operator can act on.
@@ -200,41 +220,11 @@
    * a claim until the customer confirms it from their own session. These labels
    * exist so the panel never presents an unconfirmed match as an identity.
    */
-  /** `customerLink` joined `status` and `paymentStatus` on the one timeline. */
-  const EVENT_FIELD_LABELS: Record<string, string> = {
-    status: 'Status',
-    paymentStatus: 'Payment',
-    customerLink: 'Account link',
-    contract: 'Contract',
-  };
-
-  function eventMeta(field: string, toValue: string) {
-    if (field === 'status') return orderStatusMeta(toValue);
-    if (field === 'contract') return contractStatusMeta(toValue);
-    return paymentStatusMeta(toValue);
-  }
-
   const CUSTOMER_LINK_LABELS: Record<string, string> = {
     unverified: 'Account matched by email · unconfirmed',
     confirmed: 'Account confirmed by the customer',
     rejected: 'Account link rejected by the customer',
   };
-
-  /**
-   * `unitPrice × quantity` is not the line total — the add-ons make up the rest.
-   * Rather than leave an operator to reconcile two numbers, the configuration
-   * row spells out where the difference comes from.
-   *
-   * Both ends are stamped on the order: the customer picked a start and the
-   * package decided the return, so this reads the record rather than recomputing
-   * a span the order already settled. The time shows only on an hour package.
-   */
-  function periodLabel(rental: RentalPeriod) {
-    const at = (date: string, time: string | null) =>
-      time ? `${formatDate(date)} ${time}` : formatDate(date);
-    const span = `${at(rental.startDate, rental.startTime)} → ${at(rental.endDate, rental.endTime)}`;
-    return `${span} · ${rental.duration} ${pluralize(rental.duration, rental.unit)}`;
-  }
 
   type ContractSummaries = InferResponseType<
     (typeof api.api.admin.contracts)['by-order'][':orderId']['$get'],
@@ -305,7 +295,9 @@
         </p>
       </div>
     {/each}
-    <div class="bg-card px-3 py-2.5">
+    <!-- Five figures over two columns leaves a sixth cell showing as a grey
+         box, so the total takes the whole last row rather than half of it. -->
+    <div class="col-span-2 bg-card px-3 py-2.5 @2xl:col-span-1">
       <p class="text-xs text-muted-foreground">Total</p>
       <p class="mt-0.5 text-sm font-semibold tabular-nums">
         {formatMoney(order.totals.total, order.totals.currency)}
@@ -344,163 +336,25 @@
     {/if}
   </div>
 
-  <div class="grid gap-5 @4xl:grid-cols-3">
-    <div class="space-y-5 @4xl:col-span-2">
-      <Card.Root class="gap-0 overflow-hidden py-0">
-        <div class="border-b px-4 py-2.5 text-sm font-medium">Items</div>
-        <Table.Root>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Product</Table.Head>
-              <Table.Head class="text-right">Qty</Table.Head>
-              <Table.Head class="text-right">Unit</Table.Head>
-              <Table.Head class="text-right">Total</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {#each order.items as item (item.id)}
-              {@const config = item.configuration}
-              <Table.Row class={config ? 'border-b-0' : ''}>
-                <Table.Cell>
-                  <p class="font-medium">{item.productTitle}</p>
-                </Table.Cell>
-                <Table.Cell class="text-right tabular-nums">{item.quantity}</Table.Cell>
-                <Table.Cell class="text-right tabular-nums">
-                  {formatMoney(item.unitPrice, order.totals.currency)}
-                  {#if config?.pricingMode === 'rental'}
-                    <span class="block text-xs text-muted-foreground">per unit</span>
-                  {/if}
-                </Table.Cell>
-                <Table.Cell class="text-right tabular-nums">
-                  {formatMoney(item.total, order.totals.currency)}
-                </Table.Cell>
-              </Table.Row>
+  <!--
+    Three grid children, not two columns with a trailer underneath: the sidebar
+    spans both rows so Actions can sit under the items at width. A short order —
+    one line, two timeline entries — used to end the main column halfway up the
+    address cards beside it and leave the rest of the row blank. Stacked (the
+    drawer, a narrow window) the placements drop away and Actions is last again,
+    after everything there is to read.
 
-              {#if config}
-                <!--
-                  What the customer actually configured, frozen at the labels they
-                  read. It sits under its line rather than behind a disclosure: this
-                  is the sheet someone reads down the phone, and a rental period
-                  hidden behind a chevron is a rental period nobody checks.
-                -->
-                <Table.Row class="hover:bg-transparent">
-                  <Table.Cell colspan={4} class="pt-0 pb-4">
-                    <div class="space-y-2 border-l-2 pl-3 text-xs">
-                      {#if config.rental}
-                        <p>
-                          <span class="text-muted-foreground">Period</span>
-                          <span class="ml-1 tabular-nums">{periodLabel(config.rental)}</span>
-                        </p>
-                      {/if}
-
-                      {#if config.rentalPackage}
-                        <p>
-                          <span class="text-muted-foreground">Package</span>
-                          <span class="ml-1">
-                            {config.rentalPackage.name} ({config.rentalPackage.label}) ·
-                            {formatMoney(config.rentalPackage.price, order.totals.currency)}
-                          </span>
-                        </p>
-                      {/if}
-
-                      {#if config.answers.length > 0}
-                        <div class="space-y-0.5">
-                          {#each config.answers as answer, index (`${answer.key}-${index}`)}
-                            <p>
-                              <span class="text-muted-foreground">{answer.label}</span>
-                              <span class="ml-1 font-medium">{answer.value}</span>
-                            </p>
-                          {/each}
-                        </div>
-                      {/if}
-
-                      {#if config.addons.length > 0}
-                        <div class="space-y-0.5">
-                          {#each config.addons as addon (addon.id)}
-                            <p class="flex justify-between gap-3">
-                              <span>
-                                <span class="text-muted-foreground">Extra</span>
-                                <span class="ml-1">{addon.name}</span>
-                                <span class="ml-1 text-muted-foreground">
-                                  ({formatMoney(
-                                    addon.unitPrice,
-                                    order.totals.currency,
-                                  )}{addon.mode === 'rental' ? ' per unit' : ''}{addon.quantity > 1
-                                    ? ` × ${addon.quantity}`
-                                    : ''})
-                                </span>
-                              </span>
-                              <span class="tabular-nums">
-                                {formatMoney(addon.total, order.totals.currency)}
-                              </span>
-                            </p>
-                          {/each}
-                        </div>
-                      {/if}
-                    </div>
-                  </Table.Cell>
-                </Table.Row>
-              {/if}
-            {:else}
-              <Table.Row>
-                <Table.Cell colspan={4} class="py-6 text-center text-muted-foreground">
-                  This order has no lines.
-                </Table.Cell>
-              </Table.Row>
-            {/each}
-          </Table.Body>
-        </Table.Root>
-      </Card.Root>
-
-      <!-- Timeline. Oldest first, because that is how a sequence reads. -->
-      <Card.Root class="gap-0 py-0">
-        <div class="border-b px-4 py-2.5 text-sm font-medium">Timeline</div>
-        <div class="p-4">
-          {#if order.events.length === 0}
-            <p class="text-sm text-muted-foreground">
-              Nothing has happened since this order was placed.
-            </p>
-          {:else}
-            <ol class="space-y-0">
-              {#each order.events as event, index (event.id)}
-                {@const meta = eventMeta(event.field, event.toValue)}
-                <li class="flex gap-3">
-                  <div class="flex flex-col items-center">
-                    <span class={cn('mt-1.5 size-2 shrink-0 rounded-full', meta.dot)}></span>
-                    {#if index < order.events.length - 1}
-                      <span class="w-px flex-1 bg-border"></span>
-                    {/if}
-                  </div>
-                  <div class="pb-4">
-                    <p class="text-sm">
-                      <span class="text-muted-foreground">
-                        {EVENT_FIELD_LABELS[event.field] ?? event.field}
-                      </span>
-                      {orDash(event.fromValue)}
-                      <span class="text-muted-foreground">→</span>
-                      <span class="font-medium">{meta.label}</span>
-                    </p>
-                    {#if event.note}
-                      <p class="mt-0.5 text-sm text-muted-foreground">{event.note}</p>
-                    {/if}
-                    <!-- The actor's side is spelled out: "Confirmed" by an
-                         operator and by the customer are different facts, and
-                         a bare name reads as staff. -->
-                    <p class="mt-0.5 text-xs text-muted-foreground">
-                      {event.actorName ?? 'System'}{event.actorKind === 'customer'
-                        ? ' (customer)'
-                        : ''} · {formatDateTime(event.createdAt)}
-                    </p>
-                  </div>
-                </li>
-              {/each}
-            </ol>
-          {/if}
-        </div>
-      </Card.Root>
+    The second row is `1fr` and the items align to `start` so that a sidebar
+    taller than both cards beside it spends the difference *below* Actions,
+    at the bottom of the page, instead of splitting it into a gap between them.
+  -->
+  <div class="grid gap-5 @4xl:grid-cols-3 @4xl:grid-rows-[auto_1fr] @4xl:items-start">
+    <div class="space-y-5 @4xl:col-span-2 @4xl:col-start-1 @4xl:row-start-1">
+      <OrderItemsCard items={order.items} currency={order.totals.currency} />
+      <OrderTimelineCard events={order.events} />
     </div>
 
-    <div class="space-y-5">
+    <div class="space-y-5 @4xl:col-start-3 @4xl:row-span-2 @4xl:row-start-1">
       <Card.Root class="gap-0 py-0">
         <div class="border-b px-4 py-2.5 text-sm font-medium">Customer</div>
         <div class="space-y-1 p-4 text-sm">
@@ -712,51 +566,52 @@
         </Card.Root>
       {/if}
     </div>
+
+    <!-- Actions last in the reading order, and at width the card that fills
+         the column under the items. -->
+    <Card.Root class="gap-0 py-0 @4xl:col-span-2 @4xl:col-start-1 @4xl:row-start-2">
+      <div class="flex items-center gap-2 border-b px-4 py-2.5">
+        <span class="text-sm font-medium">Actions</span>
+        {#if !canUpdate}
+          <Badge variant="outline" class="gap-1 text-muted-foreground">
+            <LockIcon class="size-3" />
+            needs <code class="font-mono">{updateKey}</code>
+          </Badge>
+        {/if}
+      </div>
+
+      <div class="space-y-3 p-4">
+        {#if order.allowedStatuses.length === 0}
+          <p class="text-sm text-muted-foreground">
+            This order is {orderStatusMeta(order.status).label.toLowerCase()}. There is nothing left
+            to move.
+          </p>
+        {:else}
+          <Textarea
+            bind:value={note}
+            rows={2}
+            disabled={!canUpdate}
+            placeholder="Optional note — it is written to the timeline with the change."
+            aria-label="Note for the next status change"
+          />
+
+          <div class="flex flex-wrap items-center gap-2">
+            {#each order.allowedStatuses as to (to)}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canUpdate || busy !== null}
+                onclick={() => moveStatus(to as OrderStatus)}
+              >
+                {#if busy === `status:${to}`}<Spinner />{/if}
+                Mark {orderStatusMeta(to as OrderStatus).label.toLowerCase()}
+              </Button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    </Card.Root>
   </div>
-
-  <!-- Actions last: read the order, then decide. -->
-  <Card.Root class="gap-0 py-0">
-    <div class="flex items-center gap-2 border-b px-4 py-2.5">
-      <span class="text-sm font-medium">Actions</span>
-      {#if !canUpdate}
-        <Badge variant="outline" class="gap-1 text-muted-foreground">
-          <LockIcon class="size-3" />
-          needs <code class="font-mono">{updateKey}</code>
-        </Badge>
-      {/if}
-    </div>
-
-    <div class="space-y-3 p-4">
-      {#if order.allowedStatuses.length === 0}
-        <p class="text-sm text-muted-foreground">
-          This order is {orderStatusMeta(order.status).label.toLowerCase()}. There is nothing left
-          to move.
-        </p>
-      {:else}
-        <Textarea
-          bind:value={note}
-          rows={2}
-          disabled={!canUpdate}
-          placeholder="Optional note — it is written to the timeline with the change."
-          aria-label="Note for the next status change"
-        />
-
-        <div class="flex flex-wrap items-center gap-2">
-          {#each order.allowedStatuses as to (to)}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!canUpdate || busy !== null}
-              onclick={() => moveStatus(to as OrderStatus)}
-            >
-              {#if busy === `status:${to}`}<Spinner />{/if}
-              Mark {orderStatusMeta(to as OrderStatus).label.toLowerCase()}
-            </Button>
-          {/each}
-        </div>
-      {/if}
-    </div>
-  </Card.Root>
 
   <p class="text-xs text-muted-foreground">
     Last updated {order.updatedAt ? formatDateTime(order.updatedAt) : EM_DASH}
