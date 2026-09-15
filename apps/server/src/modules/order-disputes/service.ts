@@ -6,7 +6,8 @@ import type { CreateOrderDisputeInput, UpdateOrderDisputeInput } from '@mia/vali
 import { hashToken } from '../../shared/auth/customer-session.ts';
 import { httpError, notFound } from '../../shared/http/errors.ts';
 import * as customerAuthRepo from '../customer-auth/repo.ts';
-import * as notifications from '../notifications/service.ts';
+import * as notifications from '../notifications/mail.ts';
+import { emitToAdmins } from '../notifications/write.ts';
 
 /**
  * "I did not place this order" reports.
@@ -50,23 +51,38 @@ export async function create(
   // order is gone — there is nothing left to dispute.
   if (!order) throw invalidToken();
 
-  const [row] = await db
-    .insert(orderDisputes)
-    .values({
-      orderId: order.id,
-      customerAccountId: token.customerAccountId,
-      reportedPhone: input.reportedPhone,
-      message: input.message,
-      ipAddress: meta.ipAddress,
-      userAgent: meta.userAgent,
-    })
-    .returning({ id: orderDisputes.id });
+  /* The report and the operator's notice of it commit together. A dispute
+     nobody was told about is the failure this whole feature exists to remove,
+     so it must not be reachable by a mail outage or a crash between two
+     statements. */
+  const row = await db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(orderDisputes)
+      .values({
+        orderId: order.id,
+        customerAccountId: token.customerAccountId,
+        reportedPhone: input.reportedPhone,
+        message: input.message,
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+      })
+      .returning({ id: orderDisputes.id });
 
-  if (!row) throw new Error('order dispute insert returned no row');
+    if (!inserted) throw new Error('order dispute insert returned no row');
+
+    await emitToAdmins(tx, {
+      type: 'order.link_disputed',
+      orderId: order.id,
+      data: { orderNumber: order.number, disputeId: inserted.id },
+    });
+
+    return inserted;
+  });
 
   /*
-    Alerting is best-effort by design — see notifications/service.ts. The report is
-    already stored and already visible in the admin panel, so a mail outage must not
+    Mail on top of the feed row, and best-effort by design — see
+    notifications/mail.ts. The report is already stored, already in the admin
+    panel and now already in every operator's feed, so a mail outage must not
     turn a filed report into an error the reporter sees and possibly re-submits
     against a token that is now spent.
   */

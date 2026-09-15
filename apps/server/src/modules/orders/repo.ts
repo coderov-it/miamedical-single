@@ -1,6 +1,6 @@
 /** DB queries for orders and carts. Plain records out — no auth, no DTOs. */
 
-import type { Database } from '@mia/db';
+import type { Database, Transaction } from '@mia/db';
 import { and, asc, count, desc, eq, gte, ilike, inArray, lt, lte, or, sql } from '@mia/db';
 import {
   adminUsers,
@@ -15,6 +15,7 @@ import {
   SOURCE_LANGUAGE,
 } from '@mia/db/schema';
 
+import { emit, emitToAdmins } from '../notifications/write.ts';
 import { multiply, sumMoney } from './mapper.ts';
 import type {
   ActorRef,
@@ -512,6 +513,20 @@ export async function insertOrder(
       actorCustomerAccountId: null,
     });
 
+    /* Closes the gap `docs/code/notifications-and-mail.md` names outright: a new
+       order alerted nobody. Inside the order's own transaction, so an operator
+       is never told about a checkout that rolled back. */
+    await emitToAdmins(tx, {
+      type: 'order.placed',
+      orderId: order.id,
+      data: {
+        orderNumber: order.number,
+        total: data.total,
+        currency: data.currency,
+        customerName: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || data.email,
+      },
+    });
+
     return { id: order.id, number: order.number, placedAt: order.placedAt };
   });
 }
@@ -558,6 +573,43 @@ export async function applyTransition(db: Database, event: StatusEventData): Pro
       .set({ [event.field]: event.toValue })
       .where(eq(orders.id, event.orderId));
     await tx.insert(orderStatusEvents).values(event);
+    /* The customer's copy of the same fact, in the same transaction and under
+       the same rollback. It reaches nobody until the customer feed ships in
+       phase two — the row is written now so the feed opens with history rather
+       than with an empty list. */
+    await emitOrderStatusChanged(tx, event);
+  });
+}
+
+/**
+ * The customer-facing half of a transition, written only where there is a
+ * customer to tell.
+ *
+ * An unclaimed order has no account id, and `notifications_recipient_check`
+ * refuses a customer row without one — correctly: there is nobody to address.
+ * Those orders are reachable through the emailed order link instead, which is
+ * what the placement mail already provides.
+ */
+async function emitOrderStatusChanged(tx: Transaction, event: StatusEventData): Promise<void> {
+  const [order] = await tx
+    .select({ number: orders.number, customerAccountId: orders.customerAccountId })
+    .from(orders)
+    .where(eq(orders.id, event.orderId))
+    .limit(1);
+
+  if (!order?.customerAccountId) return;
+
+  await emit(tx, {
+    audience: 'customer',
+    customerAccountId: order.customerAccountId,
+    type: 'order.status_changed',
+    orderId: event.orderId,
+    data: {
+      orderNumber: order.number,
+      field: event.field,
+      from: event.fromValue,
+      to: event.toValue,
+    },
   });
 }
 

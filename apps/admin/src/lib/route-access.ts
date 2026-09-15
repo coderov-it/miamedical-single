@@ -46,7 +46,7 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { pattern: routes.blogCategories, requiredAny: [P.BLOG_CATEGORY_READ] },
   { pattern: routes.privacyPolicy, requiredAny: [P.LEGAL_PAGE_READ] },
 
-  { pattern: routes.notificationSettings, requiredAny: [P.SETTING_READ] },
+  { pattern: routes.settings, requiredAny: [P.SETTING_READ] },
 
   // Reading the operator list is its own grant, not part of "can look around":
   // it names every account and everything each one can reach.
@@ -56,6 +56,12 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   // paths are open" default so the intent is on the record: your own name,
   // phone and password are yours whatever you were granted.
   { pattern: routes.profile, requiredAny: [] },
+
+  // Same reasoning. What an operator is told about is decided when the row is
+  // written — see ADMIN_EVENT_PERMISSION on the server — so a grant here would
+  // re-answer a question already answered, and could only ever answer it
+  // differently by being wrong.
+  { pattern: routes.notifications, requiredAny: [] },
 ];
 
 /**

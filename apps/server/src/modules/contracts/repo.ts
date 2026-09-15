@@ -1,4 +1,4 @@
-import type { Database } from '@mia/db';
+import type { Database, DatabaseWriter } from '@mia/db';
 import { and, count, desc, eq, ilike, ne, or, sql } from '@mia/db';
 import {
   adminUsers,
@@ -214,8 +214,13 @@ export async function orderRequiresDeposit(db: Database, orderId: string): Promi
   return rows[0]?.value ?? false;
 }
 
+/**
+ * Takes either handle: signing has to move the status and raise the operator's
+ * notification atomically, so this is called once from a request and once from
+ * inside a transaction.
+ */
 export async function updateStatus(
-  db: Database,
+  db: DatabaseWriter,
   id: string,
   status: ContractStatus,
   patch: Partial<typeof contracts.$inferInsert> = {},

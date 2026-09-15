@@ -16,7 +16,8 @@ import type { ContractVariant, ManualContractInput } from '@mia/validators';
 
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 import * as links from '../notifications/links.ts';
-import * as notifications from '../notifications/service.ts';
+import * as notifications from '../notifications/mail.ts';
+import { emitToAdmins } from '../notifications/write.ts';
 /* One-way dependencies: the orders repo knows nothing about contracts (the
    event writer lives there because the timeline is the orders module's
    artefact), and the rentals repo only touches order rows. */
@@ -501,12 +502,29 @@ export async function sign(
   if (contract.status === 'voided') throw conflict('Contract has been voided.');
 
   await repo.consumeSigningToken(db, hash);
-  await repo.updateStatus(db, contract.id, 'signed', {
-    signedAt: new Date(),
-    signatureData: { imageDataUrl: signatureDataUrl, ipAddress, userAgent },
-  });
 
   const data = contract.contractData as unknown as ContractData;
+
+  /* The signature and the operator's notice of it commit together: the status
+     machine will not move this order to `paid` until the contract reads
+     `signed`, so an operator told late is an order stalled late. */
+  await db.transaction(async (tx) => {
+    await repo.updateStatus(tx, contract.id, 'signed', {
+      signedAt: new Date(),
+      signatureData: { imageDataUrl: signatureDataUrl, ipAddress, userAgent },
+    });
+
+    await emitToAdmins(tx, {
+      type: 'contract.signed',
+      orderId: contract.orderId,
+      data: {
+        contractNumber: contract.number,
+        orderNumber: contract.orderNumber,
+        customerName: data.customer.fullName,
+      },
+    });
+  });
+
   await notifications.sendContractSigned({
     email: data.customer.email,
     customerName: data.customer.fullName,

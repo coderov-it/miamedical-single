@@ -22,6 +22,7 @@ import { settingsAdminRoutes } from './modules/settings/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
+import { notificationAdminRoutes } from './modules/notifications/admin-routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
@@ -100,6 +101,7 @@ const routes = app
   .route('/api/admin/rentals', rentalAdminRoutes)
   .route('/api/admin/payments', paymentAdminRoutes)
   .route('/api/admin/translate', translationAdminRoutes)
+  .route('/api/admin/notifications', notificationAdminRoutes)
   .route('/api/contracts', contractPublicRoutes)
   .route('/api/blog', blogPublicRoutes);
 

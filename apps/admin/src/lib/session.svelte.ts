@@ -2,6 +2,7 @@ import { can as canCode, canAny as canAnyCode } from '@mia/permissions';
 import type { InferResponseType } from 'hono/client';
 
 import { api } from './api';
+import { notificationFeed } from './notifications';
 
 type Me = InferResponseType<typeof api.api.auth.me.$get, 200>['data'];
 
@@ -109,6 +110,10 @@ class Session {
     this.#user = null;
     // Let the next guard refetch rather than trusting this cleared state.
     this.#pending = null;
+    /* The feed is one operator's, and the stream carries their cookie. Leaving
+       either in place would show the next person to sign in on this browser the
+       tail of somebody else's notifications. */
+    notificationFeed.clear();
   }
 
   /** Integer permission check — pass a code from `@mia/permissions`. */

@@ -17,7 +17,7 @@ import {
   verifyPassword,
 } from '../../shared/auth/password.ts';
 import { httpError } from '../../shared/http/errors.ts';
-import * as notifications from '../notifications/service.ts';
+import * as notifications from '../notifications/mail.ts';
 import * as repo from './repo.ts';
 import type {
   AuthTokenPurpose,
