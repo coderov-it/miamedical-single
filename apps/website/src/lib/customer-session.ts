@@ -274,6 +274,32 @@ export function markAllNotificationsRead(): Promise<NotificationReadResult> {
 }
 
 /**
+ * Which categories may reach this customer's phone.
+ *
+ * The API answers with the EFFECTIVE state — defaults already applied — so this
+ * screen never has to know the default table. Two copies of "on unless turned
+ * off", one here and one on the server, is how a toggle ends up showing the
+ * opposite of what it does.
+ */
+export type NotificationCategoryKey = 'order' | 'rental' | 'contract';
+
+export type NotificationPreferences = Record<NotificationCategoryKey, { push: boolean }>;
+
+export function getNotificationPreferences(): Promise<NotificationPreferences> {
+  return request('/api/customer/notification-preferences');
+}
+
+/** Partial: categories left out are untouched. Answers with the full effective shape. */
+export function saveNotificationPreferences(
+  patch: Partial<NotificationPreferences>,
+): Promise<NotificationPreferences> {
+  return request('/api/customer/notification-preferences', {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  });
+}
+
+/**
  * The SSE endpoint, absolute.
  *
  * `EventSource` takes a URL rather than going through `request()`, and it needs

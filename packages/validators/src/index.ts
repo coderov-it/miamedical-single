@@ -18,3 +18,4 @@ export * from './rental.ts';
 export * from './payment.ts';
 export * from './translation.ts';
 export * from './notification.ts';
+export * from './push.ts';

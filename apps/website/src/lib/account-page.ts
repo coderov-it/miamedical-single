@@ -56,6 +56,13 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.notifications.unreadMany',
   'account.notifications.loadMore',
   'account.notifications.new',
+  'account.notifications.preferences.title',
+  'account.notifications.preferences.hint',
+  'account.notifications.preferences.show',
+  'account.notifications.preferences.hide',
+  'account.notifications.preferences.order',
+  'account.notifications.preferences.rental',
+  'account.notifications.preferences.contract',
   // profile
   'yourDetails',
   'firstName',

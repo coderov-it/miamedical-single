@@ -37,6 +37,7 @@ export const FEATURES = {} as const;
 export function logFeatureSummary(): void {
   const rows: [string, string][] = [
     ['mail', mailState()],
+    ['push', pushState()],
     ['object storage', objectStorageState()],
     ['translation', translationState()],
   ];
@@ -45,6 +46,35 @@ export function logFeatureSummary(): void {
   for (const [label, state] of rows) {
     console.log(`  ${label.padEnd(width)}  ${state}`);
   }
+}
+
+/**
+ * Push has no boot guard refusing production, unlike mail — a console transport
+ * here costs a notification about a fact the feed already records, not a customer
+ * locked out of their account. So this line is the only place an unfinished
+ * Firebase setup announces itself, which makes naming the missing variable rather
+ * than merely saying "disabled" the whole point of it.
+ */
+function pushState(): string {
+  if (env.PUSH_TRANSPORT === 'console') {
+    return 'console — printed to this log, no device is notified';
+  }
+
+  const missing = (
+    [
+      ['FCM_PROJECT_ID', env.FCM_PROJECT_ID],
+      ['FCM_CLIENT_EMAIL', env.FCM_CLIENT_EMAIL],
+      ['FCM_PRIVATE_KEY', env.FCM_PRIVATE_KEY],
+    ] as const
+  )
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+
+  if (missing.length > 0) {
+    return `fcm — ${missing.join(' and ')} unset, every send will fail`;
+  }
+
+  return 'fcm';
 }
 
 function mailState(): string {

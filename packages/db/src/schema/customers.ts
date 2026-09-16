@@ -1,7 +1,19 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
+
+import type { NotificationPreferences } from '@mia/validators/push-preferences';
 
 import { addressKind } from './enums.ts';
+import { languageCode } from './i18n.ts';
 
 /**
  * Storefront accounts. Created by the checkout, not by a signup form: ordering is
@@ -42,6 +54,33 @@ export const customerAccounts = pgTable(
      */
     activatedAt: timestamp({ withTimezone: true }),
     lastLoginAt: timestamp({ withTimezone: true }),
+    /**
+     * Which language this customer is written to in — email, and the push
+     * fallback when a device is too old for localization keys.
+     *
+     * NULLABLE AND NOT BACKFILLED, deliberately. Null means "never told us",
+     * which is the truth about every account that exists today, and it is a
+     * different fact from "chose Italian". Defaulting it would turn an absence of
+     * information into a stated preference nobody stated, and there would then be
+     * no way to tell the two apart when we start asking.
+     *
+     * A push sent to a device that carries its own locale never reads this — the
+     * OS resolves the language from the handset. The full order is in
+     * `modules/notifications/language.ts`.
+     */
+    language: languageCode(),
+    /**
+     * Which categories may reach this customer's lock screen. DEVIATIONS ONLY —
+     * `{}` means "the defaults", so a category added later is live for everyone
+     * the day it ships. The shape and the two gates are in
+     * `@mia/validators/push-preferences`.
+     *
+     * A jsonb bag rather than columns, following `platform_settings`: the next
+     * toggle costs an UPDATE instead of a migration. Every read parses it through
+     * `effectivePreferences`, so a hand-edited row degrades to the defaults rather
+     * than reaching a caller as a shape it does not expect.
+     */
+    notificationPreferences: jsonb().$type<NotificationPreferences>().notNull().default({}),
     /** Cleared by an operator to lock an account out without deleting it. */
     isActive: boolean().notNull().default(true),
     /**
