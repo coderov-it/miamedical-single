@@ -18,8 +18,10 @@
   import { accountHref, type AccountScreen } from '~/lib/account-routes';
   import { AccountSession } from '~/lib/account-session.svelte';
   import { AccountStore } from '~/lib/account-state.svelte';
+  import { NotificationStore } from '~/lib/notifications.svelte';
 
   import AccountShell from './AccountShell.svelte';
+  import NotificationsScreen from './NotificationsScreen.svelte';
   import OrderDetailScreen from './OrderDetailScreen.svelte';
   import OrdersScreen from './OrdersScreen.svelte';
   import ProfileScreen from './ProfileScreen.svelte';
@@ -37,8 +39,9 @@
   const session = new AccountSession(copy.routes.login, copy.routes.home);
   const router = new AccountRouter(copy.routes, initial);
   const orders = new AccountStore(session);
+  const notifications = new NotificationStore(session);
 
-  setAccountContext({ copy, router, session, orders });
+  setAccountContext({ copy, router, session, orders, notifications });
 
   let screenEl = $state<HTMLElement>();
 
@@ -56,6 +59,18 @@
          rather than showing an error. */
       if (!session.isAuthenticated) session.redirectToLogin();
     });
+  });
+
+  /* The feed is opened by the ISLAND, not by its screen: the count sits in the
+     navigation on all four screens, and a stream that only ran while the
+     notifications screen was showing would be a live feed you had to already
+     be looking at. Snapshot first so the badge is right before the stream has
+     said anything. */
+  $effect(() => {
+    if (!session.isAuthenticated) return;
+    void notifications.ensureLoaded();
+    notifications.connect();
+    return () => notifications.disconnect();
   });
 
   /* Restored from the back/forward cache, where no script re-runs. `no-store`
@@ -125,6 +140,8 @@
     <AccountShell>
       {#if screen.name === 'account'}
         <ProfileScreen />
+      {:else if screen.name === 'notifications'}
+        <NotificationsScreen />
       {:else if screen.name === 'orders'}
         <OrdersScreen />
       {:else}

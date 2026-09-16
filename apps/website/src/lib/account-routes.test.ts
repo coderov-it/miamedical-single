@@ -19,12 +19,13 @@ import { describe, it } from 'node:test';
 
 import { accountHref, type AccountRoutes, parseAccountPath } from './account-routes.ts';
 
-/** Only the four fields the router reads. Mirrors `routePaths` per locale. */
-function routesFor(account: string, orders: string): AccountRoutes {
+/** Only the fields the router reads. Mirrors `routePaths` per locale. */
+function routesFor(account: string, orders: string, notifications: string): AccountRoutes {
   return {
     home: '/',
     login: '/accedi/',
     account,
+    accountNotifications: notifications,
     accountOrders: orders,
     catalog: '/catalogo/',
     orderDetail: `${orders}{number}/`,
@@ -32,10 +33,22 @@ function routesFor(account: string, orders: string): AccountRoutes {
 }
 
 const LOCALES = {
-  it: routesFor('/area-clienti/', '/area-clienti/ordini/'),
-  en: routesFor('/en/customer-area/', '/en/customer-area/orders/'),
-  fr: routesFor('/fr/espace-client/', '/fr/espace-client/commandes/'),
-  de: routesFor('/de/kundenbereich/', '/de/kundenbereich/bestellungen/'),
+  it: routesFor('/area-clienti/', '/area-clienti/ordini/', '/area-clienti/notifiche/'),
+  en: routesFor(
+    '/en/customer-area/',
+    '/en/customer-area/orders/',
+    '/en/customer-area/notifications/',
+  ),
+  fr: routesFor(
+    '/fr/espace-client/',
+    '/fr/espace-client/commandes/',
+    '/fr/espace-client/notifications/',
+  ),
+  de: routesFor(
+    '/de/kundenbereich/',
+    '/de/kundenbereich/bestellungen/',
+    '/de/kundenbereich/benachrichtigungen/',
+  ),
 } satisfies Record<string, AccountRoutes>;
 
 const NUMBER = 'MIA-2026-001000';
@@ -43,8 +56,11 @@ const NUMBER = 'MIA-2026-001000';
 describe('parseAccountPath', () => {
   for (const [code, routes] of Object.entries(LOCALES)) {
     describe(code, () => {
-      it('reads the three screens', () => {
+      it('reads the four screens', () => {
         assert.deepEqual(parseAccountPath(routes, routes.account), { name: 'account' });
+        assert.deepEqual(parseAccountPath(routes, routes.accountNotifications), {
+          name: 'notifications',
+        });
         assert.deepEqual(parseAccountPath(routes, routes.accountOrders), { name: 'orders' });
         assert.deepEqual(parseAccountPath(routes, `${routes.accountOrders}${NUMBER}/`), {
           name: 'orderDetail',
@@ -61,6 +77,7 @@ describe('parseAccountPath', () => {
       it('round-trips every screen through accountHref', () => {
         for (const screen of [
           { name: 'account' },
+          { name: 'notifications' },
           { name: 'orders' },
           { name: 'orderDetail', number: NUMBER },
         ] as const) {
@@ -71,6 +88,14 @@ describe('parseAccountPath', () => {
       it('does not read the orders list as an order', () => {
         // `account` is a prefix of `accountOrders`, which is the detail prefix.
         assert.deepEqual(parseAccountPath(routes, routes.accountOrders), { name: 'orders' });
+      });
+
+      it('does not read notifications as an order', () => {
+        // `account` is its prefix too, so it has to be matched exactly before
+        // the order-detail prefix test gets a chance at it.
+        assert.deepEqual(parseAccountPath(routes, routes.accountNotifications), {
+          name: 'notifications',
+        });
       });
 
       it('rejects what is not ours', () => {

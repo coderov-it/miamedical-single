@@ -46,6 +46,20 @@ export type CustomerOrderDetail = InferResponseType<
   200
 >['data'];
 
+type NotificationListResponse = InferResponseType<typeof api.api.customer.notifications.$get, 200>;
+
+/** One row of `GET /api/customer/notifications`. */
+export type CustomerNotification = NotificationListResponse['data'][number];
+
+/** `{ page, perPage, total, unread, counts }` — the bell reads `unread`. */
+export type NotificationListMeta = NotificationListResponse['meta'];
+
+/** What both mark-read calls answer with, so the badge never has to be guessed. */
+export type NotificationReadResult = InferResponseType<
+  (typeof api.api.customer.notifications.read)['$post'],
+  200
+>['data'];
+
 /** The `{ error: { code, message, fields? } }` envelope the API answers with. */
 export interface ApiFailure {
   code: string;
@@ -212,6 +226,62 @@ export function rejectOrder(number: string): Promise<{ ok: boolean }> {
   return request(`/api/customer/orders/${encodeURIComponent(number)}/reject`, {
     method: 'POST',
   });
+}
+
+/**
+ * One page of the feed. `perPage` is the screen's page size, not the bell's:
+ * the bell reads `meta.unread`, which is a global count and arrives whatever
+ * slice was asked for.
+ */
+export async function listNotifications(
+  page = 1,
+  perPage = 20,
+): Promise<{ rows: CustomerNotification[]; meta: NotificationListMeta }> {
+  const query = new URLSearchParams({ page: String(page), perPage: String(perPage) });
+  const payload = await requestEnvelope<{
+    data: CustomerNotification[];
+    meta: NotificationListMeta;
+  }>(`/api/customer/notifications?${query}`);
+
+  return {
+    rows: payload?.data ?? [],
+    meta:
+      payload?.meta ??
+      ({
+        page,
+        perPage,
+        total: 0,
+        unread: 0,
+        counts: {
+          all: { total: 0, unread: 0 },
+          order: { total: 0, unread: 0 },
+          rental: { total: 0, unread: 0 },
+          contract: { total: 0, unread: 0 },
+        },
+      } as NotificationListMeta),
+  };
+}
+
+export function markNotificationsRead(ids: string[]): Promise<NotificationReadResult> {
+  return request('/api/customer/notifications/read', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}
+
+export function markAllNotificationsRead(): Promise<NotificationReadResult> {
+  return request('/api/customer/notifications/read-all', { method: 'POST' });
+}
+
+/**
+ * The SSE endpoint, absolute.
+ *
+ * `EventSource` takes a URL rather than going through `request()`, and it needs
+ * `withCredentials` to carry the session cookie cross-origin — which is why the
+ * origin is spelled out here rather than left relative.
+ */
+export function notificationStreamUrl(): string {
+  return `${API_BASE}/api/customer/notifications/stream`;
 }
 
 export function reportOrder(input: {

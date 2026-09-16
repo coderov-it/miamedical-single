@@ -17,7 +17,7 @@ import type { ContractVariant, ManualContractInput } from '@mia/validators';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 import * as links from '../notifications/links.ts';
 import * as notifications from '../notifications/mail.ts';
-import { emitToAdmins } from '../notifications/write.ts';
+import { emit, emitToAdmins } from '../notifications/write.ts';
 /* One-way dependencies: the orders repo knows nothing about contracts (the
    event writer lives there because the timeline is the orders module's
    artefact), and the rentals repo only touches order rows. */
@@ -257,6 +257,23 @@ export async function createManual(
   });
 }
 
+/**
+ * The account a contract's order belongs to, or null.
+ *
+ * Null is ordinary, not an error: a manual contract has no order at all, and an
+ * order taken over the phone may never be claimed by an account. Both mean
+ * there is nobody to put a feed row in front of, and the email still goes.
+ */
+async function accountForOrder(db: Database, orderId: string | null): Promise<string | null> {
+  if (!orderId) return null;
+  const [row] = await db
+    .select({ accountId: orders.customerAccountId })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
+  return row?.accountId ?? null;
+}
+
 async function issueContract(
   db: Database,
   input: IssueContractInput,
@@ -321,6 +338,26 @@ async function issueContract(
   });
 
   await repo.updateStatus(db, contract.id, 'sent', { sentAt: new Date() });
+
+  /* The customer's copy of "your contract is waiting". Its own transaction
+     rather than the caller's, because `issueContract` has none: it is a
+     sequence of committed steps, and the row belongs after the one that makes
+     it true — the contract is genuinely sent by here. */
+  const awaitingAccountId = await accountForOrder(db, input.orderId ?? null);
+  if (awaitingAccountId) {
+    await db.transaction((tx) =>
+      emit(tx, {
+        audience: 'customer',
+        customerAccountId: awaitingAccountId,
+        type: 'contract.awaiting_signature',
+        orderId: input.orderId ?? null,
+        data: {
+          contractNumber: contract.number,
+          orderNumber: input.orderNumber ?? null,
+        },
+      }),
+    );
+  }
 
   if (input.orderId) {
     const first = input.items[0];
@@ -504,6 +541,7 @@ export async function sign(
   await repo.consumeSigningToken(db, hash);
 
   const data = contract.contractData as unknown as ContractData;
+  const signerAccountId = await accountForOrder(db, contract.orderId);
 
   /* The signature and the operator's notice of it commit together: the status
      machine will not move this order to `paid` until the contract reads
@@ -514,15 +552,30 @@ export async function sign(
       signatureData: { imageDataUrl: signatureDataUrl, ipAddress, userAgent },
     });
 
+    const signed = {
+      contractNumber: contract.number,
+      orderNumber: contract.orderNumber,
+      customerName: data.customer.fullName,
+    };
+
     await emitToAdmins(tx, {
       type: 'contract.signed',
       orderId: contract.orderId,
-      data: {
-        contractNumber: contract.number,
-        orderNumber: contract.orderNumber,
-        customerName: data.customer.fullName,
-      },
+      data: signed,
     });
+
+    /* Both audiences from one transaction: the operator learns the order is
+       unblocked and the customer gets the receipt, and neither can exist
+       without the signature that caused them. */
+    if (signerAccountId) {
+      await emit(tx, {
+        audience: 'customer',
+        customerAccountId: signerAccountId,
+        type: 'contract.signed',
+        orderId: contract.orderId,
+        data: signed,
+      });
+    }
   });
 
   await notifications.sendContractSigned({

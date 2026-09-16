@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Push notifications in the Capacitor app</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/forgedoc@2.1.0/dist/themes/default.css" data-forgedoc="css" data-forgedoc-theme="default">
+</head>
+  <body>
+    <doc-page doc-id="mia-app-push-notifications" accent="indigo" density="comfortable" toc="docked">
+      <doc-header kicker="Plan · Mobile app · Revision 3">
+        Push notifications in the Capacitor app
+        <p slot="lede">
+          The back office already has a live feed. The app needs the same facts delivered to a phone
+          that is locked and an app that is closed — a different mechanism, not a bigger version of
+          the same one. Transport, copy, language and the preference screen are all settled now.
+          What this revision adds is the part you asked for: everything your app developer is
+          waiting on from us, gathered into one section — the endpoints, the payload shapes, the
+          deep links, and the two accounts only you can open.
+        </p>
+      </doc-header>
+
+      <doc-section title="What already exists">
+        <p>
+          A fact writes a <code>notifications</code> row inside the transaction that caused it, and
+          the same transaction calls <code>pg_notify</code>. At COMMIT the hub wakes, finds the
+          recipient's open SSE streams, and pushes the row. If the transaction rolls back, the row
+          and the notice vanish together. That pipeline is done and it is audience-agnostic — it
+          already writes <code>audience='customer'</code> rows today.
+        </p>
+
+        <doc-note kind="warn" title="The client-area feed does not exist yet — I checked">
+          <p>
+            You read this section as suspicious because an agent had already built notifications
+            &ldquo;in client area and in dashboard&rdquo;. The dashboard half is real and shipped:
+            commit <code>31040b6</code>, <code>apps/admin/src/lib/notifications/</code>, the bell in
+            the topbar, the inbox at <code>/notifications</code>. The client-area half is not.
+          </p>
+          <p>Four things say so, and they agree:</p>
+          <ul>
+            <li><code>app.ts</code> mounts <code>/api/admin/notifications</code> and nothing under <code>/api/customer</code>.</li>
+            <li>There is no customer route file — <code>modules/notifications/</code> holds <code>admin-routes.ts</code> alone.</li>
+            <li><code>apps/website/src</code> contains no notification code at all; <code>pages/area-clienti/</code> is <code>index</code> plus <code>ordini/</code>.</li>
+            <li>No branch or commit in the repository has ever touched a customer notification route.</li>
+          </ul>
+          <p>
+            So <code>order.status_changed</code> rows are being written right now and nothing can
+            read them. If you know of work outside this repository, say so and I will re-plan around
+            it — but on what is here, step 1 below is unbuilt.
+          </p>
+        </doc-note>
+      </doc-section>
+
+      <doc-section title="Three things called &ldquo;notification&rdquo;">
+        <p>These get conflated constantly and they are separate builds.</p>
+
+        <doc-table size="sm">
+          <table>
+            <thead>
+              <tr><th>Mechanism</th><th>Works when</th><th>What it costs us</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>In-app feed</strong> — SSE</td>
+                <td>App open and on screen</td>
+                <td>A customer mirror of <code>admin-routes.ts</code>. Half a day.</td>
+              </tr>
+              <tr>
+                <td><strong>Push</strong> — FCM / APNs</td>
+                <td>App closed, phone locked</td>
+                <td>Genuinely new: a device table, a sender, Firebase, Apple.</td>
+              </tr>
+              <tr>
+                <td><strong>Local notification</strong></td>
+                <td>Scheduled on the device itself</td>
+                <td>Nothing — and it is wrong here. Every event we raise is decided server-side.</td>
+              </tr>
+            </tbody>
+          </table>
+        </doc-table>
+
+        <p>
+          The first two read the same table, so the app never reconciles two sources. Push is a
+          doorbell; the feed is the record.
+        </p>
+      </doc-section>
+
+      <doc-section title="Transport: FCM HTTP v1, decided">
+        <p>
+          <strong>Settled in review.</strong> iOS will not accept a push that did not come from
+          Apple's APNs, and Android's is FCM — but Firebase relays to APNs for free once an Apple
+          <code>.p8</code> key is uploaded to it. So one transport covers both platforms and we write
+          one code path.
+        </p>
+        <p>
+          Your instinct that this is the lightweight option is right, and it is worth saying why:
+          it is one <code>POST</code> to
+          <code>https://fcm.googleapis.com/v1/projects/{id}/messages:send</code> carrying an OAuth2
+          bearer minted from a service-account key. No SDK, no vendor holding customer identifiers,
+          and roughly forty lines for the token minting. It lands as <code>infra/push/</code> laid
+          out exactly like <code>infra/mail/</code> — a port, an <code>fcm</code> adapter, and a
+          <code>console</code> adapter that prints the payload so the whole flow is testable before
+          a Firebase project exists.
+        </p>
+        <p>
+          The alternatives considered and dropped: <code>@capacitor-firebase/messaging</code> (same
+          transport, less native work, bigger binary — reopen if the app team wants it, it changes
+          nothing server-side), OneSignal (fast, but customer identifiers leave our infrastructure),
+          and calling APNs directly (two senders, two credential formats, two error vocabularies).
+        </p>
+      </doc-section>
+
+      <doc-section title="Where the device tokens live">
+        <p>
+          A push needs a token. The OS issues one at registration and changes it — on reinstall, on
+          restore, whenever it likes. So the app posts it on every launch and the server upserts.
+        </p>
+
+        <doc-code lang="sql" title="push_devices">
+CREATE TABLE push_devices (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_account_id uuid NOT NULL REFERENCES customer_accounts(id) ON DELETE CASCADE,
+  token               text NOT NULL UNIQUE,
+  platform            text NOT NULL,          -- 'android' | 'ios'
+  language            text NOT NULL,          -- the device locale; see §6
+  last_seen_at        timestamptz NOT NULL DEFAULT now(),
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX push_devices_customer_idx ON push_devices (customer_account_id);
+        </doc-code>
+
+        <p>
+          <code>token</code> is unique across the whole table, not per customer, and that is the
+          point: a shared or resold phone would otherwise sit on two accounts and receive both
+          people's orders. The upsert is
+          <code>ON CONFLICT (token) DO UPDATE</code> — the newest sign-in owns the device. Sign-out
+          deletes the row, because a token left behind keeps delivering to a phone nobody is signed
+          into.
+        </p>
+
+        <p>
+          Registration is behind <code>requireCustomer</code>, which you have confirmed the app can
+          satisfy. That constraint is what the next section is about.
+        </p>
+      </doc-section>
+
+      <doc-section title="Who can be pushed at all">
+        <p>
+          <strong>Your call is right, and it is the only correct one: push needs a signed-in
+          account.</strong> A device row points at a <code>customer_account_id</code>, and the only
+          thing that proves which account a phone belongs to is a session. Binding a token to
+          anything weaker — an order number, an email typed at checkout — would let anyone who
+          learned an order number subscribe to that order's notifications. There is no version of
+          this that safely reaches an anonymous device.
+        </p>
+        <p>
+          What is <em>not</em> true is that a guest loses anything. Every checkout already creates an
+          account row, signed in or not — <code>resolveForOrder</code> finds or creates one by email
+          and marks the link <code>unverified</code>. So the notifications are being written for
+          guests right now. They are undelivered, not missing:
+        </p>
+
+        <doc-code lang="text" title="A guest order, from checkout to lock screen">
+1  anna@example.com checks out — not signed in
+2    resolveForOrder → creates customer_accounts row, link 'unverified'
+3    order row carries customer_account_id                      ← she has an identity
+4
+5  an operator moves the order to 'paid'
+6    notifications row written against her account              ← recorded
+7    push? no push_devices row for that account → nothing sent  ← the only loss
+8
+9  Anna opens the activation link in her order email, signs in
+10   the feed opens with step 6 and everything since, already there
+11   app registers her device → every later event also reaches the lock screen
+        </doc-code>
+
+        <p>
+          So the exception costs a guest their <em>real-time</em> notifications and none of their
+          history. That reframes the work: the thing worth building is not a way to push at
+          step 7, it is a better nudge at step 9.
+        </p>
+
+        <doc-note kind="tip" title="The app is the best place we have to ask for activation">
+          <p>
+            Today activation is asked for by email and nowhere else, which is why so many accounts
+            sit unactivated. An app that has just taken a guest checkout knows the order number and
+            the email at that exact moment, with the customer still holding the phone — a far better
+            moment to ask than an inbox visited hours later. Worth raising with your developer as its
+            own small piece of work; it is what turns this exception from a permanent ceiling into a
+            first-order problem.
+          </p>
+        </doc-note>
+
+        <p>
+          That screen is the app developer's to build and to schedule — we do not own it and it is
+          not a step in our list. What is worth passing on with the endpoints is <em>why it matters
+          more than it looks</em>: push reaches signed-in accounts only, so if most orders are placed
+          as guests and nothing asks them to set a password, the first release will push to very few
+          people. It is the single biggest lever on whether this feature is felt at all, and it costs
+          one screen against an endpoint that already exists.
+        </p>
+      </doc-section>
+
+      <doc-section title="Sending it, and knowing that we did">
+        <p>
+          You asked why pm2 workers came into this. Fair — I overbuilt that. Production runs one API
+          process (<code>prod-api</code>), so nothing today sends a push twice, and I should not have
+          opened with a problem you do not have.
+        </p>
+        <p>
+          The column I proposed still earns its place, for a reason that is true right now. Add
+          <code>pushed_at timestamptz</code> to <code>notifications</code> and the send becomes a
+          recorded fact rather than a side effect:
+        </p>
+
+        <doc-list marker="check" kind="positive">
+          <li>
+            <strong>A missed notification gets a second chance.</strong> <code>LISTEN</code> has no
+            backlog — a payload raised while the sender is restarting is gone. The SSE feed survives
+            that because the next screen load re-reads the table. A closed app has no next screen
+            load, so without a marker the push is simply lost. With one, the sweep that already runs
+            hourly picks up anything still <code>NULL</code>.
+          </li>
+          <li>
+            <strong>&ldquo;Was this customer actually pinged?&rdquo; becomes a query.</strong> The
+            mail side lists the absence of a send log as a known gap; this closes it for push.
+          </li>
+          <li>
+            <strong>A second process stays safe for free.</strong>
+            <code>UPDATE … WHERE id = $1 AND pushed_at IS NULL RETURNING …</code> returns a row to
+            exactly one caller. Not a problem today; not a rewrite the day it is.
+          </li>
+        </doc-list>
+
+        <p>
+          So: the sender listens on the same channel the hub does, claims the row, renders the copy,
+          and posts to FCM. A token FCM rejects as <code>UNREGISTERED</code> is deleted on the spot —
+          that is how the device table stays clean without a cron.
+        </p>
+      </doc-section>
+
+      <doc-section title="What the push says">
+        <p>
+          <strong>Settled in review, and the mechanism already exists.</strong> You described it
+          exactly: the sentence is static and translatable, the values inside it are not.
+          <code>NOTIFICATION_LABELS</code> in <code>@mia/i18n</code> already holds every title and
+          body in Italian, English, French and German, with <code>{placeholder}</code> slots filled
+          from the row's own <code>data</code>.
+        </p>
+
+        <doc-code lang="ts" title="packages/i18n/src/notification-labels.ts — already shipped">
+'order.status_changed.body': {
+  it: 'Il tuo ordine {orderNumber} è ora {to}.',
+  en: 'Your order {orderNumber} is now {to}.',
+  fr: 'Votre commande {orderNumber} est désormais {to}.',
+  de: 'Ihre Bestellung {orderNumber} ist jetzt {to}.',
+},
+        </doc-code>
+
+        <p>
+          So push copy needs no new catalogue and no new translation workflow. The question your
+          review raises is a different one, and a better one: <em>where the sentence gets
+          assembled</em>.
+        </p>
+
+        <h3>Send the key, not the sentence</h3>
+
+        <p>
+          You proposed sending <code>notification.title = &quot;a-template-id&quot;</code> plus the
+          data, and letting the app map it against its own language. That is not a workaround —
+          it is a named FCM feature, <code>body_loc_key</code> on Android and <code>loc-key</code>
+          on iOS. We send a key and an ordered list of values; the OS looks the key up in the app's
+          own resources and fills the values in. Same notification, both ways:
+        </p>
+
+        <doc-code lang="json" title="Server renders the sentence (what the plan said)">
+"notification": {
+  "title": "Il tuo ordine è cambiato",
+  "body":  "Il tuo ordine MIA-2026-001010 è ora pagato."
+}
+        </doc-code>
+
+        <doc-code lang="json" title="The OS renders it (what you proposed)">
+"android": { "notification": {
+  "title_loc_key":  "order_status_changed_paid_title",
+  "body_loc_key":   "order_status_changed_paid_body",
+  "body_loc_args":  ["MIA-2026-001010"]
+} },
+"apns": { "payload": { "aps": { "alert": {
+  "title-loc-key":  "order_status_changed_paid_title",
+  "loc-key":        "order_status_changed_paid_body",
+  "loc-args":       ["MIA-2026-001010"]
+} } } }
+        </doc-code>
+
+        <p>
+          It is better than what I wrote, for a reason bigger than payload size. No translated prose
+          crosses the wire — which is the rule this system already keeps everywhere else, and which
+          server-rendered push was quietly breaking. And the language is the phone's own, resolved by
+          the OS, correct the instant someone changes their device language and without us storing or
+          guessing anything.
+        </p>
+
+        <doc-note kind="warn" title="One correction: &ldquo;app code&rdquo; here means strings.xml, not the i18n bundle">
+          <p>
+            The OS draws this notification while the app is closed — often while it is not running at
+            all. No JavaScript executes, so the lookup cannot reach a Capacitor i18n bundle. The keys
+            resolve against <strong>native</strong> resources: <code>res/values-*/strings.xml</code>
+            on Android, <code>Localizable.strings</code> on iOS.
+          </p>
+          <p>
+            That is still one source of truth, because those files are generated. A build step exports
+            <code>NOTIFICATION_LABELS</code> into both formats, so copy is written once in
+            <code>@mia/i18n</code> exactly as it is today:
+          </p>
+          <doc-code lang="text" title="One catalogue, three outputs">
+@mia/i18n                             strings.xml (values-it)
+  'order.status_changed.paid.body'  →   name="order_status_changed_paid_body"
+  it: 'Il tuo ordine {orderNumber}       "Il tuo ordine %1$s è ora pagato."
+       è ora pagato.'
+                                      Localizable.strings (it.lproj)
+                                    →   "order_status_changed_paid_body" =
+                                          "Il tuo ordine %1$@ è ora pagato.";
+          </doc-code>
+          <p>
+            The real cost is downstream of that: a copy fix now ships in an app release rather than a
+            server deploy, and an iOS release means review time. The feed and email keep the fast
+            path; only the lock-screen wording slows down.
+          </p>
+        </doc-note>
+
+        <p>
+          <strong>The rule that makes this work:</strong> <code>loc_args</code> are plain positional
+          strings, so anything passed as an argument is printed verbatim and never translated.
+          Arguments therefore carry order numbers, counts and proper nouns — never a status, never a
+          formatted date. Which is the same rule the notification payload already follows, applied one
+          layer out.
+        </p>
+        <p>
+          That is why the key above is <code>order_status_changed_<strong>paid</strong>_body</code>
+          rather than a generic key with the status as an argument. The status enum is a closed set of
+          a handful of values, so folding it into the key makes it translatable for free — and it
+          dissolves the <code>&quot;è ora paid&quot;</code> bug below rather than fixing it twice.
+          Dates get the same treatment: push <code>daysLeft</code> (a number) rather than
+          <code>endsOn</code> (a date only a locale can format).
+        </p>
+
+        <p>
+          The one thing this cannot do is ship an event the installed app has never heard of. A key
+          missing from the bundle renders as the raw key on iOS, so a new event type would reach every
+          phone that has not updated as
+          <code>order_refunded_body</code>. The fix is small and deterministic: the app already posts
+          its token and platform on launch, so it posts <code>appVersion</code> too, and the server
+          sends keys to versions known to carry them and a server-rendered sentence to everything
+          else. That also means a new event ships the same day server-side instead of waiting on an
+          app release.
+        </p>
+
+        <p>
+          <strong>Settled: localization keys, with a server-rendered sentence for app versions that
+          predate the key.</strong> The fallback is not a hedge — it is what lets a new event type
+          ship server-side on the day it is written instead of waiting on an App Store release, and
+          it goes quiet by itself one release cycle later. Data-only messages, where the JS bundle
+          builds the notification, are the one shape ruled out: on iOS they need
+          <code>content-available</code>, which Apple throttles and drops at its discretion.
+        </p>
+
+        <doc-note kind="tip" title="One copy bug this exposes">
+          <p>
+            <code>{to}</code> interpolates the raw enum member, so that Italian sentence currently
+            reads <em>&ldquo;… è ora <code>paid</code>.&rdquo;</em> In the feed a reader has the order
+            on screen and shrugs. On a lock screen it is the whole message. Worth resolving statuses
+            through the existing label map before the first push ships — small, and it improves the
+            feed too.
+          </p>
+        </doc-note>
+
+        <p>
+          That leaves which language — and loc keys answer most of it for us, because the OS reads
+          the phone's own locale and we never send a language at all. What survives is the
+          <strong>fallback</strong> path: a version-skewed phone still gets a server-rendered
+          sentence, and that sentence needs a language. So the answer settled last round stands,
+          with a smaller job: the device locale for push, a <code>language</code> column on
+          <code>customer_accounts</code> for email and the feed. A phone set to German should speak
+          German whatever language the account was created in; an email has no device behind it, so
+          it needs the person's own stated preference.
+        </p>
+        <p>
+          Two sources are only safe if the order between them is written down once and used
+          everywhere, so it is one function and this is the whole of it:
+        </p>
+
+        <doc-code lang="text" title="Resolving the reader's language">
+push, loc key    the phone's own OS locale — we send no language at all
+push, fallback   push_devices.language  →  customer_accounts.language  →  'it'
+email            customer_accounts.language  →  'it'
+in-app feed      customer_accounts.language  →  'it'
+        </doc-code>
+
+        <p>
+          Every code is narrowed through the registry in <code>@mia/validators</code>'s
+          <code>language.ts</code> before it is used, so a phone set to Japanese falls through to
+          the account and then to Italian rather than rendering an empty catalogue.
+          <code>customer_accounts.language</code> is the existing <code>language_code</code> enum,
+          nullable, and deliberately <strong>not</strong> backfilled: NULL means &ldquo;never told
+          us&rdquo;, which is the truth about every account today, and it is a different fact from
+          &ldquo;chose Italian&rdquo;.
+        </p>
+
+        <doc-note kind="success" title="Settled: two surfaces, two languages, and that is correct">
+          <p>
+            <strong>The tray, the title bar and the lock screen use the device's language.</strong>
+            At that moment no renderer of ours is running and no i18n bundle is loaded, so the OS
+            resolves the key against its own locale. <strong>Inside the app it is the language the
+            customer picked</strong>, rendered by the feed from the same catalogue.
+          </p>
+          <p>
+            They can therefore disagree — a phone set to Italian with the app set to English shows an
+            Italian lock screen and an English feed. That is defensible rather than a bug: a glance
+            notification belongs to the device owner in their device's language, and the feed belongs
+            to the session they configured. Android 13+ additionally lets an app set its own locale,
+            so if your picker uses that API rather than a JavaScript-only setting, the two agree for
+            free; on iOS the per-app language lives in system Settings and an in-app picker does not
+            move it. Worth knowing which your app does before somebody reports the difference.
+          </p>
+        </doc-note>
+
+        <doc-note kind="info" title="This is the piece the first plan called Phase 3">
+          <p>
+            <code>customer_accounts.language</code> and localized email were already the last phase
+            of the back-office notifications plan, parked as not-yet-needed. Choosing
+            &ldquo;both&rdquo; pulls it forward into this one, which is the right call — it is a
+            column and a fallback, and doing it now means push and email never disagree about who
+            the reader is.
+          </p>
+        </doc-note>
+      </doc-section>
+
+      <doc-section title="What the customer chooses">
+        <p>
+          <strong>Agreed — this becomes a real setting, not a table I decide.</strong> My first draft
+          hard-coded which events reach a phone; you are right that this belongs to the customer. The
+          hard-coded list survives only as the <em>default</em>, which still has to be chosen well,
+          because almost nobody opens a preference screen.
+        </p>
+
+        <doc-table size="sm">
+          <table>
+            <thead><tr><th>Event</th><th>Default</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><code>contract.awaiting_signature</code></td><td>On</td><td>We are blocked on them. This is the one that pays for the feature.</td></tr>
+              <tr><td><code>order.status_changed</code></td><td>On</td><td>Shipped, paid, ready — what they open the app to check.</td></tr>
+              <tr><td><code>rental.ending_soon</code></td><td>On</td><td>A deadline with money attached.</td></tr>
+              <tr><td><code>order.upcoming</code></td><td>On</td><td>A delivery they need to be present for.</td></tr>
+              <tr><td><code>rental.renewed</code></td><td>Off</td><td>Confirms something they just did.</td></tr>
+              <tr><td><code>contract.signed</code></td><td>Off</td><td>Same — they were there when it happened.</td></tr>
+            </tbody>
+          </table>
+        </doc-table>
+
+        <p>
+          Stored as <code>notification_preferences jsonb</code> on <code>customer_accounts</code>,
+          following the <code>platform_settings</code> precedent already in the codebase: a bag, not
+          a wide row, so the next event costs an <code>UPDATE</code> instead of a migration. It holds
+          <strong>only deviations from the default</strong> — an empty object means &ldquo;the
+          defaults above&rdquo;, so a new event type is live for everyone the day it ships, with no
+          backfill and no customer silently missing it.
+        </p>
+        <p>
+          The screen groups by category rather than listing raw event types — Orders, Rentals,
+          Contracts — which is the same derived-from-the-event-name grouping the admin inbox rail
+          already uses, so nothing new has to be kept in step.
+        </p>
+
+        <p>
+          <strong>Settled: three toggles, push only.</strong> Orders, Rentals, Contracts, and
+          nothing finer. The feed goes on recording everything — it is the record, and hiding rows
+          from it would leave two mechanisms answering &ldquo;what happened to my order&rdquo; — and
+          email stays transactional, which is what it is for. So a toggle here means exactly one
+          thing: whether this category may light up a lock screen. That is a sentence the screen can
+          say in one line without a help modal, and it is true.
+        </p>
+        <p>
+          Per-channel control is the shape this grows into the day customers start asking to mute
+          email, so the stored key is shaped for it now: <code>{ "order": { "push": false } }</code>
+          rather than <code>{ "order": false }</code>. Adding <code>"email"</code> later is then an
+          <code>UPDATE</code> and a new toggle, not a migration and a reinterpretation of every row
+          already written.
+        </p>
+
+        <p>
+          Whichever we pick, the OS-level permission stays the real off switch and revoking it is one
+          tap — so this screen is about tuning, never about consent.
+        </p>
+      </doc-section>
+
+      <doc-section title="What your app developer needs from us">
+        <p>
+          Your developer is not waiting on a decision, they are waiting on endpoints. There is
+          nothing notification-shaped under <code>/api/customer</code> today — not a feed, not a
+          stream, not a device registration — so there is literally nothing for them to call. This
+          section is the whole list, so it can be handed over as it stands.
+        </p>
+        <p>
+          Almost all of it is ours alone: no Firebase project, no Apple account and no app build is
+          needed to write or test any endpoint below. Two things are yours, and they are at the end
+          of this section because they take days of waiting rather than hours of work — start them
+          today.
+        </p>
+
+        <p>
+          <strong>Settled: the cookie works, and we build the backend.</strong> You confirmed the app
+          already signs a customer in, which was the one thing nobody had verified — a session
+          surviving the WebView is exactly what that proves. So <code>requireCustomer</code> guards
+          every endpoint below with no second authentication path, no bearer tokens to expire and
+          revoke, and nothing for your developer to change about how they already call us.
+        </p>
+
+        <p>
+          With that settled, here is everything we hand over. Sessions throughout; the responses use
+          the same <code>{ data, meta }</code> envelope as the rest of the API.
+        </p>
+
+        <h3>The feed — a mirror of what the back office already has</h3>
+
+        <doc-endpoint method="get" path="/api/customer/notifications" auth="session"
+          summary="The customer's notifications, newest first"
+          description="Identical in shape to the operator feed that shipped with the back office. meta.unread is the badge number and is always the global unread count, never the filtered one."
+          params="page:query:integer:optional:Defaults to 1; perPage:query:integer:optional:Defaults to 20; category:query:string:optional:order | rental | contract; unread:query:string:optional:Pass true for unread only"
+          status="200 OK"
+          response='{ "data": [ { "id": "8f3c…", "type": "order.status_changed", "data": { "orderNumber": "MIA-2026-001010", "field": "status", "from": "pending", "to": "paid" }, "orderId": "1b2e…", "readAt": null, "createdAt": "2026-09-16T05:12:44.019Z" } ], "meta": { "page": 1, "perPage": 20, "total": 14, "unread": 3, "counts": { "all": { "total": 14, "unread": 3 }, "order": { "total": 9, "unread": 2 }, "rental": { "total": 3, "unread": 0 }, "contract": { "total": 2, "unread": 1 } } } }'></doc-endpoint>
+
+        <doc-endpoint method="get" path="/api/customer/notifications/stream" auth="session"
+          summary="Live updates while the app is on screen (SSE)"
+          description="text/event-stream. A ready frame arrives immediately and is the cue to fetch the snapshot; a notification frame means something changed; a heartbeat comment every 25 seconds keeps intermediaries from closing it. Frames carry no fact the feed endpoint could not also answer, so a dropped connection is a non-event — reconnect and re-read."
+          status="200 OK · text/event-stream"
+          response='event: ready&#10;data: {}&#10;&#10;event: notification&#10;data: { "id": "8f3c…", "type": "order.status_changed", … }'></doc-endpoint>
+
+        <doc-endpoint method="post" path="/api/customer/notifications/read" auth="session"
+          summary="Mark specific notifications read"
+          description="Up to 200 ids per call. Answers with the recomputed counts rather than a bare number, so the badge and the list can never disagree."
+          request='{ "ids": ["8f3c…", "2ad9…"] }'
+          status="200 OK"
+          response='{ "data": { "marked": 2, "unread": 1, "counts": { "all": { "total": 14, "unread": 1 }, … } } }'></doc-endpoint>
+
+        <doc-endpoint method="post" path="/api/customer/notifications/read-all" auth="session"
+          summary="Mark everything read"
+          status="200 OK"
+          response='{ "data": { "marked": 3, "unread": 0, "counts": { … } } }'></doc-endpoint>
+
+        <h3>Devices — the two calls that make push possible</h3>
+
+        <doc-endpoint method="post" path="/api/customer/push/devices" auth="session"
+          summary="Register or refresh this device's token"
+          description="Called on every launch after the OS grants permission, and again whenever the OS hands the app a new token. Upserts on token, so calling it repeatedly is correct and cheap. appVersion decides whether this device gets localization keys or a server-rendered sentence, so it is required, not telemetry. language is only used for that fallback — anything outside our registry falls back rather than failing."
+          request='{ "token": "fxK9…", "platform": "ios", "language": "de", "appVersion": "1.4.0" }'
+          status="204 No Content"></doc-endpoint>
+
+        <doc-endpoint method="delete" path="/api/customer/push/devices" auth="session"
+          summary="Unregister on sign-out"
+          description="The token goes in the body rather than the path on purpose: a device token in a URL ends up in nginx access logs. Must be called before the session is cleared, or the row survives and keeps delivering somebody else's orders to this phone."
+          request='{ "token": "fxK9…" }'
+          status="204 No Content"></doc-endpoint>
+
+        <h3>Preferences — the three toggles</h3>
+
+        <doc-endpoint method="get" path="/api/customer/notification-preferences" auth="session"
+          summary="Read the toggles, defaults already applied"
+          description="Returns the effective state, not the stored deviations — the app renders switches, it should not have to know the default table. Stored as a jsonb bag holding only what differs from the defaults, so a new category is live for everyone the day it ships."
+          status="200 OK"
+          response='{ "data": { "order": { "push": true }, "rental": { "push": true }, "contract": { "push": true } } }'></doc-endpoint>
+
+        <doc-endpoint method="put" path="/api/customer/notification-preferences" auth="session"
+          summary="Write one or more toggles"
+          description="A partial object; unnamed categories are left alone. Answers with the same effective shape the GET returns."
+          request='{ "order": { "push": false } }'
+          status="200 OK"
+          response='{ "data": { "order": { "push": false }, "rental": { "push": true }, "contract": { "push": true } } }'></doc-endpoint>
+
+        <h3>What the push itself looks like when it lands</h3>
+
+        <p>
+          A visible notification, so the OS draws it whether or not the app is running, plus a
+          <code>data</code> block the app reads when the person taps it. Every value in
+          <code>data</code> is a string, because FCM allows nothing else there.
+        </p>
+        <p>
+          The wording is a key the OS resolves against the app's own string resources, so there is no
+          <code>notification</code> block and no Italian in the payload — see the language section
+          above. A device on an app version that predates the key gets a plain
+          <code>notification</code> block with a server-rendered sentence instead; that is the only
+          difference between the two shapes.
+        </p>
+
+        <doc-code lang="json" title="The FCM message we send">
+{
+  "message": {
+    "token": "fxK9…",
+    "data": {
+      "notificationId": "8f3c…",
+      "type": "order.status_changed",
+      "orderNumber": "MIA-2026-001010",
+      "route": "/area-clienti/ordini/MIA-2026-001010"
+    },
+    "android": {
+      "priority": "high",
+      "notification": {
+        "title_loc_key": "order_status_changed_paid_title",
+        "body_loc_key": "order_status_changed_paid_body",
+        "body_loc_args": ["MIA-2026-001010"]
+      }
+    },
+    "apns": {
+      "payload": { "aps": {
+        "sound": "default",
+        "alert": {
+          "title-loc-key": "order_status_changed_paid_title",
+          "loc-key": "order_status_changed_paid_body",
+          "loc-args": ["MIA-2026-001010"]
+        }
+      } }
+    }
+  }
+}
+        </doc-code>
+
+        <p>
+          <code>route</code> is the contract that matters, and it is deliberately a path we compute
+          rather than a screen name the app has to map. Adding an event type later then changes
+          nothing in the app. These are the paths it can receive:
+        </p>
+
+        <doc-table size="sm">
+          <table>
+            <thead>
+              <tr><th>Event</th><th><code>route</code></th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>order.status_changed</code>, <code>order.upcoming</code></td><td><code>/area-clienti/ordini/{orderNumber}</code></td></tr>
+              <tr><td><code>rental.ending_soon</code>, <code>rental.renewed</code></td><td><code>/area-clienti/ordini/{orderNumber}</code></td></tr>
+              <tr><td><code>contract.signed</code></td><td><code>/area-clienti/ordini/{orderNumber}</code></td></tr>
+              <tr><td><code>contract.awaiting_signature</code></td><td><code>/firma-contratto/?token=…</code> — see the gap below</td></tr>
+            </tbody>
+          </table>
+        </doc-table>
+
+        <doc-note kind="warn" title="Signing from the app needs one endpoint that does not exist">
+          <p>
+            The signing page is reached with a one-time <code>?token=</code> that today only ever
+            travels by email, and the notification payload does not carry it — correctly, because a
+            stored row is not where a signing secret belongs. So the single most valuable push we
+            have, <em>&ldquo;your contract is waiting&rdquo;</em>, currently cannot open the thing it
+            is about.
+          </p>
+          <p>
+            One small authenticated endpoint closes it, minting the link for a contract the
+            signed-in customer actually owns:
+          </p>
+          <doc-endpoint method="get" path="/api/customer/contracts/{number}/signing-link" auth="session"
+            summary="The signing URL for a contract this customer owns"
+            params="number:path:string:required:Contract number, e.g. CTR-2026-001009"
+            status="200 OK"
+            response='{ "data": { "url": "https://miamedicalitalia.com/firma-contratto/?token=…" } }'></doc-endpoint>
+        </doc-note>
+
+        <h3>What we need back from the app</h3>
+
+        <doc-list marker="arrow">
+          <li>
+            <strong>Permission before registration.</strong> <code>requestPermissions()</code> then
+            <code>register()</code> — Android 13+ made this a runtime prompt too, so it is no longer
+            an iOS-only step.
+          </li>
+          <li>
+            <strong>The token on every launch,</strong> and again on the token-refresh callback.
+            Never cached and assumed stable; the OS reissues them whenever it likes.
+          </li>
+          <li>
+            <strong>The app version</strong> in that same call. It is what decides whether this phone
+            is sent a localization key or a rendered sentence, so a wrong or missing value shows
+            somebody a raw <code>order_status_changed_paid_body</code> on their lock screen.
+          </li>
+          <li>
+            <strong>The device locale</strong> too, as a two-letter code. Only used for the
+            server-rendered fallback — the OS handles the language whenever keys are in play.
+          </li>
+          <li>
+            <strong>The generated string resources committed to the app repo,</strong> regenerated
+            whenever copy changes. We produce <code>strings.xml</code> and
+            <code>Localizable.strings</code> from <code>@mia/i18n</code>; nobody hand-edits them.
+          </li>
+          <li>
+            <strong>The unregister call before sign-out clears the session,</strong> not after. An
+            orphaned token keeps delivering to a phone nobody is signed into.
+          </li>
+          <li>
+            <strong>A tap handler that follows <code>data.route</code></strong> and marks
+            <code>data.notificationId</code> read.
+          </li>
+        </doc-list>
+
+        <h3>The two things only you can start</h3>
+
+        <p>
+          Neither blocks the endpoints above, and both involve waiting on somebody else, so they
+          should be moving while we build.
+        </p>
+
+        <doc-table size="sm">
+          <table>
+            <thead>
+              <tr><th>What</th><th>Cost</th><th>Why it has to be you</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Apple Developer Program</strong></td>
+                <td>$99/year</td>
+                <td>A legal-entity enrolment that can take days, and iOS push is impossible without it. The app needs it to reach the App Store regardless of this plan.</td>
+              </tr>
+              <tr>
+                <td><strong>Firebase project</strong></td>
+                <td>Free at our volume</td>
+                <td>It is billed to and owned by you, not by a contractor. We need the service-account key for the server, and your developer needs <code>google-services.json</code>; the APNs <code>.p8</code> from the Apple account gets uploaded into it so one transport covers both platforms.</td>
+              </tr>
+            </tbody>
+          </table>
+        </doc-table>
+      </doc-section>
+
+      <doc-section title="Order of work">
+        <p>
+          <strong>Everything in this list is backend.</strong> Permissions, registration calls, tap
+          handling and every screen are the app developer's, and they need nothing from us but the
+          endpoints in the previous section and the credentials below. Four steps, in order, each
+          finishable and testable without Firebase, without Apple and without an app build.
+        </p>
+
+        <doc-steps>
+          <doc-step title="Customer feed API" status="pending">
+            <code>/api/customer/notifications</code> — list, stream, read, read-all. A mirror of
+            <code>admin-routes.ts</code> behind <code>requireCustomer</code>; <code>repo.ts</code> and
+            <code>hub.ts</code> are already recipient-generic and need no change. Nothing else in this
+            plan is useful without it.
+          </doc-step>
+          <doc-step title="Devices, language and the sender" status="pending">
+            The <code>push_devices</code> migration, the nullable
+            <code>customer_accounts.language</code> column and the resolver that orders the two, the
+            register and unregister routes, and <code>infra/push/</code> — a <code>PushSender</code>
+            port with an <code>fcm</code> adapter and a <code>console</code> one, so the whole flow is
+            testable before a Firebase project exists. <strong>The handover happens here:</strong>
+            once this lands, every endpoint the app developer needs is live.
+          </doc-step>
+          <doc-step title="Dispatch, preferences and the string files" status="pending">
+            <code>pushed_at</code>, the claim query, the sweep retry, dead-token pruning, the defaults
+            map, and the <code>notification_preferences</code> check at send time. Plus the two
+            outputs the app repo consumes: the localization codegen that turns
+            <code>@mia/i18n</code> into <code>strings.xml</code> and <code>Localizable.strings</code>
+            with per-status keys, and the <code>appVersion</code> gate that decides which devices get
+            keys. The signing-link endpoint lands here too, without which the contract push cannot
+            open the contract.
+          </doc-step>
+          <doc-step title="The preference screen on the website" status="pending">
+            Three toggles — Orders, Rentals, Contracts — in <code>/area-clienti/</code>, reading and
+            writing the jsonb bag through the endpoints above. Ours because the client area is ours;
+            the app's version of the same screen is the developer's, against the same two endpoints.
+            Last, because the defaults make the feature correct without it.
+          </doc-step>
+        </doc-steps>
+
+        <doc-note kind="info" title="What this costs">
+          <p>
+            FCM is free at our volume, and so is the Firebase project. The only bill is the
+            <strong>Apple Developer Program, $99/year</strong>, which the app needs to be on the App
+            Store at all. No new infrastructure and no queue — the database is the outbox.
+          </p>
+        </doc-note>
+      </doc-section>
+
+      <doc-section title="What I am deliberately not proposing">
+        <doc-list marker="cross" kind="negative">
+          <li>
+            <strong>Web push for the storefront.</strong> A different transport (VAPID) and a service
+            worker, for desktop browsers. Real value, separate plan.
+          </li>
+          <li>
+            <strong>A queue.</strong> <code>pushed_at</code> plus the existing sweep is an outbox with
+            a retry. Redis would add a component to solve what the table already solves.
+          </li>
+          <li>
+            <strong>Delivery receipts.</strong> FCM accepting a message is not a phone showing it. We
+            record that we sent — the same honesty <code>read_at</code> already keeps.
+          </li>
+          <li>
+            <strong>Quiet hours and grouping.</strong> Read-side policy, no migration. Add them when
+            volume makes them a complaint.
+          </li>
+        </doc-list>
+      </doc-section>
+    </doc-page>
+    <script src="https://cdn.jsdelivr.net/npm/forgedoc@2.1.0/dist/forgedoc.iife.js" data-forgedoc="js" defer></script>
+  </body>
+</html>

@@ -1,13 +1,18 @@
 <!--
   The customer area's own navigation.
 
-  THREE DESTINATIONS, ONE LIST, no sub-menu. The account is small enough that
-  every entry is a real route: the two screens the router knows, plus the
+  FOUR DESTINATIONS, ONE LIST, no sub-menu. The account is small enough that
+  every entry is a real route: the three screens the router knows, plus the
   catalogue — which is the reason most customers open this area at all, and a
   server-rendered link rather than something the island routes.
 
-  Riepilogo and Ordini stay `<AccountLink>`s so a click is a `pushState` and not
-  a document load, and so middle-click and ⌘-click still work.
+  The three internal ones stay `<AccountLink>`s so a click is a `pushState` and
+  not a document load, and so middle-click and ⌘-click still work.
+
+  Notifiche carries the unread count. It is a badge on a destination rather
+  than a bell of its own in the header: the storefront header is shared with
+  every public page and belongs to the shop, not to the account, and one place
+  showing the number is one place that can be wrong about it.
 
   ONE DOM, TWO SHAPES: a sidebar above `mid`, a scrolling strip of pills below
   it. Repeating the list per breakpoint would put two navigation landmarks in
@@ -19,9 +24,14 @@
 
   import AccountLink from './AccountLink.svelte';
 
-  const { copy, router } = accountContext();
+  const { copy, notifications, router } = accountContext();
 
   const screen = $derived(router.screen);
+
+  /* Past 99 the exact number stops being information and starts being a layout
+     problem. The screen itself still shows the real count. */
+  const unread = $derived(notifications.unread);
+  const badge = $derived(unread > 99 ? '99+' : String(unread));
 
   /**
    * The orders screen and one order are the same destination as far as the
@@ -81,6 +91,37 @@
           <path d="M3.8 7.6 12 11.4l8.2-3.8M12 11.4v8.8"></path>
         </svg>
         {say(copy, 'account.myOrders')}
+      </AccountLink>
+    </li>
+
+    <li>
+      <AccountLink
+        to={{ name: 'notifications' }}
+        class={`${ITEM} ${screen.name === 'notifications' ? CURRENT : REST}`}
+      >
+        <svg
+          class="flex-none"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M18 8.6a6 6 0 1 0-12 0c0 6.3-2.4 7.4-2.4 7.4h16.8S18 14.9 18 8.6"></path>
+          <path d="M13.7 19.6a1.9 1.9 0 0 1-3.4 0"></path>
+        </svg>
+        {say(copy, 'account.notifications.title')}
+        {#if unread > 0}
+          <span
+            class="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 py-0.5 text-[11px] leading-none font-bold text-white tabular-nums"
+          >
+            {badge}
+          </span>
+        {/if}
       </AccountLink>
     </li>
 

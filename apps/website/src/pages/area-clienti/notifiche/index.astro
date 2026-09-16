@@ -1,0 +1,27 @@
+---
+/**
+ * `/area-clienti/notifiche/` — everything the shop has told this customer.
+ *
+ * A ROUTE DECLARATION. The screen is
+ * `components/account/NotificationsScreen.svelte`, inside the island this
+ * mounts; see docs/code/storefront-account-island.md.
+ */
+import AccountApp from '~/components/account/AccountApp.svelte';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { ACCOUNT_ISLAND_KEYS, accountCopy } from '~/lib/account-page';
+import { localeFromLocals, translate } from '~/lib/i18n';
+
+export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+const copy = accountCopy(locale, ACCOUNT_ISLAND_KEYS);
+---
+
+<BaseLayout
+  title={text('account.notifications.metaTitle')}
+  description={text('account.notifications.metaDescription')}
+  noindex
+>
+  <AccountApp client:load {copy} initial={{ name: 'notifications' }} />
+</BaseLayout>

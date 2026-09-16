@@ -3,10 +3,12 @@
 The in-app feed. One table, pushed over SSE, fanned out by `pg_notify` from
 inside the transaction that caused it. No queue, no vendor, no polling.
 
-Phase one — shipped — is the pipeline and the **operator's** feed. The customer
-feed at `/area-clienti/` is phase two; a language column on
-`customer_accounts` and localized email are phase three. The design and the
-reasoning behind the phasing are in `docs/plan/PLAN_notifications.html`.
+Both audiences are shipped: the operator's feed in the back office, and the
+customer's at `/area-clienti/notifiche/`. A language column on
+`customer_accounts` and localized email remain outstanding — see
+`docs/plan/PLAN_app_push_notifications.html`, where the choice to key push off
+the device locale and email off the account pulls that work into the push
+phase. The design and the reasoning are in `docs/plan/PLAN_notifications.html`.
 
 `modules/notifications/` used to mean "email". It now means "a thing somebody is
 told", and email is one of its two channels — `mail.ts` is the old `service.ts`,
@@ -61,20 +63,24 @@ string into `data` freezes that row into one language forever.
 
 ## Files
 
-| File                                                     | What it owns                                                                                                     |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `packages/validators/src/notification.ts`                | THE event catalogue. Pure types — no valibot, so `@mia/db` can type the jsonb column from it.                    |
-| `packages/i18n/src/notification-labels.ts`               | What each event says, per language. `satisfies` the catalogue, so a new event fails `tsc` until its copy exists. |
-| `packages/db/src/schema/notifications.ts`                | The table, the audience enum, the recipient CHECK, the three indexes.                                            |
-| `modules/notifications/types.ts`                         | The channel, the envelope, `ADMIN_EVENT_PERMISSION`.                                                             |
-| `modules/notifications/write.ts`                         | `emit` and `emitToAdmins`. The only writers.                                                                     |
-| `modules/notifications/hub.ts`                           | `LISTEN`, the recipient→streams map, the shared heartbeat.                                                       |
-| `modules/notifications/repo.ts`                          | Feed page, unread count, mark read. Every read scoped to one recipient.                                          |
-| `modules/notifications/admin-routes.ts`                  | `GET /` (with `category` / `unread` filters), `GET /stream`, `POST /read`, `POST /read-all`.                     |
-| `modules/notifications/sweep.ts`                         | The events no transaction produces.                                                                              |
-| `modules/notifications/mail.ts`                          | Email. Was `service.ts`; policy unchanged.                                                                       |
-| `apps/admin/src/lib/notifications/`                      | The feed singleton, the row renderer, and the one shared `NotificationRow`.                                      |
-| `apps/admin/src/lib/components/notification-bell.svelte` | The bell, its dropdown, and the SSE connection's lifetime.                                                       |
+| File                                                             | What it owns                                                                                                     |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `packages/validators/src/notification.ts`                        | THE event catalogue. Pure types — no valibot, so `@mia/db` can type the jsonb column from it.                    |
+| `packages/i18n/src/notification-labels.ts`                       | What each event says, per language. `satisfies` the catalogue, so a new event fails `tsc` until its copy exists. |
+| `packages/db/src/schema/notifications.ts`                        | The table, the audience enum, the recipient CHECK, the three indexes.                                            |
+| `modules/notifications/types.ts`                                 | The channel, the envelope, `ADMIN_EVENT_PERMISSION`.                                                             |
+| `modules/notifications/write.ts`                                 | `emit` and `emitToAdmins`. The only writers.                                                                     |
+| `modules/notifications/hub.ts`                                   | `LISTEN`, the recipient→streams map, the shared heartbeat.                                                       |
+| `modules/notifications/repo.ts`                                  | Feed page, unread count, mark read. Every read scoped to one recipient.                                          |
+| `modules/notifications/admin-routes.ts`                          | `GET /` (with `category` / `unread` filters), `GET /stream`, `POST /read`, `POST /read-all`.                     |
+| `modules/notifications/customer-routes.ts`                       | The same four, behind `requireCustomer`. A near-copy, deliberately — see below.                                  |
+| `modules/notifications/sweep.ts`                                 | The events no transaction produces.                                                                              |
+| `modules/notifications/mail.ts`                                  | Email. Was `service.ts`; policy unchanged.                                                                       |
+| `apps/admin/src/lib/notifications/`                              | The feed singleton, the row renderer, and the one shared `NotificationRow`.                                      |
+| `apps/admin/src/lib/components/notification-bell.svelte`         | The bell, its dropdown, and the SSE connection's lifetime.                                                       |
+| `apps/website/src/lib/notifications.svelte.ts`                   | The customer feed store: snapshot, `EventSource`, mark-read.                                                     |
+| `apps/website/src/lib/notification-copy.ts`                      | Payload codes and ISO dates → words and dates, per event type. Tested.                                           |
+| `apps/website/src/components/account/NotificationsScreen.svelte` | The customer's list, its three states, and mark-all.                                                             |
 
 ## Who is told what
 
@@ -87,19 +93,35 @@ mechanisms answering "have I read this".
 The mapping is `ADMIN_EVENT_PERMISSION` in `types.ts`, and call sites never pass
 a permission — `emitToAdmins` reads it from the event type.
 
-| Event                        | Raised by                       | Audience | Permission           |
-| ---------------------------- | ------------------------------- | -------- | -------------------- |
-| `order.placed`               | `orders/repo.insertOrder`       | admin    | `ORDER_READ`         |
-| `order.link_disputed`        | `order-disputes/service.create` | admin    | `ORDER_DISPUTE_READ` |
-| `contract.signed`            | `contracts/service.sign`        | admin    | `CONTRACT_READ`      |
-| `contract.unsigned_blocking` | sweep, T+48h                    | admin    | `CONTRACT_READ`      |
-| `rental.ending_soon`         | sweep, T−3                      | admin    | `RENTAL_READ`        |
-| `order.status_changed`       | `orders/repo.applyTransition`   | customer | —                    |
+| Event                         | Raised by                         | Audience | Permission           |
+| ----------------------------- | --------------------------------- | -------- | -------------------- |
+| `order.placed`                | `orders/repo.insertOrder`         | admin    | `ORDER_READ`         |
+| `order.link_disputed`         | `order-disputes/service.create`   | admin    | `ORDER_DISPUTE_READ` |
+| `contract.signed`             | `contracts/service.sign`          | admin    | `CONTRACT_READ`      |
+| `contract.unsigned_blocking`  | sweep, T+48h                      | admin    | `CONTRACT_READ`      |
+| `rental.ending_soon`          | sweep, T−3                        | admin    | `RENTAL_READ`        |
+| `order.status_changed`        | `orders/repo.applyTransition`     | customer | —                    |
+| `order.upcoming`              | sweep, T−2 from the rental start  | customer | —                    |
+| `rental.ending_soon`          | sweep, T−7 / T−3 / T−1            | customer | —                    |
+| `rental.renewed`              | `rentals/service.renew`           | customer | —                    |
+| `contract.awaiting_signature` | `contracts/service.issueContract` | customer | —                    |
+| `contract.signed`             | `contracts/service.sign`          | customer | —                    |
 
-`order.status_changed` rows are written now and read in phase two, so the
-customer feed opens with history rather than with an empty list. An order with
-no `customer_account_id` writes nothing: there is nobody to address, and
-`notifications_recipient_check` refuses the row.
+Three events reach **both** audiences from one cause, and two of those write
+both rows in one transaction: signing a contract tells the operator the order is
+unblocked and tells the customer their copy is filed. `rental.ending_soon` is
+the third, and it is the reason the sweep computes days-left in the SELECT
+rather than the WHERE — one row decides both notices, so "three days left"
+cannot come to mean two different things.
+
+An order with no `customer_account_id` writes nothing: there is nobody to
+address, and `notifications_recipient_check` refuses the row. That is the normal
+state for a guest order or one taken over the phone, and those customers are
+reached by the emailed order link instead.
+
+A customer's feed carries no permission dimension at all. Their access is
+always "their own rows", which `repo.Recipient` scopes every read and every
+write to — a customer cannot even mark an operator's row read.
 
 The feed route itself carries **no** permission code, like `/profile`. What an
 operator hears about was decided when the row was written; a grant at read time
@@ -138,6 +160,62 @@ well is busywork.
 > recipients. Both used to be called "Notifications" and sat one above the other
 > in the sidebar, which read as one feature with two pages. Who gets email is a
 > setting; what the back office is telling you is an inbox.
+
+## What the customer sees
+
+One destination in the account island's navigation, carrying the unread count,
+and one screen at `/area-clienti/notifiche/` — declared in all four languages by
+`routePaths`, so the German customer's URL is `/de/kundenbereich/benachrichtigungen/`.
+
+No category rail, unlike the back office. An operator filters because they are
+reading everybody's events; a customer has their own orders and a handful of
+rows, and a filter would be three controls in front of a list you can see the
+end of.
+
+The island opens the stream, not the screen. The count sits in the navigation on
+all four screens, so a stream that only ran while the notifications screen was
+showing would be a live feed you had to already be looking at.
+
+**The sentence is never stored.** A row carries a type and a payload; the
+wording comes from `@mia/i18n`, resolved on the server for the request's
+language and shipped in the account copy blob as templates with their
+`{placeholder}` slots still standing. The island fills them with the same
+`fill()` the order screens use. So a notice written during an Italian checkout
+reads in German the moment the customer switches language — including the
+status word and the date format.
+
+That last part is what `lib/notification-copy.ts` exists for, and it is worth
+stating because getting it wrong is invisible to `tsc`:
+
+```
+row.data    { field: 'status', from: 'pending', to: 'cancelled' }
+template    "Il tuo ordine {orderNumber} è ora {to}."
+
+without     Il tuo ordine MIA-2026-001011 è ora cancelled.      ← the payload
+            Il noleggio termina il 2026-09-17.                    showing through
+
+with        Il tuo ordine MIA-2026-001011 è ora Annullato.
+            Il noleggio termina il 17 set 2026.
+```
+
+The mapping is stated **per event type**, never per field name: `from` and `to`
+are order statuses in `order.status_changed` and calendar dates in
+`rental.renewed`. A name-keyed table would format one of them wrongly and say
+nothing about it. `order` and `payment` are likewise two label maps rather than
+one, because the two enums share members — `paid` is in both — so a merged map
+would render a plausible word about the wrong thing.
+
+## Why `customer-routes.ts` is a near-copy of `admin-routes.ts`
+
+They agree today by coincidence, not by contract. The operator feed has a
+category rail and a permission model deciding which events reach whom; the
+customer feed answers to somebody who owns every row it can see. A shared
+parameterised router would make the next divergence — a preference check, a
+different page size — arrive as a conditional inside one function, which is
+where a feed starts showing one audience the other's rows.
+
+What IS shared is everything underneath. `repo.ts` and `hub.ts` are
+recipient-generic and needed no change at all to serve a second audience.
 
 ## The sweep, and why `dedupe_key` is the whole design
 

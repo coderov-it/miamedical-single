@@ -2,7 +2,7 @@ import type { Database } from '@mia/db';
 import { and, eq, notInArray, sql } from '@mia/db';
 import { contracts, orderItems, orders } from '@mia/db/schema';
 
-import { emitToAdmins } from './write.ts';
+import { emit, emitToAdmins } from './write.ts';
 
 /**
  * The events no transaction will ever produce.
@@ -19,8 +19,8 @@ import { emitToAdmins } from './write.ts';
  * every minute would run the same query sixty times over to move the delivery
  * moment around inside the hour.
  *
- * Phase one raises the operator's half only. The customer thresholds (T−7, T−3,
- * T−1) and the reminder email arrive with the customer feed.
+ * Both audiences are raised here. The operator gets one operational reminder;
+ * the customer gets the countdown, because it is their deadline.
  */
 
 const SWEEP_INTERVAL_MS = 60 * 60 * 1000;
@@ -33,6 +33,31 @@ const SWEEP_INTERVAL_MS = 60 * 60 * 1000;
 const ADMIN_RENTAL_THRESHOLD_DAYS = 3;
 
 /**
+ * The customer's countdown. Three notices, spaced so each one is actionable: a
+ * week out you can still plan around it, three days out you can arrange the
+ * collection, the day before is the last useful reminder.
+ *
+ * `ADMIN_RENTAL_THRESHOLD_DAYS` is one of these on purpose — at T−3 both
+ * audiences are told, from one pass over one query, and the dedupe keys keep
+ * them separate rows.
+ */
+const CUSTOMER_RENTAL_THRESHOLD_DAYS = [7, 3, 1] as const;
+
+/** Every threshold the end-of-rental pass looks for, ascending. */
+const RENTAL_THRESHOLD_DAYS = [
+  ...new Set<number>([...CUSTOMER_RENTAL_THRESHOLD_DAYS, ADMIN_RENTAL_THRESHOLD_DAYS]),
+].sort((a, b) => a - b);
+
+/**
+ * How long before a rental starts the customer is told.
+ *
+ * One notice, not a countdown: this exists because somebody has to be at the
+ * address when the equipment arrives, and two days is enough warning to move
+ * that without being so early that it is forgotten by the time it matters.
+ */
+const UPCOMING_RENTAL_DAYS = 2;
+
+/**
  * How long an unsigned contract stops being "waiting" and starts being
  * "stalled". The status machine refuses `pending → paid` on a rental order until
  * its newest contract is signed, so past this the order is not slow — it is
@@ -40,6 +65,7 @@ const ADMIN_RENTAL_THRESHOLD_DAYS = 3;
  */
 const CONTRACT_STALL_HOURS = 48;
 
+const rentalStartDate = sql<string>`${orderItems.configuration}->'rental'->>'startDate'`;
 const rentalEndDate = sql<string>`${orderItems.configuration}->'rental'->>'endDate'`;
 const pricingMode = sql<string>`${orderItems.configuration}->>'pricingMode'`;
 
@@ -49,43 +75,140 @@ const pricingMode = sql<string>`${orderItems.configuration}->>'pricingMode'`;
  */
 const romeToday = sql`(now() AT TIME ZONE 'Europe/Rome')::date`;
 
+/**
+ * Rentals reaching their end date at one of the thresholds.
+ *
+ * ONE query for every threshold, with the days-left arithmetic done in the
+ * SELECT rather than the WHERE, so a customer notice and the operator's copy of
+ * the same rental are decided from one row. Two passes would mean two
+ * definitions of "three days left" that could drift apart the day someone
+ * changed a timezone cast in one of them.
+ */
 async function sweepRentalsEndingSoon(db: Database): Promise<number> {
+  const daysLeft = sql<number>`((${rentalEndDate})::date - ${romeToday})`;
+
   const due = await db
     .selectDistinct({
       orderId: orders.id,
       orderNumber: orders.number,
+      customerAccountId: orders.customerAccountId,
       firstName: orders.firstName,
       lastName: orders.lastName,
       endsOn: rentalEndDate,
+      daysLeft,
     })
     .from(orderItems)
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .where(
       and(
         sql`${pricingMode} = 'rental'`,
-        /* The `::int` is load-bearing: a bare placeholder arrives as `unknown`
-           and `date + unknown` is ambiguous, so Postgres refuses the whole
-           query rather than guessing. */
-        sql`(${rentalEndDate})::date = ${romeToday} + ${ADMIN_RENTAL_THRESHOLD_DAYS}::int`,
+        /* Spelled out one placeholder at a time rather than passing the array.
+           Drizzle expands a JS array into a COMMA LIST — `($1, $2, $3)` — which
+           Postgres reads as a record, so `${RENTAL_THRESHOLD_DAYS}::int[]`
+           fails with "cannot cast type record to integer[]". `ARRAY[…]` with
+           each element cast is the shape that survives. The `::int` on each is
+           load-bearing for the older reason: a bare placeholder arrives as
+           `unknown` and Postgres will not guess. */
+        sql`${daysLeft} = ANY(ARRAY[${sql.join(
+          RENTAL_THRESHOLD_DAYS.map((days) => sql`${days}::int`),
+          sql`, `,
+        )}])`,
         notInArray(orders.status, ['fulfilled', 'cancelled']),
       ),
     );
 
   let written = 0;
   for (const rental of due) {
-    written += await db.transaction((tx) =>
-      emitToAdmins(tx, {
-        type: 'rental.ending_soon',
+    const data = {
+      orderNumber: rental.orderNumber,
+      endsOn: rental.endsOn,
+      daysLeft: rental.daysLeft,
+      customerName: fullName(rental.firstName, rental.lastName),
+    };
+
+    /* A guest order has no account to address, and one taken over the phone may
+       never gain one. The operator's copy below still fires — the rental is
+       ending whether or not anybody can be told about it in an app. */
+    if (
+      rental.customerAccountId &&
+      (CUSTOMER_RENTAL_THRESHOLD_DAYS as readonly number[]).includes(rental.daysLeft)
+    ) {
+      const accountId = rental.customerAccountId;
+      written += await db.transaction(async (tx) => {
+        const id = await emit(tx, {
+          audience: 'customer',
+          customerAccountId: accountId,
+          type: 'rental.ending_soon',
+          orderId: rental.orderId,
+          data,
+          dedupeKey: `rental.ending_soon:customer:${rental.orderId}:${rental.daysLeft}d`,
+        });
+        return id ? 1 : 0;
+      });
+    }
+
+    if (rental.daysLeft === ADMIN_RENTAL_THRESHOLD_DAYS) {
+      written += await db.transaction((tx) =>
+        emitToAdmins(tx, {
+          type: 'rental.ending_soon',
+          orderId: rental.orderId,
+          data,
+          dedupeKeyBase: `rental.ending_soon:admin:${rental.orderId}:${ADMIN_RENTAL_THRESHOLD_DAYS}d`,
+        }),
+      );
+    }
+  }
+  return written;
+}
+
+/**
+ * Rentals about to START — the delivery somebody has to be present for.
+ *
+ * Customer-only: an operator reading "a rental starts in two days" can do
+ * nothing with it that the rentals list does not already show them.
+ */
+async function sweepUpcomingRentals(db: Database): Promise<number> {
+  const daysUntil = sql<number>`((${rentalStartDate})::date - ${romeToday})`;
+
+  const due = await db
+    .selectDistinct({
+      orderId: orders.id,
+      orderNumber: orders.number,
+      customerAccountId: orders.customerAccountId,
+      startsOn: rentalStartDate,
+      daysUntil,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(
+      and(
+        sql`${pricingMode} = 'rental'`,
+        sql`${daysUntil} = ${UPCOMING_RENTAL_DAYS}::int`,
+        sql`${orders.customerAccountId} IS NOT NULL`,
+        notInArray(orders.status, ['fulfilled', 'cancelled']),
+      ),
+    );
+
+  let written = 0;
+  for (const rental of due) {
+    const accountId = rental.customerAccountId;
+    if (!accountId) continue;
+
+    written += await db.transaction(async (tx) => {
+      const id = await emit(tx, {
+        audience: 'customer',
+        customerAccountId: accountId,
+        type: 'order.upcoming',
         orderId: rental.orderId,
         data: {
           orderNumber: rental.orderNumber,
-          endsOn: rental.endsOn,
-          daysLeft: ADMIN_RENTAL_THRESHOLD_DAYS,
-          customerName: fullName(rental.firstName, rental.lastName),
+          startsOn: rental.startsOn,
+          daysUntil: rental.daysUntil,
         },
-        dedupeKeyBase: `rental.ending_soon:admin:${rental.orderId}:${ADMIN_RENTAL_THRESHOLD_DAYS}d`,
-      }),
-    );
+        dedupeKey: `order.upcoming:${rental.orderId}`,
+      });
+      return id ? 1 : 0;
+    });
   }
   return written;
 }
@@ -161,11 +284,12 @@ function fullName(firstName: string | null, lastName: string | null): string {
   return `${firstName ?? ''} ${lastName ?? ''}`.trim() || '—';
 }
 
-/** Both passes, in order. Returns how many rows were actually written. */
+/** Every pass, in order. Returns how many rows were actually written. */
 export async function runNotificationSweep(db: Database): Promise<number> {
-  const rentals = await sweepRentalsEndingSoon(db);
+  const ending = await sweepRentalsEndingSoon(db);
+  const upcoming = await sweepUpcomingRentals(db);
   const stalls = await sweepStalledContracts(db);
-  return rentals + stalls;
+  return ending + upcoming + stalls;
 }
 
 /** Fire-and-forget scheduling; `unref` so the timer never blocks shutdown. */
