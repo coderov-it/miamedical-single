@@ -13,6 +13,7 @@ import type { AccountCopy } from './account-page.ts';
 import type { AccountRouter } from './account-router.svelte.ts';
 import type { AccountSession } from './account-session.svelte.ts';
 import type { AccountStore } from './account-state.svelte.ts';
+import type { NotificationStore } from './notifications.svelte.ts';
 
 const KEY = Symbol.for('mia.account');
 
@@ -22,6 +23,7 @@ export interface AccountContext {
   router: AccountRouter;
   session: AccountSession;
   orders: AccountStore;
+  notifications: NotificationStore;
 }
 
 export function setAccountContext(context: AccountContext): AccountContext {

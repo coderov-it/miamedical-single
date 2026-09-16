@@ -16,6 +16,7 @@ export interface AccountCopyData {
     home: string;
     login: string;
     account: string;
+    accountNotifications: string;
     accountOrders: string;
     catalog: string;
     /** `{number}` stands in for the order number — fill it with `fill()`. */

@@ -29,6 +29,7 @@ export interface Crumb {
 }
 
 export function documentTitle(copy: AccountCopy, screen: AccountScreen): string {
+  if (screen.name === 'notifications') return say(copy, 'account.notifications.metaTitle');
   if (screen.name === 'orders') return say(copy, 'account.orders.metaTitle');
   if (screen.name === 'orderDetail') {
     return fill(say(copy, 'account.order.metaTitle'), { number: screen.number });
@@ -37,6 +38,7 @@ export function documentTitle(copy: AccountCopy, screen: AccountScreen): string 
 }
 
 export function pageTitle(copy: AccountCopy, screen: AccountScreen): string {
+  if (screen.name === 'notifications') return say(copy, 'account.notifications.title');
   if (screen.name === 'orders') return say(copy, 'account.myOrders');
   if (screen.name === 'orderDetail') {
     return fill(say(copy, 'account.order.title'), { number: screen.number });
@@ -46,6 +48,12 @@ export function pageTitle(copy: AccountCopy, screen: AccountScreen): string {
 
 export function crumbTrail(copy: AccountCopy, screen: AccountScreen): Crumb[] {
   if (screen.name === 'account') return [];
+  if (screen.name === 'notifications') {
+    return [
+      { label: say(copy, 'account.title'), to: { name: 'account' } },
+      { label: say(copy, 'account.notifications.title') },
+    ];
+  }
   if (screen.name === 'orders') {
     return [
       { label: say(copy, 'account.title'), to: { name: 'account' } },

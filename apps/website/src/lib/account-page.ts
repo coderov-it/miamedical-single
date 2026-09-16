@@ -13,6 +13,9 @@
  * reason: `routes.account` is the Italian path, and an English page that
  * redirects there drops the reader out of their language.
  */
+import { notificationKeys, notificationLabel } from '@mia/i18n';
+import { NOTIFICATION_TYPES } from '@mia/validators';
+
 import { LOCALES, translate, type SiteLocale } from './i18n.ts';
 import { accountOrderPathTemplate, routePath } from './routes.ts';
 
@@ -43,6 +46,16 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.retry',
   'account.nav.overview',
   'breadcrumbs.label',
+  // notifications
+  'account.notifications.metaTitle',
+  'account.notifications.title',
+  'account.notifications.empty',
+  'account.notifications.emptyHint',
+  'account.notifications.markAllRead',
+  'account.notifications.unreadOne',
+  'account.notifications.unreadMany',
+  'account.notifications.loadMore',
+  'account.notifications.new',
   // profile
   'yourDetails',
   'firstName',
@@ -103,12 +116,27 @@ export const ACCOUNT_ISLAND_KEYS = [
 /** Order states, in the storefront's softer wording — not the back office's. */
 export const ORDER_STATUS_KEYS = ['pending', 'paid', 'fulfilled', 'cancelled', 'refunded'] as const;
 
+/**
+ * Payment states. A SECOND map rather than more entries in the one above,
+ * because the two enums share members — `paid` and `refunded` are in both —
+ * and merging them would let a payment notice render an order-status word.
+ */
+export const PAYMENT_STATUS_KEYS = [
+  'unpaid',
+  'authorized',
+  'paid',
+  'partially_refunded',
+  'refunded',
+  'failed',
+] as const;
+
 /** The account paths the island navigates between, for ONE language. */
 export interface AccountRouteSet {
   home: string;
   login: string;
   account: string;
   accountOrders: string;
+  accountNotifications: string;
   catalog: string;
   /** `{number}` stands in for the order number the island fills in. */
   orderDetail: string;
@@ -129,6 +157,21 @@ export interface AccountCopy {
    */
   languageRoutes: Record<string, AccountRouteSet>;
   status: Record<string, string>;
+  payment: Record<string, string>;
+  /**
+   * One notification sentence per event type, with its `{placeholder}` slots
+   * still standing.
+   *
+   * Resolved here rather than in the island for the reason the rest of this
+   * blob exists — the browser has no request and no locale — and shipped as
+   * TEMPLATES rather than finished strings because a notification's values
+   * arrive over SSE long after this page was rendered. The island fills them
+   * with the same `fill()` the order screens already use.
+   *
+   * Only this request's language travels, so the blob carries nine short pairs
+   * and not the whole four-language catalogue.
+   */
+  notifications: Record<string, { title: string; body: string }>;
 }
 
 function accountRouteSet(locale: SiteLocale): AccountRouteSet {
@@ -136,6 +179,7 @@ function accountRouteSet(locale: SiteLocale): AccountRouteSet {
     home: routePath(locale, 'home'),
     login: routePath(locale, 'login'),
     account: routePath(locale, 'account'),
+    accountNotifications: routePath(locale, 'accountNotifications'),
     accountOrders: routePath(locale, 'accountOrders'),
     catalog: routePath(locale, 'catalog'),
     orderDetail: accountOrderPathTemplate(locale),
@@ -157,10 +201,26 @@ export function accountCopy(locale: SiteLocale, keys: readonly string[]): Accoun
   const status: Record<string, string> = {};
   for (const key of ORDER_STATUS_KEYS) status[key] = translate(locale, `account.status.${key}`);
 
+  const payment: Record<string, string> = {};
+  for (const key of PAYMENT_STATUS_KEYS) {
+    payment[key] = translate(locale, `account.paymentStatus.${key}`);
+  }
+
+  const notifications: Record<string, { title: string; body: string }> = {};
+  for (const type of NOTIFICATION_TYPES) {
+    const labelKeys = notificationKeys(type, 'customer');
+    notifications[type] = {
+      title: notificationLabel(labelKeys.title, locale),
+      body: notificationLabel(labelKeys.body, locale),
+    };
+  }
+
   return {
     text,
+    notifications,
     routes: accountRouteSet(locale),
     languageRoutes: Object.fromEntries(LOCALES.map((code) => [code, accountRouteSet(code)])),
     status,
+    payment,
   };
 }

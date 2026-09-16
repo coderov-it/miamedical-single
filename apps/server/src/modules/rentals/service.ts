@@ -1,4 +1,6 @@
 import type { Database } from '@mia/db';
+import { eq } from '@mia/db';
+import { orders } from '@mia/db/schema';
 import type { RenewRentalInput } from '@mia/validators';
 
 import type { SessionUser } from '../../shared/http/context.ts';
@@ -6,6 +8,7 @@ import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 import * as contractRepo from '../contracts/repo.ts';
 import * as contractService from '../contracts/service.ts';
 import * as notifications from '../notifications/mail.ts';
+import { emit } from '../notifications/write.ts';
 import * as orderService from '../orders/service.ts';
 import * as repo from './repo.ts';
 import type { RentalListFilters, RentalRow } from './types.ts';
@@ -85,6 +88,30 @@ export async function renew(
     kind: 'renewal',
     actorAdminUserId: user.id,
   });
+
+  /* After the contract, not before: the renewal is only real once the paperwork
+     for it is out, and this reads as the confirmation of something that
+     happened rather than an announcement of something intended. The customer
+     gets a second row from `generateFromOrder` asking them to sign it — two
+     notices because they are two things, one to know and one to do. */
+  const [order] = await db
+    .select({ accountId: orders.customerAccountId })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
+
+  if (order?.accountId) {
+    const accountId = order.accountId;
+    await db.transaction((tx) =>
+      emit(tx, {
+        audience: 'customer',
+        customerAccountId: accountId,
+        type: 'rental.renewed',
+        orderId,
+        data: { orderNumber: rental.orderNumber, from: input.from, to: input.to },
+      }),
+    );
+  }
 }
 
 export async function finish(db: Database, orderId: string, user: SessionUser): Promise<void> {

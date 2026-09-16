@@ -21,7 +21,10 @@ import type { AccountCopy } from './account-page.ts';
 export type AccountRoutes = AccountCopy['routes'];
 
 export type AccountScreen =
-  { name: 'account' } | { name: 'orders' } | { name: 'orderDetail'; number: string };
+  | { name: 'account' }
+  | { name: 'notifications' }
+  | { name: 'orders' }
+  | { name: 'orderDetail'; number: string };
 
 const NUMBER_SLOT = '{number}';
 
@@ -53,6 +56,7 @@ function orderDetailParts(routes: AccountRoutes): { prefix: string; suffix: stri
  */
 export function accountHref(routes: AccountRoutes, screen: AccountScreen): string {
   if (screen.name === 'account') return routes.account;
+  if (screen.name === 'notifications') return routes.accountNotifications;
   if (screen.name === 'orders') return routes.accountOrders;
 
   const parts = orderDetailParts(routes);
@@ -79,6 +83,7 @@ export function parseAccountPath(routes: AccountRoutes, pathname: string): Accou
   const path = withTrailingSlash(pathname);
 
   if (path === withTrailingSlash(routes.account)) return { name: 'account' };
+  if (path === withTrailingSlash(routes.accountNotifications)) return { name: 'notifications' };
   if (path === withTrailingSlash(routes.accountOrders)) return { name: 'orders' };
 
   const parts = orderDetailParts(routes);

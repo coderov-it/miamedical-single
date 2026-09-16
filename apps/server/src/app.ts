@@ -23,6 +23,7 @@ import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/
 import { healthRoutes } from './modules/health/routes.ts';
 import { mediaRoutes } from './modules/media/routes.ts';
 import { notificationAdminRoutes } from './modules/notifications/admin-routes.ts';
+import { notificationCustomerRoutes } from './modules/notifications/customer-routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
@@ -85,6 +86,10 @@ const routes = app
   .route('/api/orders', orderPublicRoutes)
   .route('/api/order-disputes', orderDisputePublicRoutes)
   .route('/api/customer/auth', customerAuthRoutes)
+  /* Before the bare `/api/customer` mount, matching how `auth` sits above it:
+     the more specific prefix is declared first so the path it owns is obvious
+     here rather than a property of router fall-through. */
+  .route('/api/customer/notifications', notificationCustomerRoutes)
   .route('/api/customer', customerAccountRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)
