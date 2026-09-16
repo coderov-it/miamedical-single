@@ -8,7 +8,9 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "clean": "rm -rf .turbo node_modules"
+    "clean": "rm -rf .turbo node_modules",
+    "generate:native": "tsx scripts/generate-native-strings.ts",
+    "test": "node --test --experimental-strip-types 'src/*.test.ts'"
   },
   "dependencies": {
     "@mia/validators": "workspace:*"
@@ -16,6 +18,7 @@
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   }
 }

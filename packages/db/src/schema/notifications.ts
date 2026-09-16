@@ -74,6 +74,26 @@ export const notifications = pgTable(
      */
     dedupeKey: text(),
     readAt: timestamp({ withTimezone: true }),
+    /**
+     * When this row was handed to FCM — the claim marker that makes the table its
+     * own outbox.
+     *
+     * `LISTEN` has no backlog, so a notification raised while the dispatcher was
+     * restarting is simply gone. The SSE feed survives that because the next
+     * screen load re-reads the table; a closed app has no next screen load, so
+     * without a marker the push would be lost outright. With one, the sweep picks
+     * up anything still NULL.
+     *
+     * It is also what makes a second process safe: the claim is
+     * `UPDATE … WHERE id = $1 AND pushed_at IS NULL RETURNING`, which returns a
+     * row to exactly one caller. And it answers "was this customer actually
+     * pinged" from SQL, which the mail side still cannot.
+     *
+     * NULL on a row nobody was ever going to push — see `mayPush`. The sweep
+     * therefore filters on the audience and the type too, or it would re-examine
+     * every operator row forever.
+     */
+    pushedAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -89,6 +109,16 @@ export const notifications = pgTable(
     uniqueIndex('notifications_dedupe_key')
       .on(t.dedupeKey)
       .where(sql`${t.dedupeKey} IS NOT NULL`),
+    /**
+     * The push backlog, and nothing else. Partial on both conditions because the
+     * interesting set is tiny and permanently so — a row is pushed within
+     * milliseconds of being written — while the table it lives in grows forever.
+     * A full index here would be almost entirely dead entries for rows that were
+     * pushed years ago.
+     */
+    index('notifications_push_pending_idx')
+      .on(t.createdAt)
+      .where(sql`${t.pushedAt} IS NULL AND ${t.audience} = 'customer'`),
     /**
      * Follows `orders_customer_link_check`: two columns that must agree are made
      * unable to disagree in the database rather than in a service.

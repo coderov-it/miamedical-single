@@ -8,6 +8,7 @@ import { r2FileUploader } from './infra/media.ts';
 import { startStagingSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
 import { startNotificationSweep } from './modules/notifications/sweep.ts';
+import { startPushSweep } from './modules/push/sweep.ts';
 
 const server = serve({ fetch: app.fetch, port: env.API_PORT, hostname: env.API_HOST }, (info) => {
   console.log(`▲ Server listening on http://${env.API_HOST}:${info.port}`);
@@ -27,6 +28,9 @@ startStagingSweep(r2FileUploader);
 */
 const listener = await notificationHub.start(db);
 startNotificationSweep(db);
+/* The push retry tick. Separate from the sweep above because it is a delivery
+   retry rather than a source of events — see modules/push/sweep.ts. */
+startPushSweep(db);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {

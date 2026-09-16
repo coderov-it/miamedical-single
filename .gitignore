@@ -121,3 +121,7 @@ miamedical_database.sql
 #   pnpm-lock.yaml                 — reproducible installs
 #   .env.example                   — environment template
 # ---------------------------------------------------------------------------
+
+# Generated native string resources — source lives in packages/i18n, these are
+# build output for the mobile app repo to commit on its side.
+packages/i18n/generated/

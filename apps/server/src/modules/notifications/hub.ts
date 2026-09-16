@@ -2,6 +2,7 @@ import type { Database } from '@mia/db';
 import { listenerClient } from '@mia/db';
 import type { SSEStreamingApi } from 'hono/streaming';
 
+import { dispatch } from '../push/dispatch.ts';
 import * as repo from './repo.ts';
 import { NOTIFY_CHANNEL, type NotificationEnvelope } from './types.ts';
 
@@ -107,6 +108,22 @@ async function deliver(db: Database, payload: string): Promise<void> {
   if (!envelope) return;
 
   const recipient: repo.Recipient = { audience: envelope.audience, id: envelope.recipientId };
+
+  /* Push runs regardless of whether a stream is open, and deliberately not in an
+     `else`. An open tab on a laptop says nothing about whether the phone in
+     somebody's pocket should stay quiet, and treating the two as alternatives
+     would mean the customer most likely to be watching — the one with the app in
+     the foreground — is the one whose lock screen never lights up.
+
+     Every worker receives this same payload, which is exactly why `dispatch`
+     claims the row before sending rather than trusting that only one of them got
+     here. It is fire-and-forget: a push failure must not delay the SSE frame. */
+  if (envelope.audience === 'customer') {
+    void dispatch(db, envelope.id).catch((error: unknown) => {
+      console.error('[push] dispatch failed', envelope.id, error);
+    });
+  }
+
   const open = streams.get(keyOf(recipient));
   if (!open?.size) return;
 

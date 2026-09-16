@@ -203,6 +203,37 @@ const EnvSchema = v.object({
   AWS_SES_REGION: v.optional(v.string()),
   AWS_SES_ACCESS_KEY_ID: v.optional(v.string()),
   AWS_SES_SECRET_ACCESS_KEY: v.optional(v.string()),
+
+  /*
+    Push notifications, to the mobile app only.
+
+    `console` prints the message rather than sending it, and unlike MAIL_TRANSPORT
+    it is NOT refused in production. The asymmetry is deliberate: mail carries
+    magic links, so a console transport in production locks every customer out of
+    their account, while push carries a nudge about a fact the in-app feed already
+    records. A production deployment that has not finished its Firebase setup
+    should keep serving, with the state named at boot by `logFeatureSummary()`.
+  */
+  PUSH_TRANSPORT: v.optional(v.picklist(['console', 'fcm']), 'console'),
+
+  /*
+    One Firebase service account, used for both platforms — iOS reaches APNs
+    through Firebase's relay, so there are no Apple credentials here.
+
+    All three come out of the service-account JSON downloaded from Firebase
+    (project settings → service accounts). Optional as a group, following
+    R2FileUploader in `@mia/media`: the server starts without them and the
+    adapter fails on first send naming what is missing, so an unfinished push
+    setup never keeps the rest of the API down.
+
+    FCM_PRIVATE_KEY is a PEM block. A .env file cannot hold real newlines, so it
+    is normally pasted with literal `\n` escapes — `infra/push/fcm.ts` converts
+    them back, because PEM parsing otherwise fails with an error that names
+    neither the variable nor the cause.
+  */
+  FCM_PROJECT_ID: v.optional(v.string()),
+  FCM_CLIENT_EMAIL: v.optional(v.string()),
+  FCM_PRIVATE_KEY: v.optional(v.string()),
 });
 
 const parsed = v.safeParse(EnvSchema, process.env);

@@ -15,6 +15,7 @@
   import { fill } from '~/scripts/account/copy';
 
   import NotificationItem from './NotificationItem.svelte';
+  import NotificationPreferences from './NotificationPreferences.svelte';
   import { CARD } from './fields';
 
   const { copy, notifications } = accountContext();
@@ -36,6 +37,8 @@
     ),
   );
 </script>
+
+<NotificationPreferences />
 
 {#if rows.length === 0 && notifications.loading}
   <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>

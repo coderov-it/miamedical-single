@@ -328,9 +328,23 @@ Two things worth knowing before you touch the journal:
   `net.ipv4.ip_local_port_range`, `net.core.somaxconn`. All fail as a silent
   stall with nothing in any log naming the cause. The full list is in the plan.
 
+## The third channel
+
+Since this was written, a **push** channel joined the feed and email: the mobile
+app receives the customer-facing events on a locked phone. It reuses everything
+here — the same rows, the same `pg_notify`, the same hub — and adds a `pushed_at`
+claim so the table is its own outbox. See
+[push-notifications.md](./push-notifications.md), and
+[the app integration contract](../handover/mobile-push-integration.md).
+
+Two things below are now out of date and are corrected there: a closed client no
+longer gets "email or nothing", and the feed is no longer the only reader of
+`audience='customer'` rows.
+
 ## What this deliberately does not do
 
-No web push and no service worker — a closed tab gets email or nothing. No
+No web push and no service worker — a closed **browser** tab gets email, a push to
+the app, or nothing. No
 grouping or digest; an order that moves three times produces three rows, and
 collapsing them is a read-side change with no migration. No retention sweep yet.
 No retries and no dead-letter: the table is the record, so there is nothing to
