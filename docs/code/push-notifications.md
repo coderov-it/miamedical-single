@@ -167,6 +167,7 @@ handover doc, §3.
 | `apps/server/src/infra/push/port.ts`                                 | `PushSender`, `PushAlert`, `PushResult`.                          |
 | `apps/server/src/infra/push/fcm.ts`                                  | FCM HTTP v1, and the service-account JWT.                         |
 | `apps/server/src/infra/push/console.ts`                              | Prints the message. The only way to test without Firebase.        |
+| `apps/server/script/push-test.ts`                                    | One message by hand, printing FCM's own answer.                   |
 | `apps/server/src/modules/push/dispatch.ts`                           | The claim, the fan-out, dead-token pruning.                       |
 | `apps/server/src/modules/push/message.ts`                            | Key or sentence, the args, the tap route.                         |
 | `apps/server/src/modules/push/language.ts`                           | The resolution ladder, written once.                              |
@@ -225,10 +226,84 @@ PUSH_TRANSPORT=console pnpm dev
 #    push  console — printed to this log, no device is notified
 ```
 
-A real send needs a registered device, so it cannot be tested before the app
-exists. The first failure on a fresh project is usually the private key: a PEM
-whose `\n` were expanded to real newlines by a shell or a secrets manager fails
-to parse.
+A real send needs a registered device, so it cannot be tested end to end before a
+client exists — the app, or the browser page described below. Everything up to
+Google can be tested by hand with neither:
+
+```sh
+# 3. One message, no app involved.
+pnpm --filter @mia/server run push:test -- --token=<fcm-token> --dry-run
+#    ↳ Google validates the credentials and the shape of the payload, sends
+#      nothing, and returns validate_only's own answer.
+
+# 4. The same, for real.
+pnpm --filter @mia/server run push:test -- --token=<fcm-token>
+```
+
+`--token` is the only value the script cannot invent; leave it off and it mints a
+throwaway one, which proves the credentials and the payload and nothing about the
+token itself. `--type`, `--app-version`, `--language` and `--platform` shape the
+message (`--app-version=1.0.0` chooses localised keys over rendered text);
+`--register=<customer-account-id>` additionally writes the token into
+`push_devices` so the real dispatcher reaches that device within a minute.
+
+#### Where a test token comes from
+
+A token belongs to one **client instance of the same Firebase project**: nothing
+server-side mints one, the console's "Send test message" only consumes a token
+you already have, and a token from a different project is answered with
+`SENDER_ID_MISMATCH`. A test therefore needs one throwaway client, and the
+cheapest is a web page running `firebase-messaging` on `localhost` — a real
+token, from a web app config and a VAPID key found under the same project.
+
+That page is two files, and it lives in the gitignored `.scratch/fcm-probe/`
+rather than in the source tree: it is a local test client, not part of the
+product, and the web push it performs is deliberately unbuilt (see Known gaps).
+Serve it with `python3 -m http.server` — `file://` cannot register a service
+worker — and it prints the exact `push:test` line to run once it has a token.
+
+Both values it needs come from the same project, under Project settings →
+General: the web app config from **Your apps** → Web (add one if the project has
+none), and the public VAPID key from the **Cloud Messaging** tab → **Web
+configuration** → **Web Push certificates** → Generate Key Pair. The key is
+passed to `getToken()`; leaving it out does not raise — the SDK falls back to a
+fixed Google default that the browser then subscribes with instead of the
+project's own key pair, and the token that comes back is one our send cannot
+reach. Change the key and the existing subscription survives it (the browser
+reuses what it has), so testing a second key needs the site's storage cleared.
+
+What that proves needs stating, because `buildPayload` puts the text in the
+platform blocks. `data` — `notificationId`, `type`, `route` — travels to every
+platform, so a service worker that shows a notification from it does
+demonstrate the credentials, a live token and delivery. The title, the body and
+the localisation keys do not travel with it: they live in `android.notification`
+and `apns`, which only a native build reads. Seeing those means running
+`firebase/quickstart-android` in an emulator with `google-services.json`.
+
+Either way, `--dry-run` first: it says whether our side is right while the
+token still does not have to be live, and if it answers `INVALID_ARGUMENT`, the
+pair of a web token and an `android` block is what Google refused.
+
+Unlike `ConsolePushSender`, which prints the intent, the script prints the exact
+POST body — the one place where the Android keys (`title_loc_key`) and the APNs
+keys (`title-loc-key`) are spelled out — and then FCM's verbatim answer:
+
+```text
+ok                        accepted. With --dry-run it stops here; without it,
+                          Google is handing the message to the device now.
+UNREGISTERED              the app was uninstalled, or the OS retired the token.
+INVALID_ARGUMENT          the request itself is wrong, or the token was never
+                          valid — every `data` value must be a string.
+THIRD_PARTY_AUTH_ERROR    APNs refused it: the iOS key from step 3 is missing.
+```
+
+The script carries a meaning for each code it knows and prints Google's own
+sentence verbatim for the ones it does not; `--dry-run` is the same request with
+`validate_only` set, which is the mode that says whether our side is right.
+
+The first failure on a fresh project is usually the private key: a PEM whose `\n`
+were expanded to real newlines by a shell or a secrets manager fails to parse,
+and the script reports it as `OAuth token mint failed`.
 
 ## Configuration
 

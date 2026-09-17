@@ -63,6 +63,21 @@ export class FcmPushSender implements PushSender {
   /** In-flight mint, so a burst of sends produces one token request rather than N. */
   #minting: Promise<string> | null = null;
 
+  /**
+   * `validate_only` on the wire: FCM answers about the request without delivering
+   * anything.
+   *
+   * A constructor option rather than an environment variable, on purpose. It is
+   * set by `script/push-test.ts --dry-run` and by nothing else, because the one
+   * thing a live server must never be configurable into is believing it sent
+   * something it did not.
+   */
+  #dryRun: boolean;
+
+  constructor(options: { dryRun?: boolean } = {}) {
+    this.#dryRun = options.dryRun ?? false;
+  }
+
   async send(message: PushMessage): Promise<PushResult> {
     const projectId = env.FCM_PROJECT_ID;
     const clientEmail = env.FCM_CLIENT_EMAIL;
@@ -94,7 +109,10 @@ export class FcmPushSender implements PushSender {
           authorization: `Bearer ${accessToken}`,
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ message: buildPayload(message) }),
+        body: JSON.stringify({
+          ...(this.#dryRun ? { validate_only: true } : {}),
+          message: buildPayload(message),
+        }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       },
     );
@@ -200,8 +218,14 @@ function base64url(value: string): string {
  * APNs takes `title-loc-key`/`loc-key`/`loc-args`, where the unprefixed pair is
  * the body. Sending the Android spelling to APNs is silently ignored rather than
  * rejected, so a message would arrive blank.
+ *
+ * Exported for `script/push-test.ts`, which prints it. Everything a phone draws
+ * is decided between here and `apnsAlert` — the priority, the notification block,
+ * the two spellings of each key — and none of it is visible in the `PushMessage`
+ * the port deals in, so the only way to check it without a device is to read the
+ * body itself.
  */
-function buildPayload(message: PushMessage) {
+export function buildPayload(message: PushMessage) {
   return {
     token: message.token,
     data: message.data,

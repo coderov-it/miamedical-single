@@ -80,6 +80,16 @@ logs/
 .claude/skills/
 
 # ---------------------------------------------------------------------------
+# Local scratch (never committed)
+#
+# Throwaway tools kept next to the code that uses them instead of in the repo
+# source tree. Currently holds .scratch/fcm-probe/, a one-page web client used
+# to mint an FCM registration token when testing the push pipeline without the
+# mobile app.
+# ---------------------------------------------------------------------------
+.scratch/
+
+# ---------------------------------------------------------------------------
 # Editors and OS
 # ---------------------------------------------------------------------------
 .idea/
