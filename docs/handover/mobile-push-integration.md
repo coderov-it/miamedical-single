@@ -417,6 +417,14 @@ For a real device you need, on your side: `google-services.json` (Android), and
 for iOS an APNs `.p8` key uploaded to the Firebase project, the Push
 Notifications capability, and a physical device — the simulator has no APNs.
 
+Once a dev build has handed you a token, you do not have to wait for a business
+event to test it: `pnpm --filter @mia/server run push:test -- --token=<token>
+--register=<customer-account-id>` sends one message by hand through the real FCM
+path, prints the exact JSON body Google receives — the place where
+`title_loc_key` and `title-loc-key` are spelled out — and registers the token so
+the live dispatcher reaches it too. Add `--dry-run` to check the credentials and
+the payload without delivering anything.
+
 ---
 
 ## 12. Questions to send back

@@ -15,6 +15,7 @@
     "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
     "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts",
     "admin:seed": "tsx --env-file-if-exists=../../.env script/seed-superadmin.ts",
+    "push:test": "tsx --env-file-if-exists=../../.env script/push-test.ts",
     "test": "node --test --experimental-strip-types 'src/**/*.test.ts'"
   },
   "dependencies": {
