@@ -240,9 +240,9 @@ pnpm --filter @mia/server run push:test -- --token=<fcm-token> --dry-run
 pnpm --filter @mia/server run push:test -- --token=<fcm-token>
 ```
 
-`--token` is the only value the script cannot invent; leave it off and it mints a
-throwaway one, which proves the credentials and the payload and nothing about the
-token itself. `--type`, `--app-version`, `--language` and `--platform` shape the
+`--token` must come from a real client. Leaving it off mints a throwaway token,
+which FCM can reject with `INVALID_ARGUMENT` even with `--dry-run`; that rejection
+is not evidence of broken credentials. `--type`, `--app-version`, `--language` and `--platform` shape the
 message (`--app-version=1.0.0` chooses localised keys over rendered text);
 `--register=<customer-account-id>` additionally writes the token into
 `push_devices` so the real dispatcher reaches that device within a minute.
@@ -260,12 +260,19 @@ That page is two files, and it lives in the gitignored `.scratch/fcm-probe/`
 rather than in the source tree: it is a local test client, not part of the
 product, and the web push it performs is deliberately unbuilt (see Known gaps).
 Serve it with `python3 -m http.server` — `file://` cannot register a service
-worker — and it prints the exact `push:test` line to run once it has a token.
+worker — and it prints both validation and delivery commands once it has a token.
+Getting a token does not send anything. Run the second command, without
+`--dry-run`, to deliver a message. The probe logs foreground messages and displays
+them through its service worker; background data messages are displayed by the
+worker itself. Reload the page after editing the probe and get the token again.
 
 Both values it needs come from the same project, under Project settings →
 General: the web app config from **Your apps** → Web (add one if the project has
 none), and the public VAPID key from the **Cloud Messaging** tab → **Web
-configuration** → **Web Push certificates** → Generate Key Pair. The key is
+configuration** → **Web Push certificates** → Generate Key Pair. The four
+config values are already in both files for the web app `mia-dev-probe`, read
+from the Management API rather than copied by hand, so only `vapidKey` is left
+to fill — and no API exposes it, the console is the only source. The key is
 passed to `getToken()`; leaving it out does not raise — the SDK falls back to a
 fixed Google default that the browser then subscribes with instead of the
 project's own key pair, and the token that comes back is one our send cannot
@@ -280,9 +287,11 @@ the localisation keys do not travel with it: they live in `android.notification`
 and `apns`, which only a native build reads. Seeing those means running
 `firebase/quickstart-android` in an emulator with `google-services.json`.
 
-Either way, `--dry-run` first: it says whether our side is right while the
-token still does not have to be live, and if it answers `INVALID_ARGUMENT`, the
-pair of a web token and an `android` block is what Google refused.
+Either way, use the real token with `--dry-run` first to validate without delivery,
+then run without that flag. For `INVALID_ARGUMENT`, read Google's error message:
+an invalid registration token and a malformed payload can both produce this code.
+Android and APNs blocks configure their respective platforms; they do not supply
+the browser's notification text.
 
 Unlike `ConsolePushSender`, which prints the intent, the script prints the exact
 POST body — the one place where the Android keys (`title_loc_key`) and the APNs
