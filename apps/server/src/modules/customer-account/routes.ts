@@ -27,6 +27,10 @@ const OrderNumberParamSchema = v.object({
 });
 
 export const customerAccountRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/customer/orders (customer)
+  Paged list of the customer's own orders.
+  -------------------------------------------------------------------------- **/
   .get('/orders', requireCustomer, validate('query', PaginationSchema), async (c) => {
     const { page, perPage } = c.req.valid('query');
     const { rows, total } = await repo.listOrders(
@@ -42,6 +46,10 @@ export const customerAccountRoutes = new Hono<AppEnv>()
     });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/customer/orders/:number (customer)
+  One of the customer's own orders; 404 for anyone else's.
+  -------------------------------------------------------------------------- **/
   .get('/orders/:number', requireCustomer, validate('param', OrderNumberParamSchema), async (c) => {
     const order = await repo.findOrderByNumber(
       c.get('db'),
@@ -53,6 +61,10 @@ export const customerAccountRoutes = new Hono<AppEnv>()
     return c.json({ data: toCustomerOrderDetail(order) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/orders/:number/confirm (customer)
+  Confirms the order belongs to this account.
+  -------------------------------------------------------------------------- **/
   /** "Yes, this was me." Idempotent — confirming twice is not an error. */
   .post(
     '/orders/:number/confirm',
@@ -70,6 +82,10 @@ export const customerAccountRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/orders/:number/reject (customer)
+  Unlinks the order from this account, leaving the order itself alone.
+  -------------------------------------------------------------------------- **/
   /**
    * "This is not my order." Unlinks it and leaves the order itself alone.
    *
@@ -93,6 +109,10 @@ export const customerAccountRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/customer/profile (customer)
+  Edits the customer's own name and phone; never their email.
+  -------------------------------------------------------------------------- **/
   /**
    * Name and phone only. Email is absent from the schema, not merely ignored:
    * accepting a new address without re-verifying it would hand over every future

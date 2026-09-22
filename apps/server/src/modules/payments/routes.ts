@@ -27,6 +27,10 @@ const ExportQuerySchema = v.object({
 });
 
 export const paymentAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/payments (payment:read)
+  Paged payment list with the filtered set's totals.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.PAYMENT_READ), validate('query', PaymentQuerySchema), async (c) => {
     const query = c.req.valid('query');
     const result = await service.list(c.get('db'), query);
@@ -36,6 +40,10 @@ export const paymentAdminRoutes = new Hono<AppEnv>()
       stats: result.stats,
     });
   })
+  /** --------------------------------------------------------------------------
+  GET /api/admin/payments/export (payment:read)
+  The filtered payments as a CSV download.
+  -------------------------------------------------------------------------- **/
   .get(
     '/export',
     requirePermission(P.PAYMENT_READ),

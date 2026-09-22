@@ -26,6 +26,10 @@ import * as repo from './repo.ts';
  */
 
 export const pushDeviceRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  POST /api/customer/push/devices (customer)
+  Registers or refreshes this handset's push token.
+  -------------------------------------------------------------------------- **/
   /**
    * Register or refresh. Called on every launch and on every token rotation, so
    * it answers 204 and does no read — the app has nothing to do with a response
@@ -45,6 +49,10 @@ export const pushDeviceRoutes = new Hono<AppEnv>()
     return c.body(null, 204);
   })
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/customer/push/devices (customer)
+  Unregisters a push token on sign-out.
+  -------------------------------------------------------------------------- **/
   /**
    * Unregister, on sign-out and before the session is cleared.
    *
@@ -63,6 +71,10 @@ export const pushDeviceRoutes = new Hono<AppEnv>()
   });
 
 export const notificationPreferenceRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/customer/notification-preferences (customer)
+  The customer's effective notification preferences.
+  -------------------------------------------------------------------------- **/
   /**
    * The EFFECTIVE state, not the stored deviations.
    *
@@ -75,6 +87,10 @@ export const notificationPreferenceRoutes = new Hono<AppEnv>()
     return c.json({ data: effectivePreferences(settings?.preferences) });
   })
 
+  /** --------------------------------------------------------------------------
+  PUT /api/customer/notification-preferences (customer)
+  Merges the named categories into the stored preferences.
+  -------------------------------------------------------------------------- **/
   /**
    * A partial write: categories the body does not name are left alone, so the
    * screen can send one toggle and two tabs cannot clobber each other's unrelated

@@ -73,6 +73,10 @@ function availableLocales(row: typeof legalPages.$inferSelect): LanguageCode[] {
   );
 }
 
+/** ----------------------------------------------------------------------------
+GET /api/legal/:code (public)
+One policy page in the requested language, with the language it fell back to.
+---------------------------------------------------------------------------- **/
 export const legalPublicRoutes = new Hono<AppEnv>().get(
   '/:code',
   validate('param', LegalPageCodeParamSchema),
@@ -144,6 +148,10 @@ function emptyDto(code: LegalPageCode): ReturnType<typeof toAdminDto> {
 }
 
 export const legalAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/legal/:code (legal_page:read)
+  One policy page in every language, or an empty draft if never written.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:code',
     requirePermission(P.LEGAL_PAGE_READ),
@@ -157,6 +165,10 @@ export const legalAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PUT /api/admin/legal/:code (legal_page:update)
+  Creates or replaces a policy page; its HTML is sanitised here.
+  -------------------------------------------------------------------------- **/
   .put(
     '/:code',
     requirePermission(P.LEGAL_PAGE_UPDATE),

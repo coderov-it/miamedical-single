@@ -62,6 +62,10 @@ const emailRateLimitByAddress = rateLimit({
 const CHECK_YOUR_INBOX = { message: 'Se l’indirizzo è registrato, riceverai un’email tra poco.' };
 
 export const customerAuthRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/login (public)
+  Signs a customer in and sets the storefront session cookie.
+  -------------------------------------------------------------------------- **/
   .post('/login', loginRateLimit, validate('json', CustomerLoginSchema), async (c) => {
     const { account, token, expiresAt } = await service.login(c.get('db'), c.req.valid('json'), {
       ipAddress: clientIp(c),
@@ -73,6 +77,10 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     return c.json({ data: toCustomer(account) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/logout (public)
+  Revokes the current customer session and clears its cookie.
+  -------------------------------------------------------------------------- **/
   .post('/logout', async (c) => {
     await service.logout(c.get('db'), readCustomerSessionCookie(c));
     clearCustomerSessionCookie(c);
@@ -80,6 +88,10 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     return c.json({ data: { ok: true } });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/customer/auth/me (customer)
+  The signed-in customer's account.
+  -------------------------------------------------------------------------- **/
   /** The storefront calls this on boot; a 401 is its signal to show the sign-in form. */
   .get('/me', requireCustomer, async (c) => {
     const customer = currentCustomer(c);
@@ -94,6 +106,10 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     return c.json({ data: toCustomer(row) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/magic-link (public)
+  Emails a sign-in link, answering the same for an unknown address.
+  -------------------------------------------------------------------------- **/
   .post(
     '/magic-link',
     emailRateLimitByIp,
@@ -110,6 +126,10 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/password-reset (public)
+  Emails a reset link, with the same blind answer as the magic link.
+  -------------------------------------------------------------------------- **/
   .post(
     '/password-reset',
     emailRateLimitByIp,
@@ -126,6 +146,10 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/token/redeem (public)
+  Redeems an emailed token: signs the customer in, sets a password if given.
+  -------------------------------------------------------------------------- **/
   /**
    * Redeems an activation, magic-link or reset token: signs them in, and sets a
    * password when one was supplied.
@@ -149,6 +173,10 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     return c.json({ data: toCustomer(account) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/password (customer)
+  Sets the customer's password and revokes their other sessions.
+  -------------------------------------------------------------------------- **/
   .post('/password', requireCustomer, validate('json', SetCustomerPasswordSchema), async (c) => {
     await service.setPassword(
       c.get('db'),

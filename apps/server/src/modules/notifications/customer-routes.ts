@@ -49,6 +49,10 @@ function recipientOf(c: Context<AppEnv>) {
 }
 
 export const notificationCustomerRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/customer/notifications (customer)
+  Paged feed of the customer's own notifications, with unread counts.
+  -------------------------------------------------------------------------- **/
   .get('/', requireCustomer, validate('query', FeedQuerySchema), async (c) => {
     const { page, perPage, category, unread } = c.req.valid('query');
     const feed = await repo.findFeed(c.get('db'), recipientOf(c), page, perPage, {
@@ -68,6 +72,10 @@ export const notificationCustomerRoutes = new Hono<AppEnv>()
     });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/customer/notifications/stream (customer)
+  Server-sent events; each frame is a hint that the feed changed.
+  -------------------------------------------------------------------------- **/
   /**
    * The live channel.
    *
@@ -106,6 +114,10 @@ export const notificationCustomerRoutes = new Hono<AppEnv>()
   /* Both mark-read routes answer with the recomputed counts rather than a bare
      number, so the bell in the shell and the list under it are one piece of
      state and cannot drift apart. */
+  /** --------------------------------------------------------------------------
+  POST /api/customer/notifications/read (customer)
+  Marks the given notifications read and returns the recomputed counts.
+  -------------------------------------------------------------------------- **/
   .post('/read', requireCustomer, validate('json', MarkReadSchema), async (c) => {
     const recipient = recipientOf(c);
     const marked = await repo.markRead(c.get('db'), recipient, c.req.valid('json').ids);
@@ -114,6 +126,10 @@ export const notificationCustomerRoutes = new Hono<AppEnv>()
     return c.json({ data: { marked, unread: counts.all.unread, counts } });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/customer/notifications/read-all (customer)
+  Marks every notification read and returns the recomputed counts.
+  -------------------------------------------------------------------------- **/
   .post('/read-all', requireCustomer, async (c) => {
     const recipient = recipientOf(c);
     const marked = await repo.markAllRead(c.get('db'), recipient);

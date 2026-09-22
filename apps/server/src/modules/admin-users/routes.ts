@@ -27,6 +27,10 @@ import * as service from './service.ts';
  * imports the same module the guards compare against.
  */
 export const adminUserRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/users (admin:read)
+  Paged list of back-office accounts.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.ADMIN_READ), validate('query', AdminUserQuerySchema), async (c) => {
     const query = c.req.valid('query');
     const result = await service.list(c.get('db'), query);
@@ -37,6 +41,10 @@ export const adminUserRoutes = new Hono<AppEnv>()
     });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/users (admin:create)
+  Creates a back-office account.
+  -------------------------------------------------------------------------- **/
   .post(
     '/',
     // `admin:create` alone is enough to add an operator who holds nothing;
@@ -50,6 +58,10 @@ export const adminUserRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/users/:id (admin:read)
+  One account with the permissions it holds.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.ADMIN_READ),
@@ -60,6 +72,10 @@ export const adminUserRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/users/:id (admin:update)
+  Edits another operator's name, email and status.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/:id',
     requirePermission(P.ADMIN_UPDATE),
@@ -76,6 +92,10 @@ export const adminUserRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PUT /api/admin/users/:id/permissions (admin:permission_assign)
+  Replaces the account's whole set of permissions.
+  -------------------------------------------------------------------------- **/
   /**
    * PUT, not PATCH: the body is the account's whole access, so a field the
    * client forgot cannot read as "leave that part alone".
@@ -96,6 +116,10 @@ export const adminUserRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/users/:id/password (admin:update)
+  Sets another operator's password.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/password',
     requirePermission(P.ADMIN_UPDATE),
@@ -112,6 +136,10 @@ export const adminUserRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/admin/users/:id (admin:delete)
+  Deletes a back-office account.
+  -------------------------------------------------------------------------- **/
   .delete(
     '/:id',
     requirePermission(P.ADMIN_DELETE),

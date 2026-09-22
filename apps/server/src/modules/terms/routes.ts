@@ -76,6 +76,10 @@ function toAdminDto(row: TermsAggregate) {
   };
 }
 
+/** ----------------------------------------------------------------------------
+GET /api/terms/:slug (public)
+One published terms document by slug, in the requested language.
+---------------------------------------------------------------------------- **/
 export const termsPublicRoutes = new Hono<AppEnv>().get(
   '/:slug',
   validate('param', TermsSlugParamSchema),
@@ -116,6 +120,10 @@ export const termsPublicRoutes = new Hono<AppEnv>().get(
 );
 
 export const termsAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/terms (terms:read)
+  Every terms document, drafts and archived included.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.TERMS_READ), async (c) => {
     const rows = await c.get('db').query.termsDocuments.findMany({
       orderBy: desc(termsDocuments.updatedAt),
@@ -124,6 +132,10 @@ export const termsAdminRoutes = new Hono<AppEnv>()
     return c.json({ data: rows.map(toAdminDto) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/terms (terms:create)
+  Creates a draft terms document with its translations.
+  -------------------------------------------------------------------------- **/
   .post('/', requirePermission(P.TERMS_CREATE), validate('json', CreateTermsSchema), async (c) => {
     const db = c.get('db');
     const input: CreateTermsInput = c.req.valid('json');
@@ -144,6 +156,10 @@ export const termsAdminRoutes = new Hono<AppEnv>()
     return c.json({ data: toAdminDto(await findById(db, created.id)) }, 201);
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/terms/:id (terms:read)
+  One terms document with every translation.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.TERMS_READ),
@@ -153,6 +169,10 @@ export const termsAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/terms/:id (terms:update)
+  Edits a terms document and upserts its translations.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/:id',
     requirePermission(P.TERMS_UPDATE),
@@ -185,6 +205,10 @@ export const termsAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/terms/:id/status (terms:publish)
+  Moves the document between draft, published and archived.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/status',
     requirePermission(P.TERMS_PUBLISH),
@@ -210,6 +234,10 @@ export const termsAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/admin/terms/:id (terms:delete)
+  Deletes a terms document; refuses while a product still links to it.
+  -------------------------------------------------------------------------- **/
   .delete(
     '/:id',
     requirePermission(P.TERMS_DELETE),

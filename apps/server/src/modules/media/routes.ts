@@ -44,6 +44,10 @@ const invalidMedia = (message: string) => httpError(422, message, 'invalid_media
 const DeleteSchema = v.object({ path: MediaPathSchema });
 
 export const mediaRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  POST /api/media/upload (media:upload)
+  Uploads one file to staging; images are re-encoded as WebP.
+  -------------------------------------------------------------------------- **/
   .post(
     '/upload',
     requirePermission(P.MEDIA_UPLOAD),
@@ -131,6 +135,10 @@ export const mediaRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/media/object (media:delete)
+  Deletes a staging object, for an upload the operator cancelled.
+  -------------------------------------------------------------------------- **/
   .delete(
     '/object',
     requirePermission(P.MEDIA_DELETE),

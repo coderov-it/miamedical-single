@@ -21,6 +21,10 @@ const loginRateLimit = rateLimit({
 });
 
 export const authRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  POST /api/auth/login (public)
+  Signs an operator in and sets the back-office session cookie.
+  -------------------------------------------------------------------------- **/
   .post('/login', loginRateLimit, validate('json', LoginSchema), async (c) => {
     const { user, token, expiresAt } = await service.login(c.get('db'), c.req.valid('json'), {
       ipAddress: clientIp(c),
@@ -32,6 +36,10 @@ export const authRoutes = new Hono<AppEnv>()
     return c.json({ data: toSessionUser(user) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/auth/logout (public)
+  Revokes the current session and clears its cookie.
+  -------------------------------------------------------------------------- **/
   .post('/logout', async (c) => {
     await service.logout(c.get('db'), readSessionCookie(c));
     clearSessionCookie(c);
@@ -39,11 +47,19 @@ export const authRoutes = new Hono<AppEnv>()
     return c.json({ data: { ok: true } });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/auth/me (operator)
+  The signed-in operator and the permissions they hold.
+  -------------------------------------------------------------------------- **/
   /** The admin UI calls this on boot; a 401 is its signal to show the login form. */
   .get('/me', requireAuth, async (c) => {
     return c.json({ data: toSessionUser(currentUser(c)) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/auth/password (operator)
+  Changes the operator's own password and revokes every session.
+  -------------------------------------------------------------------------- **/
   .post('/password', requireAuth, validate('json', ChangePasswordSchema), async (c) => {
     await service.changePassword(c.get('db'), currentUser(c).id, c.req.valid('json'));
     // Every session was revoked, including this one.
@@ -52,6 +68,10 @@ export const authRoutes = new Hono<AppEnv>()
     return c.json({ data: { ok: true } });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/auth/profile (operator)
+  The operator's own name, phone and email.
+  -------------------------------------------------------------------------- **/
   /**
    * Your own account. Behind `requireAuth` and nothing more: an operator who
    * holds no permission at all still owns their name, their phone number and
@@ -63,6 +83,10 @@ export const authRoutes = new Hono<AppEnv>()
     return c.json({ data: toProfileDto(row) });
   })
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/auth/profile (operator)
+  Edits the operator's own profile.
+  -------------------------------------------------------------------------- **/
   .patch('/profile', requireAuth, validate('json', UpdateProfileSchema), async (c) => {
     const row = await service.updateProfile(c.get('db'), currentUser(c).id, c.req.valid('json'));
     return c.json({ data: toProfileDto(row) });

@@ -85,6 +85,18 @@
   optional features at startup; what production must not start without goes in the
   boot guards in `config/env.ts`.
 
+- **Every route handler carries a banner comment.** Full path — the mount prefix
+  from `apps/server/src/app.ts` plus the handler's own fragment — then the
+  permission key in parentheses, or `public` / `customer` / `operator` where no
+  permission code applies, then one line of what it does.
+
+  ```ts
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders/:id (order:read)
+  One order with its items, addresses, totals and event timeline.
+  -------------------------------------------------------------------------- **/
+  ```
+
 - **Explaining a concept or process: show it, don't describe it.** Lead with a
   worked example on real values — numbered steps in a code block, input on the left,
   result on the right — for the normal case and the fallback case. Prose only for

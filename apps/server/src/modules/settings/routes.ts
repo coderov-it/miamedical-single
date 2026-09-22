@@ -14,10 +14,18 @@ import * as service from './service.ts';
  * before anything used them.
  */
 export const settingsAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/settings/notifications (setting:read)
+  The addresses that receive order and dispute notifications.
+  -------------------------------------------------------------------------- **/
   .get('/notifications', requirePermission(P.SETTING_READ), async (c) => {
     const data = await service.getNotificationRecipients(c.get('db'));
     return c.json({ data });
   })
+  /** --------------------------------------------------------------------------
+  PUT /api/admin/settings/notifications (setting:update)
+  Replaces the notification recipient list.
+  -------------------------------------------------------------------------- **/
   .put(
     '/notifications',
     requirePermission(P.SETTING_UPDATE),

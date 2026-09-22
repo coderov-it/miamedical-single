@@ -41,6 +41,10 @@ import {
  */
 const placementRateLimit = rateLimit({ limit: 30, windowMs: 60 * 60 * 1000 });
 
+/** ----------------------------------------------------------------------------
+POST /api/orders (public)
+Places a rental order from the storefront and returns its number.
+---------------------------------------------------------------------------- **/
 /**
  * Placing an order needs no account: the storefront takes rentals from people who
  * have never signed in, which is why the customer's contact block travels in the
@@ -71,6 +75,10 @@ export const orderPublicRoutes = new Hono<AppEnv>().post(
 );
 
 export const orderAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders (order:read)
+  Paged order list with the awaiting count and the page's value.
+  -------------------------------------------------------------------------- **/
   .get(
     '/',
     requirePermission(P.ORDER_READ),
@@ -93,6 +101,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders/stats (order:read)
+  Order counts and value over the last 30 days.
+  -------------------------------------------------------------------------- **/
   /**
    * Registered before `/:id` so the literal segment is never swallowed by the
    * parameter route.
@@ -101,6 +113,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     return c.json({ data: await service.windowStats(c.get('db'), 30) });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders/calendar (order:read)
+  Rental events between two dates, for the calendar view.
+  -------------------------------------------------------------------------- **/
   .get(
     '/calendar',
     requirePermission(P.ORDER_READ),
@@ -112,6 +128,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders/customers (order:read)
+  Contact and billing details of past customers matching a search term.
+  -------------------------------------------------------------------------- **/
   .get(
     '/customers',
     requirePermission(P.ORDER_READ),
@@ -137,6 +157,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders/:id (order:read)
+  One order with its items, addresses, totals and event timeline.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.ORDER_READ),
@@ -147,6 +171,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/orders/:id (order:update)
+  Edits the order's customer, addresses and notes.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/:id',
     requirePermission(P.ORDER_UPDATE),
@@ -158,6 +186,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/orders/:id/status (order:update)
+  Moves the order to a new status, with an optional note.
+  -------------------------------------------------------------------------- **/
   /**
    * Every mutation returns the whole refreshed detail, so the client's cache
    * story stays `order = updated` — no second GET, no partial merge, and the
@@ -181,6 +213,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/orders/:id/payment (order:update)
+  Moves the payment to a new status, with an optional note.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/payment',
     requirePermission(P.ORDER_UPDATE),
@@ -205,6 +241,10 @@ export const orderAdminRoutes = new Hono<AppEnv>()
  * read-only so there is nothing to authorise beyond looking.
  */
 export const cartAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/carts (order:read)
+  Paged list of customer carts.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.ORDER_READ), validate('query', AdminCartQuerySchema), async (c) => {
     const query = c.req.valid('query');
     const result = await service.listCarts(c.get('db'), query);
@@ -216,6 +256,10 @@ export const cartAdminRoutes = new Hono<AppEnv>()
     });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/carts/:id (order:read)
+  One cart with its items.
+  -------------------------------------------------------------------------- **/
   .get('/:id', requirePermission(P.ORDER_READ), validate('param', CartIdParamSchema), async (c) => {
     const cart = await service.getCartById(c.get('db'), c.req.valid('param').id);
     return c.json({ data: toCartDetail(cart) });
