@@ -25,6 +25,10 @@ import * as service from './service.ts';
  */
 const reportRateLimit = rateLimit({ limit: 5, windowMs: 60 * 60 * 1000 });
 
+/** ----------------------------------------------------------------------------
+POST /api/order-disputes (public)
+Files a dispute from the emailed link; echoes a reference and nothing else.
+---------------------------------------------------------------------------- **/
 export const orderDisputePublicRoutes = new Hono<AppEnv>().post(
   '/',
   reportRateLimit,
@@ -52,6 +56,10 @@ const ListQuerySchema = v.object({
 const IdParamSchema = v.object({ id: v.pipe(v.string(), v.uuid()) });
 
 export const orderDisputeAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/order-disputes (order:dispute:read)
+  Paged dispute list with the open count.
+  -------------------------------------------------------------------------- **/
   .get(
     '/',
     requirePermission(P.ORDER_DISPUTE_READ),
@@ -75,6 +83,10 @@ export const orderDisputeAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/order-disputes/:id (order:dispute:read)
+  One dispute with the order and account it points at.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.ORDER_DISPUTE_READ),
@@ -102,6 +114,10 @@ export const orderDisputeAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/order-disputes/:id (order:dispute:update)
+  Sets the dispute's status and internal notes.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/:id',
     requirePermission(P.ORDER_DISPUTE_UPDATE),

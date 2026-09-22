@@ -38,6 +38,10 @@ const FeedQuerySchema = v.object({
 });
 
 export const notificationAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/notifications (operator)
+  Paged feed of this operator's own notifications, with unread counts.
+  -------------------------------------------------------------------------- **/
   .get('/', requireAuth, validate('query', FeedQuerySchema), async (c) => {
     const { page, perPage, category, unread } = c.req.valid('query');
     const recipient = { audience: 'admin', id: currentUser(c).id } as const;
@@ -58,6 +62,10 @@ export const notificationAdminRoutes = new Hono<AppEnv>()
     });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/notifications/stream (operator)
+  Server-sent events; each frame is a hint that the feed changed.
+  -------------------------------------------------------------------------- **/
   /**
    * The live channel. `EventSource` with `withCredentials` reuses the session
    * cookie through the same CORS allowlist the RPC client uses, and `hono/csrf`
@@ -98,6 +106,10 @@ export const notificationAdminRoutes = new Hono<AppEnv>()
      number. The rail's badges and the bell are the same state, and returning
      half of it would leave the client to guess the other half — which is how a
      bell ends up disagreeing with the list under it. */
+  /** --------------------------------------------------------------------------
+  POST /api/admin/notifications/read (operator)
+  Marks the given notifications read and returns the recomputed counts.
+  -------------------------------------------------------------------------- **/
   .post('/read', requireAuth, validate('json', MarkReadSchema), async (c) => {
     const recipient = { audience: 'admin', id: currentUser(c).id } as const;
     const marked = await repo.markRead(c.get('db'), recipient, c.req.valid('json').ids);
@@ -106,6 +118,10 @@ export const notificationAdminRoutes = new Hono<AppEnv>()
     return c.json({ data: { marked, unread: counts.all.unread, counts } });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/notifications/read-all (operator)
+  Marks every notification read and returns the recomputed counts.
+  -------------------------------------------------------------------------- **/
   .post('/read-all', requireAuth, async (c) => {
     const recipient = { audience: 'admin', id: currentUser(c).id } as const;
     const marked = await repo.markAllRead(c.get('db'), recipient);

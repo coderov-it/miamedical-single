@@ -15,14 +15,6 @@ import { previewPage } from './page.ts';
  * data the package type-checks against its own templates. There are deliberately no
  * mock objects in this module: a fixture defined here would drift from the template it
  * is meant to exercise, and drift is exactly what a preview is supposed to catch.
- *
- * Four routes, because a preview is worth little if you cannot get at the real bytes:
- *
- *   GET /email-preview                the first message, with the list
- *   GET /email-preview/:name          one message, in the chrome
- *   GET /email-preview/:name/html     the HTML body alone — what the iframe loads,
- *                                     and what you paste into a real inbox to test
- *   GET /email-preview/:name/text     the plain-text body alone
  */
 
 const NAMES = EMAIL_SAMPLES.map((sample) => sample.name);
@@ -36,6 +28,10 @@ function find(name: string) {
 const NOT_FOUND = `Unknown template. Try one of: ${NAMES.join(', ')}`;
 
 export const emailPreviewRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /email-preview (public, dev only)
+  The first sample message, with the list of every template.
+  -------------------------------------------------------------------------- **/
   .get('/', (c) => {
     const first = EMAIL_SAMPLES[0]!;
     return c.html(
@@ -48,6 +44,10 @@ export const emailPreviewRoutes = new Hono<AppEnv>()
     );
   })
 
+  /** --------------------------------------------------------------------------
+  GET /email-preview/:name/html (public, dev only)
+  The HTML body alone — what the iframe loads, and what you paste into an inbox.
+  -------------------------------------------------------------------------- **/
   .get('/:name/html', (c) => {
     const sample = find(c.req.param('name'));
     if (!sample) return c.text(NOT_FOUND, 404);
@@ -55,12 +55,20 @@ export const emailPreviewRoutes = new Hono<AppEnv>()
     return c.html(sample.render().html);
   })
 
+  /** --------------------------------------------------------------------------
+  GET /email-preview/:name/text (public, dev only)
+  The plain-text body alone.
+  -------------------------------------------------------------------------- **/
   .get('/:name/text', (c) => {
     const sample = find(c.req.param('name'));
     if (!sample) return c.text(NOT_FOUND, 404);
     return c.text(sample.render().text);
   })
 
+  /** --------------------------------------------------------------------------
+  GET /email-preview/:name (public, dev only)
+  One sample message, in the preview chrome.
+  -------------------------------------------------------------------------- **/
   .get('/:name', (c) => {
     const sample = find(c.req.param('name'));
     if (!sample) return c.text(NOT_FOUND, 404);

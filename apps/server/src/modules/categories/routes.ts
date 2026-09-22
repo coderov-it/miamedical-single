@@ -18,6 +18,10 @@ import * as service from './service.ts';
 
 const SpecsPutSchema = v.pipe(v.array(SpecInputSchema), v.maxLength(100));
 
+/** ----------------------------------------------------------------------------
+GET /api/categories (public)
+The storefront category tree, localised, with per-category counts.
+---------------------------------------------------------------------------- **/
 export const categoryPublicRoutes = new Hono<AppEnv>().get(
   '/',
   validate('query', LocaleOnlyQuerySchema),
@@ -31,11 +35,19 @@ export const categoryPublicRoutes = new Hono<AppEnv>().get(
 );
 
 export const categoryAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/categories (category:read)
+  Every category, drafts included.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.CATEGORY_READ), async (c) => {
     const rows = await service.listAll(c.get('db'), false);
     return c.json({ data: rows.map(toAdminCategory) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/categories (category:create)
+  Creates a category and commits its staged icon.
+  -------------------------------------------------------------------------- **/
   .post(
     '/',
     requirePermission(P.CATEGORY_CREATE),
@@ -46,6 +58,10 @@ export const categoryAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/categories/:id (category:read)
+  One category with its specs.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.CATEGORY_READ),
@@ -56,6 +72,10 @@ export const categoryAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/categories/:id (category:update)
+  Edits a category and re-commits its icon when it changed.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/:id',
     requirePermission(P.CATEGORY_UPDATE),
@@ -72,6 +92,10 @@ export const categoryAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/admin/categories/:id (category:delete)
+  Deletes a category and its icon object.
+  -------------------------------------------------------------------------- **/
   .delete(
     '/:id',
     requirePermission(P.CATEGORY_DELETE),
@@ -82,6 +106,10 @@ export const categoryAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PUT /api/admin/categories/:id/specs (category:update)
+  Replaces the category's whole spec list.
+  -------------------------------------------------------------------------- **/
   .put(
     '/:id/specs',
     requirePermission(P.CATEGORY_UPDATE),

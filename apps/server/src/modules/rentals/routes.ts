@@ -13,6 +13,10 @@ import * as service from './service.ts';
 const IdParam = v.object({ id: UuidSchema });
 
 export const rentalAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/rentals (rental:read)
+  Paged list of active and past rentals.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.RENTAL_READ), validate('query', RentalQuerySchema), async (c) => {
     const query = c.req.valid('query');
     const result = await service.list(c.get('db'), query);
@@ -21,6 +25,10 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
       meta: toPageMeta(query.page, query.perPage, result.total),
     });
   })
+  /** --------------------------------------------------------------------------
+  POST /api/admin/rentals/:id/reminder (rental:update)
+  Emails the customer a return reminder for this rental.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/reminder',
     requirePermission(P.RENTAL_UPDATE),
@@ -30,6 +38,10 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
       return c.json({ data: { success: true } });
     },
   )
+  /** --------------------------------------------------------------------------
+  POST /api/admin/rentals/:id/contract (rental:update)
+  Re-sends the rental's contract to the customer.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/contract',
     requirePermission(P.RENTAL_UPDATE),
@@ -39,6 +51,10 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
       return c.json({ data: { success: true } });
     },
   )
+  /** --------------------------------------------------------------------------
+  POST /api/admin/rentals/:id/renew (rental:update)
+  Extends the rental to a new end date.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/renew',
     requirePermission(P.RENTAL_UPDATE),
@@ -50,6 +66,10 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
       return c.json({ data: { success: true } });
     },
   )
+  /** --------------------------------------------------------------------------
+  POST /api/admin/rentals/:id/finish (rental:update)
+  Closes the rental as returned.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/finish',
     requirePermission(P.RENTAL_UPDATE),

@@ -22,6 +22,10 @@ import { toContractDetail, toContractSummary } from './mapper.ts';
 import * as service from './service.ts';
 
 export const contractAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/contracts (contract:read)
+  Paged contract list.
+  -------------------------------------------------------------------------- **/
   .get(
     '/',
     requirePermission(P.CONTRACT_READ),
@@ -36,18 +40,26 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/contracts/by-order/:orderId (contract:read)
+  Every contract an order has accumulated, newest first.
+  -------------------------------------------------------------------------- **/
   .get(
     '/by-order/:orderId',
     requirePermission(P.CONTRACT_READ),
     validate('param', v.object({ orderId: UuidSchema })),
     async (c) => {
-      // Every contract the order has accumulated, newest first — renewals mean
-      // an order's history is a list, and the first entry is the live one.
+      // Renewals mean an order's contract history is a list, and the first
+      // entry is the live one.
       const contracts = await service.listByOrderId(c.get('db'), c.req.valid('param').orderId);
       return c.json({ data: contracts.map(toContractSummary) });
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/contracts/:id (contract:read)
+  One contract with its signing state and history.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.CONTRACT_READ),
@@ -58,6 +70,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/contracts/:id/preview (contract:read)
+  The contract rendered as HTML, for looking at before it is sent.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id/preview',
     requirePermission(P.CONTRACT_READ),
@@ -68,6 +84,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/contracts/:id/send (contract:update)
+  Re-sends the contract to the customer for signing.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/send',
     requirePermission(P.CONTRACT_UPDATE),
@@ -79,6 +99,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/contracts/:id/signing-link (contract:update)
+  Mints a signing URL to hand over by phone or in person.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/signing-link',
     /* UPDATE, not READ: minting a token is a write that yields the power to
@@ -91,6 +115,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/contracts/:id/update-period (contract:update)
+  Moves the rental period and re-sends the contract.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/update-period',
     requirePermission(P.CONTRACT_UPDATE),
@@ -109,6 +137,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/contracts/:id/void (contract:update)
+  Voids the contract with a stated reason.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/void',
     requirePermission(P.CONTRACT_UPDATE),
@@ -125,6 +157,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/contracts/manual (contract:create)
+  Creates a contract from typed details, with no order behind it.
+  -------------------------------------------------------------------------- **/
   .post(
     '/manual',
     requirePermission(P.CONTRACT_CREATE),
@@ -137,6 +173,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/contracts/generate (contract:create)
+  Creates a contract from an existing order.
+  -------------------------------------------------------------------------- **/
   .post(
     '/generate',
     requirePermission(P.CONTRACT_CREATE),
@@ -152,6 +192,10 @@ export const contractAdminRoutes = new Hono<AppEnv>()
   );
 
 export const contractPublicRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/contracts/sign (public, signing token)
+  The contract behind a signing token, rendered for the customer.
+  -------------------------------------------------------------------------- **/
   .get('/sign', validate('query', SigningTokenQuerySchema), async (c) => {
     const { token } = c.req.valid('query');
     const result = await service.loadForSigning(c.get('db'), token);
@@ -163,6 +207,10 @@ export const contractPublicRoutes = new Hono<AppEnv>()
     });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/contracts/sign (public, signing token)
+  Signs the contract, recording the signature, IP and user agent.
+  -------------------------------------------------------------------------- **/
   .post(
     '/sign',
     validate('query', SigningTokenQuerySchema),

@@ -21,6 +21,10 @@ import { validate } from '../../shared/http/validate.ts';
  * editor wants it. See `docs/code/product-translation.md`.
  */
 export const translationAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/translate (product:update)
+  Whether automatic translation is configured, and by which provider.
+  -------------------------------------------------------------------------- **/
   /** Probed once by the admin so it can omit the action instead of disabling it. */
   .get('/', requirePermission(P.PRODUCT_UPDATE), (c) =>
     c.json({
@@ -28,6 +32,10 @@ export const translationAdminRoutes = new Hono<AppEnv>()
       provider: translationProvider?.name ?? null,
     }),
   )
+  /** --------------------------------------------------------------------------
+  POST /api/admin/translate (product:update)
+  Translates the given texts and returns them for review; saves nothing.
+  -------------------------------------------------------------------------- **/
   .post(
     '/',
     requirePermission(P.PRODUCT_UPDATE),

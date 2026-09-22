@@ -138,6 +138,10 @@ function toCategoryDto(row: typeof blogCategories.$inferSelect) {
 // --- Admin routes ---
 
 export const blogAdminRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/admin/blog (blog:read)
+  Paged post list, filtered by status, category or title.
+  -------------------------------------------------------------------------- **/
   .get('/', requirePermission(P.BLOG_READ), validate('query', BlogPostQuerySchema), async (c) => {
     const db = c.get('db');
     const { page, perPage, status, category, q, locale } = c.req.valid('query');
@@ -187,6 +191,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     return c.json({ data: rows.map(toAdminPostDto), meta: toPageMeta(page, perPage, total) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/blog (blog:create)
+  Creates a post with its translations and categories.
+  -------------------------------------------------------------------------- **/
   .post(
     '/',
     requirePermission(P.BLOG_CREATE),
@@ -210,6 +218,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/blog/:id (blog:read)
+  One post with every translation and its category ids.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:id',
     requirePermission(P.BLOG_READ),
@@ -221,6 +233,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/blog/:id (blog:update)
+  Edits a post, upserting translations and re-syncing categories.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/:id',
     requirePermission(P.BLOG_UPDATE),
@@ -252,6 +268,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/blog/:id/status (blog:publish)
+  Moves the post between draft, published and archived.
+  -------------------------------------------------------------------------- **/
   .post(
     '/:id/status',
     requirePermission(P.BLOG_PUBLISH),
@@ -277,6 +297,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/admin/blog/:id (blog:delete)
+  Deletes a post and everything hanging off it.
+  -------------------------------------------------------------------------- **/
   .delete(
     '/:id',
     requirePermission(P.BLOG_DELETE),
@@ -292,6 +316,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
 
   // --- Blog categories ---
 
+  /** --------------------------------------------------------------------------
+  GET /api/admin/blog/categories (blog:category:read)
+  Every blog category, in display order.
+  -------------------------------------------------------------------------- **/
   .get('/categories', requirePermission(P.BLOG_CATEGORY_READ), async (c) => {
     const rows = await c.get('db').query.blogCategories.findMany({
       orderBy: blogCategories.position,
@@ -299,6 +327,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     return c.json({ data: rows.map(toCategoryDto) });
   })
 
+  /** --------------------------------------------------------------------------
+  POST /api/admin/blog/categories (blog:category:manage)
+  Creates a blog category; refuses a code already in use.
+  -------------------------------------------------------------------------- **/
   .post(
     '/categories',
     requirePermission(P.BLOG_CATEGORY_MANAGE),
@@ -328,6 +360,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  PATCH /api/admin/blog/categories/:id (blog:category:manage)
+  Edits a blog category; refuses a code already in use.
+  -------------------------------------------------------------------------- **/
   .patch(
     '/categories/:id',
     requirePermission(P.BLOG_CATEGORY_MANAGE),
@@ -363,6 +399,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  DELETE /api/admin/blog/categories/:id (blog:category:manage)
+  Deletes a blog category; refuses while posts still sit in it.
+  -------------------------------------------------------------------------- **/
   .delete(
     '/categories/:id',
     requirePermission(P.BLOG_CATEGORY_MANAGE),
@@ -392,6 +432,10 @@ export const blogAdminRoutes = new Hono<AppEnv>()
 // --- Public routes ---
 
 export const blogPublicRoutes = new Hono<AppEnv>()
+  /** --------------------------------------------------------------------------
+  GET /api/blog (public)
+  Paged list of published posts, localised, with their categories.
+  -------------------------------------------------------------------------- **/
   .get('/', validate('query', PublicBlogQuerySchema), async (c) => {
     const db = c.get('db');
     const { page, perPage, locale, category } = c.req.valid('query');
@@ -456,6 +500,10 @@ export const blogPublicRoutes = new Hono<AppEnv>()
     return c.json({ data, meta: toPageMeta(page, perPage, total) });
   })
 
+  /** --------------------------------------------------------------------------
+  GET /api/blog/:slug (public)
+  One published post by slug, in the requested language.
+  -------------------------------------------------------------------------- **/
   .get(
     '/:slug',
     validate('param', BlogPostSlugParamSchema),
@@ -504,6 +552,10 @@ export const blogPublicRoutes = new Hono<AppEnv>()
     },
   )
 
+  /** --------------------------------------------------------------------------
+  GET /api/blog/categories (public)
+  The active blog categories, as slug and name.
+  -------------------------------------------------------------------------- **/
   .get('/categories', async (c) => {
     const rows = await c.get('db').query.blogCategories.findMany({
       where: eq(blogCategories.isActive, true),
