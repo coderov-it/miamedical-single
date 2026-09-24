@@ -25,6 +25,7 @@ const text = (key: string) => translate(locale, key);
 const SCRIPT_KEYS = [
   'account.signIn.errorEmail',
   'account.signIn.errorPassword',
+  'account.signIn.checkInbox',
   'account.genericError',
 ] as const;
 
@@ -170,8 +171,8 @@ const secondary =
     if (!address) return;
 
     void guard(magicButton, async () => {
-      const { message } = await requestMagicLink(address);
-      say(message);
+      await requestMagicLink(address);
+      say(copy.text['account.signIn.checkInbox'] ?? '');
     });
   }
 
@@ -215,8 +216,8 @@ const secondary =
     if (!address) return;
 
     void guard(resetButton, async () => {
-      const { message } = await requestPasswordReset(address);
-      say(message);
+      await requestPasswordReset(address);
+      say(copy.text['account.signIn.checkInbox'] ?? '');
     });
   });
 </script>

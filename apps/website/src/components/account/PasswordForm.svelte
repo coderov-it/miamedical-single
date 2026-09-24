@@ -14,6 +14,8 @@
   and never moved focus. The gate now says it at the field.
 -->
 <script lang="ts">
+  import { CUSTOMER_PASSWORD_MIN_LENGTH } from '@mia/validators/password-policy';
+
   import { accountContext, say } from '~/lib/account-context';
   import { errorMessage } from '~/lib/account-state.svelte';
   import { setPassword } from '~/lib/customer-session';
@@ -25,8 +27,8 @@
 
   const { copy, session } = accountContext();
 
-  /** Matches SetCustomerPasswordSchema in packages/validators/src/customer.ts. */
-  const MIN_PASSWORD_LENGTH = 12;
+  /** The same number SetCustomerPasswordSchema gates on, imported, not retyped. */
+  const MIN_PASSWORD_LENGTH = CUSTOMER_PASSWORD_MIN_LENGTH;
 
   const hasPassword = $derived(session.customer?.hasPassword ?? false);
 

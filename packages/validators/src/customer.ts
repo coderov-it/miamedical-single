@@ -1,14 +1,16 @@
 import * as v from 'valibot';
 
-import { EmailSchema, PasswordSchema } from './common.ts';
+import { CustomerPasswordSchema, EmailSchema } from './common.ts';
 
 /**
  * Storefront account contracts, shared by the server and the storefront islands.
  *
- * Passwords reuse `PasswordSchema` (12 characters) rather than a softer
- * customer-specific rule: one password policy is easier to reason about than two,
- * and nobody is forced to have a password at all — magic-link sign-in is a
- * first-class path, not a fallback.
+ * Passwords use `CustomerPasswordSchema` (6 characters), not the back office's
+ * `PasswordSchema` (12). Two policies, deliberately: an operator's password guards
+ * the whole shop, a customer's guards that customer's own order list. And nobody
+ * is forced to have one at all — magic-link sign-in is a first-class path, not a
+ * fallback, so a rule strict enough to fail a form is a rule that costs an account
+ * and protects nothing.
  */
 
 /** An opaque emailed token. Length is not asserted: only redemption can judge it. */
@@ -35,7 +37,7 @@ export const EmailOnlySchema = v.strictObject({ email: EmailSchema });
 export const RedeemAuthTokenSchema = v.pipe(
   v.strictObject({
     token: AuthTokenSchema,
-    password: v.optional(PasswordSchema),
+    password: v.optional(CustomerPasswordSchema),
     confirmPassword: v.optional(v.string()),
   }),
   v.forward(
@@ -58,7 +60,7 @@ export const RedeemAuthTokenSchema = v.pipe(
 export const SetCustomerPasswordSchema = v.pipe(
   v.strictObject({
     currentPassword: v.optional(v.string()),
-    newPassword: PasswordSchema,
+    newPassword: CustomerPasswordSchema,
     confirmPassword: v.string(),
   }),
   v.forward(

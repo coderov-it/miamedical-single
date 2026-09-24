@@ -304,9 +304,14 @@ All business-driven, and all for the same reasons the PDP's are:
   `<input>` cannot be.
 - **The order overview shows the real product image**; the reference draws a
   diagonal-stripe pattern because it has no catalogue behind it.
-- **The confirmation claims nothing we cannot do.** The reference says a
-  confirmation email was sent; there is no mail service behind this page, so it
-  says the request was received and WhatsApp follows.
+- **The confirmation claims only what happened.** The reference promises a
+  confirmation email with nothing behind it. This one is really sent, by
+  `orders/service.place` once the transaction has committed, so the panel says
+  the request was received, that WhatsApp follows, and — when the server reports
+  `accountInvite: 'activate'` — that an activation link is waiting in the inbox.
+  That last line stays hidden for a customer who was already signed in or whose
+  account was activated long ago; telling them to activate it would read as the
+  site not knowing who they are.
 - **The sticky panel sits at 96px, not the reference's 24px**, and only from
   `wide` up. The reference page has no site chrome; this one has a sticky 83px
   header, and 24px parks the panel underneath it. Steps carry `scroll-mt-24` for
@@ -357,5 +362,3 @@ what matters on this page:
   browser TypeScript, for its live estimate. This module and the server now share
   one implementation; the PDP is the remaining copy. Folding it onto
   `@mia/pricing` is the fix.
-- **Nothing emails the order number.** The customer sees it on the confirmation and
-  in the WhatsApp message, and nowhere else.

@@ -89,6 +89,16 @@ export interface CartListFilters {
  * What `service.place` hands back: the created order's identity, the figures the
  * server computed, and the resolved lines it computed them from.
  */
+/**
+ * Whether the confirmation panel should point the customer at their new account.
+ *
+ * `'activate'` means an account exists for this order and nobody has claimed it
+ * yet, so there is an activation link sitting in the inbox we just mailed. `null`
+ * means there is nothing useful to say — they were signed in, or the account was
+ * activated long ago.
+ */
+export type AccountInvite = 'activate' | null;
+
 export interface PlacedOrder {
   id: string;
   number: string;
@@ -98,6 +108,7 @@ export interface PlacedOrder {
   total: string;
   currency: string;
   items: ResolvedLine[];
+  accountInvite: AccountInvite;
 }
 
 /** Totals for the list header. Money stays a string all the way to the client. */

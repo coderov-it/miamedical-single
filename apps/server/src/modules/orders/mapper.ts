@@ -208,6 +208,7 @@ export function toPlacedOrder(placed: PlacedOrder): PlacedOrderDto {
     },
     itemCount: placed.items.length,
     placedAt: iso(placed.placedAt),
+    accountInvite: placed.accountInvite,
   };
 }
 

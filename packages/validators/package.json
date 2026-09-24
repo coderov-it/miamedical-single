@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./language": "./src/language.ts",
     "./notification": "./src/notification.ts",
+    "./password-policy": "./src/password-policy.ts",
     "./push-preferences": "./src/push-preferences.ts"
   },
   "scripts": {

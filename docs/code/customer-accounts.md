@@ -19,6 +19,30 @@ because somebody ordered, and they claim it afterwards by clicking a link we ema
 them. `activatedAt` is null for the whole period in between, which is a normal
 state: an unclaimed account is a real row that simply nobody has proved they own.
 
+## Passwords are optional, and short
+
+Six characters — `CUSTOMER_PASSWORD_MIN_LENGTH` in
+`packages/validators/src/password-policy.ts`. The back office keeps twelve,
+`ADMIN_PASSWORD_MIN_LENGTH`, in the same file. Two policies rather than one,
+because they guard different things: an operator's password reaches every order
+in the shop, a customer's reaches that customer's own list and nothing else.
+
+Nobody is made to have one. Redeeming any token signs you in, so the password
+form on `/attiva-account/` carries a skip button beside it, and an account that
+never sets one stays magic-link only for good — `password_hash` is nullable and
+that is the normal arrival, not a broken row. The one exception is
+`/reimposta-password/`, which renders the same page with `passwordRequired`:
+somebody who asked to reset a password and then skipped would have achieved
+nothing.
+
+A rule strict enough to fail the form was costing activations and protecting
+nothing, which is why the customer floor is half the operator one.
+
+The number sits in its own dependency-free module rather than in `common.ts`
+because the storefront writes it into `minlength` in the browser. Importing it
+from the package root would pull valibot into the client bundle to read an
+integer.
+
 ## The two walks
 
 ### Normal case — a first order from an address we have never seen
