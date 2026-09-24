@@ -7,6 +7,8 @@
  * redeem a token, get a session. What differs is only the copy, so the page reads
  * its wording from a prop instead of existing three times.
  */
+import { CUSTOMER_PASSWORD_MIN_LENGTH } from '@mia/validators/password-policy';
+
 import AccountCopy from '~/components/account/AccountCopy.astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { localeFromLocals, translate } from '~/lib/i18n';
@@ -88,7 +90,7 @@ const primary =
             name="password"
             type="password"
             autocomplete="new-password"
-            minlength="12"
+            minlength={CUSTOMER_PASSWORD_MIN_LENGTH}
           />
           <p class="mt-1.5 text-xs text-neutral-500">{text('account.minChars')}</p>
         </div>
@@ -159,7 +161,10 @@ const primary =
     event.preventDefault();
     const value = passwordInput?.value ?? '';
 
-    if (value.length < 12) {
+    // The floor is read back off the rendered attribute rather than written
+    // again here: `minlength` already carries CUSTOMER_PASSWORD_MIN_LENGTH, so
+    // there is no second number to keep in step with the schema.
+    if (value.length < (passwordInput?.minLength ?? 0)) {
       fail(say('account.passwordTooShort'));
       if (errorBox) errorBox.textContent = say('account.passwordTooShort');
       if (ready) ready.hidden = false;

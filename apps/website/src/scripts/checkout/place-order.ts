@@ -20,6 +20,12 @@ import type { CheckoutContext } from './context.ts';
 interface PlacedOrder {
   number: string;
   totals: { total: string; currency: string };
+  /**
+   * `'activate'` when this order left behind an account nobody has claimed yet.
+   * The page cannot work this out for itself — whether the address was already
+   * activated is something only the server knows — so it is told.
+   */
+  accountInvite: 'activate' | null;
 }
 
 export interface PlaceOrder {
@@ -170,6 +176,11 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
     if (greeting && first) {
       greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
     }
+
+    /* Shown only when it is true. An already-activated customer being told to
+       go and activate would read as the site not knowing who they are. */
+    const accountLine = placedPanel.querySelector<HTMLElement>('[data-placed-account]');
+    if (accountLine && order.accountInvite === 'activate') accountLine.hidden = false;
 
     setHandover(
       placedPanel.querySelector<HTMLAnchorElement>('[data-placed-whatsapp]'),

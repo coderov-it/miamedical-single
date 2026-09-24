@@ -11,6 +11,7 @@ import type { CustomerType, DeliveryMethod } from '@mia/validators';
 import type { PageMetaDto } from '../products/dto.ts';
 import type { OrderItemConfiguration } from './resolve.ts';
 import type { OrderStatus, PaymentStatus } from './status.ts';
+import type { AccountInvite } from './types.ts';
 
 export type { PageMetaDto };
 
@@ -166,6 +167,8 @@ export interface PlacedOrderDto {
   totals: OrderTotalsDto;
   itemCount: number;
   placedAt: string;
+  /** See `AccountInvite`. Drives the one line the panel adds about the account. */
+  accountInvite: AccountInvite;
 }
 
 /**

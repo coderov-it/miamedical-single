@@ -1,5 +1,13 @@
 import * as v from 'valibot';
 
+import {
+  ADMIN_PASSWORD_MIN_LENGTH,
+  CUSTOMER_PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+} from './password-policy.ts';
+
+export * from './password-policy.ts';
+
 export const UuidSchema = v.pipe(v.string(), v.uuid('Must be a valid UUID.'));
 
 export const SlugSchema = v.pipe(
@@ -18,10 +26,24 @@ export const EmailSchema = v.pipe(
   v.maxLength(254),
 );
 
+/**
+ * The two password rules. Their lengths, and why they differ, are in
+ * `password-policy.ts` — a dependency-free module so the storefront can read the
+ * number in the browser without bundling valibot.
+ */
 export const PasswordSchema = v.pipe(
   v.string(),
-  v.minLength(12, 'Use at least 12 characters.'),
-  v.maxLength(128),
+  v.minLength(ADMIN_PASSWORD_MIN_LENGTH, `Use at least ${ADMIN_PASSWORD_MIN_LENGTH} characters.`),
+  v.maxLength(PASSWORD_MAX_LENGTH),
+);
+
+export const CustomerPasswordSchema = v.pipe(
+  v.string(),
+  v.minLength(
+    CUSTOMER_PASSWORD_MIN_LENGTH,
+    `Use at least ${CUSTOMER_PASSWORD_MIN_LENGTH} characters.`,
+  ),
+  v.maxLength(PASSWORD_MAX_LENGTH),
 );
 
 /** A person's name, as an operator or a customer types it. */

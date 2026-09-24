@@ -210,6 +210,16 @@ const SECONDARY_CTA =
     {t('requestSentDetail')}
   </span>
 
+  {/*
+    The nudge towards the account, revealed by the script only when the server
+    reports `accountInvite: 'activate'`. Written as its own line rather than
+    folded into the thank-you above, because it is the one thing on this panel
+    that asks the customer to go and do something afterwards.
+  */}
+  <span class="text-ink-2 max-w-105 text-[15px] leading-[1.55]" hidden data-placed-account>
+    {t('requestSentActivate')}
+  </span>
+
   <a class={SECONDARY_CTA} href={whatsappHref} target="_blank" rel="noopener" data-placed-whatsapp>
     {t('continueOnWhatsApp')}
   </a>

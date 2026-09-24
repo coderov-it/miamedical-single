@@ -41,6 +41,7 @@ import {
   type PaymentStatus,
 } from './status.ts';
 import type {
+  AccountInvite,
   CartAggregate,
   CartListFilters,
   CartSummaryRecord,
@@ -542,7 +543,19 @@ export async function place(
     }
   }
 
-  return { ...created, subtotal, shippingTotal, total, currency, items: lines };
+  /*
+    One line on the confirmation panel, and only when it is true.
+
+    `mailPlan === 'confirmation'` is exactly the set of orders whose account is
+    already claimed — a signed-in session, or an address activated some time ago —
+    so everything else is an account with an activation link in the inbox and
+    nobody who has used it yet. Reading it off the plan rather than re-querying
+    keeps one decision in one place: whichever mail went out is what the panel
+    tells them to go and look for.
+  */
+  const accountInvite: AccountInvite = account.mailPlan === 'confirmation' ? null : 'activate';
+
+  return { ...created, subtotal, shippingTotal, total, currency, items: lines, accountInvite };
 }
 
 /**
