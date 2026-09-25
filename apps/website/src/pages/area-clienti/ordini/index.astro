@@ -21,6 +21,7 @@ const copy = accountCopy(locale, ACCOUNT_ISLAND_KEYS);
   title={text('account.orders.metaTitle')}
   description={text('account.orders.metaDescription')}
   noindex
+  fillGround
 >
   <AccountApp client:load {copy} initial={{ name: 'orders' }} />
 </BaseLayout>

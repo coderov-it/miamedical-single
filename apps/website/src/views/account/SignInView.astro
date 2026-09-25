@@ -1,0 +1,260 @@
+---
+/**
+ * The sign-in card: one email field, three modes over it.
+ *
+ * - `link` (default) mails a sign-in link. The server creates the account when
+ *   the address is new, so "I have never ordered" is never a dead end.
+ * - `password` signs in directly, for those who set one.
+ * - `register` creates an account with a password. The password applies only
+ *   once the emailed confirmation is clicked — see `register` in
+ *   modules/customer-auth/service.ts for why it cannot apply sooner.
+ *
+ * `data-when` lists the modes an element shows in; the script toggles `hidden`.
+ * The page remembers which of the first two this browser used last.
+ *
+ * ONE `<form>`, so the browser sees the address and the password as a matched
+ * pair and can offer to save the credential. Submit means whatever the current
+ * mode says, so Enter is never ambiguous. Behaviour: scripts/account/sign-in.ts.
+ */
+import { CUSTOMER_PASSWORD_MIN_LENGTH } from '@mia/validators/password-policy';
+
+import AccountCopy from '~/components/account/AccountCopy.astro';
+import {
+  ANNOUNCE,
+  AUTH_CARD,
+  AUTH_LEDE,
+  AUTH_TITLE,
+  FIELD,
+  HINT,
+  LABEL,
+  NOTICE_ERROR,
+  PRIMARY,
+  SECONDARY,
+  TEXT_ACTION,
+} from '~/components/account/fields';
+import { localeFromLocals, translate } from '~/lib/i18n';
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+/** What the script writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.signIn.showPassword',
+  'account.signIn.hidePassword',
+  'account.signIn.invalidCredentials',
+  'account.signIn.tooManyAttempts',
+  'account.signIn.sentBody',
+  'account.signIn.resetSentBody',
+  'account.signIn.registerSentBody',
+  'account.signIn.resendWait',
+  'account.signIn.resent',
+  'account.genericError',
+] as const;
+
+/* Matches components/account/FieldError.svelte, so an error here looks like one there. */
+const FIELD_ERROR =
+  "text-danger m-0 mt-1.5 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:content-['⚠']";
+/* The show/hide eye, shared by both password fields. */
+const EYE =
+  '<svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const REVEAL =
+  'text-ink-2 hover:text-ink absolute inset-y-0 right-0 flex w-12 items-center justify-center';
+/* Shown only while the button's request is in flight — the button itself stays live. */
+const SPINNER =
+  'hidden size-4 animate-spin rounded-full border-2 border-current border-t-transparent group-aria-busy:inline-block';
+---
+
+<AccountCopy keys={SCRIPT_KEYS} />
+
+<div class={AUTH_CARD} data-sign-in data-mode="link">
+  <section data-step="form">
+    <h1 class={AUTH_TITLE}>
+      <span data-when="link password">{text('account.signIn.title')}</span>
+      <span data-when="register" hidden>
+        {text('account.signIn.register')}
+      </span>
+    </h1>
+    <p class={AUTH_LEDE}>{text('account.signIn.lede')}</p>
+
+    <div class={`${NOTICE_ERROR} mt-6`} data-feedback role="alert" hidden></div>
+
+    <form class="mt-7 space-y-5" data-form novalidate>
+      <div data-gate="email">
+        <label class={LABEL} for="email">
+          {text('email')}
+        </label>
+        <input
+          class={FIELD}
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="username"
+          inputmode="email"
+          autocapitalize="off"
+          spellcheck="false"
+          required
+        />
+        <p class={FIELD_ERROR} data-field-error="email" hidden>
+          {text('account.signIn.errorEmail')}
+        </p>
+      </div>
+
+      <div data-gate="password" data-when="password" hidden>
+        <!-- The label row is the Email label's height: the link keeps its
+             48px hit area (app.css) but gives it back with negative margin. -->
+        <div class="mb-2 flex items-center justify-between gap-3">
+          <label class="font-ui text-ui font-semibold" for="password">
+            {text('account.password')}
+          </label>
+          <button class={`${TEXT_ACTION} -my-3.5`} type="button" data-reset>
+            {text('account.signIn.forgot')}
+          </button>
+        </div>
+        <div class="relative">
+          <input
+            class={`${FIELD} pr-12`}
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+          />
+          <button
+            class={REVEAL}
+            type="button"
+            aria-pressed="false"
+            aria-label={text('account.signIn.showPassword')}
+            data-reveal="password"
+            set:html={EYE}
+          />
+        </div>
+        <p class={FIELD_ERROR} data-field-error="password" hidden>
+          {text('account.signIn.errorPassword')}
+        </p>
+      </div>
+
+      <div data-gate="newPassword" data-when="register" hidden>
+        <label class={LABEL} for="new-password">
+          {text('account.password')}
+        </label>
+        <div class="relative">
+          <input
+            class={`${FIELD} pr-12`}
+            id="new-password"
+            name="new-password"
+            type="password"
+            autocomplete="new-password"
+            minlength={CUSTOMER_PASSWORD_MIN_LENGTH}
+          />
+          <button
+            class={REVEAL}
+            type="button"
+            aria-pressed="false"
+            aria-label={text('account.signIn.showPassword')}
+            data-reveal="new-password"
+            set:html={EYE}
+          />
+        </div>
+        <p class={`${HINT} mt-2`}>{text('account.minChars')}</p>
+        <p class={FIELD_ERROR} data-field-error="newPassword" hidden>
+          {text('account.passwordTooShort')}
+        </p>
+      </div>
+
+      <button
+        class={`${PRIMARY} group flex w-full items-center justify-center gap-2`}
+        type="submit"
+        data-submit
+      >
+        <span class={SPINNER} aria-hidden="true"></span>
+        <span data-when="link">{text('account.signIn.magicSubmit')}</span>
+        <span data-when="password" hidden>
+          {text('account.signIn.passwordSubmit')}
+        </span>
+        <span data-when="register" hidden>
+          {text('account.signIn.register')}
+        </span>
+      </button>
+
+      <p
+        class={ANNOUNCE}
+        role="status"
+        aria-live="polite"
+        data-announce
+        data-message-one={text('errorCountOne')}
+        data-message-many={text('errorCountMany')}
+      ></p>
+    </form>
+
+    <p class={`${HINT} mt-3 text-center`} data-when="link">
+      {text('account.signIn.magicNote')}
+    </p>
+
+    <div data-when="link password">
+      <div class="text-ink-2 my-6 flex items-center gap-3 text-[15px]">
+        <span class="bg-hair h-px flex-1"></span>
+        {text('account.signIn.or')}
+        <span class="bg-hair h-px flex-1"></span>
+      </div>
+
+      <button class={`${SECONDARY} w-full`} type="button" data-mode-toggle>
+        <span data-when="link">{text('account.signIn.usePassword')}</span>
+        <span data-when="password" hidden>
+          {text('account.signIn.useLink')}
+        </span>
+      </button>
+
+      <p class="border-hair mt-7 border-t pt-6 text-center">
+        <button class={TEXT_ACTION} type="button" data-go="register">
+          {text('account.signIn.register')}
+        </button>
+      </p>
+    </div>
+
+    <p class="mt-6 text-center" data-when="register" hidden>
+      <button class={TEXT_ACTION} type="button" data-go="sign-in">
+        {text('account.signIn.haveAccount')}
+      </button>
+    </p>
+  </section>
+
+  <section class="text-center" data-step="sent" hidden>
+    <div class="bg-accent-tint text-accent mx-auto flex size-14 items-center justify-center rounded-full">
+      <svg
+        class="size-7"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+        <path d="m3 7 9 6 9-6"></path>
+      </svg>
+    </div>
+    <h2 class="text-h3 mt-5 font-bold outline-none" tabindex="-1" data-sent-heading>
+      {text('account.signIn.sentTitle')}
+    </h2>
+    <p class="text-ink-2 mt-2 break-words" data-sent-body></p>
+    <p class={`${HINT} mt-4`}>{text('account.signIn.sentHint')}</p>
+
+    <button
+      class={`${SECONDARY} group mt-7 flex w-full items-center justify-center gap-2`}
+      type="button"
+      data-resend
+    >
+      <span class={SPINNER} aria-hidden="true"></span>
+      {text('account.signIn.resend')}
+    </button>
+    <p class={`${HINT} mt-2 min-h-6`} role="status" data-resend-status></p>
+
+    <button class={`${TEXT_ACTION} mt-3`} type="button" data-change-email>
+      {text('account.signIn.changeEmail')}
+    </button>
+  </section>
+</div>
+
+<script>
+  import '~/scripts/account/sign-in';
+</script>

@@ -36,6 +36,7 @@ const languagePaths = Object.fromEntries(
   title={text('account.order.metaTitle', { number })}
   description={text('account.order.metaDescription')}
   noindex
+  fillGround
   {languagePaths}
 >
   <AccountApp client:load {copy} initial={{ name: 'orderDetail', number }} />

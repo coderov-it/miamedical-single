@@ -44,6 +44,13 @@ interface Props {
    * bands paint their own grounds.
    */
   ground?: 'muted' | 'white' | undefined;
+  /**
+   * Paints the grey ground down to the bottom of the screen, not just under the
+   * content. For short, focused pages (sign-in, the account area) whose content
+   * ends well above the fold and would otherwise sit on a grey band over white.
+   * Opt-in because most pages still rely on the white wrapper behind them.
+   */
+  fillGround?: boolean | undefined;
   /** Exact public URLs for the language selector on dynamic content. */
   languagePaths?: Partial<Record<SiteLocale, string>> | undefined;
 }
@@ -57,6 +64,7 @@ const {
   jsonLd = [],
   bare = false,
   ground = 'muted',
+  fillGround = false,
   languagePaths: suppliedLanguagePaths,
 } = Astro.props;
 
@@ -188,7 +196,7 @@ const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE
       {translate(locale, 'layout.skip')}
     </a>
 
-    <div class="flex min-h-screen flex-col bg-white">
+    <div class:list={['flex min-h-screen flex-col', fillGround ? 'bg-page' : 'bg-white']}>
       <SiteHeader {locale} {languagePaths} />
 
       <main id="contenuto" class="flex-1">

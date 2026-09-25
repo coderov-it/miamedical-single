@@ -21,6 +21,7 @@
   import { NotificationStore } from '~/lib/notifications.svelte';
 
   import AccountShell from './AccountShell.svelte';
+  import AccountSkeleton from './AccountSkeleton.svelte';
   import NotificationsScreen from './NotificationsScreen.svelte';
   import OrderDetailScreen from './OrderDetailScreen.svelte';
   import OrdersScreen from './OrdersScreen.svelte';
@@ -124,16 +125,8 @@
 </script>
 
 {#if session.loading}
-  <!--
-    The server-rendered first paint, and the only thing on screen until the
-    session settles. It carries the page ground so the transition into the real
-    shell moves nothing.
-  -->
-  <div class="bg-page">
-    <div class="max-w-page px-gutter mx-auto w-full py-16">
-      <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
-    </div>
-  </div>
+  <!-- The server-rendered first paint, until the session settles. -->
+  <AccountSkeleton label={say(copy, 'account.loading')} />
 {:else if session.customer}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div bind:this={screenEl} tabindex="-1" class="outline-none">

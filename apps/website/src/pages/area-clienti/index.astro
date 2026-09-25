@@ -23,6 +23,11 @@ const text = (key: string) => translate(locale, key);
 const copy = accountCopy(locale, ACCOUNT_ISLAND_KEYS);
 ---
 
-<BaseLayout title={text('account.metaTitle')} description={text('account.metaDescription')} noindex>
+<BaseLayout
+  title={text('account.metaTitle')}
+  description={text('account.metaDescription')}
+  noindex
+  fillGround
+>
   <AccountApp client:load {copy} initial={{ name: 'account' }} />
 </BaseLayout>

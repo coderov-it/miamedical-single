@@ -159,6 +159,7 @@ export async function createAuthToken(
     orderId: string | null;
     expiresAt: Date;
     ipAddress: string | null;
+    pendingPasswordHash?: string | null;
   },
 ): Promise<void> {
   await db.insert(customerAuthTokens).values({
@@ -168,6 +169,7 @@ export async function createAuthToken(
     orderId: data.orderId,
     expiresAt: data.expiresAt,
     ipAddress: data.ipAddress,
+    pendingPasswordHash: data.pendingPasswordHash ?? null,
   });
 }
 

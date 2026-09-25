@@ -2,6 +2,7 @@ import type { Database } from '@mia/db';
 import type {
   CustomerLoginInput,
   RedeemAuthTokenInput,
+  RegisterCustomerInput,
   SetCustomerPasswordInput,
 } from '@mia/validators';
 
@@ -30,9 +31,10 @@ import type {
 /**
  * Storefront authentication policy.
  *
- * Accounts are not registered, they are created by checkout — see
- * `resolveForOrder` and docs/code/customer-accounts.md. Everything here is about
- * what happens afterwards: proving the inbox, signing in, setting a password.
+ * There is no signup form. An account is created by checkout (`resolveForOrder`)
+ * or by asking for a sign-in link (`requestEmailedLink`) — see
+ * docs/code/customer-accounts.md. Everything else here is about proving the
+ * inbox, signing in, and setting a password.
  */
 
 /** How long each kind of emailed link stays usable. Policy, not schema. */
@@ -77,6 +79,8 @@ export async function issueAuthToken(
     purpose: AuthTokenPurpose;
     orderId?: string | null;
     ipAddress?: string | null;
+    /** Applied to the account only on redemption — see `register`. */
+    pendingPasswordHash?: string | null;
   },
 ): Promise<IssuedAuthToken> {
   const token = createSessionToken();
@@ -89,6 +93,7 @@ export async function issueAuthToken(
     orderId: input.orderId ?? null,
     expiresAt,
     ipAddress: input.ipAddress ?? null,
+    pendingPasswordHash: input.pendingPasswordHash ?? null,
   });
 
   return { token, expiresAt };
@@ -169,6 +174,16 @@ export async function logout(db: Database, token: string | undefined): Promise<v
  * answers the same way. An endpoint that 404s on unknown emails is an account
  * enumeration oracle, and this one is unauthenticated by definition.
  *
+ * A MAGIC LINK TO AN UNKNOWN ADDRESS CREATES THE ACCOUNT. That is the storefront's
+ * only registration: somebody who has never ordered asks for a link, and the
+ * account exists — unclaimed, nameless — from that moment, exactly as checkout
+ * would have made it. Redeeming the link claims it. Without this, an address with
+ * no order behind it was a dead end: the page promised an email that never came.
+ *
+ * The HTTP answer is still identical either way; only the inbox learns which case
+ * it was, from the email's wording, and the inbox owner is the one person entitled
+ * to know. A password reset never creates anything: there is no password to reset.
+ *
  * A mail failure DOES propagate here, unlike order mail: the caller is about to
  * tell someone "check your inbox", and there is nothing recorded that they would
  * lose by being asked to try again.
@@ -179,8 +194,24 @@ export async function requestEmailedLink(
   purpose: Extract<AuthTokenPurpose, 'magic_link' | 'password_reset'>,
   ipAddress: string | null,
 ): Promise<void> {
-  const account = await repo.findByEmail(db, email);
-  if (!account || !account.isActive) return;
+  const existing = await repo.findByEmail(db, email);
+
+  if (purpose === 'password_reset') {
+    if (!existing || !existing.isActive) return;
+    const { token } = await issueAuthToken(db, {
+      customerAccountId: existing.id,
+      purpose,
+      ipAddress,
+    });
+    await notifications.sendPasswordReset({ email: existing.email, token });
+    return;
+  }
+
+  // Names are filled in later, by the profile form or by the first checkout.
+  const account =
+    existing ??
+    (await repo.createOrGetByEmail(db, { email, firstName: '', lastName: '', phone: null }));
+  if (!account.isActive) return;
 
   const { token } = await issueAuthToken(db, {
     customerAccountId: account.id,
@@ -188,11 +219,55 @@ export async function requestEmailedLink(
     ipAddress,
   });
 
-  if (purpose === 'magic_link') {
-    await notifications.sendMagicLink({ email: account.email, token });
-  } else {
-    await notifications.sendPasswordReset({ email: account.email, token });
-  }
+  await notifications.sendMagicLink({
+    email: account.email,
+    token,
+    // Never claimed — a brand-new address, or a checkout account nobody activated.
+    variant: account.activatedAt === null ? 'firstSignIn' : 'signIn',
+  });
+}
+
+/**
+ * Registers with a password — which is the magic-link request above, with the
+ * password riding on the token instead of being written to the account.
+ *
+ * WHY THE PASSWORD WAITS. Guest checkout links an order to whichever account
+ * owns its email. Were the password written now, anybody could register a
+ * stranger's address with a password they know, and read every order that
+ * stranger later placed. So it is held, hashed, on the link, and reaches the
+ * account only when the inbox owner clicks it.
+ *
+ * An account that is already claimed, or already has a password, is never
+ * changed here: it gets an ordinary sign-in link, and the answer is the same.
+ */
+export async function register(
+  db: Database,
+  input: RegisterCustomerInput,
+  ipAddress: string | null,
+): Promise<void> {
+  const account =
+    (await repo.findByEmail(db, input.email)) ??
+    (await repo.createOrGetByEmail(db, {
+      email: input.email,
+      firstName: '',
+      lastName: '',
+      phone: null,
+    }));
+  if (!account.isActive) return;
+
+  const isUnclaimed = account.activatedAt === null && account.passwordHash === null;
+  const { token } = await issueAuthToken(db, {
+    customerAccountId: account.id,
+    purpose: 'magic_link',
+    ipAddress,
+    ...(isUnclaimed ? { pendingPasswordHash: await hashPassword(input.password) } : {}),
+  });
+
+  await notifications.sendMagicLink({
+    email: account.email,
+    token,
+    variant: isUnclaimed ? 'register' : 'signIn',
+  });
 }
 
 export interface RedeemResult extends IssuedCustomerSession {
@@ -220,11 +295,16 @@ export async function redeemToken(
   ]);
   if (!row) throw invalidToken();
 
-  const account = await repo.findById(db, row.customerAccountId);
-  if (!account || !account.isActive) throw invalidToken();
+  const found = await repo.findById(db, row.customerAccountId);
+  if (!found || !found.isActive) throw invalidToken();
+  let account = found;
 
   if (input.password) {
     await repo.updatePasswordHash(db, account.id, await hashPassword(input.password));
+  } else if (row.pendingPasswordHash && !account.passwordHash) {
+    // Chosen on the register form; the click is what proves it was theirs to set.
+    await repo.updatePasswordHash(db, account.id, row.pendingPasswordHash);
+    account = { ...account, passwordHash: row.pendingPasswordHash };
   }
 
   // Redeeming any emailed link proves they read the inbox, which is exactly what

@@ -1,6 +1,6 @@
 # RULES
 
-- **DB index names ≤ 63 bytes** (Postgres truncates past that). Name indexes
+- **DB index names ≤ 63 bytes** (Postgres truncates past that). explicitly Name indexes
   explicitly instead of trusting ORM-generated names.
 
 - **Docs live in the code file as comments.** Past ~10 lines, move them to
@@ -50,34 +50,10 @@
   handler are both the same bug — the customer is stopped and never told why. The
   storefront's implementation of this is `apps/website/src/lib/form-validation.ts`.
 
-- **A ternary chooses a value, never a branch.** `count === 1 ? 'ordine' : 'ordini'`
-  is fine. Once an arm is a function expression, spans more than one line, or nests
-  another ternary, it is hiding control flow — write it as a branch with an early
-  return:
-
-  ```ts
-  // NO — two closures to parse before you learn which one runs
-  export const suggestAddresses = API_KEY
-    ? (query) => fetchSuggestions(query, API_KEY)
-    : async () => {
-        throw httpError(503, '…');
-      };
-
-  // YES
-  function resolveSuggestAddresses() {
-    const feature = FEATURES.addressSuggestions;
-    if (feature === null)
-      return async () => {
-        throw httpError(503, '…');
-      };
-    return (query) => fetchSuggestions(query, feature.apiKey);
-  }
-  ```
-
-  Carve-out: conditional spread for an optional property —
-  `...(key ? { credentials: key } : {})` — stays. It is what
-  `exactOptionalPropertyTypes` forces for "set this key or omit it", it selects a
-  value rather than a code path, and no `if` expresses it inside an object literal.
+- **A ternary chooses a value, never a branch.** Keep a ternary to one line with
+  plain values in both arms. If an arm is a function, spans lines, or nests another
+  ternary, write an `if` with an early return instead. Conditional spread for an
+  optional property (`...(key ? { k: key } : {})`) is allowed.
 
 - **A feature's enabled state is decided at boot, never per request.** Resolve it
   once in `apps/server/src/config/features.ts`, capturing its credential alongside
@@ -107,3 +83,5 @@
 - **Tooling for Code Exploration** use `ripgrep` or `rg` instead of grep, and for finding any chunk of code in codebase use `ast-grep`. if system doesn't have these tools installed then immidiately stop, and tell me to install this tools with guideline of that OS.
 
 - **Avoid Sloppy Texts** don't add to many texts for user helps, first jusitfy if user actually needed it, reused places doesn't need help texts, but if UI or functionality is too tricky then add over all help with a semi-wide help modal for that section otherwise add (i) information button attach some texting texts. but it steps are understanable by one shot then don't add it.
+
+- to test any dev server first check if it is already running by user, if running then use it or spawn your own server, but if you spawn a server make sure you close it after test ending. if need separate process than default dev server , then run it with another port.

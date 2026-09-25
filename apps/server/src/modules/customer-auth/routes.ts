@@ -2,6 +2,7 @@ import {
   CustomerLoginSchema,
   EmailOnlySchema,
   RedeemAuthTokenSchema,
+  RegisterCustomerSchema,
   SetCustomerPasswordSchema,
 } from '@mia/validators';
 import { Hono } from 'hono';
@@ -58,7 +59,12 @@ const emailRateLimitByAddress = rateLimit({
 /**
  * Requesting a link answers identically whether or not the address is known.
  * Anything else turns an unauthenticated endpoint into an enumeration oracle.
+ *
+ * The two differ from each other because the magic link now always mails — an
+ * unknown address gets its account created — while a reset still only mails an
+ * account that exists.
  */
+const LINK_SENT = { message: 'Ti abbiamo inviato un link di accesso. Controlla la tua email.' };
 const CHECK_YOUR_INBOX = { message: 'Se l’indirizzo è registrato, riceverai un’email tra poco.' };
 
 export const customerAuthRoutes = new Hono<AppEnv>()
@@ -108,7 +114,7 @@ export const customerAuthRoutes = new Hono<AppEnv>()
 
   /** --------------------------------------------------------------------------
   POST /api/customer/auth/magic-link (public)
-  Emails a sign-in link, answering the same for an unknown address.
+  Emails a sign-in link, creating the account when the address is new.
   -------------------------------------------------------------------------- **/
   .post(
     '/magic-link',
@@ -122,7 +128,22 @@ export const customerAuthRoutes = new Hono<AppEnv>()
         'magic_link',
         clientIp(c),
       );
-      return c.json({ data: CHECK_YOUR_INBOX });
+      return c.json({ data: LINK_SENT });
+    },
+  )
+
+  /** --------------------------------------------------------------------------
+  POST /api/customer/auth/register (public)
+  Emails a confirmation link; the chosen password applies when it is clicked.
+  -------------------------------------------------------------------------- **/
+  .post(
+    '/register',
+    emailRateLimitByIp,
+    emailRateLimitByAddress,
+    validate('json', RegisterCustomerSchema),
+    async (c) => {
+      await service.register(c.get('db'), c.req.valid('json'), clientIp(c));
+      return c.json({ data: LINK_SENT });
     },
   )
 
