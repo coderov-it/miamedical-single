@@ -61,7 +61,29 @@ export const EMAIL_SAMPLES: EmailSample[] = [
   {
     name: 'magicLink',
     render: () =>
-      magicLink({ to: 'elena.moretti@example.it', url: `${SITE}/accedi/?token=sample` }),
+      magicLink({
+        to: 'elena.moretti@example.it',
+        url: `${SITE}/attiva-account/?token=sample`,
+        variant: 'signIn',
+      }),
+  },
+  {
+    name: 'magicLinkFirstSignIn',
+    render: () =>
+      magicLink({
+        to: 'elena.moretti@example.it',
+        url: `${SITE}/attiva-account/?token=sample`,
+        variant: 'firstSignIn',
+      }),
+  },
+  {
+    name: 'magicLinkRegister',
+    render: () =>
+      magicLink({
+        to: 'elena.moretti@example.it',
+        url: `${SITE}/attiva-account/?token=sample`,
+        variant: 'register',
+      }),
   },
   {
     name: 'passwordReset',

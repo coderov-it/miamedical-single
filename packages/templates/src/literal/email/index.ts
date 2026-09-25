@@ -27,7 +27,7 @@ export { escapeHtml } from './component/escape.ts';
 export type { Audience } from './component/audience.ts';
 export type { EmailMessage } from './component/message.ts';
 export type { OrderRef, Recipient } from './component/order.ts';
-export { magicLink } from './magic-link.ts';
+export { magicLink, type MagicLinkVariant } from './magic-link.ts';
 export { orderPlacedActivateReminder } from './order-placed-activate-reminder.ts';
 export { orderPlacedConfirmation } from './order-placed-confirmation.ts';
 export { orderPlacedNewAccount } from './order-placed-new-account.ts';

@@ -16,9 +16,10 @@ import { addressKind } from './enums.ts';
 import { languageCode } from './i18n.ts';
 
 /**
- * Storefront accounts. Created by the checkout, not by a signup form: ordering is
- * the only way one comes into existence, and the customer claims it afterwards by
- * clicking a link we email them. How that works, and how an order gets attached to
+ * Storefront accounts. No signup form: one is created by the checkout, or by
+ * asking for a sign-in link for a new address, and the customer claims it by
+ * clicking a link we email them. An account from the sign-in page starts with
+ * empty names, filled by the profile form or the first checkout. How that works, and how an order gets attached to
  * an account, is documented in docs/code/customer-accounts.md.
  */
 export const customerAccounts = pgTable(
@@ -47,7 +48,7 @@ export const customerAccounts = pgTable(
     phone: text(),
     /**
      * When the customer first proved they own the inbox, by redeeming any emailed
-     * token. Null = auto-created by an order and never claimed.
+     * token. Null = created by an order or a sign-in request and never claimed.
      *
      * There is no separate `emailVerifiedAt`: redeeming a token IS the proof, and
      * the profile form cannot change the email, so the two would never disagree.

@@ -36,6 +36,13 @@ export const customerAuthTokens = pgTable(
      * putting an order id in a URL.
      */
     orderId: uuid().references(() => orders.id, { onDelete: 'set null' }),
+    /**
+     * The password chosen on the register form, waiting for the inbox to be
+     * proven. Copied onto the account only when this link is redeemed — a
+     * password typed next to an unproven address must not open that account,
+     * or registering somebody else's email would hand over their future orders.
+     */
+    pendingPasswordHash: text(),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
     /** Set on redemption. A second click finds it non-null and is refused. */
     consumedAt: timestamp({ withTimezone: true }),

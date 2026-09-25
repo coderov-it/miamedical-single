@@ -143,6 +143,14 @@ export function requestMagicLink(email: string): Promise<{ message: string }> {
   });
 }
 
+/** Same blind answer as the magic link. The password applies once the link is clicked. */
+export function register(email: string, password: string): Promise<{ message: string }> {
+  return request('/api/customer/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
 export function requestPasswordReset(email: string): Promise<{ message: string }> {
   return request('/api/customer/auth/password-reset', {
     method: 'POST',

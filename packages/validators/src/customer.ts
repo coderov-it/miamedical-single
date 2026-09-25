@@ -22,6 +22,15 @@ export const CustomerLoginSchema = v.strictObject({
 });
 
 /**
+ * Registering with a password. No name: the profile form or the first checkout
+ * supplies it. The password takes effect only when the emailed link is redeemed.
+ */
+export const RegisterCustomerSchema = v.strictObject({
+  email: EmailSchema,
+  password: CustomerPasswordSchema,
+});
+
+/**
  * Requesting a magic link or a reset. The response never depends on whether the
  * address exists, so these carry no other field to leak one.
  */
@@ -112,6 +121,7 @@ export const UpdateOrderDisputeSchema = v.strictObject({
 });
 
 export type CustomerLoginInput = v.InferOutput<typeof CustomerLoginSchema>;
+export type RegisterCustomerInput = v.InferOutput<typeof RegisterCustomerSchema>;
 export type EmailOnlyInput = v.InferOutput<typeof EmailOnlySchema>;
 export type RedeemAuthTokenInput = v.InferOutput<typeof RedeemAuthTokenSchema>;
 export type SetCustomerPasswordInput = v.InferOutput<typeof SetCustomerPasswordSchema>;

@@ -1,5 +1,5 @@
 import type { Database } from '@mia/db';
-import type { ContractLanguage } from '@mia/templates';
+import type { ContractLanguage, MagicLinkVariant } from '@mia/templates';
 import * as templates from '@mia/templates';
 
 import { mailSender } from '../../infra/mail/index.ts';
@@ -144,9 +144,17 @@ export function sendContractSigned(input: {
   );
 }
 
-export function sendMagicLink(input: { email: string; token: string }): Promise<void> {
+export function sendMagicLink(input: {
+  email: string;
+  token: string;
+  variant: MagicLinkVariant;
+}): Promise<void> {
   return sendOrThrow(
-    templates.magicLink({ to: input.email, url: links.magicLinkUrl(input.token) }),
+    templates.magicLink({
+      to: input.email,
+      url: links.magicLinkUrl(input.token),
+      variant: input.variant,
+    }),
   );
 }
 

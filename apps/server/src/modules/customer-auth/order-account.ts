@@ -3,6 +3,7 @@ import type { Database } from '@mia/db';
 import type { SessionCustomer } from '../../shared/http/context.ts';
 import * as repo from './repo.ts';
 import * as service from './service.ts';
+import type { CustomerAccountRow } from './types.ts';
 
 /**
  * Turning a checkout into an account, and deciding how much that link is worth.
@@ -65,27 +66,18 @@ export async function resolveForOrder(
   session: SessionCustomer | null,
   ipAddress: string | null,
 ): Promise<ResolvedOrderAccount> {
-  if (session) {
-    return {
-      customerAccountId: session.id,
-      customerLinkStatus: 'confirmed',
-      email: session.email,
-      firstName: session.firstName,
-      lastName: session.lastName,
-      mailPlan: 'confirmation',
-    };
-  }
+  if (session) return resolveForSession(db, session, customer);
 
   const existing = await repo.findByEmail(db, customer.email);
 
-  const account =
-    existing ??
-    (await repo.createOrGetByEmail(db, {
-      email: customer.email,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      phone: customer.phone,
-    }));
+  const account = existing
+    ? await fillBlankProfile(db, existing, customer)
+    : await repo.createOrGetByEmail(db, {
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        phone: customer.phone,
+      });
 
   const isBrandNew = existing === undefined;
 
@@ -105,6 +97,51 @@ export async function resolveForOrder(
     lastName: account.lastName,
     mailPlan,
   };
+}
+
+/** A session is proof, so the link is `confirmed` and only a confirmation is sent. */
+async function resolveForSession(
+  db: Database,
+  session: SessionCustomer,
+  customer: OrderCustomerInput,
+): Promise<ResolvedOrderAccount> {
+  const resolved = {
+    customerAccountId: session.id,
+    customerLinkStatus: 'confirmed',
+    email: session.email,
+    firstName: session.firstName,
+    lastName: session.lastName,
+    mailPlan: 'confirmation',
+  } as const;
+  if (session.firstName && session.lastName) return resolved;
+
+  // Signed in through the sign-in page and never filled the profile.
+  const row = await repo.findById(db, session.id);
+  if (!row) return resolved;
+  const filled = await fillBlankProfile(db, row, customer);
+  return { ...resolved, firstName: filled.firstName, lastName: filled.lastName };
+}
+
+/**
+ * An account made by the sign-in page has no name — nobody was asked for one. Its
+ * first checkout is the first time we learn it, so the blanks are filled from the
+ * form. Only blanks: a name the account holder chose is never overwritten by
+ * whatever somebody typed into a checkout.
+ */
+async function fillBlankProfile(
+  db: Database,
+  account: CustomerAccountRow,
+  customer: OrderCustomerInput,
+): Promise<CustomerAccountRow> {
+  const patch = {
+    ...(account.firstName ? {} : { firstName: customer.firstName }),
+    ...(account.lastName ? {} : { lastName: customer.lastName }),
+    ...(account.phone || !customer.phone ? {} : { phone: customer.phone }),
+  };
+  if (Object.keys(patch).length === 0) return account;
+
+  await repo.updateProfile(db, account.id, patch);
+  return { ...account, ...patch };
 }
 
 async function planMail(

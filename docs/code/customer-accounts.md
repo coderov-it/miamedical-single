@@ -12,12 +12,71 @@ Before this, `POST /api/orders` took an order with no account and `orders.user_i
 was never written. The only thing that told a customer their order number was the
 confirmation panel they were standing on — close the tab and it was gone.
 
-## Nobody registers
+## No signup form — two ways an account starts
 
-There is no signup form and there will not be one. An account comes into existence
-because somebody ordered, and they claim it afterwards by clicking a link we email
-them. `activatedAt` is null for the whole period in between, which is a normal
-state: an unclaimed account is a real row that simply nobody has proved they own.
+An account comes into existence in one of three ways, and all three leave it
+unclaimed (`activatedAt` null) until somebody redeems a link we emailed:
+
+1. **Checkout** — somebody orders; see "The two walks" below.
+2. **Sign-in link** — somebody asks for a link for an address we have never
+   seen. `requestEmailedLink` creates the account on the spot, nameless.
+3. **Register Account** — email and password. `register` does what 2 does, and
+   holds the password on the link until it is clicked (below).
+
+Before the second path existed, `/accedi/` was a dead end for anyone who had not
+ordered: it said "check your inbox" and nothing ever arrived.
+
+```text
+ 1. POST /api/customer/auth/magic-link  { email: "marco@example.com" }
+      findByEmail("marco@example.com")            → undefined
+      createOrGetByEmail(firstName "", lastName "") → account 9c1e…, activatedAt NULL
+      issueAuthToken(magic_link, 15 min)
+      magicLink({ isFirstSignIn: true })          → "Conferma la tua email e accedi"
+    ← { message: "Ti abbiamo inviato un link di accesso…" }   same answer for everyone
+
+ 2. Marco clicks the link → /attiva-account/?token=…
+      redeemToken → markActivated, session cookie, optional password
+
+ 3. First checkout, signed in or not
+      fillBlankProfile(9c1e…)  → firstName/lastName/phone copied from the form,
+                                 ONLY where the account's own field is blank
+```
+
+The fallback — an address that already has an account — is the old behaviour:
+the same link, worded "Il tuo link di accesso", and nothing is created. A
+disabled account gets no mail and the same answer.
+
+### Register Account — the password waits for the click
+
+```text
+ 1. POST /api/customer/auth/register  { email: "marco@example.com", password: "segreto1" }
+      account unclaimed and password-less?   yes
+      issueAuthToken(magic_link, pendingPasswordHash = argon2("segreto1"))
+      magicLink({ variant: 'register' })     → "Conferma la tua registrazione"
+      customer_accounts.password_hash        → still NULL
+
+ 2. login("marco@example.com", "segreto1")  → 401, nothing to verify against yet
+
+ 3. Marco clicks the link → redeemToken
+      password_hash ← the token's pendingPasswordHash, activatedAt = now()
+      /attiva-account/ sees hasPassword → straight to /area-clienti/ordini/
+```
+
+Fallback — the address is already claimed or already has a password:
+
+```text
+ 1. POST /register { email: "elena@example.com", password: "attacker1" }
+      claimed → no pendingPasswordHash; variant 'signIn' ("Il tuo link di accesso")
+ 2. Even if Elena clicks it, her password is untouched. Same HTTP answer.
+```
+
+Why the password cannot be written at step 1: guest checkout links orders to
+whichever account owns the email. A password set before the inbox is proven
+would let anyone register a stranger's address and read their future orders.
+
+The HTTP response never differs, so this is still not an enumeration oracle.
+Only the inbox sees which case it was, from the email's wording. A password reset
+never creates anything.
 
 ## Passwords are optional, and short
 
@@ -191,7 +250,8 @@ Two clicks arriving together cannot both win. A select-then-update would let the
 
 ## Not leaking who has an account
 
-`POST /magic-link` and `POST /password-reset` always answer
+`POST /magic-link` always answers "Ti abbiamo inviato un link di accesso", and
+`POST /password-reset` always answers
 `"Se l'indirizzo è registrato, riceverai un'email tra poco."`, whether or not the
 address exists. Both are unauthenticated, so any difference in the response makes
 them an account-enumeration oracle. `login` uses one generic error for every failure
@@ -289,6 +349,11 @@ alongside code that needed orders would close the loop.
 
 ## Known gaps
 
+- **Unclaimed sign-in accounts are never swept.** An address somebody asked a
+  link for and never clicked stays as a nameless, unactivated row. The mail rate
+  limits bound how fast they accumulate; nothing deletes them yet.
+- **`next` does not survive an emailed link.** Signing in by password returns to
+  `?next=`; the link always lands on the account area.
 - **Saved addresses are unwired.** `addresses` exists and points at
   `customer_accounts`, but nothing writes to it and checkout does not offer to reuse
   one.
