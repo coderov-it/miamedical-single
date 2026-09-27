@@ -65,7 +65,11 @@
     </div>
   </Sidebar.Header>
 
-  <Sidebar.Content>
+  <!-- `viewport` fetches every section's page code as soon as the sidebar is on
+       screen, so a click lands on a route that is already downloaded. Hover
+       (the body-wide default) starts too late: the chunk is still in flight
+       when the click arrives, and the old page sits there looking stuck. -->
+  <Sidebar.Content data-sveltekit-preload-code="viewport">
     {#each sections as section (section.title)}
       <Sidebar.Group>
         <Sidebar.GroupLabel>{section.title}</Sidebar.GroupLabel>

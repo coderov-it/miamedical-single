@@ -15,7 +15,6 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import { api } from '~/lib/api';
   import type { Localized } from '~/lib/categories/spec-edit';
@@ -30,6 +29,8 @@
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
+  import BusyLabel from '~/lib/components/busy-label.svelte';
   import {
     SOURCE_LANGUAGE,
     buildTranslations,
@@ -361,10 +362,9 @@
 
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
       <Button variant="ghost" disabled={saving} onclick={() => (editing = null)}>Cancel</Button>
-      <Button disabled={saving} onclick={save}>
-        {#if saving}<Spinner />{/if}
-        {saving ? 'Saving…' : editing?.id ? 'Save changes' : 'Create document'}
-      </Button>
+      <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
+        {editing?.id ? 'Save changes' : 'Create document'}
+      </BusyButton>
     </Sheet.Footer>
   </Sheet.Content>
 </Sheet.Root>
@@ -393,7 +393,7 @@
           void confirmDelete();
         }}
       >
-        {deleteBusy ? 'Deleting…' : 'Delete document'}
+        <BusyLabel busy={deleteBusy} label="Deleting…">Delete document</BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

@@ -88,7 +88,9 @@
       {/each}
     </div>
   {:else if !isEmpty}
-    {@render table()}
+    <!-- Rows link to the detail screen; its code is fetched while the list is
+         read, not after the click. -->
+    <div data-sveltekit-preload-code="viewport">{@render table()}</div>
   {/if}
 
   {#if error}

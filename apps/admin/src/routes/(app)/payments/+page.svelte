@@ -29,6 +29,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.payments.$get, 200>;
 
@@ -137,10 +138,10 @@
 <section class="admin-page">
   <PageHeader eyebrow="Finance" title="Payments">
     {#snippet actions()}
-      <Button variant="outline" onclick={exportCsv} disabled={exporting}>
+      <BusyButton variant="outline" onclick={exportCsv} busy={exporting} busyLabel="Exporting…">
         <DownloadIcon class="size-4" />
-        {exporting ? 'Exporting…' : 'Export CSV'}
-      </Button>
+        Export CSV
+      </BusyButton>
     {/snippet}
   </PageHeader>
 

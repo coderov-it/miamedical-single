@@ -21,6 +21,7 @@
   import * as Card from '$lib/components/ui/card/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
+  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { api } from '~/lib/api';
   import MoneyInput from '~/lib/components/money-input.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
@@ -42,6 +43,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Props {
     order: OrderDetail;
@@ -427,15 +429,17 @@
                   disabled={busy !== null}
                   dense
                 />
-                <Button
+                <BusyButton
                   size="sm"
                   variant="outline"
                   class="h-8"
+                  busy={busy === 'shipping'}
+                  busyLabel="Saving…"
                   disabled={busy !== null || shippingDraft === order.totals.shippingTotal}
                   onclick={saveShipping}
                 >
-                  {busy === 'shipping' ? 'Saving…' : 'Save'}
-                </Button>
+                  Save
+                </BusyButton>
               </div>
             {/if}
             <!-- A different collection address is a second stop on somebody's day,
@@ -458,7 +462,10 @@
         <div class="border-b px-4 py-2.5 text-sm font-medium">Contract</div>
         <div class="p-4 text-sm">
           {#if orderContracts.loading && !orderContracts.data}
-            <p class="text-muted-foreground">Loading…</p>
+            <div class="space-y-2">
+              <Skeleton class="h-5 w-32 rounded-full" />
+              <Skeleton class="h-4 w-48" />
+            </div>
           {:else if liveContract}
             {@const cMeta = contractStatusMeta(liveContract.status)}
             <div class="space-y-2">
@@ -524,17 +531,17 @@
                 Contract not signed — no contract has been generated for this rental.
               </p>
               {#if session.can(P.CONTRACT_CREATE)}
-                <Button
+                <BusyButton
                   variant="outline"
                   size="sm"
                   class="w-full"
-                  disabled={generating}
+                  busy={generating}
+                  busyLabel="Generate contract"
                   onclick={generateContract}
                 >
-                  {#if generating}<Spinner />{/if}
                   <FileSignatureIcon class="size-4" />
                   Generate contract
-                </Button>
+                </BusyButton>
               {/if}
             </div>
           {/if}

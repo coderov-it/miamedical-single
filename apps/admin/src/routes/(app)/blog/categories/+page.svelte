@@ -10,7 +10,6 @@
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import { api } from '~/lib/api';
   import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
@@ -30,6 +29,7 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type CategoryList = InferResponseType<
     (typeof api.api.admin.blog)['categories']['$get'],
@@ -180,14 +180,14 @@
             <Input id="cat-pos" type="number" bind:value={position} />
           </div>
           <div class="flex gap-2">
-            <Button
+            <BusyButton
               type="submit"
               class="flex-1"
-              disabled={busy || !code.trim() || !sourceName || !slug.trim()}
+              {busy}
+              disabled={!code.trim() || !sourceName || !slug.trim()}
             >
-              {#if busy}<Spinner />{/if}
               {editId ? 'Update' : 'Create'}
-            </Button>
+            </BusyButton>
             <Button type="button" variant="outline" onclick={resetForm}>Cancel</Button>
           </div>
         </form>

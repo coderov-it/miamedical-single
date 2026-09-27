@@ -10,9 +10,7 @@
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
-  import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { cn } from '$lib/utils.js';
@@ -26,6 +24,7 @@
   import { session } from '~/lib/session.svelte';
   import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import TranslationGaps from '~/lib/components/translation-gaps.svelte';
+  import ResourceView from '~/lib/components/resource-view.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
   import {
     buildTranslations,
@@ -181,201 +180,189 @@
     {/snippet}
   </PageHeader>
 
-  {#if post.error}
-    <Empty.Root class="border bg-card">
-      <Empty.Header>
-        <Empty.Title>This post could not be loaded</Empty.Title>
-        <Empty.Description>{post.error}</Empty.Description>
-      </Empty.Header>
-      <Empty.Content>
-        <Button variant="outline" onclick={() => post.refresh()}>Try again</Button>
-      </Empty.Content>
-    </Empty.Root>
-  {:else if !post.data}
-    <div class="space-y-4">
-      <Skeleton class="h-20 w-full" />
-      <Skeleton class="h-64 w-full" />
-    </div>
-  {:else}
-    {@const p = post.data}
-    {@const meta = blogStatusMeta(p.status)}
+  <ResourceView resource={post} noun="post">
+    {#snippet children(p)}
+      {@const meta = blogStatusMeta(p.status)}
 
-    <div class="flex flex-wrap items-center gap-2">
-      <Badge variant="outline" class={meta.tone}>
-        <span class={cn('size-1.5 rounded-full', meta.dot)}></span>
-        {meta.label}
-      </Badge>
-      {#if p.publishedAt}
-        <span class="text-sm text-muted-foreground">Published {formatDateTime(p.publishedAt)}</span>
-      {/if}
-    </div>
-
-    <div class="@container grid gap-5 @4xl:grid-cols-3">
-      <div class="space-y-5 @4xl:col-span-2">
-        <!-- One switcher, one set of inputs. See the note on the field state. -->
-        <LanguageSwitcher lang={contentLang} {progress} class="mb-2" />
-
-        <Card.Root>
-          <Card.Content class="space-y-4">
-            <div>
-              <label class="mb-1.5 block text-sm font-medium" for="post-title">Title</label>
-              <Input
-                id="post-title"
-                value={textFor(title, lang)}
-                oninput={(event) => setTextFor(title, lang, event.currentTarget.value)}
-                disabled={!canUpdate}
-                placeholder={isSource ? '' : `${languageOf(lang).label} title (optional)`}
-              />
-              <TranslationGaps value={title} class="mt-1" />
-            </div>
-            <div>
-              <label class="mb-1.5 block text-sm font-medium" for="post-slug">Slug</label>
-              <Input
-                id="post-slug"
-                value={textFor(slug, lang)}
-                oninput={(event) => setTextFor(slug, lang, event.currentTarget.value)}
-                disabled={!canUpdate}
-                placeholder={isSource ? '' : `${lang}-slug`}
-              />
-            </div>
-            <div>
-              <label class="mb-1.5 block text-sm font-medium" for="post-body">Body</label>
-              <Textarea
-                id="post-body"
-                value={textFor(body, lang)}
-                oninput={(event) => setTextFor(body, lang, event.currentTarget.value)}
-                rows={20}
-                disabled={!canUpdate}
-                placeholder={isSource ? '' : `${languageOf(lang).label} body (optional)`}
-              />
-            </div>
-            <div>
-              <label class="mb-1.5 block text-sm font-medium" for="post-excerpt">Excerpt</label>
-              <Textarea
-                id="post-excerpt"
-                value={textFor(excerpt, lang)}
-                oninput={(event) => setTextFor(excerpt, lang, event.currentTarget.value)}
-                rows={3}
-                disabled={!canUpdate}
-                placeholder="Short summary for listing cards…"
-              />
-            </div>
-          </Card.Content>
-        </Card.Root>
-
-        <!-- SEO -->
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">
-            SEO ({lang.toUpperCase()})
-          </div>
-          <div class="space-y-4 p-4">
-            <div>
-              <label class="mb-1.5 block text-sm font-medium" for="meta-title">Meta title</label>
-              <Input
-                id="meta-title"
-                value={textFor(metaTitle, lang)}
-                oninput={(event) => setTextFor(metaTitle, lang, event.currentTarget.value)}
-                disabled={!canUpdate}
-                placeholder="Custom page title for search engines"
-              />
-            </div>
-            <div>
-              <label class="mb-1.5 block text-sm font-medium" for="meta-desc">
-                Meta description
-              </label>
-              <Textarea
-                id="meta-desc"
-                value={textFor(metaDescription, lang)}
-                oninput={(event) => setTextFor(metaDescription, lang, event.currentTarget.value)}
-                rows={2}
-                disabled={!canUpdate}
-                placeholder="Short description for search results"
-              />
-            </div>
-          </div>
-        </Card.Root>
+      <div class="flex flex-wrap items-center gap-2">
+        <Badge variant="outline" class={meta.tone}>
+          <span class={cn('size-1.5 rounded-full', meta.dot)}></span>
+          {meta.label}
+        </Badge>
+        {#if p.publishedAt}
+          <span class="text-sm text-muted-foreground"
+            >Published {formatDateTime(p.publishedAt)}</span
+          >
+        {/if}
       </div>
 
-      <div class="space-y-5">
-        <!-- Status actions -->
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">Status</div>
-          <div class="space-y-2 p-4">
-            {#if p.status === 'draft' && canPublish}
-              <Button
-                variant="default"
-                size="sm"
-                class="w-full"
-                disabled={busy !== null}
-                onclick={() => changeStatus('published')}
-              >
-                {#if busy === 'status:published'}<Spinner />{/if}
-                Publish
-              </Button>
-            {/if}
-            {#if p.status === 'published' && canPublish}
-              <Button
-                variant="outline"
-                size="sm"
-                class="w-full"
-                disabled={busy !== null}
-                onclick={() => changeStatus('archived')}
-              >
-                {#if busy === 'status:archived'}<Spinner />{/if}
-                Archive
-              </Button>
-            {/if}
-            {#if p.status === 'archived' && canPublish}
-              <Button
-                variant="outline"
-                size="sm"
-                class="w-full"
-                disabled={busy !== null}
-                onclick={() => changeStatus('draft')}
-              >
-                {#if busy === 'status:draft'}<Spinner />{/if}
-                Return to draft
-              </Button>
-            {/if}
-          </div>
-        </Card.Root>
+      <div class="@container grid gap-5 @4xl:grid-cols-3">
+        <div class="space-y-5 @4xl:col-span-2">
+          <!-- One switcher, one set of inputs. See the note on the field state. -->
+          <LanguageSwitcher lang={contentLang} {progress} class="mb-2" />
 
-        <!-- Featured image -->
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">Featured Image</div>
-          <div class="p-4">
-            <Input
-              bind:value={featuredImage}
-              disabled={!canUpdate}
-              placeholder="R2 storage key or URL"
-            />
-            <p class="mt-1.5 text-xs text-muted-foreground">
-              Enter the media storage key from the media library.
-            </p>
-          </div>
-        </Card.Root>
-
-        <!-- Info -->
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">Info</div>
-          <div class="space-y-2 p-4 text-sm">
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Created</span>
-              <span>{formatDateTime(p.createdAt)}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Updated</span>
-              <span>{formatDateTime(p.updatedAt)}</span>
-            </div>
-            {#if p.publishedAt}
-              <div class="flex justify-between">
-                <span class="text-muted-foreground">Published</span>
-                <span>{formatDateTime(p.publishedAt)}</span>
+          <Card.Root>
+            <Card.Content class="space-y-4">
+              <div>
+                <label class="mb-1.5 block text-sm font-medium" for="post-title">Title</label>
+                <Input
+                  id="post-title"
+                  value={textFor(title, lang)}
+                  oninput={(event) => setTextFor(title, lang, event.currentTarget.value)}
+                  disabled={!canUpdate}
+                  placeholder={isSource ? '' : `${languageOf(lang).label} title (optional)`}
+                />
+                <TranslationGaps value={title} class="mt-1" />
               </div>
-            {/if}
-          </div>
-        </Card.Root>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium" for="post-slug">Slug</label>
+                <Input
+                  id="post-slug"
+                  value={textFor(slug, lang)}
+                  oninput={(event) => setTextFor(slug, lang, event.currentTarget.value)}
+                  disabled={!canUpdate}
+                  placeholder={isSource ? '' : `${lang}-slug`}
+                />
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium" for="post-body">Body</label>
+                <Textarea
+                  id="post-body"
+                  value={textFor(body, lang)}
+                  oninput={(event) => setTextFor(body, lang, event.currentTarget.value)}
+                  rows={20}
+                  disabled={!canUpdate}
+                  placeholder={isSource ? '' : `${languageOf(lang).label} body (optional)`}
+                />
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium" for="post-excerpt">Excerpt</label>
+                <Textarea
+                  id="post-excerpt"
+                  value={textFor(excerpt, lang)}
+                  oninput={(event) => setTextFor(excerpt, lang, event.currentTarget.value)}
+                  rows={3}
+                  disabled={!canUpdate}
+                  placeholder="Short summary for listing cards…"
+                />
+              </div>
+            </Card.Content>
+          </Card.Root>
+
+          <!-- SEO -->
+          <Card.Root class="gap-0 py-0">
+            <div class="border-b px-4 py-2.5 text-sm font-medium">
+              SEO ({lang.toUpperCase()})
+            </div>
+            <div class="space-y-4 p-4">
+              <div>
+                <label class="mb-1.5 block text-sm font-medium" for="meta-title">Meta title</label>
+                <Input
+                  id="meta-title"
+                  value={textFor(metaTitle, lang)}
+                  oninput={(event) => setTextFor(metaTitle, lang, event.currentTarget.value)}
+                  disabled={!canUpdate}
+                  placeholder="Custom page title for search engines"
+                />
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium" for="meta-desc">
+                  Meta description
+                </label>
+                <Textarea
+                  id="meta-desc"
+                  value={textFor(metaDescription, lang)}
+                  oninput={(event) => setTextFor(metaDescription, lang, event.currentTarget.value)}
+                  rows={2}
+                  disabled={!canUpdate}
+                  placeholder="Short description for search results"
+                />
+              </div>
+            </div>
+          </Card.Root>
+        </div>
+
+        <div class="space-y-5">
+          <!-- Status actions -->
+          <Card.Root class="gap-0 py-0">
+            <div class="border-b px-4 py-2.5 text-sm font-medium">Status</div>
+            <div class="space-y-2 p-4">
+              {#if p.status === 'draft' && canPublish}
+                <Button
+                  variant="default"
+                  size="sm"
+                  class="w-full"
+                  disabled={busy !== null}
+                  onclick={() => changeStatus('published')}
+                >
+                  {#if busy === 'status:published'}<Spinner />{/if}
+                  Publish
+                </Button>
+              {/if}
+              {#if p.status === 'published' && canPublish}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  class="w-full"
+                  disabled={busy !== null}
+                  onclick={() => changeStatus('archived')}
+                >
+                  {#if busy === 'status:archived'}<Spinner />{/if}
+                  Archive
+                </Button>
+              {/if}
+              {#if p.status === 'archived' && canPublish}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  class="w-full"
+                  disabled={busy !== null}
+                  onclick={() => changeStatus('draft')}
+                >
+                  {#if busy === 'status:draft'}<Spinner />{/if}
+                  Return to draft
+                </Button>
+              {/if}
+            </div>
+          </Card.Root>
+
+          <!-- Featured image -->
+          <Card.Root class="gap-0 py-0">
+            <div class="border-b px-4 py-2.5 text-sm font-medium">Featured Image</div>
+            <div class="p-4">
+              <Input
+                bind:value={featuredImage}
+                disabled={!canUpdate}
+                placeholder="R2 storage key or URL"
+              />
+              <p class="mt-1.5 text-xs text-muted-foreground">
+                Enter the media storage key from the media library.
+              </p>
+            </div>
+          </Card.Root>
+
+          <!-- Info -->
+          <Card.Root class="gap-0 py-0">
+            <div class="border-b px-4 py-2.5 text-sm font-medium">Info</div>
+            <div class="space-y-2 p-4 text-sm">
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Created</span>
+                <span>{formatDateTime(p.createdAt)}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Updated</span>
+                <span>{formatDateTime(p.updatedAt)}</span>
+              </div>
+              {#if p.publishedAt}
+                <div class="flex justify-between">
+                  <span class="text-muted-foreground">Published</span>
+                  <span>{formatDateTime(p.publishedAt)}</span>
+                </div>
+              {/if}
+            </div>
+          </Card.Root>
+        </div>
       </div>
-    </div>
-  {/if}
+    {/snippet}
+  </ResourceView>
 </section>

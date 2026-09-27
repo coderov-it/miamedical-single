@@ -17,7 +17,8 @@
   by hand should be able to push it to German.
 
   It writes nothing itself — `onApply` belongs to the caller, which maps the
-  keys back onto the endpoints a product is saved through.
+  keys back onto the endpoints a product is saved through, or (`commit="apply"`)
+  into a form whose own Save writes them, as the category sheet does.
 -->
 <script lang="ts">
   import SparklesIcon from '@lucide/svelte/icons/sparkles';
@@ -49,9 +50,20 @@
     fields: PlanField[];
     /** Persist the accepted rows. Rejecting keeps the dialog open with its error. */
     onApply: (rows: Partial<Record<TargetLanguageCode, Record<string, string>>>) => Promise<void>;
+    /**
+     * `save` — `onApply` writes to the API. `apply` — it fills a form the
+     * operator still has to save, so the wording must not claim a save.
+     */
+    commit?: 'save' | 'apply';
   }
 
-  let { open = $bindable(), fields, onApply }: Props = $props();
+  let { open = $bindable(), fields, onApply, commit = 'save' }: Props = $props();
+
+  /**
+   * Fields per request. DeepL takes at most 50 texts per call and the API 100;
+   * a category with a few long option lists passes both.
+   */
+  const BATCH = 50;
 
   type Phase = 'confirm' | 'running' | 'review';
 
@@ -184,14 +196,18 @@
       const lineId = nextLineId++;
       lines.push({ id: lineId, tone: 'pending', text: `Translating details to ${plan.label}…` });
       try {
-        const result =
-          plan.gaps.length > 0
-            ? await autoTranslate.translate({
-                source,
-                target: plan.code,
-                fields: fieldPayload(plan.gaps, source),
-              })
-            : {};
+        const payload = fieldPayload(plan.gaps, source);
+        const result: Record<string, string> = {};
+        for (let start = 0; start < payload.length; start += BATCH) {
+          Object.assign(
+            result,
+            await autoTranslate.translate({
+              source,
+              target: plan.code,
+              fields: payload.slice(start, start + BATCH),
+            }),
+          );
+        }
 
         // A value the server would reject is reported, not truncated: cutting a
         // translated chip to 20 characters invents copy nobody wrote.
@@ -262,7 +278,9 @@
         {:else if phase === 'running'}
           Translating {total} {total === 1 ? 'language' : 'languages'} from {sourceLabel}.
         {:else}
-          Review what came back, then save it. Nothing is written until you do.
+          {commit === 'apply'
+            ? 'Review what came back, then apply it to the form. Nothing is written until you save.'
+            : 'Review what came back, then save it. Nothing is written until you do.'}
         {/if}
       </Dialog.Description>
     </Dialog.Header>
@@ -326,7 +344,7 @@
             {#if saving}<Spinner />{/if}
             {saving
               ? 'Saving…'
-              : `Save ${included.length} ${included.length === 1 ? 'language' : 'languages'}`}
+              : `${commit === 'apply' ? 'Apply' : 'Save'} ${included.length} ${included.length === 1 ? 'language' : 'languages'}`}
           </Button>
         {:else}
           <p class="text-xs text-muted-foreground">Nothing to save — go back and try again.</p>

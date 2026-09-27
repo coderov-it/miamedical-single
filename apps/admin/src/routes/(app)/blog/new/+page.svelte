@@ -7,12 +7,12 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { api } from '~/lib/api';
   import PageHeader from '~/lib/components/page-header.svelte';
   import { errorMessage } from '~/lib/request';
   import { routes } from '~/lib/routes';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   let title = $state('');
   let body = $state('');
@@ -87,10 +87,9 @@
           <label class="mb-1.5 block text-sm font-medium" for="body">Body (IT)</label>
           <Textarea id="body" bind:value={body} rows={12} placeholder="Contenuto…" required />
         </div>
-        <Button type="submit" class="w-full" disabled={busy || !title.trim() || !body.trim()}>
-          {#if busy}<Spinner />{/if}
+        <BusyButton type="submit" class="w-full" {busy} disabled={!title.trim() || !body.trim()}>
           Create post
-        </Button>
+        </BusyButton>
       </form>
     </Card.Content>
   </Card.Root>

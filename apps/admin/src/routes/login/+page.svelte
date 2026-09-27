@@ -5,12 +5,11 @@
   import { page } from '$app/state';
 
   import * as Alert from '$lib/components/ui/alert/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
   import * as Field from '$lib/components/ui/field/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   let email = $state('');
   let password = $state('');
@@ -87,10 +86,9 @@
           />
         </Field.Field>
 
-        <Button type="submit" disabled={submitting} class="w-full">
-          {#if submitting}<Spinner />{/if}
-          {submitting ? 'Signing in…' : 'Sign in'}
-        </Button>
+        <BusyButton type="submit" busy={submitting} busyLabel="Signing in…" class="w-full">
+          Sign in
+        </BusyButton>
       </Field.Group>
     </form>
   </div>

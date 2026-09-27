@@ -206,12 +206,43 @@ A consequence worth knowing: if Italian later gains a meta title, every target
 language becomes `partial` again until it is translated. That is correct — there
 is now something to translate.
 
+## Categories
+
+The category sheet has the same **Translate** action, next to its language
+tabs. Same dialog, same protection rule; two things differ.
+
+```
+field                          group                 section
+details.name, .description     details               Category details
+spec:0.label, spec:0.helpText  spec:0                Spec fields
+spec:0.option:3                spec:0.option:3       Spec options   (select specs only)
+```
+
+- **It fills the form, not the database.** The sheet holds one form with one
+  Save, and a new category has no id to save to. So `commit="apply"`: the
+  answers land in the form (`apply N languages`), the operator checks them
+  under the language tabs and saves. The fields are built from the live form,
+  so nothing has to be saved first.
+- **Slug is derived from the translated name**, only when that language has no
+  slug — a category row is sent only with both.
+
+Keys are positional (`spec:3.option:7`) because a key is capped at 64 characters
+and two uuids do not fit. The dialog is modal, so the list cannot be reordered
+under a run. Builder and applier: `apps/admin/src/lib/categories/translation-fields.ts`.
+
+This is where spec option labels get translated — the reason they are left out
+of the product run.
+
+## Batches
+
+A language's fields go to the API 50 at a time: DeepL takes at most 50 texts
+per call, the request schema 100. The log still shows one line per language.
+
 ## Reusing this for another editor
 
 `translation-plan.ts` works off `PlanField[]`; `translation-fields.ts` shows how
 to build one for a record and `translation-save.ts` how to map the answers back.
-Category, blog and document sheets can do the same and get the whole dialog free
-— only the builder and the saver are theirs. The route is currently guarded by
-`product:update`, which is the permission the only caller holds; a shared
-`translation:generate` capability is the right home once a second editor wants
-it.
+Blog and document sheets can do the same and get the whole dialog free — only
+the builder and the saver are theirs. The route accepts `product:update`,
+`category:update` or `category:create`; a shared `translation:generate`
+capability is the right home once another editor wants it.

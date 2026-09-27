@@ -44,6 +44,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ContractList = InferResponseType<typeof api.api.admin.contracts.$get, 200>['data'];
   type ContractDetail = InferResponseType<
@@ -765,10 +766,9 @@
       <!-- Create -->
       <Card.Root class="gap-0 py-0">
         <div class="space-y-3 p-4">
-          <Button class="w-full" disabled={!formValid || busy} onclick={create}>
-            {#if busy}<Spinner />{/if}
+          <BusyButton class="w-full" {busy} disabled={!formValid} onclick={create}>
             Create contract & send signing link
-          </Button>
+          </BusyButton>
           <p class="text-xs text-muted-foreground">
             The customer receives the signing link by email immediately, in the contract's language.
           </p>

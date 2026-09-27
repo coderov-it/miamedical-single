@@ -29,6 +29,7 @@
   import { localizedFrom, progressAcross, SOURCE_LANGUAGE } from '~/lib/i18n';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import BusyLabel from '~/lib/components/busy-label.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.categories.$get, 200>;
   type Category = ListResponse['data'][number];
@@ -291,7 +292,7 @@
           void confirmDelete();
         }}
       >
-        {deleteBusy ? 'Deleting…' : 'Delete category'}
+        <BusyLabel busy={deleteBusy} label="Deleting…">Delete category</BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

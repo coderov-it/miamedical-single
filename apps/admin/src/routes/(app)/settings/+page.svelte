@@ -18,12 +18,13 @@
 
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
+  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import PageHeader from '~/lib/components/page-header.svelte';
   import { SettingsSection } from '~/lib/settings';
   import { api } from '~/lib/api';
   import { ApiError, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Recipients {
     emails: string[];
@@ -100,10 +101,10 @@
       description="Who receives platform alerts by email. Operators already see these in their notification inbox; this list reaches people who are not in the panel."
     >
       {#if loading}
-        <p class="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner class="size-3.5" />
-          Loading…
-        </p>
+        <div class="space-y-2">
+          <Skeleton class="h-10 w-full max-w-md" />
+          <Skeleton class="h-10 w-full max-w-md" />
+        </div>
       {:else}
         <div class="space-y-2">
           {#each emails as _, index (index)}
@@ -158,9 +159,7 @@
 
         <div class="mt-4">
           {#if canEdit}
-            <Button disabled={saving} onclick={save}>
-              {saving ? 'Saving…' : 'Save'}
-            </Button>
+            <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>Save</BusyButton>
           {:else}
             <p class="text-sm text-muted-foreground">You have read-only access to settings.</p>
           {/if}

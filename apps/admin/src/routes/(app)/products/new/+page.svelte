@@ -23,7 +23,6 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import InfoHint from '~/lib/components/info-hint.svelte';
   import MoneyInput from '~/lib/components/money-input.svelte';
@@ -33,6 +32,7 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { slugify } from '~/lib/slug';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type Category = InferResponseType<typeof api.api.admin.categories.$get, 200>['data'][number];
 
@@ -270,10 +270,7 @@
 
       <div class="flex items-center justify-between gap-3 bg-muted/40 px-5 py-3">
         <Button href={routes.products} variant="ghost">Cancel</Button>
-        <Button type="submit" disabled={saving}>
-          {#if saving}<Spinner />{/if}
-          {saving ? 'Creating…' : 'Create product'}
-        </Button>
+        <BusyButton type="submit" busy={saving} busyLabel="Creating…">Create product</BusyButton>
       </div>
     </Card.Root>
   </form>

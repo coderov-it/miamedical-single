@@ -24,6 +24,7 @@
   import { errorMessage, unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import BusyLabel from '~/lib/components/busy-label.svelte';
 
   const query = new QueryState({ q: '', status: 'all', page: 1 });
   const draft = new QueryDraft(query);
@@ -302,7 +303,7 @@
           void confirmDelete();
         }}
       >
-        {busy ? 'Deleting…' : 'Delete operator'}
+        <BusyLabel {busy} label="Deleting…">Delete operator</BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

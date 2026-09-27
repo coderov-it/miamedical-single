@@ -30,8 +30,6 @@
   import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
-  import * as Empty from '$lib/components/ui/empty/index.js';
-  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
   import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
@@ -47,6 +45,8 @@
   import { uiLang } from '~/lib/ui-lang.svelte';
   import TranslationProgress from '~/lib/components/translation-progress.svelte';
   import TranslateDialog from '~/lib/components/translate-dialog.svelte';
+  import ResourceView from '~/lib/components/resource-view.svelte';
+  import BusyLabel from '~/lib/components/busy-label.svelte';
   import {
     autoTranslate,
     type PlanField,
@@ -230,115 +230,101 @@
     {/snippet}
   </PageHeader>
 
-  {#if product.error}
-    <Empty.Root class="border bg-card">
-      <Empty.Header>
-        <Empty.Title>This product could not be loaded</Empty.Title>
-        <Empty.Description>{product.error}</Empty.Description>
-      </Empty.Header>
-      <Empty.Content>
-        <Button variant="outline" onclick={() => product.refresh()}>Try again</Button>
-      </Empty.Content>
-    </Empty.Root>
-  {:else if !product.data}
-    <div class="space-y-4">
-      <Skeleton class="h-10 w-full" />
-      <Skeleton class="h-96 w-full" />
-    </div>
-  {:else}
-    {@const current = product.data}
-    <div class="flex flex-wrap items-center gap-2 text-sm">
-      <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
-        {current.status}
-      </Badge>
-      <Badge variant="outline">
-        {current.pricingMode === 'rental' ? `rental / ${current.rentalUnit}` : 'fixed price'}
-      </Badge>
-      <Badge variant="outline">
-        {formatMoney(current.basePrice, current.currency)}
-      </Badge>
-      <Badge variant="outline" class="gap-1.5 font-normal">
-        <TranslationProgress progress={progressFromStates(current.translationStatus.languages)} />
-      </Badge>
-      <span class="ml-auto text-muted-foreground">
-        Updated {relativeTime(current.updatedAt)}
-      </span>
-    </div>
+  <ResourceView resource={product} noun="product">
+    {#snippet children(current)}
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
+          {current.status}
+        </Badge>
+        <Badge variant="outline">
+          {current.pricingMode === 'rental' ? `rental / ${current.rentalUnit}` : 'fixed price'}
+        </Badge>
+        <Badge variant="outline">
+          {formatMoney(current.basePrice, current.currency)}
+        </Badge>
+        <Badge variant="outline" class="gap-1.5 font-normal">
+          <TranslationProgress progress={progressFromStates(current.translationStatus.languages)} />
+        </Badge>
+        <span class="ml-auto text-muted-foreground">
+          Updated {relativeTime(current.updatedAt)}
+        </span>
+      </div>
 
-    <!--
-      A plain button strip rather than the Tabs primitive: the panels below are
-      all mounted at once, which is the opposite of what a tablist implies to
-      a screen reader. `aria-current` describes what is actually true here.
+      <!--
+        A plain button strip rather than the Tabs primitive: the panels below are
+        all mounted at once, which is the opposite of what a tablist implies to
+        a screen reader. `aria-current` describes what is actually true here.
 
-      The IT/EN tabs at the right end are the editor-wide content language —
-      pinned outside the scroll region so they never disappear behind the
-      section tabs on a narrow screen.
-    -->
-    <div class="flex items-stretch border-b">
-      <div class="min-w-0 flex-1 overflow-x-auto">
-        <div class="flex min-w-max gap-1">
+        The IT/EN tabs at the right end are the editor-wide content language —
+        pinned outside the scroll region so they never disappear behind the
+        section tabs on a narrow screen.
+      -->
+      <div class="flex items-stretch border-b">
+        <div class="min-w-0 flex-1 overflow-x-auto">
+          <div class="flex min-w-max gap-1">
+            {#each PRODUCT_TABS as tab (tab.key)}
+              {@const active = activeTab === tab.key}
+              <button
+                type="button"
+                onclick={() => openTab(tab.key)}
+                aria-current={active ? 'page' : undefined}
+                class={cn(
+                  'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
+                  active
+                    ? 'border-primary font-medium text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {tab.label}
+                {#if dirty.has(tab.key)}
+                  <span
+                    class="size-1.5 rounded-full bg-primary"
+                    title="Unsaved changes in {tab.label}"
+                  ></span>
+                {/if}
+              </button>
+            {/each}
+          </div>
+        </div>
+        <LanguageSwitcher
+          lang={contentLang}
+          progress={progressFromStates(current.translationStatus.languages)}
+          class="shrink-0 border-l pl-1"
+        />
+      </div>
+
+      <!-- Every panel mounted; only the active one is shown. Keyed on the
+           translation version so a saved generation run remounts them against the
+           row the server returned — a tab keeps the copy it read at mount. -->
+      {#key productVersion}
+        <div class="max-w-5xl">
           {#each PRODUCT_TABS as tab (tab.key)}
-            {@const active = activeTab === tab.key}
-            <button
-              type="button"
-              onclick={() => openTab(tab.key)}
-              aria-current={active ? 'page' : undefined}
-              class={cn(
-                'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
-                active
-                  ? 'border-primary font-medium text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab.label}
-              {#if dirty.has(tab.key)}
-                <span
-                  class="size-1.5 rounded-full bg-primary"
-                  title="Unsaved changes in {tab.label}"
-                ></span>
+            <div hidden={activeTab !== tab.key}>
+              {#if tab.key === 'basics'}
+                <BasicsTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'description'}
+                <DescriptionTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'pricing'}
+                <PricingTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'specs'}
+                <SpecsTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'media'}
+                <MediaTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'addons'}
+                <AddonsTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'faqs'}
+                <FaqsTab product={current} {onSaved} {dirty} />
+              {:else if tab.key === 'questions'}
+                <QuestionsTab product={current} {onSaved} {dirty} />
+              {:else}
+                <TermsTab product={current} {onSaved} {dirty} />
               {/if}
-            </button>
+            </div>
           {/each}
         </div>
-      </div>
-      <LanguageSwitcher
-        lang={contentLang}
-        progress={progressFromStates(current.translationStatus.languages)}
-        class="shrink-0 border-l pl-1"
-      />
-    </div>
-
-    <!-- Every panel mounted; only the active one is shown. Keyed on the
-         translation version so a saved generation run remounts them against the
-         row the server returned — a tab keeps the copy it read at mount. -->
-    {#key productVersion}
-      <div class="max-w-5xl">
-        {#each PRODUCT_TABS as tab (tab.key)}
-          <div hidden={activeTab !== tab.key}>
-            {#if tab.key === 'basics'}
-              <BasicsTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'description'}
-              <DescriptionTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'pricing'}
-              <PricingTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'specs'}
-              <SpecsTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'media'}
-              <MediaTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'addons'}
-              <AddonsTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'faqs'}
-              <FaqsTab product={current} {onSaved} {dirty} />
-            {:else if tab.key === 'questions'}
-              <QuestionsTab product={current} {onSaved} {dirty} />
-            {:else}
-              <TermsTab product={current} {onSaved} {dirty} />
-            {/if}
-          </div>
-        {/each}
-      </div>
-    {/key}
-  {/if}
+      {/key}
+    {/snippet}
+  </ResourceView>
 </section>
 
 <TranslateDialog bind:open={translateOpen} fields={translationFields} onApply={applyTranslations} />
@@ -367,7 +353,7 @@
           void confirmDelete();
         }}
       >
-        {deleteBusy ? 'Deleting…' : 'Delete product'}
+        <BusyLabel busy={deleteBusy} label="Deleting…">Delete product</BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

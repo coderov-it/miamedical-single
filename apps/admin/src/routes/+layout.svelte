@@ -4,6 +4,7 @@
   import '~/styles/app.css';
 
   import { Toaster } from '$lib/components/ui/sonner/index.js';
+  import NavigationProgress from '~/lib/components/navigation-progress.svelte';
   import { session } from '~/lib/session.svelte';
 
   let { children } = $props();
@@ -16,6 +17,7 @@
 <!-- Owns the `.dark` class and its localStorage persistence, and injects the
      blocking script that applies the stored theme before first paint. -->
 <ModeWatcher />
+<NavigationProgress />
 
 {@render children()}
 

@@ -30,6 +30,7 @@
   import { uiLang } from '~/lib/ui-lang.svelte';
   import TranslationProgress from '~/lib/components/translation-progress.svelte';
   import { progressFromStates } from '~/lib/i18n';
+  import BusyLabel from '~/lib/components/busy-label.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.products.$get, 200>;
   type Product = ListResponse['data'][number];
@@ -395,7 +396,7 @@
           void confirmDelete();
         }}
       >
-        {deleteBusy ? 'Deleting…' : 'Delete product'}
+        <BusyLabel busy={deleteBusy} label="Deleting…">Delete product</BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

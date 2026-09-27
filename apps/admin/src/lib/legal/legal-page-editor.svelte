@@ -29,7 +29,6 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
@@ -51,6 +50,7 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   import { type Draft, draftFrom, isSameDraft, toPayload } from './draft.ts';
 
@@ -229,10 +229,9 @@
         </Button>
       {/if}
       {#if canEdit}
-        <Button disabled={saving || !draft} onclick={save}>
-          {#if saving}<Spinner />{/if}
-          {saving ? 'Saving…' : 'Save'}
-        </Button>
+        <BusyButton busy={saving} busyLabel="Saving…" disabled={!draft} onclick={save}>
+          Save
+        </BusyButton>
       {/if}
     {/snippet}
   </PageHeader>
