@@ -19,10 +19,10 @@
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import BusyButton from '~/lib/components/busy-button.svelte';
   import type { AdminUser } from './access';
 
   interface Props {
@@ -153,10 +153,7 @@
 
       <Dialog.Footer>
         <Button type="button" variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
-        <Button type="submit" disabled={saving}>
-          {#if saving}<Spinner />{/if}
-          {saving ? 'Saving…' : 'Set password'}
-        </Button>
+        <BusyButton type="submit" busy={saving} busyLabel="Saving…">Set password</BusyButton>
       </Dialog.Footer>
     </form>
   </Dialog.Content>

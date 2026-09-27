@@ -11,8 +11,13 @@
     null      → create
     Category  → edit
   A boolean plus a separate "mode" lets the two disagree; this cannot.
+
+  Translate fills the form rather than the database: the sheet already holds
+  one form and one Save, and a new category has nowhere else to put the answers.
 -->
 <script lang="ts">
+  import { P } from '@mia/permissions';
+  import WandSparklesIcon from '@lucide/svelte/icons/wand-sparkles';
   import type { InferResponseType } from 'hono/client';
   import { toast } from 'svelte-sonner';
 
@@ -20,30 +25,33 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { api } from '~/lib/api';
   import LanguageSwitcher from '~/lib/components/language-switcher.svelte';
   import IconPicker from '~/lib/components/icon-picker.svelte';
+  import TranslateDialog from '~/lib/components/translate-dialog.svelte';
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { provideContentLang } from '~/lib/content-lang.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import {
+    autoTranslate,
     buildTranslations,
     progressAcross,
     SOURCE_LANGUAGE,
     textFor,
     translationError,
   } from '~/lib/i18n';
+  import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
   import SpecFieldList from './spec-field-list.svelte';
   import {
-    isSelectType,
     cloneLocalized,
     localizedFrom,
-    localizedOrNull,
     type Localized,
     type SpecEdit,
+    toSpecsPayload,
   } from './spec-edit';
+  import { applyTranslations, buildPlanFields, type TranslationRows } from './translation-fields';
 
   type Category = InferResponseType<(typeof api.api.admin.categories)[':id']['$get'], 200>['data'];
 
@@ -133,6 +141,23 @@
     }));
   });
 
+  let translateOpen = $state(false);
+
+  const canEdit = $derived(session.can(isEdit ? P.CATEGORY_UPDATE : P.CATEGORY_CREATE));
+
+  // The action is absent until the API says a provider is configured.
+  $effect(() => {
+    if (canEdit) void autoTranslate.probe();
+  });
+
+  const translationFields = $derived(buildPlanFields({ name, slug, description, specs }));
+
+  async function onTranslated(rows: TranslationRows) {
+    applyTranslations({ name, slug, description, specs }, rows);
+    const count = Object.keys(rows).length;
+    toast.success(`Filled ${count} ${count === 1 ? 'language' : 'languages'}. Save to keep them.`);
+  }
+
   /** A category counts as translated once it has a name and a slug. */
   const progress = $derived(progressAcross([name, slug]));
 
@@ -146,32 +171,6 @@
       (row) => Boolean(row.name && row.slug),
     )!; // never null: the builder always returns a row, and the form gate
     // already requires the source-language name before save is reachable.
-  }
-
-  function specsPayload() {
-    return specs.map((spec, position) => ({
-      ...(spec.id ? { id: spec.id } : {}),
-      key: spec.key,
-      label: localizedOrNull(spec.label) ?? { [SOURCE_LANGUAGE]: '' },
-      helpText: localizedOrNull(spec.helpText),
-      valueType: spec.valueType as 'string',
-      unit: spec.unit.trim() || null,
-      isRequired: spec.isRequired,
-      isFilterable: spec.isFilterable,
-      isComparable: spec.isComparable,
-      icon: spec.icon,
-      position,
-      // A type that is not a select has no options, and sending stale ones
-      // would resurrect choices the operator thought they had removed.
-      options: isSelectType(spec.valueType)
-        ? spec.options.map((option, optionPosition) => ({
-            ...(option.id ? { id: option.id } : {}),
-            value: option.value,
-            label: localizedOrNull(option.label) ?? { [SOURCE_LANGUAGE]: '' },
-            position: optionPosition,
-          }))
-        : [],
-    }));
   }
 
   async function save() {
@@ -196,7 +195,7 @@
       await unwrap<Category>(
         await api.api.admin.categories[':id'].specs.$put({
           param: { id: saved.id },
-          json: specsPayload(),
+          json: toSpecsPayload(specs),
         }),
       );
 
@@ -233,8 +232,19 @@
       </Sheet.Description>
     </Sheet.Header>
 
-    <div class="flex border-b px-6">
+    <div class="flex items-center justify-between gap-2 border-b px-6">
       <LanguageSwitcher lang={contentLang} {progress} />
+      {#if autoTranslate.available && canEdit}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={saving}
+          onclick={() => (translateOpen = true)}
+        >
+          <WandSparklesIcon />
+          Translate
+        </Button>
+      {/if}
     </div>
 
     <div class="min-h-0 flex-1 divide-y overflow-y-auto">
@@ -334,10 +344,16 @@
          destructive-ish action next to the confirming one invites misfires. -->
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
       <Button variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
-      <Button disabled={saving} onclick={save}>
-        {#if saving}<Spinner />{/if}
-        {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create category'}
-      </Button>
+      <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
+        {isEdit ? 'Save changes' : 'Create category'}
+      </BusyButton>
     </Sheet.Footer>
   </Sheet.Content>
 </Sheet.Root>
+
+<TranslateDialog
+  bind:open={translateOpen}
+  fields={translationFields}
+  onApply={onTranslated}
+  commit="apply"
+/>

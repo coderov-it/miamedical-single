@@ -180,6 +180,31 @@ never unmounted**; error, empty and loading render as siblings below it. Only
 the genuine first load, when `meta` is still `undefined`, renders skeletons in
 the table's place.
 
+### Loading feedback — one indicator per wait, sized to the wait
+
+| wait                                   | indicator                                         | component                   |
+| -------------------------------------- | ------------------------------------------------- | --------------------------- |
+| route code downloading after a click   | 2px bar across the viewport top, after 150ms      | `navigation-progress`       |
+| a list's first load / its refetch      | skeleton rows / 2px sweep under the header        | `list-card`                 |
+| a detail screen's first load / refetch | `detail-skeleton` / the same sweep above the body | `resource-view`             |
+| one control's request (save, delete)   | spinner on that control, optional "Saving…"       | `busy-button`, `busy-label` |
+
+The route bar exists because the admin has no `load` functions: data is
+fetched after the page mounts, so the only wait before the new page appears
+is its JS chunk. Without a signal, a click on a not-yet-downloaded route leaves
+the old page on screen for up to a second or two. The 150ms delay keeps it off
+cached navigations, and it ignores same-path navigations (filters, pager),
+which ListCard's sweep already covers.
+
+The sidebar and every ListCard table carry `data-sveltekit-preload-code="viewport"`,
+so most of that chunk wait happens before the click. The body-wide
+`preload-data="hover"` starts too late on its own: the chunk is still in flight
+when the click lands.
+
+`resource-view` keeps content mounted through a refetch. A refetch that fails
+shows a Retry strip above the content rather than replacing the page with the
+error card; only a failure with nothing loaded gets the full error state.
+
 `pager.svelte` reads the `{ page, perPage, total, pageCount }` envelope every
 list endpoint returns and states the range ("1–20 of 337") rather than the page
 number alone, because that answers the question people actually have.

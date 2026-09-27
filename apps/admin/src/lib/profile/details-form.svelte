@@ -10,15 +10,14 @@
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
 
-  import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
   import type { Profile } from './profile';
 
   interface Props {
@@ -181,9 +180,6 @@
       {/if}
     </div>
 
-    <Button type="submit" disabled={saving}>
-      {#if saving}<Spinner />{/if}
-      {saving ? 'Saving…' : 'Save details'}
-    </Button>
+    <BusyButton type="submit" busy={saving} busyLabel="Saving…">Save details</BusyButton>
   </form>
 </Card.Root>

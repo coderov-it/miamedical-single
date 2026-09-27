@@ -31,6 +31,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.rentals.$get, 200>;
 
@@ -437,9 +438,14 @@
           <Button type="button" variant="outline" onclick={() => (renewDialogOpen = false)}>
             Cancel
           </Button>
-          <Button type="submit" disabled={!renewFrom || !renewTo || renewSubmitting}>
-            {renewSubmitting ? 'Sending…' : 'Renew & send contract'}
-          </Button>
+          <BusyButton
+            type="submit"
+            busy={renewSubmitting}
+            busyLabel="Sending…"
+            disabled={!renewFrom || !renewTo}
+          >
+            Renew & send contract
+          </BusyButton>
         </Dialog.Footer>
       </form>
     </Dialog.Content>

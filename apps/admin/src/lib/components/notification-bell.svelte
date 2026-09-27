@@ -89,8 +89,11 @@
       </div>
     {:else}
       <!-- Capped by height rather than by count so ten short rows and ten long
-           ones both land on a panel the same size. -->
-      <ScrollArea class="max-h-[22rem]">
+           ones both land on a panel the same size. `flex-col` is what makes the
+           cap bite: the viewport is `size-full`, and 100% of an auto-height
+           root is auto, so without it the list grows past the panel instead
+           of scrolling. -->
+      <ScrollArea class="flex max-h-[22rem] flex-col">
         <ul class="divide-y">
           {#each notificationFeed.latest as row (row.id)}
             <li>

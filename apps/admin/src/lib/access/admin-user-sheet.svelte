@@ -20,13 +20,13 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { api } from '~/lib/api';
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
   import type { AdminUser } from './access';
   import PermissionPicker from './permission-picker.svelte';
 
@@ -337,10 +337,9 @@
         <Button variant="outline" class="ml-auto" onclick={onClose}>Close</Button>
       {:else}
         <Button variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
-        <Button disabled={saving} onclick={save}>
-          {#if saving}<Spinner />{/if}
-          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create operator'}
-        </Button>
+        <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
+          {isEdit ? 'Save changes' : 'Create operator'}
+        </BusyButton>
       {/if}
     </Sheet.Footer>
   </Sheet.Content>

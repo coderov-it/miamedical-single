@@ -22,16 +22,15 @@
 
   import { goto } from '$app/navigation';
 
-  import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Props {
     /** Decides whether the current-password field exists. */
@@ -195,9 +194,6 @@
       {/if}
     </div>
 
-    <Button type="submit" disabled={saving}>
-      {#if saving}<Spinner />{/if}
-      {saving ? 'Saving…' : 'Change password'}
-    </Button>
+    <BusyButton type="submit" busy={saving} busyLabel="Saving…">Change password</BusyButton>
   </form>
 </Card.Root>

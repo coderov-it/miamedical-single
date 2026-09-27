@@ -28,6 +28,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.contracts.$get, 200>;
 
@@ -351,9 +352,14 @@
           <Button type="button" variant="outline" onclick={() => (periodDialogOpen = false)}>
             Cancel
           </Button>
-          <Button type="submit" disabled={!periodFrom || !periodTo || periodSubmitting}>
-            {periodSubmitting ? 'Sending…' : 'Update & send'}
-          </Button>
+          <BusyButton
+            type="submit"
+            busy={periodSubmitting}
+            busyLabel="Sending…"
+            disabled={!periodFrom || !periodTo}
+          >
+            Update & send
+          </BusyButton>
         </Dialog.Footer>
       </form>
     </Dialog.Content>

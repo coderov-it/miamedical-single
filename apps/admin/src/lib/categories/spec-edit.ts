@@ -7,6 +7,8 @@
  * reorders. `uid` is a client-only stable key; it is stripped on the way out.
  */
 
+import { localizedOrNull, SOURCE_LANGUAGE } from '~/lib/i18n';
+
 export interface Localized {
   it: string;
   en?: string | undefined;
@@ -48,6 +50,33 @@ export const VALUE_TYPES = [
 
 export function isSelectType(valueType: string): boolean {
   return valueType === 'single_select' || valueType === 'multi_select';
+}
+
+/** The rows as `PUT /categories/:id/specs` takes them — `uid` and `tips` stay behind. */
+export function toSpecsPayload(specs: SpecEdit[]) {
+  return specs.map((spec, position) => ({
+    ...(spec.id ? { id: spec.id } : {}),
+    key: spec.key,
+    label: localizedOrNull(spec.label) ?? { [SOURCE_LANGUAGE]: '' },
+    helpText: localizedOrNull(spec.helpText),
+    valueType: spec.valueType as 'string',
+    unit: spec.unit.trim() || null,
+    isRequired: spec.isRequired,
+    isFilterable: spec.isFilterable,
+    isComparable: spec.isComparable,
+    icon: spec.icon,
+    position,
+    // A type that is not a select has no options, and sending stale ones
+    // would resurrect choices the operator thought they had removed.
+    options: isSelectType(spec.valueType)
+      ? spec.options.map((option, optionPosition) => ({
+          ...(option.id ? { id: option.id } : {}),
+          value: option.value,
+          label: localizedOrNull(option.label) ?? { [SOURCE_LANGUAGE]: '' },
+          position: optionPosition,
+        }))
+      : [],
+  }));
 }
 
 /* Both helpers moved to `~/lib/i18n`, which builds them from the language

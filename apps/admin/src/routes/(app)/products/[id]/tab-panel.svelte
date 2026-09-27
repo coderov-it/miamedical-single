@@ -11,9 +11,8 @@
   import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
   import type { Snippet } from 'svelte';
 
-  import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
+  import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Props {
     title: string;
@@ -69,10 +68,14 @@
       {:else if dirty}
         <p class="mr-auto text-sm text-muted-foreground">Unsaved changes</p>
       {/if}
-      <Button disabled={saving || Boolean(disabledReason)} onclick={onSave}>
-        {#if saving}<Spinner />{/if}
-        {saving ? 'Saving…' : saveLabel}
-      </Button>
+      <BusyButton
+        busy={saving}
+        busyLabel="Saving…"
+        disabled={Boolean(disabledReason)}
+        onclick={onSave}
+      >
+        {saveLabel}
+      </BusyButton>
     </div>
   {/if}
 </Card.Root>
