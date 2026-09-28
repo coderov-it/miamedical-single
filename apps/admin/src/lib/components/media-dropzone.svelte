@@ -5,10 +5,10 @@
 
   Two things worth knowing:
 
-  **Accessibility.** The drop target is a real `<button>`. The old version put
-  `role="button" tabindex="0"` on a `<div>` that *contained* the alt-text
-  inputs, so tabbing into a caption first landed on a fake button, and Space
-  inside the caption opened a file picker.
+  **Accessibility.** The drop target (`file-drop-button`) is a real `<button>`.
+  The old version put `role="button" tabindex="0"` on a `<div>` that
+  *contained* the alt-text inputs, so tabbing into a caption first landed on a
+  fake button, and Space inside the caption opened a file picker.
 
   **Session keys.** Removing a tile that was uploaded *in this session* purges
   the staged object from R2 immediately — nobody else can reference a staging
@@ -19,7 +19,6 @@
 -->
 <script lang="ts">
   import FileIcon from '@lucide/svelte/icons/file';
-  import UploadIcon from '@lucide/svelte/icons/upload';
   import XIcon from '@lucide/svelte/icons/x';
   import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
@@ -32,6 +31,7 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { cn } from '$lib/utils.js';
   import { api, mediaUrl } from '~/lib/api';
+  import FileDropButton from '~/lib/components/file-drop-button.svelte';
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { formatBytes } from '~/lib/format';
   import { uploadFile } from '~/lib/media/upload';
@@ -64,8 +64,6 @@
     disabled = false,
   }: Props = $props();
 
-  let input = $state<HTMLInputElement | null>(null);
-  let dragOver = $state(false);
   let error = $state<string | null>(null);
 
   /** Filename + progress for the upload currently in flight. */
@@ -154,70 +152,17 @@
     {#if hint}<span class="text-xs text-muted-foreground">{hint}</span>{/if}
   </div>
 
-  <!-- The drag surface wraps the button; the button is what is focusable. -->
-  <div
-    role="presentation"
-    ondragover={(event) => {
-      event.preventDefault();
-      dragOver = true;
-    }}
-    ondragleave={() => (dragOver = false)}
-    ondrop={(event) => {
-      event.preventDefault();
-      dragOver = false;
-      if (!disabled && event.dataTransfer?.files) void addFiles(event.dataTransfer.files);
-    }}
-  >
-    <button
-      type="button"
-      {disabled}
-      onclick={() => input?.click()}
-      class={cn(
-        'flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors',
-        'hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
-        'disabled:pointer-events-none disabled:opacity-50',
-        dragOver ? 'border-primary bg-primary/5' : 'border-input',
-      )}
-    >
-      {#if pending}
-        <span class="w-full max-w-xs">
-          <span class="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
-            <span class="truncate">{pending.name}</span>
-            <span class="tabular-nums">{Math.round(pending.fraction * 100)}%</span>
-          </span>
-          <span class="block h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <span
-              class="block h-full rounded-full bg-primary transition-[width]"
-              style="width: {Math.round(pending.fraction * 100)}%"
-            ></span>
-          </span>
-        </span>
-      {:else}
-        <UploadIcon class="size-4 text-muted-foreground" />
-        <span class="text-muted-foreground">
-          Drop {single ? 'a file' : 'files'} here, or click to choose
-        </span>
-      {/if}
-    </button>
-  </div>
+  <FileDropButton
+    onFiles={(files) => void addFiles(files)}
+    {pending}
+    {single}
+    {accept}
+    {disabled}
+  />
 
   {#if error}
     <p class="mt-1 text-xs text-destructive" role="alert">{error}</p>
   {/if}
-
-  <input
-    bind:this={input}
-    type="file"
-    {accept}
-    multiple={!single}
-    class="hidden"
-    onchange={(event) => {
-      const files = event.currentTarget.files;
-      if (files) void addFiles(files);
-      // Clearing lets the same file be picked again after a removal.
-      event.currentTarget.value = '';
-    }}
-  />
 
   {#if items.length > 0}
     <!-- No tooltip: a tile is small enough that the bubble covers its neighbour.

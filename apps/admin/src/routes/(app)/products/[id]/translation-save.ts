@@ -158,13 +158,11 @@ export async function saveTranslations(
     .map((chip, index) => mergeLocalized(chip, perLanguage(chips, `chip:${index}`)))
     .filter((chip): chip is Localized => chip !== null);
 
-  const mediaItem = (
-    item: AdminProduct['media']['gallery'][number],
-    id: string,
-  ): { path: string; mimeType: string; alt?: LocalizedOptional } => {
+  // Generic so an external video keeps its `provider`/`url` and a file its `path`.
+  const mediaItem = <T extends { alt?: LocalizedOptional | undefined }>(item: T, id: string): T => {
     const additions = perLanguage(media, `media:${id}`);
     const alt = Object.keys(additions).length > 0 ? mergeLocalized(item.alt, additions) : item.alt;
-    return { path: item.path, mimeType: item.mimeType, ...(alt ? { alt } : {}) };
+    return { ...item, ...(alt ? { alt } : {}) };
   };
 
   const body = {

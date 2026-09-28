@@ -1,5 +1,5 @@
-import type { MediaItem, ProductMedia } from '@mia/db/schema';
-import { MEDIA_PROFILES, type MediaProfileName } from '@mia/validators';
+import type { MediaItem, ProductMedia, VideoItem } from '@mia/db/schema';
+import { isExternalVideo, MEDIA_PROFILES, type MediaProfileName } from '@mia/validators';
 
 import { STAGING_PREFIX, type FileUploader } from '@mia/media';
 import { httpError } from '../../../shared/http/errors.ts';
@@ -74,9 +74,11 @@ async function commitPath(
 const pathsOf = (media: ProductMedia): Set<string> => {
   const paths = new Set<string>();
   for (const item of [media.thumbnail, media.cleanPng]) if (item) paths.add(item.path);
-  for (const list of [media.gallery, media.videos, media.documents]) {
+  for (const list of [media.gallery, media.documents]) {
     for (const item of list) paths.add(item.path);
   }
+  // YouTube / Facebook / linked videos own no bucket object.
+  for (const item of media.videos) if (!isExternalVideo(item)) paths.add(item.path);
   return paths;
 };
 
@@ -114,11 +116,18 @@ export async function commitProductMedia(
       list.filter((item): item is MediaItem => item !== null),
     );
 
+  const video = (item: VideoItem) => {
+    if (isExternalVideo(item)) return Promise.resolve(item);
+    return one(item, 'video');
+  };
+
   const committed: ProductMedia = {
     thumbnail: await one(incoming.thumbnail, 'product_image'),
     cleanPng: await one(incoming.cleanPng, 'product_image'),
     gallery: await many(incoming.gallery, 'product_image'),
-    videos: await many(incoming.videos, 'video'),
+    videos: (await Promise.all(incoming.videos.map(video))).filter(
+      (item): item is VideoItem => item !== null,
+    ),
     documents: await many(incoming.documents, 'document'),
   };
 

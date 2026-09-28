@@ -44,7 +44,10 @@ function listMedia(media: ProductMedia): Listed[] {
     ['videos', media.videos],
     ['documents', media.documents],
   ] as const) {
-    items.forEach((item, index) => listed.push({ role: `${group}[${index}]`, item }));
+    items.forEach((item, index) => {
+      // An external video (YouTube, Facebook, link) owns no bucket object.
+      if ('path' in item) listed.push({ role: `${group}[${index}]`, item });
+    });
   }
   return listed;
 }

@@ -6,9 +6,11 @@ import type {
   ProductChip,
   ProductMedia,
   RentalPackage,
+  VideoItem,
 } from '@mia/db/schema';
 import { durationLabel } from '@mia/i18n';
 import { asMoney, toHundredths } from '@mia/pricing';
+import { isExternalVideo, videoEmbedUrl } from '@mia/validators';
 
 import type {
   AdminProductDetailDto,
@@ -20,6 +22,7 @@ import type {
   PageMetaDto,
   PricingDto,
   PublicAddonDto,
+  PublicExternalVideoDto,
   PublicMediaItemDto,
   PublicProductDetailDto,
   PublicProductMediaDto,
@@ -81,13 +84,26 @@ function toPublicMediaItem(
   return { path: item.path, mimeType: item.mimeType, alt: pickAlt(item.alt, locale) };
 }
 
+function toPublicVideo(
+  item: VideoItem,
+  locale: LanguageCode,
+): PublicMediaItemDto | PublicExternalVideoDto {
+  if (!isExternalVideo(item)) return toPublicMediaItem(item, locale)!;
+  return {
+    provider: item.provider,
+    url: item.url,
+    embedUrl: videoEmbedUrl(item),
+    alt: pickAlt(item.alt, locale),
+  };
+}
+
 function toPublicMedia(media: ProductMedia, locale: LanguageCode): PublicProductMediaDto {
   const item = (m: MediaItem | null) => toPublicMediaItem(m, locale);
   return {
     thumbnail: item(media.thumbnail),
     cleanPng: item(media.cleanPng),
     gallery: media.gallery.map((m) => item(m)!),
-    videos: media.videos.map((m) => item(m)!),
+    videos: media.videos.map((m) => toPublicVideo(m, locale)),
     documents: media.documents.map((m) => item(m)!),
   };
 }
