@@ -5,6 +5,7 @@
 
   import { api } from '~/lib/api';
   import MediaDropzone, { type MediaItem } from '~/lib/components/media-dropzone.svelte';
+  import VideoField from '~/lib/components/video-field.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
   import type { AdminProduct, TabProps } from './shared';
@@ -108,13 +109,7 @@
       hint="Transparent background, used in comparisons"
     />
     <MediaDropzone label="Gallery" bind:items={form.gallery} profile="product_image" />
-    <MediaDropzone
-      label="Videos"
-      bind:items={form.videos}
-      profile="video"
-      accept="video/mp4,video/webm"
-      hint="mp4 or webm, max 30 MB, never converted"
-    />
+    <VideoField bind:items={form.videos} hint="Upload mp4/webm (max 30 MB), or add a link" />
     <MediaDropzone
       label="Documents"
       bind:items={form.documents}

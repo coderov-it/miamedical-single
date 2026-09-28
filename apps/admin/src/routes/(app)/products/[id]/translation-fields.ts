@@ -106,7 +106,7 @@ export function buildPlanFields(
   const mediaItems: Array<{
     id: string;
     label: string;
-    item: AdminProduct['media']['gallery'][number];
+    item: AdminProduct['media']['gallery'][number] | AdminProduct['media']['videos'][number];
   }> = [];
   if (product.media.thumbnail) {
     mediaItems.push({ id: 'thumbnail', label: 'Thumbnail', item: product.media.thumbnail });

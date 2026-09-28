@@ -8,7 +8,8 @@
     "./language": "./src/language.ts",
     "./notification": "./src/notification.ts",
     "./password-policy": "./src/password-policy.ts",
-    "./push-preferences": "./src/push-preferences.ts"
+    "./push-preferences": "./src/push-preferences.ts",
+    "./video": "./src/video.ts"
   },
   "scripts": {
     "check": "tsc --noEmit",

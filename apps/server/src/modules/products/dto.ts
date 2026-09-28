@@ -1,4 +1,12 @@
-import type { LanguageCode, Localized, MediaAlt, ProductChip, RentalPackage } from '@mia/db/schema';
+import type {
+  ExternalVideo,
+  LanguageCode,
+  Localized,
+  MediaAlt,
+  ProductChip,
+  RentalPackage,
+} from '@mia/db/schema';
+import type { VideoProvider } from '@mia/validators';
 
 /**
  * Network contracts, consumed through the typed RPC client. Two surfaces:
@@ -83,11 +91,22 @@ export interface PublicMediaItemDto {
   alt: string | null;
 }
 
+/**
+ * A YouTube / Facebook / linked video. `embedUrl` is the ready iframe `src`
+ * for a platform video; null for a direct link, which plays in `<video src=url>`.
+ */
+export interface PublicExternalVideoDto {
+  provider: VideoProvider;
+  url: string;
+  embedUrl: string | null;
+  alt: string | null;
+}
+
 export interface PublicProductMediaDto {
   thumbnail: PublicMediaItemDto | null;
   cleanPng: PublicMediaItemDto | null;
   gallery: PublicMediaItemDto[];
-  videos: PublicMediaItemDto[];
+  videos: Array<PublicMediaItemDto | PublicExternalVideoDto>;
   documents: PublicMediaItemDto[];
 }
 
@@ -266,7 +285,7 @@ export interface AdminProductMediaDto {
   thumbnail: AdminMediaItemDto | null;
   cleanPng: AdminMediaItemDto | null;
   gallery: AdminMediaItemDto[];
-  videos: AdminMediaItemDto[];
+  videos: Array<AdminMediaItemDto | ExternalVideo>;
   documents: AdminMediaItemDto[];
 }
 

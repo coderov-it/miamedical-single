@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 
 import { localizedOptionalSchema } from './i18n.ts';
+import { parseVideoUrl, VIDEO_PROVIDERS } from './video.ts';
 
 /**
  * What the picker accepts for image slots. Sharp's prebuilt binaries decode
@@ -96,11 +97,31 @@ export const MediaItemSchema = v.strictObject({
   alt: v.optional(AltSchema),
 });
 
+/**
+ * A YouTube / Facebook / direct-link video. The URL must already be in the
+ * canonical form `parseVideoUrl` produces for that provider, so what is
+ * stored is exactly what the embed builder expects.
+ */
+export const ExternalVideoSchema = v.pipe(
+  v.strictObject({
+    provider: v.picklist(VIDEO_PROVIDERS),
+    url: v.pipe(v.string(), v.maxLength(2048)),
+    alt: v.optional(AltSchema),
+  }),
+  v.check((video) => {
+    const parsed = parseVideoUrl(video.url);
+    return parsed?.provider === video.provider && parsed.url === video.url;
+  }, 'Not a valid video link.'),
+);
+
+/** An uploaded file (`path`) or an external video (`url`). */
+export const VideoItemSchema = v.union([MediaItemSchema, ExternalVideoSchema]);
+
 export const ProductMediaSchema = v.strictObject({
   thumbnail: v.nullable(MediaItemSchema),
   cleanPng: v.nullable(MediaItemSchema),
   gallery: v.pipe(v.array(MediaItemSchema), v.maxLength(30)),
-  videos: v.pipe(v.array(MediaItemSchema), v.maxLength(10)),
+  videos: v.pipe(v.array(VideoItemSchema), v.maxLength(10)),
   documents: v.pipe(v.array(MediaItemSchema), v.maxLength(20)),
 });
 
@@ -118,4 +139,6 @@ export const MAX_UPLOAD_SOURCE_BYTES = Math.max(
 );
 
 export type MediaItemInput = v.InferOutput<typeof MediaItemSchema>;
+export type ExternalVideoInput = v.InferOutput<typeof ExternalVideoSchema>;
+export type VideoItemInput = v.InferOutput<typeof VideoItemSchema>;
 export type ProductMediaInput = v.InferOutput<typeof ProductMediaSchema>;

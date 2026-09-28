@@ -1,4 +1,5 @@
 import type { LocalizedOptional } from '@mia/validators/language';
+import type { VideoProvider } from '@mia/validators/video';
 
 /**
  * Media never gets a table: it is not searched, not filtered, and not shared
@@ -27,12 +28,26 @@ export interface MediaItem {
   alt?: MediaAlt | undefined;
 }
 
+/**
+ * A video that lives elsewhere — YouTube, Facebook, or a direct file link.
+ * `url` is canonical (see `parseVideoUrl`); the embed URL is derived, never
+ * stored. No `path`, so the bucket commit and delete-diff never see it.
+ */
+export interface ExternalVideo {
+  provider: VideoProvider;
+  url: string;
+  alt?: MediaAlt | undefined;
+}
+
+/** An uploaded video file, or an external one. `isExternalVideo` tells them apart. */
+export type VideoItem = MediaItem | ExternalVideo;
+
 export interface ProductMedia {
   thumbnail: MediaItem | null;
   /** Transparent cutout. WebP like everything else — the key name is historical. */
   cleanPng: MediaItem | null;
   gallery: MediaItem[];
-  videos: MediaItem[];
+  videos: VideoItem[];
   /** The PDFs — datasheets, manuals, certificates. */
   documents: MediaItem[];
 }
