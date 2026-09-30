@@ -6,6 +6,11 @@ their profile without the app and without signing in. Server:
 `pages/delete-profile.astro` → `views/account/DeleteProfileView.astro` →
 `scripts/account/delete-profile.ts`.
 
+The slug is English in every language — `/delete-profile/`, `/en/delete-profile/`,
+`/fr/delete-profile/`, `/de/delete-profile/` — so the Google Play URL never
+changes, while the page still sits in `routePaths` and the language switcher
+works.
+
 ## The walk
 
 ### Normal case
