@@ -7,6 +7,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { accountDeletionRoutes } from './modules/account-deletion/routes.ts';
 import { adminUserRoutes } from './modules/admin-users/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
 import { customerAccountRoutes } from './modules/customer-account/routes.ts';
@@ -93,6 +94,7 @@ const routes = app
   .route('/api/customer/notifications', notificationCustomerRoutes)
   .route('/api/customer/notification-preferences', notificationPreferenceRoutes)
   .route('/api/customer/push', pushDeviceRoutes)
+  .route('/api/customer/account-deletion', accountDeletionRoutes)
   .route('/api/customer', customerAccountRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)

@@ -1,3 +1,4 @@
+import { accountDeletionCode } from './account-deletion-code.ts';
 import { adminDisputeAlert } from './admin-dispute-alert.ts';
 import type { EmailMessage } from './component/message.ts';
 import { magicLink } from './magic-link.ts';
@@ -92,6 +93,10 @@ export const EMAIL_SAMPLES: EmailSample[] = [
         to: 'elena.moretti@example.it',
         url: `${SITE}/reimposta-password/?token=sample`,
       }),
+  },
+  {
+    name: 'accountDeletionCode',
+    render: () => accountDeletionCode({ to: 'elena.moretti@example.it', code: '482915' }),
   },
   {
     name: 'adminDisputeAlert',

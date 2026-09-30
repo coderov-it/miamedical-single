@@ -222,16 +222,17 @@ customer does.
 
 ## Emailed tokens
 
-One table, `customer_auth_tokens`, four purposes. Same lifecycle throughout: issue,
+One table, `customer_auth_tokens`, five purposes. Same lifecycle throughout: issue,
 mail, redeem once, expire. Only the SHA-256 is stored, so a database dump cannot be
 turned back into a working link.
 
-| Purpose          | TTL     | Carries `order_id` | Redeemable as a sign-in |
-| ---------------- | ------- | ------------------ | ----------------------- |
-| `activation`     | 7 days  | yes                | yes                     |
-| `magic_link`     | 15 min  | no                 | yes                     |
-| `password_reset` | 60 min  | no                 | yes                     |
-| `order_report`   | 30 days | yes                | **no**                  |
+| Purpose            | TTL     | Carries `order_id` | Redeemable as a sign-in                                                   |
+| ------------------ | ------- | ------------------ | ------------------------------------------------------------------------- |
+| `activation`       | 7 days  | yes                | yes                                                                       |
+| `magic_link`       | 15 min  | no                 | yes                                                                       |
+| `password_reset`   | 60 min  | no                 | yes                                                                       |
+| `order_report`     | 30 days | yes                | **no**                                                                    |
+| `account_deletion` | 15 min  | no                 | **no** — a 6-digit code, see [account-deletion.md](./account-deletion.md) |
 
 `order_report` is excluded from `redeemToken` deliberately. It is a capability for
 one page, handed to somebody who may not own the account — letting it mint a session

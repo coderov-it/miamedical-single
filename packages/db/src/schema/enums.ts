@@ -20,6 +20,8 @@ export const customerAuthPurpose = pgEnum('customer_auth_purpose', [
   'magic_link',
   'password_reset',
   'order_report',
+  /** A 6-digit code, not a link — see modules/account-deletion. */
+  'account_deletion',
 ]);
 
 /**

@@ -4,6 +4,10 @@
  * Changing a public URL is an SEO event, so every path lives here rather than
  * as a literal scattered through components. Italian slugs match the storefront
  * design and the live site's URL shape.
+ *
+ * ONE DELIBERATE EXCEPTION: `/delete-profile/` (`pages/delete-profile.astro`) is
+ * not in this table. It is the single English URL filed with Google Play, with
+ * no translated twins — and every key here must exist in every language.
  */
 import { SOURCE_LANGUAGE, type SiteLocale } from './i18n.ts';
 

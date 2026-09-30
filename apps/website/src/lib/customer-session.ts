@@ -109,7 +109,8 @@ async function requestEnvelope<T>(path: string, init: RequestInit = {}): Promise
   return payload ?? undefined;
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+/** Exported for the few calls that live in their own module — lib/profile-deletion.ts. */
+export async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const payload = await requestEnvelope<{ data?: T }>(path, init);
   return payload?.data as T;
 }

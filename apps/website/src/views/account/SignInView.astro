@@ -25,11 +25,13 @@ import {
   AUTH_LEDE,
   AUTH_TITLE,
   FIELD,
+  FIELD_ERROR,
   HINT,
   LABEL,
   NOTICE_ERROR,
   PRIMARY,
   SECONDARY,
+  SPINNER,
   TEXT_ACTION,
 } from '~/components/account/fields';
 import { localeFromLocals, translate } from '~/lib/i18n';
@@ -51,17 +53,11 @@ const SCRIPT_KEYS = [
   'account.genericError',
 ] as const;
 
-/* Matches components/account/FieldError.svelte, so an error here looks like one there. */
-const FIELD_ERROR =
-  "text-danger m-0 mt-1.5 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:content-['⚠']";
 /* The show/hide eye, shared by both password fields. */
 const EYE =
   '<svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
 const REVEAL =
   'text-ink-2 hover:text-ink absolute inset-y-0 right-0 flex w-12 items-center justify-center';
-/* Shown only while the button's request is in flight — the button itself stays live. */
-const SPINNER =
-  'hidden size-4 animate-spin rounded-full border-2 border-current border-t-transparent group-aria-busy:inline-block';
 ---
 
 <AccountCopy keys={SCRIPT_KEYS} />
