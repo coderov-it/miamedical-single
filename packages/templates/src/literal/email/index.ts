@@ -22,6 +22,7 @@
  * `docs/code/notifications-and-mail.md`.
  */
 
+export { accountDeletionCode } from './account-deletion-code.ts';
 export { adminDisputeAlert } from './admin-dispute-alert.ts';
 export { escapeHtml } from './component/escape.ts';
 export type { Audience } from './component/audience.ts';

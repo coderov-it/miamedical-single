@@ -1,0 +1,202 @@
+---
+/**
+ * The public profile-deletion card — the page filed with Google Play. Works
+ * with no app and no session, one step at a time:
+ *
+ *   identify → code → confirm → done
+ *
+ * `data-step` names each section; the script shows one at a time. What is
+ * deleted and what is kept stays on screen until the end, because the store
+ * policy wants it visible before anyone commits. Behaviour:
+ * scripts/account/delete-profile.ts; server: modules/account-deletion.
+ */
+import AccountCopy from '~/components/account/AccountCopy.astro';
+import {
+  ANNOUNCE,
+  AUTH_CARD,
+  AUTH_LEDE,
+  AUTH_TITLE,
+  DANGER,
+  FIELD,
+  FIELD_ERROR,
+  HINT,
+  LABEL,
+  NOTICE_ERROR,
+  PRIMARY,
+  SECONDARY,
+  SPINNER,
+  TEXT_ACTION,
+} from '~/components/account/fields';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+/** What the script writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.deleteProfile.resent',
+  'account.deleteProfile.resendWait',
+  'account.deleteProfile.tooManyAttempts',
+  'account.genericError',
+] as const;
+
+/* The gate's count announcement, one per form. */
+const announceAttrs = {
+  class: ANNOUNCE,
+  role: 'status' as const,
+  'aria-live': 'polite' as const,
+  'data-announce': '',
+  'data-message-one': text('errorCountOne'),
+  'data-message-many': text('errorCountMany'),
+};
+---
+
+<AccountCopy keys={SCRIPT_KEYS} />
+
+<div class={AUTH_CARD} data-delete-profile>
+  <h1 class={AUTH_TITLE}>{text('account.deleteProfile.title')}</h1>
+
+  <div class={`${NOTICE_ERROR} mt-6`} data-feedback role="alert" hidden></div>
+
+  <section data-step="identify">
+    <p class={AUTH_LEDE}>{text('account.deleteProfile.lede')}</p>
+
+    <form class="mt-7 space-y-5" data-form="identify" novalidate>
+      <div data-gate="identifier">
+        <label class={LABEL} for="identifier">
+          {text('account.deleteProfile.identifier')}
+        </label>
+        <input
+          class={FIELD}
+          id="identifier"
+          name="identifier"
+          type="text"
+          autocomplete="username"
+          autocapitalize="off"
+          spellcheck="false"
+          required
+        />
+        <p class={FIELD_ERROR} data-field-error="identifier" hidden>
+          {text('account.deleteProfile.errorIdentifier')}
+        </p>
+      </div>
+      <button
+        class={`${PRIMARY} group flex w-full items-center justify-center gap-2`}
+        type="submit"
+      >
+        <span class={SPINNER} aria-hidden="true"></span>
+        {text('account.deleteProfile.sendCode')}
+      </button>
+      <p {...announceAttrs}></p>
+    </form>
+  </section>
+
+  <section data-step="code" hidden>
+    <p class={AUTH_LEDE}>{text('account.deleteProfile.codeLede')}</p>
+
+    <form class="mt-7 space-y-5" data-form="code" novalidate>
+      <div data-gate="code">
+        <label class={LABEL} for="code">
+          {text('account.deleteProfile.code')}
+        </label>
+        <input
+          class={`${FIELD} tracking-[0.3em]`}
+          id="code"
+          name="code"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          required
+        />
+        <p class={FIELD_ERROR} data-field-error="code" hidden>
+          {text('account.deleteProfile.errorCode')}
+        </p>
+        <p class={FIELD_ERROR} data-field-error="codeAccepted" hidden>
+          {text('account.deleteProfile.errorCodeInvalid')}
+        </p>
+      </div>
+      <button
+        class={`${PRIMARY} group flex w-full items-center justify-center gap-2`}
+        type="submit"
+      >
+        <span class={SPINNER} aria-hidden="true"></span>
+        {text('account.deleteProfile.verifyCode')}
+      </button>
+      <p {...announceAttrs}></p>
+    </form>
+
+    <button
+      class={`${SECONDARY} group mt-4 flex w-full items-center justify-center gap-2`}
+      type="button"
+      data-resend
+    >
+      <span class={SPINNER} aria-hidden="true"></span>
+      {text('account.deleteProfile.resend')}
+    </button>
+    <p class={`${HINT} mt-2 min-h-6 text-center`} role="status" data-resend-status></p>
+    <p class="text-center">
+      <button class={TEXT_ACTION} type="button" data-change-identifier>
+        {text('account.deleteProfile.changeIdentifier')}
+      </button>
+    </p>
+  </section>
+
+  <section data-step="confirm" hidden>
+    <h2 class="text-h4 mt-6 font-bold outline-none" tabindex="-1" data-confirm-heading>
+      {text('account.deleteProfile.confirmTitle')}
+    </h2>
+    <p class={AUTH_LEDE}>{text('account.deleteProfile.confirmLede')}</p>
+
+    <form class="mt-6 space-y-5" data-form="confirm" novalidate>
+      <div data-gate="acknowledged">
+        <label class="flex cursor-pointer items-start gap-3">
+          <input
+            class="accent-danger mt-1 size-5 flex-none cursor-pointer"
+            type="checkbox"
+            name="acknowledged"
+            data-acknowledged
+          />
+          <span>{text('account.deleteProfile.acknowledge')}</span>
+        </label>
+        <p class={FIELD_ERROR} data-field-error="acknowledged" hidden>
+          {text('account.deleteProfile.errorAcknowledge')}
+        </p>
+      </div>
+      <button class={`${DANGER} group flex w-full items-center justify-center gap-2`} type="submit">
+        <span class={SPINNER} aria-hidden="true"></span>
+        {text('account.deleteProfile.confirm')}
+      </button>
+      <p {...announceAttrs}></p>
+    </form>
+  </section>
+
+  <section class="text-center" data-step="done" hidden>
+    <h2 class="text-h3 mt-6 font-bold outline-none" tabindex="-1" data-done-heading>
+      {text('account.deleteProfile.doneTitle')}
+    </h2>
+    <p class="text-ink-2 mt-2">{text('account.deleteProfile.doneDetail')}</p>
+    <a
+      class={`${PRIMARY} mt-7 flex w-full items-center justify-center`}
+      href={routePath(locale, 'home')}
+    >
+      {text('account.deleteProfile.backHome')}
+    </a>
+  </section>
+
+  <dl class="border-hair mt-8 space-y-4 border-t pt-6 text-[15px]" data-scope>
+    <div>
+      <dt class="font-ui text-ui font-semibold">{text('account.deleteProfile.deletedHeading')}</dt>
+      <dd class="text-ink-2 mt-1">{text('account.deleteProfile.deletedList')}</dd>
+    </div>
+    <div>
+      <dt class="font-ui text-ui font-semibold">{text('account.deleteProfile.keptHeading')}</dt>
+      <dd class="text-ink-2 mt-1">{text('account.deleteProfile.keptList')}</dd>
+    </div>
+  </dl>
+</div>
+
+<script>
+  import '~/scripts/account/delete-profile';
+</script>

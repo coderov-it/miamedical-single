@@ -44,6 +44,18 @@ export const SECONDARY =
 /** An action that reads as a link: "Forgot password?", "Register Account". */
 export const TEXT_ACTION = 'font-ui text-ui font-semibold text-accent hover:underline';
 
+/** An irreversible action — only the profile deletion's final button. */
+export const DANGER =
+  'font-ui text-ui-strong rounded-field bg-danger min-h-12 px-5 font-semibold text-white transition hover:opacity-90';
+
+/** A gate's server-rendered message. Matches FieldError.svelte, so an error looks like one there. */
+export const FIELD_ERROR =
+  "text-danger m-0 mt-1.5 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:content-['⚠']";
+
+/** Shown only while the button's request is in flight — the button itself stays live. */
+export const SPINNER =
+  'hidden size-4 animate-spin rounded-full border-2 border-current border-t-transparent group-aria-busy:inline-block';
+
 /** A failure the page reports above a form, rather than at one field. */
 export const NOTICE_ERROR = 'rounded-field bg-danger-tint text-danger px-4 py-3 text-[15px]';
 

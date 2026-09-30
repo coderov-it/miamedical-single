@@ -164,6 +164,11 @@ export function sendPasswordReset(input: { email: string; token: string }): Prom
   );
 }
 
+/** Thrown on failure: the page is about to ask for a code that must have arrived. */
+export function sendAccountDeletionCode(input: { email: string; code: string }): Promise<void> {
+  return sendOrThrow(templates.accountDeletionCode({ to: input.email, code: input.code }));
+}
+
 export function sendRentalReminder(input: {
   email: string;
   customerName: string;

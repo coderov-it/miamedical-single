@@ -1,0 +1,27 @@
+---
+/**
+ * `/delete-profile/` — public profile deletion, the URL filed with Google Play.
+ * On demand and noindex like the rest of the account pages.
+ *
+ * A ROUTE DECLARATION, deliberately thin: the card is
+ * `views/account/DeleteProfileView.astro`, its behaviour
+ * `scripts/account/delete-profile.ts`.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import DeleteProfileView from '~/views/account/DeleteProfileView.astro';
+
+export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+---
+
+<BaseLayout
+  title={translate(locale, 'account.deleteProfile.metaTitle')}
+  description={translate(locale, 'account.deleteProfile.metaDescription')}
+  noindex
+  fillGround
+  bare
+>
+  <DeleteProfileView />
+</BaseLayout>

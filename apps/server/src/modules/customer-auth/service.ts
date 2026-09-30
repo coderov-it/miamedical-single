@@ -38,7 +38,7 @@ import type {
  */
 
 /** How long each kind of emailed link stays usable. Policy, not schema. */
-const TOKEN_TTL_MS: Record<AuthTokenPurpose, number> = {
+export const TOKEN_TTL_MS: Record<AuthTokenPurpose, number> = {
   // Long: it rides on an order confirmation, and people read those late.
   activation: 7 * 24 * 60 * 60 * 1000,
   // Short: it is a live credential sitting in an inbox.
@@ -46,6 +46,8 @@ const TOKEN_TTL_MS: Record<AuthTokenPurpose, number> = {
   password_reset: 60 * 60 * 1000,
   // Long: a dispute may only be noticed when a statement arrives.
   order_report: 30 * 24 * 60 * 60 * 1000,
+  // Short: a 6-digit code, issued and redeemed by modules/account-deletion.
+  account_deletion: 15 * 60 * 1000,
 };
 
 /**

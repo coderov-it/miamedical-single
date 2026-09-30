@@ -120,6 +120,13 @@
       "when": 1790243502913,
       "tag": "0016_add_pending_password",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790786489235,
+      "tag": "0017_add_account_deletion",
+      "breakpoints": true
     }
   ]
 }
