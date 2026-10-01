@@ -39,6 +39,10 @@ export const reportOrderUrl = (token: string) => siteUrl(PATHS.reportOrder, toke
 
 export const accountOrdersUrl = () => siteUrl(PATHS.accountOrders);
 
+/** One order in the customer area — where "Extend rental" lives. */
+export const accountOrderUrl = (orderNumber: string) =>
+  siteUrl(`${PATHS.accountOrders}${encodeURIComponent(orderNumber)}/`);
+
 export const loginUrl = () => siteUrl(PATHS.login);
 
 export const contractSigningUrl = (token: string) => siteUrl('/firma-contratto/', token);

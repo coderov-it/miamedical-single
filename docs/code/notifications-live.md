@@ -93,19 +93,21 @@ mechanisms answering "have I read this".
 The mapping is `ADMIN_EVENT_PERMISSION` in `types.ts`, and call sites never pass
 a permission — `emitToAdmins` reads it from the event type.
 
-| Event                         | Raised by                         | Audience | Permission           |
-| ----------------------------- | --------------------------------- | -------- | -------------------- |
-| `order.placed`                | `orders/repo.insertOrder`         | admin    | `ORDER_READ`         |
-| `order.link_disputed`         | `order-disputes/service.create`   | admin    | `ORDER_DISPUTE_READ` |
-| `contract.signed`             | `contracts/service.sign`          | admin    | `CONTRACT_READ`      |
-| `contract.unsigned_blocking`  | sweep, T+48h                      | admin    | `CONTRACT_READ`      |
-| `rental.ending_soon`          | sweep, T−3                        | admin    | `RENTAL_READ`        |
-| `order.status_changed`        | `orders/repo.applyTransition`     | customer | —                    |
-| `order.upcoming`              | sweep, T−2 from the rental start  | customer | —                    |
-| `rental.ending_soon`          | sweep, T−7 / T−3 / T−1            | customer | —                    |
-| `rental.renewed`              | `rentals/service.renew`           | customer | —                    |
-| `contract.awaiting_signature` | `contracts/service.issueContract` | customer | —                    |
-| `contract.signed`             | `contracts/service.sign`          | customer | —                    |
+| Event                         | Raised by                           | Audience | Permission           |
+| ----------------------------- | ----------------------------------- | -------- | -------------------- |
+| `order.placed`                | `orders/repo.insertOrder`           | admin    | `ORDER_READ`         |
+| `order.link_disputed`         | `order-disputes/service.create`     | admin    | `ORDER_DISPUTE_READ` |
+| `contract.signed`             | `contracts/service.sign`            | admin    | `CONTRACT_READ`      |
+| `contract.unsigned_blocking`  | sweep, T+48h                        | admin    | `CONTRACT_READ`      |
+| `rental.ending_soon`          | sweep, T−3                          | admin    | `RENTAL_READ`        |
+| `rental.extension_requested`  | `rental-extensions/service.request` | admin    | `RENTAL_READ`        |
+| `order.status_changed`        | `orders/repo.applyTransition`       | customer | —                    |
+| `order.upcoming`              | sweep, T−2 from the rental start    | customer | —                    |
+| `rental.ending_soon`          | sweep, T−7 / T−3 / T−1              | customer | —                    |
+| `rental.extend_offer`         | sweep, 20% of the span left         | customer | —                    |
+| `rental.renewed`              | `rental-extensions/activate`        | customer | —                    |
+| `contract.awaiting_signature` | `contracts/service.issueContract`   | customer | —                    |
+| `contract.signed`             | `contracts/service.sign`            | customer | —                    |
 
 Three events reach **both** audiences from one cause, and two of those write
 both rows in one transaction: signing a contract tells the operator the order is

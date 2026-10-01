@@ -127,6 +127,13 @@
       "when": 1790786489235,
       "tag": "0017_add_account_deletion",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790873144388,
+      "tag": "0018_add_rental_extensions",
+      "breakpoints": true
     }
   ]
 }

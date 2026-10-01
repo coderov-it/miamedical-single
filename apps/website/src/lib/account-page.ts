@@ -113,6 +113,24 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.order.yourNotes',
   'account.order.unavailable',
   'account.order.backToOrders',
+  // extending a rental
+  'account.extension.title',
+  'account.extension.dueBack',
+  'account.extension.extend',
+  'account.extension.pick',
+  'account.extension.pickError',
+  'account.extension.request',
+  'account.extension.cancel',
+  'account.extension.requested',
+  'account.extension.pendingPayment',
+  'account.extension.pendingSignature',
+  'account.extension.withdraw',
+  'account.extension.extendedTo',
+  'account.extension.noOptions',
+  'account.extension.hourly',
+  'account.extension.closed',
+  'account.extension.orderAgain',
+  'account.extension.orderAgainItem',
   'orderSummary',
   'homeDeliveryShort',
   'deliveryPending',
@@ -145,11 +163,15 @@ export interface AccountRouteSet {
   accountOrders: string;
   accountNotifications: string;
   catalog: string;
+  /** Product pages are this prefix + slug + `/` — what "Order again" opens. */
+  product: string;
   /** `{number}` stands in for the order number the island fills in. */
   orderDetail: string;
 }
 
 export interface AccountCopy {
+  /** This request's language — the island asks the API for labels in it. */
+  locale: SiteLocale;
   text: Record<string, string>;
   /** This request's language. */
   routes: AccountRouteSet;
@@ -189,6 +211,7 @@ function accountRouteSet(locale: SiteLocale): AccountRouteSet {
     accountNotifications: routePath(locale, 'accountNotifications'),
     accountOrders: routePath(locale, 'accountOrders'),
     catalog: routePath(locale, 'catalog'),
+    product: routePath(locale, 'product'),
     orderDetail: accountOrderPathTemplate(locale),
   };
 }
@@ -223,6 +246,7 @@ export function accountCopy(locale: SiteLocale, keys: readonly string[]): Accoun
   }
 
   return {
+    locale,
     text,
     notifications,
     routes: accountRouteSet(locale),

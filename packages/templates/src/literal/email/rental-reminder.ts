@@ -1,3 +1,4 @@
+import { button } from './component/button.ts';
 import { contactFooter } from './component/contact-footer.ts';
 import { footer } from './component/footer.ts';
 import { header } from './component/header.ts';
@@ -23,18 +24,29 @@ export function rentalReminder(input: {
   orderNumber: string;
   productTitle: string;
   rentalEndDate: string;
+  /** Set for a customer with an account: the order page, where they can extend online. */
+  extendUrl?: string;
 }): EmailMessage {
   const subject = `Promemoria noleggio – Ordine ${input.orderNumber}`;
   const endDate = formatDateIt(input.rentalEndDate);
   // Plain text into paragraph(), which escapes — markup here would render literally.
   const reminder = `Le ricordiamo che il noleggio del prodotto "${input.productTitle}" (ordine ${input.orderNumber}) è in scadenza il ${endDate}.`;
+  let next =
+    'La preghiamo di contattarci per organizzare la riconsegna o per rinnovare il noleggio.';
+  let action = '';
+  if (input.extendUrl) {
+    next =
+      'Se le serve ancora, può prolungare il noleggio dal suo ordine. Altrimenti la contatteremo per organizzare la riconsegna.';
+    action = button({ href: input.extendUrl, label: 'Prolunga il noleggio' });
+  }
   return {
     to: [input.to],
     subject,
     html: `${header({ heading: subject, audience: 'customer' })}
 ${paragraph({ text: `Gentile ${input.customerName},` })}
 ${paragraph({ text: reminder })}
-${paragraph({ text: 'La preghiamo di contattarci per organizzare la riconsegna o per rinnovare il noleggio.' })}
+${paragraph({ text: next })}
+${action}
 ${contactFooter()}
 ${footer({ audience: 'customer' })}`,
     text: textBody(
@@ -43,7 +55,8 @@ ${footer({ audience: 'customer' })}`,
         '',
         reminder,
         '',
-        'La preghiamo di contattarci per organizzare la riconsegna o per rinnovare il noleggio.',
+        next,
+        ...(input.extendUrl ? ['', input.extendUrl] : []),
       ],
       'customer',
     ),

@@ -175,6 +175,7 @@ export function sendRentalReminder(input: {
   orderNumber: string;
   productTitle: string;
   rentalEndDate: string;
+  extendUrl?: string;
 }): Promise<void> {
   return sendQuietly(
     templates.rentalReminder({
@@ -183,6 +184,7 @@ export function sendRentalReminder(input: {
       orderNumber: input.orderNumber,
       productTitle: input.productTitle,
       rentalEndDate: input.rentalEndDate,
+      ...(input.extendUrl ? { extendUrl: input.extendUrl } : {}),
     }),
     `rental reminder for order ${input.orderNumber}`,
   );

@@ -2,19 +2,20 @@
   import { P } from '@mia/permissions';
   import BanknoteIcon from '@lucide/svelte/icons/banknote';
   import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
+  import CalendarPlusIcon from '@lucide/svelte/icons/calendar-plus';
   import CheckCircleIcon from '@lucide/svelte/icons/check-circle';
   import ClipboardIcon from '@lucide/svelte/icons/clipboard';
   import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
   import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
   import MailIcon from '@lucide/svelte/icons/mail';
-  import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
   import SearchIcon from '@lucide/svelte/icons/search';
   import type { InferResponseType } from 'hono/client';
   import { toast } from 'svelte-sonner';
 
+  import { goto } from '$app/navigation';
+
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
-  import * as Dialog from '$lib/components/ui/dialog/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -26,12 +27,13 @@
   import { contractStatusMeta } from '~/lib/contracts/status';
   import { formatDate } from '~/lib/format';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
+  import ExtendDialog from '~/lib/rentals/extend-dialog.svelte';
+  import { extensionStatusMeta } from '~/lib/rentals/extension-status';
   import { RENTAL_STATUS_ORDER, rentalStatusMeta } from '~/lib/rentals/status';
   import { errorMessage, unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
-  import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.rentals.$get, 200>;
 
@@ -113,51 +115,11 @@
     }
   }
 
-  // --- renewal ---------------------------------------------------------------
-  // Renewing is the one way to extend a rental, and it always issues a fresh
-  // contract for the new period — the server refuses anything else.
+  // --- extension -------------------------------------------------------------
+  // Opens an extension waiting for payment; the order page carries it from
+  // there (record payment → contract → signed). See docs/code/rental-extensions.md.
 
-  let renewDialogOpen = $state(false);
-  let renewOrderId = $state('');
-  let renewOrderNumber = $state('');
-  let renewFrom = $state('');
-  let renewTo = $state('');
-  let renewTotal = $state('');
-  let renewSubmitting = $state(false);
-
-  function openRenewDialog(rental: (typeof rows)[number]) {
-    renewOrderId = rental.orderId;
-    renewOrderNumber = rental.orderNumber;
-    // The natural renewal starts where the current period ends.
-    renewFrom = rental.rentalEndDate ?? '';
-    renewTo = '';
-    renewTotal = '';
-    renewDialogOpen = true;
-  }
-
-  async function submitRenew() {
-    if (!renewFrom || !renewTo) return;
-    renewSubmitting = true;
-    try {
-      await unwrap(
-        await api.api.admin.rentals[':id'].renew.$post({
-          param: { id: renewOrderId },
-          json: {
-            from: renewFrom,
-            to: renewTo,
-            ...(renewTotal.trim() ? { total: renewTotal.trim() } : {}),
-          },
-        }),
-      );
-      toast.success(`Rental ${renewOrderNumber} renewed — the new contract is out for signature.`);
-      renewDialogOpen = false;
-      rentals.refresh();
-    } catch (err) {
-      toast.error(errorMessage(err));
-    } finally {
-      renewSubmitting = false;
-    }
-  }
+  let extendTarget = $state<{ orderId: string; orderNumber: string } | undefined>(undefined);
 
   function sendPaymentLink(_orderId: string, orderNumber: string) {
     toast.info(`Payment link for ${orderNumber} — coming soon`);
@@ -289,6 +251,12 @@
                   <span class={cn('size-1.5 rounded-full', meta.dot)}></span>
                   {meta.label}
                 </Badge>
+                {#if rental.openExtensionStatus}
+                  {@const eMeta = extensionStatusMeta(rental.openExtensionStatus)}
+                  <p class={cn('mt-0.5 text-[11px] font-semibold', eMeta.tone)}>
+                    Extension · {eMeta.label}
+                  </p>
+                {/if}
               </Table.Cell>
               <Table.Cell>
                 {#if rental.contractId}
@@ -321,10 +289,25 @@
                       <EllipsisVerticalIcon class="size-4" />
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Content align="end">
-                      <DropdownMenu.Item onSelect={() => openRenewDialog(rental)}>
-                        <RefreshCwIcon class="size-4" />
-                        Renew rental
-                      </DropdownMenu.Item>
+                      {#if !rental.openExtensionStatus}
+                        <DropdownMenu.Item
+                          onSelect={() =>
+                            (extendTarget = {
+                              orderId: rental.orderId,
+                              orderNumber: rental.orderNumber,
+                            })}
+                        >
+                          <CalendarPlusIcon class="size-4" />
+                          Extend rental
+                        </DropdownMenu.Item>
+                      {:else}
+                        <DropdownMenu.Item
+                          onSelect={() => goto(routes.orderDetail(rental.orderId))}
+                        >
+                          <CalendarPlusIcon class="size-4" />
+                          Open extension
+                        </DropdownMenu.Item>
+                      {/if}
                       <DropdownMenu.Separator />
                       <DropdownMenu.Item
                         onSelect={() => sendReminder(rental.orderId, rental.orderNumber)}
@@ -396,58 +379,9 @@
     {/snippet}
   </ListCard>
 
-  <Dialog.Root bind:open={renewDialogOpen}>
-    <Dialog.Content class="sm:max-w-md">
-      <Dialog.Header>
-        <Dialog.Title>Renew rental</Dialog.Title>
-        <Dialog.Description>
-          Set the renewed period for order {renewOrderNumber}. A new contract for exactly this
-          period is generated, stored on the order, and emailed to the customer for signature.
-        </Dialog.Description>
-      </Dialog.Header>
-      <form
-        class="grid gap-4 py-2"
-        onsubmit={(e) => {
-          e.preventDefault();
-          submitRenew();
-        }}
-      >
-        <div class="grid gap-1.5">
-          <label for="renew-from" class="text-sm font-medium">From</label>
-          <Input id="renew-from" type="date" bind:value={renewFrom} required />
-        </div>
-        <div class="grid gap-1.5">
-          <label for="renew-to" class="text-sm font-medium">To</label>
-          <Input id="renew-to" type="date" bind:value={renewTo} required />
-        </div>
-        <div class="grid gap-1.5">
-          <label for="renew-total" class="text-sm font-medium">
-            Renewal price <span class="font-normal text-muted-foreground">(optional)</span>
-          </label>
-          <Input
-            id="renew-total"
-            inputmode="decimal"
-            placeholder="e.g. 250.00"
-            bind:value={renewTotal}
-          />
-          <p class="text-xs text-muted-foreground">
-            Left empty, the contract quotes the rental's current amount.
-          </p>
-        </div>
-        <Dialog.Footer>
-          <Button type="button" variant="outline" onclick={() => (renewDialogOpen = false)}>
-            Cancel
-          </Button>
-          <BusyButton
-            type="submit"
-            busy={renewSubmitting}
-            busyLabel="Sending…"
-            disabled={!renewFrom || !renewTo}
-          >
-            Renew & send contract
-          </BusyButton>
-        </Dialog.Footer>
-      </form>
-    </Dialog.Content>
-  </Dialog.Root>
+  <ExtendDialog
+    target={extendTarget}
+    onClose={() => (extendTarget = undefined)}
+    onDone={() => rentals.refresh()}
+  />
 </section>

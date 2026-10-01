@@ -29,6 +29,10 @@ import { notificationPreferenceRoutes, pushDeviceRoutes } from './modules/push/r
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
+import {
+  rentalExtensionAdminRoutes,
+  rentalExtensionCustomerRoutes,
+} from './modules/rental-extensions/routes.ts';
 import { rentalAdminRoutes } from './modules/rentals/routes.ts';
 import { legalAdminRoutes, legalPublicRoutes } from './modules/legal/routes.ts';
 import { termsAdminRoutes, termsPublicRoutes } from './modules/terms/routes.ts';
@@ -95,6 +99,7 @@ const routes = app
   .route('/api/customer/notification-preferences', notificationPreferenceRoutes)
   .route('/api/customer/push', pushDeviceRoutes)
   .route('/api/customer/account-deletion', accountDeletionRoutes)
+  .route('/api/customer/rental-extensions', rentalExtensionCustomerRoutes)
   .route('/api/customer', customerAccountRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)
@@ -109,6 +114,7 @@ const routes = app
   .route('/api/admin/blog', blogAdminRoutes)
   .route('/api/admin/users', adminUserRoutes)
   .route('/api/admin/rentals', rentalAdminRoutes)
+  .route('/api/admin/rental-extensions', rentalExtensionAdminRoutes)
   .route('/api/admin/payments', paymentAdminRoutes)
   .route('/api/admin/translate', translationAdminRoutes)
   .route('/api/admin/notifications', notificationAdminRoutes)

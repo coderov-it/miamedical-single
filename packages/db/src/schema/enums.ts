@@ -122,6 +122,21 @@ export const contractVariant = pgEnum('contract_variant', [
   'scooter_tourist',
 ]);
 
+/**
+ * Where one extension of a rental has got to. Lifecycle and worked example:
+ * docs/code/rental-extensions.md.
+ *
+ * `renew_pending` waits for money, `awaiting_signature` waits for the new
+ * contract, `active` is the order's end date already moved. `cancelled` is the
+ * only exit and is unreachable from `active` — a signed extension is history.
+ */
+export const rentalExtensionStatus = pgEnum('rental_extension_status', [
+  'renew_pending',
+  'awaiting_signature',
+  'active',
+  'cancelled',
+]);
+
 export const blogPostStatus = pgEnum('blog_post_status', ['draft', 'published', 'archived']);
 
 /*

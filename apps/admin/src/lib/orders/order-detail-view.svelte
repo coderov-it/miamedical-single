@@ -25,6 +25,7 @@
   import { api } from '~/lib/api';
   import MoneyInput from '~/lib/components/money-input.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
+  import OrderExtensionsCard from '~/lib/orders/order-extensions-card.svelte';
   import OrderItemsCard from '~/lib/orders/order-items-card.svelte';
   import OrderTimelineCard from '~/lib/orders/order-timeline-card.svelte';
   import { cn } from '$lib/utils.js';
@@ -266,6 +267,17 @@
       toast.error(errorMessage(err));
     } finally {
       generating = false;
+    }
+  }
+
+  /** An extension wrote to the timeline and may have issued a contract. */
+  async function reloadAfterExtension() {
+    orderContracts.refresh();
+    try {
+      const res = await api.api.admin.orders[':id'].$get({ param: { id: order.id } });
+      onUpdated(await unwrap<OrderDetail>(res));
+    } catch (err) {
+      toast.error(errorMessage(err));
     }
   }
 </script>
@@ -547,6 +559,14 @@
           {/if}
         </div>
       </Card.Root>
+
+      {#if hasRental}
+        <OrderExtensionsCard
+          orderId={order.id}
+          orderNumber={order.number}
+          onChanged={reloadAfterExtension}
+        />
+      {/if}
 
       {#each addresses as entry (entry.title)}
         {@const address = entry.value}

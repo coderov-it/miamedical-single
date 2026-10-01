@@ -13,6 +13,7 @@ export * from './orders.ts';
 export * from './customer-auth.ts';
 export * from './settings.ts';
 export * from './contracts.ts';
+export * from './rental-extensions.ts';
 export * from './blog.ts';
 export * from './notifications.ts';
 export * from './push-devices.ts';

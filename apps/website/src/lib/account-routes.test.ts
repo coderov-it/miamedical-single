@@ -28,6 +28,7 @@ function routesFor(account: string, orders: string, notifications: string): Acco
     accountNotifications: notifications,
     accountOrders: orders,
     catalog: '/catalogo/',
+    product: '/prodotto/',
     orderDetail: `${orders}{number}/`,
   };
 }

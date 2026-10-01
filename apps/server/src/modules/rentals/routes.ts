@@ -1,5 +1,5 @@
 import { P } from '@mia/permissions';
-import { RenewRentalSchema, RentalQuerySchema, UuidSchema } from '@mia/validators';
+import { RentalQuerySchema, UuidSchema } from '@mia/validators';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
@@ -21,7 +21,7 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
     const query = c.req.valid('query');
     const result = await service.list(c.get('db'), query);
     return c.json({
-      data: result.rows.map(toRentalSummary),
+      data: result.rows.map((row) => toRentalSummary(row, result.openExtensions.get(row.orderId))),
       meta: toPageMeta(query.page, query.perPage, result.total),
     });
   })
@@ -48,21 +48,6 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
     validate('param', IdParam),
     async (c) => {
       await service.resendContract(c.get('db'), c.req.valid('param').id);
-      return c.json({ data: { success: true } });
-    },
-  )
-  /** --------------------------------------------------------------------------
-  POST /api/admin/rentals/:id/renew (rental:update)
-  Extends the rental to a new end date.
-  -------------------------------------------------------------------------- **/
-  .post(
-    '/:id/renew',
-    requirePermission(P.RENTAL_UPDATE),
-    validate('param', IdParam),
-    validate('json', RenewRentalSchema),
-    async (c) => {
-      const user = currentUser(c);
-      await service.renew(c.get('db'), c.req.valid('param').id, c.req.valid('json'), user);
       return c.json({ data: { success: true } });
     },
   )

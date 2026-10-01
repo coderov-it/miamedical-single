@@ -42,7 +42,8 @@ type AdminEvent =
   | 'order.link_disputed'
   | 'contract.signed'
   | 'contract.unsigned_blocking'
-  | 'rental.ending_soon';
+  | 'rental.ending_soon'
+  | 'rental.extension_requested';
 
 export const NOTIFICATION_LABELS = {
   // --- orders ---------------------------------------------------------------
@@ -146,6 +147,44 @@ export const NOTIFICATION_LABELS = {
     en: '{customerName}’s rental — order {orderNumber} — ends on {endsOn}.',
     fr: 'La location de {customerName} — commande {orderNumber} — se termine le {endsOn}.',
     de: 'Die Miete von {customerName} — Bestellung {orderNumber} — endet am {endsOn}.',
+  },
+
+  'rental.extend_offer.title': {
+    it: 'Vuoi prolungare il noleggio?',
+    en: 'Want to extend your rental?',
+    fr: 'Voulez-vous prolonger votre location ?',
+    de: 'Möchten Sie Ihre Miete verlängern?',
+  },
+  'rental.extend_offer.body': {
+    it: 'Il noleggio dell’ordine {orderNumber} termina il {endsOn}. Puoi prolungarlo dal tuo ordine.',
+    en: 'The rental on order {orderNumber} ends on {endsOn}. You can extend it from your order.',
+    fr: 'La location de la commande {orderNumber} se termine le {endsOn}. Vous pouvez la prolonger depuis votre commande.',
+    de: 'Die Miete zu Bestellung {orderNumber} endet am {endsOn}. Sie können sie in Ihrer Bestellung verlängern.',
+  },
+
+  'rental.extension_requested.title': {
+    it: 'Richiesta di proroga inviata',
+    en: 'Extension requested',
+    fr: 'Prolongation demandée',
+    de: 'Verlängerung angefragt',
+  },
+  'rental.extension_requested.body': {
+    it: 'Abbiamo ricevuto la richiesta di prorogare l’ordine {orderNumber} di {days} giorni.',
+    en: 'We received your request to extend order {orderNumber} by {days} days.',
+    fr: 'Nous avons reçu votre demande de prolonger la commande {orderNumber} de {days} jours.',
+    de: 'Wir haben Ihre Anfrage erhalten, Bestellung {orderNumber} um {days} Tage zu verlängern.',
+  },
+  'rental.extension_requested.admin.title': {
+    it: 'Richiesta di proroga',
+    en: 'Extension requested',
+    fr: 'Demande de prolongation',
+    de: 'Verlängerungsanfrage',
+  },
+  'rental.extension_requested.admin.body': {
+    it: '{customerName} vuole prorogare l’ordine {orderNumber} di {days} giorni ({amount} {currency}). In attesa di pagamento.',
+    en: '{customerName} wants to extend order {orderNumber} by {days} days ({amount} {currency}). Waiting for payment.',
+    fr: '{customerName} souhaite prolonger la commande {orderNumber} de {days} jours ({amount} {currency}). En attente de paiement.',
+    de: '{customerName} möchte Bestellung {orderNumber} um {days} Tage verlängern ({amount} {currency}). Zahlung ausstehend.',
   },
 
   'rental.renewed.title': {

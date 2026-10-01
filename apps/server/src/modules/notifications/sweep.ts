@@ -2,6 +2,7 @@ import type { Database } from '@mia/db';
 import { and, eq, notInArray, sql } from '@mia/db';
 import { contracts, orderItems, orders } from '@mia/db/schema';
 
+import { sweepExtendOffers } from './sweep-extend-offer.ts';
 import { emit, emitToAdmins } from './write.ts';
 
 /**
@@ -289,7 +290,8 @@ export async function runNotificationSweep(db: Database): Promise<number> {
   const ending = await sweepRentalsEndingSoon(db);
   const upcoming = await sweepUpcomingRentals(db);
   const stalls = await sweepStalledContracts(db);
-  return ending + upcoming + stalls;
+  const offers = await sweepExtendOffers(db);
+  return ending + upcoming + stalls + offers;
 }
 
 /** Fire-and-forget scheduling; `unref` so the timer never blocks shutdown. */

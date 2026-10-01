@@ -1,5 +1,6 @@
 import type { RentalStatus } from '@mia/validators';
 
+import type { ExtensionStatus } from '../rental-extensions/types.ts';
 import type { RentalSummaryDto } from './dto.ts';
 import type { RentalRow } from './types.ts';
 
@@ -12,7 +13,10 @@ export function computeRentalStatus(row: RentalRow): RentalStatus {
   return 'active';
 }
 
-export function toRentalSummary(row: RentalRow): RentalSummaryDto {
+export function toRentalSummary(
+  row: RentalRow,
+  openExtension: ExtensionStatus | undefined,
+): RentalSummaryDto {
   return {
     orderId: row.orderId,
     orderItemId: row.orderItemId,
@@ -29,6 +33,7 @@ export function toRentalSummary(row: RentalRow): RentalSummaryDto {
     paymentStatus: row.paymentStatus,
     contractId: row.contractId,
     contractStatus: row.contractStatus,
+    openExtensionStatus: openExtension ?? null,
     total: row.total,
     currency: row.currency,
   };

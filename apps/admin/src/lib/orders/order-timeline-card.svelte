@@ -1,7 +1,7 @@
 <!--
   Everything that has happened to the order, oldest first, because that is how a
   sequence reads. `customerLink` joined `status`, `paymentStatus` and `contract`
-  on the one timeline, so the field is named on every entry.
+  on the one timeline, and `extension` after it, so the field is named on every entry.
 -->
 <script lang="ts">
   import * as Card from '$lib/components/ui/card/index.js';
@@ -10,6 +10,7 @@
   import { formatDateTime, orDash } from '~/lib/format';
   import { orderStatusMeta, paymentStatusMeta } from '~/lib/orders/status';
   import type { OrderEvent } from '~/lib/orders/types';
+  import { extensionStatusMeta } from '~/lib/rentals/extension-status';
 
   interface Props {
     events: OrderEvent[];
@@ -22,11 +23,13 @@
     paymentStatus: 'Payment',
     customerLink: 'Account link',
     contract: 'Contract',
+    extension: 'Extension',
   };
 
   function eventMeta(field: string, toValue: string) {
     if (field === 'status') return orderStatusMeta(toValue);
     if (field === 'contract') return contractStatusMeta(toValue);
+    if (field === 'extension') return extensionStatusMeta(toValue);
     return paymentStatusMeta(toValue);
   }
 </script>

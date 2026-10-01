@@ -1,9 +1,7 @@
 import type { Database } from '@mia/db';
 import { and, asc, count, eq, ilike, or, sql } from '@mia/db';
 import { orderItems, orders } from '@mia/db/schema';
-import { addMoney } from '@mia/pricing';
 
-import { sumMoney } from '../orders/mapper.ts';
 import type { RentalListFilters, RentalRow } from './types.ts';
 
 const rentalStartDate = sql<string>`${orderItems.configuration}->'rental'->>'startDate'`;
@@ -112,44 +110,6 @@ export async function findByOrderId(db: Database, orderId: string): Promise<Rent
     .limit(1);
 
   return (rows[0] as RentalRow) ?? undefined;
-}
-
-/**
- * Sets the agreed price of the order's single rental line and re-derives the
- * order's own money from its lines, so the renewal contract and the order books
- * state the same figure. Returns `ambiguous` — and writes nothing — when the
- * order has more than one rental line: one amount cannot be split across lines
- * without inventing a rule nobody agreed to.
- */
-export async function repriceSingleRentalLine(
-  db: Database,
-  orderId: string,
-  total: string,
-): Promise<'ok' | 'ambiguous'> {
-  return db.transaction(async (tx) => {
-    const items = await tx.query.orderItems.findMany({
-      where: eq(orderItems.orderId, orderId),
-    });
-    const rentals = items.filter(
-      (item) => (item.configuration as Record<string, unknown> | null)?.pricingMode === 'rental',
-    );
-    const line = rentals[0];
-    if (!line || rentals.length !== 1) return 'ambiguous';
-
-    await tx.update(orderItems).set({ total }).where(eq(orderItems.id, line.id));
-
-    const subtotal = sumMoney(items.map((item) => (item.id === line.id ? total : item.total)));
-    const order = await tx.query.orders.findFirst({
-      where: eq(orders.id, orderId),
-      columns: { shippingTotal: true },
-    });
-    await tx
-      .update(orders)
-      .set({ subtotal, total: addMoney(subtotal, order?.shippingTotal ?? '0.00') })
-      .where(eq(orders.id, orderId));
-
-    return 'ok';
-  });
 }
 
 /**

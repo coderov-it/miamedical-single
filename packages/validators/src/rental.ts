@@ -24,25 +24,47 @@ export const RentalPeriodInputSchema = v.pipe(
   ),
 );
 
-/**
- * The renewed period, and optionally the price agreed for it. Every renewal
- * issues a fresh contract for exactly this span; without a new `total` the
- * contract quotes the rental line's current amount, which is only right when
- * the price genuinely has not changed.
- */
-export const RenewRentalSchema = v.pipe(
-  v.strictObject({
-    from: DateOnlySchema,
-    to: DateOnlySchema,
-    /** The agreed rental amount for the renewed period — the line's new total. */
-    total: v.optional(MoneySchema),
-  }),
-  v.forward(
-    v.check((input) => input.to > input.from, PERIOD_ORDER_MESSAGE),
-    ['to'],
-  ),
+/** How long one extension may run. Generous: a year covers any real request. */
+const MAX_EXTENSION_DAYS = 365;
+
+const ExtensionDaysSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(1, 'Pick how many days to extend by.'),
+  v.maxValue(MAX_EXTENSION_DAYS, `An extension runs at most ${MAX_EXTENSION_DAYS} days.`),
 );
+
+/** The customer asks for one of the offered extension lengths. */
+export const RequestExtensionSchema = v.strictObject({
+  days: ExtensionDaysSchema,
+});
+
+/**
+ * An operator raises an extension. `amount` overrides the quote — the shop may
+ * agree a price no package lists — and is required when no package matches.
+ */
+export const AdminRequestExtensionSchema = v.strictObject({
+  days: ExtensionDaysSchema,
+  amount: v.optional(MoneySchema),
+});
+
+export const EXTENSION_PAYMENT_METHODS = ['bank_transfer', 'cash', 'card_pos', 'other'] as const;
+
+/** The operator records that the extension was paid, which sends its contract. */
+export const RecordExtensionPaymentSchema = v.strictObject({
+  method: v.picklist(EXTENSION_PAYMENT_METHODS, 'Pick how the customer paid.'),
+  reference: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
+  /** What was actually received, when it differs from the quote. */
+  amount: v.optional(MoneySchema),
+});
+
+export const CancelExtensionSchema = v.strictObject({
+  reason: v.pipe(v.string(), v.trim(), v.minLength(1, 'Say why.'), v.maxLength(500)),
+});
 
 export type RentalStatus = v.InferOutput<typeof RentalStatusSchema>;
 export type RentalQuery = v.InferOutput<typeof RentalQuerySchema>;
-export type RenewRentalInput = v.InferOutput<typeof RenewRentalSchema>;
+export type RequestExtensionInput = v.InferOutput<typeof RequestExtensionSchema>;
+export type AdminRequestExtensionInput = v.InferOutput<typeof AdminRequestExtensionSchema>;
+export type RecordExtensionPaymentInput = v.InferOutput<typeof RecordExtensionPaymentSchema>;
+export type ExtensionPaymentMethod = (typeof EXTENSION_PAYMENT_METHODS)[number];
