@@ -36,6 +36,7 @@ export interface NotificationPresenters {
 const DATE_FIELDS: Record<string, readonly string[]> = {
   'order.upcoming': ['startsOn'],
   'rental.ending_soon': ['endsOn'],
+  'rental.extend_offer': ['endsOn'],
   'rental.renewed': ['from', 'to'],
   'contract.unsigned_blocking': ['sentOn'],
 };

@@ -17,6 +17,7 @@
 
   import AccountLink from './AccountLink.svelte';
   import OrderStatusPill from './OrderStatusPill.svelte';
+  import RentalExtensionPanel from './RentalExtensionPanel.svelte';
   import { CARD, HEADING } from './fields';
 
   interface Props {
@@ -121,6 +122,8 @@
         </div>
       </div>
     </section>
+
+    <RentalExtensionPanel {order} />
 
     {#if order.delivery?.method}
       <section class={CARD + ' mt-6'}>

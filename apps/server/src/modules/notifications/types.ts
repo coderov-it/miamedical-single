@@ -70,6 +70,7 @@ export const ADMIN_EVENT_PERMISSION = {
   'contract.signed': P.CONTRACT_READ,
   'contract.unsigned_blocking': P.CONTRACT_READ,
   'rental.ending_soon': P.RENTAL_READ,
+  'rental.extension_requested': P.RENTAL_READ,
 } as const satisfies Partial<Record<NotificationType, number>>;
 
 export type AdminEventType = keyof typeof ADMIN_EVENT_PERMISSION;

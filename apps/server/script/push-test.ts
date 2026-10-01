@@ -83,6 +83,14 @@ const SAMPLES = {
     daysLeft: 3,
     customerName: 'Giulia Rossi',
   },
+  'rental.extend_offer': { orderNumber: 'ORD-2026-0001', endsOn: '2026-07-20', daysLeft: 2 },
+  'rental.extension_requested': {
+    orderNumber: 'ORD-2026-0001',
+    days: 7,
+    amount: '90.00',
+    currency: 'EUR',
+    customerName: 'Giulia Rossi',
+  },
   'rental.renewed': { orderNumber: 'ORD-2026-0001', from: '2026-07-20', to: '2026-08-20' },
   'contract.awaiting_signature': {
     contractNumber: 'CTR-2026-0001',

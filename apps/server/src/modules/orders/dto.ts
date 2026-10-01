@@ -69,7 +69,7 @@ export interface OrderDeliveryDto {
 
 export interface OrderEventDto {
   id: string;
-  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract';
+  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract' | 'extension';
   fromValue: string | null;
   toValue: string;
   note: string | null;

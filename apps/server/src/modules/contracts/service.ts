@@ -22,6 +22,7 @@ import { emit, emitToAdmins } from '../notifications/write.ts';
    event writer lives there because the timeline is the orders module's
    artefact), and the rentals repo only touches order rows. */
 import { insertContractEvent } from '../orders/repo.ts';
+import { activateForContract } from '../rental-extensions/activate.ts';
 import { updateRentalPeriods } from '../rentals/repo.ts';
 import * as repo from './repo.ts';
 import type { ContractDetailRow, ContractListFilters, ContractSummaryRow } from './repo.ts';
@@ -115,6 +116,17 @@ interface IssueContractInput {
 export interface GenerateFromOrderOptions {
   kind?: 'initial' | 'renewal';
   actorAdminUserId?: string | null;
+  /**
+   * A renewal contract covers the extension alone: its span, and the amounts
+   * frozen on the extension row per order item id. Without it, every line is
+   * quoted for the period and price it carries.
+   */
+  extension?: {
+    fromDate: string;
+    toDate: string;
+    days: number;
+    lineAmounts: Record<string, { unitPrice: string; total: string }>;
+  };
 }
 
 /**
@@ -140,6 +152,21 @@ export async function generateFromOrder(
     const config = item.configuration as Record<string, unknown> | null;
     if (config?.pricingMode !== 'rental') continue;
     const rental = (config.rental as RentalPeriod | undefined) ?? null;
+    const extension = options.extension;
+    if (extension) {
+      const amounts = extension.lineAmounts[item.id] ?? { unitPrice: '0.00', total: '0.00' };
+      items.push({
+        productTitle: item.productTitle,
+        quantity: item.quantity,
+        unitPrice: amounts.unitPrice,
+        total: amounts.total,
+        startDate: extension.fromDate,
+        endDate: extension.toDate,
+        duration: extension.days,
+        durationUnit: 'day',
+      });
+      continue;
+    }
     items.push({
       productTitle: item.productTitle,
       quantity: item.quantity,
@@ -177,6 +204,7 @@ export async function generateFromOrder(
     : '';
 
   const rentalCents = items.reduce((sum, item) => sum + toCents(item.total), 0);
+  const shippingTotal = options.extension ? '0.00' : order.shippingTotal;
 
   return issueContract(db, {
     orderId: order.id,
@@ -195,8 +223,9 @@ export async function generateFromOrder(
        the rented aids, and quoting the whole order's total against them would
        hold the customer to a figure the contract's own table does not add up to. */
     subtotal: fromCents(rentalCents),
-    shippingTotal: order.shippingTotal,
-    total: fromCents(rentalCents + toCents(order.shippingTotal)),
+    /* An extension moves no goods, so it owes no delivery. */
+    shippingTotal,
+    total: fromCents(rentalCents + toCents(shippingTotal)),
     currency: order.currency,
     hasDepositProduct: await repo.orderRequiresDeposit(db, orderId),
     kind: options.kind ?? 'initial',
@@ -594,6 +623,9 @@ export async function sign(
       toValue: 'signed',
       note: `Contract ${contract.number} signed by the customer.`,
     });
+    /* A renewal contract signed is the extension made real: the order's end
+       date moves now, not when it was paid. */
+    await activateForContract(db, contract.id);
   }
 
   return getById(db, contract.id);

@@ -1,23 +1,24 @@
 import type { Database } from '@mia/db';
-import { eq } from '@mia/db';
-import { orders } from '@mia/db/schema';
-import type { RenewRentalInput } from '@mia/validators';
 
 import type { SessionUser } from '../../shared/http/context.ts';
-import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
+import { notFound } from '../../shared/http/errors.ts';
 import * as contractRepo from '../contracts/repo.ts';
 import * as contractService from '../contracts/service.ts';
 import * as notifications from '../notifications/mail.ts';
-import { emit } from '../notifications/write.ts';
 import * as orderService from '../orders/service.ts';
+import * as extensionRepo from '../rental-extensions/repo.ts';
+import type { ExtensionStatus } from '../rental-extensions/types.ts';
 import * as repo from './repo.ts';
 import type { RentalListFilters, RentalRow } from './types.ts';
 
 export async function list(
   db: Database,
   filters: RentalListFilters,
-): Promise<{ rows: RentalRow[]; total: number }> {
-  return repo.findMany(db, filters);
+): Promise<{ rows: RentalRow[]; total: number; openExtensions: Map<string, ExtensionStatus> }> {
+  const result = await repo.findMany(db, filters);
+  const orderIds = [...new Set(result.rows.map((row) => row.orderId))];
+  const openExtensions = await extensionRepo.findOpenStatusByOrderIds(db, orderIds);
+  return { ...result, openExtensions };
 }
 
 export async function sendReminder(db: Database, orderId: string): Promise<void> {
@@ -37,81 +38,6 @@ export async function resendContract(db: Database, orderId: string): Promise<voi
   const contract = await contractRepo.findLatestActiveByOrderId(db, orderId);
   if (!contract) throw notFound('Contract for this order');
   await contractService.resend(db, contract.id);
-}
-
-/**
- * Renews the rental: the lines' rented period becomes the agreed span, and a
- * fresh contract for exactly that span goes out for signature. The contract is
- * not optional — this is the only renewal path, which is what guarantees no
- * rental is ever extended on a handshake.
- */
-export async function renew(
-  db: Database,
-  orderId: string,
-  input: RenewRentalInput,
-  user: SessionUser,
-): Promise<void> {
-  const rental = await repo.findByOrderId(db, orderId);
-  if (!rental) throw notFound('Rental');
-
-  /* Checked before the period is rewritten, so a refusal leaves the order
-     untouched. `generateFromOrder` re-checks the same rule afterwards. */
-  const latest = await contractRepo.findLatestActiveByOrderId(db, orderId);
-  if (latest && latest.status !== 'signed') {
-    throw conflict(
-      `Contract ${latest.number} is still awaiting signature. Resend it, or void it before renewing.`,
-    );
-  }
-
-  /* The price first, before anything is rewritten: an amount that cannot be
-     applied must refuse the whole renewal, not leave a renewed period at the
-     old price. */
-  if (input.total !== undefined) {
-    const repriced = await repo.repriceSingleRentalLine(db, orderId, input.total);
-    if (repriced === 'ambiguous') {
-      throw httpError(
-        422,
-        'This order has more than one rental line, so a single renewal price cannot be applied. Renew without a price and adjust the lines individually.',
-        'unprocessable_entity',
-        { fields: { total: 'Not applicable to a multi-line rental.' } },
-      );
-    }
-  }
-
-  const durationDays = Math.round(
-    (Date.parse(`${input.to}T00:00:00Z`) - Date.parse(`${input.from}T00:00:00Z`)) / 86_400_000,
-  );
-
-  await repo.updateRentalPeriods(db, orderId, input.from, input.to, durationDays);
-
-  await contractService.generateFromOrder(db, orderId, {
-    kind: 'renewal',
-    actorAdminUserId: user.id,
-  });
-
-  /* After the contract, not before: the renewal is only real once the paperwork
-     for it is out, and this reads as the confirmation of something that
-     happened rather than an announcement of something intended. The customer
-     gets a second row from `generateFromOrder` asking them to sign it — two
-     notices because they are two things, one to know and one to do. */
-  const [order] = await db
-    .select({ accountId: orders.customerAccountId })
-    .from(orders)
-    .where(eq(orders.id, orderId))
-    .limit(1);
-
-  if (order?.accountId) {
-    const accountId = order.accountId;
-    await db.transaction((tx) =>
-      emit(tx, {
-        audience: 'customer',
-        customerAccountId: accountId,
-        type: 'rental.renewed',
-        orderId,
-        data: { orderNumber: rental.orderNumber, from: input.from, to: input.to },
-      }),
-    );
-  }
 }
 
 export async function finish(db: Database, orderId: string, user: SessionUser): Promise<void> {

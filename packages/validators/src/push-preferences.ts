@@ -39,6 +39,7 @@ export const PUSH_BY_DEFAULT = {
   'order.placed': false,
   'order.link_disputed': false,
   'contract.unsigned_blocking': false,
+  'rental.extension_requested': false,
 
   /* We are blocked on the customer. This is the event that pays for the feature. */
   'contract.awaiting_signature': true,
@@ -46,6 +47,8 @@ export const PUSH_BY_DEFAULT = {
   'order.status_changed': true,
   /* A deadline with money attached. */
   'rental.ending_soon': true,
+  /* The extension offer has a window; past it the rental simply ends. */
+  'rental.extend_offer': true,
   /* A delivery they need to be at home for. */
   'order.upcoming': true,
 

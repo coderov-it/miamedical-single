@@ -61,7 +61,22 @@ export interface NotificationPayloads {
     daysLeft: number;
     customerName: string;
   };
-  /** A rental's period was extended and a fresh contract went out. Customer-facing. */
+  /**
+   * The rental has about a fifth of its span left — the moment to offer an
+   * extension. Customer-facing; one per end date, so an extended rental is
+   * offered again before its new end.
+   */
+  'rental.extend_offer': { orderNumber: string; endsOn: string; daysLeft: number };
+  /** The customer asked to extend; it waits for payment. Operator-facing. */
+  'rental.extension_requested': {
+    orderNumber: string;
+    days: number;
+    /** As stored: `numeric(12,2)` comes back as a string, and must stay one. */
+    amount: string;
+    currency: string;
+    customerName: string;
+  };
+  /** An extension's contract was signed, so the rental now runs to `to`. Customer-facing. */
   'rental.renewed': { orderNumber: string; from: string; to: string };
   /** A contract is waiting for the customer's signature. Customer-facing. */
   'contract.awaiting_signature': { contractNumber: string; orderNumber: string | null };
@@ -178,6 +193,8 @@ export const NOTIFICATION_TYPES = [
   'order.upcoming',
   'order.link_disputed',
   'rental.ending_soon',
+  'rental.extend_offer',
+  'rental.extension_requested',
   'rental.renewed',
   'contract.awaiting_signature',
   'contract.signed',

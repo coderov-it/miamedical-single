@@ -83,8 +83,10 @@ unaudited write path is the only way this invariant could be lost, so there
 isn't one.
 
 `order_status_events` is append-only. `field` is `status`, `paymentStatus`,
-`customerLink` or `contract` — one table rather than four, so the timeline is a
-single ordered read. `contract` events (written by `repo.insertContractEvent`)
+`customerLink`, `contract` or `extension`. It is one table, so the timeline is a
+single ordered read. `extension` events record each step of a rental extension,
+whose own row in `rental_extensions` is the source of truth (see
+`rental-extensions.md`). `contract` events (written by `repo.insertContractEvent`)
 record contract milestones — sent, signed, voided, renewal sent — against the
 order without touching any order column: the contract's own row stays the source
 of truth for its status. Values are stored as `text`, not the enums: an event

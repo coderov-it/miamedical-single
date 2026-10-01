@@ -28,7 +28,7 @@ generated → sent → viewed → signed          voided (exit, admin, with reas
 
 1. **Issue** — `service.generateFromOrder(db, orderId)` is the single path:
    storefront placement (rental lines only — a sale has nothing to sign), the
-   admin's "Generate contract", and rental renewal all call it. It refuses an
+   admin's "Generate contract", and a paid rental extension all call it. It refuses an
    order with no rental lines, and refuses while a non-voided contract is still
    unsigned — resend or void, never a silent duplicate. Totals are summed over
    the rental lines alone, so a mixed order's contract adds up to its own table.
@@ -45,15 +45,14 @@ generated → sent → viewed → signed          voided (exit, admin, with reas
 
 ## Renewal
 
-`POST /api/admin/rentals/:orderId/renew {from, to, total?}` is the only way a
-rental is extended: it rewrites the rental period on every rental line, applies
-the agreed renewal price when one is given (single-rental-line orders only —
-the order's own totals are re-derived with it), then issues a **new** contract
-for exactly that span (same order, own `createdAt`, own signing flow). The old
-signed contract stays in the order's history —
-`GET /api/admin/contracts/by-order/:orderId` returns all of them, newest first,
-and the first non-voided one is the one whose signature currently matters. A
-renewal is refused while the previous contract is still awaiting signature.
+A rental is extended through `modules/rental-extensions`, not by rewriting the
+order. Once the operator records the extension's payment,
+`generateFromOrder(…, { kind: 'renewal', extension })` issues a **new** contract
+on the same order. It covers only the extension's span, at the amounts frozen on
+the extension row, and charges no delivery. When it is signed,
+`rental-extensions/activate.ts` moves the order's end date. Earlier contracts stay in the
+history: `GET /api/admin/contracts/by-order/:orderId` lists them all, newest
+first. The full flow is in `rental-extensions.md`.
 
 ## Manual contracts
 
