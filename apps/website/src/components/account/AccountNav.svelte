@@ -4,7 +4,8 @@
   FOUR DESTINATIONS, ONE LIST, no sub-menu. The account is small enough that
   every entry is a real route: the three screens the router knows, plus the
   catalogue — which is the reason most customers open this area at all, and a
-  server-rendered link rather than something the island routes.
+  server-rendered link rather than something the island routes. Below `mid` it
+  is hidden: the bottom tab bar (MobileNav.astro) already carries Catalogo.
 
   The three internal ones stay `<AccountLink>`s so a click is a `pushState` and
   not a document load, and so middle-click and ⌘-click still work.
@@ -125,7 +126,7 @@
       </AccountLink>
     </li>
 
-    <li>
+    <li class="max-mid:hidden">
       <a class={`${ITEM} ${REST}`} href={copy.routes.catalog}>
         <svg
           class="flex-none"

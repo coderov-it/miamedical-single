@@ -1,0 +1,55 @@
+---
+/**
+ * A language's flag, drawn as inline SVG.
+ *
+ * Not the regional-indicator emoji the registry used to carry: Windows ships no
+ * flag glyphs, so 🇬🇧 renders there as the two letters "GB" — beside a label
+ * that already says EN. SVG draws the same on every platform.
+ *
+ * `Record<SiteLocale, …>`, so a new language fails `pnpm check` until it has a
+ * flag. The Union Jack's counterchanged red diagonals are four polygons rather
+ * than a clipPath, because a clipPath needs an id and this component renders
+ * twice per page (summary and menu).
+ */
+import type { SiteLocale } from '~/lib/i18n';
+
+interface Props {
+  code: SiteLocale;
+}
+
+const FLAGS: Record<SiteLocale, { viewBox: string; body: string }> = {
+  it: {
+    viewBox: '0 0 3 2',
+    body: '<path fill="#009246" d="M0 0h1v2H0z"/><path fill="#fff" d="M1 0h1v2H1z"/><path fill="#ce2b37" d="M2 0h1v2H2z"/>',
+  },
+  en: {
+    viewBox: '0 0 60 30',
+    body:
+      '<path fill="#012169" d="M0 0h60v30H0z"/>' +
+      '<path stroke="#fff" stroke-width="6" d="M0 0l60 30M60 0L0 30"/>' +
+      '<path fill="#c8102e" d="M0 0l30 15-.89 1.79L-.89 1.79zM60 30L30 15l.89-1.79 30 15zM60 0L30 15l-.89-1.79 30-15zM0 30l30-15 .89 1.79-30 15z"/>' +
+      '<path stroke="#fff" stroke-width="10" d="M30 0v30M0 15h60"/>' +
+      '<path stroke="#c8102e" stroke-width="6" d="M30 0v30M0 15h60"/>',
+  },
+  fr: {
+    viewBox: '0 0 3 2',
+    body: '<path fill="#0055a4" d="M0 0h1v2H0z"/><path fill="#fff" d="M1 0h1v2H1z"/><path fill="#ef4135" d="M2 0h1v2H2z"/>',
+  },
+  de: {
+    viewBox: '0 0 5 3',
+    body: '<path fill="#000" d="M0 0h5v1H0z"/><path fill="#d00" d="M0 1h5v1H0z"/><path fill="#ffce00" d="M0 2h5v1H0z"/>',
+  },
+};
+
+const { code } = Astro.props;
+const flag = FLAGS[code];
+---
+
+<svg
+  class="block h-3 w-4.5 shrink-0 rounded-[2px] shadow-[0_0_0_1px_rgb(11_18_32/0.12)]"
+  viewBox={flag.viewBox}
+  preserveAspectRatio="xMidYMid slice"
+  aria-hidden="true"
+  focusable="false"
+  set:html={flag.body}
+/>

@@ -28,8 +28,6 @@ export interface LanguageDefinition {
    * in this language throws.
    */
   readonly searchConfig: string;
-  /** Regional indicator, for the storefront's compact switcher only. */
-  readonly flag: string;
 }
 
 export const LANGUAGES = [
@@ -39,7 +37,6 @@ export const LANGUAGES = [
     tag: 'it-IT',
     ogLocale: 'it_IT',
     searchConfig: 'italian',
-    flag: '🇮🇹',
   },
   {
     code: 'en',
@@ -47,7 +44,6 @@ export const LANGUAGES = [
     tag: 'en-GB',
     ogLocale: 'en_GB',
     searchConfig: 'english',
-    flag: '🇬🇧',
   },
   {
     code: 'fr',
@@ -55,7 +51,6 @@ export const LANGUAGES = [
     tag: 'fr-FR',
     ogLocale: 'fr_FR',
     searchConfig: 'french',
-    flag: '🇫🇷',
   },
   {
     code: 'de',
@@ -63,7 +58,6 @@ export const LANGUAGES = [
     tag: 'de-DE',
     ogLocale: 'de_DE',
     searchConfig: 'german',
-    flag: '🇩🇪',
   },
 ] as const satisfies readonly LanguageDefinition[];
 
