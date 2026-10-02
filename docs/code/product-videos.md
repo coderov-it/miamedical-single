@@ -9,7 +9,8 @@
 
 The key tells them apart (`isExternalVideo` checks for `url`). External videos
 own no bucket object, so `commitProductMedia` passes them through untouched and
-the delete-diff never sees them.
+there is nothing for the rollback or the sweep to delete
+([media-lifecycle.md](media-lifecycle.md)).
 
 Code: `packages/validators/src/video.ts` (parse + embed), `media.ts`
 (`ExternalVideoSchema`), admin `lib/components/video-field.svelte`.

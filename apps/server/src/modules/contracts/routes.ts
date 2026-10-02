@@ -86,7 +86,7 @@ export const contractAdminRoutes = new Hono<AppEnv>()
 
   /** --------------------------------------------------------------------------
   POST /api/admin/contracts/:id/send (contract:update)
-  Re-sends the contract to the customer for signing.
+  Re-sends the contract for signing; 502 when the email fails (also on the timeline).
   -------------------------------------------------------------------------- **/
   .post(
     '/:id/send',
@@ -194,7 +194,7 @@ export const contractAdminRoutes = new Hono<AppEnv>()
 export const contractPublicRoutes = new Hono<AppEnv>()
   /** --------------------------------------------------------------------------
   GET /api/contracts/sign (public, signing token)
-  The contract behind a signing token, rendered for the customer.
+  The contract behind a signing token, rendered; marks it viewed, never spends the token.
   -------------------------------------------------------------------------- **/
   .get('/sign', validate('query', SigningTokenQuerySchema), async (c) => {
     const { token } = c.req.valid('query');
@@ -209,7 +209,7 @@ export const contractPublicRoutes = new Hono<AppEnv>()
 
   /** --------------------------------------------------------------------------
   POST /api/contracts/sign (public, signing token)
-  Signs the contract, recording the signature, IP and user agent.
+  Signs once: spends the token, saves signature + IP + user agent, activates a renewal.
   -------------------------------------------------------------------------- **/
   .post(
     '/sign',

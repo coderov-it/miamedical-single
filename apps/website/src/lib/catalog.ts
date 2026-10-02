@@ -118,7 +118,29 @@ export async function listCategories(locale: SiteLocale = localeForRequest()): P
   return data;
 }
 
-/** `null` when the product is missing or not published — render a 404. */
+/**
+ * Whether a failed read means "there is no such thing" — and only then.
+ *
+ * 404 is the API saying the slug names nothing published. 400 and 422 are it
+ * refusing the slug itself as malformed, which means no product can ever carry
+ * it: as missing as missing gets, and a crafted link must not read as an outage
+ * that a retry could fix.
+ *
+ * EVERYTHING ELSE IS NOT MISSING. A 503, a 429 or a dropped connection says
+ * nothing about whether the product exists, and reading it as a 404 is how a
+ * database restart used to 404 live product pages and silently prune cart lines.
+ * Those throw instead, and each caller decides what an outage looks like.
+ */
+function isMissing(status: number): boolean {
+  return status === 404 || status === 400 || status === 422;
+}
+
+/**
+ * `null` when the product is missing or not published — render a 404.
+ *
+ * THROWS on any other failure, network included. Never catch that into `null`:
+ * see `isMissing()` for what that used to cost.
+ */
 export async function getProductBySlug(
   slug: string,
   locale: SiteLocale = localeForRequest(),
@@ -127,12 +149,16 @@ export async function getProductBySlug(
     param: { slug },
     query: { locale },
   });
-  if (!response.ok) return null;
+  if (isMissing(response.status)) return null;
+  if (!response.ok) throw new Error(`GET /api/products/${slug} (${locale}) → ${response.status}`);
   const { data } = await response.json();
   return data;
 }
 
-/** `null` when the legal document has not been published yet. */
+/**
+ * `null` when the legal document has not been published yet. Throws on any other
+ * failure, for the same reason `getProductBySlug` does.
+ */
 export async function getTermsBySlug(
   slug: string,
   locale: SiteLocale = localeForRequest(),
@@ -141,7 +167,8 @@ export async function getTermsBySlug(
     param: { slug },
     query: { locale },
   });
-  if (!response.ok) return null;
+  if (isMissing(response.status)) return null;
+  if (!response.ok) throw new Error(`GET /api/terms/${slug} (${locale}) → ${response.status}`);
   const { data } = await response.json();
   return data;
 }

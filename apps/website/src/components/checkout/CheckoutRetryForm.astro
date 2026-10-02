@@ -1,0 +1,30 @@
+---
+/**
+ * "Riprova" for a checkout the catalogue could not fully read.
+ *
+ * A FORM, not a reload link: a cart arrives by POST, and a plain link back to
+ * `/checkout/` would arrive with nothing. This re-sends exactly the request
+ * this page was built from — same method, same fields — so it works with
+ * JavaScript off and cannot drop a line on the way.
+ */
+import { localeForRequest } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
+
+export interface CheckoutRetry {
+  method: 'get' | 'post';
+  fields: [string, string][];
+}
+
+interface Props {
+  retry: CheckoutRetry;
+  label: string;
+  class: string;
+}
+
+const { retry, label, class: className } = Astro.props;
+---
+
+<form method={retry.method} action={routePath(localeForRequest(), 'checkout')}>
+  {retry.fields.map(([name, value]) => <input type="hidden" {name} {value} />)}
+  <button class={className} type="submit">{label}</button>
+</form>

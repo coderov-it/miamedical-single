@@ -15,7 +15,12 @@ import {
  */
 export class SharpImageConverter implements ImageConverter {
   /** WebP quality, 1–100. Each app reads its own setting and passes it here. */
-  constructor(private readonly quality: number) {}
+  private readonly quality: number;
+
+  // A plain field, not a parameter property: `node --test` strips types only.
+  constructor(quality: number) {
+    this.quality = quality;
+  }
 
   async toWebp(input: Uint8Array, target: ConvertTarget): Promise<ConvertedImage> {
     /*

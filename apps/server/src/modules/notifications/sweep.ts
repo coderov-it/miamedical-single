@@ -2,6 +2,15 @@ import type { Database } from '@mia/db';
 import { and, eq, notInArray, sql } from '@mia/db';
 import { contracts, orderItems, orders } from '@mia/db/schema';
 
+import {
+  isRentalLine,
+  rentalEndDate,
+  rentalOrderOpen,
+  rentalStartDate,
+  rentalStartedSql,
+  romeTodaySql,
+} from '../../shared/rental-calendar.ts';
+import { endingSoonKey, upcomingKey } from './reminder-keys.ts';
 import { sweepExtendOffers } from './sweep-extend-offer.ts';
 import { emit, emitToAdmins } from './write.ts';
 
@@ -66,18 +75,15 @@ const UPCOMING_RENTAL_DAYS = 2;
  */
 const CONTRACT_STALL_HOURS = 48;
 
-const rentalStartDate = sql<string>`${orderItems.configuration}->'rental'->>'startDate'`;
-const rentalEndDate = sql<string>`${orderItems.configuration}->'rental'->>'endDate'`;
-const pricingMode = sql<string>`${orderItems.configuration}->>'pricingMode'`;
-
-/**
- * Calendar days in Europe/Rome, not 72 hours: an operator told "3 days left" on
- * a rental ending Friday means Tuesday, whatever time the tick fired.
- */
-const romeToday = sql`(now() AT TIME ZONE 'Europe/Rome')::date`;
-
 /**
  * Rentals reaching their end date at one of the thresholds.
+ *
+ * Days are calendar days in Europe/Rome, not 72 hours: an operator told "3 days
+ * left" on a rental ending Friday means Tuesday, whatever time the tick fired.
+ * The countdown starts on the delivery day (the booked start date), never
+ * before: a 3-day rental Oct 10 → Oct 13 is not "ending in 7 days" on Oct 6.
+ * Each notice is keyed on the end date (`reminder-keys.ts`), so an extended
+ * rental counts down again to its new end.
  *
  * ONE query for every threshold, with the days-left arithmetic done in the
  * SELECT rather than the WHERE, so a customer notice and the operator's copy of
@@ -86,7 +92,7 @@ const romeToday = sql`(now() AT TIME ZONE 'Europe/Rome')::date`;
  * changed a timezone cast in one of them.
  */
 async function sweepRentalsEndingSoon(db: Database): Promise<number> {
-  const daysLeft = sql<number>`((${rentalEndDate})::date - ${romeToday})`;
+  const daysLeft = sql<number>`((${rentalEndDate})::date - ${romeTodaySql})`;
 
   const due = await db
     .selectDistinct({
@@ -102,7 +108,8 @@ async function sweepRentalsEndingSoon(db: Database): Promise<number> {
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .where(
       and(
-        sql`${pricingMode} = 'rental'`,
+        isRentalLine,
+        rentalStartedSql,
         /* Spelled out one placeholder at a time rather than passing the array.
            Drizzle expands a JS array into a COMMA LIST — `($1, $2, $3)` — which
            Postgres reads as a record, so `${RENTAL_THRESHOLD_DAYS}::int[]`
@@ -114,7 +121,7 @@ async function sweepRentalsEndingSoon(db: Database): Promise<number> {
           RENTAL_THRESHOLD_DAYS.map((days) => sql`${days}::int`),
           sql`, `,
         )}])`,
-        notInArray(orders.status, ['fulfilled', 'cancelled']),
+        rentalOrderOpen(),
       ),
     );
 
@@ -142,7 +149,7 @@ async function sweepRentalsEndingSoon(db: Database): Promise<number> {
           type: 'rental.ending_soon',
           orderId: rental.orderId,
           data,
-          dedupeKey: `rental.ending_soon:customer:${rental.orderId}:${rental.daysLeft}d`,
+          dedupeKey: endingSoonKey('customer', rental.orderId, rental.endsOn, rental.daysLeft),
         });
         return id ? 1 : 0;
       });
@@ -154,7 +161,12 @@ async function sweepRentalsEndingSoon(db: Database): Promise<number> {
           type: 'rental.ending_soon',
           orderId: rental.orderId,
           data,
-          dedupeKeyBase: `rental.ending_soon:admin:${rental.orderId}:${ADMIN_RENTAL_THRESHOLD_DAYS}d`,
+          dedupeKeyBase: endingSoonKey(
+            'admin',
+            rental.orderId,
+            rental.endsOn,
+            ADMIN_RENTAL_THRESHOLD_DAYS,
+          ),
         }),
       );
     }
@@ -169,7 +181,7 @@ async function sweepRentalsEndingSoon(db: Database): Promise<number> {
  * nothing with it that the rentals list does not already show them.
  */
 async function sweepUpcomingRentals(db: Database): Promise<number> {
-  const daysUntil = sql<number>`((${rentalStartDate})::date - ${romeToday})`;
+  const daysUntil = sql<number>`((${rentalStartDate})::date - ${romeTodaySql})`;
 
   const due = await db
     .selectDistinct({
@@ -183,10 +195,10 @@ async function sweepUpcomingRentals(db: Database): Promise<number> {
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .where(
       and(
-        sql`${pricingMode} = 'rental'`,
+        isRentalLine,
         sql`${daysUntil} = ${UPCOMING_RENTAL_DAYS}::int`,
         sql`${orders.customerAccountId} IS NOT NULL`,
-        notInArray(orders.status, ['fulfilled', 'cancelled']),
+        rentalOrderOpen(),
       ),
     );
 
@@ -206,7 +218,9 @@ async function sweepUpcomingRentals(db: Database): Promise<number> {
           startsOn: rental.startsOn,
           daysUntil: rental.daysUntil,
         },
-        dedupeKey: `order.upcoming:${rental.orderId}`,
+        /* Keyed on the start date too, so a period moved before delivery
+           (contract "update period") announces the new date. */
+        dedupeKey: upcomingKey(rental.orderId, rental.startsOn),
       });
       return id ? 1 : 0;
     });

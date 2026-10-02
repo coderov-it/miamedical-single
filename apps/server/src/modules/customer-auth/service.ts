@@ -1,4 +1,4 @@
-import type { Database } from '@mia/db';
+import type { Database, DatabaseWriter } from '@mia/db';
 import type {
   CustomerLoginInput,
   RedeemAuthTokenInput,
@@ -118,7 +118,7 @@ export async function hasFreshActivationToken(
 // --- sessions ---------------------------------------------------------------
 
 async function issueSession(
-  db: Database,
+  db: DatabaseWriter,
   account: CustomerAccountRow,
   meta: SessionMeta,
 ): Promise<IssuedCustomerSession> {
@@ -284,37 +284,61 @@ export interface RedeemResult extends IssuedCustomerSession {
  * `order_report` is excluded. It is a capability for one specific page and must
  * never be spendable as a sign-in — that would turn a link designed for "this
  * wasn't me" into a way into the account it was complaining about.
+ *
+ * ONE TRANSACTION. Spending the token, writing the password and replacing the
+ * sessions commit together, so a failure halfway leaves the link usable rather
+ * than spent on a password that was never saved.
+ *
+ * A NEW PASSWORD ENDS EVERY OTHER SESSION. A reset is what a customer does when
+ * they think someone else is in the account, so the sessions alive before it —
+ * an attacker's among them — are deleted, and so is every other outstanding
+ * sign-in link. Only the session issued here survives:
+ *
+ *   phone session (stolen) + laptop session → reset from the emailed link
+ *   → both deleted, other reset links spent, one fresh session for this browser
+ *
+ * A link redeemed without a password (activation, magic link) leaves the other
+ * sessions alone: signing in on a second device is not a reason to sign out the
+ * first.
  */
 export async function redeemToken(
   db: Database,
   input: RedeemAuthTokenInput,
   meta: SessionMeta,
 ): Promise<RedeemResult> {
-  const row = await repo.consumeAuthToken(db, await hashToken(input.token), [
-    'activation',
-    'magic_link',
-    'password_reset',
-  ]);
-  if (!row) throw invalidToken();
+  const tokenHash = await hashToken(input.token);
+  const newPasswordHash = input.password ? await hashPassword(input.password) : null;
 
-  const found = await repo.findById(db, row.customerAccountId);
-  if (!found || !found.isActive) throw invalidToken();
-  let account = found;
+  return db.transaction(async (tx) => {
+    const row = await repo.consumeAuthToken(tx, tokenHash, [
+      'activation',
+      'magic_link',
+      'password_reset',
+    ]);
+    if (!row) throw invalidToken();
 
-  if (input.password) {
-    await repo.updatePasswordHash(db, account.id, await hashPassword(input.password));
-  } else if (row.pendingPasswordHash && !account.passwordHash) {
-    // Chosen on the register form; the click is what proves it was theirs to set.
-    await repo.updatePasswordHash(db, account.id, row.pendingPasswordHash);
-    account = { ...account, passwordHash: row.pendingPasswordHash };
-  }
+    const found = await repo.findById(tx, row.customerAccountId);
+    if (!found || !found.isActive) throw invalidToken();
+    let account = found;
 
-  // Redeeming any emailed link proves they read the inbox, which is exactly what
-  // "activated" records. Idempotent in the repo, so a later link cannot move it.
-  await repo.markActivated(db, account.id);
+    if (newPasswordHash) {
+      await repo.updatePasswordHash(tx, account.id, newPasswordHash);
+      await repo.deleteSessionsForAccount(tx, account.id);
+      await repo.consumeSignInTokensForAccount(tx, account.id);
+      account = { ...account, passwordHash: newPasswordHash };
+    } else if (row.pendingPasswordHash && !account.passwordHash) {
+      // Chosen on the register form; the click is what proves it was theirs to set.
+      await repo.updatePasswordHash(tx, account.id, row.pendingPasswordHash);
+      account = { ...account, passwordHash: row.pendingPasswordHash };
+    }
 
-  const issued = await issueSession(db, account, meta);
-  return { ...issued, orderId: row.orderId };
+    // Redeeming any emailed link proves they read the inbox, which is exactly what
+    // "activated" records. Idempotent in the repo, so a later link cannot move it.
+    await repo.markActivated(tx, account.id);
+
+    const issued = await issueSession(tx, account, meta);
+    return { ...issued, orderId: row.orderId };
+  });
 }
 
 // --- password ---------------------------------------------------------------

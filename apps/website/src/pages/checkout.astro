@@ -15,18 +15,26 @@
  * one person's request.
  */
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import { resolveCheckout } from '~/lib/checkout';
+import { resolveCheckout } from '~/lib/checkout-resolve';
 import { checkoutScriptLabels, buildHandoverMessage, readRequestParams } from '~/lib/checkout-page';
 import { t } from '~/lib/labels';
 import CheckoutBody from '~/views/checkout/CheckoutBody.astro';
+import type { CheckoutRetry } from '~/components/checkout/CheckoutRetryForm.astro';
 
 export const prerender = false;
 
 // `cache-control: no-store` comes from the middleware, which derives it from
 // PRIVATE_ROUTES in lib/routes.ts — one statement for every private route.
 
-const checkout = await resolveCheckout(await readRequestParams(Astro.request, Astro.url));
+const params = await readRequestParams(Astro.request, Astro.url);
+const checkout = await resolveCheckout(params);
 const handoverMessage = buildHandoverMessage(checkout.items);
+
+/* The request exactly as it arrived, so "Riprova" can send it again. */
+const retry = {
+  method: Astro.request.method === 'POST' ? 'post' : 'get',
+  fields: [...params],
+} as const satisfies CheckoutRetry;
 
 /**
  * The order body's line items, resolved and priced on the server, shipped to the
@@ -39,10 +47,16 @@ const handoverMessage = buildHandoverMessage(checkout.items);
  * real price.
  */
 const orderItems = checkout.items.map((item) => item.order);
+
+/**
+ * Each line's identity in the browser cart, so a placed order can take exactly
+ * its own lines out of `localStorage` — see `scripts/checkout/placement-lock.ts`.
+ */
+const cartKeys = checkout.items.map((item) => item.cartKey);
 ---
 
 <BaseLayout title={t('checkoutMetaTitle')} description={t('checkoutMetaDescription')} noindex>
-  <CheckoutBody {checkout} {handoverMessage} />
+  <CheckoutBody {checkout} {handoverMessage} {retry} />
 
   <script
     type="application/json"
@@ -55,6 +69,12 @@ const orderItems = checkout.items.map((item) => item.order);
     data-checkout-items
     is:inline
     set:html={JSON.stringify(orderItems)}
+  ></script>
+  <script
+    type="application/json"
+    data-checkout-cart-keys
+    is:inline
+    set:html={JSON.stringify(cartKeys)}
   ></script>
   {/*
       Synchronous and inline on purpose. The step bodies are server-rendered OPEN

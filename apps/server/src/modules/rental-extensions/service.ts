@@ -8,6 +8,7 @@ import type {
 
 import type { SessionUser } from '../../shared/http/context.ts';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
+import { isClosedRentalOrderStatus } from '../../shared/rental-calendar.ts';
 import * as contractRepo from '../contracts/repo.ts';
 import * as contractService from '../contracts/service.ts';
 import { emitToAdmins } from '../notifications/write.ts';
@@ -24,9 +25,6 @@ import type { ExtensionOption, ExtensionRow, RentalLine } from './types.ts';
  *   request → renew_pending → (payment recorded) → awaiting_signature
  *           → (contract signed, see activate.ts) → active
  */
-
-/** The equipment is back, or the order never ran: there is nothing left to extend. */
-const CLOSED_ORDER_STATUSES = new Set(['fulfilled', 'cancelled', 'refunded']);
 
 type Actor = { kind: 'customer'; id: string } | { kind: 'admin'; id: string };
 
@@ -51,7 +49,8 @@ async function load(db: Database, orderId: string): Promise<Loaded> {
 
   let blockedBy: ExtensionBlock | null = null;
   if (lines.length === 0) blockedBy = 'no_rental';
-  else if (CLOSED_ORDER_STATUSES.has(order.status)) blockedBy = 'closed';
+  /* The equipment is back, or the order never ran: nothing left to extend. */
+  else if (isClosedRentalOrderStatus(order.status)) blockedBy = 'closed';
   else if (open) blockedBy = 'open';
   else if (lines.some((line) => line.unit === 'hour')) blockedBy = 'hourly';
 
@@ -193,7 +192,7 @@ export async function recordPayment(
   const amount = input.amount ?? extension.amount;
 
   await db.transaction(async (tx) => {
-    await repo.update(tx, id, {
+    const paid = await repo.updateIfStatus(tx, id, 'renew_pending', {
       status: 'awaiting_signature',
       amount,
       lineAmounts,
@@ -202,6 +201,7 @@ export async function recordPayment(
       paidAt: new Date(),
       paidByAdminUserId: user.id,
     });
+    if (!paid) throw conflict('This extension was paid or cancelled a moment ago. Reload it.');
     const reference = input.reference ? `, ref. ${input.reference}` : '';
     await repo.insertEvent(tx, {
       orderId: extension.orderId,
@@ -215,7 +215,12 @@ export async function recordPayment(
   return issueContract(db, id, user);
 }
 
-/** The renewal contract for a paid extension — after payment, or again after a void. */
+/**
+ * The renewal contract for a paid extension — after payment, or again after a
+ * void. The contract and its link to the extension commit in one transaction
+ * (`onIssued`), so there is never a renewal contract the extension does not
+ * point at; a concurrent second issue finds the link taken and rolls back.
+ */
 export async function issueContract(
   db: Database,
   id: string,
@@ -238,8 +243,11 @@ export async function issueContract(
       days: extension.days,
       lineAmounts: extension.lineAmounts,
     },
+    onIssued: async (tx, contract) => {
+      const linked = await repo.linkContract(tx, id, contract.id, extension.contractId);
+      if (!linked) throw conflict('A renewal contract was issued for this extension a moment ago.');
+    },
   });
-  await repo.update(db, id, { contractId: contract.id });
   return toExtension(await mustFind(db, id));
 }
 
@@ -275,16 +283,19 @@ export async function cancel(
     extension.contractId &&
     extension.contractStatus !== 'voided' &&
     extension.contractStatus !== 'signed';
-  if (liveContract && actor.kind === 'admin' && extension.contractId) {
-    await contractService.voidContract(db, extension.contractId, reason, actor.id);
-  }
 
+  /* The void and the cancel commit together. Both are guarded: a renewal
+     signed a moment earlier makes the void a 409, and nothing is cancelled. */
   await db.transaction(async (tx) => {
-    await repo.update(tx, id, {
+    if (liveContract && actor.kind === 'admin' && extension.contractId) {
+      await contractService.voidWithin(tx, extension.contractId, reason, actor.id);
+    }
+    const cancelled = await repo.updateIfStatus(tx, id, extension.status, {
       status: 'cancelled',
       cancelledAt: new Date(),
       cancelReason: reason,
     });
+    if (!cancelled) throw conflict('This extension changed a moment ago. Reload it.');
     await repo.insertEvent(tx, {
       orderId: extension.orderId,
       fromValue: extension.status,

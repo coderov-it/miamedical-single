@@ -226,9 +226,39 @@ process sits idle. `sweep.ts` runs at boot then hourly, `unref`'d, and every row
 it writes carries a `dedupe_key`:
 
 ```text
-rental.ending_soon:admin:<orderId>:3d:<adminUserId>
+rental.ending_soon:customer:<orderId>:<endsOn>:3d
+rental.ending_soon:admin:<orderId>:<endsOn>:3d:<adminUserId>
+rental.extend_offer:<orderId>:<endsOn>
+order.upcoming:<orderId>:<startsOn>
 contract.unsigned_blocking:<contractId>:<adminUserId>
 ```
+
+A reminder is about a date, so the date is in its key (`reminder-keys.ts`). The
+countdown starts on the delivery day, the booked start date, because there is no
+"delivered" status. Order `42`, 3-day rental Oct 10 → Oct 13, Rome dates:
+
+```text
+ Normal
+ 1. Oct  6  7 days left            → nothing: not delivered yet (starts Oct 10)
+ 2. Oct  8  2 days to start        → order.upcoming:42:2026-10-10
+ 3. Oct 10  3 days left            → rental.ending_soon:customer:42:2026-10-13:3d  + admin copy
+ 4. Oct 12  1 day left             → rental.ending_soon:customer:42:2026-10-13:1d
+ 5. Any later tick on Oct 12       → same key → ON CONFLICT DO NOTHING
+
+ Extended on Oct 11 by 7 days (signed) → ends Oct 20
+ 4. Oct 12  8 days left            → nothing
+ 5. Oct 13  7 days left            → rental.ending_soon:customer:42:2026-10-20:7d
+ 6. Oct 17  3 days left            → rental.ending_soon:customer:42:2026-10-20:3d  new row, no clash
+                                     with step 3's 2026-10-13:3d
+ 7. Oct 19  1 day left             → rental.ending_soon:customer:42:2026-10-20:1d
+```
+
+Without the end date, extended step 6 would reuse normal step 3's key and be
+dropped. "Today" is
+`romeTodaySql` in SQL and `romeToday()` in JS, both from
+`shared/rental-calendar.ts`, which also holds the closed statuses (`fulfilled`,
+`cancelled`, `refunded`) that the rentals list, the sweeps and extensions share.
+A `pending` order still counts down: the code does not tie delivery to payment.
 
 `ON CONFLICT DO NOTHING` against the partial unique index makes a restart, an
 overlapping tick and a second API worker all converge on one row. No watermark,

@@ -1,7 +1,9 @@
 # Rental contracts
 
 `apps/server/src/modules/contracts` issues, tracks and signs the rental
-contracts. The four blank paper contracts (PDFs in `docs/assets/blank-contracts/`)
+contracts. `service.ts` is the front door (reads, building from an order or a
+form); `issue.ts` issues, `lifecycle.ts` holds the operator actions on an open
+contract (resend, link, period, void), `signing.ts` the customer's signature. The four blank paper contracts (PDFs in `docs/assets/blank-contracts/`)
 are the spec;
 `packages/templates/src/literal/contract/` renders their HTML equivalents.
 
@@ -30,18 +32,60 @@ generated → sent → viewed → signed          voided (exit, admin, with reas
    storefront placement (rental lines only — a sale has nothing to sign), the
    admin's "Generate contract", and a paid rental extension all call it. It refuses an
    order with no rental lines, and refuses while a non-voided contract is still
-   unsigned — resend or void, never a silent duplicate. Totals are summed over
-   the rental lines alone, so a mixed order's contract adds up to its own table.
-2. **Send** — a single-use signing token (30 days, SHA-256 at rest) is mailed via
+   unsigned — resend or void, never a silent duplicate. That check runs inside the
+   issuing transaction under a `FOR UPDATE` on the order row, so two concurrent
+   issues cannot both pass it. Totals are summed over the rental lines alone, so a
+   mixed order's contract adds up to its own table.
+2. **Send** — a signing token (30 days, SHA-256 at rest) is mailed via
    `contractReady`; locally `MAIL_TRANSPORT=console` prints it to the server log.
-   The link lands on the storefront's `/firma-contratto/` page.
+   The link lands on the storefront's `/firma-contratto/` page. The contract row
+   and the token commit first; the email goes after. Only a delivered email moves
+   the contract to `sent` and writes "sent" on the timeline — a failed one leaves
+   it `generated` with an `email` failure entry on the order, for the operator to
+   resend (see `notifications-and-mail.md`).
 3. **Sign** — the public `POST /api/contracts/sign` stores the drawn signature
    (data URL + IP + user agent) and confirms by email. Previews rendered after
-   that composite the signature image into the signature block.
+   that composite the signature image into the signature block. See below.
 4. **Order coupling** — every milestone writes an `order_status_events` row with
    `field: 'contract'` (sent / signed / voided / renewal sent), and
    `service.moveStatus` refuses `pending → paid` on a rental order until the
    newest non-voided contract is signed. See `orders-status-machine.md`.
+
+## Signing
+
+Opening the link never spends the token — `GET /api/contracts/sign` only moves
+`generated`/`sent` → `viewed` (first view time kept). The token is spent by the
+submit, in the transaction that saves the signature.
+
+```text
+ Normal: CTR-2026-001018 sent, renewal extension awaiting_signature
+ 1. GET  ?token=abc            → status viewed            token unspent
+ 2. GET  ?token=abc (again)    → still viewed             token unspent
+ 3. POST ?token=abc            ┌ one transaction ────────────────────────────────┐
+                               │ token: consumed_at set  (if unspent, unexpired)  │
+                               │ contract → signed       (if generated/sent/viewed)│
+                               │ timeline "signed", operator + customer feed      │
+                               │ extension → active, order end date moved         │
+                               └──────────────────────────────────────────────────┘
+                               → after commit: "contratto firmato" email
+ 4. POST ?token=abc (again)    → 409 "Contract is already signed."  nothing changes
+
+ Fault:  step 3 fails mid-way (database error, crash)
+ 3.  POST ?token=abc           → 500; the whole transaction rolls back:
+                                 status viewed, token unspent, end date unchanged
+ 3'. POST ?token=abc (retry)   → signed, exactly as in the normal case
+```
+
+Either guard matching no row means another request won — a second submit, or an
+operator's void — and the loser gets 409 (signed / voided) or 410 (link used /
+expired) with nothing written. A failed confirmation email never unsigns: it is
+sent after commit and, on failure, written on the order's timeline.
+
+The operator side is guarded the same way (`lifecycle.ts`): void, resend and the
+period change only write while the contract is still `generated`/`sent`/`viewed`,
+so none can overwrite a signature that landed between their read and their write.
+A resend whose email fails answers 502 to the operator, with the failure also on
+the order's timeline.
 
 ## Renewal
 
@@ -49,8 +93,10 @@ A rental is extended through `modules/rental-extensions`, not by rewriting the
 order. Once the operator records the extension's payment,
 `generateFromOrder(…, { kind: 'renewal', extension })` issues a **new** contract
 on the same order. It covers only the extension's span, at the amounts frozen on
-the extension row, and charges no delivery. When it is signed,
-`rental-extensions/activate.ts` moves the order's end date. Earlier contracts stay in the
+the extension row, and charges no delivery. The contract and the extension's
+link to it commit in one transaction (`onIssued`). When it is signed,
+`rental-extensions/activate.ts` moves the order's end date inside the signing
+transaction. Earlier contracts stay in the
 history: `GET /api/admin/contracts/by-order/:orderId` lists them all, newest
 first. The full flow is in `rental-extensions.md`.
 

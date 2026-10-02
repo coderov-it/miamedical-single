@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Production review — Mia Medical</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/forgedoc@2.1.0/dist/themes/default.css" data-forgedoc="css" data-forgedoc-theme="default">
+</head>
+<body>
+<doc-page doc-id="mia-production-review-2026-10-02" accent="teal" density="comfortable" toc="docked">
+  <doc-header kicker="Codebase audit · 2 October 2026 · commit 3e27659">
+    Production review
+    <p slot="lede">Production failure risks, code conventions, database work and caching priorities. P1 means fix before release; P2 means the next hardening pass. Deployment-dependent findings are marked conditional. Revised after review: agreed fixes are implemented and marked Done in their sections; the four query and payment items you asked about now carry worked examples and a question each.</p>
+  </doc-header>
+  <doc-chips>
+    <doc-chip kind="confirmed">10 fixes implemented · check, build and 140 tests pass</doc-chip>
+    <doc-chip kind="pending">4 explained, awaiting your decision</doc-chip>
+    <doc-chip kind="info">Concurrent order updates left as is: last save wins</doc-chip>
+  </doc-chips>
+
+  <doc-section title="P1 · Signing links leak into request logs">
+    <p>A signing link grants access to a customer's contract and signature action.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> The global Hono logger prints the complete URL, including <code>/api/contracts/sign?token=…</code>. An isolated reproduction confirmed this. Anyone with access to those logs could reuse an unexpired, unused link. See <a href="../../apps/server/src/app.ts">app.ts:49</a>.</li>
+      <li><strong>How it could be solved:</strong> Use structured request logging that removes sensitive query values. Apply the same redaction to proxy and monitoring logs, and check whether existing logs contain live tokens.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>The API logger now replaces secret query values before printing. That covers <code>token</code>, plus <code>code</code>, <code>secret</code> and <code>signature</code> in case they are added later. See <a href="../../apps/server/src/shared/http/request-log.ts">shared/http/request-log.ts</a>, which is wired in <a href="../../apps/server/src/app.ts">app.ts</a>. Both nginx configs in <a href="../../docs/nginx/miamedical_prod.conf">docs/nginx/</a> now log the API and website vhosts with a format that drops the query string and the referer, because a request from the signing page is referred by its tokened URL.</p>
+      <doc-code lang="text">
+ before   --> POST /api/contracts/sign?token=3f9ce1… 200 41ms
+ after    --> POST /api/contracts/sign?token=[redacted] 200 41ms
+      </doc-code>
+      <p>Still to do on the server: copy the new nginx configs into place and reload nginx. Existing access logs may hold live tokens, so rotate or delete them once. Covered by three tests in <code>request-log.test.ts</code>.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P1 · Failed product saves can delete live images">
+    <p>Object storage changes happen before the database accepts the edit.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/products/catalog/service.ts">catalog/service.ts:299</a> commits media before saving the product. <a href="../../apps/server/src/modules/products/media/service.ts">media/service.ts:134</a> deletes old objects immediately. A mocked database failure reproduced deletion while the old database reference remains. Icon replacement has the same ordering.</li>
+      <li><strong>How it could be solved:</strong> Verify new files, commit their database references, then enqueue deletion of replaced files after commit. Reconcile unreferenced final objects as well as abandoned staging uploads.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>Implemented as you decided. If a save fails, it deletes only the files it committed itself. It never deletes the files it replaces; the sweep reclaims those later. This covers product media, category, spec and add-on icons. See <code>withMediaRollback</code> in <a href="../../apps/server/src/modules/products/media/service.ts">products/media/service.ts</a>.</p>
+      <doc-code lang="text">
+ Product with thumbnail old.webp; the admin replaces it with new.webp
+                    files                                   database
+ 1. commit          new.webp moved _staging/ → products/    —
+ 2a. save OK        old.webp kept for now                   thumbnail = new.webp
+     ≥24 h later    sweep: no row names old.webp → deleted
+ 2b. save fails     new.webp deleted (this save made it)    thumbnail = old.webp, still live ✓
+      </doc-code>
+      <p>The sweep runs at boot and then hourly. Before deleting an object it checks four things:</p>
+      <ul>
+        <li>The object is under a catalogue folder: <code>products/</code>, <code>addons/</code>, <code>categories/</code> or <code>specs/</code>.</li>
+        <li>It is older than 24 hours.</li>
+        <li>No database column or rich text contains its key.</li>
+        <li>The database isn't empty, and the unreferenced objects are no more than half of the bucket.</li>
+      </ul>
+      <p>Deletion is opt-in through <code>MEDIA_ORPHAN_SWEEP=delete</code>, resolved once in <code>config/features.ts</code>. The default only reports a count. That's because the dev deployment may share the bucket while using another database, and it would then see production's photos as unused. Set <code>delete</code> on production once you've confirmed it is the only database for that bucket. The worked example is in <a href="../../docs/code/media-lifecycle.md">media-lifecycle.md</a>, and 13 new tests cover it.</p>
+      <p>Two things haven't changed. After a failed save, the admin has to upload the new photo again. And if the database commits but the connection drops before the server sees the commit, the rollback can still delete a photo the row now uses.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P1 · Signing and rental renewal are not atomic">
+    <p>A failed signature request can consume its link or leave a renewal unfinished.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/contracts/service.ts">contracts/service.ts:553</a> consumes the token before the signature transaction. Consumption and status updates have no conditional state guard. Renewal activation happens after signature commit, email and timeline writes. A crash can leave a signed contract with unchanged rental dates; retrying meets a consumed token. Renewal issuance also precedes linking the extension.</li>
+      <li><strong>How it could be solved:</strong> Lock and validate contract state inside one transaction. Atomically consume an unused, unexpired token, save the signature, activate the extension and write its timeline. Create and link renewals atomically too. Deliver email through an outbox afterward; guard competing view, void and resend updates.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>Implemented as you decided. Opening the link only marks the contract <code>viewed</code>. The token is spent only by the submitted signature, in one transaction with everything the signature changes. See <a href="../../apps/server/src/modules/contracts/signing.ts">contracts/signing.ts</a>.</p>
+      <doc-code lang="text">
+ CTR-2026-001018 sent, its renewal extension awaiting signature
+ 1. open link           → viewed; token still valid
+ 2. open again          → still viewed; token still valid
+ 3. submit signature    → one transaction:
+                            token spent (only if unspent and unexpired)
+                            contract → signed (only if generated / sent / viewed)
+                            timeline + feed rows
+                            extension → active, rental end date moved
+                          after commit: "contratto firmato" email
+ 4. submit again        → 409 "Contract is already signed."; nothing changes
+    void / resend now   → 409
+
+ Failure in step 3      → all rolled back: still sent, token unspent, end date unchanged
+ retry                  → signs normally
+      </doc-code>
+      <p>A renewal contract and its link to the extension are now created in one transaction too. Void, resend and period changes check the contract's current status, so a void can't overwrite a contract that was just signed. The agent tested this against the dev database in transactions it rolled back, including an injected failure.</p>
+      <p>Three choices to check:</p>
+      <ul>
+        <li>A <code>generated</code> contract can be signed, so a link the operator copies by hand still works after a failed email.</li>
+        <li>Issuing a contract briefly locks that order's row. That stops two issues from both passing the one-live-contract check. It applies to contract issuance only; order editing is unchanged, as you asked in <doc-ref to="sec-p1-concurrent-order-updates-can-overwrite-each-other"></doc-ref>.</li>
+        <li><code>contracts/service.ts</code> (670 lines) was split into <code>issue.ts</code>, <code>lifecycle.ts</code>, <code>signing.ts</code>, <code>token.ts</code> and <code>render.ts</code>. Its exports are unchanged.</li>
+      </ul>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P1 · Concurrent order updates can overwrite each other">
+    <p>The state machine validates an earlier read rather than the state being updated.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/orders/service.ts">orders/service.ts:155</a> checks transitions outside the write transaction. <a href="../../apps/server/src/modules/orders/repo.ts">orders/repo.ts:569</a> updates by ID alone. Concurrent cancellation and payment can overwrite each other. Order and following payment-status changes also use separate transactions.</li>
+      <li><strong>How it could be solved:</strong> Use a row lock or conditional update against the expected state, returning a conflict when it changed. Validate the contract gate, update both statuses and write events in the same transaction.</li>
+    </ul>
+  </doc-section>
+
+  <doc-section title="P1 · Checkout retries can create duplicate orders">
+    <p>A customer cannot safely retry when the response disappears after the order commits.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> Every placement inserts a new order. The browser's sending flag only prevents overlapping clicks; the retry button repeats the POST. Email and contract work extend the interval between commit and response. See <a href="../../apps/server/src/modules/orders/repo.ts">orders/repo.ts:440</a> and <a href="../../apps/website/src/scripts/checkout/place-order.ts">place-order.ts:224</a>.</li>
+      <li><strong>How it could be solved:</strong> Persist an idempotency key for each checkout attempt, enforce uniqueness, and return the existing result on retry. Reject reuse with different input. Put reliable post-commit work in an outbox to shorten the response path.</li>
+    </ul>
+    <doc-note kind="success" title="Done, in the browser only">
+      <p>As you asked, there is no server-side idempotency. The checkout page now runs one placement state machine, shared by reloads, the Back button and other tabs. See <a href="../../apps/website/src/scripts/checkout/placement-lock.ts">scripts/checkout/placement-lock.ts</a>. Layout and styles are unchanged; the new panels reuse existing components.</p>
+      <doc-code lang="text">
+ idle ──click──→ sending ──2xx──────────────────────→ placed     final: the ordered lines leave the cart
+                   │      ──4xx──────────────────────→ idle       nothing was written; fix and resend
+                   │      ──5xx / 60 s timeout / drop─→ uncertain  never re-sent automatically
+                   └─ another tab is sending ────────→ uncertain until that tab finishes
+
+ double-click, second Enter, Riprova while sending → still one POST
+ reload / Back / second tab after success          → same confirmation and number, no new POST
+ uncertain                                         → "Non sappiamo se la richiesta è arrivata":
+                                                     check your email or I miei ordini; WhatsApp; no retry button
+ offline before sending                            → the usual error with Riprova (nothing was sent)
+      </doc-code>
+      <p>The lock is kept for 30 minutes per set of cart lines. In a private window, or anywhere storage is blocked, it lasts only as long as the page is open. No control uses <code>disabled</code>; a click while uncertain scrolls back to the explanation.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P1 · Password reset leaves existing sessions alive">
+    <p>Resetting a compromised password does not currently remove an attacker's session.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/customer-auth/service.ts">customer-auth/service.ts:288</a> changes the password and issues a session without revoking others. The normal password-change path does revoke them. Customer sessions can remain valid for thirty days and slide forward.</li>
+      <li><strong>How it could be solved:</strong> Revoke existing sessions during password reset. Make token consumption, password change and session replacement transactional, with an explicit policy for outstanding reset tokens.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>Redeeming an emailed link is now one transaction in <a href="../../apps/server/src/modules/customer-auth/service.ts">customer-auth/service.ts</a> <code>redeemToken</code>: spend the token, write the password, replace the sessions. When the link sets a password, every existing session is deleted and every other outstanding sign-in link of the account is spent:</p>
+      <doc-code lang="text">
+ 1. phone session (stolen) + laptop session, two reset mails in the inbox
+ 2. reset from mail #2      → password written, phone + laptop sessions deleted,
+                              mail #1 spent, one new session for this browser
+ 3. failure at any step     → nothing happened; mail #2 still works
+      </doc-code>
+      <p>Activation and magic links without a password leave other sessions alone. Documented in <a href="../../docs/code/customer-accounts.md">customer-accounts.md</a>.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P1 · Payment rows can show the wrong order type">
+    <p>Rental orders can appear as sales in the payment list and CSV.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> SQL generation for <a href="../../apps/server/src/modules/payments/repo.ts">payments/repo.ts:30</a> produces <code>oi.order_id = "id"</code> inside a subquery. PostgreSQL resolves that unqualified ID to the inner item, rather than the outer order. The filter uses a qualified ID, so a rental-filtered list can still display the wrong type. Separately, export silently stops at 10,000 rows.</li>
+      <li><strong>How it could be solved:</strong> Explicitly qualify the outer order or use a joined aggregate. Verify rental and fixed orders against PostgreSQL. Stream or paginate complete exports, or clearly expose an intentional export limit.</li>
+    </ul>
+
+    <h3>In plain terms</h3>
+    <p>The Pagamenti page shows a type for each row, Noleggio or Vendita. To decide, the server asks: "does this order have a rented item?" The question is written as a small query inside the main one. Drizzle writes the order's id there as a bare <code>"id"</code>. Inside that small query, PostgreSQL looks for the nearest table with an <code>id</code> column. That table is the order item, not the order. So the question it actually answers is "does any item have an <code>order_id</code> equal to its own <code>id</code>?", and the answer is always no.</p>
+
+    <doc-code lang="text" title="One rental order, as the Pagamenti page sees it">
+ Order MIA-2026-001042   orders.id = a1…
+ Its one item            order_items.id = b7…   order_id = a1…   pricingMode = rental
+
+                         What the code means                What PostgreSQL runs
+ 1. type column          oi.order_id = orders.id            oi.order_id = oi.id
+ 2. compare              a1… = a1…  → yes                   a1… = b7…  → no
+ 3. shown as             Noleggio                           Vendita  ✗   (list and CSV)
+
+ Filter "Noleggio"       written as "orders"."id"            → the order IS listed  ✓
+                         (Drizzle qualifies it in WHERE)        …with "Vendita" in its row  ✗
+    </doc-code>
+
+    <p>I generated the SQL locally to confirm. The type column renders <code>WHERE oi.order_id = "id"</code>, and the filter renders <code>WHERE oi.order_id = "orders"."id"</code>. The admin orders list had the same bug once. Its fix and a comment explaining it are in <a href="../../apps/server/src/modules/orders/repo.ts">orders/repo.ts</a> <code>findMany</code>: it uses a real join, so Drizzle names the table.</p>
+
+    <doc-code lang="text" title="The export limit, separately">
+ Orders matching the filter     CSV rows      What the operator is told
+ 9,800                          9,800         nothing; correct
+ 10,000                         10,000        nothing; correct
+ 10,350                         10,000        nothing; the 350 oldest are missing  ✗
+    </doc-code>
+
+    <doc-choice mode="single" question="Now that the payment-type bug is clear, should it be fixed?">
+      <doc-option recommended>
+        Fix the type column and the export
+        <p slot="desc">Join like the orders list does, export every row in pages. Small change in one file.</p>
+      </doc-option>
+      <doc-option>
+        Fix the type column only
+        <p slot="desc">Keep the 10,000 cap, but say so on the export button when it is hit.</p>
+      </doc-option>
+      <doc-option>
+        Still unclear
+        <p slot="desc">Tell me which step above lost you.</p>
+      </doc-option>
+    </doc-choice>
+  </doc-section>
+
+  <doc-section title="P1 · Production configuration can silently use development defaults">
+    <p>Conditional: the deployment must supply values that the repository does not enforce.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/config/env.ts">config/env.ts:4</a> defaults to development; the start command does not set production mode. If deployment omits it, email previews remain enabled and cookies lack Secure. Public origins default to localhost even in production. Storage and push configuration can fail only when used, despite the boot-time feature rule.</li>
+      <li><strong>How it could be solved:</strong> Set production mode explicitly in deployment. Validate production origins and required credentials at boot. Resolve optional capabilities and credentials together in <code>config/features.ts</code>, then verify the deployed configuration with a smoke test.</li>
+    </ul>
+    <doc-note kind="success" title="Done, for production only">
+      <p>As you asked, the new checks run only under <code>NODE_ENV=production</code>, so the dev deployment keeps working as it does today. They are in the boot guards of <a href="../../apps/server/src/config/env.ts">config/env.ts</a>:</p>
+      <doc-code lang="text">
+ PUBLIC_SITE_URL / PUBLIC_ADMIN_URL / CORS_ORIGINS
+   http://localhost:4321              → refuses to start, names the variable
+   https://miamedicalitalia.com       → starts
+ R2_ACCOUNT_ID … R2_BUCKET unset      → refuses to start
+ PUSH_TRANSPORT="fcm", FCM_* unset    → refuses to start
+ PUSH_TRANSPORT="console"             → starts (unchanged: the feed still records it)
+ NODE_ENV unset (dev deployment)      → none of the above runs
+      </doc-code>
+      <p>I checked all three cases by importing the env module. <code>.env.example</code> now documents <code>NODE_ENV</code>. The start command still does not set production mode, because the dev deployment shares it, so the production <code>.env</code> must contain <code>NODE_ENV="production"</code>. If the dev deployment also runs with <code>NODE_ENV=production</code>, it now needs R2 credentials and https origins too.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P1 · Transaction pooling conflicts with notification LISTEN">
+    <p>Conditional: this matters when DATABASE_URL points to a transaction pooler.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../packages/db/src/client.ts">db/client.ts:94</a> gives the notification listener the same client and URL as normal queries. Disabling prepared statements does not make LISTEN compatible with transaction pooling. Notifications can fail even while ordinary queries work. <a href="https://www.pgbouncer.org/features.html">PgBouncer documents this restriction</a>.</li>
+      <li><strong>How it could be solved:</strong> Give the listener a separate direct or session-pooled connection. Keep ordinary queries on the transaction pool and include listener connectivity in readiness checks.</li>
+    </ul>
+  </doc-section>
+
+  <doc-section title="P2 · Slug lookup can select another product's translation">
+    <p>The database's uniqueness rule and the application's lookup rule differ.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> Slugs are unique per language, but <a href="../../apps/server/src/modules/products/catalog/repo.ts">catalog/repo.ts:103</a> searches by slug alone. Two different products can legally share a slug across languages, making the product page or checkout select the wrong product.</li>
+      <li><strong>How it could be solved:</strong> Resolve locale plus slug exactly. Restrict cross-language redirects to unambiguous matches. Pass a stable product ID through checkout and validate its publication state server-side.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>Cross-language lookup is now restricted. <a href="../../apps/server/src/modules/products/catalog/repo.ts">catalog/repo.ts</a> <code>findIdBySlug</code> takes the requested language:</p>
+      <doc-code lang="text">
+ request            slugs in the database                         result
+ ('en', wheelchair)  it: wheelchair → B · en: wheelchair → A      A     exact language wins
+ ('it', sedia-x)     en: sedia-x → A only                         A     one product → accepted
+ ('fr', wheelchair)  it → B · en → A                              404   ambiguous → refused
+      </doc-code>
+      <p>The second row is the only cross-language case left. The product page needs it to find its other-language URLs. Checkout order lines now also carry an optional <code>productId</code> (<a href="../../packages/validators/src/order.ts">validators/order.ts</a>), and the server prefers it over the slug. Placement still rejects any product that isn't <code>active</code>.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P2 · Failed email is recorded as sent and cannot reliably retry">
+    <p>Database success and email delivery need separate, durable states.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/notifications/mail.ts">notifications/mail.ts:35</a> swallows delivery errors, while contract issuance still records sent status. Extension offers first write their deduplication row; a failed email is then skipped by later sweeps.</li>
+      <li><strong>How it could be solved:</strong> Commit email jobs with the business write and retry them with bounded backoff. Track queued, provider-accepted and failed states. Keep order creation successful when delivery fails, while preserving a retryable job.</li>
+    </ul>
+    <doc-note kind="success" title="Done, in the smaller form you asked for">
+      <p>No queue and no retries. A failed email now writes a line on the order's timeline, and the business write still succeeds. See <a href="../../apps/server/src/modules/notifications/mail-failure.ts">notifications/mail-failure.ts</a>.</p>
+      <doc-code lang="text">
+ Contract ready, provider refuses
+   before   timeline: "Contract sent"                     (it wasn't)
+   after    timeline: Email · Contract signing email not sent
+                      "Email to a@b.it failed (contract CTR-X ready): DOMAIN_NOT_VERIFIED"
+            contract stays generated → the operator can resend it
+ Operator clicks Resend, provider refuses
+   after    502 with the reason, plus the same timeline line
+      </doc-code>
+      <p>This covers order placement (all three emails), contract ready, contract signed, rental reminders and dispute alerts. A failed extension offer is logged too, but it still isn't re-sent by later sweeps. No migration was needed.</p>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="P2 · Renewal reminders and rental status disagree">
+    <p>Extended or refunded rentals can receive the wrong reminder behavior.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/notifications/sweep.ts">notifications/sweep.ts:145</a> deduplicates countdown reminders by order and days remaining, without the end date. An extended rental's second three-day reminder is suppressed. Rental lists and some sweeps exclude cancelled and fulfilled orders, while extension code also treats refunded orders as closed.</li>
+      <li><strong>How it could be solved:</strong> Include the rental end date in reminder identity. Share one closed-status definition and Europe/Rome date calculation across lists, sweeps and extensions.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>Reminder keys now include the date they are about, and the countdown starts on the rental's start date. One shared definition of "closed" and "today in Rome", in <a href="../../apps/server/src/shared/rental-calendar.ts">shared/rental-calendar.ts</a>, is used by the rentals list, both sweeps and rental extensions.</p>
+      <doc-code lang="text">
+ 3-day rental Oct 10 → Oct 13, extended on Oct 11 to Oct 20
+ 1. Oct  6   "7 days left"          → nothing now: not started yet (was sent before)
+ 2. Oct 10   3 days left            → rental.ending_soon:customer:42:2026-10-13:3d
+ 3. Oct 17   3 days left (extended) → rental.ending_soon:customer:42:2026-10-20:3d   (was dropped as a duplicate)
+
+ refunded order                     → closed everywhere: no countdown, no offer, listed as completed
+ Oct 13 00:30 in Rome               → counts as Oct 13 (the rentals list used the UTC date, Oct 12)
+      </doc-code>
+      <p>The "starts in 2 days" notice is keyed on the start date too, so a period moved before delivery announces the new date. The worked example is in <a href="../../docs/code/notifications-live.md">notifications-live.md</a>, and seven new tests cover it. On deploy day, a notice already sent that day under the old key format may be sent once more.</p>
+    </doc-note>
+
+    <p>There is no "delivered" state in the system: an order goes <code>pending → paid → fulfilled</code>. So "the rental starts at delivery" is implemented as "the rental starts on its booked start date". If delivery is late, the countdown still starts on the booked date. A pending order (unpaid or unsigned) also counts down once that date arrives, as it did before.</p>
+
+    <doc-choice mode="single" question="Should an operator mark delivery explicitly, so the countdown starts from the real delivery?">
+      <doc-option recommended>
+        Keep the booked start date
+        <p slot="desc">No new step for operators. The end date stays the one on the contract.</p>
+      </doc-option>
+      <doc-option>
+        Add a "Delivered" action on the order
+        <p slot="desc">Countdowns wait for it. Needs a decision on whether the end date then moves with a late delivery.</p>
+      </doc-option>
+      <doc-option>
+        Count down only for paid orders
+        <p slot="desc">A one-line change in the shared module. Unpaid rentals get no reminders.</p>
+      </doc-option>
+    </doc-choice>
+  </doc-section>
+
+  <doc-section title="P2 · API failures become missing products or generic form errors">
+    <p>The customer loses the information needed to recover.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/website/src/lib/catalog.ts">website/lib/catalog.ts:122</a> turns every unsuccessful response into a missing product; checkout then drops that line. A 503 can therefore look like a 404 or change the cart. <a href="../../apps/website/src/scripts/checkout/place-order.ts">place-order.ts:143</a> discards server field errors and shows a generic failure.</li>
+      <li><strong>How it could be solved:</strong> Treat only 404 as missing. Preserve checkout lines during transient failures and show a retryable error. Map server validation errors to every offending control, then scroll and focus the first using <code>form-validation.ts</code>.</li>
+    </ul>
+    <doc-note kind="success" title="Done">
+      <p>Only a 404 means "missing" now. A 400 or 422 for a malformed slug counts as missing too, so a crafted link can't show "retry" forever. Everything else is treated as an outage, and nothing is dropped from the cart:</p>
+      <doc-code lang="text">
+ API answers          product page              cart                        checkout
+ 404                  404 page                  line dropped (as before)    line dropped (as before)
+ 503 / timeout        error page, not a 404     line kept, last prices,     "Non riusciamo a caricare tutta
+                                                "cannot update prices"      la richiesta" + Riprova (works
+                                                                            without JavaScript)
+ 422 with fields      —                         —                           every named field marked, step
+ (email, address…)                                                          opened, first field focused
+ 4xx without fields   —                         —                           generic error + Riprova
+      </doc-code>
+      <p>Field errors go through <a href="../../apps/website/src/lib/form-validation.ts">form-validation.ts</a> and use the Italian messages already on the page. A field stays marked until its answer changes.</p>
+      <p>Found and fixed along the way: the cart was always re-priced in Italian, so an English cart showed Italian labels. It now sends its language. Cart and checkout send each line's <code>productId</code> too.</p>
+      <p>Still open:</p>
+      <ul>
+        <li>An outage shows the framework's default error page, because there is no custom 500 page yet.</li>
+        <li>A cart line stores only a slug, with no language, so storing <code>productId</code> in the cart would close the last cross-language gap.</li>
+        <li>The outage path was not tested live. It needs a second website server pointed at a dead API.</li>
+      </ul>
+    </doc-note>
+  </doc-section>
+
+  <doc-section title="Queries · Payment dates and substring search">
+    <p>First candidates to measure as orders and contracts grow.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/payments/repo.ts">payments/repo.ts:15</a> casts indexed timestamps to dates. Ordinary timestamp indexes cannot directly serve that expression. Multiple lists use <code>ILIKE '%term%'</code>; checked-in migrations declare no <code>gin_trgm_ops</code> indexes, including the product-title index mentioned in a schema comment.</li>
+      <li><strong>How it could be solved:</strong> Filter timestamps with half-open ranges using Rome day boundaries. Measure an index such as <code>orders_payment_placed_idx</code> on payment status, placed time and ID. Add targeted trigram indexes for frequent substring searches, matching the actual expression. Confirm with representative <code>EXPLAIN (ANALYZE, BUFFERS)</code>; <a href="https://www.postgresql.org/docs/current/pgtrgm.html">short search patterns need care</a>.</li>
+    </ul>
+
+    <h3>In plain terms: the date filter</h3>
+    <p>An index on <code>placed_at</code> is a sorted list of timestamps. To use it, the database needs a start and an end on that list. Today's filter first turns every timestamp into a date, then compares the dates. The database cannot know which dates are on the list without converting each row, so it reads every order. The conversion also uses the database's day, which is UTC by default, not the Rome day the operator picked.</p>
+
+    <doc-code lang="text" title="Pagamenti, filter 1 Oct 2026 → 1 Oct 2026, with (say) 50,000 orders">
+                        Today                                      Proposed (half-open range)
+ 1. SQL                 placed_at::date >= '2026-10-01'            placed_at >= 2026-09-30 22:00 UTC   (1 Oct 00:00 Rome)
+                        placed_at::date <= '2026-10-01'            placed_at <  2026-10-01 22:00 UTC   (2 Oct 00:00 Rome)
+ 2. rows read           all 50,000, each converted                 only that day's ~40, via orders_placed_at_idx
+ 3. order placed        counted on 1 Oct  ✗                        counted on 2 Oct  ✓
+    2 Oct 00:30 Rome
+    (= 1 Oct 22:30 UTC)
+    </doc-code>
+    <p>The admin orders list already filters with a range. It uses UTC midnights, though, so it has the same off-by-one-day issue near midnight in Rome.</p>
+
+    <h3>In plain terms: the search box</h3>
+    <p>A normal index is sorted from the first character, like a phone book. A search for <code>%1042%</code> can match anywhere inside the value, so the phone book doesn't help, and every row is read and compared. A trigram index stores every three-character piece of each value. Then the database can look up the pieces of the search term instead.</p>
+
+    <doc-code lang="text" title="Search box: 1042">
+                          Normal index (today)                    Trigram index (pg_trgm)
+ 1. stored as             MIA-2026-000001, MIA-2026-000002, …     "mia" "202" "026" "001" "010" "104" "042" …
+ 2. "%1042%"              can start anywhere → no jump            pieces "104" + "042" → rows holding both
+ 3. rows compared         every order, on every keystroke         only those candidates
+ 4. fallback: "10"        every order                             still every order (no 3-character piece)
+    </doc-code>
+    <p>Separately, a comment in <a href="../../packages/db/src/schema/catalog.ts">schema/catalog.ts:263</a> says a trigram index on product titles is "hand-added in the migration". No checked-in migration contains it. Unless someone created it by hand on the server, the comment describes an index that doesn't exist.</p>
+
+    <doc-choice mode="single" question="What should happen with payment dates and substring search?">
+      <doc-option recommended>
+        Fix the date ranges now, measure search later
+        <p slot="desc">Rome-day ranges fix a visible correctness issue too. Trigram indexes wait until a list is measurably slow.</p>
+      </doc-option>
+      <doc-option>
+        Do both now
+        <p slot="desc">Date ranges plus trigram indexes on order number, email and product title. Adds an extension and a migration.</p>
+      </doc-option>
+      <doc-option>
+        Leave both
+        <p slot="desc">Data is small today. Accept the day-boundary drift.</p>
+      </doc-option>
+    </doc-choice>
+  </doc-section>
+
+  <doc-section title="Queries · Rental dates and latest contracts">
+    <p>Repeated JSON extraction and contract lookups make operational lists expensive.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/modules/rentals/repo.ts">rentals/repo.ts:7</a> extracts and casts rental dates from JSON. Each row also runs separate latest-contract subqueries for ID and status. Sweeps repeat similar date work.</li>
+      <li><strong>How it could be solved:</strong> Store typed rental date columns, maintained transactionally on placement and extension. Measure partial indexes named <code>order_items_rental_end_idx</code> and <code>order_items_rental_start_idx</code>. Fetch latest contract once with a lateral join, supported by <code>contracts_order_live_created_idx</code>. Avoid blindly indexing text-to-date casts: <a href="https://www.postgresql.org/docs/current/sql-createindex.html">index expressions must be immutable</a>.</li>
+    </ul>
+
+    <h3>In plain terms</h3>
+    <p>A rental's dates have no columns of their own. They live as text inside the JSON snapshot of each order line:</p>
+    <doc-code lang="json" title="order_items.configuration for one rented wheelchair">
+{ "pricingMode": "rental",
+  "rental": { "startDate": "2026-10-01", "endDate": "2026-10-08", "duration": 7, "unit": "day" } }
+    </doc-code>
+    <p>To answer "which rentals are overdue?", the database has to open that JSON on every order line and turn the text into a date. Only then can it compare and sort. No index can help, because there is no column to index. Then, for each row it keeps, it looks up the newest contract twice: once for its id and once for its status.</p>
+
+    <doc-code lang="text" title="Noleggi page, filter In ritardo, 30 per page, (say) 10,000 order lines">
+                         Today                                         Proposed
+ 1. find overdue         open JSON on all 10,000 lines,                rental_end_date column + partial index
+                         text → date, compare with today               order_items_rental_end_idx → jump to overdue lines
+ 2. sort by end date     sort what step 1 produced                     already in index order
+ 3. newest contract      30 rows × 2 lookups (id, then status)         30 rows × 1 lookup (LATERAL join returns both),
+                         = 60 lookups                                  served by contracts_order_live_created_idx
+ 4. hourly sweep         repeats step 1 for: ending soon, starting     same column, same index, every pass
+                         soon, extend offer
+    </doc-code>
+
+    <p>The new column has to stay equal to the JSON, so both are written in the same transaction:</p>
+    <doc-code lang="text" title="Keeping the column honest">
+ 1. checkout places the order       JSON endDate 2026-10-08   rental_end_date 2026-10-08   (one transaction)
+ 2. renewal contract is signed      JSON endDate 2026-10-15   rental_end_date 2026-10-15   (one transaction)
+ 3. step 2 fails halfway            both roll back → both still say 2026-10-08
+    </doc-code>
+    <p>Why not just index the JSON expression? PostgreSQL only indexes expressions whose result can never change. Turning text into a date depends on the session's date-format setting, so PostgreSQL refuses to index it. A real <code>date</code> column avoids that.</p>
+
+    <doc-choice mode="single" question="Should rental dates get their own columns now?">
+      <doc-option>
+        Yes, columns + indexes + one contract lookup
+        <p slot="desc">A migration with a backfill, and two writers to update (placement, extension activation).</p>
+      </doc-option>
+      <doc-option recommended>
+        Only the single contract lookup now
+        <p slot="desc">A query-only change in rentals/repo.ts. Columns wait until the rentals list is measurably slow.</p>
+      </doc-option>
+      <doc-option>
+        Leave it
+        <p slot="desc">Volumes are small today.</p>
+      </doc-option>
+    </doc-choice>
+  </doc-section>
+
+  <doc-section title="Queries · Catalog reads, checkout and order pagination">
+    <p>Read less data and avoid repeating the same work before adding cache.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> Catalog summaries load complete translations and repeated category/specification data; price sorting computes values from JSON. <a href="../../apps/server/src/modules/orders/service.ts">orders/service.ts:389</a> loads products sequentially: twenty items can require forty serial slug/aggregate queries. Order lists aggregate joined items before limiting results.</li>
+      <li><strong>How it could be solved:</strong> Create a narrow catalog read model and maintain an indexed starting-price value. Bulk-resolve checkout products and reuse repeated products within the request. Measure paginating order headers before item aggregation, with deterministic time-plus-ID ordering and <code>orders_customer_placed_idx</code> for customer history.</li>
+    </ul>
+
+    <p>These are three unrelated problems that share a cause: each reads far more than the page shows.</p>
+
+    <h3>1 · Catalog listing</h3>
+    <doc-code lang="text" title="Catalogo noleggio, 24 wheelchairs, sorted Prezzo crescente">
+                           Today                                        Proposed
+ 1. price sort            for EVERY matching product: open the         starting_price column, updated when the
+                          rentalPackages JSON, find the cheapest       product is saved, indexed → read first 24
+ 2. text per card         every language's full text: title, short     title, slug, short text — requested
+                          and long description, in it + en + …         language only
+ 3. category per card     category + all its specs + all options,      category specs once for the page
+                          copied into each of the 24 cards
+    </doc-code>
+
+    <h3>2 · Placing an order</h3>
+    <doc-code lang="text" title="POST /api/orders with 20 cart lines">
+                 Today (one after another)               Proposed
+ line 1          slug → id, then load product            1. all 20 ids in one query
+ line 2          slug → id, then load product            2. each distinct product loaded once
+ …                                                       (the same bed on 3 lines → loaded once)
+ line 20         slug → id, then load product
+ total           40 round trips, in series               2 round trips
+    </doc-code>
+    <p>Part of this is already done. Checkout now sends each line's product id (<doc-ref to="sec-p2-slug-lookup-can-select-another-products-translation"></doc-ref>), so the "slug → id" step is skipped and 40 round trips become 20. Loading all lines in one query is still open.</p>
+
+    <h3>3 · Order lists</h3>
+    <doc-code lang="text" title="Admin Ordini page 1, (say) 20,000 orders × 3 lines each">
+                 Today                                           Proposed
+ 1.              join every order with every line (60,000 rows)  take the 30 newest orders (index on placed_at, id)
+ 2.              group back into 20,000 orders, count lines      count lines + rental flag for those 30 only (~90 rows)
+ 3.              sort, keep 30                                   —
+ tie             two orders in the same second → page 2 may      ORDER BY placed_at DESC, id DESC: every order has
+                 repeat one and skip another                     exactly one place
+    </doc-code>
+    <p>The customer's "I miei ordini" list has the same shape. There, the index would be <code>orders_customer_placed_idx</code> on customer, placed time and id.</p>
+
+    <doc-choice mode="multi" question="Which of the three should be done now?">
+      <doc-option recommended>
+        Order lists: page first, then count
+        <p slot="desc">Query-only change in two repos, plus the id tiebreak. No migration.</p>
+      </doc-option>
+      <doc-option recommended>
+        Checkout: load all lines in one query
+        <p slot="desc">Contained in orders/service.ts.</p>
+      </doc-option>
+      <doc-option>
+        Catalog: narrow read model and starting-price column
+        <p slot="desc">Largest change: a migration, a column kept in sync on every product save, and new list mappers.</p>
+      </doc-option>
+    </doc-choice>
+  </doc-section>
+
+  <doc-section title="Caching · Extend what already exists">
+    <p>The website already has process-local caching, single-flight loading and stale fallback.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/website/src/lib/cache.ts">website/lib/cache.ts</a> caches homepage catalog/category reads, legal content and sitemap data, but each worker has its own cache. Product pages repeat full detail reads for alternate locales. Stale-on-error fallback has no hard maximum age.</li>
+      <li><strong>How it could be solved:</strong> First cache public categories, specifications and product browsing data in a shared cache, with locale, filters and visibility in keys. Return alternate slugs without fetching each full product again. Invalidate after committed product, price, stock, category and translation changes. Next consider dashboard aggregates with a 15–30 second TTL. Bound stale age and key growth. Keep final checkout pricing, payment/state gates, sessions and signing tokens authoritative and live; never mix privileged drafts into public cache entries.</li>
+    </ul>
+  </doc-section>
+
+  <doc-section title="Scaling · Rate limits need shared state">
+    <p>This is a shared-counter problem rather than a database query cache.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <a href="../../apps/server/src/shared/http/rate-limit.ts">shared/http/rate-limit.ts</a> keeps limits in process memory. Four workers multiply the effective allowance; restarts reset it. Behind a proxy with proxy trust off, unrelated customers may share its socket-IP budget.</li>
+      <li><strong>How it could be solved:</strong> Use atomic shared counters with expiry, such as Redis. Configure client-IP extraction for the actual trusted proxy, which must overwrite forwarded headers. Verify both multi-worker limits and distinct customer IPs.</li>
+    </ul>
+  </doc-section>
+
+  <doc-section title="Standards · Boundaries, size and runtime types need attention">
+    <p>Several conventions are documented but not consistently enforced.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> Services, routes and shared authentication import database values outside the permitted repository/infrastructure layers, for example <a href="../../apps/server/src/modules/blog/routes.ts">blog/routes.ts</a>. Thirty-six source files exceed 350 lines; <a href="../../apps/server/src/modules/orders/repo.ts">orders/repo.ts</a> has 755. Branching ternaries in <a href="../../apps/server/src/modules/orders/service.ts">orders/service.ts:162</a> violate your rule. Raw payment-count <code>sql&lt;number&gt;</code> annotations promise a runtime conversion they do not perform. Server instructions still say customer accounts do not exist.</li>
+      <li><strong>How it could be solved:</strong> Split by capability and restore route → service → repository boundaries. Replace branching ternaries with explicit conditions, use shared bigint money helpers and decode SQL results deliberately. Update stale instructions and move long rationale to synchronized <code>docs/code/</code> files. Index naming is already compliant in the audited declarations: explicit names stay below 63 bytes.</li>
+    </ul>
+  </doc-section>
+
+  <doc-section title="Verification and execution order">
+    <p>The audit identifies failure paths; it does not establish production latency or apply fixes.</p>
+    <ul>
+      <li><strong>What is wrong:</strong> <code>pnpm check</code>, <code>build</code>, <code>test</code> and <code>lint</code> passed, but server tests cover only the push-message test file; website and shared packages have additional tests. Lint runs only for admin; no checked-in CI workflow was found. Website checking reported nine Svelte warnings and six Astro hints. Token, concurrency and retry failures remain untested.</li>
+      <li><strong>How it could be solved:</strong> Address P1 findings first, then customer error handling and delivery reliability. Add disposable-PostgreSQL tests for concurrent transitions, token rollback, renewal activation, idempotent retries and rental classification; add migration and deployment smoke checks. Then measure the query candidates and introduce targeted caching. Logging, media ordering and generated payment SQL were reproduced locally; other risks follow from code inspection. No live database, production secrets or production services were inspected or changed.</li>
+    </ul>
+  </doc-section>
+</doc-page>
+<script src="https://cdn.jsdelivr.net/npm/forgedoc@2.1.0/dist/forgedoc.iife.js" data-forgedoc="js" defer></script>
+</body>
+</html>

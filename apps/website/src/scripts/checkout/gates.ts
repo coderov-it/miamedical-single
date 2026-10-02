@@ -20,6 +20,12 @@
  *
  * The rules themselves are unchanged from the ones the reference design applies,
  * in the same order. What is new is that failing one is now audible.
+ *
+ * THE SERVER CAN FAIL A GATE TOO. A 422 from `POST /api/orders` names its fields
+ * (`customer.email`, `delivery.address.line1`); `rejectFromServer()` maps each
+ * onto the gate that owns that control and holds it failed until the answer
+ * changes — so the server's verdict is marked exactly like the page's own, and
+ * "Continua" cannot wave the same rejected value through again.
  */
 import { type FieldGate, type FormGate, createFormGate } from '~/lib/form-validation';
 import type { CheckoutContext, StepIndex } from './context.ts';
@@ -118,11 +124,56 @@ function deliveryGates(context: CheckoutContext): FieldGate[] {
   ];
 }
 
+/**
+ * The server's field paths, as the gate that owns each control. A path not
+ * listed here (an item line, the notes) has no control on this page, and the
+ * caller falls back to the generic failure for it.
+ */
+const SERVER_FIELD_GATES: Record<string, string> = {
+  'customer.firstName': 'firstName',
+  'customer.lastName': 'lastName',
+  'customer.email': 'email',
+  'customer.phone': 'phone',
+  'customer.partitaIva': 'partitaIva',
+  'delivery.method': 'deliveryMethod',
+  'delivery.address': 'address',
+  'delivery.address.line1': 'address',
+  'delivery.pickupCity': 'pickupPoint',
+  'delivery.returnAddress': 'returnAddress',
+  'delivery.returnToSameAddress': 'returnAddress',
+};
+
+/**
+ * The body sends ONE `customer.codiceFiscale`, filled from whichever field the
+ * chosen identity shows — so the identity decides which control it means.
+ */
+function gateForServerField(path: string, customerType: string): string | undefined {
+  if (path !== 'customer.codiceFiscale') return SERVER_FIELD_GATES[path];
+  return customerType === 'company' ? 'companyCodiceFiscale' : 'codiceFiscale';
+}
+
+/** What the customer had answered for a gate — compared to see if it changed. */
+function answerFor(context: CheckoutContext, key: string): string {
+  const { state, value, returnSame } = context;
+  if (key === 'deliveryMethod') return state.delivery;
+  if (key === 'pickupPoint') return state.pickup;
+  if (key === 'returnAddress') return `${returnSame?.checked ?? ''}|${value('returnAddress')}`;
+  return value(key);
+}
+
 export interface CheckoutGates {
   /** True when the step is complete; otherwise marks every field that is not. */
   enforce: (step: StepIndex) => boolean;
   /** Clears the message of anything since answered. Wire to input/change. */
   refresh: () => void;
+  /**
+   * Records the fields a 422 named and returns the earliest step holding one,
+   * or null when none maps to a control here. The caller opens that step, then
+   * calls `revealServerErrors()`.
+   */
+  rejectFromServer: (fields: Record<string, string>) => StepIndex | null;
+  /** Marks every rejected field on both steps, focusing and scrolling to the first. */
+  revealServerErrors: () => void;
 }
 
 export function createCheckoutGates(context: CheckoutContext): CheckoutGates {
@@ -131,16 +182,46 @@ export function createCheckoutGates(context: CheckoutContext): CheckoutGates {
      anyway. */
   const announce = context.root.querySelector<HTMLElement>('[data-checkout-gate-announce]');
 
+  /** Gate key → the answer the server refused. Cleared by changing the answer. */
+  const rejected = new Map<string, string>();
+  const serverAccepts = (key: string) => rejected.get(key) !== answerFor(context, key);
+
+  /* Every gate also fails while the server's refusal of its answer stands. */
+  const withServerVerdict = (gates: FieldGate[]): FieldGate[] =>
+    gates.map((gate) => ({
+      ...gate,
+      isSatisfied: () => gate.isSatisfied() && serverAccepts(gate.key),
+    }));
+
+  const details = withServerVerdict(detailGates(context));
+  const delivery = withServerVerdict(deliveryGates(context));
+  const detailKeys = new Set(details.map((gate) => gate.key));
+
   const byStep: Record<number, FormGate> = {
-    1: createFormGate(context.root, detailGates(context), { announce }),
-    2: createFormGate(context.root, deliveryGates(context), { announce }),
+    1: createFormGate(context.root, details, { announce }),
+    2: createFormGate(context.root, delivery, { announce }),
   };
+  /* Both steps at once, in page order, so a 422 naming the email AND the
+     address marks both and focuses the email. */
+  const wholeForm = createFormGate(context.root, [...details, ...delivery], { announce });
 
   return {
     /* Step 3 has nothing to fill in — it is the review — so it is always open. */
     enforce: (step) => byStep[step]?.enforce() ?? true,
     refresh: () => {
       for (const gate of Object.values(byStep)) gate.refresh();
+      wholeForm.refresh();
+    },
+    rejectFromServer: (fields) => {
+      const keys = Object.keys(fields)
+        .map((path) => gateForServerField(path, context.state.type))
+        .filter((key): key is string => key !== undefined);
+      if (keys.length === 0) return null;
+      for (const key of keys) rejected.set(key, answerFor(context, key));
+      return keys.some((key) => detailKeys.has(key)) ? 1 : 2;
+    },
+    revealServerErrors: () => {
+      wholeForm.enforce();
     },
   };
 }

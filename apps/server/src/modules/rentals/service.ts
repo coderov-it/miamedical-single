@@ -25,13 +25,16 @@ export async function sendReminder(db: Database, orderId: string): Promise<void>
   const rental = await repo.findByOrderId(db, orderId);
   if (!rental) throw notFound('Rental');
 
-  await notifications.sendRentalReminder({
-    email: rental.email,
-    customerName: `${rental.firstName ?? ''} ${rental.lastName ?? ''}`.trim(),
-    orderNumber: rental.orderNumber,
-    productTitle: rental.productTitle,
-    rentalEndDate: rental.rentalEndDate ?? '',
-  });
+  await notifications.sendRentalReminder(
+    {
+      email: rental.email,
+      customerName: `${rental.firstName ?? ''} ${rental.lastName ?? ''}`.trim(),
+      orderNumber: rental.orderNumber,
+      productTitle: rental.productTitle,
+      rentalEndDate: rental.rentalEndDate ?? '',
+    },
+    { db, orderId },
+  );
 }
 
 export async function resendContract(db: Database, orderId: string): Promise<void> {

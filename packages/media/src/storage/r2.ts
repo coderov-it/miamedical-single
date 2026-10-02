@@ -40,7 +40,12 @@ export class R2FileUploader implements FileUploader {
   private client: S3Client | undefined;
   private bucket: string | undefined;
 
-  constructor(private readonly config: R2Config) {}
+  private readonly config: R2Config;
+
+  // A plain field, not a parameter property: `node --test` strips types only.
+  constructor(config: R2Config) {
+    this.config = config;
+  }
 
   private s3(): { client: S3Client; bucket: string } {
     if (!this.client || !this.bucket) {

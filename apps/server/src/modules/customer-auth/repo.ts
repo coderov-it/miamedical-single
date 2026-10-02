@@ -1,4 +1,4 @@
-import type { Database } from '@mia/db';
+import type { Database, DatabaseWriter } from '@mia/db';
 import { and, eq, gt, inArray, isNull, lt, ne, sql } from '@mia/db';
 import { customerAccounts, customerAuthTokens, customerSessions } from '@mia/db/schema';
 
@@ -24,7 +24,10 @@ export async function findByEmail(
   });
 }
 
-export async function findById(db: Database, id: string): Promise<CustomerAccountRow | undefined> {
+export async function findById(
+  db: DatabaseWriter,
+  id: string,
+): Promise<CustomerAccountRow | undefined> {
   return db.query.customerAccounts.findFirst({
     where: and(eq(customerAccounts.id, id), isNull(customerAccounts.deletedAt)),
   });
@@ -69,21 +72,21 @@ export async function updateProfile(
 }
 
 export async function updatePasswordHash(
-  db: Database,
+  db: DatabaseWriter,
   id: string,
   passwordHash: string,
 ): Promise<void> {
   await db.update(customerAccounts).set({ passwordHash }).where(eq(customerAccounts.id, id));
 }
 
-export async function markActivated(db: Database, id: string): Promise<void> {
+export async function markActivated(db: DatabaseWriter, id: string): Promise<void> {
   await db
     .update(customerAccounts)
     .set({ activatedAt: sql`coalesce(${customerAccounts.activatedAt}, now())` })
     .where(eq(customerAccounts.id, id));
 }
 
-export async function touchLastLogin(db: Database, id: string): Promise<void> {
+export async function touchLastLogin(db: DatabaseWriter, id: string): Promise<void> {
   await db
     .update(customerAccounts)
     .set({ lastLoginAt: new Date() })
@@ -93,7 +96,7 @@ export async function touchLastLogin(db: Database, id: string): Promise<void> {
 // --- sessions ---------------------------------------------------------------
 
 export async function createSession(
-  db: Database,
+  db: DatabaseWriter,
   data: { tokenHash: string; customerAccountId: string; expiresAt: Date; meta: SessionMeta },
 ): Promise<void> {
   await db.insert(customerSessions).values({
@@ -110,7 +113,7 @@ export async function deleteSession(db: Database, tokenHash: string): Promise<vo
 }
 
 export async function deleteSessionsForAccount(
-  db: Database,
+  db: DatabaseWriter,
   customerAccountId: string,
 ): Promise<void> {
   await db
@@ -135,7 +138,7 @@ export async function deleteOtherSessionsForAccount(
 }
 
 export async function deleteExpiredSessionsForAccount(
-  db: Database,
+  db: DatabaseWriter,
   customerAccountId: string,
 ): Promise<void> {
   await db
@@ -181,7 +184,7 @@ export async function createAuthToken(
  * Whoever's UPDATE matches the row gets it; the other matches nothing.
  */
 export async function consumeAuthToken(
-  db: Database,
+  db: DatabaseWriter,
   tokenHash: string,
   purposes: readonly AuthTokenPurpose[],
 ): Promise<CustomerAuthTokenRow | undefined> {
@@ -199,6 +202,30 @@ export async function consumeAuthToken(
     .returning();
 
   return row;
+}
+
+/**
+ * Spends every other sign-in-capable link the account still has outstanding.
+ *
+ * Called when a password is set from an emailed link: a second reset or magic
+ * link sitting in a compromised inbox would otherwise outlive the reset that was
+ * meant to lock the attacker out. `order_report` and `account_deletion` are left
+ * alone — neither signs anybody in.
+ */
+export async function consumeSignInTokensForAccount(
+  db: DatabaseWriter,
+  customerAccountId: string,
+): Promise<void> {
+  await db
+    .update(customerAuthTokens)
+    .set({ consumedAt: new Date() })
+    .where(
+      and(
+        eq(customerAuthTokens.customerAccountId, customerAccountId),
+        isNull(customerAuthTokens.consumedAt),
+        inArray(customerAuthTokens.purpose, ['activation', 'magic_link', 'password_reset']),
+      ),
+    );
 }
 
 /**

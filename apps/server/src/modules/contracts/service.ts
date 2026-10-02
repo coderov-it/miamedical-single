@@ -1,50 +1,27 @@
-import { createHash, randomBytes } from 'node:crypto';
-
 import type { Database } from '@mia/db';
 import { eq } from '@mia/db';
 import { orders } from '@mia/db/schema';
 import type { RentalPeriod } from '@mia/pricing';
-import type { ContractData, ContractLanguage } from '@mia/templates';
-import {
-  carrozzInaItalian,
-  carrozzinaTourist,
-  isContractLanguage,
-  scooterItalian,
-  scooterTourist,
-} from '@mia/templates';
-import type { ContractVariant, ManualContractInput } from '@mia/validators';
+import type { ContractData } from '@mia/templates';
+import type { ManualContractInput } from '@mia/validators';
 
-import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
-import * as links from '../notifications/links.ts';
-import * as notifications from '../notifications/mail.ts';
-import { emit, emitToAdmins } from '../notifications/write.ts';
-/* One-way dependencies: the orders repo knows nothing about contracts (the
-   event writer lives there because the timeline is the orders module's
-   artefact), and the rentals repo only touches order rows. */
-import { insertContractEvent } from '../orders/repo.ts';
-import { activateForContract } from '../rental-extensions/activate.ts';
-import { updateRentalPeriods } from '../rentals/repo.ts';
+import { conflict, notFound } from '../../shared/http/errors.ts';
+import { issueContract } from './issue.ts';
+import type { IssueHook } from './issue.ts';
+import * as lifecycle from './lifecycle.ts';
+import { TEMPLATE_MAP } from './render.ts';
 import * as repo from './repo.ts';
 import type { ContractDetailRow, ContractListFilters, ContractSummaryRow } from './repo.ts';
-import { resolveVariant } from './variant.ts';
 
-const TOKEN_EXPIRY_DAYS = 30;
+/**
+ * The contracts module's front door. Issuing lives in `issue.ts`, operator
+ * actions on an open contract in `lifecycle.ts`, the customer's signature in
+ * `signing.ts`; this file reads, builds a contract from an order or a form,
+ * and re-exports the rest so callers import one module.
+ */
 
-function hashToken(raw: string): string {
-  return createHash('sha256').update(raw).digest('hex');
-}
-
-function generateToken(): { raw: string; hash: string } {
-  const raw = randomBytes(32).toString('base64url');
-  return { raw, hash: hashToken(raw) };
-}
-
-const TEMPLATE_MAP: Record<ContractVariant, (data: ContractData) => string> = {
-  carrozzina_italian: carrozzInaItalian,
-  carrozzina_tourist: carrozzinaTourist,
-  scooter_italian: scooterItalian,
-  scooter_tourist: scooterTourist,
-};
+export { getSigningLink, resend, voidWithin } from './lifecycle.ts';
+export { loadForSigning, sign } from './signing.ts';
 
 export async function list(
   db: Database,
@@ -88,29 +65,24 @@ export async function renderPreview(db: Database, id: string): Promise<string> {
   });
 }
 
-interface IssueContractInput {
-  orderId: string | null;
-  orderNumber: string | null;
-  customerType: 'private' | 'company' | 'tourist';
-  customerName: string;
-  email: string;
-  phone: string;
-  address: string;
-  codiceFiscale: string | null;
-  partitaIva: string | null;
-  /** SDI e-invoice code — collected on manual company contracts only. */
-  codiceUnivoco?: string | null;
-  items: ContractData['items'];
-  subtotal: string;
-  shippingTotal: string;
-  total: string;
-  currency: string;
-  hasDepositProduct: boolean;
-  damages?: ContractData['damages'];
-  /** A renewal is a new contract for a new period on the same order. */
-  kind?: 'initial' | 'renewal';
-  /** The operator who triggered it, for the order timeline. Null = system. */
-  actorAdminUserId?: string | null;
+export async function updatePeriodAndResend(
+  db: Database,
+  id: string,
+  from: string,
+  to: string,
+): Promise<ContractDetailRow> {
+  await lifecycle.updatePeriodAndResend(db, id, from, to);
+  return getById(db, id);
+}
+
+export async function voidContract(
+  db: Database,
+  id: string,
+  reason: string,
+  adminUserId: string,
+): Promise<ContractDetailRow> {
+  await lifecycle.voidContract(db, id, reason, adminUserId);
+  return getById(db, id);
 }
 
 export interface GenerateFromOrderOptions {
@@ -127,6 +99,8 @@ export interface GenerateFromOrderOptions {
     days: number;
     lineAmounts: Record<string, { unitPrice: string; total: string }>;
   };
+  /** Runs inside the issuing transaction — a renewal links its extension here. */
+  onIssued?: IssueHook;
 }
 
 /**
@@ -186,16 +160,6 @@ export async function generateFromOrder(
     throw conflict('This order has no rental lines, so there is no rental contract to issue.');
   }
 
-  /* One live contract at a time. A signed one may be followed (that is what a
-     renewal is); an unsigned one still out for signature must be resent or
-     voided, not silently duplicated. */
-  const latest = await repo.findLatestActiveByOrderId(db, orderId);
-  if (latest && latest.status !== 'signed') {
-    throw conflict(
-      `Contract ${latest.number} is still awaiting signature. Resend it, or void it before issuing a new one.`,
-    );
-  }
-
   const address = order.shippingAddress as Record<string, unknown> | null;
   const addressStr = address
     ? [address.line1, [address.postalCode, address.city].filter(Boolean).join(' ')]
@@ -230,6 +194,7 @@ export async function generateFromOrder(
     hasDepositProduct: await repo.orderRequiresDeposit(db, orderId),
     kind: options.kind ?? 'initial',
     actorAdminUserId: options.actorAdminUserId ?? null,
+    ...(options.onIssued ? { onIssued: options.onIssued } : {}),
   });
 }
 
@@ -284,387 +249,4 @@ export async function createManual(
     currency: 'EUR',
     hasDepositProduct: input.hasDepositProduct,
   });
-}
-
-/**
- * The account a contract's order belongs to, or null.
- *
- * Null is ordinary, not an error: a manual contract has no order at all, and an
- * order taken over the phone may never be claimed by an account. Both mean
- * there is nobody to put a feed row in front of, and the email still goes.
- */
-async function accountForOrder(db: Database, orderId: string | null): Promise<string | null> {
-  if (!orderId) return null;
-  const [row] = await db
-    .select({ accountId: orders.customerAccountId })
-    .from(orders)
-    .where(eq(orders.id, orderId))
-    .limit(1);
-  return row?.accountId ?? null;
-}
-
-async function issueContract(
-  db: Database,
-  input: IssueContractInput,
-): Promise<{ id: string; number: string }> {
-  const { variant, language, requiresDeposit, depositAmount } = resolveVariant(
-    input.customerType,
-    input.hasDepositProduct,
-  );
-
-  const contractData: ContractData = {
-    contractNumber: '',
-    orderNumber: input.orderNumber,
-    customer: {
-      fullName: input.customerName,
-      email: input.email,
-      phone: input.phone,
-      address: input.address,
-      codiceFiscale: input.codiceFiscale,
-      partitaIva: input.partitaIva,
-      codiceUnivoco: input.codiceUnivoco ?? null,
-      customerType: input.customerType,
-    },
-    items: input.items,
-    subtotal: input.subtotal,
-    shippingTotal: input.shippingTotal,
-    total: input.total,
-    currency: input.currency,
-    requiresDeposit,
-    depositAmount,
-    damages: input.damages ?? defaultDamages(language),
-    generatedAt: new Date().toISOString().slice(0, 10),
-  };
-
-  const contract = await repo.create(db, {
-    orderId: input.orderId,
-    variant,
-    language,
-    requiresDeposit,
-    depositAmount,
-    contractData: { ...contractData, contractNumber: '' },
-  });
-
-  contractData.contractNumber = contract.number;
-  await repo.updateStatus(db, contract.id, 'generated', {
-    contractData: contractData as unknown as Record<string, unknown>,
-  });
-
-  const token = generateToken();
-  await repo.createSigningToken(db, {
-    id: token.hash,
-    contractId: contract.id,
-    expiresAt: new Date(Date.now() + TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
-  });
-
-  await notifications.sendContractReady({
-    email: input.email,
-    customerName: input.customerName,
-    contractNumber: contract.number,
-    orderNumber: input.orderNumber,
-    signingToken: token.raw,
-    language,
-  });
-
-  await repo.updateStatus(db, contract.id, 'sent', { sentAt: new Date() });
-
-  /* The customer's copy of "your contract is waiting". Its own transaction
-     rather than the caller's, because `issueContract` has none: it is a
-     sequence of committed steps, and the row belongs after the one that makes
-     it true — the contract is genuinely sent by here. */
-  const awaitingAccountId = await accountForOrder(db, input.orderId ?? null);
-  if (awaitingAccountId) {
-    await db.transaction((tx) =>
-      emit(tx, {
-        audience: 'customer',
-        customerAccountId: awaitingAccountId,
-        type: 'contract.awaiting_signature',
-        orderId: input.orderId ?? null,
-        data: {
-          contractNumber: contract.number,
-          orderNumber: input.orderNumber ?? null,
-        },
-      }),
-    );
-  }
-
-  if (input.orderId) {
-    const first = input.items[0];
-    const note =
-      input.kind === 'renewal'
-        ? `Renewal contract ${contract.number} sent for signing (${first?.startDate ?? '?'} → ${first?.endDate ?? '?'}).`
-        : `Contract ${contract.number} sent to ${input.email} for signing.`;
-    await insertContractEvent(db, {
-      orderId: input.orderId,
-      fromValue: null,
-      toValue: 'sent',
-      note,
-      actorAdminUserId: input.actorAdminUserId ?? null,
-    });
-  }
-
-  return contract;
-}
-
-export async function resend(db: Database, id: string): Promise<void> {
-  const contract = await getById(db, id);
-  if (contract.status === 'signed') throw conflict('Contract is already signed.');
-  if (contract.status === 'voided') throw conflict('Contract is voided.');
-
-  const token = generateToken();
-  await repo.createSigningToken(db, {
-    id: token.hash,
-    contractId: contract.id,
-    expiresAt: new Date(Date.now() + TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
-  });
-
-  const data = contract.contractData as unknown as ContractData;
-  await notifications.sendContractReady({
-    email: data.customer.email,
-    customerName: data.customer.fullName,
-    contractNumber: contract.number,
-    orderNumber: contract.orderNumber,
-    signingToken: token.raw,
-    language: asContractLanguage(contract.language),
-  });
-
-  await repo.updateStatus(db, id, 'sent', { sentAt: new Date() });
-}
-
-export async function getSigningLink(db: Database, id: string): Promise<string> {
-  const contract = await getById(db, id);
-  if (contract.status === 'signed') throw conflict('Contract is already signed.');
-  if (contract.status === 'voided') throw conflict('Contract is voided.');
-
-  const token = generateToken();
-  await repo.createSigningToken(db, {
-    id: token.hash,
-    contractId: contract.id,
-    expiresAt: new Date(Date.now() + TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
-  });
-
-  return links.contractSigningUrl(token.raw);
-}
-
-export async function updatePeriodAndResend(
-  db: Database,
-  id: string,
-  from: string,
-  to: string,
-): Promise<ContractDetailRow> {
-  const contract = await getById(db, id);
-  if (contract.status === 'signed') throw conflict('Contract is already signed.');
-  if (contract.status === 'voided') throw conflict('Contract is voided.');
-
-  /* Duration moves with the dates: the contract prints both, and a 30-day span
-     beside "3 days" would be a document contradicting itself. */
-  const durationDays = periodDays(from, to);
-  const data = { ...(contract.contractData as Record<string, unknown>) } as unknown as ContractData;
-  data.items = data.items.map((item) => ({
-    ...item,
-    startDate: from,
-    endDate: to,
-    duration: durationDays,
-    durationUnit: 'day' as const,
-  }));
-
-  await repo.updateStatus(db, id, contract.status, {
-    contractData: data as unknown as Record<string, unknown>,
-  });
-
-  /* The order is the source the rentals page and reminder emails read, so its
-     lines follow the contract — otherwise the customer signs one period while
-     Rent Management chases another. */
-  if (contract.orderId) {
-    await updateRentalPeriods(db, contract.orderId, from, to, durationDays);
-    await insertContractEvent(db, {
-      orderId: contract.orderId,
-      fromValue: contract.status,
-      toValue: 'sent',
-      note: `Contract ${contract.number} period updated to ${from} → ${to} and resent.`,
-    });
-  }
-
-  await resend(db, id);
-  return getById(db, id);
-}
-
-/** Whole days between two YYYY-MM-DD dates — the rental industry's count. */
-function periodDays(from: string, to: string): number {
-  return Math.max(
-    1,
-    Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000),
-  );
-}
-
-export async function voidContract(
-  db: Database,
-  id: string,
-  reason: string,
-  adminUserId: string,
-): Promise<ContractDetailRow> {
-  const contract = await getById(db, id);
-  if (contract.status === 'signed') throw conflict('Cannot void a signed contract.');
-  if (contract.status === 'voided') throw conflict('Contract is already voided.');
-
-  await repo.updateStatus(db, id, 'voided', {
-    voidedAt: new Date(),
-    voidedByAdminUserId: adminUserId,
-    voidReason: reason,
-  });
-
-  if (contract.orderId) {
-    await insertContractEvent(db, {
-      orderId: contract.orderId,
-      fromValue: contract.status,
-      toValue: 'voided',
-      note: `Contract ${contract.number} voided: ${reason}`,
-      actorAdminUserId: adminUserId,
-    });
-  }
-
-  return getById(db, id);
-}
-
-export async function loadForSigning(
-  db: Database,
-  rawToken: string,
-): Promise<{ contract: ContractDetailRow; html: string }> {
-  const hash = hashToken(rawToken);
-  const result = await repo.findSigningToken(db, hash);
-  if (!result) throw notFound('Signing token');
-
-  const { token, contract } = result;
-  if (token.consumedAt) throw httpError(410, 'This signing link has already been used.');
-  if (token.expiresAt < new Date()) throw httpError(410, 'This signing link has expired.');
-  if (contract.status === 'signed') throw conflict('Contract is already signed.');
-  if (contract.status === 'voided') throw conflict('Contract has been voided.');
-
-  if (!contract.viewedAt) {
-    await repo.updateStatus(db, contract.id, 'viewed', { viewedAt: new Date() });
-  }
-
-  const render = TEMPLATE_MAP[contract.variant];
-  const html = render(contract.contractData as unknown as ContractData);
-
-  return { contract, html };
-}
-
-export async function sign(
-  db: Database,
-  rawToken: string,
-  signatureDataUrl: string,
-  ipAddress: string,
-  userAgent: string,
-): Promise<ContractDetailRow> {
-  const hash = hashToken(rawToken);
-  const result = await repo.findSigningToken(db, hash);
-  if (!result) throw notFound('Signing token');
-
-  const { token, contract } = result;
-  if (token.consumedAt) throw httpError(410, 'This signing link has already been used.');
-  if (token.expiresAt < new Date()) throw httpError(410, 'This signing link has expired.');
-  if (contract.status === 'signed') throw conflict('Contract is already signed.');
-  if (contract.status === 'voided') throw conflict('Contract has been voided.');
-
-  await repo.consumeSigningToken(db, hash);
-
-  const data = contract.contractData as unknown as ContractData;
-  const signerAccountId = await accountForOrder(db, contract.orderId);
-
-  /* The signature and the operator's notice of it commit together: the status
-     machine will not move this order to `paid` until the contract reads
-     `signed`, so an operator told late is an order stalled late. */
-  await db.transaction(async (tx) => {
-    await repo.updateStatus(tx, contract.id, 'signed', {
-      signedAt: new Date(),
-      signatureData: { imageDataUrl: signatureDataUrl, ipAddress, userAgent },
-    });
-
-    const signed = {
-      contractNumber: contract.number,
-      orderNumber: contract.orderNumber,
-      customerName: data.customer.fullName,
-    };
-
-    await emitToAdmins(tx, {
-      type: 'contract.signed',
-      orderId: contract.orderId,
-      data: signed,
-    });
-
-    /* Both audiences from one transaction: the operator learns the order is
-       unblocked and the customer gets the receipt, and neither can exist
-       without the signature that caused them. */
-    if (signerAccountId) {
-      await emit(tx, {
-        audience: 'customer',
-        customerAccountId: signerAccountId,
-        type: 'contract.signed',
-        orderId: contract.orderId,
-        data: signed,
-      });
-    }
-  });
-
-  await notifications.sendContractSigned({
-    email: data.customer.email,
-    customerName: data.customer.fullName,
-    contractNumber: contract.number,
-    orderNumber: contract.orderNumber,
-    language: asContractLanguage(contract.language),
-  });
-
-  // The signature lands on the order's timeline, where the operator reads it.
-  if (contract.orderId) {
-    await insertContractEvent(db, {
-      orderId: contract.orderId,
-      fromValue: contract.status,
-      toValue: 'signed',
-      note: `Contract ${contract.number} signed by the customer.`,
-    });
-    /* A renewal contract signed is the extension made real: the order's end
-       date moves now, not when it was paid. */
-    await activateForContract(db, contract.id);
-  }
-
-  return getById(db, contract.id);
-}
-
-/**
- * `contracts.language` is a plain `text` column, so a value that no contract
- * variant exists for is reachable — a hand-edited row, a restored backup, an
- * older writer. Throwing is the only correct answer: falling back to Italian
- * would render a legally different document under a number recorded as
- * something else, and that is worse than a 500.
- */
-function asContractLanguage(value: string): ContractLanguage {
-  if (isContractLanguage(value)) return value;
-  throw httpError(
-    500,
-    `Contract language "${value}" has no contract template. A contract is drafted per jurisdiction, not translated — see ContractLanguage in @mia/templates.`,
-  );
-}
-
-function defaultDamages(language: ContractLanguage): ContractData['damages'] {
-  if (language === 'en') {
-    return [
-      { description: 'Scratches or cosmetic damage', amount: '50.00' },
-      { description: 'Damaged wheels or tires', amount: '80.00' },
-      { description: 'Bent or broken frame', amount: '200.00' },
-      { description: 'Missing accessories (basket, cushion)', amount: '30.00' },
-      { description: 'Electronic/motor damage (electric models)', amount: '350.00' },
-      { description: 'Battery damage or loss (electric models)', amount: '250.00' },
-      { description: 'Total loss or theft', amount: 'Full replacement value' },
-    ];
-  }
-  return [
-    { description: 'Graffi o danni estetici', amount: '50.00' },
-    { description: 'Ruote o pneumatici danneggiati', amount: '80.00' },
-    { description: 'Telaio piegato o rotto', amount: '200.00' },
-    { description: 'Accessori mancanti (cestino, cuscino)', amount: '30.00' },
-    { description: 'Danni al motore/elettronica (modelli elettrici)', amount: '350.00' },
-    { description: 'Danno o smarrimento batteria (modelli elettrici)', amount: '250.00' },
-    { description: 'Perdita totale o furto', amount: 'Valore integrale di sostituzione' },
-  ];
 }

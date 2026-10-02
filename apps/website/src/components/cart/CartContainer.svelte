@@ -45,11 +45,21 @@
     catalogPath: string;
     /** Matches `formatMoney()`'s default in `lib/api.ts`. */
     locale?: string;
+    /** The site language (`it`, `en`, …) the server reads each line in. */
+    siteLocale?: string;
   }
 
-  const { initial, urlLines, copy, checkoutPath, catalogPath, locale = 'it-IT' }: Props = $props();
+  const {
+    initial,
+    urlLines,
+    copy,
+    checkoutPath,
+    catalogPath,
+    locale = 'it-IT',
+    siteLocale = 'it',
+  }: Props = $props();
 
-  const cart = new CartState({ initial, urlLines, copy, locale });
+  const cart = new CartState({ initial, urlLines, copy, locale, siteLocale });
 
   $effect(() => {
     cart.mount();

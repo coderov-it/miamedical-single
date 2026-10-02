@@ -30,10 +30,19 @@ export interface CheckoutState {
   delivery: string;
   /** The chosen branch's city, when collecting. */
   pickup: string;
-  placed: boolean;
-  /** A request is in flight; a second click must not open a second order. */
-  sending: boolean;
+  /**
+   * Where this page's one placement stands. Only `idle` may send; the others
+   * are the lock — see `placement-lock.ts` for the whole state machine.
+   */
+  placement: PlacementPhase;
 }
+
+/**
+ * `sending`   a POST is in flight, here or in another tab
+ * `placed`    the order exists — final for this page
+ * `uncertain` a POST may have reached the server and no answer came back
+ */
+export type PlacementPhase = 'idle' | 'sending' | 'placed' | 'uncertain';
 
 export interface CheckoutContext {
   root: HTMLElement;
@@ -64,6 +73,8 @@ export interface CheckoutContext {
   money: Intl.NumberFormat;
   /** The order body's line items, priced and resolved on the server. */
   orderItems: unknown[];
+  /** Each line's `lineKey()` in the browser cart, to clear once it is ordered. */
+  cartKeys: string[];
   apiBase: string;
 }
 
@@ -115,8 +126,7 @@ export function createContext(): CheckoutContext | null {
       type: 'private',
       delivery: '',
       pickup: '',
-      placed: false,
-      sending: false,
+      placement: 'idle',
     },
     /* A missing key is a build-time bug, not a runtime one — but an empty string
        beats "undefined" turning up in a customer's WhatsApp message. */
@@ -141,6 +151,7 @@ export function createContext(): CheckoutContext | null {
       currency: overview.dataset.currency || 'EUR',
     }),
     orderItems: parseIsland<unknown[]>('[data-checkout-items]', []),
+    cartKeys: parseIsland<string[]>('[data-checkout-cart-keys]', []),
     apiBase: root.dataset.apiBase ?? '',
   };
 }

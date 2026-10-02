@@ -99,16 +99,35 @@ export async function findAggregate(
   return { ...row, specs: row.category.specs } as unknown as ProductAggregate;
 }
 
-/** Slug lookup across all languages — enables the 301 when locales are mixed. */
+/**
+ * The product a storefront URL names, in the language it was asked for.
+ *
+ * Slugs are unique per language only, so two different products may share one
+ * across languages — and a lookup by slug alone would pick whichever row came
+ * back first. The exact pair wins; another language's slug is accepted only
+ * when it belongs to ONE product (that is what lets the product page find its
+ * alternate-language URLs, and a link pasted from another language still land):
+ *
+ *   ('en', 'wheelchair')  it: wheelchair → product B, en: wheelchair → product A  → A  (exact)
+ *   ('it', 'sedia-x')     en: sedia-x → product A only                            → A  (unambiguous)
+ *   ('fr', 'wheelchair')  it → product B, en → product A                          → none (ambiguous, 404)
+ */
 export async function findIdBySlug(
   db: Database,
   slug: string,
+  languageCode: LanguageCode,
 ): Promise<{ productId: string; languageCode: LanguageCode } | undefined> {
-  const row = await db.query.productTranslations.findFirst({
+  const rows = await db.query.productTranslations.findMany({
     where: eq(productTranslations.slug, slug),
     columns: { productId: true, languageCode: true },
   });
-  return row;
+
+  const exact = rows.find((row) => row.languageCode === languageCode);
+  if (exact) return exact;
+
+  const productIds = new Set(rows.map((row) => row.productId));
+  if (productIds.size !== 1) return undefined;
+  return rows[0];
 }
 
 export async function existsBySlug(

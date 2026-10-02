@@ -34,9 +34,9 @@ import {
   ITEM_PREFIX,
   type ItemFact,
   MAX_ITEMS,
-  resolveCheckout,
   splitItemParams,
 } from './checkout.ts';
+import { resolveCheckout } from './checkout-resolve.ts';
 import { t } from './labels.ts';
 import { localeForRequest, localeTag } from './i18n.ts';
 import { FIELD, MAX_QUANTITY } from './request-config.ts';
@@ -119,7 +119,8 @@ export interface CartView {
   currency: string;
   /**
    * Lines whose product no longer resolves — unpublished, deleted, or a slug
-   * someone typed into storage.
+   * someone typed into storage. Only a 404 puts a line here; a catalogue that
+   * did not answer makes `resolveCart()` throw instead.
    *
    * The checkout DROPS these silently, on the reasoning that a product we cannot
    * rent is worse than one fewer row. The cart must not: this is the page where
@@ -252,7 +253,9 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
 }
 
 /**
- * Prices a cart, one `resolveCheckout()` per line.
+ * Prices a cart, one `resolveCheckout()` per line. THROWS when the catalogue
+ * cannot read a line — `droppedIds` is for products that are gone, never for
+ * an outage.
  *
  * Per line rather than one call for the whole cart because ids have to survive:
  * `resolveCheckout()` drops what it cannot resolve, so a single call would return a
@@ -268,7 +271,11 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
       const params = new URLSearchParams(line.config);
       params.set(FIELD.quantity, String(clampQuantity(line.quantity)));
 
-      const { items } = await resolveCheckout(params);
+      const { items, unavailable } = await resolveCheckout(params);
+      /* An outage is not a dead product. Throwing fails the whole re-price, so
+         the island keeps every stored line and the last figures it had, and says
+         it could not update — instead of pruning a line that still exists. */
+      if (unavailable > 0) throw new Error(`cart line ${line.id} could not be read`);
       const item = items[0];
       return item ? toView(line, item) : { droppedId: line.id };
     }),
@@ -295,84 +302,5 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
   };
 }
 
-/* ---------------------------------------------------------------- copy --- */
-
-/**
- * Every Italian word the cart island renders, resolved here and handed over as a
- * prop.
- *
- * The island is a `.svelte` file and the project rule is that code holds English
- * identifiers only — so rather than let it call `t()` (which would also pull
- * `@mia/i18n` into the client bundle for a page that needs none of it), the words
- * are resolved on the server and travel as data. The island contains no Italian at
- * all, which is exactly the rule.
- *
- * `{}` slots are filled in the island, so the placeholder names are part of this
- * contract: `removeNamed` must keep `{title}`, `countMany` must keep `{count}`.
- */
-export interface CartCopy {
-  countOne: string;
-  countMany: string;
-  heading: string;
-  lead: string;
-  summary: string;
-  subtotal: string;
-  deliveryLabel: string;
-  deliveryPending: string;
-  total: string;
-  vatIncluded: string;
-  noPackageNote: string;
-  goToCheckout: string;
-  dueToday: string;
-  dueTodayNote: string;
-  continueBrowsing: string;
-  remove: string;
-  removeNamed: string;
-  increase: string;
-  decrease: string;
-  quantityOf: string;
-  updated: string;
-  loading: string;
-  /** The first paint's word, before the store has been read. */
-  booting: string;
-  offline: string;
-  unavailableOne: string;
-  unavailableMany: string;
-  emptyTitle: string;
-  emptyDetail: string;
-  goToCatalog: string;
-}
-
-export function cartCopy(): CartCopy {
-  return {
-    countOne: t('cartCountOne'),
-    countMany: t('cartCountMany'),
-    heading: t('cart'),
-    lead: t('cartLead'),
-    summary: t('cartSummary'),
-    subtotal: t('cartSubtotal'),
-    deliveryLabel: t('delivery'),
-    deliveryPending: t('cartDeliveryPending'),
-    total: t('total'),
-    vatIncluded: t('vatIncluded'),
-    noPackageNote: t('estimateNoPackage'),
-    goToCheckout: t('goToCheckout'),
-    dueToday: t('cartDueToday'),
-    dueTodayNote: t('cartDueTodayNote'),
-    continueBrowsing: t('continueBrowsing'),
-    remove: t('remove'),
-    removeNamed: t('removeNamed'),
-    increase: t('increaseQuantity'),
-    decrease: t('decreaseQuantity'),
-    quantityOf: t('quantityOf'),
-    updated: t('cartUpdated'),
-    loading: t('cartLoading'),
-    booting: t('cartBooting'),
-    offline: t('cartOffline'),
-    unavailableOne: t('cartLineUnavailableOne'),
-    unavailableMany: t('cartLineUnavailableMany'),
-    emptyTitle: t('cartEmpty'),
-    emptyDetail: t('cartEmptyDetail'),
-    goToCatalog: t('goToCatalog'),
-  };
-}
+/* The island's words live beside this file; re-exported so callers keep one import. */
+export { type CartCopy, cartCopy } from './cart-copy.ts';

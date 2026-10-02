@@ -67,6 +67,11 @@ export interface CartStateInit {
   copy: CartCopy;
   /** Matches `formatMoney()`'s default in `lib/api.ts`. */
   locale: string;
+  /**
+   * The page's site language (`it`, `en`, …), sent with every re-price: a slug
+   * is unique per language only, so the server must read each line in it.
+   */
+  siteLocale: string;
 }
 
 /** What `view` holds for the instant before the constructor assigns the real one. */
@@ -119,14 +124,16 @@ export class CartState {
   readonly #copy: CartCopy;
   readonly #urlLines: CartLine[];
   readonly #locale: string;
+  readonly #siteLocale: string;
   #priceToken = 0;
   #debounce: ReturnType<typeof setTimeout> | undefined;
   #mounted = false;
 
-  constructor({ initial, urlLines, copy, locale }: CartStateInit) {
+  constructor({ initial, urlLines, copy, locale, siteLocale }: CartStateInit) {
     this.#copy = copy;
     this.#urlLines = urlLines;
     this.#locale = locale;
+    this.#siteLocale = siteLocale;
 
     this.lines = urlLines;
     this.view = initial;
@@ -200,18 +207,23 @@ export class CartState {
    *
    * Built here rather than in the template because `URLSearchParams` is an
    * iterable, not an array, and `{#each}` needs the array — and because the index
-   * has to be the ROW's position, which a nested each would have to thread
+   * has to be the line's position, which a nested each would have to thread
    * through. Positional and preserved nowhere, exactly as `splitItemParams()`
    * documents.
+   *
+   * EVERY STORED LINE, not just the rendered rows. A line with no view yet — not
+   * priced, or the last re-price failed — is still in the cart, and posting only
+   * the rows would quietly order less than it holds. The checkout reads each
+   * line itself and blocks the order if one cannot be read.
    */
   wireFields = $derived(
-    this.rows.flatMap((row, index) => {
+    this.lines.flatMap((line, index) => {
       const prefix = `${CART_ITEM_PREFIX}${index}.`;
-      const fields: WireField[] = [...new URLSearchParams(row.line.config)].map(([key, value]) => ({
+      const fields: WireField[] = [...new URLSearchParams(line.config)].map(([key, value]) => ({
         name: prefix + key,
         value,
       }));
-      fields.push({ name: prefix + CART_QUANTITY_FIELD, value: String(row.line.quantity) });
+      fields.push({ name: prefix + CART_QUANTITY_FIELD, value: String(line.quantity) });
       return fields;
     }),
   );
@@ -352,7 +364,7 @@ export class CartState {
       const response = await fetch('/api/cart/resolve', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ lines: next }),
+        body: JSON.stringify({ lines: next, locale: this.#siteLocale }),
       });
       if (!response.ok) throw new Error(`resolve failed: ${response.status}`);
       const fresh = (await response.json()) as CartView;
@@ -372,7 +384,9 @@ export class CartState {
       if (token !== this.#priceToken) return;
       /* The amounts on screen stay — they are the last figures the server gave,
          and every one of them is provisional until the phone call anyway. The
-         banner says so rather than blanking a cart the customer can still read. */
+         banner says so rather than blanking a cart the customer can still read.
+         NOTHING IS PRUNED: a 503 means the catalogue did not answer, which says
+         nothing about whether a product still exists. */
       this.stale = true;
     } finally {
       if (token === this.#priceToken) this.pricing = false;

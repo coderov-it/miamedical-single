@@ -5,7 +5,7 @@ import type { AddonInput } from '@mia/validators';
 
 import type { FileUploader } from '@mia/media';
 import { httpError, notFound } from '../../../shared/http/errors.ts';
-import { commitIcon } from '../media/service.ts';
+import { commitIcon, withMediaRollback } from '../media/service.ts';
 import * as catalogRepo from '../catalog/repo.ts';
 
 /**
@@ -59,61 +59,66 @@ export async function replaceAddons(
   });
   const existingById = new Map(existing.map((addon) => [addon.id, addon]));
 
-  // Icons commit outside the transaction — object storage has no rollback.
-  const iconByIndex = new Map<number, string | null>();
-  for (const [index, addon] of addons.entries()) {
-    const stored = addon.id ? (existingById.get(addon.id)?.icon ?? null) : null;
-    iconByIndex.set(
-      index,
-      await commitIcon(storage, `addons/${productId}`, stored, addon.icon, 'icon_1024'),
-    );
-  }
-
-  await db.transaction(async (tx) => {
-    const keptIds: string[] = [];
+  /* Icons commit before the transaction — object storage has no transaction —
+     and `withMediaRollback` deletes only the icons this save committed if
+     anything after them throws. Replaced icons, and the icons of removed
+     addons, stay for the sweep (docs/code/media-lifecycle.md). */
+  await withMediaRollback(storage, async (committed) => {
+    const iconByIndex = new Map<number, string | null>();
     for (const [index, addon] of addons.entries()) {
-      const values = {
-        productId,
-        name: addon.name,
-        description: addon.description ?? null,
-        pricingMode: addon.pricingMode,
-        productPricingMode: product.pricingMode,
-        price: addon.price,
-        currency: addon.currency,
-        rentalUnit: addon.rentalUnit ?? null,
-        minQuantity: addon.minQuantity,
-        maxQuantity: addon.maxQuantity ?? null,
-        icon: iconByIndex.get(index) ?? null,
-        position: addon.position,
-      };
-      if (addon.id && existingById.has(addon.id)) {
-        await tx.update(productAddons).set(values).where(eq(productAddons.id, addon.id));
-        keptIds.push(addon.id);
-      } else {
-        const [inserted] = await tx
-          .insert(productAddons)
-          .values(values)
-          .returning({ id: productAddons.id });
-        if (!inserted) throw new Error('Addon insert returned no row.');
-        keptIds.push(inserted.id);
-      }
-    }
-
-    const removed = existing.filter((addon) => !keptIds.includes(addon.id));
-    if (removed.length > 0) {
-      await tx.delete(productAddons).where(
-        inArray(
-          productAddons.id,
-          removed.map((addon) => addon.id),
+      const stored = addon.id ? (existingById.get(addon.id)?.icon ?? null) : null;
+      iconByIndex.set(
+        index,
+        await commitIcon(
+          storage,
+          `addons/${productId}`,
+          stored,
+          addon.icon,
+          'icon_1024',
+          committed,
         ),
       );
     }
-  });
 
-  // Removed addons lose their icon objects — after the rows are gone.
-  for (const addon of existing) {
-    if (addon.icon && !addons.some((a) => a.id === addon.id)) {
-      await storage.delete(addon.icon).catch(() => undefined);
-    }
-  }
+    await db.transaction(async (tx) => {
+      const keptIds: string[] = [];
+      for (const [index, addon] of addons.entries()) {
+        const values = {
+          productId,
+          name: addon.name,
+          description: addon.description ?? null,
+          pricingMode: addon.pricingMode,
+          productPricingMode: product.pricingMode,
+          price: addon.price,
+          currency: addon.currency,
+          rentalUnit: addon.rentalUnit ?? null,
+          minQuantity: addon.minQuantity,
+          maxQuantity: addon.maxQuantity ?? null,
+          icon: iconByIndex.get(index) ?? null,
+          position: addon.position,
+        };
+        if (addon.id && existingById.has(addon.id)) {
+          await tx.update(productAddons).set(values).where(eq(productAddons.id, addon.id));
+          keptIds.push(addon.id);
+        } else {
+          const [inserted] = await tx
+            .insert(productAddons)
+            .values(values)
+            .returning({ id: productAddons.id });
+          if (!inserted) throw new Error('Addon insert returned no row.');
+          keptIds.push(inserted.id);
+        }
+      }
+
+      const removed = existing.filter((addon) => !keptIds.includes(addon.id));
+      if (removed.length > 0) {
+        await tx.delete(productAddons).where(
+          inArray(
+            productAddons.id,
+            removed.map((addon) => addon.id),
+          ),
+        );
+      }
+    });
+  });
 }

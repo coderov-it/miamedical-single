@@ -207,6 +207,7 @@ Two differences from the back office, both deliberate:
 | TTL             | `SESSION_TTL_DAYS` (7)                 | `CUSTOMER_SESSION_TTL_DAYS` (30) |
 | Expiry          | Fixed from sign-in                     | **Sliding**                      |
 | Password change | Revokes every session, caller included | Revokes every **other** session  |
+| Password reset  | —                                      | Revokes **every** session        |
 
 Sliding expiry only fires when the row has drifted more than
 `CUSTOMER_SESSION_REFRESH_HOURS` below a full TTL. Without that threshold every
@@ -248,6 +249,22 @@ RETURNING *
 ```
 
 Two clicks arriving together cannot both win. A select-then-update would let them.
+
+It runs in one transaction with everything the link does, so a failure halfway
+leaves the link unspent. A link that sets a password (the reset page) also deletes
+every session and spends every other outstanding sign-in link of the account:
+
+```text
+ 1. phone session (stolen) + laptop session, two reset mails in the inbox
+ 2. customer opens reset mail #2, sets a password
+    → token #2 spent, password written
+    → phone + laptop sessions deleted, reset mail #1 spent
+    → one new session for this browser
+ 3. a failure at any step → nothing above happened; mail #2 still works
+```
+
+A link redeemed without a password (activation, magic link) leaves other sessions
+alone — signing in on a second device is no reason to sign out the first.
 
 ## Not leaking who has an account
 

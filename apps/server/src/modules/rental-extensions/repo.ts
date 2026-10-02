@@ -54,20 +54,21 @@ export async function findById(db: Database, id: string): Promise<ExtensionRow |
   return row ? toRow(row) : undefined;
 }
 
-export async function findOpenByContractId(
+/** The extension waiting on this contract, moved to `active` — or undefined. */
+export async function activateByContractId(
   db: DatabaseWriter,
   contractId: string,
 ): Promise<typeof rentalExtensions.$inferSelect | undefined> {
   const [row] = await db
-    .select()
-    .from(rentalExtensions)
+    .update(rentalExtensions)
+    .set({ status: 'active', activatedAt: new Date() })
     .where(
       and(
         eq(rentalExtensions.contractId, contractId),
         eq(rentalExtensions.status, 'awaiting_signature'),
       ),
     )
-    .limit(1);
+    .returning();
   return row;
 }
 
@@ -83,12 +84,46 @@ export async function insert(
   return row.id;
 }
 
-export async function update(
+/**
+ * Writes only while the extension is still in `expected` — false when another
+ * request moved it first (a signature activated it, an operator cancelled it).
+ */
+export async function updateIfStatus(
   db: DatabaseWriter,
   id: string,
+  expected: ExtensionStatus,
   values: Partial<typeof rentalExtensions.$inferInsert>,
-): Promise<void> {
-  await db.update(rentalExtensions).set(values).where(eq(rentalExtensions.id, id));
+): Promise<boolean> {
+  const rows = await db
+    .update(rentalExtensions)
+    .set(values)
+    .where(and(eq(rentalExtensions.id, id), eq(rentalExtensions.status, expected)))
+    .returning({ id: rentalExtensions.id });
+  return rows.length > 0;
+}
+
+/**
+ * Points a paid extension at its renewal contract, inside the transaction that
+ * issues it. Only when it is still waiting for signature and has no live
+ * contract — `previousContractId` is the voided one being replaced, if any — so
+ * a double click issues one contract, and the second rolls back.
+ */
+export async function linkContract(
+  db: DatabaseWriter,
+  id: string,
+  contractId: string,
+  previousContractId: string | null,
+): Promise<boolean> {
+  let current = sql`${rentalExtensions.contractId} IS NULL`;
+  if (previousContractId) current = sql`${rentalExtensions.contractId} = ${previousContractId}`;
+  const rows = await db
+    .update(rentalExtensions)
+    .set({ contractId })
+    .where(
+      and(eq(rentalExtensions.id, id), eq(rentalExtensions.status, 'awaiting_signature'), current),
+    )
+    .returning({ id: rentalExtensions.id });
+  return rows.length > 0;
 }
 
 /** The order header an extension is decided from. */

@@ -18,13 +18,13 @@ import { env } from './env.ts';
  * one feature and leaves the rest of the API serving. What production must not
  * start without is guarded in `env.ts`, which does refuse.
  *
- * EMPTY, DELIBERATELY. The one entry here was `addressSuggestions`, holding a HERE
- * key for the checkout's street autocomplete; the checkout now takes the delivery
- * address as one free-text block and completes nothing, so the feature, its key and
- * its endpoint are gone. This stays as the place the next optional feature is
- * resolved — see the RULES section of AGENTS.md.
+ * `mediaReclaim` is whether the media sweep deletes unreferenced final objects
+ * or only counts them — opt-in through `MEDIA_ORPHAN_SWEEP`, because deleting is
+ * only safe on the deployment whose database owns the bucket.
  */
-export const FEATURES = {} as const;
+export const FEATURES = {
+  mediaReclaim: env.MEDIA_ORPHAN_SWEEP === 'delete',
+} as const;
 
 /**
  * Printed once at startup, next to the listening line.
@@ -40,6 +40,7 @@ export function logFeatureSummary(): void {
     ['push', pushState()],
     ['object storage', objectStorageState()],
     ['translation', translationState()],
+    ['media sweep', mediaSweepState()],
   ];
 
   const width = Math.max(...rows.map(([label]) => label.length));
@@ -142,4 +143,9 @@ function translationState(): string {
     return 'stub — placeholder text, development only';
   }
   return 'deepl';
+}
+
+function mediaSweepState(): string {
+  if (FEATURES.mediaReclaim) return 'delete — unreferenced photos and icons are removed hourly';
+  return 'report — unreferenced photos and icons are counted, never deleted';
 }

@@ -9,8 +9,8 @@
  * photo resolves to a key that already exists and is skipped after one `head()`
  * instead of a download and an encode, while editing a photo under the same
  * file name produces a different key and really does replace what the product
- * shows. (The superseded object stays in the bucket; the staging sweep only
- * covers `_staging/`, so a periodic prune of orphans is a separate job.)
+ * shows. (The superseded object stays in the bucket until the server's hourly
+ * sweep finds no row naming it — docs/code/media-lifecycle.md.)
  */
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';

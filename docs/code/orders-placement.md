@@ -23,7 +23,7 @@ mattress, and confirms. What each step gets:
      item.0.addon.943f31e2…=2                   → shows "366,00 €"
 
 2. the page's JSON island               data-checkout-items
-     [{ productSlug: 'letto-degenza-elettrico',
+     [{ productId: '…', productSlug: 'letto-degenza-elettrico',
         quantity: 1, startDate: '2026-09-10',
         rentalPackageCode: '7-day',             ← no end date: it is DERIVED
         addons: [{ id: '943f31e2…', quantity: 2 },
@@ -388,8 +388,11 @@ reset per year; it starts at 1000, which leaves the seed's `MIA-2026-000001…6`
 - With JavaScript the same control posts first, then reveals the confirmation with
   the order number and the server's own total. WhatsApp stays one step down, now
   quoting that number.
-- On failure it says so and leaves the handover in place, because the message still
-  carries the whole request. It does not tell the customer to start again.
+- On a 4xx it says so and leaves the handover in place, because the message still
+  carries the whole request; a 422 naming checkout fields marks those fields
+  instead. A 5xx, a timeout or a dropped connection may have committed, so it is
+  never retried from the page: the customer is sent to their inbox, their orders
+  and WhatsApp. See storefront-checkout.md § One click, one order.
 
 The panel points at the inbox rather than repeating the order details: placement now
 sends a confirmation email. What it says depends on whether the address already has

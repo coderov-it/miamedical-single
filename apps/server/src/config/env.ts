@@ -122,6 +122,14 @@ const EnvSchema = v.object({
     v.minValue(1),
     v.maxValue(720),
   ),
+  /**
+   * What the hourly sweep does with final objects no row references any more
+   * (replaced and removed photos and icons). `report` only logs the count.
+   * `delete` is opt-in, set only on the one deployment whose database owns the
+   * bucket: a second deployment on the same bucket but another database would
+   * see the first one's live photos as unreferenced. See media-lifecycle.md.
+   */
+  MEDIA_ORPHAN_SWEEP: v.optional(v.picklist(['report', 'delete']), 'report'),
   DEFAULT_CURRENCY: v.pipe(v.optional(v.string(), 'EUR'), v.length(3), v.toUpperCase()),
 
   /**
@@ -280,6 +288,44 @@ if (env.NODE_ENV === 'production') {
   }
   if (env.MAIL_TRANSPORT === 'ses' && !env.AWS_SES_REGION) {
     throw new Error('AWS_SES_REGION is required when MAIL_TRANSPORT is "ses".');
+  }
+}
+
+/*
+  The rest of what a production process must not start without. Only under
+  NODE_ENV=production, so a dev or staging deployment can keep localhost origins
+  and skip storage; there, `logFeatureSummary()` names what is unset instead.
+
+    PUBLIC_SITE_URL unset              → links in every email point at localhost → refuse
+    CORS_ORIGINS "http://localhost:…"  → the live storefront cannot call the API → refuse
+    R2_BUCKET unset                    → first product photo upload fails        → refuse
+    PUSH_TRANSPORT "console"           → feed still records it                   → allowed
+    PUSH_TRANSPORT "fcm", key unset    → every push fails on send                → refuse
+*/
+if (env.NODE_ENV === 'production') {
+  const origins: [string, string][] = [
+    ['PUBLIC_SITE_URL', env.PUBLIC_SITE_URL],
+    ['PUBLIC_ADMIN_URL', env.PUBLIC_ADMIN_URL],
+    ...env.CORS_ORIGINS.map((origin): [string, string] => ['CORS_ORIGINS', origin]),
+  ];
+  for (const [name, origin] of origins) {
+    if (!/^https:\/\//.test(origin) || /\/\/(localhost|127\.0\.0\.1)\b/.test(origin)) {
+      throw new Error(`${name} must be a public https origin in production; got "${origin}".`);
+    }
+  }
+  const missingR2 = (
+    ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET'] as const
+  ).filter((name) => !env[name]);
+  if (missingR2.length > 0) {
+    throw new Error(`${missingR2.join(', ')} required in production for media storage.`);
+  }
+  if (
+    env.PUSH_TRANSPORT === 'fcm' &&
+    (!env.FCM_PROJECT_ID || !env.FCM_CLIENT_EMAIL || !env.FCM_PRIVATE_KEY)
+  ) {
+    throw new Error(
+      'FCM_PROJECT_ID, FCM_CLIENT_EMAIL and FCM_PRIVATE_KEY are required when PUSH_TRANSPORT is "fcm".',
+    );
   }
 }
 

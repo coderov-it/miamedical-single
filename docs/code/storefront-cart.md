@@ -206,6 +206,19 @@ identically, because `splitItemParams()` already accepts both.
   row. The cart cannot: this is the page where the customer can still act, and a row
   that vanishes with no explanation reads as the site losing their choice. Hence
   `CartView.droppedIds` and the notice above the list.
+- **Only a missing product prunes a line — never an outage.** If the catalogue
+  cannot read some line (5xx, timeout), `resolveCart()` throws and
+  `/api/cart/resolve` answers 503: the island keeps every stored line and the
+  last figures it had, and shows the "cannot update prices" banner. The checkout
+  form posts **every stored line**, not just the rendered rows, so a line that
+  could not be priced still reaches the checkout, which blocks the order with a
+  retry rather than ordering less.
+- **The re-price carries the page's language** (`{ lines, locale }`). The
+  endpoint path has no locale prefix, and a slug is unique per language only,
+  so without it every cart was read in Italian.
+- **A placed order takes its own lines out of the cart**, matched by
+  `lineKey()` — lines added since, or never part of that checkout, stay. See
+  storefront-checkout.md § One click, one order.
 - **There is no disclosure at all.** The reference defaults to a single-open
   accordion with the first row expanded. See the 2026-08-31 pass below: the rows
   are flat.

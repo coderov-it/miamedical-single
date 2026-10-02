@@ -13,33 +13,50 @@
  * would ignore any figure from here. That is also why it is safe for the line
  * items to sit in the page as readable JSON: the worst a reader can do by editing
  * them is order something else at that thing's real price.
+ *
+ * ONE ORDER PER CHECKOUT. Which clicks may send, and what each failure is
+ * allowed to offer afterwards, is the state machine in `placement-lock.ts`.
+ * This file only drives it and paints its four phases.
  */
 import { documentLocale } from '../locale';
 import type { CheckoutContext } from './context.ts';
-
-interface PlacedOrder {
-  number: string;
-  totals: { total: string; currency: string };
-  /**
-   * `'activate'` when this order left behind an account nobody has claimed yet.
-   * The page cannot work this out for itself — whether the address was already
-   * activated is something only the server knows — so it is told.
-   */
-  accountInvite: 'activate' | null;
-}
+import { clearOrderedCartLines, createPlacementLock, type PlacementRecord } from './placement-lock.ts';
+import { type PlacedOrder, submitOrder } from './submit-order.ts';
 
 export interface PlaceOrder {
   /** Fills the no-JavaScript handover link with what has been typed so far. */
   refreshHandover: () => void;
+  /**
+   * Paints whatever is remembered for this checkout — a reload, a back button,
+   * a tab opened before another placed it. Call once the stepper exists.
+   */
+  resume: () => void;
 }
 
-export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
+export interface PlaceOrderOptions {
+  /**
+   * The server refused fields it named. Returns true when at least one of them
+   * maps to a control on this page — which is then marked, scrolled to and
+   * focused — and false when none does, so the generic failure is shown.
+   */
+  onRejected: (fields: Record<string, string>) => boolean;
+  /**
+   * A remembered outcome took over the page (on load, or written by another
+   * tab). The caller opens step 3, where its panel lives.
+   */
+  onAdopted: () => void;
+}
+
+export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOptions): PlaceOrder {
   const { root, state, value, label } = context;
 
   const cta = root.querySelector<HTMLAnchorElement>('[data-place-order]');
   const pending = root.querySelector<HTMLElement>('[data-confirm-pending]');
   const placedPanel = root.querySelector<HTMLElement>('[data-confirm-placed]');
   const errorPanel = root.querySelector<HTMLElement>('[data-confirm-error]');
+  const uncertainPanel = root.querySelector<HTMLElement>('[data-confirm-uncertain]');
+  const idleLabel = cta?.textContent ?? '';
+  const lock = createPlacementLock(context.orderItems);
 
   /**
    * The handover message: the server-built line items, then what the customer
@@ -129,29 +146,50 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
     return body;
   }
 
-  async function submitOrder(): Promise<PlacedOrder> {
-    const response = await fetch(`${context.apiBase}/api/orders`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      // The API is a different origin, so without this the customer session
-      // cookie never arrives and a signed-in order links as `unverified` — the
-      // one thing being signed in is supposed to settle. Checkout stays usable
-      // without a session; this only matters when there is one.
-      credentials: 'include',
-      body: JSON.stringify(orderBody()),
-    });
-    if (!response.ok) throw new Error(`orders responded ${response.status}`);
-    const payload = (await response.json()) as { data: PlacedOrder };
-    return payload.data;
+  /** Puts the CTA back as it was rendered. Only a provable refusal gets here. */
+  function setIdle(): void {
+    state.placement = 'idle';
+    if (uncertainPanel) uncertainPanel.hidden = true;
+    if (!cta) return;
+    cta.removeAttribute('aria-busy');
+    cta.textContent = idleLabel;
   }
 
-  function showPlaced(order: PlacedOrder): void {
-    state.placed = true;
+  function setSending(): void {
+    state.placement = 'sending';
+    if (errorPanel) errorPanel.hidden = true;
+    if (!cta) return;
+    cta.textContent = label('sendingRequest');
+    cta.setAttribute('aria-busy', 'true');
+  }
+
+  /**
+   * Final for this page. The form behind it stays editable but has nothing left
+   * to send: the CTA lives in the pending block this hides, and `place()` turns
+   * every later click away on the phase alone.
+   */
+  function showPlaced(order: PlacedOrder | null): void {
+    state.placement = 'placed';
     if (pending) pending.hidden = true;
     if (errorPanel) errorPanel.hidden = true;
+    if (uncertainPanel) uncertainPanel.hidden = true;
     if (!placedPanel) return;
 
     placedPanel.hidden = false;
+    setHandover(
+      placedPanel.querySelector<HTMLAnchorElement>('[data-placed-whatsapp]'),
+      order?.number ?? null,
+    );
+
+    const greeting = placedPanel.querySelector<HTMLElement>('[data-placed-greeting]');
+    const first = value('firstName');
+    if (greeting && first) {
+      greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
+    }
+
+    /* The order exists but its answer could not be read: say it was received,
+       and claim no number or total this page never saw. */
+    if (!order) return;
 
     const card = placedPanel.querySelector<HTMLElement>('[data-placed-number-card]');
     const number = placedPanel.querySelector<HTMLElement>('[data-placed-number]');
@@ -171,23 +209,13 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
       totalRow.hidden = false;
     }
 
-    const greeting = placedPanel.querySelector<HTMLElement>('[data-placed-greeting]');
-    const first = value('firstName');
-    if (greeting && first) {
-      greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
-    }
-
     /* Shown only when it is true. An already-activated customer being told to
        go and activate would read as the site not knowing who they are. */
     const accountLine = placedPanel.querySelector<HTMLElement>('[data-placed-account]');
     if (accountLine && order.accountInvite === 'activate') accountLine.hidden = false;
-
-    setHandover(
-      placedPanel.querySelector<HTMLAnchorElement>('[data-placed-whatsapp]'),
-      order.number,
-    );
   }
 
+  /** Refused before anything was written: say so, and offer the retry. */
   function showError(): void {
     if (!errorPanel) return;
     errorPanel.hidden = false;
@@ -197,23 +225,89 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
     errorPanel.scrollIntoView({ block: 'nearest' });
   }
 
-  async function place(): Promise<void> {
-    if (state.placed || state.sending || !cta) return;
-
-    state.sending = true;
-    const original = cta.textContent;
-    cta.textContent = label('sendingRequest');
-    cta.setAttribute('aria-busy', 'true');
-
-    try {
-      showPlaced(await submitOrder());
-    } catch {
-      showError();
-    } finally {
-      state.sending = false;
+  /**
+   * It may exist. The CTA keeps its place and its label, but a click on it now
+   * brings this panel back into view rather than sending — see `place()`.
+   */
+  function showUncertain(): void {
+    state.placement = 'uncertain';
+    if (errorPanel) errorPanel.hidden = true;
+    if (cta) {
       cta.removeAttribute('aria-busy');
-      cta.textContent = original;
+      cta.textContent = idleLabel;
     }
+    if (!uncertainPanel) return;
+    uncertainPanel.hidden = false;
+    setHandover(uncertainPanel.querySelector<HTMLAnchorElement>('[data-uncertain-whatsapp]'), null);
+    uncertainPanel.scrollIntoView({ block: 'nearest' });
+  }
+
+  /** Paints what a stored record says — this tab's own, or another tab's. */
+  function adopt(record: PlacementRecord): void {
+    if (record.status === 'placed') {
+      showPlaced((record.order as PlacedOrder | null) ?? null);
+      return;
+    }
+    showUncertain();
+  }
+
+  async function place(): Promise<void> {
+    if (!cta) return;
+    /* NOT A SILENT RETURN. `sending` already reads "Invio in corso…" on the very
+       control being clicked; `placed` has hidden it behind the confirmation; and
+       `uncertain` is answered by bringing its explanation back into view. */
+    if (state.placement === 'uncertain') {
+      showUncertain();
+      return;
+    }
+    if (state.placement !== 'idle') return;
+
+    const known = lock.read();
+    if (known) {
+      adopt(known);
+      return;
+    }
+    /* The one failure provably before sending: the browser knows it is offline. */
+    if (!navigator.onLine) {
+      showError();
+      return;
+    }
+
+    setSending();
+    const outcome = await lock.exclusive(async () => {
+      /* Re-read INSIDE the lock: another tab may have finished this very order
+         between the check above and acquiring it. */
+      const raced = lock.read();
+      if (raced) return { kind: 'adopt' as const, record: raced };
+      lock.write({ status: 'sending', at: Date.now() });
+      return submitOrder(context.apiBase, orderBody());
+    });
+
+    if (outcome === null) {
+      showUncertain();
+      return;
+    }
+    if (outcome.kind === 'adopt') {
+      adopt(outcome.record);
+      return;
+    }
+    if (outcome.kind === 'placed') {
+      /* Remembered and cleared BEFORE painting, so a reload or a back button in
+         the next instant finds the confirmation, not a cart to send again. */
+      lock.write({ status: 'placed', at: Date.now(), order: outcome.order });
+      clearOrderedCartLines(context.cartKeys);
+      showPlaced(outcome.order);
+      return;
+    }
+    if (outcome.kind === 'uncertain') {
+      lock.write({ status: 'uncertain', at: Date.now() });
+      showUncertain();
+      return;
+    }
+
+    lock.clear();
+    setIdle();
+    if (!options.onRejected(outcome.fields)) showError();
   }
 
   cta?.addEventListener('click', (event) => {
@@ -222,9 +316,31 @@ export function wirePlaceOrder(context: CheckoutContext): PlaceOrder {
   });
 
   root.querySelector<HTMLButtonElement>('[data-confirm-retry]')?.addEventListener('click', () => {
-    if (errorPanel) errorPanel.hidden = true;
     void place();
   });
 
-  return { refreshHandover: () => setHandover(cta, null) };
+  /** Adopts a record this tab did not just write, and shows it. */
+  function takeOver(record: PlacementRecord): void {
+    adopt(record);
+    options.onAdopted();
+  }
+
+  lock.onChange(() => {
+    const record = lock.read();
+    if (record) {
+      takeOver(record);
+      return;
+    }
+    /* The other tab's attempt was refused, so nothing exists: this one may send. */
+    if (state.placement === 'uncertain') setIdle();
+  });
+
+  return {
+    refreshHandover: () => setHandover(cta, null),
+    /* Whatever is remembered wins over the fresh form. */
+    resume: () => {
+      const remembered = lock.read();
+      if (remembered) takeOver(remembered);
+    },
+  };
 }

@@ -14,7 +14,7 @@ import type { SessionUser } from '../../../shared/http/context.ts';
 import { conflict, httpError, notFound } from '../../../shared/http/errors.ts';
 import { pick } from '../i18n.ts';
 import type { FacetDto } from '../dto.ts';
-import { commitProductMedia, deleteAllMedia } from '../media/service.ts';
+import { commitProductMedia, deleteAllMedia, withMediaRollback } from '../media/service.ts';
 import type {
   ProductAggregate,
   ProductListFilters,
@@ -172,9 +172,10 @@ function buildFacets(
 export async function getPublicBySlug(
   db: Database,
   slug: string,
+  locale: LanguageCode,
   user: SessionUser | null,
 ): Promise<ProductAggregate> {
-  const hit = await repo.findIdBySlug(db, slug);
+  const hit = await repo.findIdBySlug(db, slug, locale);
   if (!hit) throw notFound('Product');
 
   const product = await repo.findAggregate(db, hit.productId);
@@ -296,11 +297,14 @@ export async function update(
   if (input.translations !== undefined) {
     data.translations = normalizeTranslations(input.translations);
   }
-  if (input.media !== undefined) {
-    data.media = await commitProductMedia(storage, id, existing.media, input.media);
-  }
-
-  await repo.update(db, id, data);
+  /* Commit, then write. A failed write deletes only what this save committed;
+     the objects the old row points at stay live (docs/code/media-lifecycle.md). */
+  await withMediaRollback(storage, async (committed) => {
+    if (input.media !== undefined) {
+      data.media = await commitProductMedia(storage, id, existing.media, input.media, committed);
+    }
+    await repo.update(db, id, data);
+  });
   return getAggregate(db, id);
 }
 

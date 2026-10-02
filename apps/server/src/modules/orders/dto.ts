@@ -69,7 +69,8 @@ export interface OrderDeliveryDto {
 
 export interface OrderEventDto {
   id: string;
-  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract' | 'extension';
+  /** `email` is a failed send; its `toValue` is the message kind (notifications/mail-failure.ts). */
+  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract' | 'extension' | 'email';
   fromValue: string | null;
   toValue: string;
   note: string | null;

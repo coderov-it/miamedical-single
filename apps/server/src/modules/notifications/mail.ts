@@ -6,6 +6,10 @@ import { mailSender } from '../../infra/mail/index.ts';
 import type { MailMessage } from '../../infra/mail/index.ts';
 import { getNotificationRecipients } from '../settings/service.ts';
 import * as links from './links.ts';
+import { errorText, recordMailFailure } from './mail-failure.ts';
+import type { MailKind, MailResult, OrderTrail } from './mail-failure.ts';
+
+export type { MailResult, OrderTrail } from './mail-failure.ts';
 
 /**
  * Sending policy for EMAIL. Not a routed module — other modules call these.
@@ -23,20 +27,36 @@ import * as links from './links.ts';
  * For customer mail the answer is almost always no. An order is a recorded fact
  * the moment its transaction commits; losing it because SES was unreachable would
  * turn a delivery problem into a data problem. So the order and dispute paths call
- * `sendQuietly`, which logs and swallows.
+ * `sendQuietly`, which logs and never throws — it returns a `MailResult`, and
+ * with an order trail writes the failure on that order's timeline.
  *
  * Authentication mail is the exception — see `sendOrThrow`.
  */
 
 /**
- * Fire-and-forget. Awaited by callers so the request does not outlive the send,
- * but a rejection never propagates.
+ * Never throws. Awaited by callers so the request does not outlive the send; the
+ * result says whether it went, and with a `trail` a failure is also written on
+ * that order's timeline (`mail-failure.ts`).
  */
-async function sendQuietly(message: MailMessage, context: string): Promise<void> {
+async function sendQuietly(
+  message: MailMessage,
+  label: { kind: MailKind; context: string },
+  trail?: OrderTrail,
+): Promise<MailResult> {
   try {
     await mailSender.send(message);
+    return { sent: true };
   } catch (error) {
-    console.error(`[notifications] ${context} failed to send:`, error);
+    console.error(`[notifications] ${label.context} failed to send:`, error);
+    const text = errorText(error);
+    if (trail) {
+      await recordMailFailure(trail, label.kind, {
+        to: message.to,
+        context: label.context,
+        error: text,
+      });
+    }
+    return { sent: false, error: text };
   }
 }
 
@@ -61,7 +81,8 @@ export interface OrderMailContext {
 /** A brand-new, unclaimed account: confirm the order and invite them to claim it. */
 export function sendOrderPlacedNewAccount(
   input: OrderMailContext & { activationToken: string },
-): Promise<void> {
+  trail?: OrderTrail,
+): Promise<MailResult> {
   return sendQuietly(
     templates.orderPlacedNewAccount({
       to: input.email,
@@ -70,14 +91,16 @@ export function sendOrderPlacedNewAccount(
       activationUrl: links.activationUrl(input.activationToken),
       reportUrl: links.reportOrderUrl(input.reportToken),
     }),
-    `order ${input.order.number} (new account)`,
+    { kind: 'order_placed_new_account', context: `order ${input.order.number} (new account)` },
+    trail,
   );
 }
 
 /** Ordered before, still never activated. */
 export function sendOrderPlacedActivateReminder(
   input: OrderMailContext & { activationToken: string },
-): Promise<void> {
+  trail?: OrderTrail,
+): Promise<MailResult> {
   return sendQuietly(
     templates.orderPlacedActivateReminder({
       to: input.email,
@@ -86,12 +109,19 @@ export function sendOrderPlacedActivateReminder(
       activationUrl: links.activationUrl(input.activationToken),
       reportUrl: links.reportOrderUrl(input.reportToken),
     }),
-    `order ${input.order.number} (activation reminder)`,
+    {
+      kind: 'order_placed_activate_reminder',
+      context: `order ${input.order.number} (activation reminder)`,
+    },
+    trail,
   );
 }
 
 /** Account already theirs — a plain confirmation, still with the report link. */
-export function sendOrderPlacedConfirmation(input: OrderMailContext): Promise<void> {
+export function sendOrderPlacedConfirmation(
+  input: OrderMailContext,
+  trail?: OrderTrail,
+): Promise<MailResult> {
   return sendQuietly(
     templates.orderPlacedConfirmation({
       to: input.email,
@@ -100,18 +130,22 @@ export function sendOrderPlacedConfirmation(input: OrderMailContext): Promise<vo
       ordersUrl: links.accountOrdersUrl(),
       reportUrl: links.reportOrderUrl(input.reportToken),
     }),
-    `order ${input.order.number} (confirmation)`,
+    { kind: 'order_placed_confirmation', context: `order ${input.order.number} (confirmation)` },
+    trail,
   );
 }
 
-export function sendContractReady(input: {
-  email: string;
-  customerName: string;
-  contractNumber: string;
-  orderNumber: string | null;
-  signingToken: string;
-  language: ContractLanguage;
-}): Promise<void> {
+export function sendContractReady(
+  input: {
+    email: string;
+    customerName: string;
+    contractNumber: string;
+    orderNumber: string | null;
+    signingToken: string;
+    language: ContractLanguage;
+  },
+  trail?: OrderTrail,
+): Promise<MailResult> {
   return sendQuietly(
     templates.contractReady({
       to: input.email,
@@ -121,17 +155,21 @@ export function sendContractReady(input: {
       signingUrl: links.contractSigningUrl(input.signingToken),
       language: input.language,
     }),
-    `contract ${input.contractNumber} ready`,
+    { kind: 'contract_ready', context: `contract ${input.contractNumber} ready` },
+    trail,
   );
 }
 
-export function sendContractSigned(input: {
-  email: string;
-  customerName: string;
-  contractNumber: string;
-  orderNumber: string | null;
-  language: ContractLanguage;
-}): Promise<void> {
+export function sendContractSigned(
+  input: {
+    email: string;
+    customerName: string;
+    contractNumber: string;
+    orderNumber: string | null;
+    language: ContractLanguage;
+  },
+  trail?: OrderTrail,
+): Promise<MailResult> {
   return sendQuietly(
     templates.contractSigned({
       to: input.email,
@@ -140,7 +178,8 @@ export function sendContractSigned(input: {
       orderNumber: input.orderNumber,
       language: input.language,
     }),
-    `contract ${input.contractNumber} signed`,
+    { kind: 'contract_signed', context: `contract ${input.contractNumber} signed` },
+    trail,
   );
 }
 
@@ -169,14 +208,17 @@ export function sendAccountDeletionCode(input: { email: string; code: string }):
   return sendOrThrow(templates.accountDeletionCode({ to: input.email, code: input.code }));
 }
 
-export function sendRentalReminder(input: {
-  email: string;
-  customerName: string;
-  orderNumber: string;
-  productTitle: string;
-  rentalEndDate: string;
-  extendUrl?: string;
-}): Promise<void> {
+export function sendRentalReminder(
+  input: {
+    email: string;
+    customerName: string;
+    orderNumber: string;
+    productTitle: string;
+    rentalEndDate: string;
+    extendUrl?: string;
+  },
+  trail?: OrderTrail,
+): Promise<MailResult> {
   return sendQuietly(
     templates.rentalReminder({
       to: input.email,
@@ -186,7 +228,8 @@ export function sendRentalReminder(input: {
       rentalEndDate: input.rentalEndDate,
       ...(input.extendUrl ? { extendUrl: input.extendUrl } : {}),
     }),
-    `rental reminder for order ${input.orderNumber}`,
+    { kind: 'rental_reminder', context: `rental reminder for order ${input.orderNumber}` },
+    trail,
   );
 }
 
@@ -199,22 +242,24 @@ export async function sendDisputeAlert(
   db: Database,
   input: {
     disputeId: string;
+    /** The disputed order — a failed alert is written on its timeline. */
+    orderId: string;
     order: templates.OrderRef;
     orderEmail: string;
     reportedPhone: string;
     message: string;
   },
-): Promise<void> {
+): Promise<MailResult> {
   const { emails } = await getNotificationRecipients(db);
 
   if (emails.length === 0) {
     console.warn(
       `[notifications] dispute ${input.disputeId} raised but no notification recipients are configured; nothing emailed.`,
     );
-    return;
+    return { sent: false, error: 'no notification recipients configured' };
   }
 
-  await sendQuietly(
+  return sendQuietly(
     templates.adminDisputeAlert({
       to: emails,
       order: input.order,
@@ -223,6 +268,7 @@ export async function sendDisputeAlert(
       message: input.message,
       adminUrl: links.adminDisputeUrl(input.disputeId),
     }),
-    `dispute ${input.disputeId}`,
+    { kind: 'dispute_alert', context: `dispute ${input.disputeId}` },
+    { db, orderId: input.orderId },
   );
 }

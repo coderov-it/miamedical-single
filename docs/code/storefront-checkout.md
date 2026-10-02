@@ -23,7 +23,8 @@ overview panel, 12px option card, 10px control) and its own spacing.
 ## One page, two entry points
 
 The whole of "direct product or cart" lives in `resolveCheckout()`
-(`src/lib/checkout.ts`). It reads both shapes into one `CheckoutItem[]`, so
+(`src/lib/checkout-resolve.ts`; the wire format and estimate stay in
+`src/lib/checkout.ts`). It reads both shapes into one `CheckoutItem[]`, so
 nothing in the page branches on where the request came from — only on **how
 many** items came with it.
 
@@ -67,6 +68,17 @@ and `resolveRequest()` runs unmodified on each per-item slice. Rules:
   dropped too, rather than rendered as an unavailable row: the customer cannot
   act on it here, and a checkout showing a product we cannot rent is worse than
   one showing fewer.
+- **Only a 404 (or a 400/422 refusing the slug itself) is "unknown".** A 5xx,
+  a 429 or a dropped connection says nothing about whether the product exists,
+  so `getProductBySlug()` throws instead of returning `null`, and the line is
+  counted in `Checkout.unavailable` — never dropped. `blocked` becomes
+  `unavailable`, the confirm CTA is replaced by "Non riusciamo a caricare tutta
+  la richiesta" with a **Riprova** that re-sends the exact request (a form with
+  the same method and fields, `CheckoutRetryForm.astro`), and if nothing at all
+  could be read the body shows that notice instead of "nothing to confirm".
+- Each slug is looked up in the **request's language** — the language the link
+  was written in — because a slug is unique per language only. Each order line
+  also sends `productId`, which the server prefers over the slug.
 - `MAX_ITEMS` (20) bounds the fan-out. Not a business limit — each item costs one
   product read, so an unbounded index would let a crafted URL fan out into
   arbitrarily many API calls.
@@ -341,12 +353,51 @@ what matters on this page:
 - **The CTA is still an `<a>` to WhatsApp** in the served HTML, because with no
   JavaScript that is the whole path. The parse-time script retitles it and the
   module script posts instead, revealing the order number and the server's own
-  total; WhatsApp moves one step down, quoting that number. A failed POST says so
+  total; WhatsApp moves one step down, quoting that number. A refused POST says so
   and leaves the handover in place.
 - **Two gates replace the CTA rather than letting it fail.** A rental with no
   resolvable duration has a daily rate and no total; a line missing a required
   choice is one the API refuses. Either way the panel names what is missing and
   links back to the page where it can be fixed — see `Checkout.blocked`.
+
+## One click, one order
+
+Every `POST /api/orders` inserts an order, and nothing on the server de-duplicates
+them, so the page makes a second POST for the same checkout impossible.
+`scripts/checkout/placement-lock.ts` holds the state machine;
+`submit-order.ts` turns an answer into the only fact that matters — may this be
+sent again?
+
+```text
+                                          phase        record (localStorage, 30 min)
+1. click "Invia la richiesta"             sending      { sending }   CTA "Invio in corso…"
+   double-click / Enter / 2nd tab         ignored — the CTA already says it is sending;
+                                          a 2nd tab shows the "uncertain" panel
+2a. 201                                   placed       { placed, order }
+    → this order's lines leave the cart (`lineKey` match), panel shows the number
+    → reload / Back / other tab           placed panel again, same number, no POST
+2b. 422 naming fields                     idle         (cleared)
+    customer.email, delivery.address.line1
+    → step 1 opens, email AND address marked, focus on email; "Continua"
+      stays refused until the rejected answer changes
+2c. 422 with no mappable field, 429       idle         (cleared)
+    → "Non siamo riusciti a registrare la richiesta" + Riprova + WhatsApp
+2d. 5xx, 60 s timeout, dropped link       uncertain    { uncertain }
+    → "Non sappiamo se la richiesta è arrivata": I miei ordini + WhatsApp,
+      NO retry; a click on the CTA brings this panel back into view
+```
+
+Only a 4xx returns to `idle`, because the server refuses a body, a rate or a
+route before it opens the transaction. Everything else can land after the commit
+(the email and the contract run between the commit and the response), so a
+retry there would be the second order. The one failure provably before sending
+— `navigator.onLine === false` — shows the retryable error without posting.
+
+The record is keyed by a hash of the line items, so it survives a reload and is
+shared by every tab; the Web Locks API serialises two tabs clicking at once.
+When another tab writes an outcome, this tab adopts it (placed → confirmation,
+refused → back to idle). Storage that refuses to work degrades to a lock that
+lasts as long as the page.
 
 ## Known gaps
 

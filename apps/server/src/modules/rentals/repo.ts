@@ -2,17 +2,23 @@ import type { Database } from '@mia/db';
 import { and, asc, count, eq, ilike, or, sql } from '@mia/db';
 import { orderItems, orders } from '@mia/db/schema';
 
+import {
+  isRentalLine,
+  rentalEndDate,
+  rentalOrderClosed,
+  rentalOrderOpen,
+  rentalStartDate,
+  romeTodaySql,
+} from '../../shared/rental-calendar.ts';
 import type { RentalListFilters, RentalRow } from './types.ts';
 
-const rentalStartDate = sql<string>`${orderItems.configuration}->'rental'->>'startDate'`;
-const rentalEndDate = sql<string>`${orderItems.configuration}->'rental'->>'endDate'`;
 const rentalDuration = sql<number>`(${orderItems.configuration}->'rental'->>'duration')::int`;
 const rentalUnit = sql<string>`${orderItems.configuration}->'rental'->>'unit'`;
 const rentalPackageName = sql<string>`${orderItems.configuration}->'rentalPackage'->>'name'`;
-const pricingMode = sql<string>`${orderItems.configuration}->>'pricingMode'`;
 
-function rentalWhere(filters: RentalListFilters, today: string) {
-  const clauses = [sql`${pricingMode} = 'rental'`];
+/** "Today" is the Rome calendar date, the same one the reminder sweep counts from. */
+function rentalWhere(filters: RentalListFilters) {
+  const clauses = [isRentalLine];
 
   if (filters.q) {
     const term = `%${filters.q}%`;
@@ -26,17 +32,11 @@ function rentalWhere(filters: RentalListFilters, today: string) {
   }
 
   if (filters.status === 'active') {
-    clauses.push(
-      sql`(${rentalEndDate})::date >= ${today}::date`,
-      sql`${orders.status} NOT IN ('fulfilled', 'cancelled')`,
-    );
+    clauses.push(sql`(${rentalEndDate})::date >= ${romeTodaySql}`, rentalOrderOpen());
   } else if (filters.status === 'overdue') {
-    clauses.push(
-      sql`(${rentalEndDate})::date < ${today}::date`,
-      sql`${orders.status} NOT IN ('fulfilled', 'cancelled')`,
-    );
+    clauses.push(sql`(${rentalEndDate})::date < ${romeTodaySql}`, rentalOrderOpen());
   } else if (filters.status === 'completed') {
-    clauses.push(sql`${orders.status} IN ('fulfilled', 'cancelled')`);
+    clauses.push(rentalOrderClosed());
   }
 
   return and(...clauses);
@@ -79,8 +79,7 @@ export async function findMany(
   db: Database,
   filters: RentalListFilters,
 ): Promise<{ rows: RentalRow[]; total: number }> {
-  const today = new Date().toISOString().slice(0, 10);
-  const where = rentalWhere(filters, today);
+  const where = rentalWhere(filters);
 
   const [rows, totals] = await Promise.all([
     db
@@ -95,7 +94,7 @@ export async function findMany(
       .select({ value: count() })
       .from(orderItems)
       .innerJoin(orders, eq(orderItems.orderId, orders.id))
-      .where(rentalWhere(filters, today)),
+      .where(rentalWhere(filters)),
   ]);
 
   return { rows: rows as RentalRow[], total: totals[0]?.value ?? 0 };
@@ -106,7 +105,7 @@ export async function findByOrderId(db: Database, orderId: string): Promise<Rent
     .select(selectFields)
     .from(orderItems)
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
-    .where(and(sql`${pricingMode} = 'rental'`, eq(orders.id, orderId)))
+    .where(and(isRentalLine, eq(orders.id, orderId)))
     .limit(1);
 
   return (rows[0] as RentalRow) ?? undefined;

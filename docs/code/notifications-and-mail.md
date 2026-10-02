@@ -39,7 +39,10 @@ one interesting decision in the whole subsystem.
 
 Two helpers, and which one a path uses is a judgement about what is already recorded.
 
-**`sendQuietly` — logs and swallows.** Used by order mail and dispute alerts. An
+**`sendQuietly` — logs, never throws, reports.** Used by order, contract, rental
+and dispute mail. It returns `MailResult` (`{ sent: true }` or `{ sent: false, error }`)
+so the caller can decide what to claim, and with an order trail
+(`{ db, orderId }`) it writes the failure on that order's timeline — see below. An
 order is a recorded fact the moment its transaction commits; letting a provider outage
 propagate would turn a delivery problem into a lost order. The customer already has
 their number on screen. Same for a dispute: the report is stored and visible in the
@@ -51,6 +54,26 @@ about to tell somebody "check your inbox", which is a lie if the send failed, an
 there is nothing recorded that they lose by being asked to try again.
 
 Order mail is also sent **after** the transaction commits, never inside it.
+
+### A failed send on the order
+
+```text
+ 1. Contract CTR-2026-000042 issued      → contract row + token committed (generated)
+ 2. contractReady → Plunk 403            → sendQuietly returns { sent: false, error }
+                                          order_status_events:
+                                            field 'email', toValue 'contract_ready',
+                                            note "Email to ada@example.com failed
+                                                  (contract CTR-2026-000042 ready): DOMAIN_NOT_VERIFIED …"
+ 3. Admin order timeline                 → "Email  Contract signing email not sent" (red dot) + note
+                                          no "Contract → Sent" entry, contract stays Generated
+ 4. Operator clicks Resend               → email goes → contract Sent, timeline "resent"
+                                          (fails again → 502 to the operator + another entry)
+```
+
+Every order-tied sender takes the trail: the three placement emails, `contractReady`,
+`contractSigned`, `rentalReminder` (sweep and operator button) and the dispute alert.
+`toValue` is the `MailKind`; `notifications/mail-failure.ts` writes the row and swallows
+its own errors. There is no retry and no outbox — the entry is the whole of it.
 
 ## Transports
 
@@ -443,5 +466,9 @@ read the log rather than trusting the absence of an error.
   order's own transaction. The recipients setting still governs email only.
 - **No send log.** Whether a given customer was actually emailed is only answerable
   from application logs, not from the database. Partly answered rather than closed:
-  a `notifications` row is a durable record that we _told_ someone, but the feed
-  and email are separate channels, so a row does not prove a message was sent.
+  a failed send tied to an order is on that order's timeline (`field: 'email'`), and
+  a `notifications` row is a durable record that we _told_ someone — but successes
+  are not logged, and the feed and email are separate channels.
+- **A failed extension offer is not re-sent.** The sweep's dedupe row is written
+  before the email, so a later sweep skips it; the failure is on the order's
+  timeline for the operator.
