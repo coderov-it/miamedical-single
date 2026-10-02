@@ -97,12 +97,15 @@ each block:
 ```
 GET /api/products?sort=price_asc            ← /catalogo/, /cerca/
   ORDER BY (pricing_mode = 'rental') DESC,  ← the rule
-           price ASC,                       ← what ?sort asked for
+           starting_price ASC,              ← what ?sort asked for
            id ASC                           ← the tiebreak
 
 GET /api/products?sort=price_asc&mode=fixed ← /catalogo-vendita/
-  ORDER BY price ASC, id ASC                ← one mode, nothing to group
+  ORDER BY starting_price ASC, id ASC       ← one mode, nothing to group
 ```
+
+`starting_price` is a column, written on every save — what it holds and how the
+page around it is loaded is [catalog-list-read-model.md](catalog-list-read-model.md).
 
 With 57 rentals against 50 sale items, `/catalogo/` is rentals through page 2
 and sale items from page 3. `/catalogo-vendita/`, the "In vendita" rail and the
@@ -112,8 +115,7 @@ already sends.
 
 The rule is one expression in `catalog/service.ts` (`rentalFirst`) and one SQL
 fragment in `catalog/repo.ts`. It is a **storefront** rule: the back office
-lists products newest-first and ungrouped, which is why `list()` takes the
-surface asking.
+lists products newest-first and ungrouped, through its own `listAdmin()`.
 
 `id` closes every sort, because a listing is read one page at a time and
 `LIMIT`/`OFFSET` over a tied `ORDER BY` may hand the same row back twice and

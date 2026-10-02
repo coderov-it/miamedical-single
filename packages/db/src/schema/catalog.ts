@@ -170,6 +170,14 @@ export const products = pgTable(
      */
     rentalPackages: jsonb().$type<RentalPackage[]>().notNull().default(EMPTY_RENTAL_PACKAGES),
     /**
+     * Derived, never typed: `startingPrice(basePrice, rentalPackages)` from
+     * `@mia/pricing`, written by every path that writes either of the two
+     * (admin create/update, catalog sync, seed). It is the price sort's key, so
+     * a listing reads one indexed column instead of opening `rental_packages`
+     * on every matching row. See docs/code/catalog-list-read-model.md.
+     */
+    startingPrice: numeric({ precision: 12, scale: 2 }),
+    /**
      * How many are on the shelf. A product IS its stock-keeping unit — there is
      * no variant axis to count separately — so this one integer is the whole of
      * availability, and `stock > 0` is what makes a product sellable.
@@ -207,6 +215,13 @@ export const products = pgTable(
     index('products_created_at_idx').on(t.createdAt),
     /** Backs the `popular` sort; DESC because nothing ever asks for the least. */
     index('products_order_count_idx').on(desc(t.orderCount)),
+    /**
+     * Backs the price sorts. Led by the two filters every storefront listing
+     * carries — `status = 'active'`, and `pricing_mode` on the rental and sale
+     * catalogues — so `/catalogo-noleggio/?sort=price_asc` reads the page
+     * straight off the index.
+     */
+    index('products_status_mode_starting_price_idx').on(t.status, t.pricingMode, t.startingPrice),
     /**
      * FK target for `product_addons`' composite key — makes the denormalised
      * `product_pricing_mode` provably in sync with no trigger.

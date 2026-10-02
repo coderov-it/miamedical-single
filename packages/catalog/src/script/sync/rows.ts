@@ -26,6 +26,7 @@ import {
   products,
   searchVectorFor,
 } from '@mia/db/schema';
+import { startingPrice } from '@mia/pricing';
 import { richTextToPlain, sanitizeRichText } from '@mia/validators';
 
 import type {
@@ -222,6 +223,8 @@ async function upsertProduct(db: Database, product: PlannedProduct): Promise<voi
     currency: product.currency,
     rentalUnit: product.rentalUnit,
     rentalPackages: product.rentalPackages,
+    // Derived from the two above — the price sort's key (see the schema).
+    startingPrice: startingPrice(product.basePrice, product.rentalPackages),
     stock: product.stock,
     isFeatured: product.isFeatured,
     chips: product.chips,

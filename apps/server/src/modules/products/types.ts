@@ -58,14 +58,98 @@ export interface ProductAggregate extends ProductRow {
   specs: Array<SpecRow & { options: SpecOptionRow[] }>;
 }
 
-/** Card projection for the list endpoint. */
-export interface ProductSummaryRowData extends ProductRow {
-  translations: ProductTranslationRow[];
-  category: CategoryWithTranslations;
-  specValues: SpecValueRow[];
-  specValueOptions: SpecValueOptionRow[];
-  /** The category's spec definitions — needed to render the card's spec tags. */
-  specs: Array<SpecRow & { options: SpecOptionRow[] }>;
+// --- list read model ------------------------------------------------------
+//
+// A listing loads only what a card shows — docs/code/catalog-list-read-model.md.
+// Full rows (`ProductAggregate`) satisfy every one of these shapes, so the
+// product page and the cards share the mapper functions below them.
+
+/** The spec columns a rendered spec reads, with its options. */
+export type SpecDefinition = Pick<
+  SpecRow,
+  | 'id'
+  | 'key'
+  | 'label'
+  | 'valueType'
+  | 'unit'
+  | 'isFilterable'
+  | 'isComparable'
+  | 'icon'
+  | 'position'
+> & { options: Pick<SpecOptionRow, 'id' | 'value' | 'label'>[] };
+
+export type SpecValueData = Pick<
+  SpecValueRow,
+  'specId' | 'numberValue' | 'numberMin' | 'numberMax' | 'booleanValue' | 'textValue'
+>;
+
+export type SpecValueOptionLink = Pick<SpecValueOptionRow, 'specId' | 'optionId'>;
+
+/** Every field translation status measures — see `toTranslationStatus`. */
+export type TranslationStatusRow = Pick<
+  ProductTranslationRow,
+  | 'languageCode'
+  | 'title'
+  | 'shortDescription'
+  | 'description'
+  | 'slug'
+  | 'metaTitle'
+  | 'metaDescription'
+>;
+
+/** A card's category: its code plus the requested locale's and Italian's names. */
+export interface SummaryCategory {
+  id: string;
+  code: string;
+  translations: { languageCode: LanguageCode; name: string; slug: string }[];
+}
+
+type SummaryColumns =
+  | 'id'
+  | 'categoryId'
+  | 'status'
+  | 'brand'
+  | 'isFeatured'
+  | 'pricingMode'
+  | 'rentalUnit'
+  | 'currency'
+  | 'basePrice'
+  | 'marketingRate'
+  | 'stock'
+  | 'media'
+  | 'updatedAt';
+
+/** A storefront card. */
+export interface PublicSummaryRowData extends Pick<
+  ProductRow,
+  SummaryColumns | 'rentalPackages' | 'chips'
+> {
+  /** Every language the product has a translation row in. */
+  availableLocales: LanguageCode[];
+  /** The requested locale and Italian only, and only what a card prints. */
+  translations: Pick<
+    ProductTranslationRow,
+    'languageCode' | 'title' | 'slug' | 'shortDescription'
+  >[];
+  category: SummaryCategory;
+  /**
+   * The spec-tag fallback's input — loaded only for a product with no chips,
+   * and only its category's comparable specs (the only ones a tag can show).
+   * The `specs` array is shared by every card of the same category.
+   */
+  specs: SpecDefinition[];
+  specValues: SpecValueData[];
+  specValueOptions: SpecValueOptionLink[];
+}
+
+/** A back-office list row. */
+export interface AdminSummaryRowData extends Pick<ProductRow, SummaryColumns> {
+  /**
+   * Every language, for the translation status. `description` is its first
+   * character only: the status asks whether a field is empty, never what it says.
+   */
+  translations: TranslationStatusRow[];
+  category: SummaryCategory;
 }
 
 export type ProductSort = 'newest' | 'popular' | 'price_asc' | 'price_desc' | 'title';

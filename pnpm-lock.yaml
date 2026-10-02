@@ -616,6 +616,9 @@ importers:
       '@mia/media':
         specifier: workspace:*
         version: link:../media
+      '@mia/pricing':
+        specifier: workspace:*
+        version: link:../pricing
       '@mia/validators':
         specifier: workspace:*
         version: link:../validators

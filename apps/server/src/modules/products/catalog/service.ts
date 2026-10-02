@@ -9,6 +9,7 @@ import {
 } from '@mia/validators';
 
 import type { FileUploader } from '@mia/media';
+import { startingPrice } from '@mia/pricing';
 import type { SessionUser } from '../../../shared/http/context.ts';
 
 import { conflict, httpError, notFound } from '../../../shared/http/errors.ts';
@@ -16,12 +17,14 @@ import { pick } from '../i18n.ts';
 import type { FacetDto } from '../dto.ts';
 import { commitProductMedia, deleteAllMedia, withMediaRollback } from '../media/service.ts';
 import type {
+  AdminSummaryRowData,
   ProductAggregate,
   ProductListFilters,
-  ProductSummaryRowData,
+  PublicSummaryRowData,
   SpecFilter,
 } from '../types.ts';
 import * as repo from './repo.ts';
+import { findAdminSummaries, findPublicSummaries } from './summary-repo.ts';
 import { LANGUAGE_CODES } from '@mia/db/schema';
 
 /**
@@ -54,11 +57,14 @@ export function parseSpecFilters(raw: string | undefined): SpecFilter[] {
   return filters;
 }
 
-export interface ListResult {
-  rows: ProductSummaryRowData[];
+export interface ListResult<Row> {
+  rows: Row[];
   total: number;
-  facets: { specs: FacetDto[] };
   filters: ProductListFilters;
+}
+
+export interface StorefrontListResult extends ListResult<PublicSummaryRowData> {
+  facets: { specs: FacetDto[] };
 }
 
 /**
@@ -66,24 +72,21 @@ export interface ListResult {
  * The storefront leads with rentals; the back office lists rows in the order
  * an operator asked for and nothing else.
  */
-export type ListSurface = 'storefront' | 'admin';
+type ListSurface = 'storefront' | 'admin';
 
-export async function list(
+/** `undefined` when the query names a category that does not exist. */
+async function listFilters(
   db: Database,
   query: ProductQuery,
   user: SessionUser | null,
   surface: ListSurface,
-): Promise<ListResult> {
+): Promise<ProductListFilters | undefined> {
   const categoryId = query.category
     ? await repo.findCategoryIdByCode(db, query.category)
     : undefined;
-  // An unknown category matches nothing rather than everything.
-  if (query.category && !categoryId) {
-    const filters = emptyFilters(query);
-    return { rows: [], total: 0, facets: { specs: [] }, filters };
-  }
+  if (query.category && !categoryId) return undefined;
 
-  const filters: ProductListFilters = {
+  return {
     page: query.page,
     perPage: query.perPage,
     locale: query.locale,
@@ -100,13 +103,34 @@ export async function list(
     specFilters: parseSpecFilters(query.specs),
     includeNonActive: canSeeHidden(user),
   };
+}
+
+/** The storefront catalogue: card rows plus the facets beside them. */
+export async function list(
+  db: Database,
+  query: ProductQuery,
+  user: SessionUser | null,
+): Promise<StorefrontListResult> {
+  const filters = await listFilters(db, query, user, 'storefront');
+  // An unknown category matches nothing rather than everything.
+  if (!filters) return { rows: [], total: 0, facets: { specs: [] }, filters: emptyFilters(query) };
 
   const [{ rows, total }, counts] = await Promise.all([
-    repo.findMany(db, filters),
+    findPublicSummaries(db, filters),
     repo.facetCounts(db, filters),
   ]);
-
   return { rows, total, facets: buildFacets(counts, filters), filters };
+}
+
+/** The back-office list: no facets, nothing merchandised. */
+export async function listAdmin(
+  db: Database,
+  query: ProductQuery,
+  user: SessionUser | null,
+): Promise<ListResult<AdminSummaryRowData>> {
+  const filters = await listFilters(db, query, user, 'admin');
+  if (!filters) return { rows: [], total: 0, filters: emptyFilters(query) };
+  return { ...(await findAdminSummaries(db, filters)), filters };
 }
 
 function emptyFilters(query: ProductQuery): ProductListFilters {
@@ -291,6 +315,13 @@ export async function update(
   if (input.currency !== undefined) data.currency = input.currency;
   if (input.rentalUnit !== undefined) data.rentalUnit = input.rentalUnit;
   if (input.rentalPackages !== undefined) data.rentalPackages = input.rentalPackages;
+  if (input.basePrice !== undefined || input.rentalPackages !== undefined) {
+    // The price sort's key follows either half of the price — see the schema.
+    data.startingPrice = startingPrice(
+      input.basePrice ?? existing.basePrice,
+      input.rentalPackages ?? existing.rentalPackages,
+    );
+  }
   if (input.stock !== undefined) data.stock = input.stock;
   if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
   if (input.chips !== undefined) data.chips = input.chips;

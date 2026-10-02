@@ -26,9 +26,10 @@ import {
    which this module reaches through a dynamic import below. */
 import * as contractsRepo from '../contracts/repo.ts';
 import * as notifications from '../notifications/mail.ts';
-import * as productRepo from '../products/catalog/repo.ts';
-import { toPublicDetail } from '../products/mapper.ts';
 import { multiply, sumMoney } from './mapper.ts';
+import * as cartRepo from './cart-repo.ts';
+import { availableProduct, loadLineProducts } from './checkout-products.ts';
+import * as listRepo from './list-repo.ts';
 import * as repo from './repo.ts';
 import { type ResolvedLine, resolveLine, sumLines } from './resolve.ts';
 import {
@@ -52,15 +53,14 @@ import type {
   PlacedOrder,
 } from './types.ts';
 import type { AdminUpdateOrderInput } from './validators.ts';
-import { SOURCE_LANGUAGE } from '@mia/db/schema';
 
 export async function list(
   db: Database,
   filters: OrderListFilters,
 ): Promise<{ rows: AdminOrderSummaryRecord[]; total: number; stats: OrderListStats }> {
   const [result, awaitingCount] = await Promise.all([
-    repo.findMany(db, filters),
-    repo.countAwaiting(db),
+    listRepo.findMany(db, filters),
+    listRepo.countAwaiting(db),
   ]);
 
   return {
@@ -77,19 +77,19 @@ export async function list(
 }
 
 export async function calendarEntries(db: Database, from: string, to: string) {
-  return repo.findCalendarEntries(db, from, to);
+  return listRepo.findCalendarEntries(db, from, to);
 }
 
 export async function searchCustomers(db: Database, q: string) {
-  return repo.findCustomers(db, q);
+  return listRepo.findCustomers(db, q);
 }
 
 /** Dashboard tiles. One round trip per figure, both indexed on `placed_at`. */
 export async function windowStats(db: Database, windowDays: number) {
   const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
   const [window, awaitingCount] = await Promise.all([
-    repo.windowStats(db, since),
-    repo.countAwaiting(db),
+    listRepo.windowStats(db, since),
+    listRepo.countAwaiting(db),
   ]);
 
   return {
@@ -251,37 +251,6 @@ export function movePaymentStatus(
 // --- placing an order ------------------------------------------------------
 
 /**
- * The catalogue product behind one checkout line, as the storefront saw it.
- *
- * By id when the storefront sent one — the product the page rendered, whatever
- * language its slug was in. Otherwise by slug, in Italian first: the checkout
- * page resolves its lines in the source language, and `findIdBySlug` accepts
- * another language's slug only when it belongs to one product.
- *
- * The labels are always projected in Italian — the SAME projection the checkout
- * page priced from, which is what lets `resolveLine` freeze the very labels the
- * customer read.
- *
- * A product that has since been unpublished is a 422 naming the line, not a 404:
- * the request is well-formed, one thing in it can no longer be honoured, and the
- * checkout has to be able to say which.
- */
-async function loadProduct(db: Database, item: PlaceOrderInput['items'][number], field: string) {
-  const productId =
-    item.productId ??
-    (await productRepo.findIdBySlug(db, item.productSlug, SOURCE_LANGUAGE))?.productId;
-  const product = productId ? await productRepo.findAggregate(db, productId) : undefined;
-
-  if (!product || product.status !== 'active') {
-    throw httpError(422, 'That product is no longer available.', 'unprocessable_entity', {
-      fields: { [`${field}.productSlug`]: 'That product is no longer available.' },
-    });
-  }
-
-  return toPublicDetail(product, SOURCE_LANGUAGE);
-}
-
-/**
  * Composes the `AddressSchema`-shaped snapshot the order stores.
  *
  * The checkout asks for one street line, a city and a CAP; the name, the phone and
@@ -388,15 +357,14 @@ export async function place(
   input: PlaceOrderInput,
   context: PlacementContext,
 ): Promise<PlacedOrder> {
+  /* Every line's product in two queries, then the lines checked IN ORDER, so the
+     first rejection still names the first bad line — whether it is a product
+     that is gone or a choice the catalogue no longer offers. */
+  const products = await loadLineProducts(db, input.items);
   const lines: ResolvedLine[] = [];
-
-  /* Sequential rather than `Promise.all`: at most 20 lines, and the first
-     rejection should name the first bad line rather than whichever query lost a
-     race. */
   for (const [index, item] of input.items.entries()) {
     const field = `items.${index}`;
-    const product = await loadProduct(db, item, field);
-    lines.push(resolveLine(product, item, field));
+    lines.push(resolveLine(availableProduct(products[index], field), item, field));
   }
 
   /* Single-currency shop. Reading it off the lines rather than hardcoding means a
@@ -634,11 +602,11 @@ export function listCarts(
   db: Database,
   filters: CartListFilters,
 ): Promise<{ rows: CartSummaryRecord[]; total: number }> {
-  return repo.findCarts(db, filters);
+  return cartRepo.findCarts(db, filters);
 }
 
 export async function getCartById(db: Database, id: string): Promise<CartAggregate> {
-  const cart = await repo.findCartById(db, id);
+  const cart = await cartRepo.findCartById(db, id);
   if (!cart) throw notFound('Cart');
   return cart;
 }

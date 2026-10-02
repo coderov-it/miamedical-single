@@ -9,7 +9,7 @@ import type {
   VideoItem,
 } from '@mia/db/schema';
 import { durationLabel } from '@mia/i18n';
-import { asMoney, toHundredths } from '@mia/pricing';
+import { asMoney, startingPrice } from '@mia/pricing';
 import { isExternalVideo, videoEmbedUrl } from '@mia/validators';
 
 import type {
@@ -35,35 +35,19 @@ import type {
 import { pick, pickAlt, pickOptional, pickTranslation, resolveField } from './i18n.ts';
 import type {
   AddonRow,
+  AdminSummaryRowData,
   ProductAggregate,
-  ProductSummaryRowData,
   ProductTranslationRow,
-  SpecOptionRow,
-  SpecRow,
-  SpecValueOptionRow,
-  SpecValueRow,
+  PublicSummaryRowData,
+  SpecDefinition,
+  SpecValueData,
+  SpecValueOptionLink,
+  TranslationStatusRow,
 } from './types.ts';
 
 /** Record → DTO. Pure functions, no IO. */
 
 const money = (amount: string, currency: string): MoneyDto => ({ amount, currency });
-
-/**
- * The lowest real figure a product can be had for — see `PricingDto.fromPrice`.
- * Compared in bigint hundredths through `toHundredths`, never as JS numbers.
- */
-const toFromPrice = (
-  basePrice: string | null,
-  packages: readonly RentalPackage[],
-): string | null => {
-  if (basePrice !== null) return basePrice;
-  let cheapest: string | null = null;
-  for (const pkg of packages) {
-    const price = asMoney(pkg.price);
-    if (cheapest === null || toHundredths(price) < toHundredths(cheapest)) cheapest = price;
-  }
-  return cheapest;
-};
 
 /** "90.0000" → 90, "16.5000" → 16.5 — spec quantities, never money. */
 const num = (value: string | null): number | null => (value === null ? null : Number(value));
@@ -140,7 +124,7 @@ const TRANSLATION_FIELDS = [
   'metaDescription',
 ] as const;
 
-export function toTranslationStatus(rows: ProductTranslationRow[]): TranslationStatusDto {
+export function toTranslationStatus(rows: TranslationStatusRow[]): TranslationStatusDto {
   const missing: Partial<Record<LanguageCode, string[]>> = {};
   const source = rows.find((r) => r.languageCode === SOURCE_LANGUAGE);
 
@@ -203,8 +187,8 @@ export function booleanLabel(value: boolean, locale: LanguageCode): string {
 }
 
 function specValueAndDisplay(
-  spec: SpecRow & { options: SpecOptionRow[] },
-  value: SpecValueRow,
+  spec: SpecDefinition,
+  value: SpecValueData,
   optionIds: string[],
   locale: LanguageCode,
 ): { value: PublicSpecDto['value']; displayValue: string } {
@@ -245,9 +229,9 @@ function specValueAndDisplay(
 }
 
 function toPublicSpecs(
-  specs: ProductAggregate['specs'],
-  values: SpecValueRow[],
-  valueOptions: SpecValueOptionRow[],
+  specs: SpecDefinition[],
+  values: SpecValueData[],
+  valueOptions: SpecValueOptionLink[],
   locale: LanguageCode,
 ): PublicSpecDto[] {
   const valueBySpec = new Map(values.map((v) => [v.specId, v]));
@@ -270,12 +254,13 @@ function toPublicSpecs(
             spec,
             // Select specs may carry options without a value row.
             {
+              specId: spec.id,
               numberValue: null,
               numberMin: null,
               numberMax: null,
               booleanValue: null,
               textValue: null,
-            } as SpecValueRow,
+            },
             optionIds,
             locale,
           );
@@ -340,7 +325,7 @@ export function toPublicDetail(
     currency: row.currency,
     price: row.basePrice,
     marketingRate: row.marketingRate,
-    fromPrice: toFromPrice(row.basePrice, row.rentalPackages),
+    fromPrice: startingPrice(row.basePrice, row.rentalPackages),
   };
 
   const categoryTranslation = pickTranslation(row.category.translations, locale);
@@ -449,7 +434,7 @@ function toChips(chips: ProductChip[], locale: LanguageCode): string[] {
  * everywhere: a spec is written to be filtered and compared, which is not the
  * same job as selling the product in four words.
  */
-function toCardSpecTags(row: ProductSummaryRowData, locale: LanguageCode): string[] {
+function toCardSpecTags(row: PublicSummaryRowData, locale: LanguageCode): string[] {
   return toPublicSpecs(row.specs, row.specValues, row.specValueOptions, locale)
     .filter((spec) => spec.isComparable && spec.displayValue !== '—')
     .filter((spec) => spec.valueType !== 'boolean' || spec.value === true)
@@ -458,7 +443,7 @@ function toCardSpecTags(row: ProductSummaryRowData, locale: LanguageCode): strin
 }
 
 export function toPublicSummary(
-  row: ProductSummaryRowData,
+  row: PublicSummaryRowData,
   locale: LanguageCode,
 ): PublicProductSummaryDto {
   const translation = pickTranslation(row.translations, locale);
@@ -466,9 +451,8 @@ export function toPublicSummary(
   return {
     id: row.id,
     slug: translation?.slug ?? '',
-    /* `findMany` loads `translations` unfiltered, so this is the whole set and
-       costs no extra query. */
-    availableLocales: row.translations.map((t) => t.languageCode),
+    // Every language, unlike `translations` — which holds this locale and Italian.
+    availableLocales: row.availableLocales,
     title: translation?.title ?? '',
     shortDescription: translation?.shortDescription ?? null,
     status: row.status,
@@ -484,7 +468,7 @@ export function toPublicSummary(
       currency: row.currency,
       price: row.basePrice,
       marketingRate: row.marketingRate,
-      fromPrice: toFromPrice(row.basePrice, row.rentalPackages),
+      fromPrice: startingPrice(row.basePrice, row.rentalPackages),
     },
     thumbnail: toPublicMediaItem(row.media.thumbnail, locale),
     chips: row.chips.length > 0 ? toChips(row.chips, locale) : toCardSpecTags(row, locale),
@@ -623,7 +607,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     — same rule as the storefront. Slug stays Italian: it is the canonical
     URL segment, not display text. */
 export function toAdminSummary(
-  row: ProductSummaryRowData,
+  row: AdminSummaryRowData,
   locale: LanguageCode = SOURCE_LANGUAGE,
 ): AdminProductSummaryDto {
   const italian = row.translations.find((t) => t.languageCode === SOURCE_LANGUAGE);

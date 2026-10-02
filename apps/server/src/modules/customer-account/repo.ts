@@ -2,6 +2,7 @@ import type { Database } from '@mia/db';
 import { and, count, desc, eq, ne } from '@mia/db';
 import { orderItems, orders } from '@mia/db/schema';
 
+import { orderPage } from '../orders/list-repo.ts';
 import type { OrderAggregate, OrderSummaryRecord } from '../orders/types.ts';
 
 /**
@@ -23,17 +24,18 @@ export async function listOrders(
   perPage: number,
 ): Promise<{ rows: OrderSummaryRecord[]; total: number }> {
   const where = and(eq(orders.customerAccountId, customerAccountId), notRejected);
+  // The page of ids first, then lines counted for those rows only — see
+  // docs/code/order-lists.md.
+  const ids = orderPage(db, where, page, perPage);
 
   const [rows, totals] = await Promise.all([
     db
       .select({ order: orders, itemCount: count(orderItems.id) })
-      .from(orders)
+      .from(ids)
+      .innerJoin(orders, eq(orders.id, ids.id))
       .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
-      .where(where)
       .groupBy(orders.id)
-      .orderBy(desc(orders.placedAt))
-      .limit(perPage)
-      .offset((page - 1) * perPage),
+      .orderBy(desc(orders.placedAt), desc(orders.id)),
     db.select({ value: count() }).from(orders).where(where),
   ]);
 
