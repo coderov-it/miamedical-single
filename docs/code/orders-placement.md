@@ -4,7 +4,7 @@
 unauthenticated, because the storefront takes rentals from people who have never
 signed in.
 
-Code: `apps/server/src/modules/orders/{routes,service,resolve,repo}.ts`, the wire
+Code: `apps/server/src/modules/orders/{routes,service,checkout-products,line-products,resolve,repo}.ts`, the wire
 format in `packages/validators/src/order.ts`, the money rules in
 `packages/pricing`.
 
@@ -33,7 +33,7 @@ mattress, and confirms. What each step gets:
 
 3. POST /api/orders                     items + customer + delivery + notes
 
-4. server re-reads the catalogue        loadProduct('letto-degenza-elettrico')
+4. server re-reads the catalogue        loadLineProducts(items)
      status must be 'active'                    → PublicProductDetailDto (it)
 
 5. server re-resolves every choice      resolveLine(product, item)
@@ -123,6 +123,32 @@ The same gate covers a line that never answered a required question
 A line for a product whose `stock` is `0` is refused the same way — a point-in-time
 check, not a reservation. Nothing decrements stock and nothing knows which dates a
 unit is already out on; the phone call still settles real availability.
+
+## Loading the lines' products
+
+Two queries whatever the line count, then the lines checked in order:
+
+```
+   items                                      product id        products row
+   0 { productSlug: 'letto-degenza' }         slug → P1         active
+   1 { productId: P2, productSlug: 'x' }      P2 (slug unread)  active
+   2 { productSlug: 'letto-degenza' }         slug → P1         (reused)
+   3 { productSlug: 'sedia-ritirata' }        slug → P3         archived
+   4 { productSlug: 'non-esiste' }            none              —
+
+1. slugs of lines without an id    'letto-degenza', 'sedia-ritirata', 'non-esiste'
+     one query on product_translations         → slug → product, it first
+2. distinct ids                    P1, P2, P3
+     findAggregatesByIds, one query            → P1, P2, P3 aggregates
+3. project the active ones once    toPublicDetail(·, 'it')  → P1, P2
+4. walk lines 0..4 in order        0 ok, 1 ok, 2 ok,
+                                   3 → 422 { 'items.3.productSlug':
+                                        'That product is no longer available.' }
+```
+
+Line 4 is never reached: the first bad line is the one named, exactly as when
+each line was loaded on its own. A slug in another language is accepted only when
+it belongs to one product (`pickSlugMatch`, the same rule as `findIdBySlug`).
 
 ## What the request may and may not contain
 

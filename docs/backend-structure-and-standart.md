@@ -198,7 +198,7 @@ No IO, no `async`, no imports from `service`/`repo`. Derived values are computed
 here, not stored on the DTO by the caller:
 
 ```ts
-export function toPublicSummary(row: ProductSummaryRowData, locale: LanguageCode) {
+export function toPublicSummary(row: PublicSummaryRowData, locale: LanguageCode) {
   const translation = pickTranslation(row.translations, locale); // en → it fallback
   return {
     /* … */

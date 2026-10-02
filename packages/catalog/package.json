@@ -22,6 +22,7 @@
   "dependencies": {
     "@mia/db": "workspace:*",
     "@mia/media": "workspace:*",
+    "@mia/pricing": "workspace:*",
     "@mia/validators": "workspace:*",
     "valibot": "catalog:"
   }

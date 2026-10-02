@@ -1,5 +1,5 @@
 import { count, createDatabase, eq } from '@mia/db';
-import type { LanguageCode } from '@mia/db/schema';
+import type { LanguageCode, RentalPackage } from '@mia/db/schema';
 import {
   cartItems,
   carts,
@@ -23,6 +23,7 @@ import {
   termsDocumentTranslations,
   termsDocuments,
 } from '@mia/db/schema';
+import { startingPrice } from '@mia/pricing';
 
 import { env } from '../src/config/env.ts';
 import { applyAdminAccount } from './admin-account.ts';
@@ -275,6 +276,29 @@ const carrozzine = await seedCategory(
 // -- the RENTAL product (per day) --------------------------------------------
 
 if (letti) {
+  const lettoPackages: RentalPackage[] = [
+    {
+      code: '3-day',
+      name: { it: '3 giorni', en: '3 days' },
+      price: '89.00',
+      duration: 3,
+      unit: 'day',
+    },
+    {
+      code: '7-day',
+      name: { it: '7 giorni', en: '7 days' },
+      price: '180.00',
+      duration: 7,
+      unit: 'day',
+    },
+    {
+      code: '30-day',
+      name: { it: '30 giorni', en: '30 days' },
+      price: '600.00',
+      duration: 30,
+      unit: 'day',
+    },
+  ];
   const [product] = await db
     .insert(products)
     .values({
@@ -284,35 +308,14 @@ if (letti) {
       brand: 'MiaMedical',
       pricingMode: 'rental',
       /* No base price: a rental IS its packages. `marketingRate` is the headline
-         under the title, and the packages below are what anything costs — note
+         under the title, and the packages above are what anything costs — note
          that 3 × 35,00 is not 89,00, which is the whole point of typing both. */
       basePrice: null,
       marketingRate: '35.00',
       currency: 'EUR',
       rentalUnit: 'day',
-      rentalPackages: [
-        {
-          code: '3-day',
-          name: { it: '3 giorni', en: '3 days' },
-          price: '89.00',
-          duration: 3,
-          unit: 'day',
-        },
-        {
-          code: '7-day',
-          name: { it: '7 giorni', en: '7 days' },
-          price: '180.00',
-          duration: 7,
-          unit: 'day',
-        },
-        {
-          code: '30-day',
-          name: { it: '30 giorni', en: '30 days' },
-          price: '600.00',
-          duration: 30,
-          unit: 'day',
-        },
-      ],
+      rentalPackages: lettoPackages,
+      startingPrice: startingPrice(null, lettoPackages),
       isFeatured: true,
       /** Three claims, ≤20 characters each — what the chip rule looks like applied. */
       chips: [
@@ -506,6 +509,7 @@ if (carrozzine) {
       brand: 'MiaMedical',
       pricingMode: 'fixed',
       basePrice: '289.00',
+      startingPrice: startingPrice('289.00', []),
       currency: 'EUR',
       rentalUnit: null,
       chips: [

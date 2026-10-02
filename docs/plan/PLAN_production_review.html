@@ -10,11 +10,11 @@
 <doc-page doc-id="mia-production-review-2026-10-02" accent="teal" density="comfortable" toc="docked">
   <doc-header kicker="Codebase audit · 2 October 2026 · commit 3e27659">
     Production review
-    <p slot="lede">Production failure risks, code conventions, database work and caching priorities. P1 means fix before release; P2 means the next hardening pass. Deployment-dependent findings are marked conditional. Revised after review: agreed fixes are implemented and marked Done in their sections; the four query and payment items you asked about now carry worked examples and a question each.</p>
+    <p slot="lede">Production failure risks, code conventions, database work and caching priorities. P1 means fix before release; P2 means the next hardening pass. Deployment-dependent findings are marked conditional. Revised after two review rounds: every agreed or answered item is implemented and marked Done in its section, with the decision stated where a question used to be.</p>
   </doc-header>
   <doc-chips>
-    <doc-chip kind="confirmed">10 fixes implemented · check, build and 140 tests pass</doc-chip>
-    <doc-chip kind="pending">4 explained, awaiting your decision</doc-chip>
+    <doc-chip kind="confirmed">All agreed and answered items implemented · check, build, lint and 179 tests pass</doc-chip>
+    <doc-chip kind="action">Run migration 0019 before deploying</doc-chip>
     <doc-chip kind="info">Concurrent order updates left as is: last save wins</doc-chip>
   </doc-chips>
 
@@ -178,20 +178,19 @@
  10,350                         10,000        nothing; the 350 oldest are missing  ✗
     </doc-code>
 
-    <doc-choice mode="single" question="Now that the payment-type bug is clear, should it be fixed?">
-      <doc-option recommended>
-        Fix the type column and the export
-        <p slot="desc">Join like the orders list does, export every row in pages. Small change in one file.</p>
-      </doc-option>
-      <doc-option>
-        Fix the type column only
-        <p slot="desc">Keep the 10,000 cap, but say so on the export button when it is hit.</p>
-      </doc-option>
-      <doc-option>
-        Still unclear
-        <p slot="desc">Tell me which step above lost you.</p>
-      </doc-option>
-    </doc-choice>
+    <p><strong>Decision:</strong> fix the type column and the export.</p>
+    <doc-note kind="success" title="Done">
+      <p>In short: the list asked "is this order a rental?" the wrong way, so it always said no. It asks the right way now. In <a href="../../apps/server/src/modules/payments/repo.ts">payments/repo.ts</a>, the subquery names the outer table explicitly, and the type column and the type filter share one definition. Checked read-only against the dev database:</p>
+      <doc-code lang="text">
+                         before                 after
+ type column             13 × Vendita           11 × Noleggio, 2 × Vendita   (11 = hand-written SQL)
+ filter Noleggio         11 rows, all Vendita   11 rows, all Noleggio
+ filter Vendita          any order with a       only orders with no rented line, so a mixed
+                         sold line              order no longer appears under both filters
+ export                  first 10,000 rows      every row, read 1,000 at a time; 13 of 13 on dev
+      </doc-code>
+      <p>The export reads batches ordered by placed time and then id, so two orders placed in the same instant can't repeat or go missing between batches.</p>
+    </doc-note>
   </doc-section>
 
   <doc-section title="P1 · Production configuration can silently use development defaults">
@@ -284,20 +283,13 @@
 
     <p>There is no "delivered" state in the system: an order goes <code>pending → paid → fulfilled</code>. So "the rental starts at delivery" is implemented as "the rental starts on its booked start date". If delivery is late, the countdown still starts on the booked date. A pending order (unpaid or unsigned) also counts down once that date arrives, as it did before.</p>
 
-    <doc-choice mode="single" question="Should an operator mark delivery explicitly, so the countdown starts from the real delivery?">
-      <doc-option recommended>
-        Keep the booked start date
-        <p slot="desc">No new step for operators. The end date stays the one on the contract.</p>
-      </doc-option>
-      <doc-option>
-        Add a "Delivered" action on the order
-        <p slot="desc">Countdowns wait for it. Needs a decision on whether the end date then moves with a late delivery.</p>
-      </doc-option>
-      <doc-option>
-        Count down only for paid orders
-        <p slot="desc">A one-line change in the shared module. Unpaid rentals get no reminders.</p>
-      </doc-option>
-    </doc-choice>
+    <p><strong>Decision:</strong> keep the booked start date, and no operator step.</p>
+    <p>Your manager's rule is how the code already works, so nothing changed. The customer must pick a start date for every rental. The server refuses a rental line without one (<a href="../../apps/server/src/modules/orders/resolve.ts">orders/resolve.ts</a>), and the website holds checkout as incomplete until it is chosen. The end date is never sent by the customer: <a href="../../packages/pricing/src/period.ts">pricing/period.ts</a> <code>resolvePeriod</code> computes it from the package.</p>
+    <doc-code lang="text">
+ 7-day package, start chosen 10 Oct      → ends 17 Oct   countdown: 10 Oct "7 days left" … 16 Oct "1 day left"
+ 30-day package, start chosen 1 Nov      → ends 1 Dec
+ extended by 7 days on 15 Oct (signed)   → ends 24 Oct   countdown restarts toward 24 Oct
+    </doc-code>
   </doc-section>
 
   <doc-section title="P2 · API failures become missing products or generic form errors">
@@ -362,20 +354,15 @@
     </doc-code>
     <p>Separately, a comment in <a href="../../packages/db/src/schema/catalog.ts">schema/catalog.ts:263</a> says a trigram index on product titles is "hand-added in the migration". No checked-in migration contains it. Unless someone created it by hand on the server, the comment describes an index that doesn't exist.</p>
 
-    <doc-choice mode="single" question="What should happen with payment dates and substring search?">
-      <doc-option recommended>
-        Fix the date ranges now, measure search later
-        <p slot="desc">Rome-day ranges fix a visible correctness issue too. Trigram indexes wait until a list is measurably slow.</p>
-      </doc-option>
-      <doc-option>
-        Do both now
-        <p slot="desc">Date ranges plus trigram indexes on order number, email and product title. Adds an extension and a migration.</p>
-      </doc-option>
-      <doc-option>
-        Leave both
-        <p slot="desc">Data is small today. Accept the day-boundary drift.</p>
-      </doc-option>
-    </doc-choice>
+    <p><strong>Decision:</strong> fix the date ranges now; measure search later.</p>
+    <doc-note kind="success" title="Done: date ranges">
+      <p>A new helper, <a href="../../apps/server/src/shared/rome-day.ts">shared/rome-day.ts</a> <code>romeDayRange</code>, compares the raw timestamp against Rome midnights. Daylight saving is handled per day. It is used by the payments list, stats and export, and by the admin orders list, which used UTC midnights.</p>
+      <doc-code lang="text">
+ Dal 30/09 Al 30/09 → placed_at >= 2026-09-29 22:00 UTC AND placed_at < 2026-09-30 22:00 UTC
+ dev database       → 1 order, placed 2026-09-30 10:05 UTC ✓
+      </doc-code>
+      <p>Not done: trigram indexes for the search box, until a list is measurably slow. The schema comment about a product-title trigram index is still inaccurate.</p>
+    </doc-note>
   </doc-section>
 
   <doc-section title="Queries · Rental dates and latest contracts">
@@ -412,20 +399,10 @@
     </doc-code>
     <p>Why not just index the JSON expression? PostgreSQL only indexes expressions whose result can never change. Turning text into a date depends on the session's date-format setting, so PostgreSQL refuses to index it. A real <code>date</code> column avoids that.</p>
 
-    <doc-choice mode="single" question="Should rental dates get their own columns now?">
-      <doc-option>
-        Yes, columns + indexes + one contract lookup
-        <p slot="desc">A migration with a backfill, and two writers to update (placement, extension activation).</p>
-      </doc-option>
-      <doc-option recommended>
-        Only the single contract lookup now
-        <p slot="desc">A query-only change in rentals/repo.ts. Columns wait until the rentals list is measurably slow.</p>
-      </doc-option>
-      <doc-option>
-        Leave it
-        <p slot="desc">Volumes are small today.</p>
-      </doc-option>
-    </doc-choice>
+    <p><strong>Decision:</strong> only the single contract lookup for now. Rental dates stay in the JSON until the rentals list is measurably slow.</p>
+    <doc-note kind="success" title="Done: one contract lookup">
+      <p><a href="../../apps/server/src/modules/rentals/repo.ts">rentals/repo.ts</a> now fetches the newest live contract once per row, with one <code>LEFT JOIN LATERAL</code> returning both id and status. Before, it ran two separate subqueries. Rows with the same end date are now ordered by line id, so pages are stable. Checked read-only against the dev database: all 11 rental rows return the same contract id and status as before, with no mismatches. This is a query-only change, with no migration and no new index.</p>
+    </doc-note>
   </doc-section>
 
   <doc-section title="Queries · Catalog reads, checkout and order pagination">
@@ -470,20 +447,24 @@
     </doc-code>
     <p>The customer's "I miei ordini" list has the same shape. There, the index would be <code>orders_customer_placed_idx</code> on customer, placed time and id.</p>
 
-    <doc-choice mode="multi" question="Which of the three should be done now?">
-      <doc-option recommended>
-        Order lists: page first, then count
-        <p slot="desc">Query-only change in two repos, plus the id tiebreak. No migration.</p>
-      </doc-option>
-      <doc-option recommended>
-        Checkout: load all lines in one query
-        <p slot="desc">Contained in orders/service.ts.</p>
-      </doc-option>
-      <doc-option>
-        Catalog: narrow read model and starting-price column
-        <p slot="desc">Largest change: a migration, a column kept in sync on every product save, and new list mappers.</p>
-      </doc-option>
-    </doc-choice>
+    <p><strong>Decision:</strong> all three, now.</p>
+    <doc-note kind="success" title="Done: all three">
+      <p><strong>Order lists</strong> (<a href="../../apps/server/src/modules/orders/list-repo.ts">orders/list-repo.ts</a>, <a href="../../apps/server/src/modules/customer-account/repo.ts">customer-account/repo.ts</a>). Both lists now select one page of order ids first, then count lines, rental flag and contract status for those rows only. The id tiebreak gives every order exactly one place. Checked read-only on the dev database: same rows, same order and same values as before, across pages, filters and the three busiest customer accounts. No migration.</p>
+      <doc-code lang="text">
+ before   orders ⋈ all lines → group → sort → keep 30
+ after    (30 newest order ids) ⋈ their lines → group
+      </doc-code>
+      <p><strong>Checkout</strong> (<a href="../../apps/server/src/modules/orders/checkout-products.ts">orders/checkout-products.ts</a>). All lines load in one slug query plus one product query, and a product on several lines is loaded once. Lines are still checked in order, so the error still names the first bad line. On dev, a 24-line test order gave identical results in 5.7 s instead of 46.7 s; the dev database is remote, so most of that is network round trips.</p>
+      <p><strong>Catalog</strong> (<a href="../../docs/code/catalog-list-read-model.md">catalog-list-read-model.md</a>). Each product now has a <code>starting_price</code>: the base price, or the cheapest package price when there is no base price. It is computed by one function in <code>@mia/pricing</code>, so the sort and the card's "from" price can't disagree. It is written on every product save, the catalogue sync and the seed, and indexed by <code>products_status_mode_starting_price_idx</code>. List pages load only what a card prints: the requested language plus the Italian fallback, each category once per page, and specs only when a card needs them for its tags. The output was compared byte for byte against the old mapper in 12 cases, with no differences.</p>
+      <doc-note kind="warn" title="Migration not applied">
+        <p><code>packages/db/drizzle/0019_add_product_starting_price.sql</code> adds the column, backfills it with the exact old sort expression, and creates the index. It has not been run anywhere. Until <code>pnpm db:migrate</code> runs, every product read fails on that database, including the product page, lists and checkout. Run it before deploying this code.</p>
+      </doc-note>
+      <p>Still open:</p>
+      <ul>
+        <li>The admin order calendar still groups by UTC day.</li>
+        <li><code>orders/service.ts</code> is 614 lines; the next split would move order placement into its own module.</li>
+      </ul>
+    </doc-note>
   </doc-section>
 
   <doc-section title="Caching · Extend what already exists">

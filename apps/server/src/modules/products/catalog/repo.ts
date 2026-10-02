@@ -1,5 +1,5 @@
 import type { Database } from '@mia/db';
-import { and, asc, count, desc, eq, sql } from '@mia/db';
+import { and, asc, count, eq, sql } from '@mia/db';
 import type {
   LanguageCode,
   Localized,
@@ -15,18 +15,13 @@ import {
   productSpecValueOptions,
   productSpecValues,
   productTranslations,
-  searchQueryFor,
   searchVectorFor,
-  SOURCE_LANGUAGE,
 } from '@mia/db/schema';
+import { startingPrice } from '@mia/pricing';
 import { richTextToPlain } from '@mia/validators';
 
-import type {
-  ProductAggregate,
-  ProductListFilters,
-  ProductSummaryRowData,
-  SpecFilter,
-} from '../types.ts';
+import type { ProductAggregate, ProductListFilters } from '../types.ts';
+import { baseWhere } from './list-query.ts';
 
 /** Data access only. No auth checks, no DTO shaping — see service.ts / mapper.ts. */
 
@@ -68,6 +63,11 @@ export interface UpdateProductData {
   rentalUnit?: 'hour' | 'day';
   /** Replaces the whole list, and never with an empty one — see the CHECK. */
   rentalPackages?: RentalPackage[];
+  /**
+   * `startingPrice()` of the product as saved. The service sets it whenever
+   * `basePrice` or `rentalPackages` is in the update — it holds the other half.
+   */
+  startingPrice?: string | null;
   stock?: number;
   isFeatured?: boolean;
   /** Replaces the whole list — `[]` clears the product's chips. */
@@ -97,6 +97,27 @@ export async function findAggregate(
   });
   if (!row) return undefined;
   return { ...row, specs: row.category.specs } as unknown as ProductAggregate;
+}
+
+/**
+ * `findAggregate` for several products in one query, keyed by id. An id with no
+ * product is simply absent from the map; the caller decides what that means.
+ */
+export async function findAggregatesByIds(
+  db: Database,
+  productIds: readonly string[],
+): Promise<Map<string, ProductAggregate>> {
+  const found = new Map<string, ProductAggregate>();
+  if (productIds.length === 0) return found;
+
+  const rows = await db.query.products.findMany({
+    where: (table, { inArray }) => inArray(table.id, [...productIds]),
+    with: AGGREGATE_WITH,
+  });
+  for (const row of rows) {
+    found.set(row.id, { ...row, specs: row.category.specs } as unknown as ProductAggregate);
+  }
+  return found;
 }
 
 /**
@@ -158,157 +179,7 @@ export async function findCategoryIdByCode(
 }
 
 // --- list -------------------------------------------------------------------
-
-/** One EXISTS fragment per spec filter — all index-backed. */
-function specFilterClause(filter: SpecFilter) {
-  if (filter.values && filter.values.length > 0) {
-    return sql`EXISTS (
-      SELECT 1 FROM ${productSpecValueOptions} pso
-      JOIN ${categorySpecOptions} cso ON cso.id = pso.option_id
-      JOIN ${categorySpecs} cs ON cs.id = pso.spec_id
-      WHERE pso.product_id = ${products.id}
-        AND cs.key = ${filter.key} AND cs.is_filterable = true
-        AND cso.value IN ${filter.values}
-    )`;
-  }
-  if (filter.boolean !== undefined) {
-    return sql`EXISTS (
-      SELECT 1 FROM ${productSpecValues} psv
-      JOIN ${categorySpecs} cs ON cs.id = psv.spec_id
-      WHERE psv.product_id = ${products.id}
-        AND cs.key = ${filter.key} AND cs.is_filterable = true
-        AND psv.boolean_value = ${filter.boolean}
-    )`;
-  }
-  const min = filter.min ?? -1e12;
-  const max = filter.max ?? 1e12;
-  return sql`EXISTS (
-    SELECT 1 FROM ${productSpecValues} psv
-    JOIN ${categorySpecs} cs ON cs.id = psv.spec_id
-    WHERE psv.product_id = ${products.id}
-      AND cs.key = ${filter.key} AND cs.is_filterable = true
-      AND COALESCE(psv.number_value, psv.number_max) >= ${min}
-      AND COALESCE(psv.number_value, psv.number_min) <= ${max}
-  )`;
-}
-
-function searchClause(locale: LanguageCode, q: string) {
-  return sql`EXISTS (
-    SELECT 1 FROM ${productTranslations} pt
-    WHERE pt.product_id = ${products.id}
-      AND pt.language_code IN (${locale}, ${SOURCE_LANGUAGE})
-      AND pt.search_vector @@ ${searchQueryFor(locale, q)}
-  )`;
-}
-
-/** Everything except the spec filters — the facet queries reuse this. */
-function baseWhere(filters: ProductListFilters) {
-  const clauses = [
-    filters.includeNonActive
-      ? filters.status
-        ? eq(products.status, filters.status)
-        : undefined
-      : eq(products.status, 'active'),
-    filters.categoryId ? eq(products.categoryId, filters.categoryId) : undefined,
-    filters.mode ? eq(products.pricingMode, filters.mode) : undefined,
-    filters.featured === undefined ? undefined : eq(products.isFeatured, filters.featured),
-    filters.q ? searchClause(filters.locale, filters.q) : undefined,
-  ].filter((clause) => clause !== undefined);
-  return clauses;
-}
-
-/**
- * What "price" means for sorting, across both modes: a fixed product's own rate,
- * or a rental's cheapest package. `base_price` alone would sort every rental as
- * NULL, and a catalogue that mixes the two has to rank them against each other.
- */
-const sortablePrice = sql`COALESCE(
-  ${products.basePrice},
-  (SELECT MIN((entry->>'price')::numeric)
-     FROM jsonb_array_elements(${products.rentalPackages}) AS entry)
-)`;
-
-/**
- * The shop rents first and sells second, so a listing that mixes both modes
- * leads with the rentals (owner, 2026-09-10).
- *
- * It is the PRIMARY key of every sort rather than a sort of its own: "cheapest
- * first" means the cheapest rental, then the cheapest sale item. A listing
- * already filtered to one mode has nothing to group, which is what turns it off
- * — see `rentalFirst` in the service.
- */
-const rentalFirst = sql`(${products.pricingMode} = 'rental') DESC`;
-
-function sortKeys(sort: ProductListFilters['sort']) {
-  switch (sort) {
-    /**
-     * Demand first, then the newest — without the tiebreak a catalogue whose
-     * orders have not started yet is one big zero bucket in whatever order the
-     * heap hands back, and the page shuffles between requests.
-     */
-    case 'popular':
-      return [desc(products.orderCount), desc(products.createdAt)];
-    case 'price_asc':
-      return [asc(sortablePrice)];
-    case 'price_desc':
-      return [desc(sortablePrice)];
-    case 'title':
-      return [
-        sql`(
-        SELECT pt.title FROM ${productTranslations} pt
-        WHERE pt.product_id = ${products.id} AND pt.language_code = ${SOURCE_LANGUAGE}
-      ) ASC`,
-      ];
-    default:
-      return [desc(products.createdAt)];
-  }
-}
-
-/**
- * `id` closes every sort, because a listing is read one page at a time and
- * LIMIT/OFFSET over a tied ORDER BY is free to hand the same row back on page 2
- * and drop another. The catalogue was seeded in bulk, so `created_at` ties are
- * the normal case, not the edge one.
- */
-function orderBy(filters: ProductListFilters) {
-  return [
-    ...(filters.rentalFirst ? [rentalFirst] : []),
-    ...sortKeys(filters.sort),
-    asc(products.id),
-  ];
-}
-
-export async function findMany(
-  db: Database,
-  filters: ProductListFilters,
-): Promise<{ rows: ProductSummaryRowData[]; total: number }> {
-  const clauses = [...baseWhere(filters), ...filters.specFilters.map(specFilterClause)];
-  const where = clauses.length > 0 ? and(...clauses) : undefined;
-
-  const [rows, totals] = await Promise.all([
-    db.query.products.findMany({
-      where,
-      orderBy: orderBy(filters),
-      limit: filters.perPage,
-      offset: (filters.page - 1) * filters.perPage,
-      with: {
-        translations: true,
-        category: { with: { translations: true, specs: { with: { options: true } } } },
-        specValues: true,
-        specValueOptions: true,
-      },
-    }),
-    db.select({ value: count() }).from(products).where(where),
-  ]);
-
-  return {
-    rows: rows.map((row) => ({
-      ...row,
-      specs: row.category.specs,
-    })) as unknown as ProductSummaryRowData[],
-    total: totals[0]?.value ?? 0,
-  };
-}
+// The WHERE / ORDER BY live in list-query.ts, the page loaders in summary-repo.ts.
 
 // --- facets -----------------------------------------------------------------
 
@@ -443,6 +314,7 @@ export async function create(db: Database, data: CreateProductData): Promise<str
         currency: data.currency,
         rentalUnit: data.rentalUnit,
         rentalPackages: data.rentalPackages,
+        startingPrice: startingPrice(data.basePrice, data.rentalPackages),
         stock: data.stock,
         isFeatured: data.isFeatured,
         chips: data.chips,

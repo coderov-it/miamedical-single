@@ -16,7 +16,7 @@ import type {
 } from './dto.ts';
 import type { OrderItemConfiguration } from './resolve.ts';
 import { nextOrderStatuses, nextPaymentStatuses } from './status.ts';
-import type { CalendarEntryRow } from './repo.ts';
+import type { CalendarEntryRow } from './list-repo.ts';
 import type {
   ActorRef,
   CartAggregate,

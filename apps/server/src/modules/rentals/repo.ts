@@ -1,6 +1,6 @@
 import type { Database } from '@mia/db';
-import { and, asc, count, eq, ilike, or, sql } from '@mia/db';
-import { orderItems, orders } from '@mia/db/schema';
+import { and, asc, count, desc, eq, ilike, ne, or, sql } from '@mia/db';
+import { contracts, orderItems, orders } from '@mia/db/schema';
 
 import {
   isRentalLine,
@@ -60,20 +60,41 @@ const selectFields = {
   rentalDuration,
   rentalUnit,
   rentalPackageName,
-  /* The newest NON-VOIDED contract, matching findLatestActiveByOrderId and the
-     orders list — a voided renewal must fall back to the contract it replaced,
-     not mask it, or this row's actions would target dead paper. */
-  contractId: sql<string | null>`(
-    SELECT c.id FROM contracts c WHERE c.order_id = ${orders.id}
-    AND c.status <> 'voided'
-    ORDER BY c.created_at DESC LIMIT 1
-  )`,
-  contractStatus: sql<string | null>`(
-    SELECT c.status FROM contracts c WHERE c.order_id = ${orders.id}
-    AND c.status <> 'voided'
-    ORDER BY c.created_at DESC LIMIT 1
-  )`,
 };
+
+/**
+ * The newest NON-VOIDED contract per row, id and status from ONE lookup.
+ *
+ * Matches findLatestActiveByOrderId and the orders list — a voided renewal must
+ * fall back to the contract it replaced, not mask it, or this row's actions would
+ * target dead paper. It used to be two correlated subqueries, one per column, so
+ * a page of 30 rentals looked the same contract up 60 times:
+ *
+ *   before   SELECT …, (SELECT c.id …), (SELECT c.status …) FROM order_items …
+ *   after    … LEFT JOIN LATERAL (SELECT id, status … LIMIT 1) latest_contract ON true
+ */
+function latestContract(db: Database) {
+  return db
+    .select({ id: contracts.id, status: contracts.status })
+    .from(contracts)
+    .where(and(eq(contracts.orderId, orders.id), ne(contracts.status, 'voided')))
+    .orderBy(desc(contracts.createdAt))
+    .limit(1)
+    .as('latest_contract');
+}
+
+function selectRentals(db: Database) {
+  const contract = latestContract(db);
+  return db
+    .select({
+      ...selectFields,
+      contractId: sql<string | null>`${contract.id}`,
+      contractStatus: sql<string | null>`${contract.status}`,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .leftJoinLateral(contract, sql`true`);
+}
 
 export async function findMany(
   db: Database,
@@ -82,12 +103,9 @@ export async function findMany(
   const where = rentalWhere(filters);
 
   const [rows, totals] = await Promise.all([
-    db
-      .select(selectFields)
-      .from(orderItems)
-      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    selectRentals(db)
       .where(where)
-      .orderBy(asc(sql`(${rentalEndDate})::date`))
+      .orderBy(asc(sql`(${rentalEndDate})::date`), asc(orderItems.id))
       .limit(filters.perPage)
       .offset((filters.page - 1) * filters.perPage),
     db
@@ -101,10 +119,7 @@ export async function findMany(
 }
 
 export async function findByOrderId(db: Database, orderId: string): Promise<RentalRow | undefined> {
-  const rows = await db
-    .select(selectFields)
-    .from(orderItems)
-    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+  const rows = await selectRentals(db)
     .where(and(isRentalLine, eq(orders.id, orderId)))
     .limit(1);
 
