@@ -21,14 +21,16 @@
  * total; a line missing a required choice is one the API refuses outright. Either
  * way there is nothing to confirm yet, so the panel says what is missing and sends
  * the customer to the page where they can fix it — rather than offering a button
- * that is certain to fail.
+ * that is certain to fail. A line the catalogue could not read is the third case:
+ * the notice offers a retry of the same request instead.
  */
 import { t } from '~/lib/labels';
 import type { CheckoutBlocked, CheckoutItem } from '~/lib/checkout';
-import { routes } from '~/lib/routes';
+import { routePath, routes } from '~/lib/routes';
 import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
+import CheckoutRetryForm, { type CheckoutRetry } from './CheckoutRetryForm.astro';
 import { EYEBROW } from './styles';
-import { SOURCE_LANGUAGE, translate } from '~/lib/i18n';
+import { SOURCE_LANGUAGE, localeForRequest, translate } from '~/lib/i18n';
 
 interface Props {
   /** `wa.me` URL already carrying the line items. */
@@ -41,28 +43,38 @@ interface Props {
   blockedItem: CheckoutItem | null;
   /** Back to the product, or the cart — wherever the gap can be closed. */
   backHref: string;
+  /** The request this page was built from, for the `unavailable` notice's retry. */
+  retry: CheckoutRetry;
 }
 
-const { whatsappHref, whatsappBase, blocked, blockedItem, backHref } = Astro.props;
+const { whatsappHref, whatsappBase, blocked, blockedItem, backHref, retry } = Astro.props;
 
 /** One notice per reason: what is missing, and the words for going to fix it. */
-const GATE =
-  blocked === 'incomplete'
-    ? {
-        title: t('configurationIncomplete'),
-        detail: t('configurationIncompleteDetail', {
-          product: blockedItem?.product.title ?? '',
-          missing: (blockedItem?.missingRequired ?? []).join(', '),
-        }),
-        cta: t('completeConfiguration'),
-      }
-    : blocked === 'noPackage'
-      ? {
-          title: t('packageMissing'),
-          detail: t('packageMissingDetail'),
-          cta: t('pickPackage'),
-        }
-      : null;
+function gateFor(reason: CheckoutBlocked) {
+  if (reason === 'unavailable') {
+    return {
+      title: t('checkoutUnavailable'),
+      detail: t('checkoutUnavailableDetail'),
+      cta: t('retry'),
+    };
+  }
+  if (reason === 'incomplete') {
+    return {
+      title: t('configurationIncomplete'),
+      detail: t('configurationIncompleteDetail', {
+        product: blockedItem?.product.title ?? '',
+        missing: (blockedItem?.missingRequired ?? []).join(', '),
+      }),
+      cta: t('completeConfiguration'),
+    };
+  }
+  if (reason === 'noPackage') {
+    return { title: t('packageMissing'), detail: t('packageMissingDetail'), cta: t('pickPackage') };
+  }
+  return null;
+}
+
+const GATE = gateFor(blocked);
 
 const REVIEW_CARD =
   'flex flex-col gap-1.5 rounded-xl border border-hair px-4.5 py-4 text-[13.5px] text-ink-2';
@@ -122,9 +134,13 @@ const SECONDARY_CTA =
       <div class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4">
         <strong class="text-[15.5px]">{GATE.title}</strong>
         <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{GATE.detail}</p>
-        <a class={SECONDARY_CTA} href={backHref}>
-          {GATE.cta}
-        </a>
+        {blocked === 'unavailable' ? (
+          <CheckoutRetryForm {retry} label={GATE.cta} class={SECONDARY_CTA} />
+        ) : (
+          <a class={SECONDARY_CTA} href={backHref}>
+            {GATE.cta}
+          </a>
+        )}
       </div>
     ) : (
       <>
@@ -243,6 +259,37 @@ const SECONDARY_CTA =
       {t('retry')}
     </button>
     <a class={SECONDARY_CTA} href={whatsappHref} target="_blank" rel="noopener" data-error-whatsapp>
+      {t('continueOnWhatsApp')}
+    </a>
+  </div>
+</div>
+
+{/*
+    The POST may have reached the server and we never heard back — a dropped
+    connection, a timeout, a 5xx, or another tab still sending this same order.
+    There is deliberately NO retry here: a second POST would be a second order.
+    The customer is pointed at the places that know (their inbox, their orders)
+    and at a human, who can check before anything is sent twice.
+  */}
+<div
+  class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4"
+  data-confirm-uncertain
+  role="alert"
+  hidden
+>
+  <strong class="text-[15.5px]">{t('requestUncertain')}</strong>
+  <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{t('requestUncertainDetail')}</p>
+  <div class="flex flex-wrap gap-2.5">
+    <a class={SECONDARY_CTA} href={routePath(localeForRequest(), 'accountOrders')}>
+      {t('account.myOrders')}
+    </a>
+    <a
+      class={SECONDARY_CTA}
+      href={whatsappHref}
+      target="_blank"
+      rel="noopener"
+      data-uncertain-whatsapp
+    >
       {t('continueOnWhatsApp')}
     </a>
   </div>

@@ -17,6 +17,7 @@ import CheckoutConfirm from '~/components/checkout/CheckoutConfirm.astro';
 import CheckoutDelivery from '~/components/checkout/CheckoutDelivery.astro';
 import CheckoutDetails from '~/components/checkout/CheckoutDetails.astro';
 import CheckoutOverview from '~/components/checkout/CheckoutOverview.astro';
+import CheckoutRetryForm, { type CheckoutRetry } from '~/components/checkout/CheckoutRetryForm.astro';
 import CheckoutReturn from '~/components/checkout/CheckoutReturn.astro';
 import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
 import { CTA } from '~/components/checkout/styles';
@@ -33,9 +34,11 @@ interface Props {
   checkout: Checkout;
   /** The server-built handover, already carrying every line item. */
   handoverMessage: string;
+  /** The request this page was built from, re-sent by "Riprova". */
+  retry: CheckoutRetry;
 }
 
-const { checkout, handoverMessage } = Astro.props;
+const { checkout, handoverMessage, retry } = Astro.props;
 const locale = localeForRequest();
 const { items } = checkout;
 const single = items.length === 1;
@@ -49,6 +52,17 @@ const single = items.length === 1;
  * say where.
  */
 const hasRental = items.some((item) => item.product.pricing.mode === 'rental');
+
+/**
+ * Which of the three bodies renders: the steps, an outage that left nothing to
+ * show (the lines are still in the request), or a request with nothing in it.
+ */
+function bodyFor(): 'items' | 'unavailable' | 'empty' {
+  if (items.length > 0) return 'items';
+  if (checkout.unavailable > 0) return 'unavailable';
+  return 'empty';
+}
+const body = bodyFor();
 
 /* The trail names where the request came from: the product itself when there is
    one, the cart when there are several. */
@@ -77,7 +91,7 @@ const originCrumb =
 
   <h1 class="mb-7 text-[30px] font-bold tracking-[-0.015em]">{t('checkout')}</h1>
 
-  {items.length > 0 ? (
+  {body === 'items' && (
     <div class="flex flex-wrap items-start gap-12">
       <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-4">
         <CheckoutStep index={1} title={t('yourDetails')}>
@@ -104,6 +118,7 @@ const originCrumb =
             whatsappBase={handoverMessage}
             blocked={checkout.blocked}
             blockedItem={checkout.blockedItem}
+            {retry}
             backHref={
               /* The blocking item's own page when there is one, so a
                    multi-item cart sends the customer to the row that needs
@@ -118,7 +133,27 @@ const originCrumb =
 
       <CheckoutOverview {checkout} />
     </div>
-  ) : (
+  )}
+
+  {body === 'unavailable' && (
+    /*
+        Nothing could be READ — an outage, not an empty request. Same plate as the
+        empty state below, but it must not say "nothing to confirm": the lines are
+        still in the request, and "Riprova" re-sends exactly that request.
+      */
+    <div class="border-hair shadow-pdp-card flex max-w-150 flex-col items-start gap-4 rounded-[14px] border bg-white p-7">
+      <h2 class="text-[17px] font-bold">{t('checkoutUnavailable')}</h2>
+      <p class="text-ink-2 m-0 text-[15px] leading-[1.55]">{t('checkoutUnavailableDetail')}</p>
+      <CheckoutRetryForm
+        {retry}
+        label={t('retry')}
+        class="bg-tint text-ink hover:bg-tint-2 cursor-pointer rounded-full px-5.5 py-2.75 text-[15.5px] font-semibold hover:text-accent"
+      />
+      <PhoneCta variant="primary" />
+    </div>
+  )}
+
+  {body === 'empty' && (
     /*
         The reference design has no empty state — it always has a cart behind it.
         Arriving here with nothing resolvable is normal all the same (a shared

@@ -39,7 +39,13 @@ const locale = localeFromLocals(Astro.locals);
  * set, so a hand-off and a re-post read identically.
  */
 const urlLines = cartLinesFromParams(Astro.url.searchParams);
-const initial = await resolveCart(urlLines);
+
+/* An outage renders the shell with nothing priced rather than a 500: the island
+   re-prices on mount, keeps every line, and says so if it still cannot. */
+const initial = await resolveCart(urlLines).catch((error: unknown) => {
+  console.warn('[cart] first paint could not be priced:', error);
+  return resolveCart([]);
+});
 
 const copy = cartCopy();
 ---
@@ -77,6 +83,7 @@ const copy = cartCopy();
       checkoutPath={routePath(locale, 'checkout')}
       catalogPath={routePath(locale, 'catalog')}
       locale={localeTag(locale)}
+      siteLocale={locale}
     />
 
     {/*

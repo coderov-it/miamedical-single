@@ -1,9 +1,18 @@
 import type { Database } from '@mia/db';
-import { and, eq, notInArray, sql } from '@mia/db';
+import { and, eq, sql } from '@mia/db';
 import { orderItems, orders } from '@mia/db/schema';
 
+import {
+  isRentalLine,
+  rentalEndDate,
+  rentalOrderOpen,
+  rentalStartDate,
+  rentalStartedSql,
+  romeTodaySql,
+} from '../../shared/rental-calendar.ts';
 import * as links from './links.ts';
 import * as mail from './mail.ts';
+import { extendOfferKey } from './reminder-keys.ts';
 import { emit } from './write.ts';
 
 /**
@@ -19,14 +28,13 @@ import { emit } from './write.ts';
  * The window is "at most N days left", not "exactly N", so a sweep that missed
  * the day (server down) still sends it while the rental is running. It never
  * fires past the end date: by then the operator's overdue process owns it.
+ * Nor before the delivery day (the booked start date): a rental not yet with
+ * the customer is not offered an extension. The dedupe key carries the end
+ * date, so step 2's offer is a new row, not a repeat of step 1's.
  * Customers with an account only — the offer is a button on their order page.
  */
 
 const OFFER_SHARE = 0.2;
-
-const rentalStartDate = sql<string>`${orderItems.configuration}->'rental'->>'startDate'`;
-const rentalEndDate = sql<string>`${orderItems.configuration}->'rental'->>'endDate'`;
-const romeToday = sql`(now() AT TIME ZONE 'Europe/Rome')::date`;
 
 /** Where the current span starts: the newest active extension, else the rental itself. */
 const spanStart = sql<string>`COALESCE(
@@ -37,7 +45,7 @@ const spanStart = sql<string>`COALESCE(
 )`;
 
 export async function sweepExtendOffers(db: Database): Promise<number> {
-  const daysLeft = sql<number>`((${rentalEndDate})::date - ${romeToday})`;
+  const daysLeft = sql<number>`((${rentalEndDate})::date - ${romeTodaySql})`;
   const spanDays = sql<number>`((${rentalEndDate})::date - ${spanStart})`;
 
   const due = await db
@@ -56,10 +64,11 @@ export async function sweepExtendOffers(db: Database): Promise<number> {
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .where(
       and(
-        sql`${orderItems.configuration}->>'pricingMode' = 'rental'`,
+        isRentalLine,
         sql`COALESCE(${orderItems.configuration}->'rental'->>'unit', 'day') = 'day'`,
         sql`${orders.customerAccountId} IS NOT NULL`,
-        notInArray(orders.status, ['fulfilled', 'cancelled', 'refunded']),
+        rentalOrderOpen(),
+        rentalStartedSql,
         sql`${daysLeft} >= 0`,
         sql`${daysLeft} <= GREATEST(1, CEIL(${spanDays} * ${OFFER_SHARE}::numeric))`,
         sql`NOT EXISTS (
@@ -75,7 +84,7 @@ export async function sweepExtendOffers(db: Database): Promise<number> {
   let written = 0;
   for (const rental of due) {
     const accountId = rental.customerAccountId;
-    const key = `rental.extend_offer:${rental.orderId}:${rental.endsOn}`;
+    const key = extendOfferKey(rental.orderId, rental.endsOn);
     if (!accountId || seen.has(key)) continue;
     seen.add(key);
 
@@ -94,14 +103,17 @@ export async function sweepExtendOffers(db: Database): Promise<number> {
 
     /* The email goes only with a NEW row — the dedupe key is what stops a
        restart from mailing the same offer twice. */
-    await mail.sendRentalReminder({
-      email: rental.email,
-      customerName: `${rental.firstName ?? ''} ${rental.lastName ?? ''}`.trim(),
-      orderNumber: rental.orderNumber,
-      productTitle: rental.productTitle,
-      rentalEndDate: rental.endsOn,
-      extendUrl: links.accountOrderUrl(rental.orderNumber),
-    });
+    await mail.sendRentalReminder(
+      {
+        email: rental.email,
+        customerName: `${rental.firstName ?? ''} ${rental.lastName ?? ''}`.trim(),
+        orderNumber: rental.orderNumber,
+        productTitle: rental.productTitle,
+        rentalEndDate: rental.endsOn,
+        extendUrl: links.accountOrderUrl(rental.orderNumber),
+      },
+      { db, orderId: rental.orderId },
+    );
   }
   return written;
 }

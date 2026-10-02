@@ -2,12 +2,14 @@
   Everything that has happened to the order, oldest first, because that is how a
   sequence reads. `customerLink` joined `status`, `paymentStatus` and `contract`
   on the one timeline, and `extension` after it, so the field is named on every entry.
+  `email` is a send that failed: it has no "from", only the message that did not go.
 -->
 <script lang="ts">
   import * as Card from '$lib/components/ui/card/index.js';
   import { cn } from '$lib/utils.js';
   import { contractStatusMeta } from '~/lib/contracts/status';
   import { formatDateTime, orDash } from '~/lib/format';
+  import { emailEventMeta } from '~/lib/orders/email-event';
   import { orderStatusMeta, paymentStatusMeta } from '~/lib/orders/status';
   import type { OrderEvent } from '~/lib/orders/types';
   import { extensionStatusMeta } from '~/lib/rentals/extension-status';
@@ -24,12 +26,14 @@
     customerLink: 'Account link',
     contract: 'Contract',
     extension: 'Extension',
+    email: 'Email',
   };
 
   function eventMeta(field: string, toValue: string) {
     if (field === 'status') return orderStatusMeta(toValue);
     if (field === 'contract') return contractStatusMeta(toValue);
     if (field === 'extension') return extensionStatusMeta(toValue);
+    if (field === 'email') return emailEventMeta(toValue);
     return paymentStatusMeta(toValue);
   }
 </script>
@@ -55,8 +59,10 @@
                 <span class="text-muted-foreground">
                   {FIELD_LABELS[event.field] ?? event.field}
                 </span>
-                {orDash(event.fromValue)}
-                <span class="text-muted-foreground">→</span>
+                {#if event.field !== 'email'}
+                  {orDash(event.fromValue)}
+                  <span class="text-muted-foreground">→</span>
+                {/if}
                 <span class="font-medium">{meta.label}</span>
               </p>
               {#if event.note}

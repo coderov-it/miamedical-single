@@ -4,7 +4,7 @@ import type { VideoProvider } from '@mia/validators/video';
 /**
  * Media never gets a table: it is not searched, not filtered, and not shared
  * between products, so rows would buy referential integrity nothing needs.
- * Products carry one typed `media` jsonb column; the five icon-bearing tables
+ * Products carry one typed `media` jsonb column; the three icon-bearing tables
  * carry a plain `icon text` column holding the R2 object key.
  *
  * Upload rules live in `MEDIA_PROFILES` (`@mia/validators`): every image is
@@ -31,7 +31,7 @@ export interface MediaItem {
 /**
  * A video that lives elsewhere — YouTube, Facebook, or a direct file link.
  * `url` is canonical (see `parseVideoUrl`); the embed URL is derived, never
- * stored. No `path`, so the bucket commit and delete-diff never see it.
+ * stored. No `path`, so the bucket commit and the sweep never see it.
  */
 export interface ExternalVideo {
   provider: VideoProvider;

@@ -64,4 +64,14 @@ Hourly rentals cannot be extended online.
 - **No payment while an earlier contract is unsigned.** A renewal contract
   cannot be issued until the earlier contract is signed.
 - **The end date moves on signature, not on payment.** `activate.ts` runs inside
-  `contracts/service.sign` and is the only writer of the extended period.
+  the signing transaction (`contracts/signing.sign`) and is the only writer of the
+  extended period, so a signed renewal with an unmoved end date cannot exist. A
+  failure anywhere in it rolls the signature back and leaves the link usable.
+- **Issuing links in the same transaction.** The renewal contract and
+  `rental_extensions.contract_id` commit together; a second concurrent issue finds
+  the link taken and rolls back.
+- **Every status write is guarded on the state it expects** — payment from
+  `renew_pending`, cancel from the status it read, activation from
+  `awaiting_signature`. An operator cancelling while the customer signs gets a
+  409, not a cancelled extension behind a signed contract. Cancel voids the
+  contract and cancels the extension in one transaction.

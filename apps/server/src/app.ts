@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
-import { logger } from 'hono/logger';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 
@@ -41,12 +40,13 @@ import { withCustomerSession } from './shared/auth/customer-session.ts';
 import { withSession } from './shared/auth/session.ts';
 import type { AppEnv } from './shared/http/context.ts';
 import { onError, onNotFound } from './shared/http/error-handler.ts';
+import { requestLogger } from './shared/http/request-log.ts';
 
 const app = new Hono<AppEnv>();
 
 app.use('*', requestId());
 app.use('*', secureHeaders());
-app.use('*', logger());
+app.use('*', requestLogger);
 app.use('*', async (c, next) => {
   c.set('db', db);
   await next();

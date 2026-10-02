@@ -8,13 +8,13 @@
  * docs/code/storefront-checkout.md
  */
 import { durationLabel } from '@mia/i18n';
-import { DELIVERY_METHODS, priceRequest, sumMoney } from '@mia/pricing';
+import { DELIVERY_METHODS, priceRequest } from '@mia/pricing';
 import type { PlaceOrderItemInput } from '@mia/validators';
 import { formatMoney } from './api.ts';
 import { localeForRequest, localeTag } from './i18n.ts';
 import { t } from './labels.ts';
-import { type ProductDetail, getProductBySlug } from './catalog.ts';
-import { FIELD, type ResolvedRequest, formatDateLabel, resolveRequest } from './request-config.ts';
+import type { ProductDetail } from './catalog.ts';
+import { FIELD, type ResolvedRequest, formatDateLabel } from './request-config.ts';
 import { CONTACT, LOCATIONS } from './site.ts';
 import { SOURCE_LANGUAGE, translate } from '~/lib/i18n';
 import { CONTACT_HOURS_KEY } from '~/lib/site';
@@ -89,6 +89,12 @@ export interface CheckoutItem {
    */
   missingRequired: string[];
   /**
+   * This line's identity in the browser cart (`lineKey()` of its configuration,
+   * quantity excluded), so a placed order can take exactly its own lines out of
+   * the cart and nothing else.
+   */
+  cartKey: string;
+  /**
    * Always empty now that every rental total is a closed figure. Kept so the
    * cart's client-side re-format has one shape to read for both modes rather
    * than a field that appears only sometimes.
@@ -99,10 +105,12 @@ export interface CheckoutItem {
 /**
  * Why this request cannot be confirmed yet, or `null` when it can.
  *
- * Both reasons are things the API would refuse, checked here so the customer is
- * told what to do about it on the page that can still send them somewhere useful.
+ * `incomplete` and `noPackage` are things the API would refuse, checked here so
+ * the customer is told what to do about it on the page that can still send them
+ * somewhere useful. `unavailable` is ours: a line could not be READ (an outage,
+ * not a missing product), so placing the order now would silently leave it out.
  */
-export type CheckoutBlocked = 'incomplete' | 'noPackage' | null;
+export type CheckoutBlocked = 'unavailable' | 'incomplete' | 'noPackage' | null;
 
 export interface Checkout {
   items: CheckoutItem[];
@@ -125,6 +133,14 @@ export interface Checkout {
   blocked: CheckoutBlocked;
   /** The first blocking item, so the notice can name the product and the gap. */
   blockedItem: CheckoutItem | null;
+  /**
+   * Lines that could not be read because the catalogue did not answer — NOT
+   * because the product is gone (that line is dropped, as above). They are kept
+   * out of `items` only because there is nothing to render them from; the
+   * request still carries them, and `blocked` is `unavailable` until a retry
+   * reads them.
+   */
+  unavailable: number;
   currency: string;
 }
 
@@ -177,7 +193,7 @@ export function splitItemParams(params: URLSearchParams): URLSearchParams[] {
  * has already dropped everything that is not a real option, and a second walk
  * over the product would be a second chance to disagree with it.
  */
-function estimate(product: ProductDetail, request: ResolvedRequest) {
+export function estimate(product: ProductDetail, request: ResolvedRequest) {
   const unit = product.pricing.rentalUnit;
   const { currency } = product.pricing;
   const locale = localeForRequest();
@@ -244,7 +260,7 @@ function estimate(product: ProductDetail, request: ResolvedRequest) {
  * mean. The time is shown only on an hour package, where it is the difference
  * between a 4-hour rental and a whole day of one.
  */
-function buildFacts(product: ProductDetail, request: ResolvedRequest): ItemFact[] {
+export function buildFacts(product: ProductDetail, request: ResolvedRequest): ItemFact[] {
   const facts: ItemFact[] = [];
   const { period } = request;
 
@@ -275,97 +291,6 @@ function buildFacts(product: ProductDetail, request: ResolvedRequest): ItemFact[
   }
 
   return facts;
-}
-
-/**
- * The same line as `POST /api/orders` will be asked to record it.
- *
- * Built from the RESOLVED request, not from the raw query string, so a value the
- * page decided not to show is not a value the order is asked to contain — the two
- * would otherwise disagree the moment an option is retired. Every field here is a
- * choice; not one of them is an amount. The server prices it again from the
- * catalogue, and this page has no say in that.
- */
-function toOrderItem(product: ProductDetail, request: ResolvedRequest): PlaceOrderItemInput {
-  return {
-    productSlug: product.slug,
-    quantity: request.quantity,
-    ...(request.startDate ? { startDate: request.startDate } : {}),
-    ...(request.startTime ? { startTime: request.startTime } : {}),
-    ...(request.rentalPackage ? { rentalPackageCode: request.rentalPackage.code } : {}),
-    addons: request.addons.map((entry) => ({ id: entry.addon.id, quantity: entry.quantity })),
-    answers: request.answerValues,
-  };
-}
-
-/**
- * Required questions this configuration left unanswered.
- *
- * Read off the product, not off a list kept here, so a question the operator
- * marks required tomorrow starts blocking today's stale links without a deploy.
- */
-function missingRequired(product: ProductDetail, request: ResolvedRequest): string[] {
-  const missing: string[] = [];
-
-  for (const question of product.questions) {
-    if (question.isRequired && !request.answerValues[question.key]) missing.push(question.prompt);
-  }
-
-  return missing;
-}
-
-/**
- * Reads a checkout URL into priced line items.
- *
- * An unknown or unpublished slug is dropped rather than rendered as an
- * unavailable row: the customer cannot act on it here, and a checkout that
- * shows a product we cannot rent is worse than one that shows fewer.
- */
-export async function resolveCheckout(params: URLSearchParams): Promise<Checkout> {
-  const groups = splitItemParams(params);
-
-  const resolved = await Promise.all(
-    groups.map(async (group) => {
-      const slug = group.get(FIELD.product)?.trim() ?? '';
-      if (!slug) return null;
-      const product = await getProductBySlug(slug);
-      if (!product) return null;
-
-      const request = resolveRequest(product, group);
-      const priced = estimate(product, request);
-
-      return {
-        product,
-        request,
-        summary: request.rentalPackage?.label ?? '',
-        facts: buildFacts(product, request),
-        lines: priced.lines,
-        total: priced.total,
-        subtotal: priced.subtotal,
-        noPackage: priced.noPackage,
-        unitSuffix: priced.unitSuffix,
-        order: toOrderItem(product, request),
-        missingRequired: missingRequired(product, request),
-      } satisfies CheckoutItem;
-    }),
-  );
-
-  const items = resolved.filter((item): item is CheckoutItem => item !== null);
-
-  /* Incomplete before no-package: a line missing a required choice has to be
-     reconfigured anyway, and picking its package first would send the customer
-     back twice. */
-  const incomplete = items.find((item) => item.missingRequired.length > 0) ?? null;
-  const unpriced = items.find((item) => item.noPackage) ?? null;
-
-  return {
-    items,
-    itemsTotal: sumMoney(items.map((item) => item.total)),
-    noPackage: unpriced !== null,
-    blocked: incomplete ? 'incomplete' : unpriced ? 'noPackage' : null,
-    blockedItem: incomplete ?? unpriced,
-    currency: items[0]?.product.pricing.currency ?? 'EUR',
-  };
 }
 
 /**

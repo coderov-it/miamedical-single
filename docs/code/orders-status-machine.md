@@ -83,7 +83,9 @@ unaudited write path is the only way this invariant could be lost, so there
 isn't one.
 
 `order_status_events` is append-only. `field` is `status`, `paymentStatus`,
-`customerLink`, `contract` or `extension`. It is one table, so the timeline is a
+`customerLink`, `contract`, `extension` or `email`. `email` records a send that
+failed, `toValue` naming the message (`contract_ready`, …) — see
+`notifications-and-mail.md`. It is one table, so the timeline is a
 single ordered read. `extension` events record each step of a rental extension,
 whose own row in `rental_extensions` is the source of truth (see
 `rental-extensions.md`). `contract` events (written by `repo.insertContractEvent`)

@@ -18,12 +18,22 @@ import type { APIRoute } from 'astro';
 
 import { resolveCart } from '~/lib/cart';
 import { type CartLine, parseCartLines } from '~/lib/cart-store';
+import { DEFAULT_LOCALE, isLanguageCode, renderWithLocale } from '~/lib/i18n';
 
 export const prerender = false;
 
-/** The one shape this accepts: `{ lines: CartLine[] }`, the store's own shape. */
+/**
+ * The one shape this accepts: `{ lines: CartLine[], locale? }` — the store's own
+ * shape, plus the language of the cart page asking.
+ *
+ * The locale matters for more than the words: a slug is unique per language
+ * only, so a line has to be looked up in the language its slug was written in.
+ * This path carries no locale prefix, so without it every cart would be read
+ * in Italian.
+ */
 interface ResolveBody {
   lines?: unknown;
+  locale?: unknown;
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -59,5 +69,18 @@ export const POST: APIRoute = async ({ request }) => {
      whose 25th row is silently absent is a better failure than a cart page that
      refuses to load — and the ceiling exists to bound product reads, which
      truncation bounds just as well. */
-  return jsonResponse(await resolveCart(lines));
+  const locale =
+    typeof body.locale === 'string' && isLanguageCode(body.locale) ? body.locale : DEFAULT_LOCALE;
+
+  try {
+    return jsonResponse(
+      await renderWithLocale(locale, new URL(request.url).pathname, () => resolveCart(lines)),
+    );
+  } catch (error) {
+    /* The catalogue did not answer for some line. 503, not a shorter list: the
+       island keeps every stored line and its last figures, and says it could
+       not update. A shorter list would read as "these products are gone". */
+    console.warn('[cart] resolve failed:', error);
+    return jsonResponse({ error: 'catalog_unavailable' }, 503);
+  }
 };

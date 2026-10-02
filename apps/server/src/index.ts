@@ -5,7 +5,7 @@ import { env } from './config/env.ts';
 import { logFeatureSummary } from './config/features.ts';
 import { db } from './infra/db/client.ts';
 import { r2FileUploader } from './infra/media.ts';
-import { startStagingSweep } from './modules/media/sweep.ts';
+import { startMediaSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
 import { startNotificationSweep } from './modules/notifications/sweep.ts';
 import { startPushSweep } from './modules/push/sweep.ts';
@@ -17,7 +17,7 @@ const server = serve({ fetch: app.fetch, port: env.API_PORT, hostname: env.API_H
   logFeatureSummary();
 });
 
-startStagingSweep(r2FileUploader);
+startMediaSweep(r2FileUploader, db);
 
 /*
   The live feed's two halves. `hub.start()` opens the one LISTEN connection this

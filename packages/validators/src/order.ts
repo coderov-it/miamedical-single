@@ -106,6 +106,13 @@ const SelectionMapSchema = v.record(
 
 export const PlaceOrderItemSchema = v.strictObject({
   productSlug: SlugSchema,
+  /**
+   * The product the checkout page actually rendered. A slug is unique per
+   * language only, so it can name a different product in another language; the
+   * id cannot. Preferred by the server when present — the slug stays required
+   * because it is what a rejection names and what older clients send.
+   */
+  productId: v.optional(UuidSchema),
   quantity: v.pipe(
     v.number(),
     v.integer('Quantity must be a whole number.'),

@@ -6,7 +6,7 @@ import type { CreateCategoryInput, SpecInput, UpdateCategoryInput } from '@mia/v
 
 import type { FileUploader } from '@mia/media';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
-import { commitIcon } from '../products/media/service.ts';
+import { commitIcon, withMediaRollback } from '../products/media/service.ts';
 import * as repo from './repo.ts';
 import type { CategoryAggregate } from './types.ts';
 
@@ -61,9 +61,13 @@ export async function create(db: Database, storage: FileUploader, input: CreateC
     requiresDeposit: input.requiresDeposit,
     translations: normalizeTranslations(input.translations),
   });
-  if (input.icon) {
-    const icon = await commitIcon(storage, `categories/${id}`, null, input.icon, 'icon_256');
-    await repo.update(db, id, { icon });
+  const incomingIcon = input.icon;
+  if (incomingIcon) {
+    await withMediaRollback(storage, async (committed) => {
+      const scope = `categories/${id}`;
+      const icon = await commitIcon(storage, scope, null, incomingIcon, 'icon_256', committed);
+      await repo.update(db, id, { icon });
+    });
   }
   return getById(db, id);
 }
@@ -88,16 +92,20 @@ export async function update(
   if (input.translations !== undefined) {
     data.translations = normalizeTranslations(input.translations);
   }
-  if (input.icon !== undefined) {
-    data.icon = await commitIcon(
-      storage,
-      `categories/${id}`,
-      existing.icon,
-      input.icon,
-      'icon_256',
-    );
-  }
-  await repo.update(db, id, data);
+  // Commit, then write; a failed write deletes only the icon this save committed.
+  await withMediaRollback(storage, async (committed) => {
+    if (input.icon !== undefined) {
+      data.icon = await commitIcon(
+        storage,
+        `categories/${id}`,
+        existing.icon,
+        input.icon,
+        'icon_256',
+        committed,
+      );
+    }
+    await repo.update(db, id, data);
+  });
   return getById(db, id);
 }
 
@@ -137,90 +145,90 @@ export async function replaceSpecs(
     existing.specs.flatMap((spec) => spec.options.map((option) => [option.id, option])),
   );
 
-  // Icons commit outside the transaction — object storage has no rollback.
-  const iconByIndex = new Map<number, string | null>();
-  for (const [index, spec] of specs.entries()) {
-    const stored = spec.id ? (existingById.get(spec.id)?.icon ?? null) : null;
-    iconByIndex.set(
-      index,
-      await commitIcon(storage, `specs/${categoryId}`, stored, spec.icon, 'icon_256'),
-    );
-  }
-
-  await db.transaction(async (tx) => {
-    const keptSpecIds: string[] = [];
-    const keptOptionIds: string[] = [];
-
+  /* Icons commit before the transaction — object storage has no transaction —
+     and `withMediaRollback` deletes only the icons this save committed if
+     anything after them throws. Replaced and removed icons stay for the sweep. */
+  await withMediaRollback(storage, async (committed) => {
+    const iconByIndex = new Map<number, string | null>();
     for (const [index, spec] of specs.entries()) {
-      const values = {
-        categoryId,
-        key: spec.key,
-        label: spec.label,
-        helpText: spec.helpText ?? null,
-        valueType: spec.valueType,
-        unit: spec.unit ?? null,
-        isRequired: spec.isRequired,
-        isFilterable: spec.isFilterable,
-        isComparable: spec.isComparable,
-        icon: iconByIndex.get(index) ?? null,
-        position: spec.position,
-      };
+      const stored = spec.id ? (existingById.get(spec.id)?.icon ?? null) : null;
+      iconByIndex.set(
+        index,
+        await commitIcon(storage, `specs/${categoryId}`, stored, spec.icon, 'icon_256', committed),
+      );
+    }
 
-      let specId: string;
-      if (spec.id && existingById.has(spec.id)) {
-        specId = spec.id;
-        await tx.update(categorySpecs).set(values).where(eq(categorySpecs.id, specId));
-      } else {
-        const [inserted] = await tx
-          .insert(categorySpecs)
-          .values(values)
-          .returning({ id: categorySpecs.id });
-        if (!inserted) throw new Error('Spec insert returned no row.');
-        specId = inserted.id;
-      }
-      keptSpecIds.push(specId);
+    await db.transaction(async (tx) => {
+      const keptSpecIds: string[] = [];
+      const keptOptionIds: string[] = [];
 
-      for (const option of spec.options) {
-        const optionValues = {
-          specId,
-          value: option.value,
-          label: option.label,
-          position: option.position,
+      for (const [index, spec] of specs.entries()) {
+        const values = {
+          categoryId,
+          key: spec.key,
+          label: spec.label,
+          helpText: spec.helpText ?? null,
+          valueType: spec.valueType,
+          unit: spec.unit ?? null,
+          isRequired: spec.isRequired,
+          isFilterable: spec.isFilterable,
+          isComparable: spec.isComparable,
+          icon: iconByIndex.get(index) ?? null,
+          position: spec.position,
         };
-        if (option.id && existingOptionById.get(option.id)?.specId === specId) {
-          await tx
-            .update(categorySpecOptions)
-            .set(optionValues)
-            .where(eq(categorySpecOptions.id, option.id));
-          keptOptionIds.push(option.id);
+
+        let specId: string;
+        if (spec.id && existingById.has(spec.id)) {
+          specId = spec.id;
+          await tx.update(categorySpecs).set(values).where(eq(categorySpecs.id, specId));
         } else {
           const [inserted] = await tx
-            .insert(categorySpecOptions)
-            .values(optionValues)
-            .returning({ id: categorySpecOptions.id });
-          if (!inserted) throw new Error('Spec option insert returned no row.');
-          keptOptionIds.push(inserted.id);
+            .insert(categorySpecs)
+            .values(values)
+            .returning({ id: categorySpecs.id });
+          if (!inserted) throw new Error('Spec insert returned no row.');
+          specId = inserted.id;
+        }
+        keptSpecIds.push(specId);
+
+        for (const option of spec.options) {
+          const optionValues = {
+            specId,
+            value: option.value,
+            label: option.label,
+            position: option.position,
+          };
+          if (option.id && existingOptionById.get(option.id)?.specId === specId) {
+            await tx
+              .update(categorySpecOptions)
+              .set(optionValues)
+              .where(eq(categorySpecOptions.id, option.id));
+            keptOptionIds.push(option.id);
+          } else {
+            const [inserted] = await tx
+              .insert(categorySpecOptions)
+              .values(optionValues)
+              .returning({ id: categorySpecOptions.id });
+            if (!inserted) throw new Error('Spec option insert returned no row.');
+            keptOptionIds.push(inserted.id);
+          }
         }
       }
-    }
 
-    const removedOptionIds = [...existingOptionById.keys()].filter(
-      (id) => !keptOptionIds.includes(id),
-    );
-    if (removedOptionIds.length > 0) {
-      await tx.delete(categorySpecOptions).where(inArray(categorySpecOptions.id, removedOptionIds));
-    }
-    const removedSpecIds = [...existingById.keys()].filter((id) => !keptSpecIds.includes(id));
-    if (removedSpecIds.length > 0) {
-      await tx.delete(categorySpecs).where(inArray(categorySpecs.id, removedSpecIds));
-    }
+      const removedOptionIds = [...existingOptionById.keys()].filter(
+        (id) => !keptOptionIds.includes(id),
+      );
+      if (removedOptionIds.length > 0) {
+        await tx
+          .delete(categorySpecOptions)
+          .where(inArray(categorySpecOptions.id, removedOptionIds));
+      }
+      const removedSpecIds = [...existingById.keys()].filter((id) => !keptSpecIds.includes(id));
+      if (removedSpecIds.length > 0) {
+        await tx.delete(categorySpecs).where(inArray(categorySpecs.id, removedSpecIds));
+      }
+    });
   });
-
-  for (const spec of existing.specs) {
-    if (spec.icon && !specs.some((s) => s.id === spec.id)) {
-      await storage.delete(spec.icon).catch(() => undefined);
-    }
-  }
 
   return getById(db, categoryId);
 }

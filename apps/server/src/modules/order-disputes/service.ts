@@ -88,6 +88,7 @@ export async function create(
   */
   await notifications.sendDisputeAlert(db, {
     disputeId: row.id,
+    orderId: order.id,
     order: { number: order.number, total: order.total, currency: order.currency },
     orderEmail: order.email,
     reportedPhone: input.reportedPhone,

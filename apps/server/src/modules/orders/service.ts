@@ -253,17 +253,24 @@ export function movePaymentStatus(
 /**
  * The catalogue product behind one checkout line, as the storefront saw it.
  *
- * The storefront is Italian-only, so the locale is a constant — but it is the
- * SAME projection the product page was rendered from, which is what lets
- * `resolveLine` freeze the very labels the customer read.
+ * By id when the storefront sent one — the product the page rendered, whatever
+ * language its slug was in. Otherwise by slug, in Italian first: the checkout
+ * page resolves its lines in the source language, and `findIdBySlug` accepts
+ * another language's slug only when it belongs to one product.
+ *
+ * The labels are always projected in Italian — the SAME projection the checkout
+ * page priced from, which is what lets `resolveLine` freeze the very labels the
+ * customer read.
  *
  * A product that has since been unpublished is a 422 naming the line, not a 404:
  * the request is well-formed, one thing in it can no longer be honoured, and the
  * checkout has to be able to say which.
  */
-async function loadProduct(db: Database, slug: string, field: string) {
-  const hit = await productRepo.findIdBySlug(db, slug);
-  const product = hit ? await productRepo.findAggregate(db, hit.productId) : undefined;
+async function loadProduct(db: Database, item: PlaceOrderInput['items'][number], field: string) {
+  const productId =
+    item.productId ??
+    (await productRepo.findIdBySlug(db, item.productSlug, SOURCE_LANGUAGE))?.productId;
+  const product = productId ? await productRepo.findAggregate(db, productId) : undefined;
 
   if (!product || product.status !== 'active') {
     throw httpError(422, 'That product is no longer available.', 'unprocessable_entity', {
@@ -388,7 +395,7 @@ export async function place(
      race. */
   for (const [index, item] of input.items.entries()) {
     const field = `items.${index}`;
-    const product = await loadProduct(db, item.productSlug, field);
+    const product = await loadProduct(db, item, field);
     lines.push(resolveLine(product, item, field));
   }
 
@@ -600,21 +607,23 @@ async function sendPlacementMail(
     order,
     reportToken,
   };
+  // A failed send is written on this order's timeline (notifications/mail-failure.ts).
+  const trail = { db, orderId: input.orderId };
 
   switch (account.mailPlan) {
     case 'newAccount':
       // `needsActivation` guarantees the token; the check keeps the type honest.
       if (activationToken) {
-        await notifications.sendOrderPlacedNewAccount({ ...common, activationToken });
+        await notifications.sendOrderPlacedNewAccount({ ...common, activationToken }, trail);
       }
       return;
     case 'activateReminder':
       if (activationToken) {
-        await notifications.sendOrderPlacedActivateReminder({ ...common, activationToken });
+        await notifications.sendOrderPlacedActivateReminder({ ...common, activationToken }, trail);
       }
       return;
     case 'confirmation':
-      await notifications.sendOrderPlacedConfirmation(common);
+      await notifications.sendOrderPlacedConfirmation(common, trail);
       return;
   }
 }

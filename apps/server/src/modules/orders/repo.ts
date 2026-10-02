@@ -1,6 +1,6 @@
 /** DB queries for orders and carts. Plain records out — no auth, no DTOs. */
 
-import type { Database, Transaction } from '@mia/db';
+import type { Database, DatabaseWriter, Transaction } from '@mia/db';
 import { and, asc, count, desc, eq, gte, ilike, inArray, lt, lte, or, sql } from '@mia/db';
 import {
   adminUsers,
@@ -628,7 +628,10 @@ export interface ContractEventData {
  * its status; the event exists so "the customer signed" reads in the same place
  * every other fact about the order does.
  */
-export async function insertContractEvent(db: Database, event: ContractEventData): Promise<void> {
+export async function insertContractEvent(
+  db: DatabaseWriter,
+  event: ContractEventData,
+): Promise<void> {
   await db.insert(orderStatusEvents).values({
     orderId: event.orderId,
     field: 'contract',

@@ -60,9 +60,14 @@ if (!product || product.slug !== slug) {
 const alternateLocales = LOCALES.filter(
   (candidate) => candidate !== locale && product.availableLocales.includes(candidate),
 );
+/* The page's own read above THROWS on an outage (a 5xx, never a false 404). An
+   alternate that fails to load only loses its language link for this render. */
 const alternates = await Promise.all(
   alternateLocales.map(async (candidate) => {
-    const alternate = await getProductBySlug(slug, candidate);
+    const alternate = await getProductBySlug(slug, candidate).catch((error: unknown) => {
+      console.warn(`[product] ${slug} (${candidate}) alternate could not be read:`, error);
+      return null;
+    });
     return alternate ? ([candidate, productPath(alternate.slug, {}, candidate)] as const) : null;
   }),
 );

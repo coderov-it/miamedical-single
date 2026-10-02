@@ -12,6 +12,8 @@
  *                   └─→ summary.paintTotal(), stepper.paint()
  *   "Continua"      ──→ gates.enforce(step)   marks what is missing, or moves on
  *   step 3 opens    ──→ summary.paintReview()
+ *   "Invia" → 422   ──→ gates.rejectFromServer() → stepper.goTo(step)
+ *                   └─→ gates.revealServerErrors()   marks, scrolls, focuses
  *
  * `refresh()` only ever HIDES a message; `enforce()` is the only thing that
  * reveals one. A customer part-way through typing has not failed anything yet.
@@ -28,7 +30,19 @@ const context = createContext();
 if (context) {
   const gates = createCheckoutGates(context);
   const summary = createSummary(context);
-  wirePlaceOrder(context);
+  const placeOrder = wirePlaceOrder(context, {
+    /* The step holding the first rejected field opens BEFORE the reveal, so
+       focus lands on a control the customer can see. `stepper` is assigned
+       below; this only runs on a server answer, long after. */
+    onRejected: (fields) => {
+      const step = gates.rejectFromServer(fields);
+      if (step === null) return false;
+      stepper.goTo(step);
+      gates.revealServerErrors();
+      return true;
+    },
+    onAdopted: () => stepper.goTo(3),
+  });
 
   const stepper = createStepper(context, {
     canLeave: (step) => gates.enforce(step),
@@ -81,4 +95,7 @@ if (context) {
   stepper.selectType(context.state.type);
   stepper.paint();
   summary.paintTotal();
+
+  /* Last, so a remembered placement opens step 3 over the fresh form. */
+  placeOrder.resume();
 }

@@ -63,7 +63,12 @@ export const productPublicRoutes = new Hono<AppEnv>()
     async (c) => {
       const { slug } = c.req.valid('param');
       const { locale } = c.req.valid('query');
-      const product = await catalogService.getPublicBySlug(c.get('db'), slug, c.get('user'));
+      const product = await catalogService.getPublicBySlug(
+        c.get('db'),
+        slug,
+        locale,
+        c.get('user'),
+      );
 
       return c.json({ data: toPublicDetail(product, locale) });
     },

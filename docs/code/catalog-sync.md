@@ -180,8 +180,9 @@ products/4b91…/1a2b3c4d-slim-self-propelled-1.webp
 
 So an unchanged photo costs one `head()` and no upload on a re-run, and editing
 a photo under the same file name produces a different key and really does
-replace what the product shows. The superseded object stays in the bucket — the
-hourly sweep only covers `_staging/`.
+replace what the product shows. The superseded object stays in the bucket until
+the hourly sweep finds no row naming it (24 h grace, see
+[media-lifecycle.md](media-lifecycle.md)).
 
 A file that will not encode is reported, counted and skipped: one broken JPEG
 must not cost the other ninety-seven products their sync. Re-run to retry.

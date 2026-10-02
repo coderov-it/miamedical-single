@@ -35,8 +35,25 @@ const REQUIRED_DOCUMENTS: Record<string, { title: string; description: string }>
 
 const slug = Astro.params.terms ?? '';
 const locale = localeFromLocals(Astro.locals);
-const document = slug ? await getTermsBySlug(slug, locale) : null;
 const required = REQUIRED_DOCUMENTS[slug];
+
+/*
+ * An outage is not a missing document. A required one keeps rendering its
+ * "being written" fallback, as it always has; any other slug lets the failure
+ * surface as a 5xx rather than telling a crawler the page is gone.
+ */
+async function readDocument() {
+  if (!slug) return null;
+  try {
+    return await getTermsBySlug(slug, locale);
+  } catch (error) {
+    if (!required) throw error;
+    console.warn(`[terms] ${slug} (${locale}) could not be read:`, error);
+    return null;
+  }
+}
+
+const document = await readDocument();
 
 if ((!document && !required) || (document && document.slug !== slug)) {
   return Astro.rewrite('/404');

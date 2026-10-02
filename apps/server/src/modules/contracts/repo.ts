@@ -1,5 +1,5 @@
 import type { Database, DatabaseWriter } from '@mia/db';
-import { and, count, desc, eq, ilike, ne, or, sql } from '@mia/db';
+import { and, count, desc, eq, gt, ilike, inArray, isNull, ne, or, sql } from '@mia/db';
 import {
   adminUsers,
   categories,
@@ -56,35 +56,47 @@ async function nextContractNumber(tx: Pick<Database, 'execute'>): Promise<string
   return `CTR-${new Date().getUTCFullYear()}-${counter.padStart(6, '0')}`;
 }
 
+/**
+ * Inserts a `generated` contract. The number is drawn first so the stored
+ * snapshot carries it from the start — `build` receives it. Called inside the
+ * issuing transaction, which also writes the signing token.
+ */
 export async function create(
-  db: Database,
+  db: DatabaseWriter,
   data: {
     orderId: string | null;
     variant: ContractVariant;
     language: string;
     requiresDeposit: boolean;
     depositAmount: string | null;
-    contractData: Record<string, unknown>;
+    contractData: (number: string) => Record<string, unknown>;
   },
 ): Promise<{ id: string; number: string }> {
-  return db.transaction(async (tx) => {
-    const number = await nextContractNumber(tx);
-    const [row] = await tx
-      .insert(contracts)
-      .values({
-        number,
-        orderId: data.orderId,
-        variant: data.variant,
-        status: 'generated',
-        language: data.language,
-        requiresDeposit: data.requiresDeposit,
-        depositAmount: data.depositAmount,
-        contractData: data.contractData,
-      })
-      .returning({ id: contracts.id, number: contracts.number });
-    if (!row) throw new Error('Contract insert returned no row.');
-    return row;
-  });
+  const number = await nextContractNumber(db);
+  const [row] = await db
+    .insert(contracts)
+    .values({
+      number,
+      orderId: data.orderId,
+      variant: data.variant,
+      status: 'generated',
+      language: data.language,
+      requiresDeposit: data.requiresDeposit,
+      depositAmount: data.depositAmount,
+      contractData: data.contractData(number),
+    })
+    .returning({ id: contracts.id, number: contracts.number });
+  if (!row) throw new Error('Contract insert returned no row.');
+  return row;
+}
+
+/**
+ * Holds the order row for the rest of the issuing transaction, so two
+ * concurrent "Generate contract" calls queue behind each other and the second
+ * sees the first's contract in its live-contract check.
+ */
+export async function lockOrder(db: DatabaseWriter, orderId: string): Promise<void> {
+  await db.select({ id: orders.id }).from(orders).where(eq(orders.id, orderId)).for('update');
 }
 
 export async function findMany(
@@ -131,7 +143,10 @@ export async function findMany(
   };
 }
 
-export async function findById(db: Database, id: string): Promise<ContractDetailRow | undefined> {
+export async function findById(
+  db: DatabaseWriter,
+  id: string,
+): Promise<ContractDetailRow | undefined> {
   const rows = await db
     .select({
       contract: contracts,
@@ -173,7 +188,7 @@ export async function findAllByOrderId(
 
 /** The newest contract that still counts — voided ones are dead paper. */
 export async function findLatestActiveByOrderId(
-  db: Database,
+  db: DatabaseWriter,
   orderId: string,
 ): Promise<ContractSummaryRow | undefined> {
   const rows = await db
@@ -214,32 +229,64 @@ export async function orderRequiresDeposit(db: Database, orderId: string): Promi
   return rows[0]?.value ?? false;
 }
 
+/** States a signature may still be taken from. */
+export const SIGNABLE_STATUSES: ContractStatus[] = ['generated', 'sent', 'viewed'];
+
 /**
- * Takes either handle: signing has to move the status and raise the operator's
- * notification atomically, so this is called once from a request and once from
- * inside a transaction.
+ * Moves the contract to `status` only while it is still in one of `from` — the
+ * guard that keeps a void from overwriting a signature committed a moment
+ * earlier, and a second signature from overwriting the first. False when the
+ * row had already moved on; the caller decides what that means.
  */
-export async function updateStatus(
+export async function updateStatusIf(
   db: DatabaseWriter,
   id: string,
+  from: ContractStatus[],
   status: ContractStatus,
   patch: Partial<typeof contracts.$inferInsert> = {},
-): Promise<void> {
-  await db
+): Promise<boolean> {
+  const rows = await db
     .update(contracts)
     .set({ status, ...patch })
-    .where(eq(contracts.id, id));
+    .where(and(eq(contracts.id, id), inArray(contracts.status, from)))
+    .returning({ id: contracts.id });
+  return rows.length > 0;
+}
+
+/** Rewrites the snapshot of a contract that is not yet signed or voided. */
+export async function updateDataIfOpen(
+  db: DatabaseWriter,
+  id: string,
+  contractData: Record<string, unknown>,
+): Promise<boolean> {
+  const rows = await db
+    .update(contracts)
+    .set({ contractData })
+    .where(and(eq(contracts.id, id), inArray(contracts.status, SIGNABLE_STATUSES)))
+    .returning({ id: contracts.id });
+  return rows.length > 0;
+}
+
+/**
+ * Opening the link: `viewed`, from a state before it only. The first view's
+ * time is kept across resends. A viewed, signed or voided contract is untouched.
+ */
+export async function markViewed(db: DatabaseWriter, id: string): Promise<void> {
+  await db
+    .update(contracts)
+    .set({ status: 'viewed', viewedAt: sql`COALESCE(${contracts.viewedAt}, now())` })
+    .where(and(eq(contracts.id, id), inArray(contracts.status, ['generated', 'sent'])));
 }
 
 export async function createSigningToken(
-  db: Database,
+  db: DatabaseWriter,
   data: { id: string; contractId: string; expiresAt: Date },
 ): Promise<void> {
   await db.insert(contractSigningTokens).values(data);
 }
 
 export async function findSigningToken(
-  db: Database,
+  db: DatabaseWriter,
   tokenHash: string,
 ): Promise<
   | {
@@ -259,9 +306,25 @@ export async function findSigningToken(
   return { token: tokenRow, contract };
 }
 
-export async function consumeSigningToken(db: Database, tokenHash: string): Promise<void> {
-  await db
+/**
+ * Spends the token, but only one that is unspent and unexpired — the contract
+ * id it was for, or null. Runs inside the signing transaction, so a signature
+ * that fails to save leaves the token as it was.
+ */
+export async function consumeSigningToken(
+  db: DatabaseWriter,
+  tokenHash: string,
+): Promise<string | null> {
+  const [row] = await db
     .update(contractSigningTokens)
     .set({ consumedAt: new Date() })
-    .where(eq(contractSigningTokens.id, tokenHash));
+    .where(
+      and(
+        eq(contractSigningTokens.id, tokenHash),
+        isNull(contractSigningTokens.consumedAt),
+        gt(contractSigningTokens.expiresAt, new Date()),
+      ),
+    )
+    .returning({ contractId: contractSigningTokens.contractId });
+  return row?.contractId ?? null;
 }
