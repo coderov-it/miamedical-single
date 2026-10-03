@@ -1,3 +1,5 @@
+import { styleText } from 'node:util';
+
 import { env } from './env.ts';
 
 /**
@@ -35,7 +37,7 @@ export const FEATURES = {
  * logging.
  */
 export function logFeatureSummary(): void {
-  const rows: [string, string][] = [
+  const rows: [string, State][] = [
     ['mail', mailState()],
     ['push', pushState()],
     ['object storage', objectStorageState()],
@@ -43,10 +45,51 @@ export function logFeatureSummary(): void {
     ['media sweep', mediaSweepState()],
   ];
 
-  const width = Math.max(...rows.map(([label]) => label.length));
-  for (const [label, state] of rows) {
-    console.log(`  ${label.padEnd(width)}  ${state}`);
-  }
+  for (const line of renderTable(rows)) console.log(line);
+}
+
+/**
+ * `ok` is configured and live, `notice` is a deliberate stand-in (console mail, stub
+ * translation), `error` is selected but unconfigured — every use of it will fail.
+ */
+type Tone = 'ok' | 'notice' | 'error';
+type State = { tone: Tone; value: string; note?: string };
+
+const TONE_COLOR = { ok: 'green', notice: 'yellow', error: 'red' } as const;
+
+/*
+  A two-column box with no header. Widths are measured on the plain text, before
+  styling, because the escape codes `styleText` adds have length but no width.
+  `styleText` drops colour when stdout is not a TTY or NO_COLOR is set, so a
+  piped or pm2 log stays plain.
+*/
+function renderTable(rows: [string, State][]): string[] {
+  const labelWidth = Math.max(...rows.map(([label]) => label.length));
+  const stateWidth = Math.max(...rows.map(([, state]) => plainState(state).length));
+  const border = (text: string) => styleText('gray', text);
+  const rule = (left: string, middle: string, right: string) =>
+    border(`  ${left}${'─'.repeat(labelWidth + 2)}${middle}${'─'.repeat(stateWidth + 2)}${right}`);
+
+  const body = rows.map(([label, state]) => {
+    const padding = ' '.repeat(stateWidth - plainState(state).length);
+    const labelCell = styleText('bold', label.padEnd(labelWidth));
+    return `  ${border('│')} ${labelCell} ${border('│')} ${styledState(state)}${padding} ${border('│')}`;
+  });
+
+  return [rule('┌', '┬', '┐'), ...body, rule('└', '┴', '┘')];
+}
+
+function plainState(state: State): string {
+  if (!state.note) return `● ${state.value}`;
+  return `● ${state.value} — ${state.note}`;
+}
+
+/* The dot and value carry the tone; the note is dimmed so the value reads first. */
+function styledState(state: State): string {
+  const color = TONE_COLOR[state.tone];
+  const head = `${styleText(color, '●')} ${styleText(['bold', color], state.value)}`;
+  if (!state.note) return head;
+  return `${head}${styleText('dim', ` — ${state.note}`)}`;
 }
 
 /**
@@ -56,9 +99,9 @@ export function logFeatureSummary(): void {
  * Firebase setup announces itself, which makes naming the missing variable rather
  * than merely saying "disabled" the whole point of it.
  */
-function pushState(): string {
+function pushState(): State {
   if (env.PUSH_TRANSPORT === 'console') {
-    return 'console — printed to this log, no device is notified';
+    return { tone: 'notice', value: 'console', note: 'printed to this log, no device is notified' };
   }
 
   const missing = (
@@ -72,23 +115,31 @@ function pushState(): string {
     .map(([name]) => name);
 
   if (missing.length > 0) {
-    return `fcm — ${missing.join(' and ')} unset, every send will fail`;
+    return {
+      tone: 'error',
+      value: 'fcm',
+      note: `${missing.join(' and ')} unset, every send will fail`,
+    };
   }
 
-  return 'fcm';
+  return { tone: 'ok', value: 'fcm' };
 }
 
-function mailState(): string {
+function mailState(): State {
   if (env.MAIL_TRANSPORT === 'console') {
-    return 'console — printed to this log, nothing is sent';
+    return { tone: 'notice', value: 'console', note: 'printed to this log, nothing is sent' };
   }
 
   const missing = missingMailConfig();
   if (missing.length > 0) {
-    return `${env.MAIL_TRANSPORT} — ${missing.join(' and ')} unset, every send will fail`;
+    return {
+      tone: 'error',
+      value: env.MAIL_TRANSPORT,
+      note: `${missing.join(' and ')} unset, every send will fail`,
+    };
   }
 
-  return env.MAIL_TRANSPORT;
+  return { tone: 'ok', value: env.MAIL_TRANSPORT };
 }
 
 /**
@@ -121,12 +172,12 @@ function missingMailConfig(): string[] {
   Making it one means the media routes consulting FEATURES instead of discovering the
   problem mid-upload — a change to that module, not to this file.
 */
-function objectStorageState(): string {
+function objectStorageState(): State {
   if (!env.R2_ACCOUNT_ID || !env.R2_BUCKET) {
-    return 'unset — media uploads will fail';
+    return { tone: 'error', value: 'unset', note: 'media uploads will fail' };
   }
 
-  return `R2 ${env.R2_BUCKET}`;
+  return { tone: 'ok', value: `R2 ${env.R2_BUCKET}` };
 }
 
 /**
@@ -135,17 +186,27 @@ function objectStorageState(): string {
  * "the stub is filling the dev database with `[fr]`" are both answered here
  * rather than by reading the config file.
  */
-function translationState(): string {
+function translationState(): State {
   if (env.TRANSLATION_PROVIDER === 'none') {
-    return 'off — operators fill each language by hand';
+    return { tone: 'notice', value: 'off', note: 'operators fill each language by hand' };
   }
   if (env.TRANSLATION_PROVIDER === 'stub') {
-    return 'stub — placeholder text, development only';
+    return { tone: 'notice', value: 'stub', note: 'placeholder text, development only' };
   }
-  return 'deepl';
+  return { tone: 'ok', value: 'deepl' };
 }
 
-function mediaSweepState(): string {
-  if (FEATURES.mediaReclaim) return 'delete — unreferenced photos and icons are removed hourly';
-  return 'report — unreferenced photos and icons are counted, never deleted';
+function mediaSweepState(): State {
+  if (FEATURES.mediaReclaim) {
+    return {
+      tone: 'ok',
+      value: 'delete',
+      note: 'unreferenced photos and icons are removed hourly',
+    };
+  }
+  return {
+    tone: 'notice',
+    value: 'report',
+    note: 'unreferenced photos and icons are counted, never deleted',
+  };
 }

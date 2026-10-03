@@ -7,7 +7,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
+  import LoadingState from '~/lib/components/loading-state.svelte';
   import { routes } from '~/lib/routes';
 
   $effect(() => {
@@ -15,7 +15,4 @@
   });
 </script>
 
-<div class="flex items-center gap-2 p-8 text-sm text-muted-foreground">
-  <Spinner />
-  Opening the category editor…
-</div>
+<LoadingState label="Opening the category editor…" />

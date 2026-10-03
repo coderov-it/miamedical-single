@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import node from '@astrojs/node';
 import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 
 const site = process.env.PUBLIC_SITE_URL ?? 'http://localhost:4321';
 
@@ -37,6 +37,19 @@ export default defineConfig({
    * rewrites rather than as page files. `pages/sitemap.xml.ts` replaces it.
    */
   integrations: [svelte()],
+
+  /**
+   * Server secrets read at RUNTIME through `astro:env/server` — never inlined
+   * into the build, unlike a bare `import.meta.env.X`.
+   *
+   * PLAYGROUND_TOKEN unset is the playground switched off: every
+   * `/playground/*` URL 404s. See `src/lib/playground.ts`.
+   */
+  env: {
+    schema: {
+      PLAYGROUND_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+    },
+  },
 
   prefetch: {
     prefetchAll: true,

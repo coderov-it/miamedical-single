@@ -39,6 +39,10 @@ export const ACCOUNT_ISLAND_KEYS = [
   // shell
   'account.metaTitle',
   'account.loading',
+  'account.order.loading',
+  'account.orders.loading',
+  'account.notifications.loading',
+  'account.notifications.preferences.loading',
   'account.title',
   'account.signOut',
   'account.myOrders',

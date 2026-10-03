@@ -4,9 +4,9 @@
 
   import AppSidebar from '~/lib/components/app-sidebar.svelte';
   import AppTopbar from '~/lib/components/app-topbar.svelte';
+  import LoadingState from '~/lib/components/loading-state.svelte';
   import RouteAccessGuard from '~/lib/components/route-access-guard.svelte';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
 
@@ -23,14 +23,9 @@
 </script>
 
 {#if session.loading}
-  <div class="flex h-svh items-center justify-center gap-2 text-sm text-muted-foreground">
-    <Spinner />
-    Loading workspace…
-  </div>
+  <LoadingState class="h-svh" label="Loading your workspace…" />
 {:else if !session.isAuthenticated}
-  <div class="flex h-svh items-center justify-center text-sm text-muted-foreground">
-    Redirecting to sign in…
-  </div>
+  <LoadingState class="h-svh" label="Redirecting to sign in…" />
 {:else}
   <Sidebar.Provider>
     <AppSidebar />

@@ -16,9 +16,9 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import BusyButton from '~/lib/components/busy-button.svelte';
+  import LoadingState from '~/lib/components/loading-state.svelte';
   import MoneyInput from '~/lib/components/money-input.svelte';
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { formatDate, formatMoney } from '~/lib/format';
@@ -146,7 +146,7 @@
     </Dialog.Header>
 
     {#if loading || !overview}
-      <div class="flex justify-center py-8"><Spinner /></div>
+      <LoadingState label="Loading the extension options…" />
     {:else}
       <form
         class="space-y-4"

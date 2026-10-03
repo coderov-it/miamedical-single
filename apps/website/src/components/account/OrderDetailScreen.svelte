@@ -19,6 +19,7 @@
   import OrderStatusPill from './OrderStatusPill.svelte';
   import RentalExtensionPanel from './RentalExtensionPanel.svelte';
   import { CARD, HEADING } from './fields';
+  import LoadingState from '../primitives/LoadingState.svelte';
 
   interface Props {
     number: string;
@@ -76,7 +77,7 @@
     </AccountLink>
   </div>
 {:else if !order}
-  <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
+  <LoadingState framed label={say(copy, 'account.order.loading')} />
 {:else}
   <article>
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">

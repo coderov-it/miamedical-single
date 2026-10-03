@@ -1,0 +1,22 @@
+---
+/**
+ * Registry key → the view that renders it. Lives here, not in
+ * `lib/playground.ts`, because only an .astro file can import an .astro view.
+ */
+import type { PlaygroundDemo } from '~/lib/playground';
+
+import LoadingStates from './LoadingStates.astro';
+
+interface Props {
+  demo: PlaygroundDemo;
+}
+
+const VIEWS = {
+  'loading/states': LoadingStates,
+} as const satisfies Record<string, unknown>;
+
+const { demo } = Astro.props;
+const View = VIEWS[`${demo.category}/${demo.part}` as keyof typeof VIEWS];
+---
+
+{View && <View />}

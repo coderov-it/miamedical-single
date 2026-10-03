@@ -22,6 +22,7 @@
   import PasswordForm from './PasswordForm.svelte';
   import ProfileForm from './ProfileForm.svelte';
   import { CARD, HEADING, TILE_LABEL } from './fields';
+  import LoadingState from '../primitives/LoadingState.svelte';
 
   const { copy, orders, session } = accountContext();
 
@@ -63,7 +64,7 @@
   </div>
 
   {#if rows === null}
-    <p class="text-ink-2 mt-4 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
+    <LoadingState framed class="mt-4" label={say(copy, 'account.orders.loading')} />
   {:else if orders.listError}
     <div class={CARD + ' mt-4'}>
       <div class="bg-danger-tint text-danger rounded-field px-4 py-3 text-sm" role="status">
