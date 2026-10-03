@@ -1,0 +1,89 @@
+---
+/**
+ * Every LoadingState combination, each on the two grounds the storefront
+ * paints — the grey page field and a white card — with the exact markup that
+ * produces it. Labels are the real ones, in the request's language.
+ */
+import LoadingState from '~/components/primitives/LoadingState.svelte';
+import { localeFromLocals, translate } from '~/lib/i18n';
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+const SPECIMENS = [
+  {
+    name: 'block',
+    use: 'A screen or a whole list is on its way.',
+    code: '<LoadingState label={…} />',
+    props: { variant: 'block', framed: false },
+    label: text('contract.loading'),
+  },
+  {
+    name: 'block · framed',
+    use: 'Same, where the content would have sat in a card.',
+    code: '<LoadingState framed label={…} />',
+    props: { variant: 'block', framed: true },
+    label: text('account.order.loading'),
+  },
+  {
+    name: 'inline',
+    use: 'One card, one field, one row — inside a box that has its own frame.',
+    code: '<LoadingState variant="inline" label={…} />',
+    props: { variant: 'inline', framed: false },
+    label: text('account.notifications.preferences.loading'),
+  },
+  {
+    name: 'inline · framed',
+    use: 'A single small item that has no surface of its own.',
+    code: '<LoadingState variant="inline" framed label={…} />',
+    props: { variant: 'inline', framed: true },
+    label: text('account.orders.loading'),
+  },
+] as const;
+
+const GROUNDS = [
+  { name: 'page ground', class: 'bg-page' },
+  { name: 'white card', class: 'bg-white' },
+] as const;
+---
+
+<div class="space-y-10">
+  {SPECIMENS.map((specimen) => (
+    <section>
+      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 class="text-[19px] font-semibold">{specimen.name}</h2>
+        <code class="text-ink-2 rounded-md bg-white px-2 py-1 text-[13px]">{specimen.code}</code>
+      </div>
+      <p class="text-ink-2 mt-1 text-[14.5px]">{specimen.use}</p>
+
+      <div class="mid:grid-cols-2 mt-4 grid gap-4">
+        {GROUNDS.map((ground) => (
+          <figure class="m-0">
+            <div class={`border-hair-strong rounded-card border border-dashed p-5 ${ground.class}`}>
+              <LoadingState {...specimen.props} label={specimen.label} />
+            </div>
+            <figcaption class="text-ink-2 mt-1.5 text-[13px]">on {ground.name}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <section>
+    <h2 class="text-[19px] font-semibold">inline · in context</h2>
+    <p class="text-ink-2 mt-1 text-[14.5px]">
+      Where it actually ships: under the heading of the notification preferences box.
+    </p>
+    <div class="border-hair rounded-card mt-4 max-w-xl border bg-white">
+      <p class="px-4 py-3 text-[15px] font-semibold">
+        {text('account.notifications.preferences.title')}
+      </p>
+      <div class="border-hair border-t px-4 py-3">
+        <p class="text-ink-2 mb-1 text-[13.5px] leading-6">
+          {text('account.notifications.preferences.hint')}
+        </p>
+        <LoadingState variant="inline" label={text('account.notifications.preferences.loading')} />
+      </div>
+    </div>
+  </section>
+</div>

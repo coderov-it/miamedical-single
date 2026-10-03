@@ -12,6 +12,7 @@
 
   import OrderCard from './OrderCard.svelte';
   import { CARD } from './fields';
+  import LoadingState from '../primitives/LoadingState.svelte';
 
   const { copy, orders } = accountContext();
 
@@ -23,7 +24,7 @@
 </script>
 
 {#if rows === null}
-  <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
+  <LoadingState framed label={say(copy, 'account.orders.loading')} />
 {:else if orders.listError}
   <!--
     The old page had no error state at all: a failed load left "Caricamento…"

@@ -1,0 +1,22 @@
+---
+/**
+ * `/playground/<category>/<part>/?token=…` — one component demo.
+ *
+ * A ROUTE DECLARATION, nothing more: the gate and the registry live in
+ * `lib/playground.ts`, the demo itself in `views/playground/`.
+ */
+import { findDemo, playgroundAllows } from '~/lib/playground';
+import PlaygroundDemo from '~/views/playground/PlaygroundDemo.astro';
+import PlaygroundFrame from '~/views/playground/PlaygroundFrame.astro';
+
+export const prerender = false;
+
+const demo = findDemo(Astro.params.category ?? '', Astro.params.part ?? '');
+if (!demo || !playgroundAllows(Astro.url)) {
+  return Astro.rewrite('/404');
+}
+---
+
+<PlaygroundFrame title={demo.title} summary={demo.summary}>
+  <PlaygroundDemo {demo} />
+</PlaygroundFrame>

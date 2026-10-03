@@ -1,0 +1,39 @@
+---
+/**
+ * `/playground/?token=…` — the list of component demos, grouped by category.
+ * Gate and registry: `lib/playground.ts`.
+ */
+import { PLAYGROUND_DEMOS, playgroundAllows, playgroundHref } from '~/lib/playground';
+import PlaygroundFrame from '~/views/playground/PlaygroundFrame.astro';
+
+export const prerender = false;
+
+if (!playgroundAllows(Astro.url)) {
+  return Astro.rewrite('/404');
+}
+
+const categories = [...new Set(PLAYGROUND_DEMOS.map((demo) => demo.category))];
+---
+
+<PlaygroundFrame title="Playground" summary="Every variant of a shared component, in one place.">
+  <div class="space-y-8">
+    {categories.map((category) => (
+      <section>
+        <h2 class="text-ink-2 text-[13px] font-semibold tracking-wide uppercase">{category}</h2>
+        <ul class="mid:grid-cols-3 mt-3 grid list-none gap-3 p-0">
+          {PLAYGROUND_DEMOS.filter((demo) => demo.category === category).map((demo) => (
+            <li>
+              <a
+                class="border-hair rounded-card hover:border-hair-strong block border bg-white p-5 no-underline"
+                href={playgroundHref(Astro.url, `${demo.category}/${demo.part}/`)}
+              >
+                <span class="text-ink block font-semibold">{demo.title}</span>
+                <span class="text-ink-2 mt-1 block text-[14px]">{demo.summary}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</PlaygroundFrame>

@@ -17,6 +17,7 @@
   import NotificationItem from './NotificationItem.svelte';
   import NotificationPreferences from './NotificationPreferences.svelte';
   import { CARD } from './fields';
+  import LoadingState from '../primitives/LoadingState.svelte';
 
   const { copy, notifications } = accountContext();
 
@@ -41,7 +42,7 @@
 <NotificationPreferences />
 
 {#if rows.length === 0 && notifications.loading}
-  <p class="text-ink-2 text-[15px]" role="status">{say(copy, 'account.loading')}</p>
+  <LoadingState framed label={say(copy, 'account.notifications.loading')} />
 {:else if rows.length === 0 && notifications.error}
   <div class={CARD} role="status">
     <p class="text-danger text-sm">

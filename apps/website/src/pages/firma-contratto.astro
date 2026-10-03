@@ -8,6 +8,7 @@
  * signature as a data URL.
  */
 import AccountCopy from '~/components/account/AccountCopy.astro';
+import LoadingState from '~/components/primitives/LoadingState.svelte';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { localeFromLocals, translate } from '~/lib/i18n';
 import { CONTACT } from '~/lib/site';
@@ -48,9 +49,8 @@ const SCRIPT_KEYS = [
     ></div>
 
     <!-- Loading state -->
-    <div data-loading class="space-y-4 py-16 text-center">
-      <div class="border-hair-strong mx-auto size-8 animate-spin rounded-full border-2 border-t-accent"></div>
-      <p class="text-neutral-600">{text('contract.loading')}</p>
+    <div data-loading>
+      <LoadingState label={text('contract.loading')} />
     </div>
 
     <!-- Main content (hidden until loaded) -->

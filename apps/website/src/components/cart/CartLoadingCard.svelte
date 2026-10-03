@@ -11,6 +11,8 @@
   resolve.
 -->
 <script lang="ts">
+  import LoadingState from '../primitives/LoadingState.svelte';
+
   interface Props {
     label: string;
   }
@@ -18,15 +20,6 @@
   const { label }: Props = $props();
 </script>
 
-<div
-  class="border-hair rounded-card flex min-h-40 flex-col items-center justify-center gap-4 border bg-white p-8"
-  role="status"
-  aria-live="polite"
-  data-cart-boot
->
-  <span
-    class="border-hair size-7 animate-spin rounded-full border-[3px] border-t-accent"
-    aria-hidden="true"
-  ></span>
-  <span class="text-ink-2 text-[16px] font-semibold">{label}</span>
+<div data-cart-boot>
+  <LoadingState framed {label} />
 </div>

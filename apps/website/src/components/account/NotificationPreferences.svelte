@@ -18,6 +18,7 @@
     NotificationPreferenceStore,
     PREFERENCE_CATEGORIES,
   } from '~/lib/notification-preferences.svelte';
+  import LoadingState from '../primitives/LoadingState.svelte';
 
   const { copy } = accountContext();
   const store = new NotificationPreferenceStore();
@@ -52,7 +53,10 @@
     </p>
 
     {#if store.loading && !values}
-      <p class="text-ink-2 text-[14px]" role="status">{say(copy, 'account.loading')}</p>
+      <LoadingState
+        variant="inline"
+        label={say(copy, 'account.notifications.preferences.loading')}
+      />
     {:else if store.error && !values}
       <p class="text-danger text-[14px]" role="status">
         {errorMessage(store.error, say(copy, 'account.retry'))}
