@@ -119,6 +119,7 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.order.backToOrders',
   // extending a rental
   'account.extension.title',
+  'account.extension.loading',
   'account.extension.dueBack',
   'account.extension.extend',
   'account.extension.pick',

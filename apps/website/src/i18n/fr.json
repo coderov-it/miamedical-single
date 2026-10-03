@@ -742,6 +742,7 @@
   "account.order.unavailable": "Cette commande n’est pas disponible.",
   "account.order.backToOrders": "Retour à vos commandes",
   "account.extension.title": "Location",
+  "account.extension.loading": "Chargement des détails de la location…",
   "account.extension.dueBack": "Retour prévu le {date}.",
   "account.extension.extend": "Prolonger la location",
   "account.extension.pick": "De combien souhaitez-vous la prolonger ?",
