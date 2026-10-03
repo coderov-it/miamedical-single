@@ -44,6 +44,14 @@ export const SECONDARY =
 /** An action that reads as a link: "Forgot password?", "Register Account". */
 export const TEXT_ACTION = 'font-ui text-ui font-semibold text-accent hover:underline';
 
+/** "Try again" under a failed list: quiet, because the failure is the news. */
+export const RETRY =
+  'bg-tint hover:bg-tint-2 rounded-field text-ink inline-flex min-h-11 items-center px-4 text-[15px] font-semibold transition';
+
+/** An empty list's way onward — "Browse the catalogue". */
+export const BROWSE =
+  'hover:bg-accent-deep rounded-field inline-flex min-h-11 items-center bg-accent px-4 text-[15px] font-semibold text-white no-underline';
+
 /** An irreversible action — only the profile deletion's final button. */
 export const DANGER =
   'font-ui text-ui-strong rounded-field bg-danger min-h-12 px-5 font-semibold text-white transition hover:opacity-90';

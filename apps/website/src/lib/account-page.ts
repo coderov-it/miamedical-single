@@ -104,6 +104,7 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.orders.confirm',
   'account.orders.reject',
   'account.orders.recent',
+  'account.orders.all',
   'account.orders.viewAll',
   'account.summary.lastOrder',
   'retry',
