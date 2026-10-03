@@ -3,6 +3,9 @@
   shows three of these under "Ultimi ordini" and the orders screen shows all of
   them, so a customer learns one row and reads it everywhere.
 
+  A ROW, not a card: it lives in an AccountSection's flush body, inside a
+  `divide-y` list, so the section draws the frame and the hairlines between rows.
+
   THE WHOLE ROW IS THE LINK. The anchor carries an `after:inset-0` overlay
   inside a positioned wrapper, which is why the wrapper is the row and not the
   `<li>`: the overlay stops where the row stops, leaving the verification
@@ -56,8 +59,10 @@
   }
 </script>
 
-<li class="border-hair rounded-card overflow-hidden border bg-white">
-  <div class="hover:bg-tint relative flex flex-wrap items-center gap-x-5 gap-y-3 p-5 transition">
+<li>
+  <div
+    class="hover:bg-tint mid:px-6 relative flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4 transition"
+  >
     <AccountLink
       to={{ name: 'orderDetail', number: order.number }}
       class="group min-w-0 flex-1 basis-44 no-underline after:absolute after:inset-0"
@@ -99,7 +104,7 @@
   </div>
 
   {#if order.linkStatus === 'unverified'}
-    <div class="border-hair bg-tint border-t p-5">
+    <div class="border-hair bg-tint mid:px-6 border-t px-5 py-4">
       <p class="text-[15px]">{say(copy, 'account.orders.verifyPrompt')}</p>
       <div class="mt-3 flex flex-wrap gap-2">
         <button

@@ -3,8 +3,8 @@
   shape in grey blocks, not a line of text on an empty band.
 
   GEOMETRY IS AccountShell's — the same container, heading row, 250px sidebar
-  and gaps — so the real screen replaces this without moving anything. Change
-  one and change the other.
+  and gaps — and AccountSection's for the blocks inside, so the real screen
+  replaces this without moving anything. Change one and change the other.
 -->
 <script lang="ts">
   interface Props {
@@ -17,6 +17,9 @@
   /* No radius here: each block names its own, so none has two to fight over. */
   const BLOCK = 'bg-hair animate-pulse motion-reduce:animate-none';
   const CARD = 'border-hair rounded-card border bg-white p-5 mid:p-6';
+  /* AccountSection's frame and title row, so the sections land without moving. */
+  const SECTION = 'border-hair rounded-card overflow-hidden border bg-white';
+  const HEADER = 'border-hair mid:px-6 border-b px-5 py-4';
 </script>
 
 <div class="bg-page">
@@ -61,18 +64,22 @@
             {/each}
           </div>
 
-          <div class="flex items-center justify-between pt-1">
-            <div class="{BLOCK} h-5 w-32 rounded-md"></div>
-            <div class="{BLOCK} h-4 w-28 rounded-md"></div>
-          </div>
-          <div class={CARD}>
-            <div class="{BLOCK} h-3.5 w-2/3 rounded-md"></div>
-            <div class="{BLOCK} rounded-field mt-5 h-11 w-40"></div>
+          <div class={SECTION}>
+            <div class="{HEADER} flex items-center justify-between">
+              <div class="{BLOCK} h-5 w-32 rounded-md"></div>
+              <div class="{BLOCK} h-4 w-28 rounded-md"></div>
+            </div>
+            <div class="mid:p-6 p-5">
+              <div class="{BLOCK} h-3.5 w-2/3 rounded-md"></div>
+              <div class="{BLOCK} rounded-field mt-5 h-11 w-40"></div>
+            </div>
           </div>
 
-          <div class={CARD}>
-            <div class="{BLOCK} h-5 w-28 rounded-md"></div>
-            <div class="mid:grid-cols-2 mt-5 grid gap-4">
+          <div class={SECTION}>
+            <div class={HEADER}>
+              <div class="{BLOCK} h-5 w-28 rounded-md"></div>
+            </div>
+            <div class="mid:grid-cols-2 mid:p-6 grid gap-4 p-5">
               {#each [0, 1] as index (index)}
                 <div class="space-y-2">
                   <div class="{BLOCK} h-3 w-16 rounded-md"></div>

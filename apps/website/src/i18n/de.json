@@ -646,6 +646,7 @@
   "account.orders.confirm": "Ja, das war ich",
   "account.orders.reject": "Nein, die ist nicht meine",
   "account.orders.recent": "Letzte Bestellungen",
+  "account.orders.all": "Alle Bestellungen",
   "account.orders.viewAll": "Alle Bestellungen ansehen",
   "account.summary.lastOrder": "Letzte Bestellung",
   "account.nav.overview": "Übersicht",

@@ -22,7 +22,7 @@
   import OrderCard from './OrderCard.svelte';
   import PasswordForm from './PasswordForm.svelte';
   import ProfileForm from './ProfileForm.svelte';
-  import { CARD, HEADING, TILE_LABEL } from './fields';
+  import { BROWSE, CARD, TILE_LABEL } from './fields';
   import LoadingState from '../primitives/LoadingState.svelte';
 
   const { copy, orders, session } = accountContext();
@@ -35,6 +35,8 @@
   const recent = $derived((rows ?? []).slice(0, 3));
   /** Newest first, so the head of the list is the last order placed. */
   const lastOrder = $derived(rows?.[0]);
+  /** The list itself runs edge to edge; every other state keeps the padded body. */
+  const listed = $derived(recent.length > 0 && !orders.listError);
 </script>
 
 <dl class="grid gap-4 sm:grid-cols-2">
@@ -53,43 +55,35 @@
   </div>
 </dl>
 
-<section class="mt-6">
-  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-    <h2 class={HEADING}>{say(copy, 'account.orders.recent')}</h2>
+<AccountSection class="mt-6" title={say(copy, 'account.orders.recent')} flush={listed}>
+  {#snippet action()}
     <AccountLink
       to={{ name: 'orders' }}
       class="min-h-0 text-[15px] font-semibold text-accent no-underline hover:underline"
     >
       {say(copy, 'account.orders.viewAll')}
     </AccountLink>
-  </div>
+  {/snippet}
 
   {#if rows === null}
-    <LoadingState framed class="mt-4" label={say(copy, 'account.orders.loading')} />
+    <LoadingState variant="inline" label={say(copy, 'account.orders.loading')} />
   {:else if orders.listError}
-    <div class={CARD + ' mt-4'}>
-      <div class="bg-danger-tint text-danger rounded-field px-4 py-3 text-sm" role="status">
-        {errorMessage(orders.listError, say(copy, 'account.retry'))}
-      </div>
+    <div class="bg-danger-tint text-danger rounded-field px-4 py-3 text-sm" role="status">
+      {errorMessage(orders.listError, say(copy, 'account.retry'))}
     </div>
   {:else if recent.length === 0}
-    <div class={CARD + ' mt-4'}>
-      <p class="text-ink-2 text-[15px]">{say(copy, 'account.orders.empty')}</p>
-      <a
-        class="hover:bg-accent-deep rounded-field mt-4 inline-flex min-h-11 items-center bg-accent px-4 text-[15px] font-semibold text-white no-underline"
-        href={copy.routes.catalog}
-      >
-        {say(copy, 'account.orders.browse')}
-      </a>
-    </div>
+    <p class="text-ink-2 text-[15px]">{say(copy, 'account.orders.empty')}</p>
+    <a class={BROWSE + ' mt-4'} href={copy.routes.catalog}>
+      {say(copy, 'account.orders.browse')}
+    </a>
   {:else}
-    <ul class="mt-4 space-y-3">
+    <ul class="divide-hair divide-y">
       {#each recent as order (order.number)}
         <OrderCard {order} />
       {/each}
     </ul>
   {/if}
-</section>
+</AccountSection>
 
 <AccountSection class="mt-8" title={say(copy, 'yourDetails')}>
   <ProfileForm />

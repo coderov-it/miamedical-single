@@ -106,12 +106,12 @@
   {#if orderNumber}
     <AccountLink
       to={{ name: 'orderDetail', number: orderNumber }}
-      class="hover:bg-tint-2 flex min-h-11 w-full items-start gap-3 px-4 py-3.5 no-underline transition"
+      class="hover:bg-tint-2 mid:px-6 flex min-h-11 w-full items-start gap-3 px-5 py-3.5 no-underline transition"
     >
       {@render inner()}
     </AccountLink>
   {:else}
-    <div class="flex w-full items-start gap-3 px-4 py-3.5">
+    <div class="mid:px-6 flex w-full items-start gap-3 px-5 py-3.5">
       {@render inner()}
     </div>
   {/if}

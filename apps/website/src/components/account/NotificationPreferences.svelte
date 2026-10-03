@@ -19,6 +19,7 @@
     PREFERENCE_CATEGORIES,
   } from '~/lib/notification-preferences.svelte';
   import LoadingState from '../primitives/LoadingState.svelte';
+  import { HEADING } from './fields';
 
   const { copy } = accountContext();
   const store = new NotificationPreferenceStore();
@@ -35,19 +36,23 @@
   const values = $derived(store.values);
 </script>
 
-<details class="border-hair rounded-card mb-4 overflow-hidden border bg-white" bind:open>
+<!--
+  AccountSection's shape — same title row, same full-width hairline, same body
+  padding — as a disclosure: the hairline and body exist only while it is open.
+-->
+<details class="border-hair rounded-card mb-6 overflow-hidden border bg-white" bind:open>
   <summary
-    class="hover:bg-tint-2 flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-3 text-[14px] font-semibold transition"
+    class="hover:bg-tint mid:px-6 flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition"
   >
-    {say(copy, 'account.notifications.preferences.title')}
-    <span class="text-ink-2 text-[13px] font-normal">
+    <span class={HEADING}>{say(copy, 'account.notifications.preferences.title')}</span>
+    <span class="text-ink-2 text-[14px] font-semibold">
       {open
         ? say(copy, 'account.notifications.preferences.hide')
         : say(copy, 'account.notifications.preferences.show')}
     </span>
   </summary>
 
-  <div class="border-hair border-t px-4 py-3">
+  <div class="border-hair mid:p-6 border-t p-5">
     <p class="text-ink-2 mb-3 text-[13.5px] leading-6">
       {say(copy, 'account.notifications.preferences.hint')}
     </p>

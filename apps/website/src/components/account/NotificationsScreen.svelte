@@ -14,9 +14,10 @@
   import { errorMessage } from '~/lib/account-state.svelte';
   import { fill } from '~/scripts/account/copy';
 
+  import AccountSection from './AccountSection.svelte';
   import NotificationItem from './NotificationItem.svelte';
   import NotificationPreferences from './NotificationPreferences.svelte';
-  import { CARD } from './fields';
+  import { RETRY } from './fields';
   import LoadingState from '../primitives/LoadingState.svelte';
 
   const { copy, notifications } = accountContext();
@@ -41,56 +42,47 @@
 
 <NotificationPreferences />
 
-{#if rows.length === 0 && notifications.loading}
-  <LoadingState framed label={say(copy, 'account.notifications.loading')} />
-{:else if rows.length === 0 && notifications.error}
-  <div class={CARD} role="status">
-    <p class="text-danger text-sm">
-      {errorMessage(notifications.error, say(copy, 'account.retry'))}
-    </p>
-    <button
-      class="bg-tint hover:bg-tint-2 rounded-field text-ink mt-4 inline-flex min-h-11 items-center px-4 text-[15px] font-semibold transition"
-      type="button"
-      onclick={() => void notifications.refresh()}
-    >
-      {say(copy, 'retry')}
-    </button>
-  </div>
-{:else if rows.length === 0}
-  <div class={CARD + ' text-center'}>
-    <p class="text-[15px] font-semibold">{say(copy, 'account.notifications.empty')}</p>
-    <p class="text-ink-2 mx-auto mt-1.5 max-w-sm text-[14.5px] leading-6">
-      {say(copy, 'account.notifications.emptyHint')}
-    </p>
-  </div>
-{:else}
-  <div class="border-hair rounded-card overflow-hidden border bg-white">
-    <!--
-      The bar carries the count and the one action that applies to the list as
-      a whole. Mark-all is ABSENT with nothing unread, never present-and-
-      disabled: a greyed control invites a click and then says nothing, which is
-      the failure AGENTS.md § "Never block a customer" is about. An action with
-      nothing to act on is not a blocked action — it is one that does not apply,
-      and the count beside it already says why.
-    -->
-    <div
-      class="border-hair flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-3"
-    >
-      <p class="text-ink-2 text-[14px] font-semibold">
-        {unread > 0 ? unreadLabel : say(copy, 'account.notifications.title')}
+<AccountSection title={say(copy, 'account.notifications.title')} flush={rows.length > 0}>
+  <!--
+    The title row carries the count and the one action that applies to the list
+    as a whole. Mark-all is ABSENT with nothing unread, never present-and-
+    disabled: a greyed control invites a click and then says nothing, which is
+    the failure AGENTS.md § "Never block a customer" is about. An action with
+    nothing to act on is not a blocked action — it is one that does not apply,
+    and the count beside it already says why.
+  -->
+  {#snippet action()}
+    {#if unread > 0}
+      <span class="text-ink-2 text-[14px]">{unreadLabel}</span>
+      <button
+        class="rounded-field hover:bg-tint-2 inline-flex min-h-11 items-center px-2 text-[14px] font-semibold text-accent transition"
+        type="button"
+        onclick={() => void notifications.markAllRead()}
+      >
+        {say(copy, 'account.notifications.markAllRead')}
+      </button>
+    {/if}
+  {/snippet}
+
+  {#if rows.length === 0 && notifications.loading}
+    <LoadingState variant="inline" label={say(copy, 'account.notifications.loading')} />
+  {:else if rows.length === 0 && notifications.error}
+    <div role="status">
+      <p class="text-danger text-sm">
+        {errorMessage(notifications.error, say(copy, 'account.retry'))}
       </p>
-
-      {#if unread > 0}
-        <button
-          class="rounded-field hover:bg-tint-2 -my-1 inline-flex min-h-11 items-center px-2 text-[14px] font-semibold text-accent transition"
-          type="button"
-          onclick={() => void notifications.markAllRead()}
-        >
-          {say(copy, 'account.notifications.markAllRead')}
-        </button>
-      {/if}
+      <button class={RETRY + ' mt-4'} type="button" onclick={() => void notifications.refresh()}>
+        {say(copy, 'retry')}
+      </button>
     </div>
-
+  {:else if rows.length === 0}
+    <div class="text-center">
+      <p class="text-[15px] font-semibold">{say(copy, 'account.notifications.empty')}</p>
+      <p class="text-ink-2 mx-auto mt-1.5 max-w-sm text-[14.5px] leading-6">
+        {say(copy, 'account.notifications.emptyHint')}
+      </p>
+    </div>
+  {:else}
     <ul class="divide-hair divide-y">
       {#each rows as row (row.id)}
         <NotificationItem {row} />
@@ -99,14 +91,10 @@
 
     {#if notifications.hasMore}
       <div class="border-hair border-t p-3 text-center">
-        <button
-          class="bg-tint hover:bg-tint-2 rounded-field text-ink inline-flex min-h-11 items-center px-4 text-[15px] font-semibold transition"
-          type="button"
-          onclick={() => void notifications.loadMore()}
-        >
+        <button class={RETRY} type="button" onclick={() => void notifications.loadMore()}>
           {say(copy, 'account.notifications.loadMore')}
         </button>
       </div>
     {/if}
-  </div>
-{/if}
+  {/if}
+</AccountSection>

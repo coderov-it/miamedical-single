@@ -646,6 +646,7 @@
   "account.orders.confirm": "Oui, je confirme",
   "account.orders.reject": "Non, pas la mienne",
   "account.orders.recent": "Commandes récentes",
+  "account.orders.all": "Toutes les commandes",
   "account.orders.viewAll": "Voir toutes les commandes",
   "account.summary.lastOrder": "Dernière commande",
   "account.nav.overview": "Aperçu",
