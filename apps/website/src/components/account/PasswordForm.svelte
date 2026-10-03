@@ -22,6 +22,7 @@
   import { formGate } from '~/lib/form-gate-action';
   import type { FieldGate, FormGate } from '~/lib/form-validation';
 
+  import AccountSection from './AccountSection.svelte';
   import FieldError from './FieldError.svelte';
   import { ANNOUNCE, FIELD, LABEL, PRIMARY } from './fields';
 
@@ -90,64 +91,63 @@
   }
 </script>
 
-<h2 class="text-h4 font-bold">
-  {say(copy, hasPassword ? 'account.changePassword' : 'account.setPassword')}
-</h2>
-<p class="text-ink-2 mt-1.5 text-[14.5px]">
-  {say(copy, hasPassword ? 'account.changePasswordNote' : 'account.setPasswordNote')}
-</p>
+<AccountSection title={say(copy, hasPassword ? 'account.changePassword' : 'account.setPassword')}>
+  <p class="text-ink-2 text-[14.5px]">
+    {say(copy, hasPassword ? 'account.changePasswordNote' : 'account.setPasswordNote')}
+  </p>
 
-{#if feedback}
-  <div
-    class="rounded-field mt-4 px-4 py-3 text-sm {feedback.failed
-      ? 'bg-danger-tint text-danger'
-      : 'bg-tint text-ink'}"
-    role="status"
+  {#if feedback}
+    <div
+      class="rounded-field mt-4 px-4 py-3 text-sm {feedback.failed
+        ? 'bg-danger-tint text-danger'
+        : 'bg-tint text-ink'}"
+      role="status"
+    >
+      {feedback.text}
+    </div>
+  {/if}
+
+  <form
+    class="mt-5 space-y-4"
+    onsubmit={submit}
+    use:formGate={{ gates, announce: () => announceEl ?? null, ready: (g) => (gate = g) }}
   >
-    {feedback.text}
-  </div>
-{/if}
+    {#if hasPassword}
+      <label class="block" data-gate="currentPassword">
+        <span class={LABEL}>{say(copy, 'account.currentPassword')}</span>
+        <input
+          class={FIELD}
+          type="password"
+          autocomplete="current-password"
+          bind:this={currentEl}
+          bind:value={current}
+        />
+        <FieldError key="currentPassword" message={say(copy, 'account.errorCurrentPassword')} />
+      </label>
+    {/if}
 
-<form
-  class="mt-5 space-y-4"
-  onsubmit={submit}
-  use:formGate={{ gates, announce: () => announceEl ?? null, ready: (g) => (gate = g) }}
->
-  {#if hasPassword}
-    <label class="block" data-gate="currentPassword">
-      <span class={LABEL}>{say(copy, 'account.currentPassword')}</span>
+    <label class="block" data-gate="newPassword">
+      <span class={LABEL}>{say(copy, 'account.newPassword')}</span>
       <input
         class={FIELD}
         type="password"
-        autocomplete="current-password"
-        bind:this={currentEl}
-        bind:value={current}
+        autocomplete="new-password"
+        bind:this={nextEl}
+        bind:value={next}
       />
-      <FieldError key="currentPassword" message={say(copy, 'account.errorCurrentPassword')} />
+      <p class="text-ink-2 mt-1.5 text-xs">{say(copy, 'account.minChars')}</p>
+      <FieldError key="newPassword" message={say(copy, 'account.passwordTooShort')} />
     </label>
-  {/if}
 
-  <label class="block" data-gate="newPassword">
-    <span class={LABEL}>{say(copy, 'account.newPassword')}</span>
-    <input
-      class={FIELD}
-      type="password"
-      autocomplete="new-password"
-      bind:this={nextEl}
-      bind:value={next}
-    />
-    <p class="text-ink-2 mt-1.5 text-xs">{say(copy, 'account.minChars')}</p>
-    <FieldError key="newPassword" message={say(copy, 'account.passwordTooShort')} />
-  </label>
+    <button class={PRIMARY} type="submit">{say(copy, 'account.savePassword')}</button>
 
-  <button class={PRIMARY} type="submit">{say(copy, 'account.savePassword')}</button>
-
-  <p
-    class={ANNOUNCE}
-    role="status"
-    aria-live="polite"
-    bind:this={announceEl}
-    data-message-one={say(copy, 'errorCountOne')}
-    data-message-many={say(copy, 'errorCountMany')}
-  ></p>
-</form>
+    <p
+      class={ANNOUNCE}
+      role="status"
+      aria-live="polite"
+      bind:this={announceEl}
+      data-message-one={say(copy, 'errorCountOne')}
+      data-message-many={say(copy, 'errorCountMany')}
+    ></p>
+  </form>
+</AccountSection>

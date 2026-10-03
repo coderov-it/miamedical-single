@@ -742,6 +742,7 @@
   "account.order.unavailable": "Diese Bestellung ist nicht verfügbar.",
   "account.order.backToOrders": "Zurück zu Ihren Bestellungen",
   "account.extension.title": "Miete",
+  "account.extension.loading": "Mietdetails werden geladen…",
   "account.extension.dueBack": "Rückgabe am {date}.",
   "account.extension.extend": "Miete verlängern",
   "account.extension.pick": "Um wie lange möchten Sie verlängern?",

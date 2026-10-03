@@ -742,6 +742,7 @@
   "account.order.unavailable": "Questo ordine non è disponibile.",
   "account.order.backToOrders": "Torna ai tuoi ordini",
   "account.extension.title": "Noleggio",
+  "account.extension.loading": "Caricamento dei dettagli del noleggio…",
   "account.extension.dueBack": "Riconsegna prevista il {date}.",
   "account.extension.extend": "Prolunga il noleggio",
   "account.extension.pick": "Per quanto vuoi prolungarlo?",

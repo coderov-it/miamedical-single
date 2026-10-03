@@ -742,6 +742,7 @@
   "account.order.unavailable": "This order is not available.",
   "account.order.backToOrders": "Back to your orders",
   "account.extension.title": "Rental",
+  "account.extension.loading": "Loading your rental details…",
   "account.extension.dueBack": "Due back on {date}.",
   "account.extension.extend": "Extend rental",
   "account.extension.pick": "How long would you like to extend it?",

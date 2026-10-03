@@ -18,6 +18,7 @@
   import { formatDate } from '~/lib/customer-session';
 
   import AccountLink from './AccountLink.svelte';
+  import AccountSection from './AccountSection.svelte';
   import OrderCard from './OrderCard.svelte';
   import PasswordForm from './PasswordForm.svelte';
   import ProfileForm from './ProfileForm.svelte';
@@ -90,11 +91,10 @@
   {/if}
 </section>
 
-<section class={CARD + ' mt-8'}>
-  <h2 class={HEADING}>{say(copy, 'yourDetails')}</h2>
+<AccountSection class="mt-8" title={say(copy, 'yourDetails')}>
   <ProfileForm />
-</section>
+</AccountSection>
 
-<section class={CARD + ' mt-6'}>
+<div class="mt-6">
   <PasswordForm />
-</section>
+</div>

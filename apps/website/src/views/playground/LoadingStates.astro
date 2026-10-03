@@ -4,6 +4,7 @@
  * paints — the grey page field and a white card — with the exact markup that
  * produces it. Labels are the real ones, in the request's language.
  */
+import AccountSection from '~/components/account/AccountSection.svelte';
 import LoadingState from '~/components/primitives/LoadingState.svelte';
 import { localeFromLocals, translate } from '~/lib/i18n';
 
@@ -68,6 +69,17 @@ const GROUNDS = [
       </div>
     </section>
   ))}
+
+  <section>
+    <h2 class="text-[19px] font-semibold">inline · in a section</h2>
+    <p class="text-ink-2 mt-1 text-[14.5px]">
+      A section that loads after the page: the card and its heading are there from the first paint,
+      the body says what is coming.
+    </p>
+    <AccountSection class="mt-4 max-w-3xl" title={text('account.extension.title')}>
+      <LoadingState variant="inline" label={text('account.extension.loading')} />
+    </AccountSection>
+  </section>
 
   <section>
     <h2 class="text-[19px] font-semibold">inline · in context</h2>

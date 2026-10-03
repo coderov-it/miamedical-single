@@ -16,9 +16,10 @@
   import { fill } from '~/scripts/account/copy';
 
   import AccountLink from './AccountLink.svelte';
+  import AccountSection from './AccountSection.svelte';
   import OrderStatusPill from './OrderStatusPill.svelte';
   import RentalExtensionPanel from './RentalExtensionPanel.svelte';
-  import { CARD, HEADING } from './fields';
+  import { CARD } from './fields';
   import LoadingState from '../primitives/LoadingState.svelte';
 
   interface Props {
@@ -87,12 +88,10 @@
       </p>
     </div>
 
-    <section class={CARD + ' mt-5'}>
-      <h2 class={HEADING}>{say(copy, 'orderSummary')}</h2>
-
-      <ul class="mt-3">
+    <AccountSection class="mt-5" title={say(copy, 'orderSummary')}>
+      <ul>
         {#each order.items as item (item.id)}
-          <li class="border-hair flex justify-between gap-4 border-b py-3 last:border-0">
+          <li class="border-hair flex justify-between gap-4 border-b py-3 first:pt-0 last:border-0">
             <div class="min-w-0">
               <p class="font-medium">{item.productTitle}</p>
               <p class="text-ink-2 text-[14px]">
@@ -122,25 +121,23 @@
           <span class="tabular-nums">{formatMoney(order.totals.total, order.totals.currency)}</span>
         </div>
       </div>
-    </section>
+    </AccountSection>
 
     <RentalExtensionPanel {order} />
 
     {#if order.delivery?.method}
-      <section class={CARD + ' mt-6'}>
-        <h2 class={HEADING}>{say(copy, 'delivery')}</h2>
-        <p class="mt-2 text-[15px]">{deliveryLabel(order.delivery.method)}</p>
+      <AccountSection class="mt-6" title={say(copy, 'delivery')}>
+        <p class="text-[15px]">{deliveryLabel(order.delivery.method)}</p>
         {#if addressLine(order)}
           <p class="text-ink-2 mt-1 text-[15px]">{addressLine(order)}</p>
         {/if}
-      </section>
+      </AccountSection>
     {/if}
 
     {#if order.notes}
-      <section class={CARD + ' mt-6'}>
-        <h2 class={HEADING}>{say(copy, 'account.order.yourNotes')}</h2>
-        <p class="text-ink-2 mt-2 text-[15px] whitespace-pre-line">{order.notes}</p>
-      </section>
+      <AccountSection class="mt-6" title={say(copy, 'account.order.yourNotes')}>
+        <p class="text-ink-2 text-[15px] whitespace-pre-line">{order.notes}</p>
+      </AccountSection>
     {/if}
   </article>
 {/if}
