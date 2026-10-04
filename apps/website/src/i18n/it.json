@@ -627,6 +627,7 @@
   "account.password": "Password",
   "account.currentPassword": "Password attuale",
   "account.errorCurrentPassword": "Inserisci la password attuale.",
+  "account.wrongCurrentPassword": "La password attuale non è corretta.",
   "account.newPassword": "Nuova password",
   "account.savePassword": "Salva password",
   "account.changePassword": "Cambia password",
@@ -780,6 +781,8 @@
   "contract.loadFailed": "Non è stato possibile caricare il contratto.",
   "contract.loadError": "Errore nel caricamento del contratto.",
   "contract.signError": "Errore nella firma del contratto.",
+  "contract.linkExpired": "Questo link per la firma non è più valido. Contattaci e te ne invieremo uno nuovo.",
+  "contract.alreadySigned": "Questo contratto è già stato firmato.",
   "contact.hours": "Lun–Sab, 9:00–19:00",
   "card.priceFrom": "da",
   "card.unavailable": "Non disponibile"

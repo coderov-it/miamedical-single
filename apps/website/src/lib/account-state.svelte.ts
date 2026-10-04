@@ -14,7 +14,6 @@
  */
 import type { AccountSession } from './account-session.svelte.ts';
 import {
-  ApiError,
   confirmOrder,
   type CustomerOrderDetail,
   type CustomerOrderSummary,
@@ -24,11 +23,14 @@ import {
 } from './customer-session.ts';
 
 /**
- * What to show for a failed call: the API's own message when it sent one — it
- * is already in the reader's language — and the caller's fallback otherwise.
+ * What to show for a failed call: the caller's own copy, always.
+ *
+ * NOT the API's `message`. The API answers in English whatever the reader's
+ * language, so passing it through printed "Order not found." on the Italian
+ * order page and "Invalid json." under the profile form. A caller that can say
+ * something more specific reads `error.code` or `error.fields` itself.
  */
-export function errorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiError && error.message) return error.message;
+export function errorMessage(_error: unknown, fallback: string): string {
   return fallback;
 }
 

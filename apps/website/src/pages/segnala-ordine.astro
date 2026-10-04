@@ -38,6 +38,8 @@ const SCRIPT_KEYS = [
   'account.report.errorPhone',
   'account.report.errorMessage',
   'account.report.errorSend',
+  'account.activate.linkUnverifiable',
+  'account.signIn.tooManyAttempts',
 ] as const;
 ---
 
@@ -101,6 +103,13 @@ const SCRIPT_KEYS = [
 
   const token = tokenFromQuery();
 
+  function reportErrorKey(error: unknown): string {
+    if (!(error instanceof ApiError)) return 'account.report.errorSend';
+    if (error.status === 429) return 'account.signIn.tooManyAttempts';
+    if ([400, 404, 410].includes(error.status)) return 'account.activate.linkUnverifiable';
+    return 'account.report.errorSend';
+  }
+
   function fail(message: string) {
     if (!errorBox) return;
     errorBox.hidden = false;
@@ -131,8 +140,9 @@ const SCRIPT_KEYS = [
         if (done) done.hidden = false;
       } catch (error) {
         // The token is single-use, so the most likely failure here is a second
-        // submit of a report that already went through.
-        fail(error instanceof ApiError ? error.message : say('account.report.errorSend'));
+        // submit of a report that already went through. The API's own message
+        // is English; only its status is read.
+        fail(say(reportErrorKey(error)));
         if (submit) submit.disabled = false;
       }
     })();

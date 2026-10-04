@@ -30,6 +30,8 @@ const SCRIPT_KEYS = [
   'contract.loadFailed',
   'contract.loadError',
   'contract.signError',
+  'contract.linkExpired',
+  'contract.alreadySigned',
 ] as const;
 ---
 
@@ -169,6 +171,18 @@ const SCRIPT_KEYS = [
 
   const token = new URLSearchParams(window.location.search).get('token');
 
+  /**
+   * Copy for a refused request. The API's own message is English whatever the
+   * page's language, so only its status is read: a token that is unknown,
+   * expired or used (404/410) and a contract already signed (409) each get a
+   * sentence of their own.
+   */
+  function contractErrorKey(status: number, fallback: string): string {
+    if (status === 409) return 'contract.alreadySigned';
+    if (status === 404 || status === 410) return 'contract.linkExpired';
+    return fallback;
+  }
+
   function fail(message: string) {
     loading.hidden = true;
     content.hidden = true;
@@ -266,10 +280,8 @@ const SCRIPT_KEYS = [
       });
 
       if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: { message?: string };
-        } | null;
-        throw new Error(body?.error?.message ?? say('contract.loadFailed'));
+        fail(say(contractErrorKey(res.status, 'contract.loadFailed')));
+        return;
       }
 
       const { data } = (await res.json()) as {
@@ -297,8 +309,8 @@ const SCRIPT_KEYS = [
       resizeCanvas();
       observer.observe(signatureSection);
       scrollToSign.hidden = false;
-    } catch (err) {
-      fail(err instanceof Error ? err.message : say('contract.loadError'));
+    } catch {
+      fail(say('contract.loadError'));
     }
   }
 
@@ -323,17 +335,15 @@ const SCRIPT_KEYS = [
         );
 
         if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as {
-            error?: { message?: string };
-          } | null;
-          throw new Error(body?.error?.message ?? say('contract.signError'));
+          fail(say(contractErrorKey(res.status, 'contract.signError')));
+          return;
         }
 
         content.hidden = true;
         scrollToSign.hidden = true;
         done.hidden = false;
-      } catch (err) {
-        fail(err instanceof Error ? err.message : say('contract.signError'));
+      } catch {
+        fail(say('contract.signError'));
       }
     })();
   });

@@ -18,7 +18,7 @@
 
   import { accountContext, say } from '~/lib/account-context';
   import { errorMessage } from '~/lib/account-state.svelte';
-  import { setPassword } from '~/lib/customer-session';
+  import { ApiError, setPassword } from '~/lib/customer-session';
   import { formGate } from '~/lib/form-gate-action';
   import type { FieldGate, FormGate } from '~/lib/form-validation';
 
@@ -41,6 +41,15 @@
   let announceEl = $state<HTMLElement>();
 
   let feedback = $state<{ text: string; failed: boolean } | null>(null);
+  /** The current password the server just refused — unmet until it is edited. */
+  let rejectedCurrent = $state<string | null>(null);
+
+  const currentPasswordMessage = $derived.by(() => {
+    if (current !== '' && current === rejectedCurrent) {
+      return say(copy, 'account.wrongCurrentPassword');
+    }
+    return say(copy, 'account.errorCurrentPassword');
+  });
 
   let gate: FormGate | undefined;
   let saving = false;
@@ -51,7 +60,7 @@
          no message element to reveal. A gate that cannot be met by a customer
          who cannot see it would be a silent block. */
       key: 'currentPassword',
-      isSatisfied: () => !hasPassword || current !== '',
+      isSatisfied: () => !hasPassword || (current !== '' && current !== rejectedCurrent),
       controls: () => [currentEl],
     },
     {
@@ -84,6 +93,14 @@
       await session.revalidate();
     } catch (error) {
       if (session.escalate(error)) return;
+      /* A wrong current password is said at that field, through the same gate
+         an empty one uses, not in the banner. */
+      if (error instanceof ApiError && error.fields.currentPassword) {
+        rejectedCurrent = current;
+        feedback = null;
+        gate?.enforce();
+        return;
+      }
       feedback = { text: errorMessage(error, say(copy, 'account.genericError')), failed: true };
     } finally {
       saving = false;
@@ -122,7 +139,7 @@
           bind:this={currentEl}
           bind:value={current}
         />
-        <FieldError key="currentPassword" message={say(copy, 'account.errorCurrentPassword')} />
+        <FieldError key="currentPassword" message={currentPasswordMessage} />
       </label>
     {/if}
 
