@@ -25,10 +25,9 @@
  * docs/code/storefront-cart.md
  */
 import {
-  CART_ITEM_PREFIX,
-  CART_QUANTITY_FIELD,
   type CartLine,
   cartCount,
+  cartWireFields,
   clampQuantity,
   lineKey,
   readCartLines,
@@ -216,17 +215,7 @@ export class CartState {
    * the rows would quietly order less than it holds. The checkout reads each
    * line itself and blocks the order if one cannot be read.
    */
-  wireFields = $derived(
-    this.lines.flatMap((line, index) => {
-      const prefix = `${CART_ITEM_PREFIX}${index}.`;
-      const fields: WireField[] = [...new URLSearchParams(line.config)].map(([key, value]) => ({
-        name: prefix + key,
-        value,
-      }));
-      fields.push({ name: prefix + CART_QUANTITY_FIELD, value: String(line.quantity) });
-      return fields;
-    }),
-  );
+  wireFields: WireField[] = $derived(cartWireFields(this.lines));
 
   /* ------------------------------------------------------------- reading --- */
 

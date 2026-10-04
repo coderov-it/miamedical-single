@@ -23,7 +23,10 @@ import { wireDelivery } from './delivery.ts';
 import { createCheckoutGates } from './gates.ts';
 import { wirePlaceOrder } from './place-order.ts';
 import { createSummary } from './summary.ts';
+import { resumeFromCart } from './resume.ts';
 import { createStepper } from './steps.ts';
+
+resumeFromCart();
 
 const context = createContext();
 

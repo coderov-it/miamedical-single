@@ -176,6 +176,12 @@ function gateHref(): string {
       </a>
       <p class="text-ink-2 m-0 text-[13.5px]">{translate(locale, CONTACT_HOURS_KEY)}</p>
       <PhoneCta variant="primary" />
+      {/* Arrived by GET, not from the cart's post: a cart in this browser is
+          posted from here (scripts/checkout/resume.ts). Never on a POST, so
+          an empty cart post cannot loop. */}
+      {retry.method === 'get' && (
+        <form method="post" action={routePath(locale, 'checkout')} data-resume-cart hidden />
+      )}
     </div>
   )}
 
