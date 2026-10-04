@@ -771,6 +771,8 @@
   "contract.signatureHint": "Disegna la tua firma nell'area qui sotto.",
   "contract.clear": "Cancella",
   "contract.consent": "Confermo di aver letto e accettato i termini del contratto.",
+  "contract.errorSignature": "Firma nell’area qui sopra per continuare.",
+  "contract.errorConsent": "Spunta la casella per confermare.",
   "contract.submit": "Firma il contratto",
   "contract.submitting": "Invio in corso…",
   "contract.doneTitle": "Contratto firmato con successo!",

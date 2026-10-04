@@ -8,6 +8,7 @@
  * signature as a data URL.
  */
 import AccountCopy from '~/components/account/AccountCopy.astro';
+import { ANNOUNCE, FIELD_ERROR } from '~/components/account/fields';
 import LoadingState from '~/components/primitives/LoadingState.svelte';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { localeFromLocals, translate } from '~/lib/i18n';
@@ -84,35 +85,55 @@ const SCRIPT_KEYS = [
         <h2 class="text-lg font-semibold">{text('contract.signatureHeading')}</h2>
         <p class="mt-1 text-sm text-neutral-500">{text('contract.signatureHint')}</p>
 
-        <div class="relative mt-4">
-          <canvas
-            data-signature-canvas
-            class="bg-tint h-48 w-full cursor-crosshair touch-none rounded-xl"
-            width="700"
-            height="200"
-          ></canvas>
-          <button
-            data-clear-signature
-            type="button"
-            class="text-ink-2 absolute top-2 right-2 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm transition hover:bg-white"
-          >
-            {text('contract.clear')}
-          </button>
+        <div data-gate="signature">
+          <div class="relative mt-4">
+            <canvas
+              data-signature-canvas
+              class="bg-tint aria-invalid:ring-danger h-48 w-full cursor-crosshair touch-none rounded-xl aria-invalid:ring-2"
+              width="700"
+              height="200"
+              aria-label={text('contract.signatureHint')}
+            ></canvas>
+            <button
+              data-clear-signature
+              type="button"
+              class="text-ink-2 absolute top-2 right-2 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm transition hover:bg-white"
+            >
+              {text('contract.clear')}
+            </button>
+          </div>
+          <p class={FIELD_ERROR} data-field-error="signature" hidden>
+            {text('contract.errorSignature')}
+          </p>
         </div>
 
-        <label class="mt-4 flex items-start gap-3 text-sm">
-          <input data-consent type="checkbox" class="mt-0.5 size-4 shrink-0 accent-neutral-900" />
-          <span class="text-neutral-600">{text('contract.consent')}</span>
-        </label>
+        <div data-gate="consent" class="mt-4">
+          <label class="flex items-start gap-3 text-sm">
+            <input data-consent type="checkbox" class="mt-0.5 size-4 shrink-0 accent-neutral-900" />
+            <span class="text-neutral-600">{text('contract.consent')}</span>
+          </label>
+          <p class={FIELD_ERROR} data-field-error="consent" hidden>
+            {text('contract.errorConsent')}
+          </p>
+        </div>
 
+        <!-- Never disabled: a click with something missing says what, at the
+             thing that is missing (lib/form-validation.ts). -->
         <button
           data-submit
           type="button"
-          disabled
-          class="hover:bg-accent-deep mt-6 w-full rounded-xl bg-accent px-6 py-3 text-[15px] font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+          class="hover:bg-accent-deep mt-6 w-full rounded-xl bg-accent px-6 py-3 text-[15px] font-medium text-white transition aria-busy:opacity-70"
         >
           {text('contract.submit')}
         </button>
+        <p
+          class={ANNOUNCE}
+          role="status"
+          aria-live="polite"
+          data-announce
+          data-message-one={text('errorCountOne')}
+          data-message-many={text('errorCountMany')}
+        ></p>
       </div>
     </div>
 
@@ -150,6 +171,7 @@ const SCRIPT_KEYS = [
 
 <script>
   import { API_BASE } from '~/lib/api-base';
+  import { createFormGate } from '~/lib/form-validation';
   import { readAccountCopy } from '~/scripts/account/copy';
 
   const copy = readAccountCopy();
@@ -253,8 +275,26 @@ const SCRIPT_KEYS = [
 
   consentBox.addEventListener('change', updateSubmitState);
 
+  /* The button is never disabled. Pressing it with no signature or no consent
+     marks what is missing, moves focus there and announces the count. */
+  const gate = createFormGate(
+    signatureSection,
+    [
+      /* Focus named, not found: "Cancella" is the first button in this block. */
+      {
+        key: 'signature',
+        isSatisfied: () => hasSigned,
+        controls: () => [canvas],
+        focus: () => canvas,
+      },
+      { key: 'consent', isSatisfied: () => consentBox.checked, controls: () => [consentBox] },
+    ],
+    { announce: signatureSection.querySelector<HTMLElement>('[data-announce]') },
+  );
+
+  /** Clears a message the moment its answer is given; never reveals one. */
   function updateSubmitState() {
-    submitBtn.disabled = !hasSigned || !consentBox.checked;
+    gate.refresh();
   }
 
   // --- Floating button visibility ---
@@ -315,9 +355,16 @@ const SCRIPT_KEYS = [
   }
 
   // --- Submit signature ---
+  let busy = false;
+
   submitBtn.addEventListener('click', () => {
-    if (!token || !hasSigned || !consentBox.checked) return;
-    submitBtn.disabled = true;
+    // No token never shows the contract, so there is no button to press.
+    if (!token) return;
+    if (!gate.enforce()) return;
+    // A second press while sending is ignored, not blocked: the button stays live.
+    if (busy) return;
+    busy = true;
+    submitBtn.setAttribute('aria-busy', 'true');
     submitBtn.textContent = say('contract.submitting');
 
     const signatureDataUrl = canvas.toDataURL('image/png');

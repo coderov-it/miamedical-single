@@ -771,6 +771,8 @@
   "contract.signatureHint": "Zeichnen Sie Ihre Unterschrift in das Feld unten.",
   "contract.clear": "Löschen",
   "contract.consent": "Ich bestätige, dass ich die Vertragsbedingungen gelesen und akzeptiert habe.",
+  "contract.errorSignature": "Unterschreiben Sie im Feld oben, um fortzufahren.",
+  "contract.errorConsent": "Setzen Sie das Häkchen, um zu bestätigen.",
   "contract.submit": "Vertrag unterzeichnen",
   "contract.submitting": "Wird gesendet…",
   "contract.doneTitle": "Vertrag erfolgreich unterzeichnet!",
