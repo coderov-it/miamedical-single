@@ -69,29 +69,33 @@
     {:else if values}
       <ul class="divide-hair divide-y">
         {#each PREFERENCE_CATEGORIES as category (category)}
-          <li class="flex items-center justify-between gap-4 py-2.5">
-            <span class="text-[14.5px]">
-              {say(copy, `account.notifications.preferences.${category}`)}
-            </span>
+          <!--
+            A real checkbox, styled as a switch. `role="switch"` on a button
+            would have to reimplement the keyboard behaviour the input already
+            has, and this one is never disabled while saving: a second click is
+            an ordinary toggle back, not a race — the store replaces its state
+            with whatever the server last answered.
 
-            <!--
-              A real checkbox, styled as a switch. `role="switch"` on a button
-              would have to reimplement the keyboard behaviour the input
-              already has, and this one is never disabled while saving: a
-              second click is an ordinary toggle back, not a race — the store
-              replaces its state with whatever the server last answered.
-            -->
-            <label class="inline-flex cursor-pointer items-center">
-              <input
-                class="peer sr-only"
-                type="checkbox"
-                checked={values[category].push}
-                aria-busy={store.saving === category}
-                onchange={() => void store.toggle(category)}
-              />
-              <span
-                class="bg-tint relative h-6 w-11 rounded-full transition peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:after:translate-x-5"
-              ></span>
+            The label wraps the WORDS too: that is what names the checkbox for a
+            screen reader, and what lets a click on "Ordini" flip it.
+          -->
+          <li>
+            <label class="flex cursor-pointer items-center justify-between gap-4 py-2.5">
+              <span class="text-[14.5px]">
+                {say(copy, `account.notifications.preferences.${category}`)}
+              </span>
+              <span class="inline-flex items-center">
+                <input
+                  class="peer sr-only"
+                  type="checkbox"
+                  checked={values[category].push}
+                  aria-busy={store.saving === category}
+                  onchange={() => void store.toggle(category)}
+                />
+                <span
+                  class="bg-tint relative h-6 w-11 rounded-full transition peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:after:translate-x-5"
+                ></span>
+              </span>
             </label>
           </li>
         {/each}
