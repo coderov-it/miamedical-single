@@ -7,9 +7,11 @@
   message in a box above the fields. It is now gated at the control.
 -->
 <script lang="ts">
+  import { isPlausiblePhone } from '@mia/validators/contact';
+
   import { accountContext, say } from '~/lib/account-context';
   import { errorMessage } from '~/lib/account-state.svelte';
-  import { updateProfile } from '~/lib/customer-session';
+  import { ApiError, updateProfile } from '~/lib/customer-session';
   import { formGate } from '~/lib/form-gate-action';
   import type { FieldGate, FormGate } from '~/lib/form-validation';
 
@@ -40,10 +42,27 @@
      gate in this list, and sending someone to the third field when the first
      is also empty is worse than not moving focus at all. */
   const gates = (): FieldGate[] => [
-    { key: 'firstName', isSatisfied: () => firstName.trim() !== '', controls: () => [firstNameEl] },
-    { key: 'lastName', isSatisfied: () => lastName.trim() !== '', controls: () => [lastNameEl] },
-    { key: 'phone', isSatisfied: () => phone.trim() !== '', controls: () => [phoneEl] },
+    {
+      key: 'firstName',
+      isSatisfied: () => firstName.trim() !== '' && firstName !== rejected.firstName,
+      controls: () => [firstNameEl],
+    },
+    {
+      key: 'lastName',
+      isSatisfied: () => lastName.trim() !== '' && lastName !== rejected.lastName,
+      controls: () => [lastNameEl],
+    },
+    /* The same rule the server's CustomerPhoneSchema applies — "abc" used to
+       pass here and come back as "Invalid json." in the banner. */
+    {
+      key: 'phone',
+      isSatisfied: () => isPlausiblePhone(phone) && phone !== rejected.phone,
+      controls: () => [phoneEl],
+    },
   ];
+
+  /** Values the server refused, per field — unmet until that field is edited. */
+  let rejected = $state<Record<string, string>>({});
 
   function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -67,6 +86,14 @@
       feedback = { text: say(copy, 'account.profileSaved'), failed: false };
     } catch (error) {
       if (session.escalate(error)) return;
+      /* A field the server refused is said at that field, through the gate. */
+      if (error instanceof ApiError && Object.keys(error.fields).length > 0) {
+        const values: Record<string, string> = { firstName, lastName, phone };
+        rejected = Object.fromEntries(Object.keys(error.fields).map((key) => [key, values[key] ?? '']));
+        feedback = null;
+        gate?.enforce();
+        return;
+      }
       feedback = { text: errorMessage(error, say(copy, 'account.genericError')), failed: true };
     } finally {
       saving = false;

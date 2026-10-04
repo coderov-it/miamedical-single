@@ -1,7 +1,13 @@
 import { DELIVERY_METHOD_IDS, MAX_ADDON_QUANTITY } from '@mia/pricing';
 import * as v from 'valibot';
 
-import { EmailSchema, PaginationSchema, SlugSchema, UuidSchema } from './common.ts';
+import {
+  CustomerPhoneSchema,
+  EmailSchema,
+  PaginationSchema,
+  SlugSchema,
+  UuidSchema,
+} from './common.ts';
 
 export const AddressSchema = v.object({
   fullName: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(120)),
@@ -195,7 +201,7 @@ export const CheckoutCustomerSchema = v.pipe(
     firstName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
     lastName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
     email: EmailSchema,
-    phone: v.pipe(v.string(), v.trim(), v.minLength(5), v.maxLength(32)),
+    phone: CustomerPhoneSchema,
     customerType: CustomerTypeSchema,
     codiceFiscale: v.optional(FiscalCodeSchema),
     partitaIva: v.optional(FiscalCodeSchema),
