@@ -11,10 +11,12 @@ import { CUSTOMER_PASSWORD_MIN_LENGTH } from '@mia/validators/password-policy';
 
 import AccountCopy from '~/components/account/AccountCopy.astro';
 import {
+  ANNOUNCE,
   AUTH_CARD,
   AUTH_LEDE,
   AUTH_TITLE,
   FIELD,
+  FIELD_ERROR,
   HINT,
   LABEL,
   NOTICE_ERROR,
@@ -50,7 +52,6 @@ const SCRIPT_KEYS = [
   'account.activate.linkIncomplete',
   'account.activate.linkUnverifiable',
   'account.activate.requestNewLink',
-  'account.passwordTooShort',
   'account.genericError',
   'account.signIn.tooManyAttempts',
 ] as const;
@@ -80,7 +81,7 @@ const SCRIPT_KEYS = [
       <p class={AUTH_LEDE}>{intro}</p>
 
       <form data-form class="mt-7 space-y-5" novalidate>
-        <div>
+        <div data-gate="password">
           <label class={LABEL} for="password">
             {text('account.newPassword')}
           </label>
@@ -93,10 +94,21 @@ const SCRIPT_KEYS = [
             minlength={CUSTOMER_PASSWORD_MIN_LENGTH}
           />
           <p class={`${HINT} mt-2`}>{text('account.minChars')}</p>
+          <p class={FIELD_ERROR} data-field-error="password" hidden>
+            {text('account.passwordTooShort')}
+          </p>
         </div>
         <button class={`${PRIMARY} w-full`} type="submit" data-submit>
           {text('account.activate.saveContinue')}
         </button>
+        <p
+          class={ANNOUNCE}
+          role="status"
+          aria-live="polite"
+          data-announce
+          data-message-one={text('errorCountOne')}
+          data-message-many={text('errorCountMany')}
+        ></p>
       </form>
 
       <p class="mt-5 text-center" data-skip-wrap>
@@ -110,6 +122,7 @@ const SCRIPT_KEYS = [
 
 <script>
   import { ApiError, redeemToken, setPassword, tokenFromQuery } from '~/lib/customer-session';
+  import { createFormGate } from '~/lib/form-validation';
   import { readAccountCopy } from '~/scripts/account/copy';
 
   const copy = readAccountCopy();
@@ -165,24 +178,39 @@ const SCRIPT_KEYS = [
     }
   }
 
+  /* A too-short password is said at the field, like every other storefront form:
+     marked, described, focused, and the count announced. The floor is read back
+     off the rendered `minlength`, which already carries
+     CUSTOMER_PASSWORD_MIN_LENGTH, so there is no second number to keep in step. */
+  const gate = form
+    ? createFormGate(
+        form,
+        [
+          {
+            key: 'password',
+            isSatisfied: () => (passwordInput?.value.length ?? 0) >= (passwordInput?.minLength ?? 0),
+            controls: () => [passwordInput],
+          },
+        ],
+        { announce: form.querySelector<HTMLElement>('[data-announce]') },
+      )
+    : null;
+  form?.addEventListener('input', () => gate?.refresh());
+
+  let busy = false;
+
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
-    const value = passwordInput?.value ?? '';
-
-    // The floor is read back off the rendered attribute rather than written
-    // again here: `minlength` already carries CUSTOMER_PASSWORD_MIN_LENGTH, so
-    // there is no second number to keep in step with the schema.
-    if (value.length < (passwordInput?.minLength ?? 0)) {
-      fail(say('account.passwordTooShort'));
-      if (errorBox) errorBox.textContent = say('account.passwordTooShort');
-      if (ready) ready.hidden = false;
-      return;
-    }
+    if (!gate?.enforce()) return;
+    // A second press while saving is ignored, not blocked: the button stays live.
+    if (busy) return;
+    if (errorBox) errorBox.hidden = true;
 
     void (async () => {
-      if (submit) submit.disabled = true;
+      busy = true;
+      submit?.setAttribute('aria-busy', 'true');
       try {
-        await setPassword({ newPassword: value });
+        await setPassword({ newPassword: passwordInput?.value ?? '' });
         window.location.assign(copy.routes.accountOrders);
       } catch (error) {
         if (errorBox) {
@@ -193,7 +221,8 @@ const SCRIPT_KEYS = [
           );
         }
       } finally {
-        if (submit) submit.disabled = false;
+        busy = false;
+        submit?.removeAttribute('aria-busy');
       }
     })();
   });
