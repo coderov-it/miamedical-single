@@ -38,6 +38,8 @@
     preserveAspectRatio="xMidYMid slice"
     focusable="false"
   >
+    <!-- Safe: `flag.body` is a constant from `@mia/i18n`, never user input. -->
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html flag.body}
   </svg>
 </span>
