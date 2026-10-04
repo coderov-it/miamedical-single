@@ -87,8 +87,15 @@ const numericQuery = (fallback: number) =>
     v.integer(),
   );
 
+/**
+ * A ceiling on `page`, not a limit anyone reaches: 10 000 pages of 100 is a
+ * million rows. Without it `?page=1e20` passes `integer()` and becomes an
+ * OFFSET Postgres cannot read ("2.4e+21"), a 500 on every paginated list.
+ */
+const MAX_PAGE = 10_000;
+
 export const PaginationSchema = v.object({
-  page: v.pipe(numericQuery(1), v.minValue(1)),
+  page: v.pipe(numericQuery(1), v.minValue(1), v.maxValue(MAX_PAGE)),
   perPage: v.pipe(numericQuery(24), v.minValue(1), v.maxValue(100)),
 });
 
