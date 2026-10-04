@@ -13,10 +13,12 @@
  */
 import AccountCopy from '~/components/account/AccountCopy.astro';
 import {
+  ANNOUNCE,
   AUTH_CARD,
   AUTH_LEDE,
   AUTH_TITLE,
   FIELD,
+  FIELD_ERROR,
   HINT,
   LABEL,
   NOTICE_ERROR,
@@ -35,8 +37,6 @@ const text = (key: string, params?: Record<string, string | number>) =>
 /** What the script below writes into the DOM. See lib/account-page.ts. */
 const SCRIPT_KEYS = [
   'account.report.linkIncomplete',
-  'account.report.errorPhone',
-  'account.report.errorMessage',
   'account.report.errorSend',
   'account.activate.linkUnverifiable',
   'account.signIn.tooManyAttempts',
@@ -60,22 +60,36 @@ const SCRIPT_KEYS = [
       <p class={AUTH_LEDE}>{text('account.report.lede')}</p>
 
       <form data-form class="mt-7 space-y-5" novalidate>
-        <div>
+        <div data-gate="phone">
           <label class={LABEL} for="phone">
             {text('account.report.phone')}
           </label>
           <input class={FIELD} id="phone" name="phone" type="tel" autocomplete="tel" required />
           <p class={`${HINT} mt-2`}>{text('account.report.phoneNote')}</p>
+          <p class={FIELD_ERROR} data-field-error="phone" hidden>
+            {text('account.report.errorPhone')}
+          </p>
         </div>
-        <div>
+        <div data-gate="message">
           <label class={LABEL} for="message">
             {text('account.report.message')}
           </label>
           <textarea class={FIELD} id="message" name="message" rows="4" required></textarea>
+          <p class={FIELD_ERROR} data-field-error="message" hidden>
+            {text('account.report.errorMessage')}
+          </p>
         </div>
         <button class={`${PRIMARY} w-full`} type="submit" data-submit>
           {text('account.report.submit')}
         </button>
+        <p
+          class={ANNOUNCE}
+          role="status"
+          aria-live="polite"
+          data-announce
+          data-message-one={text('errorCountOne')}
+          data-message-many={text('errorCountMany')}
+        ></p>
       </form>
     </div>
 
@@ -90,6 +104,7 @@ const SCRIPT_KEYS = [
 
 <script>
   import { ApiError, reportOrder, tokenFromQuery } from '~/lib/customer-session';
+  import { createFormGate } from '~/lib/form-validation';
   import { readAccountCopy } from '~/scripts/account/copy';
 
   const copy = readAccountCopy();
@@ -121,21 +136,41 @@ const SCRIPT_KEYS = [
     fail(say('account.report.linkIncomplete'));
   }
 
+  const phoneInput = document.querySelector<HTMLInputElement>('#phone');
+  const messageInput = document.querySelector<HTMLTextAreaElement>('#message');
+  const phoneValue = () => phoneInput?.value.trim() ?? '';
+  const messageValue = () => messageInput?.value.trim() ?? '';
+
+  /* Every missing answer is said at its own field at once, not one at a time in
+     the box at the top. Five characters is the server's floor for the phone. */
+  const gate = form
+    ? createFormGate(
+        form,
+        [
+          { key: 'phone', isSatisfied: () => phoneValue().length >= 5, controls: () => [phoneInput] },
+          { key: 'message', isSatisfied: () => messageValue() !== '', controls: () => [messageInput] },
+        ],
+        { announce: form.querySelector<HTMLElement>('[data-announce]') },
+      )
+    : null;
+  form?.addEventListener('input', () => gate?.refresh());
+
+  let busy = false;
+
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
+    // No token hides the form above, so there is nothing here to press.
     if (!token) return;
-
-    const phone = document.querySelector<HTMLInputElement>('#phone')?.value.trim() ?? '';
-    const message = document.querySelector<HTMLTextAreaElement>('#message')?.value.trim() ?? '';
-
-    if (phone.length < 5) return fail(say('account.report.errorPhone'));
-    if (message.length === 0) return fail(say('account.report.errorMessage'));
+    if (!gate?.enforce()) return;
+    // A second press while sending is ignored, not blocked: the button stays live.
+    if (busy) return;
     if (errorBox) errorBox.hidden = true;
 
     void (async () => {
-      if (submit) submit.disabled = true;
+      busy = true;
+      submit?.setAttribute('aria-busy', 'true');
       try {
-        await reportOrder({ token, reportedPhone: phone, message });
+        await reportOrder({ token, reportedPhone: phoneValue(), message: messageValue() });
         if (formWrap) formWrap.hidden = true;
         if (done) done.hidden = false;
       } catch (error) {
@@ -143,7 +178,9 @@ const SCRIPT_KEYS = [
         // submit of a report that already went through. The API's own message
         // is English; only its status is read.
         fail(say(reportErrorKey(error)));
-        if (submit) submit.disabled = false;
+      } finally {
+        busy = false;
+        submit?.removeAttribute('aria-busy');
       }
     })();
   });
