@@ -50,11 +50,24 @@ function mountDatePicker(picker: HTMLElement): void {
   const placeholder = value.dataset.placeholder ?? '';
   const floating = createSurface(trigger, popover, { phoneSheet: true });
 
+  /* A carried date that has since passed — `?from=` on a link from last week —
+     is dropped, not kept. Kept, it fails the hidden input's `min`, and a hidden
+     control cannot show its validation message: the form just never submits. */
+  if (min && input.value && input.value < min) input.value = '';
+
   input.min = min;
   input.max = max;
   calendar.min = min;
   calendar.max = max;
   calendar.value = input.value;
+  /* cally's month grids pick `min` up only when it CHANGES, and on this first
+     assignment they have not subscribed yet: past days stayed pickable until
+     something else redrew the month. Changing it once more a frame later, when
+     they are listening, redraws them with those days disallowed. */
+  requestAnimationFrame(() => {
+    calendar.min = '';
+    calendar.min = min;
+  });
 
   function sync(): void {
     calendar!.value = input!.value;
