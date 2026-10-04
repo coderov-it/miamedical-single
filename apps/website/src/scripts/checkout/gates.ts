@@ -27,6 +27,8 @@
  * changes — so the server's verdict is marked exactly like the page's own, and
  * "Continua" cannot wave the same rejected value through again.
  */
+import { isPlausibleEmail, isPlausiblePhone } from '@mia/validators/contact';
+
 import { type FieldGate, type FormGate, createFormGate } from '~/lib/form-validation';
 import type { CheckoutContext, StepIndex } from './context.ts';
 
@@ -36,6 +38,9 @@ import type { CheckoutContext, StepIndex } from './context.ts';
  * the customer hears about it while they are still in the field.
  */
 const MIN_ADDRESS_LENGTH = 6;
+
+/** The return address's floor on the server (`CreateOrderSchema.returnAddress`). */
+const MIN_RETURN_ADDRESS_LENGTH = 4;
 
 /** A gate on a block the template already declared with `data-gate`. */
 function fieldGate(
@@ -67,11 +72,11 @@ function detailGates(context: CheckoutContext): FieldGate[] {
   return [
     fieldGate(context, 'firstName', () => value('firstName') !== ''),
     fieldGate(context, 'lastName', () => value('lastName') !== ''),
-    /* The same "does it contain an @" the page has always applied. Anything
-       stricter rejects addresses that work; the confirmation email is the real
-       check. */
-    fieldGate(context, 'email', () => value('email').includes('@')),
-    fieldGate(context, 'phone', () => value('phone') !== ''),
+    /* The shapes the server's schemas accept, checked here so "@" or "abc" is
+       said at the field on step 1 instead of failing the request on step 3.
+       Never stricter than the server: an address that works must pass. */
+    fieldGate(context, 'email', () => isPlausibleEmail(value('email'))),
+    fieldGate(context, 'phone', () => isPlausiblePhone(value('phone'))),
     fieldGate(context, 'codiceFiscale', () => isType('private')() || value('codiceFiscale') !== ''),
     fieldGate(context, 'partitaIva', () => isType('company')() || value('partitaIva') !== ''),
     fieldGate(
@@ -119,7 +124,10 @@ function deliveryGates(context: CheckoutContext): FieldGate[] {
     fieldGate(
       context,
       'returnAddress',
-      () => returnSame === null || returnSame.checked || value('returnAddress') !== '',
+      () =>
+        returnSame === null ||
+        returnSame.checked ||
+        value('returnAddress').length >= MIN_RETURN_ADDRESS_LENGTH,
     ),
   ];
 }

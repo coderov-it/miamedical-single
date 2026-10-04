@@ -21,3 +21,15 @@ export function isPlausiblePhone(value: string): boolean {
   const digits = trimmed.replace(/\D/g, '').length;
   return digits >= MIN_DIGITS && digits <= MAX_DIGITS;
 }
+
+/**
+ * Whether an email address has the shape the server's `EmailSchema` accepts:
+ * something, an @, a domain with a dot. Looser than that schema, never
+ * stricter — its job is to stop "@" and "mario@gmail" in the browser instead
+ * of after the last step, not to second-guess addresses that work.
+ */
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isPlausibleEmail(value: string): boolean {
+  return EMAIL_SHAPE.test(value.trim());
+}

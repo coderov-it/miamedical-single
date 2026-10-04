@@ -11,6 +11,8 @@
  * Nothing here is ever `disabled`. A request in flight marks its button
  * `aria-busy` and a second click is ignored by the flag, not by the control.
  */
+import { isPlausibleEmail } from '@mia/validators/contact';
+
 import {
   ApiError,
   loadCustomer,
@@ -137,9 +139,7 @@ function emailValue(): string {
 }
 
 /** Deliberately loose. The server's EmailSchema is the real check. */
-function isEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
+const isEmail = isPlausibleEmail;
 
 function showError(message: string | null) {
   if (!feedback) return;
