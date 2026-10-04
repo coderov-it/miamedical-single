@@ -90,6 +90,7 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.passwordSaved',
   'account.passwordTooShort',
   'account.errorCurrentPassword',
+  'account.wrongCurrentPassword',
   // the gate's live region
   'errorCountOne',
   'errorCountMany',

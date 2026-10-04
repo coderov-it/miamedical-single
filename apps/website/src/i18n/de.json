@@ -627,6 +627,7 @@
   "account.password": "Passwort",
   "account.currentPassword": "Aktuelles Passwort",
   "account.errorCurrentPassword": "Geben Sie Ihr aktuelles Passwort ein.",
+  "account.wrongCurrentPassword": "Ihr aktuelles Passwort ist nicht korrekt.",
   "account.newPassword": "Neues Passwort",
   "account.savePassword": "Passwort speichern",
   "account.changePassword": "Passwort ändern",
@@ -780,6 +781,8 @@
   "contract.loadFailed": "Der Vertrag konnte nicht geladen werden.",
   "contract.loadError": "Fehler beim Laden des Vertrags.",
   "contract.signError": "Fehler beim Unterzeichnen des Vertrags.",
+  "contract.linkExpired": "Dieser Unterschriftslink ist nicht mehr gültig. Kontaktieren Sie uns, dann senden wir Ihnen einen neuen.",
+  "contract.alreadySigned": "Dieser Vertrag wurde bereits unterzeichnet.",
   "contact.hours": "Mo–Sa, 9:00–19:00 Uhr",
   "card.priceFrom": "ab",
   "card.unavailable": "Nicht verfügbar"

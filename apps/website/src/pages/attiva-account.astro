@@ -52,6 +52,7 @@ const SCRIPT_KEYS = [
   'account.activate.requestNewLink',
   'account.passwordTooShort',
   'account.genericError',
+  'account.signIn.tooManyAttempts',
 ] as const;
 ---
 
@@ -158,7 +159,9 @@ const SCRIPT_KEYS = [
         passwordInput?.focus();
       }
     } catch (error) {
-      fail(error instanceof ApiError ? error.message : say('account.activate.linkUnverifiable'));
+      // The API's own message is English; only its status is read here.
+      const rateLimited = error instanceof ApiError && error.status === 429;
+      fail(say(rateLimited ? 'account.signIn.tooManyAttempts' : 'account.activate.linkUnverifiable'));
     }
   }
 
@@ -184,8 +187,10 @@ const SCRIPT_KEYS = [
       } catch (error) {
         if (errorBox) {
           errorBox.hidden = false;
-          errorBox.textContent =
-            error instanceof ApiError ? error.message : say('account.genericError');
+          const rateLimited = error instanceof ApiError && error.status === 429;
+          errorBox.textContent = say(
+            rateLimited ? 'account.signIn.tooManyAttempts' : 'account.genericError',
+          );
         }
       } finally {
         if (submit) submit.disabled = false;
