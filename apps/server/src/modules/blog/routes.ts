@@ -219,6 +219,18 @@ export const blogAdminRoutes = new Hono<AppEnv>()
   )
 
   /** --------------------------------------------------------------------------
+  GET /api/admin/blog/categories (blog:category:read)
+  Every blog category, in display order. Registered before `/:id`: Hono matches
+  in order, and `/:id` would otherwise take "categories" as a post id.
+  -------------------------------------------------------------------------- **/
+  .get('/categories', requirePermission(P.BLOG_CATEGORY_READ), async (c) => {
+    const rows = await c.get('db').query.blogCategories.findMany({
+      orderBy: blogCategories.position,
+    });
+    return c.json({ data: rows.map(toCategoryDto) });
+  })
+
+  /** --------------------------------------------------------------------------
   GET /api/admin/blog/:id (blog:read)
   One post with every translation and its category ids.
   -------------------------------------------------------------------------- **/
@@ -315,17 +327,6 @@ export const blogAdminRoutes = new Hono<AppEnv>()
   )
 
   // --- Blog categories ---
-
-  /** --------------------------------------------------------------------------
-  GET /api/admin/blog/categories (blog:category:read)
-  Every blog category, in display order.
-  -------------------------------------------------------------------------- **/
-  .get('/categories', requirePermission(P.BLOG_CATEGORY_READ), async (c) => {
-    const rows = await c.get('db').query.blogCategories.findMany({
-      orderBy: blogCategories.position,
-    });
-    return c.json({ data: rows.map(toCategoryDto) });
-  })
 
   /** --------------------------------------------------------------------------
   POST /api/admin/blog/categories (blog:category:manage)
@@ -501,6 +502,21 @@ export const blogPublicRoutes = new Hono<AppEnv>()
   })
 
   /** --------------------------------------------------------------------------
+  GET /api/blog/categories (public)
+  The active blog categories, as slug and name. Registered before `/:slug`:
+  Hono matches in order, and `/:slug` would otherwise take "categories" as a post.
+  -------------------------------------------------------------------------- **/
+  .get('/categories', async (c) => {
+    const rows = await c.get('db').query.blogCategories.findMany({
+      where: eq(blogCategories.isActive, true),
+      orderBy: blogCategories.position,
+    });
+    return c.json({
+      data: rows.map((r) => ({ slug: r.slug, name: r.name })),
+    });
+  })
+
+  /** --------------------------------------------------------------------------
   GET /api/blog/:slug (public)
   One published post by slug, in the requested language.
   -------------------------------------------------------------------------- **/
@@ -550,18 +566,4 @@ export const blogPublicRoutes = new Hono<AppEnv>()
         },
       });
     },
-  )
-
-  /** --------------------------------------------------------------------------
-  GET /api/blog/categories (public)
-  The active blog categories, as slug and name.
-  -------------------------------------------------------------------------- **/
-  .get('/categories', async (c) => {
-    const rows = await c.get('db').query.blogCategories.findMany({
-      where: eq(blogCategories.isActive, true),
-      orderBy: blogCategories.position,
-    });
-    return c.json({
-      data: rows.map((r) => ({ slug: r.slug, name: r.name })),
-    });
-  });
+  );
