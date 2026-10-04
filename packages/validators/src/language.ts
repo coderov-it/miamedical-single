@@ -18,6 +18,8 @@ export interface LanguageDefinition {
   readonly code: string;
   /** Endonym — what the language calls itself. This is what a language picker shows, in any interface language. */
   readonly label: string;
+  /** Three-letter endonym abbreviation, for a picker with no room for the full label. */
+  readonly shortLabel: string;
   /** BCP 47, for `<html lang>` and every `Intl` formatter. */
   readonly tag: string;
   /** Open Graph `og:locale`. */
@@ -34,6 +36,7 @@ export const LANGUAGES = [
   {
     code: 'it',
     label: 'Italiano',
+    shortLabel: 'Ita',
     tag: 'it-IT',
     ogLocale: 'it_IT',
     searchConfig: 'italian',
@@ -41,6 +44,7 @@ export const LANGUAGES = [
   {
     code: 'en',
     label: 'English',
+    shortLabel: 'Eng',
     tag: 'en-GB',
     ogLocale: 'en_GB',
     searchConfig: 'english',
@@ -48,6 +52,7 @@ export const LANGUAGES = [
   {
     code: 'fr',
     label: 'Français',
+    shortLabel: 'Fra',
     tag: 'fr-FR',
     ogLocale: 'fr_FR',
     searchConfig: 'french',
@@ -55,6 +60,7 @@ export const LANGUAGES = [
   {
     code: 'de',
     label: 'Deutsch',
+    shortLabel: 'Deu',
     tag: 'de-DE',
     ogLocale: 'de_DE',
     searchConfig: 'german',

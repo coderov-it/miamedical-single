@@ -9,7 +9,6 @@
   here can silently re-target inputs on a screen you are not looking at.
 -->
 <script lang="ts">
-  import LanguagesIcon from '@lucide/svelte/icons/languages';
   import MoonIcon from '@lucide/svelte/icons/moon';
   import SunIcon from '@lucide/svelte/icons/sun';
   import { toggleMode } from 'mode-watcher';
@@ -21,6 +20,7 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+  import LanguageFlag from '~/lib/components/language-flag.svelte';
   import NotificationBell from '~/lib/components/notification-bell.svelte';
   import { navTitleFor } from '~/lib/nav';
   import { routes } from '~/lib/routes';
@@ -62,7 +62,7 @@
         class={buttonVariants({ variant: 'ghost', size: 'sm' })}
         aria-label="Interface language"
       >
-        <LanguagesIcon class="size-4" />
+        <LanguageFlag code={uiLang.current} />
         <span class="text-xs font-medium uppercase">{uiLang.current}</span>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
@@ -72,7 +72,8 @@
           onValueChange={(value) => uiLang.set(value as UiLanguage)}
         >
           {#each UI_LANGUAGES as language (language.code)}
-            <DropdownMenu.RadioItem value={language.code}>
+            <DropdownMenu.RadioItem value={language.code} class="gap-2">
+              <LanguageFlag code={language.code} />
               {language.label}
             </DropdownMenu.RadioItem>
           {/each}

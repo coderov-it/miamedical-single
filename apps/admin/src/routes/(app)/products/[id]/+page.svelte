@@ -232,35 +232,47 @@
 
   <ResourceView resource={product} noun="product">
     {#snippet children(current)}
-      <div class="flex flex-wrap items-center gap-2 text-sm">
-        <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
-          {current.status}
-        </Badge>
-        <Badge variant="outline">
-          {current.pricingMode === 'rental' ? `rental / ${current.rentalUnit}` : 'fixed price'}
-        </Badge>
-        <Badge variant="outline">
-          {formatMoney(current.basePrice, current.currency)}
-        </Badge>
-        <Badge variant="outline" class="gap-1.5 font-normal">
-          <TranslationProgress progress={progressFromStates(current.translationStatus.languages)} />
-        </Badge>
-        <span class="ml-auto text-muted-foreground">
-          Updated {relativeTime(current.updatedAt)}
-        </span>
+      <!--
+        Status on the left, the editor-wide content language on the right. The
+        language lives here rather than on the section strip: both were underline
+        tabs on one line, which read as one strip of thirteen sections and
+        crushed each other on a narrow window. On a narrow one this row wraps.
+      -->
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+          <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
+            {current.status}
+          </Badge>
+          <Badge variant="outline">
+            {current.pricingMode === 'rental' ? `rental / ${current.rentalUnit}` : 'fixed price'}
+          </Badge>
+          <Badge variant="outline">
+            {formatMoney(current.basePrice, current.currency)}
+          </Badge>
+          <Badge variant="outline" class="gap-1.5 font-normal">
+            <TranslationProgress
+              progress={progressFromStates(current.translationStatus.languages)}
+            />
+          </Badge>
+          <span class="text-muted-foreground">
+            Updated {relativeTime(current.updatedAt)}
+          </span>
+        </div>
+        <LanguageSwitcher
+          lang={contentLang}
+          progress={progressFromStates(current.translationStatus.languages)}
+          variant="segmented"
+          class="ml-auto"
+        />
       </div>
 
       <!--
         A plain button strip rather than the Tabs primitive: the panels below are
         all mounted at once, which is the opposite of what a tablist implies to
         a screen reader. `aria-current` describes what is actually true here.
-
-        The IT/EN tabs at the right end are the editor-wide content language —
-        pinned outside the scroll region so they never disappear behind the
-        section tabs on a narrow screen.
       -->
-      <div class="flex items-stretch border-b">
-        <div class="min-w-0 flex-1 overflow-x-auto">
+      <div class="mt-4 border-b">
+        <div class="overflow-x-auto [scrollbar-width:none]">
           <div class="flex min-w-max gap-1">
             {#each PRODUCT_TABS as tab (tab.key)}
               {@const active = activeTab === tab.key}
@@ -286,18 +298,13 @@
             {/each}
           </div>
         </div>
-        <LanguageSwitcher
-          lang={contentLang}
-          progress={progressFromStates(current.translationStatus.languages)}
-          class="shrink-0 border-l pl-1"
-        />
       </div>
 
       <!-- Every panel mounted; only the active one is shown. Keyed on the
            translation version so a saved generation run remounts them against the
            row the server returned — a tab keeps the copy it read at mount. -->
       {#key productVersion}
-        <div class="max-w-5xl">
+        <div class="mt-5 max-w-5xl">
           {#each PRODUCT_TABS as tab (tab.key)}
             <div hidden={activeTab !== tab.key}>
               {#if tab.key === 'basics'}

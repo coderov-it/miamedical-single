@@ -6,6 +6,11 @@
     • up to INLINE_SWITCHER_LIMIT languages — a row of buttons, as before
     • past it — a dropdown, because a row of six is a scanning problem
 
+  The row comes in two looks. `tabs` (underline, full names) suits an editor
+  where it is the only strip; `segmented` (pill, flag + "Eng") is for an editor
+  that already has section tabs, where a second underline row reads as more
+  sections rather than a mode, and where the row has to stay compact.
+
   Both render from the registry, so a newly registered language appears here
   with no edit, and both show per-language progress rather than singling out one
   language's absence. `enMissing` is gone: a boolean about English cannot
@@ -22,6 +27,7 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { cn } from '$lib/utils.js';
   import type { ContentLang } from '~/lib/content-lang.svelte';
+  import LanguageFlag from '~/lib/components/language-flag.svelte';
   import {
     INLINE_SWITCHER_LIMIT,
     LANGUAGES,
@@ -37,10 +43,28 @@
      * correct for a form whose fields are not translated field-by-field.
      */
     progress?: LanguageProgress[];
+    variant?: 'tabs' | 'segmented';
     class?: string;
   }
 
-  let { lang, progress, class: className }: Props = $props();
+  let { lang, progress, variant = 'tabs', class: className }: Props = $props();
+
+  const LOOK = {
+    tabs: {
+      group: 'flex items-center',
+      button: 'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
+      active: 'border-primary font-medium text-foreground',
+      idle: 'border-transparent text-muted-foreground hover:text-foreground',
+    },
+    segmented: {
+      group: 'flex items-center gap-0.5 rounded-lg bg-muted p-0.5',
+      button: 'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors',
+      active: 'bg-background font-medium text-foreground shadow-sm',
+      idle: 'text-muted-foreground hover:text-foreground',
+    },
+  } as const;
+  const look = $derived(LOOK[variant]);
+  const compact = $derived(variant === 'segmented');
 
   const byCode = $derived(new Map((progress ?? []).map((entry) => [entry.code, entry])));
   const stateOf = $derived((code: string) => byCode.get(code as never)?.state);
@@ -58,13 +82,14 @@
   };
 </script>
 
-<div class={cn('flex items-center gap-3', className)}>
+<div class={cn('flex flex-wrap items-center gap-x-3 gap-y-1.5', className)}>
   {#if asDropdown}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
         aria-label="Content language"
       >
+        <LanguageFlag code={lang.current} />
         <span class="font-medium">{currentLabel}</span>
         <span class="text-xs text-muted-foreground uppercase">{lang.current}</span>
       </DropdownMenu.Trigger>
@@ -75,6 +100,7 @@
             checked={lang.current === language.code}
             onCheckedChange={() => lang.set(language.code)}
           >
+            <LanguageFlag code={language.code} />
             <span class="flex-1">{language.label}</span>
             {#if state && RING[state]}
               <span class={cn('size-1.5 rounded-full', RING[state])}></span>
@@ -84,7 +110,7 @@
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   {:else}
-    <div class="flex items-center" role="group" aria-label="Content language">
+    <div class={look.group} role="group" aria-label="Content language">
       {#each LANGUAGES as language (language.code)}
         {@const active = lang.current === language.code}
         {@const state = stateOf(language.code)}
@@ -92,14 +118,12 @@
           type="button"
           onclick={() => lang.set(language.code)}
           aria-pressed={active}
-          class={cn(
-            'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
-            active
-              ? 'border-primary font-medium text-foreground'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
-          )}
+          aria-label={compact ? language.label : undefined}
+          title={compact ? language.label : undefined}
+          class={cn(look.button, active ? look.active : look.idle)}
         >
-          {language.label}
+          <LanguageFlag code={language.code} />
+          {compact ? language.shortLabel : language.label}
           {#if state && RING[state]}
             <span
               class={cn('size-1.5 rounded-full', RING[state])}
@@ -117,7 +141,7 @@
     <!-- States the position, not a complaint: "1 of 2 languages translated"
          reads as progress, where "EN missing" read as an error the operator had
          already decided not to care about. -->
-    <p class="ml-auto text-xs text-muted-foreground">
+    <p class="ml-auto text-xs whitespace-nowrap text-muted-foreground">
       {summary.done} of {summary.total} translated
       {#if summary.incomplete.length > 0}
         <span class="text-muted-foreground/70">

@@ -164,7 +164,7 @@
     @apply space-y-6;
   }
   .admin-page-header {
-    @apply flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between;
+    @apply flex flex-col gap-4 @3xl:flex-row @3xl:items-start @3xl:justify-between;
   }
   .admin-page-eyebrow {
     @apply text-sm font-medium text-muted-foreground;
