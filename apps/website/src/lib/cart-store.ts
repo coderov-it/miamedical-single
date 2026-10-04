@@ -132,6 +132,25 @@ export function lineKey(config: string): string {
   return params.map(([key, value]) => `${key}=${value}`).join('&');
 }
 
+/**
+ * The `item.<n>.` fields the checkout reads, one per hidden input, for every
+ * stored line in order. Positional, exactly as `splitItemParams()` documents.
+ *
+ * Here rather than in the cart island so the checkout can rebuild the same post
+ * from storage when it is reached without one — see `scripts/checkout/resume.ts`.
+ */
+export function cartWireFields(lines: CartLine[]): Array<{ name: string; value: string }> {
+  return lines.flatMap((line, index) => {
+    const prefix = `${CART_ITEM_PREFIX}${index}.`;
+    const fields = [...new URLSearchParams(line.config)].map(([key, value]) => ({
+      name: prefix + key,
+      value,
+    }));
+    fields.push({ name: prefix + CART_QUANTITY_FIELD, value: String(line.quantity) });
+    return fields;
+  });
+}
+
 /** The header badge's number: the sum of the quantities, not the row count. */
 export function cartCount(lines: CartLine[]): number {
   return lines.reduce((sum, line) => sum + clampQuantity(line.quantity), 0);
