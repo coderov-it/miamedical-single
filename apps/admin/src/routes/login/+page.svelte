@@ -1,5 +1,6 @@
 <script lang="ts">
   import HeartPulseIcon from '@lucide/svelte/icons/heart-pulse';
+  import { safeRedirectPath } from '@mia/validators/redirect';
 
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -16,10 +17,9 @@
   let error = $state<string | null>(null);
   let submitting = $state(false);
 
-  /** Where the layout bounced them from. Relative paths only — never an open redirect. */
+  /** Where the layout bounced them from. Same-site paths only — never an open redirect. */
   function destination() {
-    const next = page.url.searchParams.get('next');
-    return next && next.startsWith('/') ? next : routes.dashboard;
+    return safeRedirectPath(page.url.searchParams.get('next'), routes.dashboard);
   }
 
   // Nobody signed in should be looking at a sign-in form.
