@@ -13,6 +13,7 @@ destructive migration rather than an edit.
 {
   code: 'de',
   label: 'Deutsch',        // endonym — what a picker shows in any interface language
+  shortLabel: 'Deu',       // three-letter form for a compact picker
   tag: 'de-DE',            // <html lang>, every Intl formatter
   ogLocale: 'de_DE',       // og:locale
   searchConfig: 'german',  // must exist: SELECT cfgname FROM pg_ts_config
@@ -50,8 +51,8 @@ Three places are `Record<LanguageCode, …>` and will fail until answered:
 - `packages/i18n/src/enum-labels.ts` — 8 catalogs, 34 entries. `tsc` names every
   missing one.
 - `apps/server/src/modules/products/mapper.ts` — the `YES`/`NO` pair.
-- `apps/website/src/components/global/LanguageFlag.astro` — the switcher's SVG
-  flag.
+- `packages/i18n/src/language-flags.ts` — the SVG flag the storefront and
+  back-office switchers both draw.
 
 Note the gender trap in `enum-labels.ts`: `ORDER_STATUS` agrees with the noun
 for "order", `PAYMENT_STATUS` with the noun for "payment", and those genders
