@@ -70,6 +70,19 @@ const originCrumb =
   single && items[0]
     ? { label: items[0].product.title, href: productPath(items[0].product.slug, {}, locale) }
     : { label: t('yourRequest'), href: routePath(locale, 'cart') };
+
+/* Where the confirm step's gate sends the customer. A start date that has passed
+   is fixed in the cart: the date is part of the line, so re-adding from the
+   product page would leave the stale line behind, still blocking. Otherwise the
+   blocking item's own page when there are several, so they land on the row that
+   needs fixing rather than the list. */
+function gateHref(): string {
+  if (checkout.blocked === 'pastStart') return routePath(locale, 'cart');
+  if (checkout.blockedItem && !single) {
+    return productPath(checkout.blockedItem.product.slug, {}, locale);
+  }
+  return originCrumb.href;
+}
 ---
 
 {/*
@@ -119,14 +132,7 @@ const originCrumb =
             blocked={checkout.blocked}
             blockedItem={checkout.blockedItem}
             {retry}
-            backHref={
-              /* The blocking item's own page when there is one, so a
-                   multi-item cart sends the customer to the row that needs
-                   fixing rather than to the list. */
-              checkout.blockedItem && !single
-                ? productPath(checkout.blockedItem.product.slug, {}, locale)
-                : originCrumb.href
-            }
+            backHref={gateHref()}
           />
         </CheckoutStep>
       </main>
