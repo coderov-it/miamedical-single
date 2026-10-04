@@ -207,7 +207,7 @@ const { labelStage = false } = Astro.props;
           >
             {PICKUP_POINTS.map((point, index) => (
               <button
-                class="group/pickup bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left data-selected:border-accent data-selected:bg-white"
+                class="group/pickup bg-tint flex w-full cursor-pointer items-start gap-3.5 rounded-[11px] border-[1.5px] border-transparent px-4.25 py-3.75 text-left aria-checked:border-accent aria-checked:bg-white"
                 type="button"
                 role="radio"
                 aria-checked={index === 0 ? 'true' : 'false'}
