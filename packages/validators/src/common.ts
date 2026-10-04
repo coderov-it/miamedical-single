@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 
+import { isPlausiblePhone } from './contact.ts';
 import {
   ADMIN_PASSWORD_MIN_LENGTH,
   CUSTOMER_PASSWORD_MIN_LENGTH,
@@ -56,6 +57,20 @@ export const FullNameSchema = v.pipe(
 
 /** Free-form on purpose: a number may be a mobile, a desk or an extension. */
 export const PhoneSchema = v.pipe(v.string(), v.trim(), v.maxLength(40));
+
+/**
+ * A number a CUSTOMER gives us to be called back on — checkout, profile, order
+ * report. Not free-form like the operator's: the confirmation call is how an
+ * order goes ahead, so "abc" is a lost order, not a quirk. The rule itself is
+ * `isPlausiblePhone` in `contact.ts`, which the storefront gates on in the
+ * browser too.
+ */
+export const CustomerPhoneSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.maxLength(32),
+  v.check(isPlausiblePhone, 'Enter a phone number.'),
+);
 
 /**
  * Money is a `numeric(12, 2)`-shaped decimal **string** — `"35.00"`, never a

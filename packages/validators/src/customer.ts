@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { CustomerPasswordSchema, EmailSchema } from './common.ts';
+import { CustomerPasswordSchema, CustomerPhoneSchema, EmailSchema } from './common.ts';
 
 /**
  * Storefront account contracts, shared by the server and the storefront islands.
@@ -90,7 +90,7 @@ export const SetCustomerPasswordSchema = v.pipe(
 export const UpdateCustomerProfileSchema = v.strictObject({
   firstName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
   lastName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
-  phone: v.pipe(v.string(), v.trim(), v.minLength(5), v.maxLength(32)),
+  phone: CustomerPhoneSchema,
 });
 
 /**
@@ -103,7 +103,7 @@ export const UpdateCustomerProfileSchema = v.strictObject({
  */
 export const CreateOrderDisputeSchema = v.strictObject({
   token: AuthTokenSchema,
-  reportedPhone: v.pipe(v.string(), v.trim(), v.minLength(5), v.maxLength(32)),
+  reportedPhone: CustomerPhoneSchema,
   message: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(2000)),
 });
 

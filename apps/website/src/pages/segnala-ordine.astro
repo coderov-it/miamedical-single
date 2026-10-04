@@ -103,6 +103,8 @@ const SCRIPT_KEYS = [
 </BaseLayout>
 
 <script>
+  import { isPlausiblePhone } from '@mia/validators/contact';
+
   import { ApiError, reportOrder, tokenFromQuery } from '~/lib/customer-session';
   import { createFormGate } from '~/lib/form-validation';
   import { readAccountCopy } from '~/scripts/account/copy';
@@ -142,12 +144,12 @@ const SCRIPT_KEYS = [
   const messageValue = () => messageInput?.value.trim() ?? '';
 
   /* Every missing answer is said at its own field at once, not one at a time in
-     the box at the top. Five characters is the server's floor for the phone. */
+     the box at the top. The phone rule is the server's CustomerPhoneSchema. */
   const gate = form
     ? createFormGate(
         form,
         [
-          { key: 'phone', isSatisfied: () => phoneValue().length >= 5, controls: () => [phoneInput] },
+          { key: 'phone', isSatisfied: () => isPlausiblePhone(phoneValue()), controls: () => [phoneInput] },
           { key: 'message', isSatisfied: () => messageValue() !== '', controls: () => [messageInput] },
         ],
         { announce: form.querySelector<HTMLElement>('[data-announce]') },
