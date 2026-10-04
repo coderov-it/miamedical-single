@@ -196,7 +196,7 @@
     const base = env.PUBLIC_SITE_URL;
     const slug = product.data?.translations.it?.slug;
     if (!base || !slug || product.data?.status !== 'active') return null;
-    return `${base.replace(/\/$/, '')}/prodotti/${slug}`;
+    return `${base.replace(/\/$/, '')}/prodotto/${slug}/`;
   });
 </script>
 
