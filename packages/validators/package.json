@@ -9,6 +9,7 @@
     "./notification": "./src/notification.ts",
     "./password-policy": "./src/password-policy.ts",
     "./push-preferences": "./src/push-preferences.ts",
+    "./redirect": "./src/redirect.ts",
     "./video": "./src/video.ts"
   },
   "scripts": {

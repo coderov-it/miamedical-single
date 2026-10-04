@@ -1,3 +1,4 @@
+import { safeRedirectPath } from '@mia/validators/redirect';
 import type { InferResponseType } from 'hono/client';
 
 import { documentLocale } from '../scripts/locale.ts';
@@ -330,7 +331,8 @@ export function reportOrder(input: {
 /**
  * Where to go after signing in. Only same-site paths are honoured: an unchecked
  * `next` is an open redirect, and a sign-in page is exactly where one is worth
- * exploiting. Mirrors the guard the admin login uses.
+ * exploiting. The rule lives in `@mia/validators/redirect`, shared with the
+ * admin login.
  *
  * `fallback` is REQUIRED. It used to default to `routes.account` — the Italian
  * path — which quietly dropped an English or German reader onto the Italian
@@ -339,8 +341,7 @@ export function reportOrder(input: {
  * own locale's path.
  */
 export function safeNext(raw: string | null, fallback: string): string {
-  if (!raw) return fallback;
-  return raw.startsWith('/') && !raw.startsWith('//') ? raw : fallback;
+  return safeRedirectPath(raw, fallback);
 }
 
 /** Reads `?token=` once, for the pages an emailed link lands on. */
