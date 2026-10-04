@@ -74,6 +74,9 @@ const passwordGate: FieldGate = {
   key: 'password',
   isSatisfied: () => mode !== 'password' || (passwordInput?.value ?? '') !== '',
   controls: () => [passwordInput],
+  /* Named, not found: "Password dimenticata?" comes first in this block, and
+     Enter on it would start a reset instead of letting them type. */
+  focus: () => passwordInput ?? null,
 };
 const newPasswordGate: FieldGate = {
   key: 'newPassword',
