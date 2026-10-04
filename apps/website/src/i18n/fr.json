@@ -771,6 +771,8 @@
   "contract.signatureHint": "Dessinez votre signature dans la zone ci-dessous.",
   "contract.clear": "Effacer",
   "contract.consent": "Je confirme avoir lu et accepté les termes du contrat.",
+  "contract.errorSignature": "Signez dans le cadre ci-dessus pour continuer.",
+  "contract.errorConsent": "Cochez la case pour confirmer.",
   "contract.submit": "Signer le contrat",
   "contract.submitting": "Envoi en cours…",
   "contract.doneTitle": "Contrat signé avec succès !",

@@ -771,6 +771,8 @@
   "contract.signatureHint": "Draw your signature in the area below.",
   "contract.clear": "Clear",
   "contract.consent": "I confirm that I have read and accepted the terms of the contract.",
+  "contract.errorSignature": "Sign in the box above to continue.",
+  "contract.errorConsent": "Tick the box to confirm.",
   "contract.submit": "Sign the contract",
   "contract.submitting": "Sending…",
   "contract.doneTitle": "Contract signed successfully.",
