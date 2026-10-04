@@ -105,12 +105,14 @@ export interface CheckoutItem {
 /**
  * Why this request cannot be confirmed yet, or `null` when it can.
  *
- * `incomplete` and `noPackage` are things the API would refuse, checked here so
- * the customer is told what to do about it on the page that can still send them
- * somewhere useful. `unavailable` is ours: a line could not be READ (an outage,
- * not a missing product), so placing the order now would silently leave it out.
+ * `incomplete`, `pastStart` and `noPackage` are things the API would refuse,
+ * checked here so the customer is told what to do about it on the page that can
+ * still send them somewhere useful. `pastStart` is a rental added days ago whose
+ * start date has since gone by. `unavailable` is ours: a line could not be READ
+ * (an outage, not a missing product), so placing the order now would silently
+ * leave it out.
  */
-export type CheckoutBlocked = 'unavailable' | 'incomplete' | 'noPackage' | null;
+export type CheckoutBlocked = 'unavailable' | 'incomplete' | 'pastStart' | 'noPackage' | null;
 
 export interface Checkout {
   items: CheckoutItem[];

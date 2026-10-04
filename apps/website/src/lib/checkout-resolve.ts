@@ -140,14 +140,16 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
      line missing a required choice has to be reconfigured anyway, and picking
      its package first would send the customer back twice. */
   const incomplete = items.find((item) => item.missingRequired.length > 0) ?? null;
+  const today = todayInRome();
+  const stale = items.find((item) => item.request.startDate !== '' && item.request.startDate < today) ?? null;
   const unpriced = items.find((item) => item.noPackage) ?? null;
 
   return {
     items,
     itemsTotal: sumMoney(items.map((item) => item.total)),
     noPackage: unpriced !== null,
-    blocked: blockedReason(unavailable > 0, incomplete !== null, unpriced !== null),
-    blockedItem: incomplete ?? unpriced,
+    blocked: blockedReason(unavailable > 0, incomplete !== null, stale !== null, unpriced !== null),
+    blockedItem: incomplete ?? stale ?? unpriced,
     unavailable,
     currency: items[0]?.product.pricing.currency ?? 'EUR',
   };
@@ -156,10 +158,26 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
 function blockedReason(
   unavailable: boolean,
   incomplete: boolean,
+  pastStart: boolean,
   unpriced: boolean,
 ): Checkout['blocked'] {
   if (unavailable) return 'unavailable';
   if (incomplete) return 'incomplete';
+  if (pastStart) return 'pastStart';
   if (unpriced) return 'noPackage';
   return null;
+}
+
+/**
+ * Today in the shop's time zone, ISO `YYYY-MM-DD` — the floor the product page's
+ * date picker offers. A rental put in the cart last week can start before it;
+ * the API refuses those, so the confirm step stops it here first.
+ */
+function todayInRome(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Rome',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 }

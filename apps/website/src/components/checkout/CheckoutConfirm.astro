@@ -68,6 +68,13 @@ function gateFor(reason: CheckoutBlocked) {
       cta: t('completeConfiguration'),
     };
   }
+  if (reason === 'pastStart') {
+    return {
+      title: t('startDatePassed'),
+      detail: t('startDatePassedDetail', { product: blockedItem?.product.title ?? '' }),
+      cta: t('pickNewStartDate'),
+    };
+  }
   if (reason === 'noPackage') {
     return { title: t('packageMissing'), detail: t('packageMissingDetail'), cta: t('pickPackage') };
   }
