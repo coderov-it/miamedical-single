@@ -38,7 +38,7 @@
  * this was asked for about Bitwarden.
  */
 import { PICKUP_POINTS } from '~/lib/checkout';
-import { DELIVERY_METHODS } from '@mia/pricing';
+import { DELIVERY_METHODS, type DeliveryMethodId } from '@mia/pricing';
 import { t } from '~/lib/labels';
 import CheckoutField from './CheckoutField.astro';
 import { EYEBROW, FIELD_INPUT, PANEL } from './styles';
@@ -52,9 +52,27 @@ interface Props {
    * what tells the customer these cards are about the outbound leg only.
    */
   labelStage?: boolean;
+  /** Whether anything in the request comes back. Without a rental the cards
+      must not promise a collection or a return (CART-014). */
+  hasRental?: boolean;
 }
 
-const { labelStage = false } = Astro.props;
+const { labelStage = false, hasRental = true } = Astro.props;
+
+type CardTextKey = 'homeDelivery' | 'homeDeliveryDetail' | 'storePickupDetail' | 'choosePickupPoint';
+
+/* The words that name a return leg, with their `…Sale` twin for a request that
+   has nothing to give back. */
+function cardText(key: CardTextKey): string {
+  if (hasRental) return t(key);
+  return t(`${key}Sale`);
+}
+
+/* "Ritiro in sede" names no return, so only home delivery has a sale name. */
+function cardName(id: DeliveryMethodId): string {
+  if (id === 'homeDelivery') return cardText(id);
+  return t(id);
+}
 ---
 
 {/*
@@ -80,7 +98,7 @@ const { labelStage = false } = Astro.props;
     <div
       class="group/delivery bg-tint rounded-xl border-[1.5px] border-transparent data-selected:border-accent data-selected:bg-white"
       data-delivery-card={option.id}
-      data-delivery-name={t(option.id)}
+      data-delivery-name={cardName(option.id)}
       data-delivery-short={t(`${option.id}Short`)}
     >
       <button
@@ -140,8 +158,8 @@ const { labelStage = false } = Astro.props;
           word per line beside it on a phone.
         */}
         <span class="flex min-w-0 flex-[1_1_9rem] flex-col gap-0.5">
-          <strong class="text-[15.5px]">{t(option.id)}</strong>
-          <span class="text-ink-2 text-[13.5px] leading-[1.45]">{t(`${option.id}Detail`)}</span>
+          <strong class="text-[15.5px]">{cardName(option.id)}</strong>
+          <span class="text-ink-2 text-[13.5px] leading-[1.45]">{cardText(`${option.id}Detail`)}</span>
         </span>
 
         {/*
@@ -197,7 +215,7 @@ const { labelStage = false } = Astro.props;
       {option.id === 'storePickup' && (
         <div class={`${PANEL} flex flex-col gap-2.5`} data-delivery-panel={option.id} hidden>
           <span class="text-ink-2 text-[13.5px]" id="checkout-pickup-label">
-            {t('choosePickupPoint')}
+            {cardText('choosePickupPoint')}
           </span>
           {/*
               The reference file spreads the items across every store at once,

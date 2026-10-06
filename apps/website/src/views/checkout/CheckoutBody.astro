@@ -127,7 +127,7 @@ function gateHref(): string {
                 forward button sits after BOTH — a "Continua" rendered above an
                 unanswered question invites the customer to skip it.
               */}
-          <CheckoutDelivery labelStage={hasRental} />
+          <CheckoutDelivery labelStage={hasRental} {hasRental} />
           {hasRental && <CheckoutReturn />}
           <button class={CTA} type="button" data-step-continue="2" hidden>
             {t('continueToConfirmation')}
