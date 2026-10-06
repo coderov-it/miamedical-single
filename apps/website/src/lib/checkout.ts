@@ -15,9 +15,7 @@ import { localeForRequest, localeTag } from './i18n.ts';
 import { t } from './labels.ts';
 import type { ProductDetail } from './catalog.ts';
 import { FIELD, type ResolvedRequest, formatDateLabel } from './request-config.ts';
-import { CONTACT, LOCATIONS } from './site.ts';
-import { SOURCE_LANGUAGE, translate } from '~/lib/i18n';
-import { CONTACT_HOURS_KEY } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY, LOCATIONS } from './site.ts';
 
 /**
  * `item.<n>.` in front of every field of one line item. A cart sends
@@ -311,11 +309,21 @@ export const DELIVERY_OPTIONS = DELIVERY_METHODS;
 
 export type DeliveryId = (typeof DELIVERY_OPTIONS)[number]['id'];
 
-/** The branches a customer can collect from, from the one source of company facts. */
+/**
+ * The branches a customer can collect from, from the one source of company facts.
+ *
+ * `name` and `detail` are GETTERS: this list is built once at import, but its
+ * words belong to the request reading it. Evaluated here they froze in whatever
+ * language loaded the module — the hours read "Lun–Sab" on /en/ (CART-012).
+ */
 export const PICKUP_POINTS = LOCATIONS.map((location) => ({
   city: location.city,
-  name: t('branchIn', { city: location.city }),
-  detail: `${location.street} · ${translate(SOURCE_LANGUAGE, CONTACT_HOURS_KEY)}`,
+  get name(): string {
+    return t('branchIn', { city: location.city });
+  },
+  get detail(): string {
+    return `${location.street} · ${t(CONTACT_HOURS_KEY)}`;
+  },
 }));
 
 /**

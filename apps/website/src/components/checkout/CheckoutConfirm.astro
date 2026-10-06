@@ -26,11 +26,11 @@
  */
 import { t } from '~/lib/labels';
 import type { CheckoutBlocked, CheckoutItem } from '~/lib/checkout';
-import { routePath, routes } from '~/lib/routes';
-import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
+import { routePath } from '~/lib/routes';
+import { CONTACT_HOURS_KEY } from '~/lib/site';
 import CheckoutRetryForm, { type CheckoutRetry } from './CheckoutRetryForm.astro';
 import { EYEBROW } from './styles';
-import { SOURCE_LANGUAGE, localeForRequest, translate } from '~/lib/i18n';
+import { localeForRequest } from '~/lib/i18n';
 
 interface Props {
   /** `wa.me` URL already carrying the line items. */
@@ -48,6 +48,7 @@ interface Props {
 }
 
 const { whatsappHref, whatsappBase, blocked, blockedItem, backHref, retry } = Astro.props;
+const locale = localeForRequest();
 
 /** One notice per reason: what is missing, and the words for going to fix it. */
 function gateFor(reason: CheckoutBlocked) {
@@ -131,8 +132,7 @@ const SECONDARY_CTA =
       <span class="flex flex-col gap-0.5">
         <strong class="text-[14.5px]">{t('noPaymentNow')}</strong>
         <span class="text-ink-2 text-[14px] leading-normal">
-          {t('noPaymentNowDetail')}
-          {translate(SOURCE_LANGUAGE, CONTACT_HOURS_KEY)}.
+          {t('noPaymentNowDetail')}{' '}{t(CONTACT_HOURS_KEY)}.
         </span>
       </span>
     </div>
@@ -169,8 +169,8 @@ const SECONDARY_CTA =
         </a>
 
         <div class="text-ink-2 -mt-1.5 text-center text-[12.5px]">
-          {t('termsNoticeBefore')}
-          <a class="underline" href={routes.terms}>
+          {t('termsNoticeBefore')}{' '}
+          <a class="underline" href={routePath(locale, 'terms')}>
             {t('rentalTerms')}
           </a>
           .
@@ -287,7 +287,7 @@ const SECONDARY_CTA =
   <strong class="text-[15.5px]">{t('requestUncertain')}</strong>
   <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{t('requestUncertainDetail')}</p>
   <div class="flex flex-wrap gap-2.5">
-    <a class={SECONDARY_CTA} href={routePath(localeForRequest(), 'accountOrders')}>
+    <a class={SECONDARY_CTA} href={routePath(locale, 'accountOrders')}>
       {t('account.myOrders')}
     </a>
     <a
