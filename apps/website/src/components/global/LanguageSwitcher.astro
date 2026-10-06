@@ -4,9 +4,11 @@
  *
  * Entries come from the registry, in registry order, so a fourth language is an
  * array entry rather than another `<a>` block. A locale with no path is omitted
- * rather than linked: `languagePaths` carries only the languages THIS page
- * actually exists in, and offering a switch that re-serves the same copy is
- * what made the old one dishonest (owner, 2026-09-01).
+ * rather than linked: `languagePaths` carries the languages THIS page can be
+ * read in — an untranslated product included, whose translated chrome is worth
+ * switching to — each already carrying the page's query string, so filters
+ * and a search survive the switch (`lib/language-paths.ts`). Which of them are
+ * real translations is `hreflang`'s question, answered in BaseLayout.
  *
  * ── Why `<details>` and not a popover ──────────────────────────────────────
  * `popover` would give light dismiss — Escape and click-outside — with no

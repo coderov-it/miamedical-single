@@ -127,9 +127,9 @@ walk the Monday-first week the grid renders.
 
 ## `languagePaths` is the one answer to "where does this page live?"
 
-`BaseLayout` computes it once and three things consume it: the switcher, the
-`hreflang` block, and — through `lib/sitemap.ts` — the sitemap. There is no
-second opinion anywhere about which languages a page exists in.
+`BaseLayout` computes it once and two things consume it: the switcher and the
+`hreflang` block. The sitemap reads the same signal (`availableLocales`)
+through `lib/sitemap.ts`.
 
 ```
 a static route      → every locale's path from `routePaths`
@@ -138,14 +138,23 @@ anything else       → just the current locale
 ```
 
 A static route is the same page in all of them, so all of them are offered. A
-product is not: `availableLocales` is the honest list, and a locale absent from
-it is a locale whose URL renders the source language's words.
+product is READABLE in every locale — the API falls back to the source copy,
+served at the source slug, inside translated chrome — so the switcher offers
+every locale too. But `availableLocales` is the honest list of TRANSLATIONS,
+and the product page passes it to `BaseLayout` as `indexedLocales`: only those
+reach `hreflang` and the sitemap. Slugs per locale: `productSlugs()` in
+`lib/language-paths.ts`.
+
+The switcher's links also carry the page's query string (`withQuery()`), since
+each is the same page: `/catalogo/?category=sollevatori` switches to
+`/en/catalog/?category=sollevatori`. `hreflang` never carries a query.
 
 ### `hreflang`
 
-Emitted in `BaseLayout` from that same object, so a language the switcher offers
-is a language search engines are told about, and one it hides is one they are
-not. Three rules, all worth stating because each has a plausible wrong answer:
+Emitted in `BaseLayout` from that same object, narrowed by `indexedLocales`
+where a page supplies one — so a language search engines are told about is a
+real translation, while the switcher may also offer an untranslated page.
+Three rules, all worth stating because each has a plausible wrong answer:
 
 1. **The value is the registry `code`, never the `tag`.** `hreflang="fr"`, not
    `hreflang="fr-FR"` — a region subtag targets a COUNTRY, so `fr-FR` excludes a
@@ -214,7 +223,8 @@ extra query: the list already loads `translations` unfiltered.
 ### The switcher
 
 `components/global/LanguageSwitcher.astro`. A `<details>` disclosure, entries in
-registry order, a locale with no path omitted rather than linked.
+registry order, a locale with no path omitted rather than linked, every link
+carrying the current query string.
 
 It carries ~15 lines of script for the two dismissals `<details>` has never had:
 **Escape** (which also returns focus to the summary) and **pointerdown
