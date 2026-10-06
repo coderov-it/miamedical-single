@@ -131,10 +131,15 @@ export function mountCalendar(options: CalendarOptions): Calendar | null {
     paint();
   }
 
+  /* Opened near the bottom of the panel, the grid lands under the phone's fixed
+     price bar and navigation. Scrolling it into view honours the popover's own
+     scroll margins, which carry exactly those bars' heights. */
   function setOpen(open: boolean): void {
     popover!.hidden = !open;
     trigger!.setAttribute('aria-expanded', String(open));
-    if (open) paint();
+    if (!open) return;
+    paint();
+    popover!.scrollIntoView({ block: 'nearest' });
   }
 
   grid.addEventListener('click', (event) => {

@@ -216,12 +216,15 @@ const navButton =
     </p>
   )}
 
+  {/* The scroll margins are what the script's `scrollIntoView` on open clears:
+      the sticky header above, and on a phone the fixed price bar and bottom
+      navigation below — without them the grid opened under those bars. */}
   {/* Visibility is the `hidden` ATTRIBUTE alone — Tailwind's preflight makes
       `[hidden]` `display:none !important`, so it beats the `flex` below and the
       script has exactly one thing to toggle. A `hidden` CLASS here would survive
       the attribute being removed and keep the popover silently collapsed. */}
   <div
-    class="border-hair rounded-field shadow-pdp-cal absolute top-[calc(100%-6px)] left-1/2 z-30 flex max-h-[62vh] w-92 max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col gap-3 overflow-x-clip overflow-y-auto border bg-white p-2.5"
+    class="border-hair rounded-field shadow-pdp-cal absolute top-[calc(100%-6px)] left-1/2 z-30 flex max-h-[62vh] w-92 scroll-mt-24 scroll-mb-4 max-mid:scroll-mb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+0.75rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col gap-3 overflow-x-clip overflow-y-auto border bg-white p-2.5"
     hidden
     data-cal-pop
   >
