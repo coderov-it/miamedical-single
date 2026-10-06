@@ -10,14 +10,16 @@
  *
  * ONE BODY SERVES BOTH ENTRY POINTS. `resolveCheckout()` reads the single-item
  * form a product page writes and the `i<n>.`-indexed form a cart writes into the
- * same list, so nothing here branches on where the request came from — only on
- * how many items came with it.
+ * same list, so the body branches on how many items came with it — and on where
+ * they came from only for the breadcrumb's way back.
  */
 import CheckoutConfirm from '~/components/checkout/CheckoutConfirm.astro';
 import CheckoutDelivery from '~/components/checkout/CheckoutDelivery.astro';
 import CheckoutDetails from '~/components/checkout/CheckoutDetails.astro';
 import CheckoutOverview from '~/components/checkout/CheckoutOverview.astro';
-import CheckoutRetryForm, { type CheckoutRetry } from '~/components/checkout/CheckoutRetryForm.astro';
+import CheckoutRetryForm, {
+  type CheckoutRetry,
+} from '~/components/checkout/CheckoutRetryForm.astro';
 import CheckoutReturn from '~/components/checkout/CheckoutReturn.astro';
 import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
 import { CTA } from '~/components/checkout/styles';
@@ -64,12 +66,19 @@ function bodyFor(): 'items' | 'unavailable' | 'empty' {
 }
 const body = bodyFor();
 
-/* The trail names where the request came from: the product itself when there is
-   one, the cart when there are several. */
-const originCrumb =
-  single && items[0]
-    ? { label: items[0].product.title, href: productPath(items[0].product.slug, {}, locale) }
-    : { label: t('yourRequest'), href: routePath(locale, 'cart') };
+/* The trail names where the request came from. A cart arrives by POST — even a
+   one-line cart, whose way back is the cart, not the bare product page with its
+   configuration dropped. Only a product page's own GET of a single item points
+   back to that product. */
+const cartCrumb = { label: t('yourRequest'), href: routePath(locale, 'cart') };
+function productCrumbFor(): { label: string; href: string } | null {
+  const only = single ? items[0] : undefined;
+  if (!only) return null;
+  return { label: only.product.title, href: productPath(only.product.slug, {}, locale) };
+}
+const productCrumb = productCrumbFor();
+const fromCart = retry.method === 'post';
+const originCrumb = fromCart || !productCrumb ? cartCrumb : productCrumb;
 
 /* Where the confirm step's gate sends the customer. A start date that has passed
    is fixed in the cart: the date is part of the line, so re-adding from the
@@ -81,7 +90,7 @@ function gateHref(): string {
   if (checkout.blockedItem && !single) {
     return productPath(checkout.blockedItem.product.slug, {}, locale);
   }
-  return originCrumb.href;
+  return (productCrumb ?? cartCrumb).href;
 }
 ---
 
