@@ -1,4 +1,5 @@
-import { pickLocalized, type LanguageCode } from '@mia/db/schema';
+import type { LanguageCode } from '@mia/db/schema';
+import { rentalPackageName } from '@mia/i18n';
 import { addMoney, mulMoney } from '@mia/pricing';
 
 import type { ExtensionOption, LineAmounts, RentalLine } from './types.ts';
@@ -58,7 +59,7 @@ export function extensionOptions(
     if (options.some((option) => option.days === pkg.duration)) continue;
     options.push({
       days: pkg.duration,
-      label: pickLocalized(pkg.name, locale),
+      label: rentalPackageName(pkg, locale),
       amount,
       lineAmounts,
       fromDate,
