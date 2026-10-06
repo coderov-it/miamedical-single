@@ -8,7 +8,7 @@ import type {
   RentalPackage,
   VideoItem,
 } from '@mia/db/schema';
-import { durationLabel } from '@mia/i18n';
+import { durationLabel, rentalPackageName } from '@mia/i18n';
 import { asMoney, startingPrice } from '@mia/pricing';
 import { isExternalVideo, videoEmbedUrl } from '@mia/validators';
 
@@ -105,7 +105,7 @@ function toPublicRentalPackages(
 ): PublicRentalPackageDto[] {
   return packages.map((item) => ({
     code: item.code,
-    name: pick(item.name, locale),
+    name: rentalPackageName(item, locale),
     label: durationLabel(item.duration, item.unit, locale),
     price: item.price,
     duration: item.duration,

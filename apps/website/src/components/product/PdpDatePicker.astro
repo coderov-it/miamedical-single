@@ -165,7 +165,7 @@ const navButton =
     data-field-error="startDate"
     hidden
   >
-    Scegli la data di inizio del noleggio.
+    {text('pdp.startDateRequired')}
   </p>
 
   {/* Its OWN gate, nested inside the date block's. An hourly package cannot be
@@ -175,7 +175,7 @@ const navButton =
   {hasHourPackage && (
     <div class="flex flex-col gap-1.5" data-time-row hidden data-gate="startTime">
       <label class={PDP_LABEL} for="pdp-start-time">
-        Scegli l'ora di inizio
+        {text('pdp.startTime')}
       </label>
       <input
         class={nativeField}
@@ -190,7 +190,7 @@ const navButton =
         data-field-error="startTime"
         hidden
       >
-        Indica l'ora di inizio: il pacchetto scelto è a ore.
+        {text('pdp.startTimeRequired')}
       </p>
     </div>
   )}
