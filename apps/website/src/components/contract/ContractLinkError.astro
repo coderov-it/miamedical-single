@@ -1,0 +1,39 @@
+---
+/**
+ * /firma-contratto/'s dead end, made into a way out (CART-019).
+ *
+ * Every failure here — no token, an expired or used one, a contract that would
+ * not load — leaves the customer unable to sign from this link, and only we can
+ * send another. So the state keeps the page's heading (it was a bare pink line
+ * under the header) and offers the two ways to reach us. The script fills the
+ * message and reveals the block; nothing else here changes per failure.
+ */
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { whatsappUrl } from '~/lib/site';
+
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+---
+
+<div data-error-state hidden class="flex flex-col items-start gap-4">
+  <h1 class="text-[clamp(1.4rem,2.2vw,1.75rem)]/[1.2] font-semibold">{text('contract.title')}</h1>
+  <p
+    data-error
+    role="alert"
+    class="m-0 w-full rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+  >
+  </p>
+  <div class="flex flex-wrap items-center gap-3">
+    <PhoneCta variant="soft" />
+    <a
+      class="text-ok inline-flex min-h-11 items-center font-semibold underline"
+      href={whatsappUrl(text('contract.newLinkWhatsapp'))}
+      target="_blank"
+      rel="noopener"
+      data-analytics="whatsapp"
+    >
+      {text('support.launcher.whatsapp')}
+    </a>
+  </div>
+</div>
