@@ -84,7 +84,7 @@ const { labelStage = false } = Astro.props;
       data-delivery-short={t(`${option.id}Short`)}
     >
       <button
-        class="flex w-full cursor-pointer items-center gap-3.5 border-0 bg-transparent px-4.5 py-4 text-left"
+        class="flex w-full cursor-pointer flex-wrap items-center gap-x-3.5 gap-y-1 border-0 bg-transparent px-4.5 py-4 text-left"
         type="button"
         role="radio"
         aria-checked="false"
@@ -134,7 +134,12 @@ const { labelStage = false } = Astro.props;
           )}
         </span>
 
-        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+        {/*
+          The row wraps instead of squeezing: below ~9rem of text column the price
+          drops to its own line, right-aligned, rather than leaving the title one
+          word per line beside it on a phone.
+        */}
+        <span class="flex min-w-0 flex-[1_1_9rem] flex-col gap-0.5">
           <strong class="text-[15.5px]">{t(option.id)}</strong>
           <span class="text-ink-2 text-[13.5px] leading-[1.45]">{t(`${option.id}Detail`)}</span>
         </span>
@@ -144,7 +149,7 @@ const { labelStage = false } = Astro.props;
           so in the two words that fit beside an amount. The sentence that explains
           it sits in the panel below, where there is room for it.
         */}
-        <strong class="text-[15px] whitespace-nowrap tabular-nums">
+        <strong class="ml-auto text-[15px] whitespace-nowrap tabular-nums">
           {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
         </strong>
       </button>
