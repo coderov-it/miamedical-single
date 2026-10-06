@@ -78,7 +78,7 @@ export interface CartLineView {
   /** "Taglia M · Buono · Pacchetto weekend" — the one-line configuration recap. */
   summary: string;
   /**
-   * The rental read as a RANGE — "Ritiro 25/08/2026 → Riconsegna 01/09/2026" — so
+   * The rental read as a RANGE — "Inizio 25/08/2026 → Riconsegna 01/09/2026" — so
    * the island can draw it as one booking instead of two unrelated columns.
    *
    * Split out here rather than found in `facts` by the island, because finding it
@@ -200,7 +200,7 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
    * The card states each fact ONCE, and states the rental as a range.
    *
    * All four facts `buildFacts()` produces are handled here rather than left to
-   * the island: pickup and return become `period`, which the card draws as
+   * the island: start and return become `period`, which the card draws as
    * "from → to"; "Durata 7 giorni" is dropped because the row's own price caption
    * already says the package; and the quantity goes because the card's stepper
    * sits beside the amount it multiplies and states it as a control. `facts` is
@@ -211,20 +211,20 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
    * The duration goes only when the summary REALLY says it: on an open-ended rental,
    * with no package picked, that fact is the only place the period appears.
    */
-  const pickup = item.facts.find((fact) => fact.label === t('pickupDate'));
+  const start = item.facts.find((fact) => fact.label === t('rentalStart'));
   const dropoff = item.facts.find((fact) => fact.label === t('returnDate'));
   const period =
-    pickup && dropoff
+    start && dropoff
       ? {
-          fromLabel: pickup.label,
-          from: pickup.value,
+          fromLabel: start.label,
+          from: start.value,
           toLabel: dropoff.label,
           to: dropoff.value,
         }
       : null;
 
   const rest = item.facts.filter((fact) => {
-    if (fact === pickup || fact === dropoff) return period === null;
+    if (fact === start || fact === dropoff) return period === null;
     if (fact.label === t('quantity')) return false;
     return !(fact.label === t('duration') && item.summary.includes(fact.value));
   });

@@ -162,7 +162,7 @@
   "collectedAtBranch": "Collect and return at our {city} branch",
   "collectedAtBranchSale": "Collect at our {city} branch",
   "orderSummary": "Order summary",
-  "pickupDate": "Collection",
+  "rentalStart": "Start",
   "returnDate": "Return",
   "duration": "Duration",
   "quantity": "Quantity",

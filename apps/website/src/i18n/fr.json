@@ -162,7 +162,7 @@
   "collectedAtBranch": "Retrait et restitution à l’agence de {city}",
   "collectedAtBranchSale": "Retrait à l’agence de {city}",
   "orderSummary": "Récapitulatif",
-  "pickupDate": "Retrait",
+  "rentalStart": "Début",
   "returnDate": "Restitution",
   "duration": "Durée",
   "quantity": "Quantité",

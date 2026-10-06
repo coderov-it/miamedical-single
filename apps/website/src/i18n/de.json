@@ -162,7 +162,7 @@
   "collectedAtBranch": "Abholung und Rückgabe in der Filiale {city}",
   "collectedAtBranchSale": "Abholung in der Filiale {city}",
   "orderSummary": "Bestellübersicht",
-  "pickupDate": "Abholung",
+  "rentalStart": "Beginn",
   "returnDate": "Rückgabe",
   "duration": "Dauer",
   "quantity": "Menge",

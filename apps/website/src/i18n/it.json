@@ -162,7 +162,7 @@
   "collectedAtBranch": "Ritiro e riconsegna presso la sede di {city}",
   "collectedAtBranchSale": "Ritiro presso la sede di {city}",
   "orderSummary": "Riepilogo ordine",
-  "pickupDate": "Ritiro",
+  "rentalStart": "Inizio",
   "returnDate": "Riconsegna",
   "duration": "Durata",
   "quantity": "Quantità",
