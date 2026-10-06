@@ -12,6 +12,7 @@ import { formatMoney } from './api.ts';
 import { buildCategoryTiles, type CategoryTile } from './catalog-page.ts';
 import type { Category, ProductSummary } from './catalog.ts';
 import { localeTag, translate, type SiteLocale } from './i18n.ts';
+import { formatRating } from './rating.ts';
 
 /**
  * The products shown in the hero showcase (3) and the "I più noleggiati"
@@ -142,7 +143,8 @@ export function supportFaq(locale: SiteLocale): FaqItem[] {
  * inaccuracy.
  */
 export const REVIEW_AGGREGATE = {
-  rating: '4,9',
+  /** A number — `ratingText()` writes it in the reader's language. */
+  rating: 4.9,
   /** The count is prose a customer reads — `home.reviews.count` carries it. */
   countKey: 'home.reviews.count',
   sources: ['Google Maps', 'Trustpilot', 'Facebook'],
@@ -194,4 +196,9 @@ export function homeTestimonials(locale: SiteLocale): Testimonial[] {
 }
 
 /** The band's headline rating. Its count label is `home.reviews.verifiedCount`. */
-export const TESTIMONIAL_RATING = '4,9';
+export const TESTIMONIAL_RATING = 4.9;
+
+/** A rating as the locale writes it: "4,9" in Italian, "4.9" in English. */
+export function ratingText(value: number, locale: SiteLocale): string {
+  return formatRating(value, localeTag(locale));
+}

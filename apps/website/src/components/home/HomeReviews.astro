@@ -23,12 +23,12 @@
  * CSS takes them out of the phone's paint, so the mobile page (which is the
  * indexed one) still carries every review.
  */
-import { homeTestimonials, TESTIMONIAL_RATING, type TestimonialSource } from '~/lib/home-content';
+import { homeTestimonials, ratingText, TESTIMONIAL_RATING, type TestimonialSource } from '~/lib/home-content';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { EDITORIAL_CONTAINER, EDITORIAL_THEME, HOME_BAND } from '~/styles/editorial';
 
-const rating = TESTIMONIAL_RATING;
 const locale = localeForRequest();
+const rating = ratingText(TESTIMONIAL_RATING, locale);
 const entries = homeTestimonials(locale);
 const text = (key: string, params?: Record<string, string | number>) =>
   translate(locale, key, params);
