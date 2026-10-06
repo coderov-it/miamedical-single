@@ -22,6 +22,7 @@ import {
   type SiteLocale,
 } from '~/lib/i18n';
 import { serializeJsonLd } from '~/lib/json-ld';
+import { withQuery } from '~/lib/language-paths';
 import { routePaths, type RouteKey } from '~/lib/routes';
 import '~/styles/app.css';
 
@@ -53,6 +54,12 @@ interface Props {
   fillGround?: boolean | undefined;
   /** Exact public URLs for the language selector on dynamic content. */
   languagePaths?: Partial<Record<SiteLocale, string>> | undefined;
+  /**
+   * The locales `hreflang` may name, when narrower than `languagePaths`: a
+   * product is READABLE in every locale but TRANSLATED only in some. Defaults
+   * to every locale in `languagePaths`.
+   */
+  indexedLocales?: readonly SiteLocale[] | undefined;
 }
 
 const {
@@ -66,6 +73,7 @@ const {
   ground = 'muted',
   fillGround = false,
   languagePaths: suppliedLanguagePaths,
+  indexedLocales,
 } = Astro.props;
 
 const locale = localeFromLocals(Astro.locals);
@@ -94,9 +102,9 @@ const site = Astro.site ?? Astro.url.origin;
 const canonicalHref = canonical ?? new URL(publicPath, site).href;
 
 /**
- * `hreflang`, from the same `languagePaths` the switcher reads — so a language
- * the switcher offers is a language search engines are told about, and one it
- * hides is one they are not.
+ * `hreflang`, from the same `languagePaths` the switcher reads, narrowed by
+ * `indexedLocales` where a page supplies it — a product readable in English is
+ * not thereby an English translation, and only translations are announced.
  *
  * The value is the registry `code` (`fr`), never the `tag` (`fr-FR`): a region
  * subtag targets a COUNTRY, so `fr-FR` would exclude a French speaker in
@@ -104,8 +112,12 @@ const canonicalHref = canonical ?? new URL(publicPath, site).href;
  */
 const alternates = LOCALES.flatMap((code) => {
   const path = languagePaths[code];
-  return path ? [{ code, href: new URL(path, site).href }] : [];
+  if (!path || (indexedLocales && !indexedLocales.includes(code))) return [];
+  return [{ code, href: new URL(path, site).href }];
 });
+/* The switcher carries the query: each entry is the same page, so the same
+   filters and search mean the same thing there. `hreflang` never does. */
+const switcherPaths = withQuery(languagePaths, Astro.url.search);
 /* A set of one says nothing, and an alternate set on a page that must not be
    indexed says it about nothing. */
 const showAlternates = !noindex && alternates.length > 1;
@@ -197,7 +209,7 @@ const sourceAlternate = alternates.find((alternate) => alternate.code === SOURCE
     </a>
 
     <div class:list={['flex min-h-screen flex-col', fillGround ? 'bg-page' : 'bg-white']}>
-      <SiteHeader {locale} {languagePaths} />
+      <SiteHeader {locale} languagePaths={switcherPaths} />
 
       <main id="contenuto" class="flex-1">
         <slot />

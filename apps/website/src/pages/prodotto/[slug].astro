@@ -14,7 +14,8 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { mediaUrl } from '~/lib/api';
 import { getProductBySlug } from '~/lib/catalog';
-import { localeFromLocals, LOCALES, translate } from '~/lib/i18n';
+import { localeFromLocals, LOCALES, SOURCE_LANGUAGE, translate, type SiteLocale } from '~/lib/i18n';
+import { productSlugs } from '~/lib/language-paths';
 import {
   buildProductJsonLd,
   isInStock,
@@ -36,47 +37,49 @@ if (!product || product.slug !== slug) {
 }
 
 /*
- * A LANGUAGE IS ONLY OFFERED WHEN IT REALLY EXISTS.
+ * TWO LISTS OF LANGUAGES, deliberately different (see `lib/language-paths.ts`).
  *
  * `getProductBySlug` answers in every locale, because the API falls back to
- * Italian rather than 404-ing on a missing translation. So a truthy response
- * used to be read as "there is an English version", and the header's language
- * switch offered English on every product — a switch that changed the chrome,
- * re-served the same Italian copy, and called it a translation (owner,
- * 2026-09-01).
+ * Italian rather than 404-ing on a missing translation. So every locale HAS a
+ * page for this product — English chrome, order panel and checkout around the
+ * Italian copy, which carries `lang="it"` — and the switcher offers all of them.
  *
- * `languagePaths` now drives THREE things — the switcher, the `hreflang` block
- * in `BaseLayout` and this URL's entry in `/sitemap.xml` — so the honesty is no
- * longer only a UI courtesy: a language named here is a language search engines
- * are told this product exists in.
+ * `availableLocales` is the honest list of TRANSLATIONS, and only it reaches
+ * `hreflang` (via `indexedLocales`) and the sitemap: telling a search engine
+ * that a re-served Italian page is the English version would be a claim this
+ * site does not make (owner, 2026-09-01).
  *
- * `availableLocales` is the honest list. Today it holds `['it']` for all 107
- * products, so the switch offers nothing, no `hreflang` is emitted and the
- * sitemap carries the Italian URL alone — until a translation is written.
+ * Only translated alternates are read — their slugs differ. An untranslated
+ * locale is served at the source slug, which is known without a request.
  */
-/* Every OTHER locale this product exists in, not "the" other one — with three
-   languages there is no single alternate. `availableLocales` is fetched per
-   locale, so the requests go out together rather than one after another. */
-const alternateLocales = LOCALES.filter(
+const translatedLocales = LOCALES.filter(
   (candidate) => candidate !== locale && product.availableLocales.includes(candidate),
 );
 /* The page's own read above THROWS on an outage (a 5xx, never a false 404). An
    alternate that fails to load only loses its language link for this render. */
-const alternates = await Promise.all(
-  alternateLocales.map(async (candidate) => {
+const translated = await Promise.all(
+  translatedLocales.map(async (candidate) => {
     const alternate = await getProductBySlug(slug, candidate).catch((error: unknown) => {
       console.warn(`[product] ${slug} (${candidate}) alternate could not be read:`, error);
       return null;
     });
-    return alternate ? ([candidate, productPath(alternate.slug, {}, candidate)] as const) : null;
+    return alternate ? ([candidate, alternate.slug] as const) : null;
   }),
 );
-const languagePaths = {
-  [locale]: productPath(product.slug, {}, locale),
-  ...Object.fromEntries(
-    alternates.filter((entry): entry is NonNullable<typeof entry> => entry !== null),
+const slugs = productSlugs({
+  locales: LOCALES,
+  current: locale,
+  source: SOURCE_LANGUAGE,
+  currentSlug: product.slug,
+  available: product.availableLocales,
+  translated: Object.fromEntries(
+    translated.filter((entry): entry is NonNullable<typeof entry> => entry !== null),
   ),
-};
+});
+const languagePaths = Object.fromEntries(
+  Object.entries(slugs).map(([code, value]) => [code, productPath(value, {}, code as SiteLocale)]),
+);
+const indexedLocales = LOCALES.filter((code) => product.availableLocales.includes(code));
 
 const isRental = product.pricing.mode === 'rental';
 const inStock = isInStock(product);
@@ -104,6 +107,7 @@ const jsonLd = buildProductJsonLd({ product, hero, inStock, origin: Astro.url.or
   ogImage={hero ? new URL(mediaUrl(hero.path), Astro.url.origin).href : undefined}
   {jsonLd}
   {languagePaths}
+  {indexedLocales}
 >
   <ProductBody {product} {images} {answers} {inStock} />
 </BaseLayout>
