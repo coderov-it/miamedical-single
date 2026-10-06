@@ -2,17 +2,26 @@
   What the customer area shows while the session settles: the shell's own
   shape in grey blocks, not a line of text on an empty band.
 
-  GEOMETRY IS AccountShell's — the same container, heading row, 250px sidebar
-  and gaps — and AccountSection's for the blocks inside, so the real screen
-  replaces this without moving anything. Change one and change the other.
+  GEOMETRY IS AccountShell's — the same container, crumb row, heading row,
+  250px sidebar and gaps — and AccountSection's for the blocks inside, so the
+  real screen replaces this without moving anything. Change one and change the
+  other.
+
+  PER SCREEN, because the shell is not the same on all of them: the overview
+  has no crumb row and two stat cards over two sections; every other screen
+  has a crumb row and opens on one section, which is what this draws for them.
 -->
 <script lang="ts">
+  import type { AccountScreen } from '~/lib/account-routes';
+
   interface Props {
     /** Spoken once; the blocks themselves are hidden from assistive technology. */
     label: string;
+    /** The screen being loaded, so the blocks take its shape. */
+    screen: AccountScreen['name'];
   }
 
-  const { label }: Props = $props();
+  const { label, screen }: Props = $props();
 
   /* No radius here: each block names its own, so none has two to fight over. */
   const BLOCK = 'bg-hair animate-pulse motion-reduce:animate-none';
@@ -29,6 +38,13 @@
     <p class="sr-only" role="status">{label}</p>
 
     <div aria-hidden="true">
+      {#if screen !== 'account'}
+        <!-- AccountCrumbs: one 14px line and its margin. -->
+        <div class="mb-2 flex h-[21px] items-center">
+          <div class="{BLOCK} h-3.5 w-48 rounded-md"></div>
+        </div>
+      {/if}
+
       <div class="flex items-center justify-between gap-6">
         <div class="{BLOCK} mid:h-9 mid:w-44 h-8 w-40 rounded-md"></div>
         <div class="{BLOCK} rounded-field h-11 w-28"></div>
@@ -54,41 +70,59 @@
           </div>
         </div>
 
-        <div class="space-y-5">
-          <div class="grid grid-cols-2 gap-4">
-            {#each [0, 1] as index (index)}
-              <div class={CARD}>
-                <div class="{BLOCK} h-3 w-20 rounded-md"></div>
-                <div class="{BLOCK} mt-3 h-7 w-10 rounded-md"></div>
+        {#if screen === 'account'}
+          <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              {#each [0, 1] as index (index)}
+                <div class={CARD}>
+                  <div class="{BLOCK} h-3 w-20 rounded-md"></div>
+                  <div class="{BLOCK} mt-3 h-7 w-10 rounded-md"></div>
+                </div>
+              {/each}
+            </div>
+
+            <div class={SECTION}>
+              <div class="{HEADER} flex items-center justify-between">
+                <div class="{BLOCK} h-5 w-32 rounded-md"></div>
+                <div class="{BLOCK} h-4 w-28 rounded-md"></div>
               </div>
-            {/each}
-          </div>
-
-          <div class={SECTION}>
-            <div class="{HEADER} flex items-center justify-between">
-              <div class="{BLOCK} h-5 w-32 rounded-md"></div>
-              <div class="{BLOCK} h-4 w-28 rounded-md"></div>
+              <div class="mid:p-6 p-5">
+                <div class="{BLOCK} h-3.5 w-2/3 rounded-md"></div>
+                <div class="{BLOCK} rounded-field mt-5 h-11 w-40"></div>
+              </div>
             </div>
-            <div class="mid:p-6 p-5">
-              <div class="{BLOCK} h-3.5 w-2/3 rounded-md"></div>
-              <div class="{BLOCK} rounded-field mt-5 h-11 w-40"></div>
+
+            <div class={SECTION}>
+              <div class={HEADER}>
+                <div class="{BLOCK} h-5 w-28 rounded-md"></div>
+              </div>
+              <div class="mid:grid-cols-2 mid:p-6 grid gap-4 p-5">
+                {#each [0, 1] as index (index)}
+                  <div class="space-y-2">
+                    <div class="{BLOCK} h-3 w-16 rounded-md"></div>
+                    <div class="{BLOCK} rounded-field h-12"></div>
+                  </div>
+                {/each}
+              </div>
             </div>
           </div>
-
+        {:else}
+          <!-- One section with a few rows: the orders list, an order, the
+               notifications — each opens on a single AccountSection. -->
           <div class={SECTION}>
             <div class={HEADER}>
-              <div class="{BLOCK} h-5 w-28 rounded-md"></div>
+              <div class="{BLOCK} h-5 w-36 rounded-md"></div>
             </div>
-            <div class="mid:grid-cols-2 mid:p-6 grid gap-4 p-5">
-              {#each [0, 1] as index (index)}
+            <div class="mid:p-6 space-y-4 p-5">
+              {#each [0, 1, 2] as index (index)}
                 <div class="space-y-2">
-                  <div class="{BLOCK} h-3 w-16 rounded-md"></div>
-                  <div class="{BLOCK} rounded-field h-12"></div>
+                  <div class="{BLOCK} h-4 w-1/2 rounded-md"></div>
+                  <div class="{BLOCK} h-3 w-3/4 rounded-md"></div>
                 </div>
               {/each}
             </div>
           </div>
-        </div>
+        {/if}
       </div>
     </div>
   </div>

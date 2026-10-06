@@ -126,7 +126,7 @@
 
 {#if session.loading}
   <!-- The server-rendered first paint, until the session settles. -->
-  <AccountSkeleton label={say(copy, 'account.loading')} />
+  <AccountSkeleton label={say(copy, 'account.loading')} screen={screen.name} />
 {:else if session.customer}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div bind:this={screenEl} tabindex="-1" class="outline-none">
