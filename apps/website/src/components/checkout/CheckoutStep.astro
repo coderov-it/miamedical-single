@@ -52,8 +52,15 @@ const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
       </span>
     </span>
 
-    <span class="flex flex-1 flex-col gap-px">
-      <strong class="text-[17px]">{title}</strong>
+    <div class="flex flex-1 flex-col gap-px">
+      {/*
+          A heading the script can focus: a step change moves focus here, so a
+          keyboard or screen-reader customer hears which step just opened
+          instead of being dropped on <body> with the button they pressed.
+        */}
+      <h2 class="text-[17px] font-bold outline-none" tabindex="-1" data-step-heading>
+        {title}
+      </h2>
       {/*
           Filled only with values the customer typed on this page, and shown only
           while the step is collapsed: it is the receipt for a section they can no
@@ -63,7 +70,7 @@ const { index, title, editable = true, bodyGap = 'gap-5' } = Astro.props;
         class="text-ink-2 hidden text-[13.5px] group-data-[state=done]/step:block"
         data-step-summary
       ></span>
-    </span>
+    </div>
 
     {editable && (
       <button
