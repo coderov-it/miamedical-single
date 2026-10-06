@@ -46,3 +46,15 @@ export function productModeCopy(mode: string): ProductModeCopy {
   if (mode === 'rental') return RENTAL;
   return SALE;
 }
+
+/**
+ * The cart/checkout twin of the above: copy that names a return leg has a `…Sale`
+ * sibling for a request with no rental in it (CART-014).
+ *
+ *   requestCopyKey('collectedAtBranch', true)   → "collectedAtBranch"      Ritiro e riconsegna presso la sede di Roma
+ *   requestCopyKey('collectedAtBranch', false)  → "collectedAtBranchSale"  Ritiro presso la sede di Roma
+ */
+export function requestCopyKey(rentalKey: string, hasRental: boolean): string {
+  if (hasRental) return rentalKey;
+  return `${rentalKey}Sale`;
+}

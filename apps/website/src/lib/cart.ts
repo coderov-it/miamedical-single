@@ -106,6 +106,8 @@ export interface CartLineView {
   total: number;
   /** The rental has no package picked, so there is nothing to price. */
   noPackage: boolean;
+  /** A rental line — it comes back, so the cart's copy talks about a return leg. */
+  rental: boolean;
   /** "/giorno", or empty. Appended to the figure the island formats itself. */
   unitSuffix: string;
 }
@@ -116,6 +118,8 @@ export interface CartView {
   /** Formatted `itemsTotal`, so the server-rendered total needs no client Intl. */
   itemsTotalLabel: string;
   noPackage: boolean;
+  /** Any line is a rental. A sale-only cart is never collected again (CART-014). */
+  hasRental: boolean;
   currency: string;
   /**
    * Lines whose product no longer resolves — unpublished, deleted, or a slug
@@ -248,6 +252,7 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
     unitTotal: Number(item.total) / Math.max(1, line.quantity),
     total: Number(item.total),
     noPackage: item.noPackage,
+    rental: product.pricing.mode === 'rental',
     unitSuffix: item.unitSuffix,
   };
 }
@@ -297,6 +302,7 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
     itemsTotal,
     itemsTotalLabel: formatMoney(itemsTotal.toFixed(2), currency, localeTag(localeForRequest())),
     noPackage: views.some((view) => view.noPackage),
+    hasRental: views.some((view) => view.rental),
     currency,
     droppedIds,
   };

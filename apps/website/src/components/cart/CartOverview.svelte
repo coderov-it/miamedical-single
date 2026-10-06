@@ -23,9 +23,11 @@
     dueToday: string;
     /** A rental with no package picked cannot show a closed total. */
     noPackage: boolean;
+    /** A sale-only cart is never collected again, so its note says delivery only. */
+    hasRental: boolean;
   }
 
-  const { copy, total, dueToday, noPackage }: Props = $props();
+  const { copy, total, dueToday, noPackage, hasRental }: Props = $props();
 
   const ARROW_RIGHT = 'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3';
 </script>
@@ -63,7 +65,7 @@
     >
   </div>
 
-  <p class="text-ink-2 m-0 text-[14px] leading-[1.5]">{copy.dueTodayNote}</p>
+  <p class="text-ink-2 m-0 text-[14px] leading-[1.5]">{hasRental ? copy.dueTodayNote : copy.dueTodayNoteSale}</p>
 
   <button
     class="font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-14 w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-7 font-semibold text-white no-underline"
