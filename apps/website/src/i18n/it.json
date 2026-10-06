@@ -166,6 +166,7 @@
   "returnDate": "Riconsegna",
   "duration": "Durata",
   "quantity": "Quantità",
+  "quantityCap": "Massimo {max} per richiesta. Per una quantità maggiore chiamaci al",
   "toBeConfirmed": "da definire",
   "total": "Totale",
   "vatIncluded": "IVA inclusa",

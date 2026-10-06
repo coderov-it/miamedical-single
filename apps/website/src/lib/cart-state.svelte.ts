@@ -58,6 +58,7 @@ export interface CartRowLabels {
   increase: string;
   quantity: string;
   remove: string;
+  quantityCap: string;
 }
 
 export interface CartStateInit {
@@ -228,6 +229,7 @@ export class CartState {
       increase: fill(this.#copy.increase, { title }),
       quantity: fill(this.#copy.quantityOf, { title }),
       remove: fill(this.#copy.removeNamed, { title }),
+      quantityCap: this.#copy.quantityCap,
     };
   }
 

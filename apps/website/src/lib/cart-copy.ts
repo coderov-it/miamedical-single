@@ -4,6 +4,7 @@
  * Split from `cart.ts`, which prices lines; this file only names things.
  * Callers import it through `cart.ts`, which re-exports it.
  */
+import { MAX_CART_QUANTITY } from './cart-store.ts';
 import { t } from './labels.ts';
 
 /**
@@ -42,6 +43,8 @@ export interface CartCopy {
   increase: string;
   decrease: string;
   quantityOf: string;
+  /** Said at the stepper when "+" or a typed number goes past the per-line cap. */
+  quantityCap: string;
   updated: string;
   loading: string;
   /** The first paint's word, before the store has been read. */
@@ -77,6 +80,7 @@ export function cartCopy(): CartCopy {
     increase: t('increaseQuantity'),
     decrease: t('decreaseQuantity'),
     quantityOf: t('quantityOf'),
+    quantityCap: t('quantityCap', { max: MAX_CART_QUANTITY }),
     updated: t('cartUpdated'),
     loading: t('cartLoading'),
     booting: t('cartBooting'),

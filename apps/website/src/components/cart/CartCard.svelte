@@ -186,6 +186,7 @@
       decreaseLabel={labels.decrease}
       increaseLabel={labels.increase}
       valueLabel={labels.quantity}
+      capMessage={labels.quantityCap}
       onChange={onQuantityChange}
     />
 
