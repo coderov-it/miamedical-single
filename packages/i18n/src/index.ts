@@ -2,4 +2,5 @@ export * from './enum-labels.ts';
 export * from './label-map.ts';
 export * from './language-flags.ts';
 export * from './notification-labels.ts';
+export * from './package-name.ts';
 export * from './push-strings.ts';

@@ -52,6 +52,13 @@ const isRental = product.pricing.mode === 'rental';
 /* The mobile bar carries the same line as the hero: on a rental that is the
    marketing rate, which advertises rather than quotes. */
 const barPrice = cardPrice(product.pricing, locale);
+const barAction = translate(locale, barActionKey());
+
+function barActionKey(): string {
+  if (!inStock) return 'pdp.bar.contact';
+  if (isRental) return 'pdp.bar.rent';
+  return 'pdp.bar.request';
+}
 
 const columns = 'flex flex-wrap items-start gap-x-12 gap-y-10 pt-3';
 const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
@@ -134,7 +141,7 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
       class="font-display text-ui-strong hover:bg-accent-deep inline-flex min-h-12 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent px-6 font-semibold text-white no-underline"
       href="#order"
     >
-      {inStock ? (isRental ? 'Noleggia ora' : 'Richiedi') : 'Contattaci'}
+      {barAction}
     </a>
   </div>
 </div>
