@@ -32,6 +32,8 @@
   "blog.readFallback": "Leggi “{title}” sul blog di Mia Medical Italia.",
   "terms.document": "Documento",
   "terms.description": "{title} — condizioni applicabili ai noleggi Mia Medical Italia.",
+  "terms.termsDescription": "Termini e condizioni applicabili alle richieste e ai noleggi di ausili Mia Medical Italia.",
+  "terms.cookieDescription": "Informativa sui cookie utilizzati dal sito di Mia Medical Italia.",
   "footer.about": "Noleggio di ausili medicali con consegna a domicilio a Roma e Firenze. Prodotti sanificati e certificati, assistenza con persone vere.",
   "footer.freephone": "Numero verde gratuito",
   "footer.rental": "Noleggio",

@@ -32,6 +32,8 @@
   "blog.readFallback": "Read “{title}” on the Mia Medical Italia blog.",
   "terms.document": "Document",
   "terms.description": "{title} — terms applicable to Mia Medical Italia rentals.",
+  "terms.termsDescription": "Terms and conditions for requests and rentals of Mia Medical Italia medical aids.",
+  "terms.cookieDescription": "Information about the cookies used by the Mia Medical Italia website.",
   "footer.about": "Medical-aid rental with home delivery in Rome and Florence. Sanitised, certified products and help from real people.",
   "footer.freephone": "Freephone number",
   "footer.rental": "Rental",
