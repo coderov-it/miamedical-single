@@ -166,6 +166,7 @@
   "returnDate": "Rückgabe",
   "duration": "Dauer",
   "quantity": "Menge",
+  "quantityCap": "Höchstens {max} pro Anfrage. Für eine größere Menge rufen Sie uns an unter",
   "toBeConfirmed": "noch festzulegen",
   "total": "Summe",
   "vatIncluded": "inkl. MwSt.",

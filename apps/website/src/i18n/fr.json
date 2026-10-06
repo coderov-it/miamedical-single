@@ -166,6 +166,7 @@
   "returnDate": "Restitution",
   "duration": "Durée",
   "quantity": "Quantité",
+  "quantityCap": "{max} au maximum par demande. Pour une quantité plus importante, appelez-nous au",
   "toBeConfirmed": "à définir",
   "total": "Total",
   "vatIncluded": "TVA incluse",

@@ -166,6 +166,7 @@
   "returnDate": "Return",
   "duration": "Duration",
   "quantity": "Quantity",
+  "quantityCap": "Up to {max} per request. For a larger quantity, call us on",
   "toBeConfirmed": "to be confirmed",
   "total": "Total",
   "vatIncluded": "VAT included",

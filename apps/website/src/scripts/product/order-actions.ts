@@ -22,12 +22,16 @@ import {
   CART_PRODUCT_FIELD,
   CART_QUANTITY_FIELD,
   type CartLine,
+  MAX_CART_QUANTITY,
   cartCount,
   clampQuantity,
   lineKey,
   readCartLines,
   writeCartLines,
 } from '~/lib/cart-store';
+import { requestQuantity } from '~/lib/quantity-cap';
+
+import { showQuantityCap } from './controls.ts';
 
 /**
  * The form as a cart line: every field except the quantity, which lives beside
@@ -53,16 +57,21 @@ function serializeConfig(form: HTMLFormElement): { config: string; quantity: num
   return { config: config.toString(), quantity };
 }
 
-/** Adds the line, or raises the quantity of the identical one already there. */
-function addLine(config: string, quantity: number): CartLine[] {
+/**
+ * Adds the line, or raises the quantity of the identical one already there.
+ * `capped` says the merged row hit the cap — 8 in the cart plus 5 here is 10,
+ * and the customer is told so at the quantity field rather than finding out later.
+ */
+function addLine(config: string, quantity: number): { lines: CartLine[]; capped: boolean } {
   const lines = readCartLines();
   const key = lineKey(config);
   const existing = lines.find((line) => lineKey(line.config) === key);
 
   if (existing) {
     // Same product, same configuration: one row, more of it.
-    existing.quantity = clampQuantity(existing.quantity + quantity);
-    return lines;
+    const merged = requestQuantity(existing.quantity + quantity, MAX_CART_QUANTITY);
+    existing.quantity = merged.quantity;
+    return { lines, capped: merged.capped };
   }
 
   lines.push({
@@ -73,7 +82,7 @@ function addLine(config: string, quantity: number): CartLine[] {
     config,
     quantity,
   });
-  return lines;
+  return { lines, capped: false };
 }
 
 /** The visible confirmation and the spoken one, which are deliberately separate. */
@@ -142,9 +151,11 @@ export function wireOrderActions(form: HTMLFormElement): OrderActions {
     const { config, quantity } = serializeConfig(form);
     if (!new URLSearchParams(config).get(CART_PRODUCT_FIELD)) return;
 
-    const lines = addLine(config, quantity);
+    const { lines, capped } = addLine(config, quantity);
     writeCartLines(lines);
     confirmAdded(lines);
+    const quantityInput = form.querySelector<HTMLInputElement>('[data-est-qty]');
+    if (capped && quantityInput) showQuantityCap(quantityInput, true);
   });
 
   return { refresh: gate.refresh };
