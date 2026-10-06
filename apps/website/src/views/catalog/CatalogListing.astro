@@ -12,7 +12,7 @@
  * The count is always the section's heading for assistive tech, and `showCount`
  * decides whether it is painted. The catalogue surfaces leave it unpainted: the
  * reference listings put nothing between the filter row and the first card, and
- * a "55 ausili disponibili" line there is the one row that would push
+ * a "55 prodotti" line there is the one row that would push
  * everything below it out of step with theirs. Search paints it, because on a
  * page whose whole subject is a query, how many answers came back is the first
  * thing to say.
@@ -64,11 +64,14 @@ const {
 const asRow = layout === 'list';
 const locale = localeForRequest();
 
+/* "N prodotti", never "N disponibili": `meta.total` counts what the grid shows,
+   and with "Solo disponibili" off that includes sold-out cards. It is also the
+   wording the toolbar's visible count already uses. */
+const countKey = meta.total === 1 ? 'catalog.count.one' : 'catalog.count.many';
+const pageLabel = translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount });
 const countLabel =
-  `${meta.total} ${translate(locale, meta.total === 1 ? 'catalog.available.one' : 'catalog.available.many')}` +
-  (meta.pageCount > 1
-    ? ` · ${translate(locale, 'catalog.page', { page: meta.page, total: meta.pageCount })}`
-    : '');
+  translate(locale, countKey, { count: meta.total }) +
+  (meta.pageCount > 1 ? ` · ${pageLabel}` : '');
 
 const prevUrl = meta.page > 1 ? pageHref(meta.page - 1) : null;
 const nextUrl = meta.page < meta.pageCount ? pageHref(meta.page + 1) : null;
