@@ -2,6 +2,8 @@
   import HeartPulseIcon from '@lucide/svelte/icons/heart-pulse';
   import { safeRedirectPath } from '@mia/validators/redirect';
 
+  import { tick } from 'svelte';
+
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
@@ -16,6 +18,7 @@
   let password = $state('');
   let error = $state<string | null>(null);
   let submitting = $state(false);
+  let emailInput = $state<HTMLInputElement | null>(null);
 
   /** Where the layout bounced them from. Same-site paths only — never an open redirect. */
   function destination() {
@@ -35,7 +38,14 @@
     error = await session.login(email, password);
     submitting = false;
 
-    if (error) return;
+    if (error) {
+      /* The alert renders above the fields; focus goes back to the first one,
+         which now points at it, so the customer hears what went wrong and is
+         already where they fix it. */
+      await tick();
+      emailInput?.focus();
+      return;
+    }
 
     await goto(destination());
   }
@@ -58,7 +68,7 @@
     <form onsubmit={submit} class="rounded-xl border bg-card p-6 shadow-sm">
       <Field.Group>
         {#if error}
-          <Alert.Root variant="destructive">
+          <Alert.Root variant="destructive" id="login-error">
             <Alert.Description>{error}</Alert.Description>
           </Alert.Root>
         {/if}
@@ -68,7 +78,10 @@
           <Input
             id="email"
             type="email"
+            bind:ref={emailInput}
             bind:value={email}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
             required
             autocomplete="username"
             placeholder="ops@miamedical.com"
@@ -81,6 +94,8 @@
             id="password"
             type="password"
             bind:value={password}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
             required
             autocomplete="current-password"
           />
