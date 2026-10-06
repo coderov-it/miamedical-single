@@ -32,6 +32,8 @@
   "blog.readFallback": "Lesen Sie „{title}“ im Blog von Mia Medical Italia.",
   "terms.document": "Dokument",
   "terms.description": "{title} — Bedingungen für Mietvorgänge bei Mia Medical Italia.",
+  "terms.termsDescription": "Allgemeine Geschäftsbedingungen für Anfragen und Mieten von Hilfsmitteln bei Mia Medical Italia.",
+  "terms.cookieDescription": "Informationen zu den Cookies, die die Website von Mia Medical Italia verwendet.",
   "footer.about": "Vermietung medizinischer Hilfsmittel mit Lieferung nach Hause in Rom und Florenz. Desinfizierte und zertifizierte Produkte, Beratung durch echte Menschen.",
   "footer.freephone": "Kostenlose Servicenummer",
   "footer.rental": "Miete",

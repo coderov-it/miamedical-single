@@ -14,23 +14,19 @@ import { localeFromLocals, translate } from '~/lib/i18n';
 export const prerender = false;
 
 /**
- * Slugs the footer links to unconditionally, with their fallback headings.
+ * Slugs the footer links to unconditionally, with the message keys of their
+ * fallback heading and description — keys, not Italian strings, because the
+ * fallback renders on every locale (PUB-018). The heading is the footer's own
+ * label, so the link and the page it opens say the same thing.
  *
  * `privacy-policy` is deliberately absent: it is a legal page now, with its own
  * table, its own editor and its own route file (`pages/privacy-policy.astro`),
  * which Astro prefers over this dynamic route. Leaving it here would be a second
  * owner of a URL only one of them serves.
  */
-const REQUIRED_DOCUMENTS: Record<string, { title: string; description: string }> = {
-  'termini-e-condizioni': {
-    title: 'Termini e condizioni',
-    description:
-      'Termini e condizioni applicabili alle richieste e ai noleggi di ausili Mia Medical Italia.',
-  },
-  'cookie-policy': {
-    title: 'Cookie policy',
-    description: 'Informativa sui cookie utilizzati dal sito di Mia Medical Italia.',
-  },
+const REQUIRED_DOCUMENTS: Record<string, { titleKey: string; descriptionKey: string }> = {
+  'termini-e-condizioni': { titleKey: 'footer.terms', descriptionKey: 'terms.termsDescription' },
+  'cookie-policy': { titleKey: 'footer.cookies', descriptionKey: 'terms.cookieDescription' },
 };
 
 const slug = Astro.params.terms ?? '';
@@ -59,12 +55,21 @@ if ((!document && !required) || (document && document.slug !== slug)) {
   return Astro.rewrite('/404');
 }
 
-const fallbackTitle = required?.title ?? document?.title ?? translate(locale, 'terms.document');
-const description =
-  required?.description ??
-  translate(locale, 'terms.description', {
-    title: document?.title ?? translate(locale, 'terms.document'),
-  });
+const documentLabel = document?.title ?? translate(locale, 'terms.document');
+const { fallbackTitle, description } = fallbackCopy();
+
+function fallbackCopy(): { fallbackTitle: string; description: string } {
+  if (required) {
+    return {
+      fallbackTitle: translate(locale, required.titleKey),
+      description: translate(locale, required.descriptionKey),
+    };
+  }
+  return {
+    fallbackTitle: documentLabel,
+    description: translate(locale, 'terms.description', { title: documentLabel }),
+  };
+}
 ---
 
 <PolicyDocument {document} {fallbackTitle} {description} />

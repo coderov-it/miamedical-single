@@ -32,6 +32,8 @@
   "blog.readFallback": "Lisez « {title} » sur le blog de Mia Medical Italia.",
   "terms.document": "Document",
   "terms.description": "{title} — conditions applicables aux locations Mia Medical Italia.",
+  "terms.termsDescription": "Conditions générales applicables aux demandes et aux locations d’aides Mia Medical Italia.",
+  "terms.cookieDescription": "Informations sur les cookies utilisés par le site de Mia Medical Italia.",
   "footer.about": "Location d’aides techniques avec livraison à domicile à Rome et Florence. Produits désinfectés et certifiés, assistance par de vraies personnes.",
   "footer.freephone": "Numéro vert gratuit",
   "footer.rental": "Location",
