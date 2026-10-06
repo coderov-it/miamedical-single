@@ -26,7 +26,7 @@ import PdpOrderActions from '~/components/product/PdpOrderActions.astro';
 import PdpRentalFields from '~/components/product/PdpRentalFields.astro';
 import { formatMoney } from '~/lib/api';
 import type { ProductDetail } from '~/lib/catalog';
-import { REVIEW_AGGREGATE } from '~/lib/home-content';
+import { ratingText, REVIEW_AGGREGATE } from '~/lib/home-content';
 import { localeForRequest, localeTag } from '~/lib/i18n';
 import { t } from '~/lib/labels';
 import { FIELD, MAX_QUANTITY } from '~/lib/request-config';
@@ -49,6 +49,7 @@ interface Props {
 
 const { product, today, deliveryCity = null, startDate = '' } = Astro.props;
 const locale = localeForRequest();
+const rating = ratingText(REVIEW_AGGREGATE.rating, locale);
 
 const isRental = product.pricing.mode === 'rental';
 const { currency } = product.pricing;
@@ -179,14 +180,14 @@ const packages = product.rentalPackages;
       class="border-hair text-ink flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3.5 text-[13px] no-underline"
       href={`${routePath(locale, 'home')}#recensioni`}
       aria-label={t('pdp.reviewRating', {
-        rating: REVIEW_AGGREGATE.rating,
+        rating,
         count: t(REVIEW_AGGREGATE.countKey),
       })}
     >
       <span class="text-star tracking-[0.12em]" aria-hidden="true">
         ★★★★★
       </span>
-      <strong class="tabular-nums">{REVIEW_AGGREGATE.rating}</strong>
+      <strong class="tabular-nums">{rating}</strong>
       <span class="text-ink-2">· {t(REVIEW_AGGREGATE.countKey)}</span>
     </a>
   </div>
