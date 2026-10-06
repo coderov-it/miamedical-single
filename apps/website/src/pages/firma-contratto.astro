@@ -8,6 +8,7 @@
  * signature as a data URL.
  */
 import AccountCopy from '~/components/account/AccountCopy.astro';
+import ContractLinkError from '~/components/contract/ContractLinkError.astro';
 import { ANNOUNCE, FIELD_ERROR } from '~/components/account/fields';
 import LoadingState from '~/components/primitives/LoadingState.svelte';
 import BaseLayout from '~/layouts/BaseLayout.astro';
@@ -44,12 +45,7 @@ const SCRIPT_KEYS = [
 >
   <AccountCopy keys={SCRIPT_KEYS} />
   <div class="mx-auto w-full max-w-3xl px-5 py-8 md:py-12">
-    <!-- Error state -->
-    <div
-      data-error
-      hidden
-      class="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
-    ></div>
+    <ContractLinkError />
 
     <!-- Loading state -->
     <div data-loading>
@@ -179,6 +175,7 @@ const SCRIPT_KEYS = [
 
   const loading = document.querySelector<HTMLElement>('[data-loading]')!;
   const content = document.querySelector<HTMLElement>('[data-content]')!;
+  const errorState = document.querySelector<HTMLElement>('[data-error-state]')!;
   const errorBox = document.querySelector<HTMLElement>('[data-error]')!;
   const done = document.querySelector<HTMLElement>('[data-done]')!;
   const contractBody = document.querySelector<HTMLElement>('[data-contract-body]')!;
@@ -208,7 +205,7 @@ const SCRIPT_KEYS = [
   function fail(message: string) {
     loading.hidden = true;
     content.hidden = true;
-    errorBox.hidden = false;
+    errorState.hidden = false;
     errorBox.textContent = message;
   }
 
