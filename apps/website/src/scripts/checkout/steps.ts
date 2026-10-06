@@ -73,13 +73,27 @@ export function createStepper(context: CheckoutContext, options: StepperOptions)
       });
   }
 
+  /**
+   * A step change the customer asked for. The button they pressed is now inside
+   * a hidden body, so focus would fall to <body>; the opened step's heading takes
+   * it instead. Server-driven moves (a 422, an adopted placement) call `goTo`
+   * alone — the reveal focuses a field, and a page load must not steal focus.
+   */
+  function open(step: StepIndex): void {
+    goTo(step);
+    sections
+      .find((section) => Number(section.dataset.step) === step)
+      ?.querySelector<HTMLElement>('[data-step-heading]')
+      ?.focus({ preventScroll: true });
+  }
+
   /*
    * Going BACK is never gated. "Modifica" on a completed step is how a customer
    * fixes what the gate just complained about, so refusing it while the form is
    * incomplete would lock them out of the only thing that could help.
    */
   for (const button of root.querySelectorAll<HTMLButtonElement>('[data-step-edit]')) {
-    button.addEventListener('click', () => goTo(Number(button.dataset.stepEdit) as StepIndex));
+    button.addEventListener('click', () => open(Number(button.dataset.stepEdit) as StepIndex));
   }
 
   /*
@@ -91,7 +105,7 @@ export function createStepper(context: CheckoutContext, options: StepperOptions)
       const from = Number(cta.dataset.stepContinue) as StepIndex;
       if (!options.canLeave(from)) return;
       state.done[from] = true;
-      goTo((from + 1) as StepIndex);
+      open((from + 1) as StepIndex);
     });
   }
 
