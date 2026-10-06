@@ -95,6 +95,7 @@ export function checkoutScriptLabels() {
     pickupBranch: t('msgPickupBranch'),
     notes: t('msgNotes'),
     collectedAtBranch: t('collectedAtBranch'),
+    collectedAtBranchSale: t('collectedAtBranchSale'),
     returnStage: t('returnStage'),
     requestNumberPrefix: t('msgRequestNumber'),
     sendRequest: t('sendRequest'),

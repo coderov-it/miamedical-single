@@ -34,6 +34,8 @@ export interface CartCopy {
   goToCheckout: string;
   dueToday: string;
   dueTodayNote: string;
+  /** The same note for a cart with no rental in it: no collection to arrange. */
+  dueTodayNoteSale: string;
   continueBrowsing: string;
   remove: string;
   removeNamed: string;
@@ -68,6 +70,7 @@ export function cartCopy(): CartCopy {
     goToCheckout: t('goToCheckout'),
     dueToday: t('cartDueToday'),
     dueTodayNote: t('cartDueTodayNote'),
+    dueTodayNoteSale: t('cartDueTodayNoteSale'),
     continueBrowsing: t('continueBrowsing'),
     remove: t('remove'),
     removeNamed: t('removeNamed'),

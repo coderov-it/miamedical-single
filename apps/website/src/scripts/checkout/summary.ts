@@ -6,6 +6,8 @@
  * arrives in `data-items-total`, already priced by `@mia/pricing` over the same
  * choices the order will be written from — and nothing on this page adds to it.
  */
+import { requestCopyKey } from '~/lib/product-mode-copy';
+
 import type { CheckoutContext } from './context.ts';
 
 export interface Summary {
@@ -59,7 +61,10 @@ export function createSummary(context: CheckoutContext): Summary {
         .join(' · ');
     }
     if (state.delivery === 'storePickup') {
-      return label('collectedAtBranch').replace('{city}', state.pickup);
+      /* The return block exists only when a line is rented; without one nothing
+         comes back, so the branch line says collection alone (CART-014). */
+      const key = requestCopyKey('collectedAtBranch', context.returnSame !== null);
+      return label(key).replace('{city}', state.pickup);
     }
     return '';
   }

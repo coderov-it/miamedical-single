@@ -80,6 +80,7 @@ function emptyView(): CartView {
     itemsTotal: 0,
     itemsTotalLabel: '',
     noPackage: false,
+    hasRental: false,
     currency: 'EUR',
     droppedIds: [],
   };

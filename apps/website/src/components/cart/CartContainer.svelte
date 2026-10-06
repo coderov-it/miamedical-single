@@ -168,6 +168,7 @@
         total={cart.money(cart.optimisticTotal)}
         dueToday={cart.money(0)}
         noPackage={cart.view.noPackage}
+        hasRental={cart.view.hasRental}
       />
     {/if}
   </div>
