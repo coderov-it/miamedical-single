@@ -269,7 +269,7 @@ export function buildFacts(product: ProductDetail, request: ResolvedRequest): It
       time ? `${formatDateLabel(date)} ${time}` : formatDateLabel(date);
 
     facts.push({
-      label: t('pickupDate'),
+      label: t('rentalStart'),
       value: request.startDate
         ? stamp(request.startDate, period?.startTime ?? null)
         : t('toBeConfirmed'),
