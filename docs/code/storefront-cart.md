@@ -116,6 +116,7 @@ page is:
 
 ```
 lib/cart-state.svelte.ts   the CartState class — what the cart contains
+lib/cart-row.ts            the row shapes CartState hands its components
 components/cart/
   CartContainer.svelte     the island root: <form>, the two columns, state wiring
   ├── CartLoadingCard      the first paint, until storage has been read
@@ -141,6 +142,28 @@ already uses (`lib/*.svelte.ts`). One wrinkle worth knowing: a `$derived` whose
 expression reads a `#private` field must be written `$derived.by(() => …)`. The rune
 evaluates lazily, so the field IS assigned by the time it runs, but a bare
 `$derived(...)` is a field initializer and TypeScript reads it as use-before-init.
+
+## A rental whose start date has gone by (2026-10-07)
+
+A line stored days ago can start before today. The cart marks it and fixes it in place.
+
+```text
+ Today 07/10 (Rome). Stored: rollator, package 7-day, from=2026-10-05
+ 1. /carrello/ loads      view.today = '2026-10-07' (resolveCart, todayInRome())
+                          from < today → red card, "La data di inizio è passata…",
+                          a date field with min=today
+ 2. "Vai alla conferma"   enforceGate() → false: alert above the button,
+                          focus and scroll to the first date field. Nothing posts.
+ 3. picks 12/10           moveStartDate() rewrites `from` in the same line
+                          → mark and alert clear at once; re-price shows 12/10 → 19/10
+ 4. "Vai alla conferma"   → /checkout/
+
+ Merge: the new date makes it identical to another line (same product,
+ package, from) → one line, quantities summed and capped at 10.
+```
+
+"Stale" is read off the stored line against the server's `today`, never the
+browser clock, so the cart and the checkout's `pastStart` gate agree on the day.
 
 ## The island owns two things
 

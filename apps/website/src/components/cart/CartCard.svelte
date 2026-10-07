@@ -32,7 +32,17 @@
     unitPrice: string;
     labels: CartRowLabels;
     removeText: string;
+    /**
+     * A rental whose start date has gone by. The card says so and offers a date
+     * field right here: editing on the product page would add a second line.
+     */
+    pastStart: boolean;
+    /** Today in Rome, ISO — the earliest date the field offers. */
+    today: string;
+    startPassedText: string;
+    newStartDateText: string;
     onQuantityChange: (quantity: number) => void;
+    onStartDateChange: (startDate: string) => void;
     onRemove: () => void;
   }
 
@@ -43,9 +53,19 @@
     unitPrice,
     labels,
     removeText,
+    pastStart,
+    today,
+    startPassedText,
+    newStartDateText,
     onQuantityChange,
+    onStartDateChange,
     onRemove,
   }: Props = $props();
+
+  /* `id` is stable per row, so these stay unique when the cart holds several. */
+  const startFieldId = $derived(`cart-start-${view.id}`);
+  const startErrorId = $derived(`cart-start-error-${view.id}`);
+  const border = $derived(pastStart ? 'border-danger border-2' : 'border-hair');
 
   /* The card's two prose tiers, one step under the title: the phone reads 15, the
      desktop 16. Labels stay on the MUTED ink and their VALUES step up to the full
@@ -60,7 +80,7 @@
 </script>
 
 <li
-  class="border-hair rounded-card mid:gap-x-4.5 mid:p-5 flex flex-wrap items-center gap-x-4 gap-y-4 border bg-white p-4"
+  class="rounded-card mid:gap-x-4.5 mid:p-5 flex flex-wrap items-center gap-x-4 gap-y-4 border bg-white p-4 {border}"
 >
   <!--
     100px on the desktop, 80 on a phone — the reference site's own figure, and
@@ -122,6 +142,28 @@
           <span>{fact.label} <span class={VALUE}>{fact.value}</span></span>
         {/each}
       </p>
+    {/if}
+
+    <!-- The fix sits beside the fault. `min` stops the picker offering a past
+         day; a typed one is stored, re-checked, and still marked. -->
+    {#if pastStart}
+      <div class="flex flex-col gap-1.5" data-past-start>
+        <p class="text-danger m-0 text-[15px] font-semibold" id={startErrorId}>
+          {startPassedText}
+        </p>
+        <label class="text-ink-2 text-[13px] font-medium" for={startFieldId}>
+          {newStartDateText}
+        </label>
+        <input
+          class="bg-tint rounded-field min-h-12 w-full max-w-60 px-3.5 text-[15px] font-semibold tabular-nums"
+          id={startFieldId}
+          type="date"
+          min={today}
+          aria-invalid="true"
+          aria-describedby={startErrorId}
+          onchange={(event) => onStartDateChange(event.currentTarget.value)}
+        />
+      </div>
     {/if}
 
     <!-- The chosen package AND what that package costs, in one type style across

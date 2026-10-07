@@ -11,6 +11,7 @@ import { mediaUrl, offerPrice } from './api.ts';
 import type { ProductDetail } from './catalog.ts';
 import { DEFAULT_LOCALE, localeForRequest, localeTag, type SiteLocale } from './i18n.ts';
 import { t } from './labels.ts';
+import { todayInRome } from './rome-today.ts';
 import { productPath } from './routes.ts';
 import { serviceAreaCity } from './site.ts';
 
@@ -70,12 +71,7 @@ export interface BrowseAnswers {
  * would reject — better to show it empty than pre-filled and invalid.
  */
 export function readBrowseAnswers(url: URL): BrowseAnswers {
-  const today = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Rome',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
+  const today = todayInRome();
 
   const carried = url.searchParams.get('from')?.trim() ?? '';
   const orderable = /^\d{4}-\d{2}-\d{2}$/.test(carried) && carried >= today;

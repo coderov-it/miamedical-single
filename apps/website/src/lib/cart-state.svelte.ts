@@ -29,68 +29,24 @@ import {
   cartCount,
   cartWireFields,
   clampQuantity,
-  lineKey,
+  lineStartDate,
+  mergeLines,
+  moveStartDate,
   readCartLines,
+  startHasPassed,
   writeCartLines,
 } from './cart-store.ts';
+import {
+  type CartRow,
+  type CartRowLabels,
+  type CartStateInit,
+  type WireField,
+  emptyView,
+  fill,
+} from './cart-row.ts';
 import type { CartCopy, CartLineView, CartView } from './cart.ts';
 
-/** A stored line married to the server's resolution of it. */
-export interface CartRow {
-  line: CartLine;
-  view: CartLineView;
-}
-
-/** One hidden `item.<n>.` input the checkout will read. */
-export interface WireField {
-  name: string;
-  value: string;
-}
-
-/**
- * A row's spoken labels, already interpolated.
- *
- * Built here rather than in the card because the copy and its `{title}` slots are
- * this class's business; the card is a view and reads no templates.
- */
-export interface CartRowLabels {
-  decrease: string;
-  increase: string;
-  quantity: string;
-  remove: string;
-  quantityCap: string;
-}
-
-export interface CartStateInit {
-  initial: CartView;
-  urlLines: CartLine[];
-  copy: CartCopy;
-  /** Matches `formatMoney()`'s default in `lib/api.ts`. */
-  locale: string;
-  /**
-   * The page's site language (`it`, `en`, …), sent with every re-price: a slug
-   * is unique per language only, so the server must read each line in it.
-   */
-  siteLocale: string;
-}
-
-/** What `view` holds for the instant before the constructor assigns the real one. */
-function emptyView(): CartView {
-  return {
-    lines: [],
-    itemsTotal: 0,
-    itemsTotalLabel: '',
-    noPackage: false,
-    hasRental: false,
-    currency: 'EUR',
-    droppedIds: [],
-  };
-}
-
-/** Fills `{slot}` markers in a copy string. */
-export function fill(template: string, values: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
-}
+export type { CartRow, CartRowLabels, CartStateInit, WireField } from './cart-row.ts';
 
 export class CartState {
   /* ------------------------------------------------------------ reactive --- */
@@ -119,6 +75,8 @@ export class CartState {
   booting = $state(false);
   /** Politely announced after a change, so a stepper press is audible. */
   announcement = $state('');
+  /** The checkout button was pressed while a line was invalid. */
+  gateTried = $state(false);
 
   /* -------------------------------------------------------------- private --- */
 
@@ -186,12 +144,27 @@ export class CartState {
     return (amount: number) => format.format(amount);
   });
 
+  /**
+   * Rental rows whose start date has gone by — a line added days ago. Read off
+   * the STORED line, so a new date clears the mark before the re-price lands.
+   */
+  pastStartIds = $derived(
+    this.rows
+      .filter((row) => row.view.rental && startHasPassed(lineStartDate(row.line), this.view.today))
+      .map((row) => row.line.id),
+  );
+
   /* `$derived.by` rather than `$derived` wherever the expression reads a private
      field: a field initializer runs before the constructor assigns those, and while
      a rune's expression is evaluated lazily, TypeScript reads it as use-before-init.
      A closure says what is actually happening. */
   countLabel = $derived.by(() =>
     this.count === 1 ? this.#copy.countOne : fill(this.#copy.countMany, { count: this.count }),
+  );
+
+  /** Shown at the checkout button once it was pressed with an invalid line. */
+  gateAlert = $derived.by(() =>
+    this.gateTried && this.pastStartIds.length > 0 ? this.#copy.invalidItems : '',
   );
 
   /** Empty when nothing was dropped — the components treat "" as "no notice". */
@@ -261,6 +234,21 @@ export class CartState {
     this.#commit(this.lines.filter((line) => line.id !== id));
   }
 
+  /** A stale rental moved to a new start date, in place. See `moveStartDate()`. */
+  setStartDate(id: string, startDate: string): void {
+    if (!startDate) return;
+    this.#commit(moveStartDate(this.lines, id, startDate));
+  }
+
+  /**
+   * Asked by the checkout button on every press. True when the cart can go on;
+   * otherwise the alert shows and the caller sends focus to the first bad line.
+   */
+  enforceGate(): boolean {
+    this.gateTried = true;
+    return this.pastStartIds.length === 0;
+  }
+
   /* ----------------------------------------------------------- lifecycle --- */
 
   /**
@@ -304,19 +292,8 @@ export class CartState {
   #mergeUrlLines(stored: CartLine[]): CartLine[] {
     if (this.#urlLines.length === 0) return stored;
 
-    const merged = [...stored];
-    for (const incoming of this.#urlLines) {
-      const key = lineKey(incoming.config);
-      const existing = merged.find((line) => lineKey(line.config) === key);
-      if (existing) {
-        existing.quantity = clampQuantity(existing.quantity + incoming.quantity);
-      } else {
-        merged.push(incoming);
-      }
-    }
-
     window.history.replaceState(null, '', window.location.pathname);
-    return merged;
+    return mergeLines(stored, this.#urlLines);
   }
 
   #commit(next: CartLine[], { announce = true } = {}): void {

@@ -52,6 +52,11 @@ export interface CartCopy {
   offline: string;
   unavailableOne: string;
   unavailableMany: string;
+  /** Said on a rental line whose start date has gone by. */
+  startPassed: string;
+  newStartDate: string;
+  /** Said at the checkout button when it is pressed with a stale line. */
+  invalidItems: string;
   emptyTitle: string;
   emptyDetail: string;
   goToCatalog: string;
@@ -87,6 +92,9 @@ export function cartCopy(): CartCopy {
     offline: t('cartOffline'),
     unavailableOne: t('cartLineUnavailableOne'),
     unavailableMany: t('cartLineUnavailableMany'),
+    startPassed: t('cartLineStartPassed'),
+    newStartDate: t('cartNewStartDate'),
+    invalidItems: t('cartInvalidItems'),
     emptyTitle: t('cartEmpty'),
     emptyDetail: t('cartEmptyDetail'),
     goToCatalog: t('goToCatalog'),
