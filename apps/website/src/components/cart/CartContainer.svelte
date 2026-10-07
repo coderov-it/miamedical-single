@@ -61,6 +61,20 @@
 
   const cart = new CartState({ initial, urlLines, copy, locale, siteLocale });
 
+  let form: HTMLFormElement;
+
+  /**
+   * The checkout button is never disabled: a press with a stale rental shows the
+   * alert at the button and takes the customer to the first line to fix.
+   */
+  function onSubmit(event: SubmitEvent): void {
+    if (cart.enforceGate()) return;
+    event.preventDefault();
+    const field = form.querySelector<HTMLInputElement>('[data-past-start] input');
+    field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    field?.focus({ preventScroll: true });
+  }
+
   $effect(() => {
     cart.mount();
   });
@@ -77,7 +91,7 @@
   lives on the inner div, so a plain block form wraps it without affecting the
   columns.
 -->
-<form method="post" action={checkoutPath}>
+<form method="post" action={checkoutPath} bind:this={form} onsubmit={onSubmit}>
   {#each cart.wireFields as field (field.name + field.value)}
     <input type="hidden" name={field.name} value={field.value} />
   {/each}
@@ -134,7 +148,12 @@
               unitPrice={cart.rowUnitPrice(row)}
               labels={cart.rowLabels(row.view)}
               removeText={copy.remove}
+              pastStart={cart.pastStartIds.includes(row.line.id)}
+              today={cart.view.today}
+              startPassedText={copy.startPassed}
+              newStartDateText={copy.newStartDate}
               onQuantityChange={(quantity) => cart.setQuantity(row.line.id, quantity)}
+              onStartDateChange={(startDate) => cart.setStartDate(row.line.id, startDate)}
               onRemove={() => cart.remove(row.line.id)}
             />
           {/each}
@@ -169,6 +188,7 @@
         dueToday={cart.money(0)}
         noPackage={cart.view.noPackage}
         hasRental={cart.view.hasRental}
+        alert={cart.gateAlert}
       />
     {/if}
   </div>

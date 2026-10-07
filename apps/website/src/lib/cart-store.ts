@@ -20,7 +20,7 @@
 export const CART_STORAGE_KEY = 'mia.cart.v1';
 
 /*
- * The four values below are the CHECKOUT's, restated here because this module
+ * The six values below are the CHECKOUT's, restated here because this module
  * cannot import it. They are not allowed to drift: `assertCartWireAgrees()` in
  * `cart.ts` fails the type-check if they ever do, so a rename over there is
  * caught at build time rather than by a cart that posts a body the checkout
@@ -41,6 +41,9 @@ export const CART_PRODUCT_FIELD = 'product';
 
 /** Must equal `FIELD.quantity` in `request-config.ts`. */
 export const CART_QUANTITY_FIELD = 'qty';
+
+/** Must equal `FIELD.startDate` in `request-config.ts`. */
+export const CART_START_FIELD = 'from';
 
 /**
  * A crafted `config` cannot buy anything — no price crosses the boundary inward —
@@ -149,6 +152,61 @@ export function cartWireFields(lines: CartLine[]): Array<{ name: string; value: 
     fields.push({ name: prefix + CART_QUANTITY_FIELD, value: String(line.quantity) });
     return fields;
   });
+}
+
+/** The rental's start date as stored, ISO `YYYY-MM-DD`, or `''` for none. */
+export function lineStartDate(line: CartLine): string {
+  return new URLSearchParams(line.config).get(CART_START_FIELD) ?? '';
+}
+
+/** The same line starting on another day. Every other choice stays as it was. */
+export function withStartDate(line: CartLine, startDate: string): CartLine {
+  const config = new URLSearchParams(line.config);
+  config.set(CART_START_FIELD, startDate);
+  return { ...line, config: config.toString() };
+}
+
+/**
+ * `incoming` folded into `lines`: a line identical to one already there raises
+ * its quantity, anything else is appended. How the URL hand-off joins the store.
+ */
+export function mergeLines(lines: CartLine[], incoming: CartLine[]): CartLine[] {
+  const merged = lines.map((line) => ({ ...line }));
+  for (const line of incoming) {
+    const key = lineKey(line.config);
+    const existing = merged.find((candidate) => lineKey(candidate.config) === key);
+    if (existing) {
+      existing.quantity = clampQuantity(existing.quantity + line.quantity);
+    } else {
+      merged.push(line);
+    }
+  }
+  return merged;
+}
+
+/**
+ * Line `id` moved to a new start date, in place — never a second line. When
+ * the new date makes it identical to another line, the two merge into that one,
+ * as adding the same configuration twice would.
+ */
+export function moveStartDate(lines: CartLine[], id: string, startDate: string): CartLine[] {
+  const target = lines.find((line) => line.id === id);
+  if (!target) return lines;
+
+  const moved = withStartDate(target, startDate);
+  const key = lineKey(moved.config);
+  const twin = lines.find((line) => line.id !== id && lineKey(line.config) === key);
+  if (!twin) return lines.map((line) => (line.id === id ? moved : line));
+
+  const quantity = clampQuantity(twin.quantity + target.quantity);
+  return lines
+    .filter((line) => line.id !== id)
+    .map((line) => (line.id === twin.id ? { ...line, quantity } : line));
+}
+
+/** ISO dates compare as strings. An empty `today` means nothing was priced yet. */
+export function startHasPassed(startDate: string, today: string): boolean {
+  return startDate !== '' && today !== '' && startDate < today;
 }
 
 /** The header badge's number: the sum of the quantities, not the row count. */

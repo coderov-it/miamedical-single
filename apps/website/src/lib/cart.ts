@@ -22,6 +22,7 @@ import {
   CART_ITEM_PREFIX,
   CART_PRODUCT_FIELD,
   CART_QUANTITY_FIELD,
+  CART_START_FIELD,
   type CartLine,
   MAX_CART_LINES,
   MAX_CART_QUANTITY,
@@ -40,13 +41,14 @@ import { resolveCheckout } from './checkout-resolve.ts';
 import { t } from './labels.ts';
 import { localeForRequest, localeTag } from './i18n.ts';
 import { FIELD, MAX_QUANTITY } from './request-config.ts';
+import { todayInRome } from './rome-today.ts';
 import { productPath } from './routes.ts';
 
 /**
  * The drift guard `cart-store.ts` promises.
  *
  * That module cannot import the checkout's vocabulary — it has to stay free of
- * server imports — so it restates four values. These declarations make the
+ * server imports — so it restates six values. These declarations make the
  * restatement checked: each annotation is a string or numeric LITERAL type, so if
  * `ITEM_PREFIX` is ever renamed to `line.` or `MAX_ITEMS` raised to 50, this file
  * stops type-checking and `astro check` says so. Nothing reads these bindings;
@@ -55,11 +57,13 @@ import { productPath } from './routes.ts';
 const _itemPrefixAgrees: typeof CART_ITEM_PREFIX = ITEM_PREFIX;
 const _productFieldAgrees: typeof CART_PRODUCT_FIELD = FIELD.product;
 const _quantityFieldAgrees: typeof CART_QUANTITY_FIELD = FIELD.quantity;
+const _startFieldAgrees: typeof CART_START_FIELD = FIELD.startDate;
 const _maxLinesAgrees: typeof MAX_CART_LINES = MAX_ITEMS;
 const _maxQuantityAgrees: typeof MAX_CART_QUANTITY = MAX_QUANTITY;
 void _itemPrefixAgrees;
 void _productFieldAgrees;
 void _quantityFieldAgrees;
+void _startFieldAgrees;
 void _maxLinesAgrees;
 void _maxQuantityAgrees;
 
@@ -121,6 +125,12 @@ export interface CartView {
   /** Any line is a rental. A sale-only cart is never collected again (CART-014). */
   hasRental: boolean;
   currency: string;
+  /**
+   * Today in Rome, ISO. A rental line stored with an earlier start is stale; the
+   * island compares against this rather than the browser's clock, so the cart
+   * and the checkout agree on the day.
+   */
+  today: string;
   /**
    * Lines whose product no longer resolves — unpublished, deleted, or a slug
    * someone typed into storage. Only a 404 puts a line here; a catalogue that
@@ -304,6 +314,7 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
     noPackage: views.some((view) => view.noPackage),
     hasRental: views.some((view) => view.rental),
     currency,
+    today: todayInRome(),
     droppedIds,
   };
 }

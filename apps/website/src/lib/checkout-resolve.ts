@@ -19,6 +19,7 @@ import {
 } from './checkout.ts';
 import { localeForRequest } from './i18n.ts';
 import { FIELD, type ResolvedRequest, resolveRequest } from './request-config.ts';
+import { todayInRome } from './rome-today.ts';
 
 /**
  * The same line as `POST /api/orders` will be asked to record it.
@@ -166,18 +167,4 @@ function blockedReason(
   if (pastStart) return 'pastStart';
   if (unpriced) return 'noPackage';
   return null;
-}
-
-/**
- * Today in the shop's time zone, ISO `YYYY-MM-DD` — the floor the product page's
- * date picker offers. A rental put in the cart last week can start before it;
- * the API refuses those, so the confirm step stops it here first.
- */
-function todayInRome(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Rome',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
 }
