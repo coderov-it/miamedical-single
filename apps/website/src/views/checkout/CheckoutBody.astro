@@ -1,6 +1,8 @@
 ---
 /**
- * The checkout's body: the three steps, the order overview, and the empty state.
+ * The checkout's body: the steps, the order overview, and the empty state.
+ * Three steps for a sale; a rental adds the contract as step 3, before
+ * confirmation — a rental is placed already signed (docs/code/contracts.md).
  *
  * Its spec is the Claude Design file "Checkout.dc.html" from the same project as
  * the product detail page, and like the PDP it is deliberately released from
@@ -14,6 +16,7 @@
  * they came from only for the breadcrumb's way back.
  */
 import CheckoutConfirm from '~/components/checkout/CheckoutConfirm.astro';
+import CheckoutContract from '~/components/checkout/CheckoutContract.astro';
 import CheckoutDelivery from '~/components/checkout/CheckoutDelivery.astro';
 import CheckoutDetails from '~/components/checkout/CheckoutDetails.astro';
 import CheckoutOverview from '~/components/checkout/CheckoutOverview.astro';
@@ -54,6 +57,9 @@ const single = items.length === 1;
  * say where.
  */
 const hasRental = items.some((item) => item.product.pricing.mode === 'rental');
+
+/* The contract step exists only for a rental, and pushes confirmation to 4. */
+const confirmStep = hasRental ? 4 : 3;
 
 /**
  * Which of the three bodies renders: the steps, an outage that left nothing to
@@ -130,11 +136,17 @@ function gateHref(): string {
           <CheckoutDelivery labelStage={hasRental} {hasRental} />
           {hasRental && <CheckoutReturn />}
           <button class={CTA} type="button" data-step-continue="2" hidden>
-            {t('continueToConfirmation')}
+            {hasRental ? t('continueToContract') : t('continueToConfirmation')}
           </button>
         </CheckoutStep>
 
-        <CheckoutStep index={3} title={t('confirmRequest')} editable={false}>
+        {hasRental && (
+          <CheckoutStep index={3} title={t('checkoutContract.step')}>
+            <CheckoutContract backHref={originCrumb.href} />
+          </CheckoutStep>
+        )}
+
+        <CheckoutStep index={confirmStep} title={t('confirmRequest')} editable={false}>
           <CheckoutConfirm
             whatsappHref={whatsappUrl(handoverMessage)}
             whatsappBase={handoverMessage}

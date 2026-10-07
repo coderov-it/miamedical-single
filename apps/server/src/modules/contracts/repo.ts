@@ -56,21 +56,28 @@ async function nextContractNumber(tx: Pick<Database, 'execute'>): Promise<string
   return `CTR-${new Date().getUTCFullYear()}-${counter.padStart(6, '0')}`;
 }
 
+export interface NewContract {
+  orderId: string | null;
+  variant: ContractVariant;
+  language: string;
+  requiresDeposit: boolean;
+  depositAmount: string | null;
+  contractData: (number: string) => Record<string, unknown>;
+  /**
+   * Present when the signature arrived WITH the order — the checkout's contract
+   * step. Such a contract is born `signed` and never had a signing link.
+   */
+  signed?: { signedAt: Date; signatureData: Record<string, unknown> };
+}
+
 /**
- * Inserts a `generated` contract. The number is drawn first so the stored
- * snapshot carries it from the start — `build` receives it. Called inside the
- * issuing transaction, which also writes the signing token.
+ * Inserts a contract, `generated` unless `signed` says otherwise. The number is
+ * drawn first so the stored snapshot carries it from the start — `contractData`
+ * receives it. Called inside the issuing transaction.
  */
 export async function create(
   db: DatabaseWriter,
-  data: {
-    orderId: string | null;
-    variant: ContractVariant;
-    language: string;
-    requiresDeposit: boolean;
-    depositAmount: string | null;
-    contractData: (number: string) => Record<string, unknown>;
-  },
+  data: NewContract,
 ): Promise<{ id: string; number: string }> {
   const number = await nextContractNumber(db);
   const [row] = await db
@@ -79,11 +86,12 @@ export async function create(
       number,
       orderId: data.orderId,
       variant: data.variant,
-      status: 'generated',
+      status: data.signed ? 'signed' : 'generated',
       language: data.language,
       requiresDeposit: data.requiresDeposit,
       depositAmount: data.depositAmount,
       contractData: data.contractData(number),
+      ...(data.signed ? data.signed : {}),
     })
     .returning({ id: contracts.id, number: contracts.number });
   if (!row) throw new Error('Contract insert returned no row.');
@@ -225,6 +233,22 @@ export async function orderRequiresDeposit(db: Database, orderId: string): Promi
         sql`${orderItems.configuration}->>'pricingMode' = 'rental'`,
       ),
     );
+
+  return rows[0]?.value ?? false;
+}
+
+/**
+ * Whether any of these products is from a deposit category — the checkout's
+ * counterpart of `orderRequiresDeposit`, for an order that does not exist yet.
+ * The caller passes the RENTED lines' products only, for the same reason.
+ */
+export async function productsRequireDeposit(db: Database, productIds: string[]): Promise<boolean> {
+  if (productIds.length === 0) return false;
+  const rows = await db
+    .select({ value: sql<boolean>`bool_or(${categories.requiresDeposit})` })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(inArray(products.id, productIds));
 
   return rows[0]?.value ?? false;
 }

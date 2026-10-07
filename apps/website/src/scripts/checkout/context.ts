@@ -16,7 +16,7 @@
  */
 import { documentLocale } from '../locale';
 
-export type StepIndex = 1 | 2 | 3;
+export type StepIndex = 1 | 2 | 3 | 4;
 
 /** A control the customer types into. All of them carry `data-field`. */
 export type Field = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -46,6 +46,13 @@ export type PlacementPhase = 'idle' | 'sending' | 'placed' | 'uncertain';
 
 export interface CheckoutContext {
   root: HTMLElement;
+  /**
+   * The contract step, or null when nothing is rented and there is nothing to
+   * sign. Present, it is step 3 and confirmation moves to 4.
+   */
+  contractStep: StepIndex | null;
+  /** The last step — the review and the "Invia" that places the order. */
+  confirmStep: StepIndex;
   overview: HTMLElement;
   state: CheckoutState;
   /** A server-resolved word. Empty rather than `undefined` — see below. */
@@ -117,8 +124,12 @@ export function createContext(): CheckoutContext | null {
 
   const field = (name: string) => root.querySelector<Field>(`[data-field="${name}"]`);
 
+  const contractStep = root.querySelector('[data-contract-step]') ? 3 : null;
+
   return {
     root,
+    contractStep,
+    confirmStep: contractStep ? 4 : 3,
     overview,
     state: {
       step: 1,

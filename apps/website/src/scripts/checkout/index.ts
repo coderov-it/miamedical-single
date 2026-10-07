@@ -11,7 +11,10 @@
  *   input / change  ──→ gates.refresh()   a field just answered clears its message
  *                   └─→ summary.paintTotal(), stepper.paint()
  *   "Continua"      ──→ gates.enforce(step)   marks what is missing, or moves on
- *   step 3 opens    ──→ summary.paintReview()
+ *   contract opens  ──→ contract.open()       preview for the current answers
+ *   "Firma e …"     ──→ contract.enforce()    document, signature, consent
+ *   confirm opens   ──→ summary.paintReview()
+ *   "Invia"         ──→ contract.isCurrent()? else back to the contract step
  *   "Invia" → 422   ──→ gates.rejectFromServer() → stepper.goTo(step)
  *                   └─→ gates.revealServerErrors()   marks, scrolls, focuses
  *
@@ -19,6 +22,7 @@
  * reveals one. A customer part-way through typing has not failed anything yet.
  */
 import { createContext } from './context.ts';
+import { createContractStep } from './contract.ts';
 import { wireDelivery } from './delivery.ts';
 import { createCheckoutGates } from './gates.ts';
 import { wirePlaceOrder } from './place-order.ts';
@@ -33,23 +37,51 @@ const context = createContext();
 if (context) {
   const gates = createCheckoutGates(context);
   const summary = createSummary(context);
-  const placeOrder = wirePlaceOrder(context, {
-    /* The step holding the first rejected field opens BEFORE the reveal, so
-       focus lands on a control the customer can see. `stepper` is assigned
-       below; this only runs on a server answer, long after. */
-    onRejected: (fields) => {
-      const step = gates.rejectFromServer(fields);
-      if (step === null) return false;
-      stepper.goTo(step);
-      gates.revealServerErrors();
+
+  /* A 422 naming fields, from placement or from the contract preview. The step
+     holding the first rejected field opens BEFORE the reveal, so focus lands on
+     a control the customer can see. `stepper` and `contract` are assigned
+     below; this only runs on a server answer, long after. */
+  const onRejected = (fields: Record<string, string>): boolean => {
+    const aboutContract = Object.keys(fields).some((path) => path.startsWith('contractSignature'));
+    if (contract && context.contractStep && aboutContract) {
+      contract.forget();
+      stepper.goTo(context.contractStep);
+      contract.enforce();
       return true;
+    }
+    const step = gates.rejectFromServer(fields);
+    if (step === null) return false;
+    stepper.goTo(step);
+    gates.revealServerErrors();
+    return true;
+  };
+
+  const contract = createContractStep(context, { onRejected });
+
+  const placeOrder = wirePlaceOrder(context, {
+    onRejected,
+    onAdopted: () => stepper.goTo(context.confirmStep),
+    /* The contract step guarantees this on the way forward; checked again here
+       because a signature for other answers must never go out with the order.
+       Reopening the step clears it and says the contract changed. */
+    canPlace: () => {
+      if (!contract || !context.contractStep || contract.isCurrent()) return true;
+      stepper.goTo(context.contractStep);
+      return false;
     },
-    onAdopted: () => stepper.goTo(3),
+    contractBody: () => contract?.body() ?? {},
   });
 
   const stepper = createStepper(context, {
-    canLeave: (step) => gates.enforce(step),
-    onReview: summary.paintReview,
+    canLeave: (step) => {
+      if (contract && step === context.contractStep) return contract.enforce();
+      return gates.enforce(step);
+    },
+    onOpen: (step) => {
+      if (contract && step === context.contractStep) contract.open();
+      if (step === context.confirmStep) summary.paintReview();
+    },
     /* The identity decides WHICH fiscal field is required, so changing it can
        make an outstanding message irrelevant — a company no longer needs the
        private codice fiscale it was just asked for. */
@@ -90,6 +122,7 @@ if (context) {
 
   const onEdit = () => {
     gates.refresh();
+    contract?.refresh();
     stepper.paint();
   };
   context.root.addEventListener('input', onEdit);
@@ -99,6 +132,6 @@ if (context) {
   stepper.paint();
   summary.paintTotal();
 
-  /* Last, so a remembered placement opens step 3 over the fresh form. */
+  /* Last, so a remembered placement opens the confirm step over the fresh form. */
   placeOrder.resume();
 }

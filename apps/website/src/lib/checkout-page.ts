@@ -100,5 +100,6 @@ export function checkoutScriptLabels() {
     requestNumberPrefix: t('msgRequestNumber'),
     sendRequest: t('sendRequest'),
     sendingRequest: t('sendingRequest'),
+    contractSigned: t('checkoutContract.signed'),
   } as const;
 }

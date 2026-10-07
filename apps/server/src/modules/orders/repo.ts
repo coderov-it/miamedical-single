@@ -167,6 +167,8 @@ async function nextOrderNumber(tx: Pick<Database, 'execute'>): Promise<string> {
 export async function insertOrder(
   db: Database,
   data: NewOrderData,
+  /** Runs last, inside the same transaction — how a rental's signed contract commits with it. */
+  onInserted?: (tx: Transaction, order: { id: string; number: string }) => Promise<void>,
 ): Promise<{ id: string; number: string; placedAt: Date }> {
   return db.transaction(async (tx) => {
     const number = await nextOrderNumber(tx);
@@ -253,6 +255,8 @@ export async function insertOrder(
         customerName: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || data.email,
       },
     });
+
+    if (onInserted) await onInserted(tx, order);
 
     return { id: order.id, number: order.number, placedAt: order.placedAt };
   });

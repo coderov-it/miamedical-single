@@ -1,7 +1,7 @@
 /** HTTP edge only: validate, delegate to a service, map records to DTOs. */
 
 import { P } from '@mia/permissions';
-import { PlaceOrderSchema } from '@mia/validators';
+import { CheckoutDraftSchema, PlaceOrderSchema } from '@mia/validators';
 import { Hono } from 'hono';
 
 import { requirePermission } from '../../shared/auth/guards.ts';
@@ -40,6 +40,7 @@ import {
  * how many rows one address can write.
  */
 const placementRateLimit = rateLimit({ limit: 30, windowMs: 60 * 60 * 1000 });
+const previewRateLimit = rateLimit({ limit: 120, windowMs: 60 * 60 * 1000 });
 
 /** ----------------------------------------------------------------------------
 POST /api/orders (public)
@@ -55,11 +56,8 @@ Places a rental order from the storefront and returns its number.
  * 201 with the order number: the storefront reads it back to the customer, and it
  * is the reference the phone call opens with.
  */
-export const orderPublicRoutes = new Hono<AppEnv>().post(
-  '/',
-  placementRateLimit,
-  validate('json', PlaceOrderSchema),
-  async (c) => {
+export const orderPublicRoutes = new Hono<AppEnv>()
+  .post('/', placementRateLimit, validate('json', PlaceOrderSchema), async (c) => {
     /*
       `withCustomerSession` has already run on /api/*, so a signed-in customer is
       simply available here. When one is present the order links to their account
@@ -69,10 +67,26 @@ export const orderPublicRoutes = new Hono<AppEnv>().post(
     const placed = await service.place(c.get('db'), c.req.valid('json'), {
       session: c.get('customer'),
       ipAddress: clientIp(c),
+      userAgent: c.req.header('user-agent') ?? null,
     });
     return c.json({ data: toPlacedOrder(placed) }, 201);
-  },
-);
+  })
+
+  /** --------------------------------------------------------------------------
+  POST /api/orders/contract-preview (public)
+  The rental contract this checkout would sign, rendered as HTML; writes nothing.
+  -------------------------------------------------------------------------- **/
+  .post(
+    '/contract-preview',
+    /* Writes nothing, but resolves and renders on every call, and the step
+       re-asks after each edit to steps 1–2 — so looser than placement. */
+    previewRateLimit,
+    validate('json', CheckoutDraftSchema),
+    async (c) => {
+      const preview = await service.previewContract(c.get('db'), c.req.valid('json'));
+      return c.json({ data: preview });
+    },
+  );
 
 export const orderAdminRoutes = new Hono<AppEnv>()
   /** --------------------------------------------------------------------------

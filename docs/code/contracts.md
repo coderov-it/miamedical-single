@@ -28,9 +28,10 @@ Two facts pick the variant, both read off the order — never off the request:
 generated → sent → viewed → signed          voided (exit, admin, with reason)
 ```
 
-1. **Issue** — `service.generateFromOrder(db, orderId)` is the single path:
-   storefront placement (rental lines only — a sale has nothing to sign), the
-   admin's "Generate contract", and a paid rental extension all call it. It refuses an
+1. **Issue** — a storefront rental is signed on the checkout and never goes
+   through this lifecycle; see "Signed at checkout" below. Everything else —
+   the admin's "Generate contract" and a paid rental extension — calls
+   `service.generateFromOrder(db, orderId)`. It refuses an
    order with no rental lines, and refuses while a non-voided contract is still
    unsigned — resend or void, never a silent duplicate. That check runs inside the
    issuing transaction under a `FOR UPDATE` on the order row, so two concurrent
@@ -51,9 +52,54 @@ generated → sent → viewed → signed          voided (exit, admin, with reas
    `service.moveStatus` refuses `pending → paid` on a rental order until the
    newest non-voided contract is signed. See `orders-status-machine.md`.
 
-## Signing
+## Signed at checkout
 
-Opening the link never spends the token — `GET /api/contracts/sign` only moves
+A storefront rental is signed before it is placed: checkout step 3 shows the
+contract and takes the signature, and placement writes the order and the signed
+contract in one transaction. No signing token and no "contract ready" email.
+Code: `contracts/checkout.ts`, `orders/placement-contract.ts`,
+`apps/website/src/scripts/checkout/contract.ts`.
+
+```text
+ Normal: one bariatric wheelchair, 3 days, collected in Roma
+ 1. step 3 opens     POST /api/orders/contract-preview  {items, customer, delivery}
+                     → html of carrozzina_italian, numbered BOZZA      nothing written
+ 1'. until it lands  a loader replaces the sign box; checkbox, "Annulla" and
+                     "Firma e continua" disabled. Failed → "Riprova" in the row
+ 2. "Visualizza"     the html in a dialog (shadow root)
+ 2'. "Ingrandisci"   a large signing popup; "Usa questa firma" crops the drawing
+                     and fits it into the inline box, the one the form reads
+ 3. "Firma e …"      gate: box signed, consent ticked
+                     signature kept in the page, keyed to the body it was given for
+ 4. "Invia"          POST /api/orders {…, contractSignature: {signatureDataUrl, consent: true}}
+                     ┌ one transaction ──────────────────────────────────────────┐
+                     │ order MIA-2026-001028 + lines                             │
+                     │ contract CTR-2026-001025, born `signed`, signature_data   │
+                     │   { imageDataUrl, ipAddress, userAgent, consentedAt,       │
+                     │     channel: 'checkout' }                                  │
+                     │ timeline "signed"                                         │
+                     └───────────────────────────────────────────────────────────┘
+                     → after commit: "contratto firmato" email
+
+ Changed: customer signs, then edits their surname in step 1
+ 3'. step 3 reopens  body differs from the signed one → box and tick cleared,
+                     "I tuoi dati sono cambiati…" shown, preview re-fetched
+ 4'. "Invia" with a stale signature cannot happen: placement reopens step 3
+
+ Refused (422, nothing written):
+   rental without contractSignature   → fields.contractSignature
+   consent: false                     → fields['contractSignature.consent']
+   sale WITH contractSignature        → fields.contractSignature
+   preview of a sale-only order       → 422
+```
+
+The preview and the stored contract are built by the same `draftContract`
+(`contracts/draft.ts`) from the same request, so what was read is what is
+stored — only BOZZA becomes the drawn number. A sale-only checkout has no step 3.
+
+## Signing by email link
+
+The admin-issued contracts above. Opening the link never spends the token — `GET /api/contracts/sign` only moves
 `generated`/`sent` → `viewed` (first view time kept). The token is spent by the
 submit, in the transaction that saves the signature.
 

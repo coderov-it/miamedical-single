@@ -305,7 +305,25 @@ export const CheckoutDeliverySchema = v.pipe(
   ),
 );
 
-export const PlaceOrderSchema = v.strictObject({
+/**
+ * The rental contract, signed on the checkout's contract step. Required by the
+ * server whenever a line is rented and refused when none is — the catalogue
+ * decides that, so the check lives in `orders/placement.ts`, not here.
+ *
+ * `consent` is the ticked "I have read and accept" box. A literal `true`: a body
+ * saying `false` is a customer who did not agree, and that is not an order.
+ */
+export const ContractSignatureSchema = v.strictObject({
+  signatureDataUrl: v.pipe(
+    v.string(),
+    v.startsWith('data:image/', 'Signature must be a data URI image.'),
+    v.maxLength(500_000),
+  ),
+  consent: v.literal(true, 'Tick the box to accept the contract.'),
+});
+
+/** What a checkout says it wants — the order body minus its signature. */
+export const CheckoutDraftSchema = v.strictObject({
   items: v.pipe(
     v.array(PlaceOrderItemSchema),
     v.minLength(1, 'An order needs at least one item.'),
@@ -314,6 +332,11 @@ export const PlaceOrderSchema = v.strictObject({
   customer: CheckoutCustomerSchema,
   delivery: CheckoutDeliverySchema,
   notes: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(1000))),
+});
+
+export const PlaceOrderSchema = v.strictObject({
+  ...CheckoutDraftSchema.entries,
+  contractSignature: v.optional(ContractSignatureSchema),
 });
 
 export type OrderStatus = v.InferOutput<typeof OrderStatusSchema>;
@@ -330,3 +353,5 @@ export type CheckoutCustomer = v.InferOutput<typeof CheckoutCustomerSchema>;
 export type CheckoutDelivery = v.InferOutput<typeof CheckoutDeliverySchema>;
 export type PlaceOrderItemInput = v.InferOutput<typeof PlaceOrderItemSchema>;
 export type PlaceOrderInput = v.InferOutput<typeof PlaceOrderSchema>;
+export type CheckoutDraftInput = v.InferOutput<typeof CheckoutDraftSchema>;
+export type ContractSignatureInput = v.InferOutput<typeof ContractSignatureSchema>;
