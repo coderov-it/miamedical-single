@@ -153,6 +153,11 @@ can roll past midnight.
 
 ## The stepper
 
+Three steps for a sale — details, delivery, confirm. A rental adds **Contratto**
+as step 3 and confirmation moves to 4 (`context.contractStep` /
+`context.confirmStep`); the contract step is in
+[contracts.md](./contracts.md) § Signed at checkout.
+
 `data-state` on each `<section data-step>` — `todo` / `active` / `done` — is the
 only thing the page script writes. **What each state looks like is CSS**, in the
 checkout block of `src/styles/app.css`. Same for `data-selected` on a delivery or

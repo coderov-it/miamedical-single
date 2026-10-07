@@ -20,7 +20,12 @@
  */
 import { documentLocale } from '../locale';
 import type { CheckoutContext } from './context.ts';
-import { clearOrderedCartLines, createPlacementLock, type PlacementRecord } from './placement-lock.ts';
+import {
+  clearOrderedCartLines,
+  createPlacementLock,
+  type PlacementRecord,
+} from './placement-lock.ts';
+import { draftBody } from './order-body.ts';
 import { type PlacedOrder, submitOrder } from './submit-order.ts';
 
 export interface PlaceOrder {
@@ -45,6 +50,14 @@ export interface PlaceOrderOptions {
    * tab). The caller opens step 3, where its panel lives.
    */
   onAdopted: () => void;
+  /**
+   * Runs before anything is sent. False means the order is not ready to go —
+   * the caller has already said why and where (the contract step reopened and
+   * marked), so placement simply does not start.
+   */
+  canPlace: () => boolean;
+  /** `{ contractSignature }` on a rental, `{}` on a sale. */
+  contractBody: () => Record<string, unknown>;
 }
 
 export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOptions): PlaceOrder {
@@ -109,41 +122,6 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
     const url = new URL(link.href);
     url.searchParams.set('text', handoverMessage(orderNumber));
     link.href = url.toString();
-  }
-
-  function orderBody(): Record<string, unknown> {
-    const delivery: Record<string, unknown> = { method: state.delivery };
-    if (state.delivery === 'homeDelivery') {
-      // The address belongs to the delivery, and only to this one: the API
-      // refuses it on a collection, which is exactly the mix-up that used to be
-      // possible when it was asked for in step 1.
-      delivery.address = { line1: value('address') };
-    } else if (state.delivery === 'storePickup') {
-      delivery.pickupCity = state.pickup;
-    }
-    /* Sent only when the order HAS a return leg. On a purchase the fields do not
-       exist, and the API refuses a return address for something never returned. */
-    if (context.returnSame) {
-      delivery.returnToSameAddress = context.returnSame.checked;
-      if (!context.returnSame.checked) delivery.returnAddress = value('returnAddress');
-    }
-
-    const customer: Record<string, unknown> = {
-      firstName: value('firstName'),
-      lastName: value('lastName'),
-      email: value('email'),
-      phone: value('phone'),
-      customerType: state.type,
-    };
-    if (state.type === 'private') customer.codiceFiscale = value('codiceFiscale');
-    if (state.type === 'company') {
-      customer.partitaIva = value('partitaIva');
-      customer.codiceFiscale = value('companyCodiceFiscale');
-    }
-
-    const body: Record<string, unknown> = { items: context.orderItems, customer, delivery };
-    if (value('comments')) body.notes = value('comments');
-    return body;
   }
 
   /** Puts the CTA back as it was rendered. Only a provable refusal gets here. */
@@ -261,6 +239,7 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
       return;
     }
     if (state.placement !== 'idle') return;
+    if (!options.canPlace()) return;
 
     const known = lock.read();
     if (known) {
@@ -280,7 +259,7 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
       const raced = lock.read();
       if (raced) return { kind: 'adopt' as const, record: raced };
       lock.write({ status: 'sending', at: Date.now() });
-      return submitOrder(context.apiBase, orderBody());
+      return submitOrder(context.apiBase, { ...draftBody(context), ...options.contractBody() });
     });
 
     if (outcome === null) {

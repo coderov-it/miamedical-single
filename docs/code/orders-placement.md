@@ -150,6 +150,13 @@ Line 4 is never reached: the first bad line is the one named, exactly as when
 each line was loaded on its own. A slug in another language is accepted only when
 it belongs to one product (`pickSlugMatch`, the same rule as `findIdBySlug`).
 
+## A rental arrives signed
+
+A body with a rented line must carry `contractSignature`
+(`{ signatureDataUrl, consent: true }`), and one without must not; the signed
+contract is written inside the order's own transaction. See
+[contracts.md](./contracts.md) § Signed at checkout.
+
 ## What the request may and may not contain
 
 The body carries **choices, never prices**. There is no field for an amount, and

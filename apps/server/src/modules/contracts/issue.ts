@@ -1,7 +1,6 @@
 import type { Database, DatabaseWriter, Transaction } from '@mia/db';
 import { eq } from '@mia/db';
 import { orders } from '@mia/db/schema';
-import type { ContractData } from '@mia/templates';
 
 import { conflict } from '../../shared/http/errors.ts';
 import * as notifications from '../notifications/mail.ts';
@@ -9,7 +8,7 @@ import { emit } from '../notifications/write.ts';
 /* One-way dependency: the orders repo knows nothing about contracts. The event
    writer lives there because the timeline is the orders module's artefact. */
 import { insertContractEvent } from '../orders/repo.ts';
-import { defaultDamages } from './render.ts';
+import { type ContractTerms, draftContract } from './draft.ts';
 import * as repo from './repo.ts';
 import { generateToken, tokenExpiry } from './token.ts';
 import { resolveVariant } from './variant.ts';
@@ -24,25 +23,8 @@ export type IssueHook = (
   contract: { id: string; number: string },
 ) => Promise<void>;
 
-export interface IssueContractInput {
+export interface IssueContractInput extends ContractTerms {
   orderId: string | null;
-  orderNumber: string | null;
-  customerType: 'private' | 'company' | 'tourist';
-  customerName: string;
-  email: string;
-  phone: string;
-  address: string;
-  codiceFiscale: string | null;
-  partitaIva: string | null;
-  /** SDI e-invoice code — collected on manual company contracts only. */
-  codiceUnivoco?: string | null;
-  items: ContractData['items'];
-  subtotal: string;
-  shippingTotal: string;
-  total: string;
-  currency: string;
-  hasDepositProduct: boolean;
-  damages?: ContractData['damages'];
   /** A renewal is a new contract for a new period on the same order. */
   kind?: 'initial' | 'renewal';
   /** The operator who triggered it, for the order timeline. Null = system. */
@@ -64,49 +46,13 @@ export async function issueContract(
   db: Database,
   input: IssueContractInput,
 ): Promise<{ id: string; number: string }> {
-  const { variant, language, requiresDeposit, depositAmount } = resolveVariant(
-    input.customerType,
-    input.hasDepositProduct,
-  );
-
-  const snapshot = (contractNumber: string): ContractData => ({
-    contractNumber,
-    orderNumber: input.orderNumber,
-    customer: {
-      fullName: input.customerName,
-      email: input.email,
-      phone: input.phone,
-      address: input.address,
-      codiceFiscale: input.codiceFiscale,
-      partitaIva: input.partitaIva,
-      codiceUnivoco: input.codiceUnivoco ?? null,
-      customerType: input.customerType,
-    },
-    items: input.items,
-    subtotal: input.subtotal,
-    shippingTotal: input.shippingTotal,
-    total: input.total,
-    currency: input.currency,
-    requiresDeposit,
-    depositAmount,
-    damages: input.damages ?? defaultDamages(language),
-    generatedAt: new Date().toISOString().slice(0, 10),
-  });
-
   const token = generateToken();
   const contract = await db.transaction(async (tx) => {
     if (input.orderId) {
       await repo.lockOrder(tx, input.orderId);
       await assertNoLiveContract(tx, input.orderId);
     }
-    const created = await repo.create(tx, {
-      orderId: input.orderId,
-      variant,
-      language,
-      requiresDeposit,
-      depositAmount,
-      contractData: (number) => snapshot(number) as unknown as Record<string, unknown>,
-    });
+    const created = await repo.create(tx, contractRow(input.orderId, input));
     await repo.createSigningToken(tx, {
       id: token.hash,
       contractId: created.id,
@@ -123,7 +69,7 @@ export async function issueContract(
       contractNumber: contract.number,
       orderNumber: input.orderNumber,
       signingToken: token.raw,
-      language,
+      language: resolveVariant(input.customerType, input.hasDepositProduct).language,
     },
     { db, orderId: input.orderId },
   );
@@ -131,6 +77,23 @@ export async function issueContract(
 
   await recordSent(db, contract, input);
   return contract;
+}
+
+/**
+ * The row `repo.create` inserts for these terms. The number is drawn inside
+ * `create`, so the snapshot is built once it exists.
+ */
+export function contractRow(orderId: string | null, terms: ContractTerms): repo.NewContract {
+  const { variant } = draftContract(terms, null);
+  return {
+    orderId,
+    variant: variant.variant,
+    language: variant.language,
+    requiresDeposit: variant.requiresDeposit,
+    depositAmount: variant.depositAmount,
+    contractData: (number) =>
+      draftContract(terms, number).data as unknown as Record<string, unknown>,
+  };
 }
 
 /**

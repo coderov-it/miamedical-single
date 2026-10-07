@@ -1,0 +1,252 @@
+---
+/**
+ * The contract step — rentals only. The customer signs the rental contract
+ * here, before the order exists; placement then writes the order and the signed
+ * contract in one transaction. Flow and server side: docs/code/contracts.md
+ * § Signed at checkout. Behaviour: `scripts/checkout/contract.ts`.
+ *
+ * The contract is NOT laid out inline. The step shows it as a document row and
+ * "Visualizza" opens it in a dialog, so the step stays the size of what it
+ * asks: a signature and a tick.
+ *
+ * While the contract is being prepared the sign box is replaced by a loader and
+ * the checkbox, "Annulla" and "Firma e continua" are disabled (owner's call,
+ * 2026-10-07: nothing can be signed before it can be read). Once it is ready,
+ * the storefront rule holds — "Firma e continua" is live, and a click with
+ * something missing marks it where it is missing.
+ */
+import { t } from '~/lib/labels';
+import { whatsappUrl } from '~/lib/site';
+import SignatureDialog from '~/components/contract/SignatureDialog.astro';
+import LoadingState from '~/components/primitives/LoadingState.svelte';
+import { CTA } from './styles';
+
+interface Props {
+  /** Where "Annulla la richiesta" goes — the cart, or the product page. */
+  backHref: string;
+}
+
+const { backHref } = Astro.props;
+
+const FIELD_ERROR =
+  "text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']";
+const SMALL_BUTTON =
+  "relative min-h-0 min-w-0 cursor-pointer rounded-full border border-hair bg-white px-4 py-1.75 text-[14px] font-semibold text-ink after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:border-accent hover:text-accent";
+/** Until the contract is ready there is nothing to sign — owner's call, 2026-10-07. */
+const MUTED_WHEN_DISABLED =
+  'disabled:cursor-not-allowed disabled:bg-tint-2 disabled:text-ink-2 disabled:hover:bg-tint-2';
+/** "Ingrandisci" and "Cancella", sitting on the sign box's top edge. */
+const BOX_BUTTON =
+  'text-ink-2 flex min-h-0 min-w-0 cursor-pointer items-center gap-1.5 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm hover:bg-white hover:text-accent';
+const DIALOG =
+  'border-hair m-auto w-[min(100%-2rem,var(--dialog-width))] rounded-[14px] border bg-white p-0 text-ink shadow-xl backdrop:bg-black/45';
+---
+
+<div class="flex flex-col gap-4" data-contract-step>
+  <p class="text-ink-2 m-0 text-[15px] leading-normal">{t('checkoutContract.intro')}</p>
+
+  <div class="flex flex-col gap-1.5">
+    <div class="border-hair flex flex-wrap items-center gap-3.5 rounded-xl border px-4 py-3.5">
+      <span
+        class="bg-tint grid size-10 flex-none place-items-center rounded-[10px] text-accent"
+        aria-hidden="true"
+      >
+        <svg
+          class="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path>
+          <path d="M14 3v5h5M9 13h6M9 17h6"></path>
+        </svg>
+      </span>
+      <span class="flex min-w-0 flex-[1_1_11rem] flex-col gap-0.5">
+        <strong class="text-[15px]" data-contract-title>
+          {t('checkoutContract.document')}
+        </strong>
+        <span class="text-danger text-[13px]" data-contract-status role="status" hidden>
+          {t('checkoutContract.loadFailed')}
+        </span>
+      </span>
+      <button class={SMALL_BUTTON} type="button" data-contract-view hidden>
+        {t('checkoutContract.view')}
+      </button>
+      <button class={SMALL_BUTTON} type="button" data-contract-retry hidden>
+        {t('retry')}
+      </button>
+    </div>
+  </div>
+
+  <p
+    class="bg-accent-tint m-0 rounded-xl px-4 py-3 text-[14px] font-medium text-accent"
+    data-contract-changed
+    role="status"
+    hidden
+  >
+    {t('checkoutContract.changed')}
+  </p>
+
+  {/* Takes the sign box's place while the contract is being prepared: nothing
+      can be signed before there is a contract to read. Same height, so the
+      step does not jump when the box arrives. */}
+  <div class="border-hair bg-tint rounded-xl border-2 border-dashed" data-contract-loading hidden>
+    <LoadingState label={t('checkoutContract.preparing')} />
+  </div>
+
+  <div class="flex flex-col gap-1.5" data-gate="contractSignature">
+    <div class="relative">
+      {/* `tabindex` so the gate can move focus here when the box is empty. */}
+      <canvas
+        class="border-hair bg-tint aria-invalid:border-danger block h-48 w-full cursor-crosshair touch-none rounded-xl border-2 border-dashed outline-none focus-visible:border-accent"
+        tabindex="0"
+        aria-label={t('contract.signatureHint')}
+        data-signature-canvas
+      ></canvas>
+      <span
+        class="text-ink-2 pointer-events-none absolute inset-0 grid place-items-center text-[17px] font-semibold opacity-60"
+        aria-hidden="true"
+        data-signature-placeholder
+      >
+        {t('checkoutContract.signHere')}
+      </span>
+      <span class="absolute top-2 right-2 flex gap-1.5">
+        {/* Needs the dialog, so it is revealed by the script. */}
+        <button class={BOX_BUTTON} type="button" data-signature-enlarge hidden>
+          <svg
+            class="size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+          </svg>
+          {t('checkoutContract.enlarge')}
+        </button>
+        <button class={BOX_BUTTON} type="button" data-signature-clear>
+          {t('contract.clear')}
+        </button>
+      </span>
+    </div>
+    <p class={FIELD_ERROR} data-field-error="contractSignature" hidden>
+      {t('contract.errorSignature')}
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-1.5 inert:opacity-45" data-gate="contractConsent">
+    <label class="flex cursor-pointer items-start gap-3 text-[14.5px]">
+      <input
+        class="relative mt-0.5 size-4.5 min-h-0 min-w-0 flex-none cursor-pointer accent-accent after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
+        type="checkbox"
+        name="contract-consent"
+        data-contract-consent
+      />
+      <span class="text-ink-2">{t('contract.consent')}</span>
+    </label>
+    <p class={FIELD_ERROR} data-field-error="contractConsent" hidden>
+      {t('contract.errorConsent')}
+    </p>
+  </div>
+
+  <noscript>
+    <p class="text-ink-2 m-0 text-[14px]">{t('checkoutContract.noScript')}</p>
+  </noscript>
+
+  <div class="mt-1 flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
+    <span class="text-ink-2 text-[14px]">
+      {t('checkoutContract.help')}{' '}
+      <a
+        class="font-semibold text-accent underline"
+        href={whatsappUrl(t('checkoutContract.helpMessage'))}
+        target="_blank"
+        rel="noopener"
+        data-analytics="whatsapp"
+      >
+        {t('checkoutContract.helpLink')}
+      </a>
+    </span>
+    <span class="flex flex-wrap gap-2.5">
+      <button
+        class="border-danger bg-danger-tint text-danger hover:bg-danger mt-1.5 cursor-pointer rounded-full border px-5.5 py-3.5 text-[15px] font-semibold hover:text-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-danger-tint disabled:hover:text-danger"
+        type="button"
+        data-contract-cancel
+        hidden
+      >
+        {t('checkoutContract.cancel')}
+      </button>
+      {/* Wired by the stepper like every step's "Continua"; the gate is `contract.ts`. */}
+      <button
+        class:list={[CTA, MUTED_WHEN_DISABLED, 'px-6']}
+        type="button"
+        data-step-continue="3"
+        hidden
+      >
+        {t('checkoutContract.submit')}
+      </button>
+    </span>
+  </div>
+
+  {/* The contract, rendered by the API into a shadow root so its own styles stay its own. */}
+  <dialog
+    class={DIALOG}
+    style="--dialog-width: 52rem"
+    aria-labelledby="contract-viewer-title"
+    data-contract-viewer
+  >
+    <div class="flex max-h-[85vh] flex-col">
+      <header class="border-hair flex items-center gap-3 border-b px-5 py-3.5">
+        <h3
+          class="m-0 flex-1 text-[16px] font-bold"
+          id="contract-viewer-title"
+          data-contract-viewer-title
+        >
+          {t('checkoutContract.document')}
+        </h3>
+        <button class={SMALL_BUTTON} type="button" data-contract-viewer-close>
+          {t('checkoutContract.close')}
+        </button>
+      </header>
+      <div class="overflow-y-auto" data-contract-viewer-body></div>
+    </div>
+  </dialog>
+
+  <SignatureDialog />
+
+  <dialog
+    class={DIALOG}
+    style="--dialog-width: 28rem"
+    aria-labelledby="contract-cancel-title"
+    data-contract-cancel-dialog
+  >
+    <div class="flex flex-col gap-3 p-6">
+      <h3 class="m-0 text-[17px] font-bold" id="contract-cancel-title">
+        {t('checkoutContract.cancelTitle')}
+      </h3>
+      <p class="text-ink-2 m-0 text-[14.5px] leading-normal">
+        {t('checkoutContract.cancelDetail')}
+      </p>
+      <div class="mt-2 flex flex-wrap justify-end gap-2.5">
+        <button
+          class="bg-tint text-ink hover:bg-tint-2 cursor-pointer rounded-full px-5 py-2.5 text-[15px] font-semibold"
+          type="button"
+          data-contract-cancel-keep
+        >
+          {t('checkoutContract.cancelKeep')}
+        </button>
+        <a
+          class="bg-danger hover:bg-danger/90 rounded-full px-5 py-2.5 text-[15px] font-semibold text-white no-underline"
+          href={backHref}
+        >
+          {t('checkoutContract.cancelConfirm')}
+        </a>
+      </div>
+    </div>
+  </dialog>
+</div>

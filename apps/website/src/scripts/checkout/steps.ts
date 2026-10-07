@@ -1,5 +1,5 @@
 /**
- * The three-step accordion: which one is open, what the closed ones say about
+ * The step accordion — three steps, or four when a rental adds the contract: which one is open, what the closed ones say about
  * themselves, and the identity chips that change what step 1 asks for.
  *
  * `data-state` on the `<section>` is the SINGLE switch — `todo`, `active`,
@@ -24,14 +24,14 @@ export interface StepperOptions {
    * already marked the fields and moved focus, so nothing else is needed here.
    */
   canLeave: (step: StepIndex) => boolean;
-  /** Called when step 3 opens, so the review can be filled in. */
-  onReview: () => void;
+  /** Called whenever a step opens — the contract step loads its preview here. */
+  onOpen: (step: StepIndex) => void;
   /** Called after the identity changes, since it changes what step 1 requires. */
   onTypeChange: () => void;
 }
 
 export function createStepper(context: CheckoutContext, options: StepperOptions): Stepper {
-  const { root, state, value, customerTypeLabel, deliveryName } = context;
+  const { root, state, value, label, customerTypeLabel, deliveryName, confirmStep } = context;
   const sections = [...root.querySelectorAll<HTMLElement>('[data-step]')];
 
   /** The receipt a collapsed step shows for the answers it is hiding. */
@@ -45,7 +45,8 @@ export function createStepper(context: CheckoutContext, options: StepperOptions)
         .filter(Boolean)
         .join(' · ');
     }
-    return deliveryName(state.delivery);
+    if (index === 2) return deliveryName(state.delivery);
+    return label('contractSigned');
   }
 
   function paintSteps(): void {
@@ -58,14 +59,14 @@ export function createStepper(context: CheckoutContext, options: StepperOptions)
       if (body) body.hidden = state.step !== index;
 
       const summary = section.querySelector<HTMLElement>('[data-step-summary]');
-      if (summary) summary.textContent = index === 3 ? '' : summarise(index);
+      if (summary) summary.textContent = index === confirmStep ? '' : summarise(index);
     }
   }
 
   function goTo(step: StepIndex): void {
     state.step = step;
     paintSteps();
-    if (step === 3) options.onReview();
+    options.onOpen(step);
     sections
       .find((section) => Number(section.dataset.step) === step)
       ?.scrollIntoView({

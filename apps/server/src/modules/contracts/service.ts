@@ -1,11 +1,18 @@
 import type { Database } from '@mia/db';
 import { eq } from '@mia/db';
 import { orders } from '@mia/db/schema';
-import type { RentalPeriod } from '@mia/pricing';
 import type { ContractData } from '@mia/templates';
 import type { ManualContractInput } from '@mia/validators';
 
 import { conflict, notFound } from '../../shared/http/errors.ts';
+import {
+  type ContractLine,
+  addressLine,
+  contractTotals,
+  fromCents,
+  rentalItems,
+  toCents,
+} from './draft.ts';
 import { issueContract } from './issue.ts';
 import type { IssueHook } from './issue.ts';
 import * as lifecycle from './lifecycle.ts';
@@ -107,8 +114,10 @@ export interface GenerateFromOrderOptions {
  * Issues the contract an order owes, reading everything from the order itself:
  * the customer block, the rental lines, and — through the catalogue — whether
  * any line is from a deposit category (which selects the scooter variants).
- * One path serves storefront placement, the admin's "Generate contract" and
- * rental renewals, so the three can never disagree about what a contract says.
+ * Serves the admin's "Generate contract" and rental renewals, which then go out
+ * by email for signing. Checkout placement signs on the page instead
+ * (`contracts/checkout.ts`); all of them build through `draft.ts`, so none can
+ * disagree about what a contract says.
  */
 export async function generateFromOrder(
   db: Database,
@@ -121,37 +130,10 @@ export async function generateFromOrder(
   });
   if (!order) throw notFound('Order');
 
-  const items: ContractData['items'] = [];
-  for (const item of order.items) {
-    const config = item.configuration as Record<string, unknown> | null;
-    if (config?.pricingMode !== 'rental') continue;
-    const rental = (config.rental as RentalPeriod | undefined) ?? null;
-    const extension = options.extension;
-    if (extension) {
-      const amounts = extension.lineAmounts[item.id] ?? { unitPrice: '0.00', total: '0.00' };
-      items.push({
-        productTitle: item.productTitle,
-        quantity: item.quantity,
-        unitPrice: amounts.unitPrice,
-        total: amounts.total,
-        startDate: extension.fromDate,
-        endDate: extension.toDate,
-        duration: extension.days,
-        durationUnit: 'day',
-      });
-      continue;
-    }
-    items.push({
-      productTitle: item.productTitle,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      total: item.total,
-      startDate: rental?.startDate ?? '',
-      endDate: rental?.endDate ?? null,
-      duration: rental?.duration ?? 1,
-      durationUnit: (rental?.unit as 'hour' | 'day' | undefined) ?? 'day',
-    });
-  }
+  const extension = options.extension;
+  const items = extension
+    ? order.items.flatMap((item) => renewalRows(item, extension))
+    : rentalItems(order.items);
 
   /* Rental contracts cover rentals. An outright sale has nothing to sign, and
      issuing one anyway would put a rental agreement in a customer's inbox for
@@ -160,14 +142,7 @@ export async function generateFromOrder(
     throw conflict('This order has no rental lines, so there is no rental contract to issue.');
   }
 
-  const address = order.shippingAddress as Record<string, unknown> | null;
-  const addressStr = address
-    ? [address.line1, [address.postalCode, address.city].filter(Boolean).join(' ')]
-        .filter((part) => typeof part === 'string' && part !== '')
-        .join(', ')
-    : '';
-
-  const rentalCents = items.reduce((sum, item) => sum + toCents(item.total), 0);
+  /* An extension moves no goods, so it owes no delivery. */
   const shippingTotal = options.extension ? '0.00' : order.shippingTotal;
 
   return issueContract(db, {
@@ -179,17 +154,12 @@ export async function generateFromOrder(
     customerName: `${order.firstName ?? ''} ${order.lastName ?? ''}`.trim(),
     email: order.email,
     phone: order.phone ?? '',
-    address: addressStr,
+    address: addressLine(order.shippingAddress as Record<string, unknown> | null),
     codiceFiscale: order.codiceFiscale,
     partitaIva: order.partitaIva,
     items,
-    /* Summed over the rental lines only: on a mixed order the contract covers
-       the rented aids, and quoting the whole order's total against them would
-       hold the customer to a figure the contract's own table does not add up to. */
-    subtotal: fromCents(rentalCents),
-    /* An extension moves no goods, so it owes no delivery. */
+    ...contractTotals(items, shippingTotal),
     shippingTotal,
-    total: fromCents(rentalCents + toCents(shippingTotal)),
     currency: order.currency,
     hasDepositProduct: await repo.orderRequiresDeposit(db, orderId),
     kind: options.kind ?? 'initial',
@@ -198,14 +168,23 @@ export async function generateFromOrder(
   });
 }
 
-/** Cents-based decimal math — money strings are never fed to float arithmetic. */
-function toCents(amount: string): number {
-  const [whole = '0', frac = ''] = amount.split('.');
-  return Number(whole) * 100 + Number(frac.padEnd(2, '0').slice(0, 2));
-}
-
-function fromCents(cents: number): string {
-  return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+/**
+ * A renewal quotes the extension alone: its span, and the amounts frozen on the
+ * extension row for this order item.
+ */
+function renewalRows(
+  item: ContractLine & { id: string },
+  extension: NonNullable<GenerateFromOrderOptions['extension']>,
+): ContractData['items'] {
+  const amounts = extension.lineAmounts[item.id] ?? { unitPrice: '0.00', total: '0.00' };
+  return rentalItems([item]).map((row) => ({
+    ...row,
+    ...amounts,
+    startDate: extension.fromDate,
+    endDate: extension.toDate,
+    duration: extension.days,
+    durationUnit: 'day',
+  }));
 }
 
 /**

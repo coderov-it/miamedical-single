@@ -49,13 +49,15 @@ async function readOrder(response: Response): Promise<PlacedOrder | null> {
 }
 
 /** `{ error: { fields } }`, the envelope `validate()` and `reject()` share. */
-async function readFields(response: Response): Promise<Record<string, string>> {
+export async function readFields(response: Response): Promise<Record<string, string>> {
   try {
     const payload = (await response.json()) as { error?: { fields?: unknown } };
     const fields = payload.error?.fields;
     if (typeof fields !== 'object' || fields === null) return {};
     return Object.fromEntries(
-      Object.entries(fields).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+      Object.entries(fields).filter(
+        (entry): entry is [string, string] => typeof entry[1] === 'string',
+      ),
     );
   } catch {
     return {};

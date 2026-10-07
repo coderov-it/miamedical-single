@@ -1,0 +1,76 @@
+---
+/**
+ * The enlarged signing area: a big canvas in a dialog, for a customer who finds
+ * the inline box too small to sign in — a finger on a phone, a shaky hand.
+ * "Usa questa firma" crops what was drawn and fits it into the inline box,
+ * which stays the one signature the form reads. Behaviour:
+ * `scripts/signature-dialog.ts`.
+ *
+ * Deliberately NOT closed by a click on the backdrop: a stroke that runs off the
+ * canvas would end there and throw the signature away.
+ */
+import { t } from '~/lib/labels';
+
+const SECONDARY =
+  'bg-tint text-ink hover:bg-tint-2 cursor-pointer rounded-full px-5 py-2.5 text-[15px] font-semibold';
+---
+
+<dialog
+  class="border-hair m-auto w-[min(100%-1rem,60rem)] rounded-[14px] border bg-white p-0 text-ink shadow-xl backdrop:bg-black/45"
+  aria-labelledby="signature-dialog-title"
+  data-signature-dialog
+>
+  <div class="flex flex-col gap-3.5 p-5">
+    <div class="flex flex-col gap-0.5">
+      <h3 class="m-0 text-[17px] font-bold" id="signature-dialog-title">
+        {t('contract.signatureHeading')}
+      </h3>
+      <p class="text-ink-2 m-0 text-[14px]">{t('contract.signatureHint')}</p>
+    </div>
+
+    <div class="flex flex-col gap-1.5" data-gate="signatureLarge">
+      <div class="relative">
+        <canvas
+          class="border-hair bg-tint aria-invalid:border-danger block h-[min(55vh,26rem)] w-full cursor-crosshair touch-none rounded-xl border-2 border-dashed outline-none focus-visible:border-accent"
+          tabindex="0"
+          aria-label={t('contract.signatureHint')}
+          data-signature-dialog-canvas
+        ></canvas>
+        <span
+          class="text-ink-2 pointer-events-none absolute inset-0 grid place-items-center text-[20px] font-semibold opacity-60"
+          aria-hidden="true"
+          data-signature-dialog-placeholder
+        >
+          {t('checkoutContract.signHere')}
+        </span>
+        <button
+          class="text-ink-2 absolute top-2 right-2 min-h-0 min-w-0 cursor-pointer rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm hover:bg-white"
+          type="button"
+          data-signature-dialog-clear
+        >
+          {t('contract.clear')}
+        </button>
+      </div>
+      <p
+        class="text-danger m-0 flex items-start gap-1.5 text-[13px] font-medium before:flex-none before:not-italic before:content-['⚠']"
+        data-field-error="signatureLarge"
+        hidden
+      >
+        {t('contract.errorSignature')}
+      </p>
+    </div>
+
+    <div class="flex flex-wrap justify-end gap-2.5">
+      <button class={SECONDARY} type="button" data-signature-dialog-close>
+        {t('checkoutContract.close')}
+      </button>
+      <button
+        class="hover:bg-accent-deep cursor-pointer rounded-full bg-accent px-5 py-2.5 text-[15px] font-semibold text-white"
+        type="button"
+        data-signature-dialog-use
+      >
+        {t('checkoutContract.useSignature')}
+      </button>
+    </div>
+  </div>
+</dialog>
