@@ -1,5 +1,6 @@
 import type { Database, Transaction } from '@mia/db';
 import type { ContractData } from '@mia/templates';
+import type { ContractStatus } from '@mia/validators';
 
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 import * as links from '../notifications/links.ts';
@@ -157,10 +158,36 @@ export async function voidWithin(
   reason: string,
   adminUserId: string,
 ): Promise<void> {
+  await voidFrom(tx, id, repo.SIGNABLE_STATUSES, reason, adminUserId);
+}
+
+/**
+ * A renewal signed in the customer's account and never paid. Withdrawing the
+ * extension voids it, signature and all: it covers a period that will not run.
+ * Only `rental-extensions/service.cancel` calls this, inside the transaction
+ * that cancels the extension, and only while that extension is `renew_pending`
+ * — a paid one is active, and its contract is the rental's paperwork.
+ */
+export async function voidUnpaidRenewalWithin(
+  tx: Transaction,
+  id: string,
+  reason: string,
+  adminUserId: string | null,
+): Promise<void> {
+  await voidFrom(tx, id, ['signed'], reason, adminUserId);
+}
+
+async function voidFrom(
+  tx: Transaction,
+  id: string,
+  from: ContractStatus[],
+  reason: string,
+  adminUserId: string | null,
+): Promise<void> {
   const contract = await repo.findById(tx, id);
   if (!contract) throw notFound('Contract');
 
-  const voided = await repo.updateStatusIf(tx, id, repo.SIGNABLE_STATUSES, 'voided', {
+  const voided = await repo.updateStatusIf(tx, id, from, 'voided', {
     voidedAt: new Date(),
     voidedByAdminUserId: adminUserId,
     voidReason: reason,

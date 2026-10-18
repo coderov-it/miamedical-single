@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 
 import { DateOnlySchema, MoneySchema, PaginationSchema } from './common.ts';
+import { ContractSignatureSchema } from './order.ts';
 
 export const RentalStatusSchema = v.picklist(['active', 'overdue', 'completed']);
 
@@ -40,6 +41,15 @@ export const RequestExtensionSchema = v.strictObject({
 });
 
 /**
+ * The customer renews from their account: one offered length, and the renewal
+ * contract signed in the same modal — the checkout's own signature shape.
+ */
+export const PlaceExtensionSchema = v.strictObject({
+  days: ExtensionDaysSchema,
+  contractSignature: ContractSignatureSchema,
+});
+
+/**
  * An operator raises an extension. `amount` overrides the quote — the shop may
  * agree a price no package lists — and is required when no package matches.
  */
@@ -65,6 +75,7 @@ export const CancelExtensionSchema = v.strictObject({
 export type RentalStatus = v.InferOutput<typeof RentalStatusSchema>;
 export type RentalQuery = v.InferOutput<typeof RentalQuerySchema>;
 export type RequestExtensionInput = v.InferOutput<typeof RequestExtensionSchema>;
+export type PlaceExtensionInput = v.InferOutput<typeof PlaceExtensionSchema>;
 export type AdminRequestExtensionInput = v.InferOutput<typeof AdminRequestExtensionSchema>;
 export type RecordExtensionPaymentInput = v.InferOutput<typeof RecordExtensionPaymentSchema>;
 export type ExtensionPaymentMethod = (typeof EXTENSION_PAYMENT_METHODS)[number];

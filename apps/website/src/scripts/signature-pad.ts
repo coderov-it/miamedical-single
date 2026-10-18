@@ -17,6 +17,8 @@
  * The curve is laid down as overlapping dots, so its width can change smoothly
  * along it — a canvas stroke has one `lineWidth` for its whole path.
  *
+ * Shared by the account's renewal modal too (`components/account/renewal/`).
+ *
  * The backing store follows the box's CSS size × devicePixelRatio, so the line
  * stays sharp on a phone. A width change clears it — the browser drops the
  * bitmap anyway — and `onChange` reports the pad empty again.
@@ -29,6 +31,8 @@ export interface SignaturePad {
   fit: () => void;
   /** Replaces this pad's drawing with another pad's signature, cropped and fitted. */
   drawFrom: (source: SignaturePad) => void;
+  /** Stops listening for resizes — for a pad whose canvas goes away (the renewal modal). */
+  destroy: () => void;
   /** The drawn area in backing-store pixels, or null when empty. */
   crop: () => {
     canvas: HTMLCanvasElement;
@@ -189,6 +193,7 @@ export function createSignaturePad(
     clear,
     toDataUrl: () => canvas.toDataURL('image/png'),
     fit,
+    destroy: () => window.removeEventListener('resize', fit),
     crop: () => {
       if (empty) return null;
       const x = Math.max(0, bounds.left * dpr);

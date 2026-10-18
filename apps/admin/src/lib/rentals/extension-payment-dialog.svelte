@@ -1,6 +1,10 @@
 <!--
   Records that an extension was paid — the manual stand-in until online payment
-  exists. Saving also emails the renewal contract, which is why the button says so.
+  exists. What saving does next depends on the contract:
+
+    raised by an operator       no contract yet → saving emails it for signature
+    renewed from the account    already signed  → saving activates the extension;
+                                the amount is the one signed for, so it is not editable
 -->
 <script lang="ts">
   import { EXTENSION_PAYMENT_METHODS, type ExtensionPaymentMethod } from '@mia/validators';
@@ -19,7 +23,16 @@
   import { PAYMENT_METHOD_LABELS } from './extension-status';
 
   interface Props {
-    target: { id: string; amount: string; currency: string; days: number } | undefined;
+    target:
+      | {
+          id: string;
+          amount: string;
+          currency: string;
+          days: number;
+          contractNumber: string | null;
+          contractStatus: string | null;
+        }
+      | undefined;
     onClose: () => void;
     onDone: () => void;
   }
@@ -32,6 +45,8 @@
   let saving = $state(false);
   let fields = $state<Record<string, string>>({});
   let seededFor = $state<string | undefined>(undefined);
+
+  const signed = $derived(target?.contractStatus === 'signed');
 
   $effect(() => {
     if (target?.id === seededFor) return;
@@ -72,7 +87,8 @@
           },
         }),
       );
-      toast.success('Payment recorded — the renewal contract is out for signature.');
+      if (signed) toast.success('Payment recorded — the extension is active.');
+      else toast.success('Payment recorded — the renewal contract is out for signature.');
       onDone();
       onClose();
     } catch (err) {
@@ -94,7 +110,12 @@
     <Dialog.Header>
       <Dialog.Title>Record payment</Dialog.Title>
       <Dialog.Description>
-        Extension of {target?.days} days. Saving emails the customer the contract to sign.
+        {#if signed}
+          Extension of {target?.days} days. The customer already signed contract
+          {target?.contractNumber} for this amount, so saving activates the extension.
+        {:else}
+          Extension of {target?.days} days. Saving emails the customer the contract to sign.
+        {/if}
       </Dialog.Description>
     </Dialog.Header>
 
@@ -126,13 +147,19 @@
         {/if}
       </div>
 
-      <MoneyInput
-        id="payment-amount"
-        label="Amount received"
-        bind:value={amount}
-        suffix={target?.currency ?? 'EUR'}
-        error={fields.amount}
-      />
+      {#if signed}
+        <p class="text-sm">
+          Amount: <span class="font-medium tabular-nums">{target?.amount} {target?.currency}</span>
+        </p>
+      {:else}
+        <MoneyInput
+          id="payment-amount"
+          label="Amount received"
+          bind:value={amount}
+          suffix={target?.currency ?? 'EUR'}
+          error={fields.amount}
+        />
+      {/if}
 
       <div>
         <Label class="mb-1.5" for="payment-reference">
@@ -144,7 +171,7 @@
       <Dialog.Footer>
         <Button type="button" variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
         <BusyButton type="submit" busy={saving} busyLabel="Saving…">
-          Record & send contract
+          {signed ? 'Record & activate' : 'Record & send contract'}
         </BusyButton>
       </Dialog.Footer>
     </form>

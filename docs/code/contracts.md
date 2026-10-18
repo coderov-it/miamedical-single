@@ -28,9 +28,10 @@ Two facts pick the variant, both read off the order — never off the request:
 generated → sent → viewed → signed          voided (exit, admin, with reason)
 ```
 
-1. **Issue** — a storefront rental is signed on the checkout and never goes
-   through this lifecycle; see "Signed at checkout" below. Everything else —
-   the admin's "Generate contract" and a paid rental extension — calls
+1. **Issue** — a storefront rental is signed on the checkout, and a renewal
+   from the customer's account is signed in its modal; neither goes through
+   this lifecycle (see "Signed at checkout" below). Everything else — the
+   admin's "Generate contract" and a paid operator-raised extension — calls
    `service.generateFromOrder(db, orderId)`. It refuses an
    order with no rental lines, and refuses while a non-voided contract is still
    unsigned — resend or void, never a silent duplicate. That check runs inside the
@@ -96,6 +97,11 @@ Code: `contracts/checkout.ts`, `orders/placement-contract.ts`,
 The preview and the stored contract are built by the same `draftContract`
 (`contracts/draft.ts`) from the same request, so what was read is what is
 stored — only BOZZA becomes the drawn number. A sale-only checkout has no step 3.
+
+The account's renewal modal signs the same way: `issueSigned(…, 'account_renewal')`
+inside the transaction that creates the extension, the preview built by the same
+`service.termsFromOrder`. Flow: `docs/code/rental-extensions.md` § Renewed from
+the account.
 
 ## Signing by email link
 

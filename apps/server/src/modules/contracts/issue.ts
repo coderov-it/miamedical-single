@@ -102,7 +102,7 @@ export function contractRow(orderId: string | null, terms: ContractTerms): repo.
  * voided, not silently duplicated. Read under the order lock, so two
  * concurrent issues cannot both pass it.
  */
-async function assertNoLiveContract(db: DatabaseWriter, orderId: string): Promise<void> {
+export async function assertNoLiveContract(db: DatabaseWriter, orderId: string): Promise<void> {
   const latest = await repo.findLatestActiveByOrderId(db, orderId);
   if (latest && latest.status !== 'signed') {
     throw conflict(

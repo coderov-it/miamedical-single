@@ -7,6 +7,7 @@ import type { ManualContractInput } from '@mia/validators';
 import { conflict, notFound } from '../../shared/http/errors.ts';
 import {
   type ContractLine,
+  type ContractTerms,
   addressLine,
   contractTotals,
   fromCents,
@@ -27,7 +28,7 @@ import type { ContractDetailRow, ContractListFilters, ContractSummaryRow } from 
  * and re-exports the rest so callers import one module.
  */
 
-export { getSigningLink, resend, voidWithin } from './lifecycle.ts';
+export { getSigningLink, resend, voidUnpaidRenewalWithin, voidWithin } from './lifecycle.ts';
 export { loadForSigning, sign } from './signing.ts';
 
 export async function list(
@@ -92,45 +93,45 @@ export async function voidContract(
   return getById(db, id);
 }
 
+/**
+ * A renewal contract covers the extension alone: its span, and the amounts
+ * frozen on the extension row per order item id. Without it, every line is
+ * quoted for the period and price it carries.
+ */
+export interface RenewalSpan {
+  fromDate: string;
+  toDate: string;
+  days: number;
+  lineAmounts: Record<string, { unitPrice: string; total: string }>;
+}
+
 export interface GenerateFromOrderOptions {
   kind?: 'initial' | 'renewal';
   actorAdminUserId?: string | null;
-  /**
-   * A renewal contract covers the extension alone: its span, and the amounts
-   * frozen on the extension row per order item id. Without it, every line is
-   * quoted for the period and price it carries.
-   */
-  extension?: {
-    fromDate: string;
-    toDate: string;
-    days: number;
-    lineAmounts: Record<string, { unitPrice: string; total: string }>;
-  };
+  extension?: RenewalSpan;
   /** Runs inside the issuing transaction — a renewal links its extension here. */
   onIssued?: IssueHook;
 }
 
 /**
- * Issues the contract an order owes, reading everything from the order itself:
- * the customer block, the rental lines, and — through the catalogue — whether
- * any line is from a deposit category (which selects the scooter variants).
- * Serves the admin's "Generate contract" and rental renewals, which then go out
- * by email for signing. Checkout placement signs on the page instead
- * (`contracts/checkout.ts`); all of them build through `draft.ts`, so none can
- * disagree about what a contract says.
+ * What the contract an order owes says, read from the order itself: the
+ * customer block, the rental lines, and — through the catalogue — whether any
+ * line is from a deposit category (which selects the scooter variants). Shared
+ * by `generateFromOrder` and the account's renewal modal
+ * (`rental-extensions/renewal.ts`), so the contract a customer reads before
+ * signing is the one stored.
  */
-export async function generateFromOrder(
+export async function termsFromOrder(
   db: Database,
   orderId: string,
-  options: GenerateFromOrderOptions = {},
-): Promise<{ id: string; number: string }> {
+  extension?: RenewalSpan,
+): Promise<ContractTerms> {
   const order = await db.query.orders.findFirst({
     where: eq(orders.id, orderId),
     with: { items: true },
   });
   if (!order) throw notFound('Order');
 
-  const extension = options.extension;
   const items = extension
     ? order.items.flatMap((item) => renewalRows(item, extension))
     : rentalItems(order.items);
@@ -143,10 +144,9 @@ export async function generateFromOrder(
   }
 
   /* An extension moves no goods, so it owes no delivery. */
-  const shippingTotal = options.extension ? '0.00' : order.shippingTotal;
+  const shippingTotal = extension ? '0.00' : order.shippingTotal;
 
-  return issueContract(db, {
-    orderId: order.id,
+  return {
     orderNumber: order.number,
     /* Orders that predate the customer-type question default to tourist, the
        variant whose contract is at least readable to anyone. */
@@ -162,6 +162,25 @@ export async function generateFromOrder(
     shippingTotal,
     currency: order.currency,
     hasDepositProduct: await repo.orderRequiresDeposit(db, orderId),
+  };
+}
+
+/**
+ * Issues the contract an order owes, built by `termsFromOrder`. Serves the
+ * admin's "Generate contract" and operator-raised renewals, which then go out
+ * by email for signing. Checkout placement and the account's renewal modal
+ * sign on the page instead (`contracts/checkout.ts`); all of them build through
+ * `draft.ts`, so none can disagree about what a contract says.
+ */
+export async function generateFromOrder(
+  db: Database,
+  orderId: string,
+  options: GenerateFromOrderOptions = {},
+): Promise<{ id: string; number: string }> {
+  const terms = await termsFromOrder(db, orderId, options.extension);
+  return issueContract(db, {
+    ...terms,
+    orderId,
     kind: options.kind ?? 'initial',
     actorAdminUserId: options.actorAdminUserId ?? null,
     ...(options.onIssued ? { onIssued: options.onIssued } : {}),
@@ -174,7 +193,7 @@ export async function generateFromOrder(
  */
 function renewalRows(
   item: ContractLine & { id: string },
-  extension: NonNullable<GenerateFromOrderOptions['extension']>,
+  extension: RenewalSpan,
 ): ContractData['items'] {
   const amounts = extension.lineAmounts[item.id] ?? { unitPrice: '0.00', total: '0.00' };
   return rentalItems([item]).map((row) => ({

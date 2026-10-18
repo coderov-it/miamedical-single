@@ -72,6 +72,18 @@ export async function activateByContractId(
   return row;
 }
 
+/** True while the order has an extension waiting for payment or signature. */
+export async function hasOpen(db: DatabaseWriter, orderId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: rentalExtensions.id })
+    .from(rentalExtensions)
+    .where(
+      and(eq(rentalExtensions.orderId, orderId), inArray(rentalExtensions.status, OPEN_STATUSES)),
+    )
+    .limit(1);
+  return row !== undefined;
+}
+
 export async function insert(
   db: DatabaseWriter,
   values: typeof rentalExtensions.$inferInsert,

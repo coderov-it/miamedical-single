@@ -25,7 +25,7 @@
 
   const { row }: Props = $props();
 
-  const { copy, notifications } = accountContext();
+  const { copy, notifications, renewal } = accountContext();
 
   const unread = $derived(row.readAt === null);
 
@@ -64,6 +64,10 @@
       ? row.data.orderNumber
       : null,
   );
+
+  /* The offer to extend carries its answer: "Prolunga" opens the renewal
+     modal on the spot, beside the row's link to the order. */
+  const renewable = $derived(row.type === 'rental.extend_offer' && orderNumber !== null);
 
   function open() {
     if (unread) void notifications.markRead([row.id]);
@@ -110,6 +114,18 @@
     >
       {@render inner()}
     </AccountLink>
+    {#if renewable && orderNumber}
+      <!-- Outside the link: a button inside an anchor is two controls in one. -->
+      <div class="mid:pl-11 -mt-1.5 pr-5 pb-3.5 pl-10">
+        <button
+          class="hover:bg-accent-deep rounded-field inline-flex min-h-10 items-center bg-accent px-4 text-[14.5px] font-semibold text-white"
+          type="button"
+          onclick={() => renewal.open(orderNumber)}
+        >
+          {say(copy, 'account.extension.extend')}
+        </button>
+      </div>
+    {/if}
   {:else}
     <div class="mid:px-6 flex w-full items-start gap-3 px-5 py-3.5">
       {@render inner()}

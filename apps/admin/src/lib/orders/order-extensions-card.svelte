@@ -2,7 +2,8 @@
   The rental's extensions: the open one with the next step it needs, and every
   earlier one beneath it. Lifecycle: docs/code/rental-extensions.md.
 
-    Awaiting payment   → Record payment (sends the contract) · Cancel
+    Awaiting payment   → Record payment (sends the contract, or activates it when the
+                         customer already signed in their account) · Cancel
     Awaiting signature → Resend from the Contract card · Reissue if voided · Cancel
     Extended           → history only
 -->
