@@ -19,6 +19,7 @@
   import { AccountSession } from '~/lib/account-session.svelte';
   import { AccountStore } from '~/lib/account-state.svelte';
   import { NotificationStore } from '~/lib/notifications.svelte';
+  import { RenewalLauncher } from '~/lib/renewal-launcher.svelte';
 
   import AccountShell from './AccountShell.svelte';
   import AccountSkeleton from './AccountSkeleton.svelte';
@@ -26,6 +27,7 @@
   import OrderDetailScreen from './OrderDetailScreen.svelte';
   import OrdersScreen from './OrdersScreen.svelte';
   import ProfileScreen from './ProfileScreen.svelte';
+  import RenewalDialog from './renewal/RenewalDialog.svelte';
   import { documentTitle } from './titles';
 
   interface Props {
@@ -41,8 +43,9 @@
   const router = new AccountRouter(copy.routes, initial);
   const orders = new AccountStore(session);
   const notifications = new NotificationStore(session);
+  const renewal = new RenewalLauncher();
 
-  setAccountContext({ copy, router, session, orders, notifications });
+  setAccountContext({ copy, router, session, orders, notifications, renewal });
 
   let screenEl = $state<HTMLElement>();
 
@@ -142,4 +145,8 @@
       {/if}
     </AccountShell>
   </div>
+  <!-- Outside the screen wrapper: one modal, opened from any screen. -->
+  {#if renewal.orderNumber}
+    <RenewalDialog number={renewal.orderNumber} />
+  {/if}
 {/if}

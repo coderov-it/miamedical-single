@@ -14,6 +14,7 @@ import type { AccountRouter } from './account-router.svelte.ts';
 import type { AccountSession } from './account-session.svelte.ts';
 import type { AccountStore } from './account-state.svelte.ts';
 import type { NotificationStore } from './notifications.svelte.ts';
+import type { RenewalLauncher } from './renewal-launcher.svelte.ts';
 
 const KEY = Symbol.for('mia.account');
 
@@ -24,6 +25,8 @@ export interface AccountContext {
   session: AccountSession;
   orders: AccountStore;
   notifications: NotificationStore;
+  /** Opens the one renewal modal. See lib/renewal-launcher.svelte.ts. */
+  renewal: RenewalLauncher;
 }
 
 export function setAccountContext(context: AccountContext): AccountContext {

@@ -110,7 +110,7 @@ export async function sweepExtendOffers(db: Database): Promise<number> {
         orderNumber: rental.orderNumber,
         productTitle: rental.productTitle,
         rentalEndDate: rental.endsOn,
-        extendUrl: links.accountOrderUrl(rental.orderNumber),
+        extendUrl: links.accountRenewUrl(rental.orderNumber),
       },
       { db, orderId: rental.orderId },
     );

@@ -28,10 +28,20 @@
 
   const { number }: Props = $props();
 
-  const { copy, orders } = accountContext();
+  const { copy, orders, renewal } = accountContext();
 
   $effect(() => {
     void orders.ensureOrder(number);
+  });
+
+  /* The extend-offer email links here with `?renew=1`: open the renewal modal
+     straight away, and drop the flag so a reload or a back does not reopen it. */
+  $effect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('renew') !== '1') return;
+    url.searchParams.delete('renew');
+    history.replaceState(history.state, '', url);
+    renewal.open(number);
   });
 
   const order = $derived(orders.detail(number));

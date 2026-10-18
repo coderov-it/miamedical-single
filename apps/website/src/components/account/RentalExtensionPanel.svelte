@@ -3,9 +3,10 @@
   do about it.
 
     rental order, still asking → the card and its heading, with a loading state
-    running, nothing open      → "Extend rental" → pick a length → request
-    request waiting for money  → what was asked, and "Withdraw request"
-    paid, contract out         → "sign the contract we emailed you"
+    running, nothing open      → "Prolunga il noleggio" → the renewal modal
+                                 (renewal/RenewalDialog.svelte: length, sign, confirm)
+    renewal waiting for money  → what was asked, and "Withdraw request"
+    paid, contract out         → "sign the contract we emailed you" (operator-raised)
     returned (order closed)    → "Order again", one per rented product
 
   Flow and worked example: docs/code/rental-extensions.md.
@@ -14,20 +15,12 @@
   import { accountContext, say } from '~/lib/account-context';
   import { errorMessage } from '~/lib/account-state.svelte';
   import { type CustomerOrderDetail, formatDate, formatMoney } from '~/lib/customer-session';
-  import { formGate } from '~/lib/form-gate-action';
-  import type { FieldGate, FormGate } from '~/lib/form-validation';
-  import {
-    type ExtensionOverview,
-    getExtension,
-    requestExtension,
-    withdrawExtension,
-  } from '~/lib/rental-extension';
+  import { type ExtensionOverview, getExtension, withdrawExtension } from '~/lib/rental-extension';
   import { fill } from '~/scripts/account/copy';
 
   import LoadingState from '../primitives/LoadingState.svelte';
   import AccountSection from './AccountSection.svelte';
-  import FieldError from './FieldError.svelte';
-  import { ANNOUNCE, HINT, NOTICE_ERROR, PRIMARY, SECONDARY, TEXT_ACTION } from './fields';
+  import { HINT, NOTICE_ERROR, PRIMARY, TEXT_ACTION } from './fields';
 
   interface Props {
     order: CustomerOrderDetail;
@@ -35,16 +28,10 @@
 
   const { order }: Props = $props();
 
-  const { copy, session } = accountContext();
+  const { copy, session, renewal } = accountContext();
 
   let overview = $state<ExtensionOverview | null>(null);
   let failure = $state<string | null>(null);
-  let choosing = $state(false);
-  let days = $state<number | null>(null);
-  let notice = $state<string | null>(null);
-  let radios = $state<HTMLInputElement[]>([]);
-  let announceEl = $state<HTMLElement>();
-  let gate: FormGate | undefined;
   /** Re-entry guard. NOT a `disabled` on the button — see fields.ts. */
   let busy = false;
 
@@ -58,8 +45,10 @@
     }
   }
 
+  /* Again after the modal places a renewal, so the card says what is pending. */
   $effect(() => {
     void order.number;
+    void renewal.placed;
     void load();
   });
 
@@ -92,41 +81,11 @@
 
   const extended = $derived(overview?.history.filter((row) => row.status === 'active') ?? []);
 
-  const gates = (): FieldGate[] => [
-    { key: 'days', isSatisfied: () => days !== null, controls: () => radios },
-  ];
-
-  function submit(event: SubmitEvent) {
-    event.preventDefault();
-    /* Not the banned silent return: `enforce()` has marked the choice,
-       focused it and announced why. */
-    if (!gate?.enforce()) return;
-    void send();
-  }
-
-  async function send() {
-    if (busy || days === null) return;
-    busy = true;
-    try {
-      await requestExtension(order.number, days);
-      notice = say(copy, 'account.extension.requested');
-      choosing = false;
-      days = null;
-      await load();
-    } catch (error) {
-      if (session.escalate(error)) return;
-      failure = errorMessage(error, say(copy, 'account.genericError'));
-    } finally {
-      busy = false;
-    }
-  }
-
   async function withdraw() {
     if (busy) return;
     busy = true;
     try {
       await withdrawExtension(order.number);
-      notice = null;
       await load();
     } catch (error) {
       if (session.escalate(error)) return;
@@ -151,9 +110,6 @@
     {:else}
       {#if failure}
         <p class={NOTICE_ERROR + ' mt-3'} role="alert">{failure}</p>
-      {/if}
-      {#if notice}
-        <p class="bg-tint rounded-field mt-3 px-4 py-3 text-[15px]" role="status">{notice}</p>
       {/if}
 
       {#if overview.blockedBy === 'closed'}
@@ -197,62 +153,14 @@
           <p class={HINT + ' mt-3'}>{say(copy, 'account.extension.hourly')}</p>
         {:else if overview.options.length === 0}
           <p class={HINT + ' mt-3'}>{say(copy, 'account.extension.noOptions')}</p>
-        {:else if !choosing}
-          <button class={PRIMARY + ' mt-4'} type="button" onclick={() => (choosing = true)}>
+        {:else}
+          <button
+            class={PRIMARY + ' mt-4'}
+            type="button"
+            onclick={() => renewal.open(order.number)}
+          >
             {say(copy, 'account.extension.extend')}
           </button>
-        {:else}
-          <form
-            class="mt-4 space-y-3"
-            onsubmit={submit}
-            use:formGate={{ gates, announce: () => announceEl ?? null, ready: (g) => (gate = g) }}
-          >
-            <fieldset class="space-y-2" data-gate="days">
-              <legend class="font-ui text-ui mb-2 font-semibold">
-                {say(copy, 'account.extension.pick')}
-              </legend>
-              {#each overview.options as option, index (option.days)}
-                <label
-                  class="border-hair rounded-field flex cursor-pointer items-center gap-3 border-2 px-4 py-3 has-[:checked]:border-accent"
-                >
-                  <input
-                    type="radio"
-                    name="days"
-                    value={option.days}
-                    bind:group={days}
-                    bind:this={radios[index]}
-                  />
-                  <span class="flex-1">
-                    <span class="block font-semibold">{option.label}</span>
-                    <span class={HINT}>
-                      {formatDate(option.fromDate)} → {formatDate(option.toDate)}
-                    </span>
-                  </span>
-                  <span class="font-semibold tabular-nums">
-                    {formatMoney(option.amount, overview.currency)}
-                  </span>
-                </label>
-              {/each}
-              <FieldError key="days" message={say(copy, 'account.extension.pickError')} />
-            </fieldset>
-
-            <div class="flex flex-wrap gap-3">
-              <button class={PRIMARY} type="submit">{say(copy, 'account.extension.request')}</button
-              >
-              <button class={SECONDARY} type="button" onclick={() => (choosing = false)}>
-                {say(copy, 'account.extension.cancel')}
-              </button>
-            </div>
-
-            <p
-              class={ANNOUNCE}
-              role="status"
-              aria-live="polite"
-              bind:this={announceEl}
-              data-message-one={say(copy, 'errorCountOne')}
-              data-message-many={say(copy, 'errorCountMany')}
-            ></p>
-          </form>
         {/if}
 
         {#if extended.length > 0}

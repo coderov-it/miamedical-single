@@ -13,6 +13,7 @@ import * as contractRepo from '../contracts/repo.ts';
 import * as contractService from '../contracts/service.ts';
 import { emitToAdmins } from '../notifications/write.ts';
 import type { ExtensionBlock, ExtensionOverviewDto, RentalExtensionDto } from './dto.ts';
+import { applyExtension } from './activate.ts';
 import { toExtension, toOption } from './mapper.ts';
 import { addDays, currentEndDate, extensionOptions, manualLineAmounts } from './quote.ts';
 import * as repo from './repo.ts';
@@ -22,13 +23,15 @@ import type { ExtensionOption, ExtensionRow, RentalLine } from './types.ts';
  * Rental extensions — lifecycle and worked example in
  * docs/code/rental-extensions.md.
  *
- *   request → renew_pending → (payment recorded) → awaiting_signature
- *           → (contract signed, see activate.ts) → active
+ *   operator raises it  renew_pending → (payment recorded) → awaiting_signature
+ *                       → (contract signed by email, see activate.ts) → active
+ *   customer renews     renew_pending, contract already signed (renewal.ts)
+ *                       → (payment recorded) → active
  */
 
 type Actor = { kind: 'customer'; id: string } | { kind: 'admin'; id: string };
 
-interface Loaded {
+export interface Loaded {
   order: NonNullable<Awaited<ReturnType<typeof repo.findOrder>>>;
   lines: RentalLine[];
   endDate: string | null;
@@ -37,7 +40,7 @@ interface Loaded {
   blockedBy: ExtensionBlock | null;
 }
 
-async function load(db: Database, orderId: string): Promise<Loaded> {
+export async function load(db: Database, orderId: string): Promise<Loaded> {
   const order = await repo.findOrder(db, orderId);
   if (!order) throw notFound('Order');
 
@@ -79,7 +82,7 @@ export async function getOverview(
   };
 }
 
-const BLOCK_MESSAGES: Record<ExtensionBlock, string> = {
+export const BLOCK_MESSAGES: Record<ExtensionBlock, string> = {
   closed: 'This rental is closed — the equipment is back. Order it again instead.',
   open: 'An extension of this rental is already waiting for payment or signature.',
   hourly: 'Hourly rentals are extended by the shop. Please contact us.',
@@ -167,8 +170,12 @@ async function mustFind(db: Database, id: string): Promise<ExtensionRow> {
 
 /**
  * The operator confirms the money arrived — the manual stand-in for online
- * payment. The renewal contract goes out in the same call, because a paid
- * extension with no paperwork is exactly the handshake this flow exists to stop.
+ * payment. What happens next depends on whether the contract is signed yet:
+ *
+ *   renewed from the account   contract signed in the modal → active now, end date moved
+ *   raised by an operator      no contract yet → awaiting_signature, renewal contract emailed
+ *
+ * Either way a paid extension never stands without paperwork.
  */
 export async function recordPayment(
   db: Database,
@@ -180,38 +187,56 @@ export async function recordPayment(
   if (extension.status !== 'renew_pending') {
     throw conflict('Payment can only be recorded on an extension waiting for payment.');
   }
-  await assertNoUnsignedContract(db, extension.orderId);
+  const signed = extension.contractStatus === 'signed';
+  if (!signed) await assertNoUnsignedContract(db, extension.orderId);
+  /* The customer signed for the quoted amount, so a different figure here
+     would contradict the contract they hold. */
+  if (signed && input.amount !== undefined && Number(input.amount) !== Number(extension.amount)) {
+    throw conflict(
+      `The customer signed contract ${extension.contractNumber} for ${extension.amount} ${extension.currency}. Record that amount, or cancel the extension and raise a new one.`,
+    );
+  }
 
   let lineAmounts = extension.lineAmounts;
-  if (input.amount !== undefined && input.amount !== extension.amount) {
+  if (!signed && input.amount !== undefined && input.amount !== extension.amount) {
     lineAmounts = manualLineAmounts(
       await repo.findRentalLines(db, extension.orderId),
       input.amount,
     );
   }
-  const amount = input.amount ?? extension.amount;
+  /* Signed for the quote: the contract's figure stands. */
+  let amount = input.amount ?? extension.amount;
+  if (signed) amount = extension.amount;
+  const reference = input.reference ? `, ref. ${input.reference}` : '';
+  const paidNote = `Extension paid: ${amount} ${extension.currency} by ${input.method}${reference}.`;
+  const next = signed ? 'active' : 'awaiting_signature';
 
   await db.transaction(async (tx) => {
     const paid = await repo.updateIfStatus(tx, id, 'renew_pending', {
-      status: 'awaiting_signature',
+      status: next,
       amount,
       lineAmounts,
       paymentMethod: input.method,
       paymentReference: input.reference || null,
       paidAt: new Date(),
       paidByAdminUserId: user.id,
+      ...(signed ? { activatedAt: new Date() } : {}),
     });
     if (!paid) throw conflict('This extension was paid or cancelled a moment ago. Reload it.');
-    const reference = input.reference ? `, ref. ${input.reference}` : '';
+    if (signed) {
+      await applyExtension(tx, extension, 'renew_pending', { paidNote, actorAdminUserId: user.id });
+      return;
+    }
     await repo.insertEvent(tx, {
       orderId: extension.orderId,
       fromValue: 'renew_pending',
       toValue: 'awaiting_signature',
-      note: `Extension paid: ${amount} ${extension.currency} by ${input.method}${reference}.`,
+      note: paidNote,
       actorAdminUserId: user.id,
     });
   });
 
+  if (signed) return toExtension(await mustFind(db, id));
   return issueContract(db, id, user);
 }
 
@@ -279,16 +304,21 @@ export async function cancel(
     throw conflict('This extension is already paid. Please contact us to cancel it.');
   }
 
+  const contractId = extension.contractId;
   const liveContract =
-    extension.contractId &&
-    extension.contractStatus !== 'voided' &&
-    extension.contractStatus !== 'signed';
+    contractId && extension.contractStatus !== 'voided' && extension.contractStatus !== 'signed';
+  /* Renewed from the account: signed for a period that will now not run. */
+  const signedUnpaid = contractId && extension.contractStatus === 'signed';
 
   /* The void and the cancel commit together. Both are guarded: a renewal
      signed a moment earlier makes the void a 409, and nothing is cancelled. */
   await db.transaction(async (tx) => {
-    if (liveContract && actor.kind === 'admin' && extension.contractId) {
-      await contractService.voidWithin(tx, extension.contractId, reason, actor.id);
+    if (liveContract && actor.kind === 'admin') {
+      await contractService.voidWithin(tx, contractId, reason, actor.id);
+    }
+    if (signedUnpaid && extension.status === 'renew_pending') {
+      const adminId = actor.kind === 'admin' ? actor.id : null;
+      await contractService.voidUnpaidRenewalWithin(tx, contractId, reason, adminId);
     }
     const cancelled = await repo.updateIfStatus(tx, id, extension.status, {
       status: 'cancelled',

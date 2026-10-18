@@ -39,9 +39,12 @@ export const reportOrderUrl = (token: string) => siteUrl(PATHS.reportOrder, toke
 
 export const accountOrdersUrl = () => siteUrl(PATHS.accountOrders);
 
-/** One order in the customer area — where "Extend rental" lives. */
+/** One order in the customer area — where its rental card lives. */
 export const accountOrderUrl = (orderNumber: string) =>
   siteUrl(`${PATHS.accountOrders}${encodeURIComponent(orderNumber)}/`);
+
+/** The same order with the renewal modal open — the extend offer's button. */
+export const accountRenewUrl = (orderNumber: string) => `${accountOrderUrl(orderNumber)}?renew=1`;
 
 export const loginUrl = () => siteUrl(PATHS.login);
 

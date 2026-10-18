@@ -1,6 +1,7 @@
 <!--
-  Cancels an open extension. The reason goes on the order timeline, and an
-  unsigned contract issued for it is voided with the same reason.
+  Cancels an open extension. The reason goes on the order timeline, and a
+  contract issued for it is voided with the same reason — unsigned, or signed in
+  the customer's account for a renewal that was never paid.
 -->
 <script lang="ts">
   import { toast } from 'svelte-sonner';

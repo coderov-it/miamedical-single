@@ -9,8 +9,9 @@ import * as repo from './repo.ts';
 
 /**
  * The contract signed on the checkout's contract step, before the order exists.
- * The emailed signing link (`signing.ts`) stays for what checkout does not
- * cover — the admin's "Generate contract", manual contracts and renewals.
+ * The account's renewal modal signs the same way (`rental-extensions/renewal.ts`).
+ * The emailed signing link (`signing.ts`) stays for what neither covers — the
+ * admin's "Generate contract", manual contracts and operator-raised renewals.
  *
  *   1. step 3 opens       POST /api/orders/contract-preview → `renderDraft`
  *                         numbered BOZZA / DRAFT, nothing written
@@ -40,26 +41,38 @@ export interface CheckoutSignature {
   userAgent: string;
 }
 
-/** Runs inside the placement transaction: the order and its signed contract commit together. */
+/** Where the page that took the signature was: checkout, or the account's renewal modal. */
+export type SignedChannel = 'checkout' | 'account_renewal';
+
+const SIGNED_NOTE: Record<SignedChannel, string> = {
+  checkout: 'signed by the customer at checkout',
+  account_renewal: 'signed by the customer when renewing from their account',
+};
+
+/**
+ * Runs inside the caller's transaction — placement's, or a renewal's — so the
+ * contract never exists apart from what it was signed for.
+ */
 export async function issueSigned(
   tx: Transaction,
   order: { id: string; number: string },
   terms: ContractTerms,
   signature: CheckoutSignature,
+  channel: SignedChannel = 'checkout',
 ): Promise<{ id: string; number: string }> {
   const signedAt = new Date();
   const contract = await repo.create(tx, {
     ...contractRow(order.id, terms),
     signed: {
       signedAt,
-      signatureData: { ...signature, consentedAt: signedAt.toISOString(), channel: 'checkout' },
+      signatureData: { ...signature, consentedAt: signedAt.toISOString(), channel },
     },
   });
   await insertContractEvent(tx, {
     orderId: order.id,
     fromValue: null,
     toValue: 'signed',
-    note: `Contract ${contract.number} signed by the customer at checkout.`,
+    note: `Contract ${contract.number} ${SIGNED_NOTE[channel]}.`,
   });
   return contract;
 }

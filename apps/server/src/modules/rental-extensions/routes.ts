@@ -3,6 +3,7 @@ import {
   AdminRequestExtensionSchema,
   CancelExtensionSchema,
   LocaleOnlyQuerySchema,
+  PlaceExtensionSchema,
   RecordExtensionPaymentSchema,
   RequestExtensionSchema,
   UuidSchema,
@@ -18,8 +19,10 @@ import {
 } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
 import { notFound } from '../../shared/http/errors.ts';
+import { clientIp } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
 import * as customerRepo from '../customer-account/repo.ts';
+import * as renewal from './renewal.ts';
 import * as service from './service.ts';
 
 const IdParam = v.object({ id: UuidSchema });
@@ -130,28 +133,47 @@ export const rentalExtensionCustomerRoutes = new Hono<AppEnv>()
     },
   )
   /** --------------------------------------------------------------------------
+  POST /api/customer/rental-extensions/:number/contract-preview (customer)
+  The renewal contract the modal would sign for that length, as HTML; writes nothing.
+  -------------------------------------------------------------------------- **/
+  .post(
+    '/:number/contract-preview',
+    requireCustomer,
+    validate('param', OrderNumberParam),
+    validate('json', RequestExtensionSchema),
+    async (c) => {
+      const db = c.get('db');
+      const { number } = c.req.valid('param');
+      const orderId = await customerRepo.findOrderIdByNumber(db, currentCustomer(c).id, number);
+      if (!orderId) throw notFound('Order');
+      return c.json({ data: await renewal.previewRenewal(db, orderId, c.req.valid('json').days) });
+    },
+  )
+  /** --------------------------------------------------------------------------
   POST /api/customer/rental-extensions/:number (customer)
-  Requests an extension; it waits for payment as renew_pending.
+  Renews with the contract signed in the modal; it waits for payment as renew_pending.
   -------------------------------------------------------------------------- **/
   .post(
     '/:number',
     requireCustomer,
     validate('param', OrderNumberParam),
-    validate('json', RequestExtensionSchema),
+    validate('json', PlaceExtensionSchema),
     async (c) => {
       const db = c.get('db');
       const customerId = currentCustomer(c).id;
       const { number } = c.req.valid('param');
       const orderId = await customerRepo.findOrderIdByNumber(db, customerId, number);
       if (!orderId) throw notFound('Order');
-      const actor = { kind: 'customer' as const, id: customerId };
-      const data = await service.request(db, orderId, c.req.valid('json'), actor);
+      const data = await renewal.placeRenewal(db, orderId, c.req.valid('json'), customerId, {
+        ipAddress: clientIp(c),
+        userAgent: c.req.header('user-agent') ?? null,
+      });
       return c.json({ data }, 201);
     },
   )
   /** --------------------------------------------------------------------------
   POST /api/customer/rental-extensions/:number/cancel (customer)
-  Withdraws the customer's own extension request before it is paid.
+  Withdraws the customer's own extension before it is paid; voids its signed contract.
   -------------------------------------------------------------------------- **/
   .post('/:number/cancel', requireCustomer, validate('param', OrderNumberParam), async (c) => {
     const db = c.get('db');
