@@ -1,5 +1,5 @@
 <!--
-  − [ 12 ] + — a whole-number field with its two buttons.
+  [ − | 12 | + ] — a whole-number field joined to its two buttons.
 
   A bare `type="number"` leaves the browser's spinner arrows, which are two
   4-pixel targets stacked on top of each other and unusable on a touchpad. This
@@ -58,12 +58,14 @@
   const atMin = $derived(Number(value) <= min);
   const atMax = $derived(max !== undefined && Number(value) >= max);
 
+  // One joined group: [ − | 12 | + ]. Input height, stretches to the column.
   const button =
-    'grid h-8 w-8 shrink-0 place-items-center rounded-md border bg-background text-muted-foreground ' +
-    'hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40';
+    'grid h-10 w-16 shrink-0 place-items-center bg-muted text-muted-foreground hover:text-foreground transition-colors ' +
+    'hover:bg-accent outline-none ' +
+    'disabled:pointer-events-none disabled:opacity-40';
 </script>
 
-<div class="flex items-center gap-1">
+<div class="flex w-full items-stretch overflow-hidden rounded-lg border border-input transition-colors">
   <button
     type="button"
     class={button}
@@ -71,7 +73,7 @@
     disabled={disabled || atMin}
     aria-label="Decrease {label}"
   >
-    <MinusIcon class="size-3.5" />
+    <MinusIcon class="size-5" />
   </button>
 
   <Input
@@ -86,7 +88,7 @@
     onblur={normalize}
     aria-label={label}
     class={cn(
-      'h-8 w-14 text-center text-sm tabular-nums',
+      'h-10 min-w-0 flex-1 rounded-none border-0 border-x border-input bg-background text-center text-base font-medium tabular-nums shadow-none focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30',
       '[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
       className,
     )}
@@ -99,6 +101,6 @@
     disabled={disabled || atMax}
     aria-label="Increase {label}"
   >
-    <PlusIcon class="size-3.5" />
+    <PlusIcon class="size-5" />
   </button>
 </div>

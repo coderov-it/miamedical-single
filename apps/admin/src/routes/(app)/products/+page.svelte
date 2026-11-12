@@ -31,6 +31,7 @@
   import TranslationProgress from '~/lib/components/translation-progress.svelte';
   import { progressFromStates } from '~/lib/i18n';
   import BusyLabel from '~/lib/components/busy-label.svelte';
+  import ProductStatusControl from '~/lib/components/product-status-control.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.products.$get, 200>;
   type Product = ListResponse['data'][number];
@@ -106,6 +107,9 @@
     draft: 'secondary',
     archived: 'outline',
   };
+
+  // A saved status shows at once, without refetching the whole page of rows.
+  let savedStatus = $state<Record<string, string>>({});
 
   let deleting = $state<Product | null>(null);
   let deleteBusy = $state(false);
@@ -259,9 +263,18 @@
               <Table.Cell class="text-muted-foreground">{product.categoryName}</Table.Cell>
 
               <Table.Cell>
-                <Badge variant={statusVariant[product.status] ?? 'outline'}>
-                  {product.status}
-                </Badge>
+                {#if session.can(P.PRODUCT_UPDATE)}
+                  <ProductStatusControl
+                    productId={product.id}
+                    status={savedStatus[product.id] ?? product.status}
+                    mode="select"
+                    onChanged={(_, next) => (savedStatus[product.id] = next)}
+                  />
+                {:else}
+                  <Badge variant={statusVariant[product.status] ?? 'outline'}>
+                    {product.status}
+                  </Badge>
+                {/if}
               </Table.Cell>
 
               <Table.Cell>

@@ -47,6 +47,7 @@
   import TranslateDialog from '~/lib/components/translate-dialog.svelte';
   import ResourceView from '~/lib/components/resource-view.svelte';
   import BusyLabel from '~/lib/components/busy-label.svelte';
+  import ProductStatusControl from '~/lib/components/product-status-control.svelte';
   import {
     autoTranslate,
     type PlanField,
@@ -221,6 +222,23 @@
         <ArrowLeftIcon />
         Products
       </Button>
+      {#if session.can(P.PRODUCT_UPDATE) && product.data}
+        <ProductStatusControl
+          productId={product.data.id}
+          status={product.data.status}
+          mode="button"
+          canStart={() => {
+            if (!dirty.any) return true;
+            toast.error('Save or discard your changes first, then publish.');
+            return false;
+          }}
+          onChanged={(updated) => {
+            product.set(updated as AdminProduct);
+            // Tabs keep the row they read at mount; remount so Basics shows the new status.
+            productVersion += 1;
+          }}
+        />
+      {/if}
       {#if session.can(P.PRODUCT_DELETE) && product.data}
         <Button variant="destructive" onclick={() => (deleting = true)}>
           <Trash2Icon />
