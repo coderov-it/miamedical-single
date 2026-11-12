@@ -70,9 +70,16 @@ next request, with no matching client edit to forget.
 It names where the order is, what was asked, and what would actually work. A
 bare "invalid transition" would send the reader to the source.
 
+## Status moves stock
+
+`transition-repo.applyTransition` also moves `products.stock` in the same
+transaction: `paid` takes units off, a rental's `fulfilled` (Rent Management's
+"Confirm return") puts them back. A take the shelf cannot cover is a 409 and the
+status does not move. See `orders-stock.md`.
+
 ## The audit trail is not optional
 
-`repo.applyTransition` writes the status column **and** its
+`transition-repo.applyTransition` writes the status column **and** its
 `order_status_events` row inside one transaction. If the event insert fails, the
 status change rolls back with it.
 

@@ -53,7 +53,7 @@ export const rentalAdminRoutes = new Hono<AppEnv>()
   )
   /** --------------------------------------------------------------------------
   POST /api/admin/rentals/:id/finish (rental:update)
-  Closes the rental as returned.
+  Confirms the equipment is back: closes the rental and returns its units to stock.
   -------------------------------------------------------------------------- **/
   .post(
     '/:id/finish',

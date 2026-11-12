@@ -92,7 +92,7 @@
     acting = orderId;
     try {
       await unwrap(await api.api.admin.rentals[':id'].finish.$post({ param: { id: orderId } }));
-      toast.success(`Rental ${orderNumber} marked as finished`);
+      toast.success(`Return confirmed for rental ${orderNumber}`);
       rentals.refresh();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -345,7 +345,7 @@
                         onSelect={() => finishRental(rental.orderId, rental.orderNumber)}
                       >
                         <CheckCircleIcon class="size-4" />
-                        Finish rental
+                        Confirm return
                       </DropdownMenu.Item>
                     </DropdownMenu.Content>
                   </DropdownMenu.Root>

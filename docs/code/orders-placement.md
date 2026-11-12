@@ -121,8 +121,9 @@ The same gate covers a line that never answered a required question
 (`checkout.blocked === 'incomplete'`), because `resolveLine` refuses that too.
 
 A line for a product whose `stock` is `0` is refused the same way — a point-in-time
-check, not a reservation. Nothing decrements stock and nothing knows which dates a
-unit is already out on; the phone call still settles real availability.
+check, not a reservation. Placing an order takes nothing off the shelf; marking it
+paid does (see `orders-stock.md`). Nothing knows which dates a unit is already out
+on, so the phone call still settles future availability.
 
 ## Loading the lines' products
 
