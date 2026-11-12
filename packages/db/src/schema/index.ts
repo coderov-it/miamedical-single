@@ -17,3 +17,4 @@ export * from './rental-extensions.ts';
 export * from './blog.ts';
 export * from './notifications.ts';
 export * from './push-devices.ts';
+export * from './payments.ts';

@@ -8,6 +8,7 @@ import { r2FileUploader } from './infra/media.ts';
 import { startMediaSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
 import { startNotificationSweep } from './modules/notifications/sweep.ts';
+import { startPaymentSweep } from './modules/payments/sweep.ts';
 import { startPushSweep } from './modules/push/sweep.ts';
 
 const server = serve({ fetch: app.fetch, port: env.API_PORT, hostname: env.API_HOST }, (info) => {
@@ -31,6 +32,9 @@ startNotificationSweep(db);
 /* The push retry tick. Separate from the sweep above because it is a delivery
    retry rather than a source of events — see modules/push/sweep.ts. */
 startPushSweep(db);
+/* Unpaid orders past their deadline give their stock back; abandoned gateway
+   sessions are closed. See modules/payments/sweep.ts. */
+startPaymentSweep(db);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {

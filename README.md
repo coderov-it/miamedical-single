@@ -233,7 +233,6 @@ The scaffold ships working products routes end to end. Still to build:
 - `apps/server/src/modules/access/` — admin user CRUD and a permission editor UI
   (the catalog, storage and guards are already in place)
 - `apps/server/src/modules/cart/` and `orders/`
-- `apps/server/src/modules/payments/`, `users/`, `settings/`, `webhooks/`
+- `apps/server/src/modules/users/`, `settings/`
 - `infra/` adapters: `cache/`, `mail/`, `storage/`, `swagger/`
-- Payment provider integration
 - Product image uploads

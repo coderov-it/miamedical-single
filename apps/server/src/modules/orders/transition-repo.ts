@@ -10,7 +10,7 @@ import { orderItems, orders, orderStatusEvents } from '@mia/db/schema';
 
 import { emit } from '../notifications/write.ts';
 import type { OrderStatus } from './status.ts';
-import { applyStockMoves } from './stock.ts';
+import { applyStockMoves, takenAfter } from './stock.ts';
 
 export interface StatusEventData {
   orderId: string;
@@ -36,6 +36,14 @@ export async function applyTransition(db: Database, event: StatusEventData): Pro
       .where(eq(orders.id, event.orderId));
     await tx.insert(orderStatusEvents).values(event);
     if (event.field === 'status') {
+      const from = event.fromValue as OrderStatus;
+      const to = event.toValue as OrderStatus;
+      const [order] = await tx
+        .select({ stockTaken: orders.stockTaken })
+        .from(orders)
+        .where(eq(orders.id, event.orderId))
+        .limit(1);
+      const taken = order?.stockTaken ?? false;
       const lines = await tx
         .select({
           productId: orderItems.productId,
@@ -45,7 +53,11 @@ export async function applyTransition(db: Database, event: StatusEventData): Pro
         })
         .from(orderItems)
         .where(eq(orderItems.orderId, event.orderId));
-      await applyStockMoves(tx, lines, event.fromValue, event.toValue as OrderStatus);
+      await applyStockMoves(tx, lines, from, to, taken);
+      const next = takenAfter(to, from, taken);
+      if (next !== taken) {
+        await tx.update(orders).set({ stockTaken: next }).where(eq(orders.id, event.orderId));
+      }
     }
     /* The customer's copy of the same fact, in the same transaction and under
        the same rollback. It reaches nobody until the customer feed ships in

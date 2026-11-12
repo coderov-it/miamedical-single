@@ -72,10 +72,13 @@ bare "invalid transition" would send the reader to the source.
 
 ## Status moves stock
 
-`transition-repo.applyTransition` also moves `products.stock` in the same
-transaction: `paid` takes units off, a rental's `fulfilled` (Rent Management's
-"Confirm return") puts them back. A take the shelf cannot cover is a 409 and the
-status does not move. See `orders-stock.md`.
+Placement takes the units; `transition-repo.applyTransition` moves
+`products.stock` for every later move in the same transaction: cancelling an
+unpaid order puts them back, and so does a rental's `fulfilled` (Rent
+Management's "Confirm return"). An old order that holds nothing takes its units
+at `paid`. A take the shelf cannot cover is a 409 and the status does not move.
+See `orders-stock.md`. Online payment moves `pending → paid` itself, with no
+operator (`online-payments.md`).
 
 ## The audit trail is not optional
 

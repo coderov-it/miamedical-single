@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 
 import { DateOnlySchema, MoneySchema, PaginationSchema } from './common.ts';
+import { LanguageCodeSchema } from './i18n.ts';
 import { ContractSignatureSchema } from './order.ts';
 
 export const RentalStatusSchema = v.picklist(['active', 'overdue', 'completed']);
@@ -47,6 +48,8 @@ export const RequestExtensionSchema = v.strictObject({
 export const PlaceExtensionSchema = v.strictObject({
   days: ExtensionDaysSchema,
   contractSignature: ContractSignatureSchema,
+  /** The storefront language, for the payment page that follows. */
+  language: v.optional(LanguageCodeSchema),
 });
 
 /**

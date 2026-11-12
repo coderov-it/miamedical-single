@@ -1,0 +1,45 @@
+---
+/**
+ * `/pagamento/` — where the payment gateway sends the customer back.
+ *
+ * A ROUTE DECLARATION, deliberately thin: the body is in
+ * `views/payment/PaymentResultBody.astro`, the behaviour in
+ * `scripts/payment/result.ts`. The `?token=` names one payment attempt and is
+ * the page's whole authorisation; it reveals only that attempt's order number
+ * and outcome. Never cached and never indexed (PRIVATE_ROUTES).
+ */
+import AccountCopy from '~/components/account/AccountCopy.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import PaymentResultBody from '~/views/payment/PaymentResultBody.astro';
+
+export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+
+/** What the script writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'payment.paidDetail',
+  'payment.renewalPaidDetail',
+  'payment.keptUntil',
+  'payment.linkInvalid',
+  'payment.loadError',
+  'openingPayment',
+  'payment.tryAgain',
+] as const;
+---
+
+<BaseLayout
+  title={translate(locale, 'payment.metaTitle')}
+  description={translate(locale, 'payment.metaTitle')}
+  noindex
+  fillGround
+  bare
+>
+  <AccountCopy keys={SCRIPT_KEYS} />
+  <PaymentResultBody />
+</BaseLayout>
+
+<script>
+  import '~/scripts/payment/result.ts';
+</script>

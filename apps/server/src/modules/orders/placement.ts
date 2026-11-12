@@ -7,6 +7,7 @@ import type { Database } from '@mia/db';
 import { NO_DELIVERY_FEE, addMoney } from '@mia/pricing';
 import type { PlaceOrderInput } from '@mia/validators';
 
+import { FEATURES } from '../../config/features.ts';
 import type { SessionCustomer } from '../../shared/http/context.ts';
 import { httpError } from '../../shared/http/errors.ts';
 import { issueSigned, sendSignedReceipt } from '../contracts/checkout.ts';
@@ -33,8 +34,9 @@ export { previewContract } from './placement-contract.ts';
  *
  * Everything monetary is rebuilt here from the catalogue — see `resolve.ts` —
  * so the request decides only what was ordered. The order opens `pending` /
- * `unpaid` because nothing is charged online: the phone call settles payment, and
- * the admin's state machine takes it from there.
+ * `unpaid` with its stock already taken, and the route sends the customer to the
+ * payment gateway next (modules/payments/start.ts). Unpaid by `paymentDueAt`, it
+ * is cancelled and its stock returned (modules/payments/sweep.ts).
  *
  * A rental arrives with its contract already signed (`contractSignature`), and
  * the contract is written in the order's own transaction — see
@@ -46,6 +48,21 @@ export interface PlacementContext {
   ipAddress: string | null;
   /** Stored with a checkout signature, as the emailed signing link stores it. */
   userAgent: string | null;
+}
+
+/**
+ * How long an unpaid order holds its stock: an hour for a guest, who can only
+ * pay from the page they are on, a day for a signed-in customer, who can come
+ * back to "Pay now" in their account. No deadline when no gateway is configured
+ * (development), since nobody could pay it anyway.
+ */
+const GUEST_PAYMENT_WINDOW_MS = 60 * 60_000;
+const ACCOUNT_PAYMENT_WINDOW_MS = 24 * 60 * 60_000;
+
+function paymentDeadline(signedIn: boolean): Date | null {
+  if (!FEATURES.payments) return null;
+  const windowMs = signedIn ? ACCOUNT_PAYMENT_WINDOW_MS : GUEST_PAYMENT_WINDOW_MS;
+  return new Date(Date.now() + windowMs);
 }
 
 export async function place(
@@ -156,6 +173,7 @@ export async function place(
       billingAddress: snapshot,
       delivery: block,
       notes: input.notes ?? null,
+      paymentDueAt: paymentDeadline(context.session !== null),
       items: lines.map((line) => ({
         productId: line.productId,
         productTitle: line.productTitle,

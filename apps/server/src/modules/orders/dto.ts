@@ -170,6 +170,12 @@ export interface PlacedOrderDto {
   placedAt: string;
   /** See `AccountInvite`. Drives the one line the panel adds about the account. */
   accountInvite: AccountInvite;
+  /**
+   * Where the customer goes next. `redirectUrl` is the gateway's page, or null
+   * when it could not be reached (the result page at `token` offers a retry).
+   * The whole field is null only when no gateway is configured (development).
+   */
+  payment: { token: string; redirectUrl: string | null } | null;
 }
 
 /**

@@ -1,3 +1,5 @@
+import type { LanguageCode } from '@mia/validators';
+
 import { env } from '../../config/env.ts';
 
 /**
@@ -49,6 +51,20 @@ export const accountRenewUrl = (orderNumber: string) => `${accountOrderUrl(order
 export const loginUrl = () => siteUrl(PATHS.login);
 
 export const contractSigningUrl = (token: string) => siteUrl('/firma-contratto/', token);
+
+/**
+ * Where the payment gateway sends the customer back, in the language they paid
+ * in. Mirrors `paymentResult` in the website's routes.ts, like every path here.
+ */
+const PAYMENT_RESULT_PATHS: Record<LanguageCode, string> = {
+  it: '/pagamento/',
+  en: '/en/payment/',
+  fr: '/fr/paiement/',
+  de: '/de/zahlung/',
+};
+
+export const paymentResultUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PAYMENT_RESULT_PATHS[language], token);
 
 /** Deep link into the admin SPA for an internal alert. */
 export const adminDisputeUrl = (disputeId: string) =>

@@ -48,6 +48,9 @@ export const routePaths = {
     resetPassword: '/reimposta-password/',
     reportOrder: '/segnala-ordine/',
     signContract: '/firma-contratto/',
+    /* Where the payment gateway sends the customer back. ⚠️ Mirrored in
+     apps/server/src/modules/notifications/links.ts (PAYMENT_RESULT_PATHS). */
+    paymentResult: '/pagamento/',
     /* English in every language on purpose: `/delete-profile/` is the URL filed
      with Google Play. Only the language prefix changes, so the switcher works. */
     deleteProfile: '/delete-profile/',
@@ -75,6 +78,7 @@ export const routePaths = {
     resetPassword: '/en/reset-password/',
     reportOrder: '/en/report-order/',
     signContract: '/en/sign-contract/',
+    paymentResult: '/en/payment/',
     deleteProfile: '/en/delete-profile/',
     blog: '/en/blog/',
   },
@@ -110,6 +114,7 @@ export const routePaths = {
     resetPassword: '/fr/reinitialiser-le-mot-de-passe/',
     reportOrder: '/fr/signaler-une-commande/',
     signContract: '/fr/signer-le-contrat/',
+    paymentResult: '/fr/paiement/',
     deleteProfile: '/fr/delete-profile/',
     blog: '/fr/blog/',
   },
@@ -145,6 +150,7 @@ export const routePaths = {
     resetPassword: '/de/passwort-zuruecksetzen/',
     reportOrder: '/de/bestellung-melden/',
     signContract: '/de/vertrag-unterzeichnen/',
+    paymentResult: '/de/zahlung/',
     deleteProfile: '/de/delete-profile/',
     blog: '/de/blog/',
   },
@@ -335,5 +341,6 @@ export const PRIVATE_ROUTES: RouteKey[] = [
   'resetPassword',
   'reportOrder',
   'signContract',
+  'paymentResult',
   'deleteProfile',
 ];
