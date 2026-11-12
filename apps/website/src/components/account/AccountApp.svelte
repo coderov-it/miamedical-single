@@ -1,7 +1,7 @@
 <!--
   The customer area, as one island.
 
-  Mounted by the thin shims under pages/area-clienti/**, which each state the
+  Mounted by the thin shims under pages/account/**, which each state the
   screen their URL names. It owns the session, the router and the order cache;
   the screens under it own only what they look like.
 

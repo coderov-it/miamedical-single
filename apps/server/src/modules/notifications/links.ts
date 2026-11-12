@@ -5,22 +5,26 @@ import { env } from '../../config/env.ts';
 /**
  * Absolute URLs for the pages emails point at.
  *
- * ⚠️ These paths mirror `apps/website/src/lib/routes.ts`, which is the source of
- * truth for public URLs and an SEO commitment. The server cannot import from the
- * website app, so they are repeated here — change one and you must change the
- * other, or every link in every email 404s. There is no build-time check binding
- * them together; `docs/code/customer-accounts.md` records the pairing.
+ * ⚠️ These paths mirror `PRIVATE_SEGMENTS` in `apps/website/src/lib/routes.ts`,
+ * the source of truth. The server cannot import from the website app, so they
+ * are repeated here — change one and you must change the other, or every link
+ * in every email 404s. There is no build-time check binding them together;
+ * `docs/code/customer-accounts.md` records the pairing.
+ *
+ * Private routes are English and identical in every language, so only the
+ * payment result — the one link built in the customer's language — carries a
+ * language prefix.
  *
  * Query keys are English, per the naming rule: the Italian path is content, the
  * query string is a machine wire format.
  */
 
 const PATHS = {
-  activateAccount: '/attiva-account/',
-  resetPassword: '/reimposta-password/',
-  accountOrders: '/area-clienti/ordini/',
-  reportOrder: '/segnala-ordine/',
-  login: '/accedi/',
+  activateAccount: '/activate-account/',
+  resetPassword: '/reset-password/',
+  accountOrders: '/account/orders/',
+  reportOrder: '/report-order/',
+  login: '/sign-in/',
 } as const;
 
 function siteUrl(path: string, token?: string): string {
@@ -50,17 +54,17 @@ export const accountRenewUrl = (orderNumber: string) => `${accountOrderUrl(order
 
 export const loginUrl = () => siteUrl(PATHS.login);
 
-export const contractSigningUrl = (token: string) => siteUrl('/firma-contratto/', token);
+export const contractSigningUrl = (token: string) => siteUrl('/sign-contract/', token);
 
 /**
  * Where the payment gateway sends the customer back, in the language they paid
  * in. Mirrors `paymentResult` in the website's routes.ts, like every path here.
  */
 const PAYMENT_RESULT_PATHS: Record<LanguageCode, string> = {
-  it: '/pagamento/',
+  it: '/payment/',
   en: '/en/payment/',
-  fr: '/fr/paiement/',
-  de: '/de/zahlung/',
+  fr: '/fr/payment/',
+  de: '/de/payment/',
 };
 
 export const paymentResultUrl = (token: string, language: LanguageCode) =>

@@ -28,6 +28,22 @@ Pages use the first. Components and `lib/*` helpers use the second, because a
 `lib` function has no `Astro` object and threading a locale through every call
 site was the alternative.
 
+## Private routes are English in every language
+
+`PRIVATE_ROUTES` — cart, checkout, sign-in, the account area, token pages, the
+payment result — are not for search engines, so they are not translated. One English
+segment per route lives in `PRIVATE_SEGMENTS` in `lib/routes.ts`; only the prefix
+changes per language. Public SEO routes keep their hand-written per-language paths.
+
+```text
+/account/orders/    /en/account/orders/    /fr/account/orders/    /de/account/orders/
+/payment/           /en/payment/           /fr/payment/           /de/payment/
+```
+
+The old Italian, French and German spellings still arrive from emails already sent.
+`lib/legacy-routes.ts` is a frozen table of them; the middleware answers each with a
+301 to the new path in the same language, query string kept, before any other routing.
+
 ## The store is pinned to `globalThis`, and that is not decoration
 
 ```ts
@@ -101,7 +117,7 @@ prefix would have made those unreachable while looking like they worked.
 page that forgot to render `<AccountCopy>` is a bug, and a source-language
 default would hide it on the source-language storefront.
 
-> The customer-area island does not use `<AccountCopy>`. It receives the same
+> The account island does not use `<AccountCopy>`. It receives the same
 > `accountCopy()` result as a **prop** — `readAccountCopy()` reads the DOM, which
 > the island's SSR pass has no access to — and ships one shared key set,
 > `ACCOUNT_ISLAND_KEYS`, plus every locale's account paths for the language

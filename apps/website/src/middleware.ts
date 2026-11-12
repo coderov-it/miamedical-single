@@ -23,6 +23,7 @@ import {
   type SiteLocale,
   SOURCE_LANGUAGE,
 } from '~/lib/i18n';
+import { legacyRedirect } from '~/lib/legacy-routes';
 import { PRIVATE_ROUTES, routePaths, type RouteKey } from '~/lib/routes';
 
 /**
@@ -54,9 +55,9 @@ const SOURCE_STATIC_PATHS = new Set<string>(Object.values(routePaths[SOURCE_LANG
  * `PRIVATE_ROUTES`, as source-language paths.
  *
  * `lib/routes.ts` has always said these "must never be indexed and must be
- * served `no-store`", and until now only `carrello.astro` and
+ * served `no-store`", and until now only `cart.astro` and
  * `checkout.astro` actually said it — the other eight, including
- * `reimposta-password.astro` with a live token in its query string, carried no
+ * `reset-password.astro` with a live token in its query string, carried no
  * cache directive at all and were left to heuristic caching. Deriving it from
  * the registry here means adding a route to `PRIVATE_ROUTES` is enough; there
  * is no second place to remember.
@@ -137,7 +138,7 @@ function sourcePathFor(locale: SiteLocale, pathname: string): string | null {
 
   /* One customer's order. Without this branch the only dynamic account route
      fell through to `return null` and 404'd in every language but the source
-     one — `/en/customer-area/orders/MIA-2026-001000/` is exactly what
+     one — `/en/account/orders/MIA-2026-001000/` is exactly what
      `accountOrderPath(number, 'en')` generates, and it was never routable.
      The legal-document regex below cannot cover it: that matches a single
      segment. */
@@ -177,6 +178,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (!context.locals.locale) {
     const { pathname, search } = context.url;
+
+    /* Before any other routing: an old private URL from an email already sent
+       answers with a permanent redirect to its new English path, in the same
+       language and with its query string — tokens included — untouched. GET and
+       HEAD get a 301; anything else a 308, which keeps the method and the body. */
+    const moved = legacyRedirect(pathname, search);
+    if (moved) {
+      const permanent = context.request.method === 'GET' || context.request.method === 'HEAD';
+      return context.redirect(moved, permanent ? 301 : 308);
+    }
 
     /* The source language is served unprefixed, so its own prefix is not a
        route — `/it/` must not become a second copy of the whole site. */

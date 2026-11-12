@@ -2,7 +2,7 @@
  * How long a password has to be, as a plain number with no dependencies.
  *
  * Its own module, and its own export subpath, because the storefront needs these
- * in the browser: `PasswordForm.svelte` and `attiva-account.astro` both render the
+ * in the browser: `PasswordForm.svelte` and `activate-account.astro` both render the
  * number into `minlength` and gate on it before calling the API. Importing them
  * from the package root would pull valibot into the client bundle to read an
  * integer. `common.ts` builds the schemas from these, so there is still one place

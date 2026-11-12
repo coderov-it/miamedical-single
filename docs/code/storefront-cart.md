@@ -1,6 +1,6 @@
 # Storefront cart
 
-`/carrello/` — the owner's reference design (Claude Design project "Product details
+`/cart/` — the owner's reference design (Claude Design project "Product details
 page design", file `Cart.dc.html`), and the storefront's only interactive island.
 
 Read [storefront-design-system.md](./storefront-design-system.md) first; the cart is
@@ -9,7 +9,7 @@ the same reasons.
 
 ## What changed, and why it needed changing
 
-`/carrello/` used to be a **single-product request summary**: the product page
+`/cart/` used to be a **single-product request summary**: the product page
 GET-submitted one configuration into its query string and the page read it back.
 "No cart or orders endpoint" was a documented known gap.
 
@@ -29,7 +29,7 @@ PRODUCT PAGE                       localStorage "mia.cart.v1"
   ├─ "Richiedi il noleggio"                    │
   │    submit → /checkout/                     │ read on mount
   └─ "Aggiungi alla richiesta"                 ▼
-       formaction → /carrello/          CART  (CartContainer.svelte)
+       formaction → /cart/          CART  (CartContainer.svelte)
        (script intercepts and              │
         writes the store instead)          │ POST /api/cart/resolve
                                            ▼
@@ -149,7 +149,7 @@ A line stored days ago can start before today. The cart marks it and fixes it in
 
 ```text
  Today 07/10 (Rome). Stored: rollator, package 7-day, from=2026-10-05
- 1. /carrello/ loads      view.today = '2026-10-07' (resolveCart, todayInRome())
+ 1. /cart/ loads      view.today = '2026-10-07' (resolveCart, todayInRome())
                           from < today → red card, "La data di inizio è passata…",
                           a date field with min=today
  2. "Vai alla conferma"   enforceGate() → false: alert above the button,
@@ -190,9 +190,9 @@ network before repainting.
 
 ## The no-JavaScript path is a complete page, not a degraded one
 
-`/carrello/` server-renders whatever the URL carries. With scripting off,
+`/cart/` server-renders whatever the URL carries. With scripting off,
 "Aggiungi alla richiesta" is a real submit whose `formaction` points at
-`/carrello/`, so it degrades to a plain GET of the product page's form — and the
+`/cart/`, so it degrades to a plain GET of the product page's form — and the
 cart shows that product, priced, with a working POST on to the checkout. Which is
 precisely what the page did before it became a cart.
 

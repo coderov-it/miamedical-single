@@ -1,6 +1,6 @@
 /**
  * A drawn signature on a `<canvas>`, shared by the checkout's contract step (and
- * its enlarged popup) and `/firma-contratto/`. Pointer events cover mouse, pen
+ * its enlarged popup) and `/sign-contract/`. Pointer events cover mouse, pen
  * and touch in one path; the canvas carries `touch-none` so a stroke never
  * scrolls the page.
  *
