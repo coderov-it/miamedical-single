@@ -74,11 +74,17 @@
   // a save hands back an equal-but-new DTO, and reseeding on that would be a
   // no-op at best and would stamp on in-flight edits at worst.
   let seededFor = $state(untrack(() => product.id));
+
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
+    form = snapshot(product);
+    saved = snapshot(product);
+  }
+
   $effect(() => {
     if (product.id === seededFor) return;
     seededFor = product.id;
-    form = snapshot(product);
-    saved = snapshot(product);
+    discard();
   });
 
   const isDirty = $derived(!sameAsSaved(comparable(form), comparable(saved)));
@@ -169,7 +175,7 @@
   {saving}
   {error}
   onSave={save}
-  saveLabel="Save basics"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="space-y-4">
@@ -249,7 +255,6 @@
           min={0}
           disabled={!canUpdate}
           label="Stock"
-          class="w-20"
         />
         {#if fields.stock}
           <p class="mt-1 text-xs text-destructive" role="alert">{fields.stock}</p>

@@ -334,9 +334,9 @@
 
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
       {#if readOnlyAll}
-        <Button variant="outline" class="ml-auto" onclick={onClose}>Close</Button>
+        <Button variant="destructive" class="ml-auto" onclick={onClose}>Close</Button>
       {:else}
-        <Button variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
+        <Button variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
         <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
           {isEdit ? 'Save changes' : 'Create operator'}
         </BusyButton>

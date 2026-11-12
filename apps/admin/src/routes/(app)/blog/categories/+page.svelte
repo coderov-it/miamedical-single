@@ -188,7 +188,7 @@
             >
               {editId ? 'Update' : 'Create'}
             </BusyButton>
-            <Button type="button" variant="outline" onclick={resetForm}>Cancel</Button>
+            <Button type="button" variant="destructive" onclick={resetForm}>Cancel</Button>
           </div>
         </form>
       </Card.Content>

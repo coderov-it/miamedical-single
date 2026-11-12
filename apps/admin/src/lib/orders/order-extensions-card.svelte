@@ -143,7 +143,7 @@
                   Reissue contract
                 </BusyButton>
               {/if}
-              <Button size="sm" variant="ghost" onclick={() => (cancelTarget = open)}>Cancel</Button
+              <Button size="sm" variant="destructive" onclick={() => (cancelTarget = open)}>Cancel</Button
               >
             </div>
           {/if}

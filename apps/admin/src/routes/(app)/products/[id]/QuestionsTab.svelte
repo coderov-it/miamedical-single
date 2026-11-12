@@ -82,11 +82,17 @@
   let saved = $state(untrack(() => comparable(questions)));
 
   let seededFor = $state(untrack(() => product.id));
+
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
+    questions = snapshot(product);
+    saved = comparable(questions);
+  }
+
   $effect(() => {
     if (product.id === seededFor) return;
     seededFor = product.id;
-    questions = snapshot(product);
-    saved = comparable(questions);
+    discard();
   });
 
   const isDirty = $derived(!sameAsSaved(comparable(questions), saved));
@@ -166,7 +172,7 @@
   {saving}
   {error}
   onSave={save}
-  saveLabel="Save questions"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="max-w-3xl space-y-3">

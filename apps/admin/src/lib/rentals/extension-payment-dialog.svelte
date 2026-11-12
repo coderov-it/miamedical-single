@@ -169,7 +169,7 @@
       </div>
 
       <Dialog.Footer>
-        <Button type="button" variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
+        <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
         <BusyButton type="submit" busy={saving} busyLabel="Saving…">
           {signed ? 'Record & activate' : 'Record & send contract'}
         </BusyButton>
