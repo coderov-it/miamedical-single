@@ -19,6 +19,7 @@ import { multiply, sumMoney } from './mapper.ts';
 import * as cartRepo from './cart-repo.ts';
 import * as listRepo from './list-repo.ts';
 import * as repo from './repo.ts';
+import * as transitionRepo from './transition-repo.ts';
 import {
   canMoveOrder,
   canMovePayment,
@@ -158,7 +159,7 @@ async function transition(
     throw conflict(explainRejection(field === 'status' ? 'order' : 'payment', from, to, allowed));
   }
 
-  await repo.applyTransition(db, {
+  await transitionRepo.applyTransition(db, {
     orderId: id,
     field,
     fromValue: from,

@@ -48,7 +48,7 @@ export async function finish(db: Database, orderId: string, user: SessionUser): 
     db,
     orderId,
     'fulfilled',
-    'Rental finished via Rent Management.',
+    'Return confirmed via Rent Management.',
     user,
   );
 }
