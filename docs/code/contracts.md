@@ -40,7 +40,7 @@ generated → sent → viewed → signed          voided (exit, admin, with reas
    mixed order's contract adds up to its own table.
 2. **Send** — a signing token (30 days, SHA-256 at rest) is mailed via
    `contractReady`; locally `MAIL_TRANSPORT=console` prints it to the server log.
-   The link lands on the storefront's `/firma-contratto/` page. The contract row
+   The link lands on the storefront's `/sign-contract/` page. The contract row
    and the token commit first; the email goes after. Only a delivered email moves
    the contract to `sent` and writes "sent" on the timeline — a failed one leaves
    it `generated` with an `email` failure entry on the order, for the operator to

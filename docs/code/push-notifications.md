@@ -169,7 +169,7 @@ handover doc, §3.
 | `apps/server/src/infra/push/console.ts`                              | Prints the message. The only way to test without Firebase.        |
 | `apps/server/script/push-test.ts`                                    | One message by hand, printing FCM's own answer.                   |
 | `apps/server/src/modules/push/dispatch.ts`                           | The claim, the fan-out, dead-token pruning.                       |
-| `apps/server/src/modules/push/message.ts`                            | Key or sentence, the args, the tap route.                         |
+| `apps/server/src/modules/push/message.ts`                            | Key or sentence, the args, `pushData`.                            |
 | `apps/server/src/modules/push/language.ts`                           | The resolution ladder, written once.                              |
 | `apps/server/src/modules/push/routes.ts`                             | Device register/unregister, preference read/write.                |
 | `apps/server/src/modules/push/sweep.ts`                              | The one-minute retry tick.                                        |
@@ -280,7 +280,7 @@ reach. Change the key and the existing subscription survives it (the browser
 reuses what it has), so testing a second key needs the site's storage cleared.
 
 What that proves needs stating, because `buildPayload` puts the text in the
-platform blocks. `data` — `notificationId`, `type`, `route` — travels to every
+platform blocks. `data` — `notificationId`, `type`, `payload` — travels to every
 platform, so a service worker that shows a notification from it does
 demonstrate the credentials, a live token and delivery. The title, the body and
 the localisation keys do not travel with it: they live in `android.notification`

@@ -161,7 +161,7 @@ export interface CartView {
  * Something arrived in the URL.
  *
  * With JavaScript off, "Aggiungi alla richiesta" degrades to a plain GET of the
- * product page's form to `/carrello/`, so the page must be able to render a line it
+ * product page's form to `/cart/`, so the page must be able to render a line it
  * was handed rather than one it stored. The island reads the same params back into
  * storage on mount and then clears them from the URL, which is what keeps that
  * merge idempotent across a refresh.

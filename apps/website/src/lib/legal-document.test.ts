@@ -47,7 +47,7 @@ describe('renderDocument · heading anchors', () => {
   });
 
   it('touches nothing else', () => {
-    const body = '<h3>Sottosezione</h3><p>Testo con <a href="/carrello/">un link</a>.</p>';
+    const body = '<h3>Sottosezione</h3><p>Testo con <a href="/cart/">un link</a>.</p>';
     assert.equal(renderDocument(body), body);
   });
 });

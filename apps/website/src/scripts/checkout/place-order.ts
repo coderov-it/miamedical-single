@@ -12,6 +12,7 @@
  * NOT ONE PRICE IS SENT. The body carries choices only; the API prices them
  * again from the catalogue and would ignore any figure from here.
  */
+import { routes } from '../../lib/routes.ts';
 import { goToPayment, pageLanguage, retryPayment } from '../payment/client.ts';
 import type { CheckoutContext } from './context.ts';
 import {
@@ -56,7 +57,7 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
   const awaitingPanel = root.querySelector<HTMLElement>('[data-confirm-awaiting]');
   const errorPanel = root.querySelector<HTMLElement>('[data-confirm-error]');
   const uncertainPanel = root.querySelector<HTMLElement>('[data-confirm-uncertain]');
-  const resultPath = root.dataset.paymentResult ?? '/pagamento/';
+  const resultPath = root.dataset.paymentResult ?? routes.paymentResult;
   const idleLabel = cta?.textContent ?? '';
   const lock = createPlacementLock(context.orderItems);
 

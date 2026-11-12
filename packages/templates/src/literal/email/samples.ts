@@ -33,8 +33,8 @@ export const EMAIL_SAMPLES: EmailSample[] = [
         to: 'elena.moretti@example.it',
         recipient: RECIPIENT,
         order: ORDER,
-        activationUrl: `${SITE}/attiva-account/?token=sample`,
-        reportUrl: `${SITE}/segnala-ordine/?token=sample`,
+        activationUrl: `${SITE}/activate-account/?token=sample`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
       }),
   },
   {
@@ -44,8 +44,8 @@ export const EMAIL_SAMPLES: EmailSample[] = [
         to: 'elena.moretti@example.it',
         recipient: RECIPIENT,
         order: ORDER,
-        activationUrl: `${SITE}/attiva-account/?token=sample`,
-        reportUrl: `${SITE}/segnala-ordine/?token=sample`,
+        activationUrl: `${SITE}/activate-account/?token=sample`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
       }),
   },
   {
@@ -55,8 +55,8 @@ export const EMAIL_SAMPLES: EmailSample[] = [
         to: 'elena.moretti@example.it',
         recipient: RECIPIENT,
         order: ORDER,
-        ordersUrl: `${SITE}/area-clienti/ordini/`,
-        reportUrl: `${SITE}/segnala-ordine/?token=sample`,
+        ordersUrl: `${SITE}/account/orders/`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
       }),
   },
   {
@@ -64,7 +64,7 @@ export const EMAIL_SAMPLES: EmailSample[] = [
     render: () =>
       magicLink({
         to: 'elena.moretti@example.it',
-        url: `${SITE}/attiva-account/?token=sample`,
+        url: `${SITE}/activate-account/?token=sample`,
         variant: 'signIn',
       }),
   },
@@ -73,7 +73,7 @@ export const EMAIL_SAMPLES: EmailSample[] = [
     render: () =>
       magicLink({
         to: 'elena.moretti@example.it',
-        url: `${SITE}/attiva-account/?token=sample`,
+        url: `${SITE}/activate-account/?token=sample`,
         variant: 'firstSignIn',
       }),
   },
@@ -82,7 +82,7 @@ export const EMAIL_SAMPLES: EmailSample[] = [
     render: () =>
       magicLink({
         to: 'elena.moretti@example.it',
-        url: `${SITE}/attiva-account/?token=sample`,
+        url: `${SITE}/activate-account/?token=sample`,
         variant: 'register',
       }),
   },
@@ -91,7 +91,7 @@ export const EMAIL_SAMPLES: EmailSample[] = [
     render: () =>
       passwordReset({
         to: 'elena.moretti@example.it',
-        url: `${SITE}/reimposta-password/?token=sample`,
+        url: `${SITE}/reset-password/?token=sample`,
       }),
   },
   {

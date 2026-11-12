@@ -23,7 +23,7 @@ unclaimed (`activatedAt` null) until somebody redeems a link we emailed:
 3. **Register Account** — email and password. `register` does what 2 does, and
    holds the password on the link until it is clicked (below).
 
-Before the second path existed, `/accedi/` was a dead end for anyone who had not
+Before the second path existed, `/sign-in/` was a dead end for anyone who had not
 ordered: it said "check your inbox" and nothing ever arrived.
 
 ```text
@@ -34,7 +34,7 @@ ordered: it said "check your inbox" and nothing ever arrived.
       magicLink({ isFirstSignIn: true })          → "Conferma la tua email e accedi"
     ← { message: "Ti abbiamo inviato un link di accesso…" }   same answer for everyone
 
- 2. Marco clicks the link → /attiva-account/?token=…
+ 2. Marco clicks the link → /activate-account/?token=…
       redeemToken → markActivated, session cookie, optional password
 
  3. First checkout, signed in or not
@@ -59,7 +59,7 @@ disabled account gets no mail and the same answer.
 
  3. Marco clicks the link → redeemToken
       password_hash ← the token's pendingPasswordHash, activatedAt = now()
-      /attiva-account/ sees hasPassword → straight to /area-clienti/ordini/
+      /activate-account/ sees hasPassword → straight to /account/orders/
 ```
 
 Fallback — the address is already claimed or already has a password:
@@ -87,10 +87,10 @@ because they guard different things: an operator's password reaches every order
 in the shop, a customer's reaches that customer's own list and nothing else.
 
 Nobody is made to have one. Redeeming any token signs you in, so the password
-form on `/attiva-account/` carries a skip button beside it, and an account that
+form on `/activate-account/` carries a skip button beside it, and an account that
 never sets one stays magic-link only for good — `password_hash` is nullable and
 that is the normal arrival, not a broken row. The one exception is
-`/reimposta-password/`, which renders the same page with `passwordRequired`:
+`/reset-password/`, which renders the same page with `passwordRequired`:
 somebody who asked to reset a password and then skipped would have achieved
 nothing.
 
@@ -126,8 +126,8 @@ integer.
       order_report token R, expires in 30 days, order_id = MIA-…001000
 
  5. orderPlacedNewAccount email
-      "Attiva il tuo account"          → /attiva-account/?token=A
-      "Non hai effettuato tu…?"        → /segnala-ordine/?token=R
+      "Attiva il tuo account"          → /activate-account/?token=A
+      "Non hai effettuato tu…?"        → /report-order/?token=R
 
  6. Elena clicks A
       consumeAuthToken(A)              → row, consumed_at set (single use)
@@ -284,27 +284,40 @@ somebody else's inbox.
 ## Route paths are duplicated, on purpose
 
 The server builds email links from `modules/notifications/links.ts`; the storefront
-owns the same paths in `apps/website/src/lib/routes.ts`. The server cannot import
-from the website app, so they are written twice.
+owns the same paths in `PRIVATE_SEGMENTS` in `apps/website/src/lib/routes.ts`. The
+server cannot import from the website app, so they are written twice. Private paths
+are English and identical in every language, so the email links carry no
+language prefix.
 
 **Change one and you must change the other**, or every link in every account email
 404s. There is no build-time check binding them. The pairs:
 
-| Purpose                 | Path                    |
-| ----------------------- | ----------------------- |
-| Sign in                 | `/accedi/`              |
-| Account home            | `/area-clienti/`        |
-| Orders                  | `/area-clienti/ordini/` |
-| Activation + magic link | `/attiva-account/`      |
-| Password reset          | `/reimposta-password/`  |
-| Dispute report          | `/segnala-ordine/`      |
+| Purpose                 | Path                 |
+| ----------------------- | -------------------- |
+| Sign in                 | `/sign-in/`          |
+| Account home            | `/account/`          |
+| Orders                  | `/account/orders/`   |
+| Activation + magic link | `/activate-account/` |
+| Password reset          | `/reset-password/`   |
+| Dispute report          | `/report-order/`     |
+
+The paths used to be Italian (`/accedi/`, `/area-clienti/ordini/`,
+`/attiva-account/` …) and in other languages translated. Emails already sent still
+carry them, so `apps/website/src/lib/legacy-routes.ts` answers each with a 301 to the
+new path, keeping the language and the query string:
+
+```text
+/attiva-account/?token=abc                  → 301 /activate-account/?token=abc
+/fr/espace-client/commandes/MIA-2026-001042/ → 301 /fr/account/orders/MIA-2026-001042/
+/checkout/  (unchanged)                      → no redirect
+```
 
 All six are in `PRIVATE_ROUTES`, which drives `noindex` and `no-store`. The
 token-bearing pages carry a live credential in their query string, which must never
 reach a cache or an index. `no-store` is set once, in `apps/website/src/middleware.ts`,
 derived from `PRIVATE_ROUTES` — it used to be written in two page files out of eleven.
 
-The three `/area-clienti/**` routes are now one Svelte island rather than three
+The three `/account/**` routes are now one Svelte island rather than three
 pages with inline scripts; their storefront half is documented in
 [storefront-account-island.md](./storefront-account-island.md). The other three
 paths above are still ordinary Astro pages.

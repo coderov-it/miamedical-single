@@ -129,7 +129,7 @@ export function wireOrderActions(form: HTMLFormElement): OrderActions {
   });
 
   /*
-   * "Aggiungi alla richiesta" — upgraded from "navigate to /carrello/" to "write
+   * "Aggiungi alla richiesta" — upgraded from "navigate to /cart/" to "write
    * the store and stay here".
    *
    * The button is a real submit with `formaction={routes.cart}`, so with this

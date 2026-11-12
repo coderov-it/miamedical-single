@@ -23,7 +23,7 @@ storefront in `apps/website/src/scripts/payment/` and `views/payment/`.
  5. settle.ts asks Nexi            GET /orders/MIA2026001042P1 → AUTHORIZATION EXECUTED, VISA
                                    → attempt paid; order pending → paid, payment unpaid → paid
                                      timeline "Paid online by card (VISA): 30.00 EUR, nexi ref. …"
- 6. Nexi sends the browser to      /pagamento/?token=Xy3… → GET /api/payments/Xy3… → paid → ✓
+ 6. Nexi sends the browser to      /payment/?token=Xy3… → GET /api/payments/Xy3… → paid → ✓
 ```
 
 Steps 4 and 6 race. Whichever reaches `settle.ts` first settles the attempt

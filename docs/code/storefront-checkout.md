@@ -41,7 +41,7 @@ POST /checkout/
 ```
 
 The keys are English because a wire format is code, not content — nobody reads it
-but a program. (Public route paths are the opposite case and stay Italian; see the
+but a program. (Public SEO route paths are the opposite case and stay Italian; see the
 RULES section of AGENTS.md.)
 
 **The cart POSTs.** A multi-item request outgrows a URL, and none of it belongs in
