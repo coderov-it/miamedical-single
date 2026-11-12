@@ -30,6 +30,7 @@ function routesFor(account: string, orders: string, notifications: string): Acco
     catalog: '/catalogo/',
     product: '/prodotto/',
     orderDetail: `${orders}{number}/`,
+    paymentResult: '/pagamento/',
   };
 }
 

@@ -6,7 +6,7 @@
 
     1 Durata      pick a length; the summary prices it    RenewalDuration
     2 Contratto   read and sign the renewal contract      RenewalContract
-    3 Conferma    check, place (later: pay)               RenewalConfirm
+    3 Conferma    check, place, pay                       RenewalConfirm
     done          "Proroga richiesta", the card reloads
 
   A finished step collapses to its summary with "Modifica", as in checkout.
@@ -283,6 +283,7 @@
                 <RenewalConfirm
                   {number}
                   {option}
+                  currency={overview.currency}
                   signatureDataUrl={signed}
                   onplaced={placed}
                   onrejected={rejected}

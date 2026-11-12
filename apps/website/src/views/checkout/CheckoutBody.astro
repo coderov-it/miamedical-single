@@ -33,17 +33,15 @@ import type { Checkout } from '~/lib/checkout';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { t } from '~/lib/labels';
 import { productPath, routePath } from '~/lib/routes';
-import { CONTACT, CONTACT_HOURS_KEY, whatsappUrl } from '~/lib/site';
+import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
 
 interface Props {
   checkout: Checkout;
-  /** The server-built handover, already carrying every line item. */
-  handoverMessage: string;
   /** The request this page was built from, re-sent by "Riprova". */
   retry: CheckoutRetry;
 }
 
-const { checkout, handoverMessage, retry } = Astro.props;
+const { checkout, retry } = Astro.props;
 const locale = localeForRequest();
 const { items } = checkout;
 const single = items.length === 1;
@@ -108,6 +106,7 @@ function gateHref(): string {
   class="checkout px-gutter mid:pb-24 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
   data-checkout
   data-api-base={API_BASE}
+  data-payment-result={routePath(locale, 'paymentResult')}
 >
   <Breadcrumbs
     items={[
@@ -146,10 +145,8 @@ function gateHref(): string {
           </CheckoutStep>
         )}
 
-        <CheckoutStep index={confirmStep} title={t('confirmRequest')} editable={false}>
+        <CheckoutStep index={confirmStep} title={t('payAndConfirm')} editable={false}>
           <CheckoutConfirm
-            whatsappHref={whatsappUrl(handoverMessage)}
-            whatsappBase={handoverMessage}
             blocked={checkout.blocked}
             blockedItem={checkout.blockedItem}
             {retry}

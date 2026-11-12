@@ -1,6 +1,5 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
-  import BanknoteIcon from '@lucide/svelte/icons/banknote';
   import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
   import CalendarPlusIcon from '@lucide/svelte/icons/calendar-plus';
   import CheckCircleIcon from '@lucide/svelte/icons/check-circle';
@@ -120,14 +119,6 @@
   // there (record payment → contract → signed). See docs/code/rental-extensions.md.
 
   let extendTarget = $state<{ orderId: string; orderNumber: string } | undefined>(undefined);
-
-  function sendPaymentLink(_orderId: string, orderNumber: string) {
-    toast.info(`Payment link for ${orderNumber} — coming soon`);
-  }
-
-  function copyPaymentLink(_orderId: string, orderNumber: string) {
-    toast.info(`Payment link for ${orderNumber} — coming soon`);
-  }
 </script>
 
 <section class="admin-page">
@@ -314,18 +305,6 @@
                       >
                         <MailIcon class="size-4" />
                         Send reminder
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        onSelect={() => sendPaymentLink(rental.orderId, rental.orderNumber)}
-                      >
-                        <BanknoteIcon class="size-4" />
-                        Send payment link
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        onSelect={() => copyPaymentLink(rental.orderId, rental.orderNumber)}
-                      >
-                        <ClipboardIcon class="size-4" />
-                        Copy payment link
                       </DropdownMenu.Item>
                       {#if rental.contractId}
                         <DropdownMenu.Separator />

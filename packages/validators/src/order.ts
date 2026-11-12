@@ -8,6 +8,7 @@ import {
   SlugSchema,
   UuidSchema,
 } from './common.ts';
+import { LanguageCodeSchema } from './i18n.ts';
 
 export const AddressSchema = v.object({
   fullName: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(120)),
@@ -337,6 +338,8 @@ export const CheckoutDraftSchema = v.strictObject({
 export const PlaceOrderSchema = v.strictObject({
   ...CheckoutDraftSchema.entries,
   contractSignature: v.optional(ContractSignatureSchema),
+  /** The storefront language: the payment page and the page after it speak it. */
+  language: v.optional(LanguageCodeSchema),
 });
 
 export type OrderStatus = v.InferOutput<typeof OrderStatusSchema>;

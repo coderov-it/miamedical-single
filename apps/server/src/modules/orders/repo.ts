@@ -16,6 +16,7 @@ import {
 } from '@mia/db/schema';
 
 import { emitToAdmins } from '../notifications/write.ts';
+import { applyStockMoves } from './stock.ts';
 import type {
   ActorRef,
   OrderAggregate,
@@ -137,6 +138,8 @@ export interface NewOrderData {
   billingAddress: Record<string, unknown> | null;
   delivery: Record<string, unknown>;
   notes: string | null;
+  /** When it is cancelled if still unpaid; null for no deadline. */
+  paymentDueAt: Date | null;
   items: NewOrderItemData[];
 }
 
@@ -196,6 +199,8 @@ export async function insertOrder(
         billingAddress: data.billingAddress,
         delivery: data.delivery,
         notes: data.notes,
+        paymentDueAt: data.paymentDueAt,
+        stockTaken: true,
       })
       .returning({ id: orders.id, number: orders.number, placedAt: orders.placedAt });
 
@@ -212,6 +217,11 @@ export async function insertOrder(
         configuration: item.configuration,
       })),
     );
+
+    /* The units leave the shelf now, with the order, so two customers can never
+       pay for the same last one. Short stock rolls the whole order back as an
+       `out_of_stock` 409 — see stock.ts and docs/code/orders-stock.md. */
+    await applyStockMoves(tx, data.items, null, 'pending', false);
 
     /**
      * Demand, counted once per order rather than per unit — three of the same

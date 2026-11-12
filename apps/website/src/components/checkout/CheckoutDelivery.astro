@@ -163,12 +163,12 @@ function cardName(id: DeliveryMethodId): string {
         </span>
 
         {/*
-          Collection is free. Home delivery is not — it is unpriced, and this says
-          so in the two words that fit beside an amount. The sentence that explains
-          it sits in the panel below, where there is room for it.
+          Collection is free. Home delivery is paid to the carrier on the doorstep,
+          never online, and this says so in the words that fit beside an amount.
+          The sentence that explains it sits in the panel below.
         */}
         <strong class="ml-auto text-[15px] whitespace-nowrap tabular-nums">
-          {option.id === 'storePickup' ? t('free') : t('deliveryPending')}
+          {option.id === 'storePickup' ? t('free') : t('deliveryPaidToCarrier')}
         </strong>
       </button>
 

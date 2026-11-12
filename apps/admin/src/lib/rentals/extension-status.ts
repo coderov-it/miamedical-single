@@ -44,7 +44,16 @@ export const PAYMENT_METHOD_LABELS: Record<ExtensionPaymentMethod, string> = {
   other: 'Other',
 };
 
+/** Written by the payment gateway, never picked in the dialog — so not above. */
+const GATEWAY_METHOD_LABELS: Record<string, string> = {
+  card_online: 'Card (online)',
+};
+
 export function paymentMethodLabel(method: string | null): string {
   if (!method) return '—';
-  return PAYMENT_METHOD_LABELS[method as ExtensionPaymentMethod] ?? method;
+  return (
+    PAYMENT_METHOD_LABELS[method as ExtensionPaymentMethod] ??
+    GATEWAY_METHOD_LABELS[method] ??
+    method
+  );
 }

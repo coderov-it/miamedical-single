@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -156,6 +157,19 @@ export const orders = pgTable(
      */
     delivery: jsonb().$type<Record<string, unknown>>(),
     notes: text(),
+    /**
+     * When an unpaid storefront order gives up its stock and is cancelled — 60
+     * minutes for a guest, 24 hours for a signed-in customer. NULL on orders that
+     * never had a deadline: raised by an operator, or placed before online payment.
+     */
+    paymentDueAt: timestamp({ withTimezone: true }),
+    /**
+     * True while this order holds its units off the shelf before it is paid.
+     * Placement takes stock at once and sets it; an order placed before that rule
+     * has it false, so its stock is taken when it is paid instead — never twice.
+     * See docs/code/orders-stock.md.
+     */
+    stockTaken: boolean().notNull().default(false),
     placedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -167,6 +181,10 @@ export const orders = pgTable(
     index('orders_customer_account_idx').on(t.customerAccountId),
     index('orders_status_idx').on(t.status),
     index('orders_placed_at_idx').on(t.placedAt),
+    /* The expiry sweep's read: unpaid orders past their deadline. */
+    index('orders_payment_due_idx')
+      .on(t.paymentDueAt)
+      .where(sql`${t.status} = 'pending' AND ${t.paymentDueAt} IS NOT NULL`),
     /**
      * Rejecting a link clears the account id, so the two columns can never
      * disagree about whether this order still belongs to somebody.

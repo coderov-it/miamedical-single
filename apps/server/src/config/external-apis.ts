@@ -58,4 +58,13 @@ export const EXTERNAL_APIS = {
    * Google token, and it sits beside the JWT assembly it belongs to.
    */
   fcmBaseUrl: 'https://fcm.googleapis.com',
+
+  /**
+   * Nexi XPay, the card gateway — its "phoenix" REST API, v1. One host per
+   * environment; `NEXI_ENVIRONMENT` picks which, in `config/features.ts`.
+   */
+  nexiBaseUrl: {
+    sandbox: 'https://xpaysandbox.nexigroup.com/api/phoenix-0.0/psp/api/v1',
+    production: 'https://xpay.nexigroup.com/api/phoenix-0.0/psp/api/v1',
+  },
 } as const;

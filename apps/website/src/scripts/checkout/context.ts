@@ -70,7 +70,7 @@ export interface CheckoutContext {
   returnSame: HTMLInputElement | null;
   returnSameLabel: HTMLElement | null;
   returnAddressField: HTMLElement | null;
-  /** A delivery method's full name, for the review and the handover. */
+  /** A delivery method's full name, for the review. */
   deliveryName: (id: string) => string;
   /** Its short name, for the totals column. */
   deliveryShort: (id: string) => string;

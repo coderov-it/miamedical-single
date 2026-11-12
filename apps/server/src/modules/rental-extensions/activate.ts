@@ -38,7 +38,7 @@ export async function applyExtension(
   tx: Transaction,
   extension: { orderId: string; fromDate: string; toDate: string; days: number },
   from: ExtensionStatus,
-  payment: { paidNote: string; actorAdminUserId: string } | null = null,
+  payment: { paidNote: string; actorAdminUserId: string | null } | null = null,
 ): Promise<void> {
   await repo.extendRentalLines(tx, extension.orderId, extension.toDate);
   const extended = `Rental extended ${extension.fromDate} → ${extension.toDate} (${extension.days} days).`;

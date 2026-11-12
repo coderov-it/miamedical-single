@@ -50,6 +50,16 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.retry',
   'account.nav.overview',
   'breadcrumbs.label',
+  // online payment
+  'payNow',
+  'orderAwaitingPayment',
+  'account.order.payBy',
+  'openingPayment',
+  'payment.openFailed',
+  'payAndConfirm',
+  'account.extension.pendingPaymentOnline',
+  'account.renewal.paymentOnline',
+  'deliveryPaidToCarrier',
   // notifications
   'account.notifications.metaTitle',
   'account.notifications.title',
@@ -150,8 +160,6 @@ export const ACCOUNT_ISLAND_KEYS = [
   'account.renewal.confirmTitle',
   'account.renewal.period',
   'account.renewal.payment',
-  'account.renewal.paymentNote',
-  'account.renewal.submit',
   'account.renewal.doneTitle',
   'account.renewal.doneDetail',
   'contract.title',
@@ -176,7 +184,6 @@ export const ACCOUNT_ISLAND_KEYS = [
   'checkoutContract.cancelKeep',
   'orderSummary',
   'homeDeliveryShort',
-  'deliveryPending',
   'delivery',
   'total',
 ] as const;
@@ -210,6 +217,8 @@ export interface AccountRouteSet {
   product: string;
   /** `{number}` stands in for the order number the island fills in. */
   orderDetail: string;
+  /** Where the gateway returns to — "Pay now" falls back here when it is down. */
+  paymentResult: string;
 }
 
 export interface AccountCopy {
@@ -256,6 +265,7 @@ function accountRouteSet(locale: SiteLocale): AccountRouteSet {
     catalog: routePath(locale, 'catalog'),
     product: routePath(locale, 'product'),
     orderDetail: accountOrderPathTemplate(locale),
+    paymentResult: routePath(locale, 'paymentResult'),
   };
 }
 
