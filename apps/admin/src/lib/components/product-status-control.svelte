@@ -76,6 +76,7 @@
 <span bind:this={anchor} class="inline-flex">
   {#if mode === 'button'}
     <Button
+      size="sm"
       variant={buttonTarget === 'active' ? 'default' : 'outline'}
       onclick={() => ask(buttonTarget)}
     >
