@@ -250,3 +250,10 @@ Astro island's props are.
 - **A `{#if}`-remounted control needs its gate written as a thunk.**
   `controls: () => [el]`, never `controls: [el]`, or a future edit silently
   captures a dead node.
+
+## Loading plate
+
+The server cannot see the API's session cookie, so it paints a plain spinner.
+The account-shaped skeleton (`AccountSkeleton.svelte`) appears only in a browser
+that was signed in last time (`lib/signed-in-hint.ts`), so a signed-out visitor
+never sees a dashboard about to fill in before the redirect to sign-in.

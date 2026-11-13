@@ -13,6 +13,7 @@
  * visitors. That is the hazard `lib/i18n.ts` keeps an `AsyncLocalStorage` for.
  */
 import { ApiError, type Customer, loadCustomer, logout as apiLogout } from './customer-session.ts';
+import { rememberSignedIn } from './signed-in-hint.ts';
 
 export class AccountSession {
   #customer = $state<Customer | null>(null);
@@ -117,6 +118,7 @@ export class AccountSession {
    * harmless only because nothing put anything there.
    */
   redirectToLogin(): void {
+    rememberSignedIn(false);
     const here = window.location.pathname + window.location.search;
     window.location.replace(`${this.#loginPath}?next=${encodeURIComponent(here)}`);
   }
