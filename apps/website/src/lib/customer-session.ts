@@ -4,6 +4,7 @@ import type { InferResponseType } from 'hono/client';
 import { documentLocale } from '../scripts/locale.ts';
 import type { api } from './api.ts';
 import { API_BASE } from './api-base.ts';
+import { rememberSignedIn } from './signed-in-hint.ts';
 
 /**
  * The storefront's side of customer authentication.
@@ -119,21 +120,27 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
 /** `null` rather than throwing on 401 — being signed out is a normal state. */
 export async function loadCustomer(): Promise<Customer | null> {
   try {
-    return await request<Customer>('/api/customer/auth/me');
+    const customer = await request<Customer>('/api/customer/auth/me');
+    rememberSignedIn(true);
+    return customer;
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) return null;
-    throw error;
+    if (!(error instanceof ApiError) || error.status !== 401) throw error;
+    rememberSignedIn(false);
+    return null;
   }
 }
 
-export function login(email: string, password: string): Promise<Customer> {
-  return request<Customer>('/api/customer/auth/login', {
+export async function login(email: string, password: string): Promise<Customer> {
+  const customer = await request<Customer>('/api/customer/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
+  rememberSignedIn(true);
+  return customer;
 }
 
 export function logout(): Promise<void> {
+  rememberSignedIn(false);
   return request<void>('/api/customer/auth/logout', { method: 'POST' });
 }
 
@@ -165,11 +172,13 @@ export function requestPasswordReset(email: string): Promise<{ message: string }
  * account may stay magic-link only, which is a supported end state, not a
  * half-finished one.
  */
-export function redeemToken(token: string, password?: string): Promise<Customer> {
-  return request<Customer>('/api/customer/auth/token/redeem', {
+export async function redeemToken(token: string, password?: string): Promise<Customer> {
+  const customer = await request<Customer>('/api/customer/auth/token/redeem', {
     method: 'POST',
     body: JSON.stringify(password ? { token, password, confirmPassword: password } : { token }),
   });
+  rememberSignedIn(true);
+  return customer;
 }
 
 export function setPassword(input: {
