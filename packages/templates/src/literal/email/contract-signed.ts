@@ -21,12 +21,12 @@ export function contractSigned(input: {
     return {
       to: [input.to],
       subject,
-      html: `${header({ heading: subject, audience: 'customer' })}
+      html: `${header({ heading: subject, audience: 'customer', language: input.language })}
 ${paragraph({ text: `Dear ${input.customerName},` })}
 ${paragraph({ text: `Your rental contract ${input.contractNumber}${forOrderEn} has been signed successfully.` })}
 ${paragraph({ text: 'A copy of the signed contract has been sent to this email address for your records.' })}
 ${paragraph({ text: 'If you have any questions, please do not hesitate to contact us.' })}
-${footer({ audience: 'customer' })}`,
+${footer({ audience: 'customer', language: input.language })}`,
       text: textBody(
         [
           `Dear ${input.customerName},`,
@@ -38,6 +38,7 @@ ${footer({ audience: 'customer' })}`,
           'If you have any questions, please contact us.',
         ],
         'customer',
+        input.language,
       ),
     };
   }
@@ -46,12 +47,12 @@ ${footer({ audience: 'customer' })}`,
   return {
     to: [input.to],
     subject,
-    html: `${header({ heading: subject, audience: 'customer' })}
+    html: `${header({ heading: subject, audience: 'customer', language: input.language })}
 ${paragraph({ text: `Gentile ${input.customerName},` })}
 ${paragraph({ text: `Il tuo contratto di noleggio ${input.contractNumber}${forOrderIt} è stato firmato con successo.` })}
 ${paragraph({ text: 'Una copia del contratto firmato è stata inviata a questo indirizzo email per i tuoi archivi.' })}
 ${paragraph({ text: 'Per qualsiasi domanda, non esitare a contattarci.' })}
-${footer({ audience: 'customer' })}`,
+${footer({ audience: 'customer', language: input.language })}`,
     text: textBody(
       [
         `Gentile ${input.customerName},`,
@@ -63,6 +64,7 @@ ${footer({ audience: 'customer' })}`,
         'Per qualsiasi domanda, non esitare a contattarci.',
       ],
       'customer',
+      input.language,
     ),
   };
 }

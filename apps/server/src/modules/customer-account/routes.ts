@@ -111,10 +111,10 @@ export const customerAccountRoutes = new Hono<AppEnv>()
 
   /** --------------------------------------------------------------------------
   PATCH /api/customer/profile (customer)
-  Edits the customer's own name and phone; never their email.
+  Edits the customer's own name, phone and email language; never their email.
   -------------------------------------------------------------------------- **/
   /**
-   * Name and phone only. Email is absent from the schema, not merely ignored:
+   * Name, phone and language only. Email is absent from the schema, not merely ignored:
    * accepting a new address without re-verifying it would hand over every future
    * magic link to whoever typed it.
    */

@@ -1,6 +1,7 @@
 import type { Database, DatabaseWriter } from '@mia/db';
 import { and, eq, gt, inArray, isNull, lt, ne, sql } from '@mia/db';
 import { customerAccounts, customerAuthTokens, customerSessions } from '@mia/db/schema';
+import type { LanguageCode } from '@mia/validators/language';
 
 import type {
   AuthTokenPurpose,
@@ -66,7 +67,12 @@ export async function createOrGetByEmail(
 export async function updateProfile(
   db: Database,
   id: string,
-  patch: { firstName?: string; lastName?: string; phone?: string | null },
+  patch: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    language?: LanguageCode | undefined;
+  },
 ): Promise<void> {
   await db.update(customerAccounts).set(patch).where(eq(customerAccounts.id, id));
 }
@@ -77,6 +83,27 @@ export async function updatePasswordHash(
   passwordHash: string,
 ): Promise<void> {
   await db.update(customerAccounts).set({ passwordHash }).where(eq(customerAccounts.id, id));
+}
+
+/** The customer's own choice, or a signed-in page's language: overwrites. */
+export async function setLanguage(
+  db: DatabaseWriter,
+  id: string,
+  language: LanguageCode,
+): Promise<void> {
+  await db.update(customerAccounts).set({ language }).where(eq(customerAccounts.id, id));
+}
+
+/** A signed-out request's language: kept only when the account has none yet. */
+export async function fillLanguage(
+  db: DatabaseWriter,
+  id: string,
+  language: LanguageCode,
+): Promise<void> {
+  await db
+    .update(customerAccounts)
+    .set({ language })
+    .where(and(eq(customerAccounts.id, id), isNull(customerAccounts.language)));
 }
 
 export async function markActivated(db: DatabaseWriter, id: string): Promise<void> {
@@ -248,6 +275,34 @@ export async function findFreshUnconsumedToken(
       gt(customerAuthTokens.createdAt, new Date(Date.now() - withinMs)),
     ),
   });
+}
+
+/**
+ * The language of the account behind a live emailed link, without spending it —
+ * what the storefront reads to open the link's page in the reader's language.
+ * `undefined` for a spent, expired or unknown link; `null` for an account that
+ * never stated one.
+ */
+export async function findLanguageByLiveToken(
+  db: Database,
+  tokenHash: string,
+  purposes: readonly AuthTokenPurpose[],
+): Promise<{ language: LanguageCode | null } | undefined> {
+  const [row] = await db
+    .select({ language: customerAccounts.language })
+    .from(customerAuthTokens)
+    .innerJoin(customerAccounts, eq(customerAuthTokens.customerAccountId, customerAccounts.id))
+    .where(
+      and(
+        eq(customerAuthTokens.id, tokenHash),
+        isNull(customerAuthTokens.consumedAt),
+        gt(customerAuthTokens.expiresAt, new Date()),
+        inArray(customerAuthTokens.purpose, [...purposes]),
+        isNull(customerAccounts.deletedAt),
+      ),
+    )
+    .limit(1);
+  return row;
 }
 
 export async function deleteExpiredAuthTokens(db: Database): Promise<number> {

@@ -68,13 +68,19 @@
   let savedPackages = $state(untrack(() => comparable(packages)));
 
   let seededFor = $state(untrack(() => product.id));
-  $effect(() => {
-    if (product.id === seededFor) return;
-    seededFor = product.id;
+
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
     form = snapshot(product);
     saved = snapshot(product);
     packages = product.rentalPackages.map(toEdit);
     savedPackages = comparable(packages);
+  }
+
+  $effect(() => {
+    if (product.id === seededFor) return;
+    seededFor = product.id;
+    discard();
   });
 
   const isRental = $derived(product.pricingMode === 'rental');
@@ -180,7 +186,7 @@
   {saving}
   {error}
   onSave={save}
-  saveLabel="Save pricing"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="space-y-6">

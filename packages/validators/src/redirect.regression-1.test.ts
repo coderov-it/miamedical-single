@@ -7,13 +7,13 @@ import { describe, it } from 'node:test';
 
 import { safeRedirectPath } from './redirect.ts';
 
-const FALLBACK = '/area-clienti/';
+const FALLBACK = '/account/';
 
 describe('safeRedirectPath', () => {
   it('keeps a same-site path with its query and hash', () => {
     assert.equal(
-      safeRedirectPath('/area-clienti/ordini/?page=2#top', FALLBACK),
-      '/area-clienti/ordini/?page=2#top',
+      safeRedirectPath('/account/orders/?page=2#top', FALLBACK),
+      '/account/orders/?page=2#top',
     );
   });
 
@@ -29,7 +29,7 @@ describe('safeRedirectPath', () => {
     '/\\evil.example',
     '/\t/evil.example',
     '/\n/evil.example',
-    'https://evil.example/area-clienti/',
+    'https://evil.example/account/',
     'javascript:alert(1)',
   ]) {
     it(`refuses ${JSON.stringify(raw)}`, () => {

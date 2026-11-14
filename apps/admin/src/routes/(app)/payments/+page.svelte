@@ -1,8 +1,6 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
   import BanknoteIcon from '@lucide/svelte/icons/banknote';
-  import ClipboardIcon from '@lucide/svelte/icons/clipboard';
-  import CreditCardIcon from '@lucide/svelte/icons/credit-card';
   import DownloadIcon from '@lucide/svelte/icons/download';
   import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
   import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
@@ -109,14 +107,6 @@
     } finally {
       exporting = false;
     }
-  }
-
-  function sendPaymentLink(_orderId: string, orderNumber: string) {
-    toast.info(`Payment link for ${orderNumber} — coming soon`);
-  }
-
-  function copyPaymentLink(_orderId: string, orderNumber: string) {
-    toast.info(`Payment link for ${orderNumber} — coming soon`);
   }
 
   async function markAsPaid(orderId: string, orderNumber: string) {
@@ -344,18 +334,6 @@
                     >
                       <ExternalLinkIcon class="size-4" />
                       View order
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      onSelect={() => sendPaymentLink(payment.orderId, payment.orderNumber)}
-                    >
-                      <CreditCardIcon class="size-4" />
-                      Send payment link
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      onSelect={() => copyPaymentLink(payment.orderId, payment.orderNumber)}
-                    >
-                      <ClipboardIcon class="size-4" />
-                      Copy payment link
                     </DropdownMenu.Item>
                     {#if payment.paymentStatus !== 'paid' && payment.paymentStatus !== 'refunded' && session.can(P.ORDER_UPDATE)}
                       <DropdownMenu.Separator />

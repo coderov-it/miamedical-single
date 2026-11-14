@@ -31,7 +31,7 @@ import { db } from '../src/infra/db/client.ts';
 import { buildPayload, FcmPushSender } from '../src/infra/push/fcm.ts';
 import type { PushAlert, PushMessage, PushResult } from '../src/infra/push/port.ts';
 import { deviceLanguage } from '../src/modules/push/language.ts';
-import { buildAlert, LOCALIZED_STRINGS_SINCE, tapRoute } from '../src/modules/push/message.ts';
+import { buildAlert, LOCALIZED_STRINGS_SINCE, pushData } from '../src/modules/push/message.ts';
 import * as repo from '../src/modules/push/repo.ts';
 
 const DEFAULT_TYPE = 'order.status_changed';
@@ -261,16 +261,11 @@ async function main(): Promise<number> {
   const sample = SAMPLES[type];
   const language = deviceLanguage(values.language, null);
   const alert = buildAlert({ type, data: sample, appVersion, language });
-  const route = tapRoute(type, sample);
 
   /* The same keys `dispatch.ts` puts on every message, from a stand-in id: the app
-     uses `notificationId` to open the row and `route` to know where it lands, so a
-     message without them would test a payload nobody sends. */
-  const data: Record<string, string> = {
-    notificationId: randomUUID(),
-    type,
-    ...(route ? { route } : {}),
-  };
+     uses `notificationId` to open the row and `type` + `payload` to build its own
+     screen, so a message without them would test a payload nobody sends. */
+  const data = pushData(randomUUID(), type, sample);
   const message: PushMessage = { token, alert, data };
   const payload = buildPayload(message);
 
@@ -279,7 +274,7 @@ async function main(): Promise<number> {
     console.log('  token     throwaway: nothing can be delivered to it');
   }
   console.log(`  transport ${dryRun ? 'FCM, validate_only (no delivery)' : 'FCM'}`);
-  console.log(`  route     ${route ?? 'none'}`);
+  console.log(`  payload   ${data.payload}`);
   console.log(alertLines(alert).join('\n'));
 
   if (!mayPush(type, null)) {

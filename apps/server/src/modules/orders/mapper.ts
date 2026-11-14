@@ -193,7 +193,10 @@ export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
  * omitted: the checkout renders a totals block, and a missing field would read as
  * an unknown amount instead of one that does not apply.
  */
-export function toPlacedOrder(placed: PlacedOrder): PlacedOrderDto {
+export function toPlacedOrder(
+  placed: PlacedOrder,
+  payment: PlacedOrderDto['payment'],
+): PlacedOrderDto {
   return {
     number: placed.number,
     status: 'pending',
@@ -209,6 +212,7 @@ export function toPlacedOrder(placed: PlacedOrder): PlacedOrderDto {
     itemCount: placed.items.length,
     placedAt: iso(placed.placedAt),
     accountInvite: placed.accountInvite,
+    payment,
   };
 }
 

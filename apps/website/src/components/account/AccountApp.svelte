@@ -1,7 +1,7 @@
 <!--
   The customer area, as one island.
 
-  Mounted by the thin shims under pages/area-clienti/**, which each state the
+  Mounted by the thin shims under pages/account/**, which each state the
   screen their URL names. It owns the session, the router and the order cache;
   the screens under it own only what they look like.
 
@@ -20,6 +20,7 @@
   import { AccountStore } from '~/lib/account-state.svelte';
   import { NotificationStore } from '~/lib/notifications.svelte';
   import { RenewalLauncher } from '~/lib/renewal-launcher.svelte';
+  import { wasSignedIn } from '~/lib/signed-in-hint';
 
   import AccountShell from './AccountShell.svelte';
   import AccountSkeleton from './AccountSkeleton.svelte';
@@ -48,6 +49,15 @@
   setAccountContext({ copy, router, session, orders, notifications, renewal });
 
   let screenEl = $state<HTMLElement>();
+
+  /* Which loading plate to show. The server cannot see the API's cookie, so it
+     paints the plain spinner; the browser swaps in the account-shaped skeleton
+     only for someone signed in here before. A visitor must never see a
+     dashboard about to fill in — see lib/signed-in-hint.ts. */
+  let expectSignedIn = $state(false);
+  $effect(() => {
+    expectSignedIn = wasSignedIn();
+  });
 
   /* Read once into a local: `{@const}` is not legal as a child of a plain
      element, and narrowing `router.screen.name` inline across a getter does
@@ -127,9 +137,17 @@
   });
 </script>
 
-{#if session.loading}
-  <!-- The server-rendered first paint, until the session settles. -->
+{#if session.loading && expectSignedIn}
   <AccountSkeleton label={say(copy, 'account.loading')} screen={screen.name} />
+{:else if session.loading}
+  <!-- The server-rendered first paint: nothing account-shaped until we know. -->
+  <div class="bg-page flex min-h-[60vh] items-center justify-center">
+    <p class="sr-only" role="status">{say(copy, 'account.loading')}</p>
+    <div
+      aria-hidden="true"
+      class="border-hair border-t-ink size-8 animate-spin rounded-full border-[3px] motion-reduce:animate-none"
+    ></div>
+  </div>
 {:else if session.customer}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div bind:this={screenEl} tabindex="-1" class="outline-none">

@@ -17,6 +17,7 @@
 
   import AccountLink from './AccountLink.svelte';
   import AccountSection from './AccountSection.svelte';
+  import OrderPayPanel from './OrderPayPanel.svelte';
   import OrderStatusPill from './OrderStatusPill.svelte';
   import RentalExtensionPanel from './RentalExtensionPanel.svelte';
   import { CARD } from './fields';
@@ -54,10 +55,9 @@
   }
 
   /**
-   * A home delivery still at zero has not been agreed yet, not given away:
-   * nothing prices delivery, so an order is placed at 0,00 € and stays there
-   * until somebody writes down what was settled on the phone. Printing
-   * "0,00 €" would tell the customer their delivery is free. A collection
+   * A home delivery at zero is not free: it is paid to the carrier on the
+   * doorstep, outside the online payment, so the row says that instead of
+   * "0,00 €". An amount an operator recorded shows as itself. A collection
    * genuinely is free.
    */
   function deliveryAmount(detail: CustomerOrderDetail): string {
@@ -65,7 +65,7 @@
     if (settled || detail.delivery?.method !== 'homeDelivery') {
       return formatMoney(detail.totals.shippingTotal, detail.totals.currency);
     }
-    return say(copy, 'deliveryPending');
+    return say(copy, 'deliveryPaidToCarrier');
   }
 
   function addressLine(detail: CustomerOrderDetail): string {
@@ -97,6 +97,8 @@
         {fill(say(copy, 'account.order.placedOn'), { date: formatDate(order.placedAt) })}
       </p>
     </div>
+
+    <OrderPayPanel {order} />
 
     <AccountSection class="mt-5" title={say(copy, 'orderSummary')}>
       <ul>

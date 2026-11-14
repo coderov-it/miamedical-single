@@ -1,20 +1,39 @@
-import { button } from './component/button.ts';
-import { footer } from './component/footer.ts';
-import { header } from './component/header.ts';
+import type { EmailLanguage, Translated } from './component/language.ts';
 import type { EmailMessage } from './component/message.ts';
-import { greeting, orderLine, type OrderRef, type Recipient } from './component/order.ts';
-import { paragraph } from './component/paragraph.ts';
-import { reportLink } from './component/report-link.ts';
-import { subheading } from './component/subheading.ts';
-import { reportLinkText, textBody } from './component/text.ts';
+import type { OrderRef, Recipient } from './component/order.ts';
+import { orderEmail, type OrderEmailSection } from './component/order-email.ts';
 
 /**
  * The account is already theirs, so this is a plain confirmation. It still carries the
- * report link — see `report-link.ts` for why all three order emails do.
+ * report link — see `component/report-link.ts` for why all three order emails do.
  */
 
-const ORDER_SECTION = 'Il tuo ordine';
-const TRACK_SECTION = 'Segui il tuo ordine';
+const COPY: Translated<Omit<OrderEmailSection, 'href'>> = {
+  it: {
+    title: 'Segui il tuo ordine',
+    body: 'Trovi questo ordine e tutti i precedenti nella tua area clienti.',
+    textLead: 'Trovi questo ordine e tutti i precedenti qui:',
+    label: 'Vedi i tuoi ordini',
+  },
+  en: {
+    title: 'Follow your order',
+    body: 'You will find this order and all earlier ones in your customer area.',
+    textLead: 'You will find this order and all earlier ones here:',
+    label: 'See your orders',
+  },
+  fr: {
+    title: 'Suivez votre commande',
+    body: 'Vous retrouverez cette commande et toutes les précédentes dans votre espace client.',
+    textLead: 'Vous retrouverez cette commande et toutes les précédentes ici :',
+    label: 'Voir vos commandes',
+  },
+  de: {
+    title: 'Verfolgen Sie Ihre Bestellung',
+    body: 'Diese und alle früheren Bestellungen finden Sie in Ihrem Kundenbereich.',
+    textLead: 'Diese und alle früheren Bestellungen finden Sie hier:',
+    label: 'Ihre Bestellungen ansehen',
+  },
+};
 
 export function orderPlacedConfirmation(input: {
   to: string;
@@ -22,39 +41,10 @@ export function orderPlacedConfirmation(input: {
   order: OrderRef;
   ordersUrl: string;
   reportUrl: string;
+  language: EmailLanguage;
 }): EmailMessage {
-  const subject = `Abbiamo ricevuto il tuo ordine ${input.order.number}`;
-  const line = orderLine(input.order);
-
-  return {
-    to: [input.to],
-    subject,
-    html: `${header({ heading: subject, audience: 'customer' })}
-${paragraph({ text: greeting(input.recipient) })}
-${paragraph({ text: 'Grazie, abbiamo ricevuto il tuo ordine e lo stiamo preparando.' })}
-${subheading({ text: ORDER_SECTION })}
-${paragraph({ text: line })}
-${subheading({ text: TRACK_SECTION })}
-${paragraph({ text: 'Trovi questo ordine e tutti i precedenti nella tua area clienti.' })}
-${button({ href: input.ordersUrl, label: 'Vedi i tuoi ordini' })}
-${reportLink({ reportUrl: input.reportUrl })}
-${footer({ audience: 'customer' })}`,
-    text: textBody(
-      [
-        greeting(input.recipient),
-        '',
-        'Grazie, abbiamo ricevuto il tuo ordine e lo stiamo preparando.',
-        '',
-        ORDER_SECTION.toUpperCase(),
-        line,
-        '',
-        TRACK_SECTION.toUpperCase(),
-        'Trovi questo ordine e tutti i precedenti qui:',
-        input.ordersUrl,
-        '',
-        reportLinkText({ reportUrl: input.reportUrl }),
-      ],
-      'customer',
-    ),
-  };
+  return orderEmail({
+    ...input,
+    section: { ...COPY[input.language], href: input.ordersUrl },
+  });
 }

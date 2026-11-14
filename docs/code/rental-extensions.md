@@ -29,8 +29,9 @@ extend-offer notification, and the offer email's `?renew=1` link.
  6. Oct 13, sweep                  → offered again: the span restarts at the extension
 ```
 
-When online payment exists, step 3's button becomes the payment and step 5
-happens on the provider's confirmation instead of the operator's click.
+Online now: step 3's button is "Pay and Confirm", and step 5 happens on the
+payment gateway's confirmation instead of the operator's click (method
+`card_online`). See `docs/code/online-payments.md`.
 
 ## Raised by an operator
 

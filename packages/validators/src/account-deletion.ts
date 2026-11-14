@@ -1,5 +1,7 @@
 import * as v from 'valibot';
 
+import { LanguageCodeSchema } from './i18n.ts';
+
 /**
  * The public profile-deletion flow — `modules/account-deletion` on the server,
  * `/delete-profile/` on the storefront.
@@ -23,6 +25,8 @@ export const DeletionCodeSchema = v.pipe(
 
 export const RequestAccountDeletionSchema = v.strictObject({
   identifier: AccountIdentifierSchema,
+  /** The page's language — the code email is written in it. */
+  language: v.optional(LanguageCodeSchema),
 });
 
 export const VerifyAccountDeletionSchema = v.strictObject({

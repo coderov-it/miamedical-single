@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 
 import { CustomerPasswordSchema, CustomerPhoneSchema, EmailSchema } from './common.ts';
+import { LanguageCodeSchema } from './i18n.ts';
 
 /**
  * Storefront account contracts, shared by the server and the storefront islands.
@@ -13,12 +14,23 @@ import { CustomerPasswordSchema, CustomerPhoneSchema, EmailSchema } from './comm
  * and protects nothing.
  */
 
+/**
+ * The language of the page a request came from. Optional so an older client
+ * keeps working; the email it triggers is written in it, and the account keeps
+ * it as described in `modules/customer-auth/language.ts`.
+ */
+const PageLanguage = v.optional(LanguageCodeSchema);
+
 /** An opaque emailed token. Length is not asserted: only redemption can judge it. */
 export const AuthTokenSchema = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(256));
+
+/** `?token=` for the link-language lookup — the storefront's redirect reads it. */
+export const TokenLanguageQuerySchema = v.strictObject({ token: AuthTokenSchema });
 
 export const CustomerLoginSchema = v.strictObject({
   email: EmailSchema,
   password: v.pipe(v.string(), v.minLength(1, 'Password is required.')),
+  language: PageLanguage,
 });
 
 /**
@@ -28,13 +40,14 @@ export const CustomerLoginSchema = v.strictObject({
 export const RegisterCustomerSchema = v.strictObject({
   email: EmailSchema,
   password: CustomerPasswordSchema,
+  language: PageLanguage,
 });
 
 /**
  * Requesting a magic link or a reset. The response never depends on whether the
  * address exists, so these carry no other field to leak one.
  */
-export const EmailOnlySchema = v.strictObject({ email: EmailSchema });
+export const EmailOnlySchema = v.strictObject({ email: EmailSchema, language: PageLanguage });
 
 /**
  * Redeeming an activation, magic-link or reset token.
@@ -48,6 +61,7 @@ export const RedeemAuthTokenSchema = v.pipe(
     token: AuthTokenSchema,
     password: v.optional(CustomerPasswordSchema),
     confirmPassword: v.optional(v.string()),
+    language: PageLanguage,
   }),
   v.forward(
     v.partialCheck(
@@ -91,7 +105,16 @@ export const UpdateCustomerProfileSchema = v.strictObject({
   firstName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
   lastName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
   phone: CustomerPhoneSchema,
+  /** The language emails are written in. Absent leaves it unchanged. */
+  language: v.optional(LanguageCodeSchema),
 });
+
+/**
+ * The customer's language, on its own — what the storefront's language switcher
+ * saves for a signed-in customer.
+ */
+export const SetCustomerLanguageSchema = v.strictObject({ language: LanguageCodeSchema });
+export type SetCustomerLanguageInput = v.InferOutput<typeof SetCustomerLanguageSchema>;
 
 /**
  * The "I did not place this order" report. The token is the authorisation, so no

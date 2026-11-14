@@ -87,7 +87,7 @@ export async function getSigningLink(db: Database, id: string): Promise<string> 
     expiresAt: tokenExpiry(),
   });
 
-  return links.contractSigningUrl(token.raw);
+  return links.contractSigningUrl(token.raw, asContractLanguage(contract.language));
 }
 
 export async function updatePeriodAndResend(

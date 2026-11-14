@@ -361,7 +361,7 @@
     {/if}
 
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
-      <Button variant="ghost" disabled={saving} onclick={() => (editing = null)}>Cancel</Button>
+      <Button variant="destructive" disabled={saving} onclick={() => (editing = null)}>Cancel</Button>
       <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
         {editing?.id ? 'Save changes' : 'Create document'}
       </BusyButton>

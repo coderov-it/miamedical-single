@@ -26,6 +26,11 @@ import { notificationAdminRoutes } from './modules/notifications/admin-routes.ts
 import { notificationCustomerRoutes } from './modules/notifications/customer-routes.ts';
 import { notificationPreferenceRoutes, pushDeviceRoutes } from './modules/push/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
+import {
+  paymentCustomerRoutes,
+  paymentPublicRoutes,
+  paymentWebhookRoutes,
+} from './modules/payments/online-routes.ts';
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import {
@@ -90,6 +95,8 @@ const routes = app
   .route('/api/terms', termsPublicRoutes)
   .route('/api/legal', legalPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
+  .route('/api/payments', paymentPublicRoutes)
+  .route('/api/webhooks/payments', paymentWebhookRoutes)
   .route('/api/order-disputes', orderDisputePublicRoutes)
   .route('/api/customer/auth', customerAuthRoutes)
   /* Before the bare `/api/customer` mount, matching how `auth` sits above it:
@@ -100,6 +107,7 @@ const routes = app
   .route('/api/customer/push', pushDeviceRoutes)
   .route('/api/customer/account-deletion', accountDeletionRoutes)
   .route('/api/customer/rental-extensions', rentalExtensionCustomerRoutes)
+  .route('/api/customer/payments', paymentCustomerRoutes)
   .route('/api/customer', customerAccountRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)

@@ -14,6 +14,8 @@
  * offline — is checked by the caller before this runs.
  */
 
+import type { PaymentStart } from '../payment/client.ts';
+
 export interface PlacedOrder {
   number: string;
   totals: { total: string; currency: string };
@@ -23,13 +25,18 @@ export interface PlacedOrder {
    * activated is something only the server knows — so it is told.
    */
   accountInvite: 'activate' | null;
+  /** Where to pay. Null only when the API runs with no gateway (development). */
+  payment: PaymentStart | null;
 }
 
 export type SubmitOutcome =
   /** `order` is null when the order exists but its body could not be read. */
   | { kind: 'placed'; order: PlacedOrder | null }
-  /** Server field paths (`customer.email`) → its message. Empty when none. */
-  | { kind: 'rejected'; fields: Record<string, string> }
+  /**
+   * Server field paths (`customer.email`) → its message. Empty when none.
+   * `outOfStock` names the product the shelf could not cover.
+   */
+  | { kind: 'rejected'; fields: Record<string, string>; outOfStock: string | null }
   | { kind: 'uncertain' };
 
 /**
@@ -48,20 +55,32 @@ async function readOrder(response: Response): Promise<PlacedOrder | null> {
   }
 }
 
+interface ErrorEnvelope {
+  error?: { code?: unknown; fields?: unknown; product?: unknown };
+}
+
 /** `{ error: { fields } }`, the envelope `validate()` and `reject()` share. */
+function fieldsOf(payload: ErrorEnvelope | null): Record<string, string> {
+  const fields = payload?.error?.fields;
+  if (typeof fields !== 'object' || fields === null) return {};
+  return Object.fromEntries(
+    Object.entries(fields).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
+  );
+}
+
 export async function readFields(response: Response): Promise<Record<string, string>> {
-  try {
-    const payload = (await response.json()) as { error?: { fields?: unknown } };
-    const fields = payload.error?.fields;
-    if (typeof fields !== 'object' || fields === null) return {};
-    return Object.fromEntries(
-      Object.entries(fields).filter(
-        (entry): entry is [string, string] => typeof entry[1] === 'string',
-      ),
-    );
-  } catch {
-    return {};
-  }
+  return fieldsOf((await response.json().catch(() => null)) as ErrorEnvelope | null);
+}
+
+/** The refusal, with the product named when the shelf ran out (`out_of_stock`). */
+async function readRejection(response: Response): Promise<SubmitOutcome> {
+  const payload = (await response.json().catch(() => null)) as ErrorEnvelope | null;
+  const error = payload?.error;
+  const product = typeof error?.product === 'string' ? error.product : '';
+  const outOfStock = error?.code === 'out_of_stock' ? product : null;
+  return { kind: 'rejected', fields: fieldsOf(payload), outOfStock };
 }
 
 export async function submitOrder(apiBase: string, body: unknown): Promise<SubmitOutcome> {
@@ -89,5 +108,5 @@ export async function submitOrder(apiBase: string, body: unknown): Promise<Submi
 
   if (response.ok) return { kind: 'placed', order: await readOrder(response) };
   if (response.status >= 500) return { kind: 'uncertain' };
-  return { kind: 'rejected', fields: await readFields(response) };
+  return readRejection(response);
 }

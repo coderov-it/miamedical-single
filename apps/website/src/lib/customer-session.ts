@@ -1,9 +1,10 @@
 import { safeRedirectPath } from '@mia/validators/redirect';
 import type { InferResponseType } from 'hono/client';
 
-import { documentLocale } from '../scripts/locale.ts';
+import { documentLocale, pageLanguage } from '../scripts/locale.ts';
 import type { api } from './api.ts';
 import { API_BASE } from './api-base.ts';
+import { rememberSignedIn } from './signed-in-hint.ts';
 
 /**
  * The storefront's side of customer authentication.
@@ -119,21 +120,27 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
 /** `null` rather than throwing on 401 — being signed out is a normal state. */
 export async function loadCustomer(): Promise<Customer | null> {
   try {
-    return await request<Customer>('/api/customer/auth/me');
+    const customer = await request<Customer>('/api/customer/auth/me');
+    rememberSignedIn(true);
+    return customer;
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) return null;
-    throw error;
+    if (!(error instanceof ApiError) || error.status !== 401) throw error;
+    rememberSignedIn(false);
+    return null;
   }
 }
 
-export function login(email: string, password: string): Promise<Customer> {
-  return request<Customer>('/api/customer/auth/login', {
+export async function login(email: string, password: string): Promise<Customer> {
+  const customer = await request<Customer>('/api/customer/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, language: pageLanguage() }),
   });
+  rememberSignedIn(true);
+  return customer;
 }
 
 export function logout(): Promise<void> {
+  rememberSignedIn(false);
   return request<void>('/api/customer/auth/logout', { method: 'POST' });
 }
 
@@ -141,7 +148,7 @@ export function logout(): Promise<void> {
 export function requestMagicLink(email: string): Promise<{ message: string }> {
   return request('/api/customer/auth/magic-link', {
     method: 'POST',
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, language: pageLanguage() }),
   });
 }
 
@@ -149,14 +156,14 @@ export function requestMagicLink(email: string): Promise<{ message: string }> {
 export function register(email: string, password: string): Promise<{ message: string }> {
   return request('/api/customer/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, language: pageLanguage() }),
   });
 }
 
 export function requestPasswordReset(email: string): Promise<{ message: string }> {
   return request('/api/customer/auth/password-reset', {
     method: 'POST',
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, language: pageLanguage() }),
   });
 }
 
@@ -165,10 +172,28 @@ export function requestPasswordReset(email: string): Promise<{ message: string }
  * account may stay magic-link only, which is a supported end state, not a
  * half-finished one.
  */
-export function redeemToken(token: string, password?: string): Promise<Customer> {
-  return request<Customer>('/api/customer/auth/token/redeem', {
+export async function redeemToken(token: string, password?: string): Promise<Customer> {
+  const customer = await request<Customer>('/api/customer/auth/token/redeem', {
     method: 'POST',
-    body: JSON.stringify(password ? { token, password, confirmPassword: password } : { token }),
+    body: JSON.stringify({
+      token,
+      language: pageLanguage(),
+      ...(password ? { password, confirmPassword: password } : {}),
+    }),
+  });
+  rememberSignedIn(true);
+  return customer;
+}
+
+/**
+ * Saves the language a signed-in customer is written to in. `keepalive` lets the
+ * language switcher fire it and navigate in the same moment.
+ */
+export function saveLanguage(language: string): Promise<{ ok: boolean }> {
+  return request('/api/customer/auth/language', {
+    method: 'PUT',
+    body: JSON.stringify({ language }),
+    keepalive: true,
   });
 }
 
@@ -190,6 +215,7 @@ export function updateProfile(input: {
   firstName: string;
   lastName: string;
   phone: string;
+  language: string;
 }): Promise<Customer> {
   return request<Customer>('/api/customer/profile', {
     method: 'PATCH',

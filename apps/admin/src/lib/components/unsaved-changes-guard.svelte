@@ -75,7 +75,7 @@
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel>Stay on this page</AlertDialog.Cancel>
+      <AlertDialog.Cancel variant="outline">Stay on this page</AlertDialog.Cancel>
       <AlertDialog.Action onclick={discard}>Discard changes</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

@@ -1,24 +1,19 @@
 /**
- * The last step: record the order, then hand the conversation to WhatsApp.
+ * The last step: place the order, then go and pay for it.
  *
- * TWO PATHS, and the second is not a fallback. The CTA is an `<a>` pointing at a
- * `wa.me` link the SERVER already filled with the line items, so with no
- * JavaScript the customer still reaches a human with their whole request
- * attached. With JavaScript it records the order first and the handover moves to
- * the panel that appears afterwards, now carrying the order number — so the
- * navigation is cancelled rather than followed.
+ *   "Pay and Confirm" → POST /api/orders → 201 { number, payment }
+ *                     → "Opening the payment page…" → the gateway's page
  *
- * NOT ONE PRICE IS SENT. The body carries choices only — a slug, option values,
- * dates, a quantity — because the API prices them again from the catalogue and
- * would ignore any figure from here. That is also why it is safe for the line
- * items to sit in the page as readable JSON: the worst a reader can do by editing
- * them is order something else at that thing's real price.
+ * The order is written BEFORE the customer pays, holding its stock, so the
+ * page remembers it (placement-lock.ts): a back button from the gateway, a
+ * reload, or a second tab finds "waiting for payment" with a "Pay now" — never
+ * a form that would place it twice. Flow: docs/code/online-payments.md.
  *
- * ONE ORDER PER CHECKOUT. Which clicks may send, and what each failure is
- * allowed to offer afterwards, is the state machine in `placement-lock.ts`.
- * This file only drives it and paints its four phases.
+ * NOT ONE PRICE IS SENT. The body carries choices only; the API prices them
+ * again from the catalogue and would ignore any figure from here.
  */
-import { documentLocale } from '../locale';
+import { routes } from '../../lib/routes.ts';
+import { goToPayment, pageLanguage, retryPayment } from '../payment/client.ts';
 import type { CheckoutContext } from './context.ts';
 import {
   clearOrderedCartLines,
@@ -29,8 +24,6 @@ import { draftBody } from './order-body.ts';
 import { type PlacedOrder, submitOrder } from './submit-order.ts';
 
 export interface PlaceOrder {
-  /** Fills the no-JavaScript handover link with what has been typed so far. */
-  refreshHandover: () => void;
   /**
    * Paints whatever is remembered for this checkout — a reload, a back button,
    * a tab opened before another placed it. Call once the stepper exists.
@@ -45,15 +38,11 @@ export interface PlaceOrderOptions {
    * focused — and false when none does, so the generic failure is shown.
    */
   onRejected: (fields: Record<string, string>) => boolean;
-  /**
-   * A remembered outcome took over the page (on load, or written by another
-   * tab). The caller opens step 3, where its panel lives.
-   */
+  /** A remembered outcome took over the page. The caller opens the last step. */
   onAdopted: () => void;
   /**
    * Runs before anything is sent. False means the order is not ready to go —
-   * the caller has already said why and where (the contract step reopened and
-   * marked), so placement simply does not start.
+   * the caller has already said why and where.
    */
   canPlace: () => boolean;
   /** `{ contractSignature }` on a rental, `{}` on a sale. */
@@ -61,70 +50,17 @@ export interface PlaceOrderOptions {
 }
 
 export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOptions): PlaceOrder {
-  const { root, state, value, label } = context;
+  const { root, state, label } = context;
 
-  const cta = root.querySelector<HTMLAnchorElement>('[data-place-order]');
+  const cta = root.querySelector<HTMLButtonElement>('[data-place-order]');
   const pending = root.querySelector<HTMLElement>('[data-confirm-pending]');
-  const placedPanel = root.querySelector<HTMLElement>('[data-confirm-placed]');
+  const awaitingPanel = root.querySelector<HTMLElement>('[data-confirm-awaiting]');
   const errorPanel = root.querySelector<HTMLElement>('[data-confirm-error]');
   const uncertainPanel = root.querySelector<HTMLElement>('[data-confirm-uncertain]');
+  const resultPath = root.dataset.paymentResult ?? routes.paymentResult;
   const idleLabel = cta?.textContent ?? '';
   const lock = createPlacementLock(context.orderItems);
 
-  /**
-   * The handover message: the server-built line items, then what the customer
-   * typed into steps 1 and 2, then the order number once there is one.
-   *
-   * Every conditional line is gated on the CHOSEN option rather than merely on
-   * the fields having values: a customer who fills the address and then switches
-   * to collection would otherwise send both, and the agent cannot tell which is
-   * real.
-   */
-  function handoverMessage(orderNumber: string | null): string {
-    const base = cta?.dataset.waBase ?? '';
-    const isCompany = state.type === 'company';
-    const isHome = state.delivery === 'homeDelivery';
-    const returnsElsewhere = context.returnSame !== null && !context.returnSame.checked;
-
-    return [
-      ...(orderNumber ? [`${label('requestNumberPrefix')} ${orderNumber}`, ''] : []),
-      base,
-      '',
-      `${label('name')}: ${value('firstName')} ${value('lastName')}`.trim(),
-      `${label('email')}: ${value('email')}`,
-      `${label('phone')}: ${value('phone')}`,
-      `${label('customerType')}: ${context.customerTypeLabel(state.type)}`,
-      ...(state.type === 'private' ? [`${label('codiceFiscale')}: ${value('codiceFiscale')}`] : []),
-      ...(isCompany
-        ? [
-            `${label('partitaIva')}: ${value('partitaIva')}`,
-            `${label('codiceFiscale')}: ${value('companyCodiceFiscale')}`,
-          ]
-        : []),
-      `${label('deliveryLine')}: ${context.deliveryName(state.delivery) || label('toBeArranged')}`,
-      ...(isHome && value('address') ? [`${label('deliveryAddress')}: ${value('address')}`] : []),
-      ...(state.delivery === 'storePickup' ? [`${label('pickupBranch')}: ${state.pickup}`] : []),
-      /* Only when it is somewhere else — otherwise the agent already knows, and a
-         line saying "the same address" is a line they read to learn nothing. */
-      ...(returnsElsewhere && value('returnAddress')
-        ? [`${label('returnStage')}: ${value('returnAddress')}`]
-        : []),
-      /* Says the delivery cost is still open, so the conversation starts on the
-         thing that is actually unresolved — which, for a home delivery, always is. */
-      ...(isHome ? [`${label('deliveryLine')}: ${label('deliveryPending')}`] : []),
-      ...(value('comments') ? [`${label('notes')}: ${value('comments')}`] : []),
-    ].join('\n');
-  }
-
-  /** Points a `wa.me` link at the current message. */
-  function setHandover(link: HTMLAnchorElement | null, orderNumber: string | null): void {
-    if (!link) return;
-    const url = new URL(link.href);
-    url.searchParams.set('text', handoverMessage(orderNumber));
-    link.href = url.toString();
-  }
-
-  /** Puts the CTA back as it was rendered. Only a provable refusal gets here. */
   function setIdle(): void {
     state.placement = 'idle';
     if (uncertainPanel) uncertainPanel.hidden = true;
@@ -133,80 +69,72 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
     cta.textContent = idleLabel;
   }
 
-  function setSending(): void {
-    state.placement = 'sending';
+  function setBusy(text: string): void {
     if (errorPanel) errorPanel.hidden = true;
     if (!cta) return;
-    cta.textContent = label('sendingRequest');
+    cta.textContent = text;
     cta.setAttribute('aria-busy', 'true');
   }
 
   /**
-   * Final for this page. The form behind it stays editable but has nothing left
-   * to send: the CTA lives in the pending block this hides, and `place()` turns
-   * every later click away on the phase alone.
+   * The order exists and waits for its money. Final for this form: the button
+   * lives in the pending block this hides, and `place()` turns every later
+   * click away on the phase alone.
    */
-  function showPlaced(order: PlacedOrder | null): void {
+  function showAwaiting(order: PlacedOrder | null): void {
     state.placement = 'placed';
     if (pending) pending.hidden = true;
     if (errorPanel) errorPanel.hidden = true;
     if (uncertainPanel) uncertainPanel.hidden = true;
-    if (!placedPanel) return;
-
-    placedPanel.hidden = false;
-    setHandover(
-      placedPanel.querySelector<HTMLAnchorElement>('[data-placed-whatsapp]'),
-      order?.number ?? null,
-    );
-
-    const greeting = placedPanel.querySelector<HTMLElement>('[data-placed-greeting]');
-    const first = value('firstName');
-    if (greeting && first) {
-      greeting.textContent = (greeting.dataset.greetingTemplate ?? '').replace('{name}', first);
-    }
-
-    /* The order exists but its answer could not be read: say it was received,
-       and claim no number or total this page never saw. */
+    if (!awaitingPanel) return;
+    awaitingPanel.hidden = false;
     if (!order) return;
 
-    const card = placedPanel.querySelector<HTMLElement>('[data-placed-number-card]');
-    const number = placedPanel.querySelector<HTMLElement>('[data-placed-number]');
-    if (card) card.hidden = false;
+    const number = awaitingPanel.querySelector<HTMLElement>('[data-awaiting-number]');
     if (number) number.textContent = order.number;
+    const detail = awaitingPanel.querySelector<HTMLElement>('[data-awaiting-detail]');
+    if (detail)
+      detail.textContent = (detail.dataset.template ?? '').replace('{number}', order.number);
+    const account = awaitingPanel.querySelector<HTMLElement>('[data-placed-account]');
+    if (account && order.accountInvite === 'activate') account.hidden = false;
 
-    /* The figure the SERVER computed, not the one this page added up. They agree
-       — both run @mia/pricing over the same choices — and showing the stored one
-       means the customer reads what the order actually says. */
-    const totalRow = placedPanel.querySelector<HTMLElement>('[data-placed-total-row]');
-    const total = placedPanel.querySelector<HTMLElement>('[data-placed-total]');
-    if (totalRow && total && order.totals) {
-      total.textContent = new Intl.NumberFormat(documentLocale(), {
-        style: 'currency',
-        currency: order.totals.currency || 'EUR',
-      }).format(Number(order.totals.total));
-      totalRow.hidden = false;
-    }
-
-    /* Shown only when it is true. An already-activated customer being told to
-       go and activate would read as the site not knowing who they are. */
-    const accountLine = placedPanel.querySelector<HTMLElement>('[data-placed-account]');
-    if (accountLine && order.accountInvite === 'activate') accountLine.hidden = false;
+    const pay = awaitingPanel.querySelector<HTMLAnchorElement>('[data-awaiting-pay]');
+    const token = order.payment?.token;
+    if (!pay || !token) return;
+    pay.hidden = false;
+    pay.onclick = (event) => {
+      event.preventDefault();
+      void payAgain(pay, token);
+    };
   }
 
-  /** Refused before anything was written: say so, and offer the retry. */
-  function showError(): void {
+  /** "Pay now" on the waiting panel: a fresh gateway session for the same order. */
+  async function payAgain(pay: HTMLAnchorElement, token: string): Promise<void> {
+    if (pay.getAttribute('aria-busy') === 'true') return;
+    pay.setAttribute('aria-busy', 'true');
+    pay.textContent = label('openingPayment');
+    try {
+      goToPayment(await retryPayment(context.apiBase, token), resultPath);
+    } catch {
+      /* The result page knows how this attempt stands and offers its own retry. */
+      window.location.assign(`${resultPath}?${new URLSearchParams({ token })}`);
+    }
+  }
+
+  /** Refused before anything was written: say so — naming a sold-out product — and offer the retry. */
+  function showError(outOfStock: string | null = null): void {
     if (!errorPanel) return;
+    const detail = errorPanel.querySelector<HTMLElement>('[data-error-detail]');
+    if (detail) {
+      const fallback = detail.dataset.default ?? '';
+      detail.textContent =
+        outOfStock === null ? fallback : label('outOfStock').replace('{product}', outOfStock);
+    }
     errorPanel.hidden = false;
-    // The request is not lost: the handover still carries all of it, minus a
-    // number that was never issued.
-    setHandover(errorPanel.querySelector<HTMLAnchorElement>('[data-error-whatsapp]'), null);
     errorPanel.scrollIntoView({ block: 'nearest' });
   }
 
-  /**
-   * It may exist. The CTA keeps its place and its label, but a click on it now
-   * brings this panel back into view rather than sending — see `place()`.
-   */
+  /** It may exist. A click on the button now brings this panel back rather than sending. */
   function showUncertain(): void {
     state.placement = 'uncertain';
     if (errorPanel) errorPanel.hidden = true;
@@ -216,24 +144,32 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
     }
     if (!uncertainPanel) return;
     uncertainPanel.hidden = false;
-    setHandover(uncertainPanel.querySelector<HTMLAnchorElement>('[data-uncertain-whatsapp]'), null);
     uncertainPanel.scrollIntoView({ block: 'nearest' });
   }
 
-  /** Paints what a stored record says — this tab's own, or another tab's. */
   function adopt(record: PlacementRecord): void {
     if (record.status === 'placed') {
-      showPlaced((record.order as PlacedOrder | null) ?? null);
+      showAwaiting((record.order as PlacedOrder | null) ?? null);
       return;
     }
     showUncertain();
   }
 
+  /** Placed: off to the gateway, or — with no gateway configured — the waiting panel. */
+  function leaveForPayment(order: PlacedOrder | null): void {
+    if (!order?.payment) {
+      showAwaiting(order);
+      return;
+    }
+    setBusy(label('openingPayment'));
+    goToPayment(order.payment, resultPath);
+  }
+
   async function place(): Promise<void> {
     if (!cta) return;
-    /* NOT A SILENT RETURN. `sending` already reads "Invio in corso…" on the very
-       control being clicked; `placed` has hidden it behind the confirmation; and
-       `uncertain` is answered by bringing its explanation back into view. */
+    /* NOT A SILENT RETURN. `sending` already reads "Opening…" on the very
+       control being clicked; `placed` has hidden it; `uncertain` brings its
+       explanation back into view. */
     if (state.placement === 'uncertain') {
       showUncertain();
       return;
@@ -246,20 +182,22 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
       adopt(known);
       return;
     }
-    /* The one failure provably before sending: the browser knows it is offline. */
     if (!navigator.onLine) {
       showError();
       return;
     }
 
-    setSending();
+    state.placement = 'sending';
+    setBusy(label('openingPayment'));
     const outcome = await lock.exclusive(async () => {
-      /* Re-read INSIDE the lock: another tab may have finished this very order
-         between the check above and acquiring it. */
       const raced = lock.read();
       if (raced) return { kind: 'adopt' as const, record: raced };
       lock.write({ status: 'sending', at: Date.now() });
-      return submitOrder(context.apiBase, { ...draftBody(context), ...options.contractBody() });
+      return submitOrder(context.apiBase, {
+        ...draftBody(context),
+        ...options.contractBody(),
+        language: pageLanguage(),
+      });
     });
 
     if (outcome === null) {
@@ -271,11 +209,12 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
       return;
     }
     if (outcome.kind === 'placed') {
-      /* Remembered and cleared BEFORE painting, so a reload or a back button in
-         the next instant finds the confirmation, not a cart to send again. */
+      /* Remembered and cleared BEFORE leaving, so the back button from the
+         gateway finds "waiting for payment", not a cart to send again. */
       lock.write({ status: 'placed', at: Date.now(), order: outcome.order });
       clearOrderedCartLines(context.cartKeys);
-      showPlaced(outcome.order);
+      state.placement = 'placed';
+      leaveForPayment(outcome.order);
       return;
     }
     if (outcome.kind === 'uncertain') {
@@ -286,11 +225,14 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
 
     lock.clear();
     setIdle();
+    if (outcome.outOfStock !== null) {
+      showError(outcome.outOfStock);
+      return;
+    }
     if (!options.onRejected(outcome.fields)) showError();
   }
 
-  cta?.addEventListener('click', (event) => {
-    event.preventDefault();
+  cta?.addEventListener('click', () => {
     void place();
   });
 
@@ -298,7 +240,6 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
     void place();
   });
 
-  /** Adopts a record this tab did not just write, and shows it. */
   function takeOver(record: PlacementRecord): void {
     adopt(record);
     options.onAdopted();
@@ -315,8 +256,6 @@ export function wirePlaceOrder(context: CheckoutContext, options: PlaceOrderOpti
   });
 
   return {
-    refreshHandover: () => setHandover(cta, null),
-    /* Whatever is remembered wins over the fresh form. */
     resume: () => {
       const remembered = lock.read();
       if (remembered) takeOver(remembered);

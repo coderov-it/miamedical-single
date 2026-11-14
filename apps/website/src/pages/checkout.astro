@@ -16,7 +16,7 @@
  */
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { resolveCheckout } from '~/lib/checkout-resolve';
-import { checkoutScriptLabels, buildHandoverMessage, readRequestParams } from '~/lib/checkout-page';
+import { checkoutScriptLabels, readRequestParams } from '~/lib/checkout-page';
 import { t } from '~/lib/labels';
 import CheckoutBody from '~/views/checkout/CheckoutBody.astro';
 import type { CheckoutRetry } from '~/components/checkout/CheckoutRetryForm.astro';
@@ -28,7 +28,6 @@ export const prerender = false;
 
 const params = await readRequestParams(Astro.request, Astro.url);
 const checkout = await resolveCheckout(params);
-const handoverMessage = buildHandoverMessage(checkout.items);
 
 /* The request exactly as it arrived, so "Riprova" can send it again. */
 const retry = {
@@ -56,7 +55,7 @@ const cartKeys = checkout.items.map((item) => item.cartKey);
 ---
 
 <BaseLayout title={t('checkoutMetaTitle')} description={t('checkoutMetaDescription')} noindex>
-  <CheckoutBody {checkout} {handoverMessage} {retry} />
+  <CheckoutBody {checkout} {retry} />
 
   <script
     type="application/json"
@@ -79,10 +78,9 @@ const cartKeys = checkout.items.map((item) => item.cartKey);
   {/*
       Synchronous and inline on purpose. The step bodies are server-rendered OPEN
       and the stepper's forward buttons server-rendered hidden, so that a browser
-      with no JavaScript gets one long readable form and a WhatsApp handover that
-      already carries the line items — a complete path, not a degraded one. This
-      flips that arrangement during parse, before first paint, which is what keeps
-      the enhanced page from flashing every step open.
+      with no JavaScript gets one long readable form. This flips that arrangement
+      during parse, before first paint, which is what keeps the enhanced page from
+      flashing every step open.
     */}
   <script is:inline>
     (function () {
@@ -94,21 +92,6 @@ const cartKeys = checkout.items.map((item) => item.cartKey);
       }
       var ctas = root.querySelectorAll('[data-step-continue]');
       for (var j = 0; j < ctas.length; j++) ctas[j].hidden = false;
-
-      /* The confirm CTA is server-rendered as the WhatsApp handover, because with
-         no JavaScript that is exactly what it is. Here there IS JavaScript, so it
-         records the order first — retitled at parse time, before first paint, so
-         the button never visibly changes its mind. */
-      var place = root.querySelector('[data-place-order]');
-      var labels = document.querySelector('[data-checkout-labels]');
-      if (place && labels) {
-        try {
-          var words = JSON.parse(labels.textContent || '{}');
-          if (words.sendRequest) place.textContent = words.sendRequest;
-        } catch (error) {
-          /* Leave the WhatsApp label in place — it is the honest fallback. */
-        }
-      }
     })();
   </script>
 </BaseLayout>

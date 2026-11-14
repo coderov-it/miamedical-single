@@ -8,12 +8,13 @@
  * ```ts
  * html: `${header({ heading: subject })}
  * ${paragraph({ text: greeting(input.recipient) })}
- * ${button({ href: input.activationUrl, label: 'Attiva il tuo account' })}
+ * ${button({ href: input.activationUrl, label: copy.label })}
  * ${footer({ audience: 'customer' })}`
  * ```
  *
- * Copy is Italian because it is content a customer reads. `adminDisputeAlert` is the
- * one exception and is English: its audience is the operations team.
+ * Customer copy exists in every `EmailLanguage` and each message takes the reader's
+ * `language`; the contract emails follow the contract's own language instead.
+ * `adminDisputeAlert` is English only: its audience is the operations team.
  *
  * Both bodies are always produced. The text body is not an afterthought — it is what
  * the console transport prints in development, so every link must be readable in it.
@@ -26,6 +27,7 @@ export { accountDeletionCode } from './account-deletion-code.ts';
 export { adminDisputeAlert } from './admin-dispute-alert.ts';
 export { escapeHtml } from './component/escape.ts';
 export type { Audience } from './component/audience.ts';
+export type { EmailLanguage } from './component/language.ts';
 export type { EmailMessage } from './component/message.ts';
 export type { OrderRef, Recipient } from './component/order.ts';
 export { magicLink, type MagicLinkVariant } from './magic-link.ts';

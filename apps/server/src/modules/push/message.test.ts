@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { atLeastVersion, localizedArgs, tapRoute } from './message.ts';
+import { atLeastVersion, localizedArgs, pushData } from './message.ts';
 
 /**
  * Version comparison decides whether a device is sent a localization key or a
@@ -71,25 +71,19 @@ describe('localizedArgs', () => {
   });
 });
 
-describe('tapRoute', () => {
-  it('points at the order the notification is about', () => {
-    assert.equal(
-      tapRoute('order.status_changed', { orderNumber: 'MIA-2026-001042' } as never),
-      '/area-clienti/ordini/MIA-2026-001042/',
-    );
-  });
+describe('pushData', () => {
+  it('carries facts only: the id, the type and one JSON payload', () => {
+    const data = {
+      orderNumber: 'MIA-2026-001042',
+      field: 'status',
+      from: 'pending',
+      to: 'paid',
+    };
+    const out = pushData('8f3c0000', 'order.status_changed', data as never);
 
-  it('falls back to the feed when the payload names no order', () => {
-    assert.equal(
-      tapRoute('contract.awaiting_signature', { contractNumber: 'CTR-1' } as never),
-      '/area-clienti/notifiche/',
-    );
-  });
-
-  it('encodes the number, matching accountHref on the other side', () => {
-    assert.equal(
-      tapRoute('order.status_changed', { orderNumber: 'MIA 2026/1' } as never),
-      '/area-clienti/ordini/MIA%202026%2F1/',
-    );
+    assert.deepEqual(Object.keys(out), ['notificationId', 'type', 'payload']);
+    assert.equal(out.notificationId, '8f3c0000');
+    assert.equal(out.type, 'order.status_changed');
+    assert.deepEqual(JSON.parse(out.payload), data);
   });
 });

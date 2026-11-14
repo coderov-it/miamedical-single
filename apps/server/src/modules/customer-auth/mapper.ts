@@ -1,3 +1,5 @@
+import { isLanguageCode } from '@mia/validators/language';
+
 import type { SessionCustomer } from '../../shared/http/context.ts';
 import type { CustomerDto } from './dto.ts';
 import type { CustomerAccountRow } from './types.ts';
@@ -17,12 +19,14 @@ export function toCustomer(row: CustomerAccountRow): CustomerDto {
     phone: row.phone,
     isActivated: row.activatedAt !== null,
     hasPassword: row.passwordHash !== null,
+    language: isLanguageCode(row.language) ? row.language : null,
   };
 }
 
 export function toCustomerFromSession(
   customer: SessionCustomer,
   phone: string | null,
+  language: CustomerDto['language'],
 ): CustomerDto {
   return {
     id: customer.id,
@@ -32,5 +36,6 @@ export function toCustomerFromSession(
     phone,
     isActivated: customer.activatedAt !== null,
     hasPassword: customer.hasPassword,
+    language,
   };
 }

@@ -41,7 +41,7 @@ POST /checkout/
 ```
 
 The keys are English because a wire format is code, not content — nobody reads it
-but a program. (Public route paths are the opposite case and stay Italian; see the
+but a program. (Public SEO route paths are the opposite case and stay Italian; see the
 RULES section of AGENTS.md.)
 
 **The cart POSTs.** A multi-item request outgrows a URL, and none of it belongs in
@@ -178,11 +178,9 @@ during parse, before first paint — which is what keeps the enhanced page from
 flashing every step open, and what leaves the no-JS page as one long readable
 form rather than two-thirds of a form behind buttons that do nothing.
 
-"Invia l'ordine" is an `<a>`, not a `<button>`: there is no orders endpoint and
-no online payment, so it is a WhatsApp handover — which is what the reference
-design's own copy already describes. The server builds the message with every
-line item in it, so the link works with no JavaScript; the script only widens it
-with what was typed into steps 1 and 2, at click time.
+"Pay and Confirm" is a `<button>`: it places the order and sends the browser to
+the payment gateway, which needs JavaScript; a `<noscript>` line says so. The
+payment flow is in `docs/code/online-payments.md`.
 
 Nothing the customer types here ever enters a URL.
 
@@ -324,7 +322,7 @@ All business-driven, and all for the same reasons the PDP's are:
 - **The confirmation claims only what happened.** The reference promises a
   confirmation email with nothing behind it. This one is really sent, by
   `orders/service.place` once the transaction has committed, so the panel says
-  the request was received, that WhatsApp follows, and — when the server reports
+  the order is waiting for payment, and — when the server reports
   `accountInvite: 'activate'` — that an activation link is waiting in the inbox.
   That last line stays hidden for a customer who was already signed in or whose
   account was activated long ago; telling them to activate it would read as the
@@ -355,11 +353,11 @@ what matters on this page:
   lives in step 2's home-delivery panel, as one free-text box. Asking in step 1
   meant everyone typed a delivery address, including the customers collecting from a
   branch. A collected order stores no address at all.
-- **The CTA is still an `<a>` to WhatsApp** in the served HTML, because with no
-  JavaScript that is the whole path. The parse-time script retitles it and the
-  module script posts instead, revealing the order number and the server's own
-  total; WhatsApp moves one step down, quoting that number. A refused POST says so
-  and leaves the handover in place.
+- **The CTA is "Pay and Confirm".** The POST answers with the order number and
+  where to pay; the browser goes to the gateway's page at once. The order is
+  written first and holds its stock until paid or expired
+  (`docs/code/online-payments.md`). The overview's footnote says what is paid now,
+  and that a home delivery is paid to the carrier.
 - **Two gates replace the CTA rather than letting it fail.** A rental with no
   resolvable duration has a daily rate and no total; a line missing a required
   choice is one the API refuses. Either way the panel names what is missing and
@@ -375,20 +373,22 @@ sent again?
 
 ```text
                                           phase        record (localStorage, 30 min)
-1. click "Invia la richiesta"             sending      { sending }   CTA "Invio in corso…"
+1. click "Pay and Confirm"                sending      { sending }   CTA "Opening the payment page…"
    double-click / Enter / 2nd tab         ignored — the CTA already says it is sending;
                                           a 2nd tab shows the "uncertain" panel
 2a. 201                                   placed       { placed, order }
-    → this order's lines leave the cart (`lineKey` match), panel shows the number
-    → reload / Back / other tab           placed panel again, same number, no POST
+    → this order's lines leave the cart (`lineKey` match), browser → gateway
+    → Back from the gateway / reload      "waiting for payment" panel, same number,
+                                          "Pay now" (a new attempt), no POST
 2b. 422 naming fields                     idle         (cleared)
     customer.email, delivery.address.line1
     → step 1 opens, email AND address marked, focus on email; "Continua"
       stays refused until the rejected answer changes
 2c. 422 with no mappable field, 429       idle         (cleared)
-    → "Non siamo riusciti a registrare la richiesta" + Riprova + WhatsApp
+    → "Non siamo riusciti a registrare la richiesta" + Riprova
+    409 out_of_stock                      → the same panel, naming the sold-out product
 2d. 5xx, 60 s timeout, dropped link       uncertain    { uncertain }
-    → "Non sappiamo se la richiesta è arrivata": I miei ordini + WhatsApp,
+    → "Non sappiamo se la richiesta è arrivata": I miei ordini + phone,
       NO retry; a click on the CTA brings this panel back into view
 ```
 

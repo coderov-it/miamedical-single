@@ -1,5 +1,6 @@
 import { toAddress, toDelivery, toOrderItem } from '../orders/mapper.ts';
 import type { OrderAggregate, OrderSummaryRecord } from '../orders/types.ts';
+import { isPayable } from '../payments/start.ts';
 import type { CustomerOrderDetailDto, CustomerOrderSummaryDto } from './dto.ts';
 
 /**
@@ -53,5 +54,11 @@ export function toCustomerOrderDetail(row: OrderAggregate): CustomerOrderDetailD
     notes: row.notes,
     linkStatus: row.customerLinkStatus as VisibleLinkStatus,
     placedAt: iso(row.placedAt),
+    payBy: payBy(row),
   };
+}
+
+function payBy(row: OrderAggregate): string | null {
+  if (!row.paymentDueAt || !isPayable(row)) return null;
+  return iso(row.paymentDueAt);
 }

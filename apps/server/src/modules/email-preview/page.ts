@@ -64,8 +64,12 @@ export function previewPage(input: {
   active: string;
   message: EmailMessage;
   basePath: string;
+  /** The language the sample renders in; every link keeps it. */
+  language: string;
+  languages: readonly string[];
 }): string {
-  const { names, active, message, basePath } = input;
+  const { names, active, message, basePath, language, languages } = input;
+  const query = `?language=${encodeURIComponent(language)}`;
 
   return `<!doctype html>
 <html lang="en">
@@ -82,7 +86,7 @@ export function previewPage(input: {
 ${names
   .map(
     (name) =>
-      `<a href="${basePath}/${encodeURIComponent(name)}"${name === active ? ' aria-current="page"' : ''}>${escapeHtml(name)}</a>`,
+      `<a href="${basePath}/${encodeURIComponent(name)}${query}"${name === active ? ' aria-current="page"' : ''}>${escapeHtml(name)}</a>`,
   )
   .join('\n')}
 </aside>
@@ -97,10 +101,16 @@ ${WIDTHS.map(
   (width) =>
     `<button type="button" data-width="${width.value}" aria-pressed="${width.value === '600px'}">${width.label}</button>`,
 ).join('\n')}
-<a href="${basePath}/${encodeURIComponent(active)}/html" target="_blank" rel="noreferrer">Open raw HTML</a>
+${languages
+  .map(
+    (code) =>
+      `<a href="${basePath}/${encodeURIComponent(active)}?language=${code}"${code === language ? ' aria-current="page"' : ''}>${code.toUpperCase()}</a>`,
+  )
+  .join('\n')}
+<a href="${basePath}/${encodeURIComponent(active)}/html${query}" target="_blank" rel="noreferrer">Open raw HTML</a>
 </nav>
 <div class="stage">
-<iframe id="frame" src="${basePath}/${encodeURIComponent(active)}/html" title="${escapeHtml(active)}"></iframe>
+<iframe id="frame" src="${basePath}/${encodeURIComponent(active)}/html${query}" title="${escapeHtml(active)}"></iframe>
 </div>
 <details>
 <summary>Plain-text body — what the console transport prints and a text-only client shows</summary>

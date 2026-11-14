@@ -343,7 +343,7 @@
     <!-- Cancel far left, Save far right: the two are not peers, and putting a
          destructive-ish action next to the confirming one invites misfires. -->
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
-      <Button variant="ghost" disabled={saving} onclick={onClose}>Cancel</Button>
+      <Button variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
       <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
         {isEdit ? 'Save changes' : 'Create category'}
       </BusyButton>

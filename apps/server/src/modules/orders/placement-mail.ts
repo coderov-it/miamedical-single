@@ -46,6 +46,7 @@ export async function sendPlacementMail(
     lastName: account.lastName,
     order,
     reportToken,
+    language: account.language,
   };
   // A failed send is written on this order's timeline (notifications/mail-failure.ts).
   const trail = { db, orderId: input.orderId };

@@ -17,7 +17,7 @@ import { applyExtension } from './activate.ts';
 import { toExtension, toOption } from './mapper.ts';
 import { addDays, currentEndDate, extensionOptions, manualLineAmounts } from './quote.ts';
 import * as repo from './repo.ts';
-import type { ExtensionOption, ExtensionRow, RentalLine } from './types.ts';
+import type { ExtensionOption, ExtensionRow, OnlinePaymentInput, RentalLine } from './types.ts';
 
 /**
  * Rental extensions — lifecycle and worked example in
@@ -177,11 +177,16 @@ async function mustFind(db: Database, id: string): Promise<ExtensionRow> {
  *
  * Either way a paid extension never stands without paperwork.
  */
+/**
+ * Records the money for an extension. `user` is the operator who recorded it,
+ * or `null` when the payment gateway confirmed it (modules/payments/settle.ts) —
+ * which only happens on a renewal the customer already signed.
+ */
 export async function recordPayment(
   db: Database,
   id: string,
-  input: RecordExtensionPaymentInput,
-  user: SessionUser,
+  input: RecordExtensionPaymentInput | OnlinePaymentInput,
+  user: SessionUser | null,
 ): Promise<RentalExtensionDto> {
   const extension = await mustFind(db, id);
   if (extension.status !== 'renew_pending') {
@@ -219,12 +224,15 @@ export async function recordPayment(
       paymentMethod: input.method,
       paymentReference: input.reference || null,
       paidAt: new Date(),
-      paidByAdminUserId: user.id,
+      paidByAdminUserId: user?.id ?? null,
       ...(signed ? { activatedAt: new Date() } : {}),
     });
     if (!paid) throw conflict('This extension was paid or cancelled a moment ago. Reload it.');
     if (signed) {
-      await applyExtension(tx, extension, 'renew_pending', { paidNote, actorAdminUserId: user.id });
+      await applyExtension(tx, extension, 'renew_pending', {
+        paidNote,
+        actorAdminUserId: user?.id ?? null,
+      });
       return;
     }
     await repo.insertEvent(tx, {
@@ -232,11 +240,12 @@ export async function recordPayment(
       fromValue: 'renew_pending',
       toValue: 'awaiting_signature',
       note: paidNote,
-      actorAdminUserId: user.id,
+      actorAdminUserId: user?.id ?? null,
     });
   });
 
   if (signed) return toExtension(await mustFind(db, id));
+  if (!user) throw conflict('An unsigned extension needs an operator to issue its contract.');
   return issueContract(db, id, user);
 }
 

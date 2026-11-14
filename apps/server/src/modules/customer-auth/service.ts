@@ -1,4 +1,5 @@
 import type { Database, DatabaseWriter } from '@mia/db';
+import type { LanguageCode } from '@mia/validators/language';
 import type {
   CustomerLoginInput,
   RedeemAuthTokenInput,
@@ -19,6 +20,7 @@ import {
 } from '../../shared/auth/password.ts';
 import { httpError } from '../../shared/http/errors.ts';
 import * as notifications from '../notifications/mail.ts';
+import { rememberLanguage, requestLanguage } from './language.ts';
 import * as repo from './repo.ts';
 import type {
   AuthTokenPurpose,
@@ -157,6 +159,7 @@ export async function login(
   if (account.passwordHash && needsRehash(account.passwordHash)) {
     await repo.updatePasswordHash(db, account.id, await hashPassword(input.password));
   }
+  await rememberLanguage(db, account.id, input.language, true);
 
   return issueSession(db, account, meta);
 }
@@ -195,6 +198,7 @@ export async function requestEmailedLink(
   email: string,
   purpose: Extract<AuthTokenPurpose, 'magic_link' | 'password_reset'>,
   ipAddress: string | null,
+  pageLanguage?: LanguageCode,
 ): Promise<void> {
   const existing = await repo.findByEmail(db, email);
 
@@ -205,7 +209,12 @@ export async function requestEmailedLink(
       purpose,
       ipAddress,
     });
-    await notifications.sendPasswordReset({ email: existing.email, token });
+    await rememberLanguage(db, existing.id, pageLanguage, false);
+    await notifications.sendPasswordReset({
+      email: existing.email,
+      token,
+      language: requestLanguage(pageLanguage, existing.language),
+    });
     return;
   }
 
@@ -220,12 +229,14 @@ export async function requestEmailedLink(
     purpose,
     ipAddress,
   });
+  await rememberLanguage(db, account.id, pageLanguage, false);
 
   await notifications.sendMagicLink({
     email: account.email,
     token,
     // Never claimed — a brand-new address, or a checkout account nobody activated.
     variant: account.activatedAt === null ? 'firstSignIn' : 'signIn',
+    language: requestLanguage(pageLanguage, account.language),
   });
 }
 
@@ -264,11 +275,13 @@ export async function register(
     ipAddress,
     ...(isUnclaimed ? { pendingPasswordHash: await hashPassword(input.password) } : {}),
   });
+  await rememberLanguage(db, account.id, input.language, false);
 
   await notifications.sendMagicLink({
     email: account.email,
     token,
     variant: isUnclaimed ? 'register' : 'signIn',
+    language: requestLanguage(input.language, account.language),
   });
 }
 
@@ -335,6 +348,9 @@ export async function redeemToken(
     // Redeeming any emailed link proves they read the inbox, which is exactly what
     // "activated" records. Idempotent in the repo, so a later link cannot move it.
     await repo.markActivated(tx, account.id);
+    // The click is proof too, so the page it landed on states their language.
+    await rememberLanguage(tx, account.id, input.language, true);
+    if (input.language) account = { ...account, language: input.language };
 
     const issued = await issueSession(tx, account, meta);
     return { ...issued, orderId: row.orderId };

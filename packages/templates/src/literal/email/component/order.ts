@@ -1,3 +1,5 @@
+import { type EmailLanguage, LOCALE_TAG, type Translated } from './language.ts';
+
 /**
  * What the three order emails need to name an order and a person.
  *
@@ -18,33 +20,41 @@ export interface Recipient {
 }
 
 /*
-  Formatters are cached per currency because constructing one is far and away the most
-  expensive thing in rendering an email: measured, `new Intl.NumberFormat` per render
-  put a whole message at 39 µs, and reusing it puts it under 2 µs. There is one currency
-  in practice, so the map holds one entry.
+  Formatters are cached per language and currency because constructing one is far and
+  away the most expensive thing in rendering an email: measured, `new Intl.NumberFormat`
+  per render put a whole message at 39 µs, and reusing it puts it under 2 µs.
 */
 const FORMATTERS = new Map<string, Intl.NumberFormat>();
 
-function formatter(currency: string): Intl.NumberFormat {
-  let cached = FORMATTERS.get(currency);
+function formatter(currency: string, language: EmailLanguage): Intl.NumberFormat {
+  const key = `${language}:${currency}`;
+  let cached = FORMATTERS.get(key);
   if (!cached) {
-    cached = new Intl.NumberFormat('it-IT', { style: 'currency', currency });
-    FORMATTERS.set(currency, cached);
+    cached = new Intl.NumberFormat(LOCALE_TAG[language], { style: 'currency', currency });
+    FORMATTERS.set(key, cached);
   }
   return cached;
 }
 
-/** "35,00 €" — Italian formatting, from the wire's exact decimal string. */
-export function money(amount: string, currency: string): string {
-  return formatter(currency).format(Number(amount));
+/** "35,00 €" in Italian, "€35.00" in English — from the wire's exact decimal string. */
+export function money(amount: string, currency: string, language: EmailLanguage): string {
+  return formatter(currency, language).format(Number(amount));
 }
+
+const ORDER_WORD: Translated<string> = {
+  it: 'Ordine',
+  en: 'Order',
+  fr: 'Commande',
+  de: 'Bestellung',
+};
+const HELLO: Translated<string> = { it: 'Ciao', en: 'Hello', fr: 'Bonjour', de: 'Hallo' };
 
 /** "Ordine MIA-2026-000042 · 245,00 €" */
-export function orderLine(order: OrderRef): string {
-  return `Ordine ${order.number} · ${money(order.total, order.currency)}`;
+export function orderLine(order: OrderRef, language: EmailLanguage): string {
+  return `${ORDER_WORD[language]} ${order.number} · ${money(order.total, order.currency, language)}`;
 }
 
-/** "Ciao Elena," — the opening line of every customer message. */
-export function greeting(recipient: Recipient): string {
-  return `Ciao ${recipient.firstName},`;
+/** "Ciao Elena," — the opening line of every order message. */
+export function greeting(recipient: Recipient, language: EmailLanguage): string {
+  return `${HELLO[language]} ${recipient.firstName},`;
 }

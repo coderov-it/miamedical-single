@@ -1,6 +1,6 @@
 /**
- * What the page says back: the order overview's delivery row and total, the
- * step-3 review, and the per-item accordion.
+ * What the page says back: the order overview's delivery row, total and
+ * pay-now line, the confirm step's review, and the per-item accordion.
  *
  * All display, no decisions. Money here is the SERVER'S figure — the items total
  * arrives in `data-items-total`, already priced by `@mia/pricing` over the same
@@ -19,15 +19,14 @@ export function createSummary(context: CheckoutContext): Summary {
   const { root, overview, state, value, label, money } = context;
 
   /**
-   * The overview's delivery row and running total.
+   * The overview's delivery row, running total and what is paid now.
    *
-   * Collection is free and says so. Home delivery costs something nobody knows
-   * yet — nothing prices it — so the row shows words where an amount would go and
-   * the total below stays the goods alone. Adding a zero would read as free,
-   * which is the one thing it is not.
+   * The goods are paid online, in full; a home delivery is paid to the carrier
+   * on the doorstep (the owner's rule), so its row says so where an amount would
+   * go and the total stays the goods alone. Collection is free and says so.
    */
   function paintTotal(): void {
-    const unknown = state.delivery === 'homeDelivery';
+    const carrier = state.delivery === 'homeDelivery';
 
     const row = overview.querySelector<HTMLElement>('[data-overview-delivery]');
     if (row) {
@@ -36,11 +35,16 @@ export function createSummary(context: CheckoutContext): Summary {
       const amount = row.querySelector('[data-overview-delivery-fee]');
       if (rowLabel)
         rowLabel.textContent = context.deliveryShort(state.delivery) || label('delivery');
-      if (amount) amount.textContent = unknown ? label('deliveryPending') : label('free');
+      if (amount) amount.textContent = carrier ? label('deliveryPaidToCarrier') : label('free');
     }
 
     const total = overview.querySelector('[data-overview-total]');
     if (total) total.textContent = money.format(context.itemsTotal);
+
+    const footnote = overview.querySelector('[data-overview-footnote]');
+    const template = carrier ? label('payNowFootnoteCarrier') : label('payNowFootnote');
+    if (footnote)
+      footnote.textContent = template.replace('{amount}', money.format(context.itemsTotal));
   }
 
   /** Whichever fiscal identifier the chosen identity carries, if any. */

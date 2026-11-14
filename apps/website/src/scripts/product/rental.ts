@@ -7,7 +7,7 @@
  * that crosses a DST boundary is still exactly N days and the return date the
  * customer reads matches the one the order records.
  *
- * Nothing here is authoritative. `/checkout/` and `/carrello/` both re-resolve
+ * Nothing here is authoritative. `/checkout/` and `/cart/` both re-resolve
  * the request against the catalogue, and the phone call settles the real price.
  */
 

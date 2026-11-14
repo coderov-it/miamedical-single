@@ -30,11 +30,17 @@
   let saved = $state(untrack(() => snapshot(product)));
 
   let seededFor = $state(untrack(() => product.id));
+
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
+    form = snapshot(product);
+    saved = snapshot(product);
+  }
+
   $effect(() => {
     if (product.id === seededFor) return;
     seededFor = product.id;
-    form = snapshot(product);
-    saved = snapshot(product);
+    discard();
   });
 
   const isDirty = $derived(!sameAsSaved(form, saved));
@@ -90,7 +96,7 @@
   {saving}
   {error}
   onSave={save}
-  saveLabel="Save media"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="max-w-3xl space-y-6">

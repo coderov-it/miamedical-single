@@ -5,7 +5,7 @@ import { mayPush, type NotificationData, type NotificationType } from '@mia/vali
 
 import { pushSender } from '../../infra/push/index.ts';
 import { deviceLanguage } from './language.ts';
-import { buildAlert, tapRoute } from './message.ts';
+import { buildAlert, pushData } from './message.ts';
 import * as repo from './repo.ts';
 
 /**
@@ -93,12 +93,7 @@ export async function dispatch(db: Database, id: string): Promise<void> {
   const devices = await repo.devicesFor(db, row.customerAccountId);
   if (devices.length === 0) return;
 
-  const route = tapRoute(row.type as NotificationType, row.data);
-  const data: Record<string, string> = {
-    notificationId: row.id,
-    type: row.type,
-    ...(route ? { route } : {}),
-  };
+  const data = pushData(row.id, row.type as NotificationType, row.data);
 
   for (const device of devices) {
     const alert = buildAlert({
