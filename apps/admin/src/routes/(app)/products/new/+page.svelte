@@ -269,7 +269,7 @@
       {/if}
 
       <div class="flex items-center justify-between gap-3 bg-muted/40 px-5 py-3">
-        <Button href={routes.products} variant="ghost">Cancel</Button>
+        <Button href={routes.products} variant="destructive">Cancel</Button>
         <BusyButton type="submit" busy={saving} busyLabel="Creating…">Create product</BusyButton>
       </div>
     </Card.Root>

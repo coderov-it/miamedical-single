@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 
 import { PaginationSchema } from './common.ts';
+import { LanguageCodeSchema } from './i18n.ts';
 
 const DateOnlySchema = v.pipe(
   v.string(),
@@ -20,3 +21,15 @@ export const PaymentQuerySchema = v.object({
 });
 
 export type PaymentQuery = v.InferOutput<typeof PaymentQuerySchema>;
+
+/** Starting (or restarting) an online payment: only the language travels. */
+export const StartPaymentSchema = v.strictObject({
+  language: v.optional(LanguageCodeSchema),
+});
+
+/** The result page's token: random, url-safe, ours. */
+export const PaymentTokenParamSchema = v.object({
+  token: v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{20,64}$/, 'Invalid payment link.')),
+});
+
+export type StartPaymentInput = v.InferOutput<typeof StartPaymentSchema>;

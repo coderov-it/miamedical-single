@@ -196,5 +196,9 @@ const THUMB_FALLBACK = 'bg-tint';
     </span>
   </div>
 
-  <p class="text-ink-2 m-0 text-center text-[12.5px] leading-normal">{t('noPaymentFootnote')}</p>
+  {/* Repainted by the script when the delivery choice changes: a home delivery
+      adds that the carrier is paid on the doorstep. */}
+  <p class="text-ink-2 m-0 text-center text-[12.5px] leading-normal" data-overview-footnote>
+    {t('payNowFootnote', { amount: formatMoney(itemsTotal, currency, intl) })}
+  </p>
 </aside>

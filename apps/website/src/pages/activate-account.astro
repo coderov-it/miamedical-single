@@ -1,0 +1,32 @@
+---
+/**
+ * `/activate-account/` — where activation and magic-link emails land.
+ *
+ * A ROUTE DECLARATION, deliberately thin: the card is
+ * `views/account/ActivateAccountView.astro`, its behaviour
+ * `scripts/account/activate-account.ts`. reset-password.astro renders the same
+ * view with its own copy.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import ActivateAccountView from '~/views/account/ActivateAccountView.astro';
+
+export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+const heading = translate(locale, 'account.activate.heading');
+---
+
+<BaseLayout
+  title={`${heading} | Mia Medical Italia`}
+  description={translate(locale, 'account.activate.metaDescription')}
+  noindex
+  fillGround
+  bare
+>
+  <ActivateAccountView
+    {heading}
+    intro={translate(locale, 'account.activate.intro')}
+    passwordRequired={false}
+  />
+</BaseLayout>

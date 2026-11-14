@@ -70,9 +70,19 @@ next request, with no matching client edit to forget.
 It names where the order is, what was asked, and what would actually work. A
 bare "invalid transition" would send the reader to the source.
 
+## Status moves stock
+
+Placement takes the units; `transition-repo.applyTransition` moves
+`products.stock` for every later move in the same transaction: cancelling an
+unpaid order puts them back, and so does a rental's `fulfilled` (Rent
+Management's "Confirm return"). An old order that holds nothing takes its units
+at `paid`. A take the shelf cannot cover is a 409 and the status does not move.
+See `orders-stock.md`. Online payment moves `pending → paid` itself, with no
+operator (`online-payments.md`).
+
 ## The audit trail is not optional
 
-`repo.applyTransition` writes the status column **and** its
+`transition-repo.applyTransition` writes the status column **and** its
 `order_status_events` row inside one transaction. If the event insert fails, the
 status change rolls back with it.
 

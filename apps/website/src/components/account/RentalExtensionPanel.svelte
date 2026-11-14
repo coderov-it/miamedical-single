@@ -5,7 +5,8 @@
     rental order, still asking → the card and its heading, with a loading state
     running, nothing open      → "Prolunga il noleggio" → the renewal modal
                                  (renewal/RenewalDialog.svelte: length, sign, confirm)
-    renewal waiting for money  → what was asked, and "Withdraw request"
+    renewal waiting for money  → what was asked, "Pay now" when the customer
+                                 signed it here, and "Withdraw request"
     paid, contract out         → "sign the contract we emailed you" (operator-raised)
     returned (order closed)    → "Order again", one per rented product
 
@@ -16,7 +17,9 @@
   import { errorMessage } from '~/lib/account-state.svelte';
   import { type CustomerOrderDetail, formatDate, formatMoney } from '~/lib/customer-session';
   import { type ExtensionOverview, getExtension, withdrawExtension } from '~/lib/rental-extension';
+  import { API_BASE } from '~/lib/api-base';
   import { fill } from '~/scripts/account/copy';
+  import { goToPayment, payOrder } from '~/scripts/payment/client';
 
   import LoadingState from '../primitives/LoadingState.svelte';
   import AccountSection from './AccountSection.svelte';
@@ -81,6 +84,28 @@
 
   const extended = $derived(overview?.history.filter((row) => row.status === 'active') ?? []);
 
+  let paying = $state(false);
+  let payFailed = $state(false);
+  const payLabel = $derived(paying ? 'openingPayment' : 'payNow');
+
+  function pendingKey(contractStatus: string | null): string {
+    if (contractStatus === 'signed') return 'account.extension.pendingPaymentOnline';
+    return 'account.extension.pendingPayment';
+  }
+
+  /** The signed renewal's money: the server picks the renewal when the order itself is paid. */
+  async function pay() {
+    if (paying) return;
+    paying = true;
+    payFailed = false;
+    try {
+      goToPayment(await payOrder(API_BASE, order.number), copy.routes.paymentResult);
+    } catch {
+      payFailed = true;
+      paying = false;
+    }
+  }
+
   async function withdraw() {
     if (busy) return;
     busy = true;
@@ -133,14 +158,23 @@
         {/if}
 
         {#if overview.open?.status === 'renew_pending'}
+          <!-- Signed in the account: paid online. Raised by an operator: they collect it. -->
           <p class={HINT + ' mt-3'}>
-            {fill(say(copy, 'account.extension.pendingPayment'), {
+            {fill(say(copy, pendingKey(overview.open.contractStatus)), {
               days: overview.open.days,
               date: formatDate(overview.open.toDate),
               amount: formatMoney(overview.open.amount, overview.open.currency),
             })}
           </p>
-          <button class={TEXT_ACTION + ' mt-3'} type="button" onclick={withdraw}>
+          {#if overview.open.contractStatus === 'signed'}
+            {#if payFailed}
+              <p class={NOTICE_ERROR + ' mt-3'} role="alert">{say(copy, 'payment.openFailed')}</p>
+            {/if}
+            <button class={PRIMARY + ' mt-4'} type="button" aria-busy={paying} onclick={pay}>
+              {say(copy, payLabel)}
+            </button>
+          {/if}
+          <button class={TEXT_ACTION + ' mt-3 block'} type="button" onclick={withdraw}>
             {say(copy, 'account.extension.withdraw')}
           </button>
         {:else if overview.open?.status === 'awaiting_signature'}

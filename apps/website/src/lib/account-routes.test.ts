@@ -23,33 +23,22 @@ import { accountHref, type AccountRoutes, parseAccountPath } from './account-rou
 function routesFor(account: string, orders: string, notifications: string): AccountRoutes {
   return {
     home: '/',
-    login: '/accedi/',
+    login: '/sign-in/',
     account,
     accountNotifications: notifications,
     accountOrders: orders,
     catalog: '/catalogo/',
     product: '/prodotto/',
     orderDetail: `${orders}{number}/`,
+    paymentResult: '/payment/',
   };
 }
 
 const LOCALES = {
-  it: routesFor('/area-clienti/', '/area-clienti/ordini/', '/area-clienti/notifiche/'),
-  en: routesFor(
-    '/en/customer-area/',
-    '/en/customer-area/orders/',
-    '/en/customer-area/notifications/',
-  ),
-  fr: routesFor(
-    '/fr/espace-client/',
-    '/fr/espace-client/commandes/',
-    '/fr/espace-client/notifications/',
-  ),
-  de: routesFor(
-    '/de/kundenbereich/',
-    '/de/kundenbereich/bestellungen/',
-    '/de/kundenbereich/benachrichtigungen/',
-  ),
+  it: routesFor('/account/', '/account/orders/', '/account/notifications/'),
+  en: routesFor('/en/account/', '/en/account/orders/', '/en/account/notifications/'),
+  fr: routesFor('/fr/account/', '/fr/account/orders/', '/fr/account/notifications/'),
+  de: routesFor('/de/account/', '/de/account/orders/', '/de/account/notifications/'),
 } satisfies Record<string, AccountRoutes>;
 
 const NUMBER = 'MIA-2026-001000';
@@ -122,7 +111,7 @@ describe('parseAccountPath', () => {
 describe('accountHref', () => {
   it('encodes the number, matching accountOrderPath on the server', () => {
     const href = accountHref(LOCALES.it, { name: 'orderDetail', number: 'a/b' });
-    assert.equal(href, '/area-clienti/ordini/a%2Fb/');
+    assert.equal(href, '/account/orders/a%2Fb/');
     assert.deepEqual(parseAccountPath(LOCALES.it, href), {
       name: 'orderDetail',
       number: 'a/b',
@@ -134,11 +123,8 @@ describe('accountHref', () => {
     // never produce a link to a literal order named `{number}`.
     const broken: AccountRoutes = {
       ...LOCALES.it,
-      orderDetail: '/area-clienti/ordini/%7Bnumber%7D/',
+      orderDetail: '/account/orders/%7Bnumber%7D/',
     };
-    assert.equal(
-      accountHref(broken, { name: 'orderDetail', number: NUMBER }),
-      '/area-clienti/ordini/',
-    );
+    assert.equal(accountHref(broken, { name: 'orderDetail', number: NUMBER }), '/account/orders/');
   });
 });

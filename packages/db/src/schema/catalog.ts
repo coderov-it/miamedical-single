@@ -182,9 +182,10 @@ export const products = pgTable(
      * no variant axis to count separately — so this one integer is the whole of
      * availability, and `stock > 0` is what makes a product sellable.
      *
-     * Point-in-time, not a reservation: nothing decrements it at checkout and
-     * nothing knows which dates a rental unit is already out on. Real
-     * availability is still settled on the phone.
+     * Units on the shelf right now. Marking an order paid takes its quantity
+     * off; a confirmed rental return or an unwound paid order puts it back
+     * (docs/code/orders-stock.md). Nothing knows which future dates a unit is
+     * booked for — that is still settled on the phone.
      */
     stock: integer().notNull().default(0),
     isFeatured: boolean().notNull().default(false),

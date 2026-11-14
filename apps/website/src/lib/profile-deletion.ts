@@ -1,3 +1,4 @@
+import { pageLanguage } from '../scripts/locale.ts';
 import { request } from './customer-session.ts';
 
 /**
@@ -17,7 +18,7 @@ function post<T>(path: string, body: Record<string, unknown>): Promise<T> {
 
 /** Answers the same whether or not the identifier matches a profile. */
 export function requestDeletionCode(identifier: string): Promise<{ message: string }> {
-  return post('/request', { identifier });
+  return post('/request', { identifier, language: pageLanguage() });
 }
 
 /** Rejects with `invalid_code` when wrong or expired. Spends nothing. */

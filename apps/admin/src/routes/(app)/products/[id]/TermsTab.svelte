@@ -25,11 +25,17 @@
   let saved = $state<string[]>(untrack(() => [...product.termsIds]));
 
   let seededFor = $state(untrack(() => product.id));
+
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
+    selected = [...product.termsIds];
+    saved = [...product.termsIds];
+  }
+
   $effect(() => {
     if (product.id === seededFor) return;
     seededFor = product.id;
-    selected = [...product.termsIds];
-    saved = [...product.termsIds];
+    discard();
   });
 
   const isDirty = $derived(!sameAsSaved(selected, saved));
@@ -84,7 +90,7 @@
   {saving}
   error={error ?? documents.error}
   onSave={save}
-  saveLabel="Save links"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="max-w-2xl space-y-2">

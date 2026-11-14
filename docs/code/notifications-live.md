@@ -4,7 +4,7 @@ The in-app feed. One table, pushed over SSE, fanned out by `pg_notify` from
 inside the transaction that caused it. No queue, no vendor, no polling.
 
 Both audiences are shipped: the operator's feed in the back office, and the
-customer's at `/area-clienti/notifiche/`. A language column on
+customer's at `/account/notifications/`. A language column on
 `customer_accounts` and localized email remain outstanding — see
 `docs/plan/PLAN_app_push_notifications.html`, where the choice to key push off
 the device locale and email off the account pulls that work into the push
@@ -166,8 +166,8 @@ well is busywork.
 ## What the customer sees
 
 One destination in the account island's navigation, carrying the unread count,
-and one screen at `/area-clienti/notifiche/` — declared in all four languages by
-`routePaths`, so the German customer's URL is `/de/kundenbereich/benachrichtigungen/`.
+and one screen at `/account/notifications/` — declared in all four languages by
+`routePaths`, so the German customer's URL is `/de/account/notifications/`.
 
 No category rail, unlike the back office. An operator filters because they are
 reading everybody's events; a customer has their own orders and a handful of

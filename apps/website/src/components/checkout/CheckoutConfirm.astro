@@ -1,42 +1,32 @@
 ---
 /**
- * Step 3 — read it back, record the order, then hand over.
+ * The last step — read it back, then pay. Flow: docs/code/online-payments.md.
  *
- * Two paths, and both are complete:
+ *   "Pay and Confirm"  → POST /api/orders → order placed, stock held
+ *                      → the browser goes to the gateway's page (Nexi)
+ *                      → back on /payment/?token=…, which says how it went
  *
- *   no JavaScript  the CTA is the <a> it renders as — a WhatsApp handover already
- *                  carrying every line item, which is what the reference design's
- *                  own copy describes ("our agent will message you").
- *   with it        the same control posts the request to `POST /api/orders` first,
- *                  and the confirmation then leads with the order number. WhatsApp
- *                  stays, one step down, now quoting that number.
+ * The panels below the button are for when the browser never leaves:
  *
- * The order is recorded either way — in the second path by the API, in the first
- * by a human reading the message. The page never claims more than happened: on a
- * failed POST it says so and leaves the handover in place, because the message
- * still carries the whole request.
+ *   awaiting   the order exists and is unpaid — the back button from the
+ *              gateway, a reload, or a gateway that could not be reached.
+ *              "Pay now" opens the result page, which starts a new payment.
+ *   error      refused before anything was written; nothing was charged.
+ *   uncertain  no answer, so it may exist. No retry here: a second POST would
+ *              be a second order.
  *
- * The gate takes the CTA's place entirely when the request is not confirmable.
- * A rental with no return date has a daily rate and no total, and an order needs a
- * total; a line missing a required choice is one the API refuses outright. Either
- * way there is nothing to confirm yet, so the panel says what is missing and sends
- * the customer to the page where they can fix it — rather than offering a button
- * that is certain to fail. A line the catalogue could not read is the third case:
- * the notice offers a retry of the same request instead.
+ * The gate takes the button's place entirely when the request is not
+ * confirmable — what is missing, and the way to the page that fixes it.
  */
+import PhoneCta from '~/components/global/PhoneCta.astro';
 import { t } from '~/lib/labels';
 import type { CheckoutBlocked, CheckoutItem } from '~/lib/checkout';
 import { routePath } from '~/lib/routes';
-import { CONTACT_HOURS_KEY } from '~/lib/site';
 import CheckoutRetryForm, { type CheckoutRetry } from './CheckoutRetryForm.astro';
 import { EYEBROW } from './styles';
 import { localeForRequest } from '~/lib/i18n';
 
 interface Props {
-  /** `wa.me` URL already carrying the line items. */
-  whatsappHref: string;
-  /** The same message as plain text, for the script to extend at click time. */
-  whatsappBase: string;
   /** Why this request cannot be placed, or `null` when it can. */
   blocked: CheckoutBlocked;
   /** The item that blocked it, so the notice can name the product and the gap. */
@@ -47,7 +37,7 @@ interface Props {
   retry: CheckoutRetry;
 }
 
-const { whatsappHref, whatsappBase, blocked, blockedItem, backHref, retry } = Astro.props;
+const { blocked, blockedItem, backHref, retry } = Astro.props;
 const locale = localeForRequest();
 
 /** One notice per reason: what is missing, and the words for going to fix it. */
@@ -87,9 +77,10 @@ const GATE = gateFor(blocked);
 const REVIEW_CARD =
   'flex flex-col gap-1.5 rounded-xl border border-hair px-4.5 py-4 text-[13.5px] text-ink-2';
 const PRIMARY_CTA =
-  'hover:bg-accent-deep cursor-pointer rounded-full border-0 bg-accent p-3.75 text-center text-[15.5px] font-semibold text-white no-underline';
+  'hover:bg-accent-deep cursor-pointer rounded-full border-0 bg-accent p-3.75 text-center text-[15.5px] font-semibold text-white no-underline aria-busy:cursor-progress aria-busy:opacity-80';
 const SECONDARY_CTA =
   'bg-tint text-ink hover:bg-tint-2 hover:text-accent cursor-pointer rounded-full px-5.5 py-2.75 text-center text-[15px] font-semibold no-underline';
+const NOTICE = 'border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4';
 ---
 
 <div data-confirm-pending>
@@ -114,31 +105,42 @@ const SECONDARY_CTA =
       </div>
     </div>
 
-    <div class="bg-tint flex items-center gap-3.5 rounded-xl px-4.5 py-4">
-      <span class="bg-tint-2 grid size-10 flex-none place-items-center rounded-full text-accent">
-        <svg
-          class="size-5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.3 8.7 8.7 0 0 1-3.8-.9L3 20l1.2-5.3a8 8 0 0 1-.7-3.2A8.4 8.4 0 0 1 12 3.2a8.4 8.4 0 0 1 9 8.3Z"></path>
-        </svg>
+    {/*
+        The payment option card. One option today — the card gateway — drawn as
+        a chosen option rather than a bare paragraph, so a second method later
+        is a second card here, not a redesign.
+      */}
+    <div
+      class="border-accent bg-tint flex items-center gap-3.5 rounded-xl border-2 px-4.5 py-4"
+      data-payment-option="card"
+    >
+      <span
+        class="grid size-5 flex-none place-items-center rounded-full border-2 border-accent"
+        aria-hidden="true"
+      >
+        <span class="size-2.5 rounded-full bg-accent"></span>
       </span>
-      <span class="flex flex-col gap-0.5">
-        <strong class="text-[14.5px]">{t('noPaymentNow')}</strong>
-        <span class="text-ink-2 text-[14px] leading-normal">
-          {t('noPaymentNowDetail')}{' '}{t(CONTACT_HOURS_KEY)}.
-        </span>
+      <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+        <strong class="text-[14.5px]">{t('paymentMethodTitle')}</strong>
+        <span class="text-ink-2 text-[14px] leading-normal">{t('paymentMethodDetail')}</span>
       </span>
+      <svg
+        class="size-6 flex-none text-accent"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="2.5" y="5" width="19" height="14" rx="2"></rect>
+        <path d="M2.5 10h19M6.5 15h4"></path>
+      </svg>
     </div>
 
     {GATE ? (
-      <div class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4">
+      <div class={NOTICE}>
         <strong class="text-[15.5px]">{GATE.title}</strong>
         <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{GATE.detail}</p>
         {blocked === 'unavailable' ? (
@@ -151,25 +153,15 @@ const SECONDARY_CTA =
       </div>
     ) : (
       <>
-        {/*
-            An <a> rather than a <button>, and it stays one: with no JavaScript
-            this IS the handover. The script calls preventDefault, posts, and only
-            then follows the link — see the confirm section of checkout.astro.
-          */}
-        <a
-          class={PRIMARY_CTA}
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener"
-          data-place-order
-          data-wa-base={whatsappBase}
-          data-analytics="whatsapp"
-        >
-          {t('sendOrderOnWhatsApp')}
-        </a>
+        <button class={PRIMARY_CTA} type="button" data-place-order>
+          {t('payAndConfirm')}
+        </button>
+        <noscript>
+          <p class="text-danger m-0 text-center text-[14px]">{t('javascriptToPay')}</p>
+        </noscript>
 
         <div class="text-ink-2 -mt-1.5 text-center text-[12.5px]">
-          {t('termsNoticeBefore')}{' '}
+          {t('termsNoticePay')}{' '}
           <a class="underline" href={routePath(locale, 'terms')}>
             {t('termsLink')}
           </a>
@@ -181,123 +173,51 @@ const SECONDARY_CTA =
 </div>
 
 {/*
-    Revealed only after the API accepted the order, so everything it states is
-    true of a row that exists. It deliberately does not claim a confirmation
-    email — there is no mail service behind this page, which is what the
-    reference design's copy assumes.
+    The order exists and is unpaid. Everything it states is true of a row the
+    API wrote; the number is the one the server issued.
   */}
-<div
-  class="flex flex-col items-center gap-2.5 py-4.5 text-center"
-  data-confirm-placed
-  role="status"
-  hidden
->
-  <span
-    class="bg-tint grid size-11.5 place-items-center rounded-full text-[22px] font-bold text-accent"
-    aria-hidden="true"
-  >
-    ✓
-  </span>
-  <strong class="text-[17px]">{t('requestSent')}</strong>
-
-  {/*
-      The number is the reference the phone call opens with, so it is the largest
-      thing here after the confirmation itself, and it is selectable text rather
-      than an image or a pseudo-element.
-    */}
-  <div
-    class="border-hair bg-tint flex flex-col gap-0.5 rounded-xl border px-5 py-3"
-    hidden
-    data-placed-number-card
-  >
-    <span class={EYEBROW}>{t('requestNumber')}</span>
-    <strong class="font-ui text-[19px] tracking-[0.01em] tabular-nums" data-placed-number>
+<div class={NOTICE} data-confirm-awaiting role="status" hidden>
+  <strong class="text-[16px]">{t('orderAwaitingPayment')}</strong>
+  <div class="border-hair bg-tint flex flex-col gap-0.5 rounded-xl border px-5 py-3">
+    <span class={EYEBROW}>{t('payment.orderNumber')}</span>
+    <strong class="font-ui text-[19px] tracking-[0.01em] tabular-nums" data-awaiting-number>
       —
     </strong>
-    <span class="text-ink-2 text-[13px]" hidden data-placed-total-row>
-      {t('requestTotalEstimate')}
-      <span class="tabular-nums" data-placed-total>
-        —
-      </span>
-    </span>
   </div>
-
-  <span class="text-ink-2 max-w-105 text-[15px] leading-[1.55]">
-    {/*
-      The greeting carries its own template as data, so the page script can fold
-      the customer's first name in without holding an Italian string itself.
-    */}
-    <span data-placed-greeting data-greeting-template={t('thanksName')}>
-      {t('thanks')}
-    </span>
-    {t('requestSentDetail')}
-  </span>
-
-  {/*
-    The nudge towards the account, revealed by the script only when the server
-    reports `accountInvite: 'activate'`. Written as its own line rather than
-    folded into the thank-you above, because it is the one thing on this panel
-    that asks the customer to go and do something afterwards.
-  */}
-  <span class="text-ink-2 max-w-105 text-[15px] leading-[1.55]" hidden data-placed-account>
+  <p
+    class="text-ink-2 m-0 text-[14px] leading-[1.55]"
+    data-awaiting-detail
+    data-template={t('orderAwaitingPaymentDetail')}
+  ></p>
+  <p class="text-ink-2 m-0 text-[14px] leading-[1.55]" hidden data-placed-account>
     {t('requestSentActivate')}
-  </span>
-
-  <a class={SECONDARY_CTA} href={whatsappHref} target="_blank" rel="noopener" data-placed-whatsapp>
-    {t('continueOnWhatsApp')}
+  </p>
+  <a class={PRIMARY_CTA + ' self-stretch'} href="#" hidden data-awaiting-pay>
+    {t('payNow')}
   </a>
 </div>
 
-{/*
-    The POST failed. The request is not lost — the WhatsApp message below still
-    carries all of it — so this offers both the retry and the path that does not
-    depend on our API being up.
-  */}
-<div
-  class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4"
-  data-confirm-error
-  role="alert"
-  hidden
->
+<div class={NOTICE} data-confirm-error role="alert" hidden>
   <strong class="text-[15.5px]">{t('requestFailed')}</strong>
-  <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{t('requestFailedDetail')}</p>
-  <div class="flex flex-wrap gap-2.5">
-    <button class={SECONDARY_CTA} type="button" data-confirm-retry>
-      {t('retry')}
-    </button>
-    <a class={SECONDARY_CTA} href={whatsappHref} target="_blank" rel="noopener" data-error-whatsapp>
-      {t('continueOnWhatsApp')}
-    </a>
-  </div>
+  <p
+    class="text-ink-2 m-0 text-[14px] leading-[1.55]"
+    data-error-detail
+    data-default={t('orderFailedDetail')}
+  >
+    {t('orderFailedDetail')}
+  </p>
+  <button class={SECONDARY_CTA} type="button" data-confirm-retry>
+    {t('retry')}
+  </button>
 </div>
 
-{/*
-    The POST may have reached the server and we never heard back — a dropped
-    connection, a timeout, a 5xx, or another tab still sending this same order.
-    There is deliberately NO retry here: a second POST would be a second order.
-    The customer is pointed at the places that know (their inbox, their orders)
-    and at a human, who can check before anything is sent twice.
-  */}
-<div
-  class="border-hair flex flex-col items-start gap-3 rounded-xl border bg-white px-4.5 py-4"
-  data-confirm-uncertain
-  role="alert"
-  hidden
->
+<div class={NOTICE} data-confirm-uncertain role="alert" hidden>
   <strong class="text-[15.5px]">{t('requestUncertain')}</strong>
-  <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{t('requestUncertainDetail')}</p>
+  <p class="text-ink-2 m-0 text-[14px] leading-[1.55]">{t('orderUncertainDetail')}</p>
   <div class="flex flex-wrap gap-2.5">
     <a class={SECONDARY_CTA} href={routePath(locale, 'accountOrders')}>
       {t('account.myOrders')}
     </a>
-    <a
-      class={SECONDARY_CTA}
-      href={whatsappHref}
-      target="_blank"
-      rel="noopener"
-      data-uncertain-whatsapp
-    >
-      {t('continueOnWhatsApp')}
-    </a>
+    <PhoneCta variant="soft" />
   </div>
 </div>

@@ -33,3 +33,10 @@ export interface ExtensionOption {
   fromDate: string;
   toDate: string;
 }
+
+/** A payment confirmed by the gateway rather than typed in by an operator. */
+export interface OnlinePaymentInput {
+  method: 'card_online';
+  reference: string;
+  amount?: undefined;
+}

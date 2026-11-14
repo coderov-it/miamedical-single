@@ -11,7 +11,9 @@
   import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
   import type { Snippet } from 'svelte';
 
+  import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
+  import * as Popover from '$lib/components/ui/popover/index.js';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Props {
@@ -24,10 +26,14 @@
     /** Omit to render a read-only panel with no footer. */
     onSave?: () => void;
     saveLabel?: string;
+    /** Resets the tab to what the server last returned. Offered behind a confirmation. */
+    onDiscard?: () => void;
     /** Disables saving and says why, e.g. a missing permission. */
     disabledReason?: string | undefined;
     children: Snippet;
   }
+
+  let discardOpen = $state(false);
 
   let {
     title,
@@ -36,7 +42,8 @@
     saving = false,
     error = null,
     onSave,
-    saveLabel = 'Save',
+    saveLabel = 'Save changes',
+    onDiscard,
     disabledReason,
     children,
   }: Props = $props();
@@ -61,12 +68,41 @@
     {@render children()}
   </div>
 
-  {#if onSave}
+  <!-- Nothing to save, nothing to offer: the footer appears with the first edit. -->
+  {#if onSave && (dirty || saving || disabledReason)}
     <div class="flex items-center justify-end gap-3 border-t bg-muted/40 px-5 py-3">
       {#if disabledReason}
         <p class="mr-auto text-sm text-muted-foreground">{disabledReason}</p>
       {:else if dirty}
         <p class="mr-auto text-sm text-muted-foreground">Unsaved changes</p>
+      {/if}
+      {#if onDiscard && dirty && !disabledReason}
+        <Popover.Root bind:open={discardOpen}>
+          <Popover.Trigger>
+            {#snippet child({ props })}
+              <Button {...props} variant="destructive" type="button">Cancel</Button>
+            {/snippet}
+          </Popover.Trigger>
+          <Popover.Content align="end" side="top" class="w-64">
+            <p class="font-medium">Discard your changes?</p>
+            <p class="text-xs text-muted-foreground">Edits in this section will be lost.</p>
+            <div class="flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onclick={() => (discardOpen = false)}>
+                Keep editing
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onclick={() => {
+                  discardOpen = false;
+                  onDiscard();
+                }}
+              >
+                Discard
+              </Button>
+            </div>
+          </Popover.Content>
+        </Popover.Root>
       {/if}
       <BusyButton
         busy={saving}

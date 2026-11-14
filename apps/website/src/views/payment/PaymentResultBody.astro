@@ -1,0 +1,104 @@
+---
+/**
+ * The page the payment gateway sends the customer back to. One panel shows at
+ * a time; `scripts/payment/result.ts` picks it from `GET /api/payments/:token`.
+ *
+ *   paid      ✓ "Payment received", the order number, links onward
+ *   pending   the gateway has not confirmed yet — checked again every few
+ *             seconds, with "Try again" for a page closed before paying
+ *   failed    nothing charged; "Try again" while the order still waits
+ *   closed    the order was cancelled for not being paid in time
+ *   error     a bad link, or the API did not answer
+ *
+ * Flow: docs/code/online-payments.md.
+ */
+import {
+  AUTH_CARD,
+  AUTH_TITLE,
+  HINT,
+  NOTICE_ERROR,
+  PRIMARY,
+  SECONDARY,
+} from '~/components/account/fields';
+import { EYEBROW } from '~/components/checkout/styles';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import LoadingState from '~/components/primitives/LoadingState.svelte';
+import { API_BASE } from '~/lib/api';
+import { localeForRequest, translate } from '~/lib/i18n';
+import { routePath } from '~/lib/routes';
+
+const locale = localeForRequest();
+const text = (key: string) => translate(locale, key);
+
+const PANEL = 'flex flex-col items-start gap-3';
+const LINKS = 'mt-2 flex flex-wrap gap-3';
+---
+
+<div class={AUTH_CARD} data-payment-result data-api-base={API_BASE}>
+  <div data-pay-panel="checking">
+    <LoadingState label={text('payment.checking')} />
+  </div>
+
+  <div class={PANEL} data-pay-panel="paid" role="status" hidden>
+    <span
+      class="bg-tint grid size-11.5 place-items-center rounded-full text-[22px] font-bold text-accent"
+      aria-hidden="true"
+    >
+      ✓
+    </span>
+    <h1 class={AUTH_TITLE}>{text('payment.paidTitle')}</h1>
+    <p class={HINT} data-pay-paid-detail></p>
+    <div class="border-hair bg-tint flex flex-col gap-0.5 rounded-xl border px-5 py-3">
+      <span class={EYEBROW}>{text('payment.orderNumber')}</span>
+      <strong class="font-ui text-[19px] tabular-nums" data-pay-number>
+        —
+      </strong>
+    </div>
+    <div class={LINKS}>
+      <a class={PRIMARY + ' inline-flex items-center'} href={routePath(locale, 'accountOrders')}>
+        {text('account.myOrders')}
+      </a>
+      <a class={SECONDARY + ' inline-flex items-center'} href={routePath(locale, 'home')}>
+        {text('home')}
+      </a>
+    </div>
+  </div>
+
+  <div class={PANEL} data-pay-panel="pending" role="status" hidden>
+    <h1 class={AUTH_TITLE}>{text('payment.pendingTitle')}</h1>
+    <p class={HINT}>{text('payment.pendingDetail')}</p>
+    <button class={PRIMARY} type="button" data-pay-retry hidden>
+      {text('payment.tryAgain')}
+    </button>
+  </div>
+
+  <div class={PANEL} data-pay-panel="failed" role="alert" hidden>
+    <h1 class={AUTH_TITLE}>{text('payment.failedTitle')}</h1>
+    <p class={HINT}>{text('payment.failedDetail')}</p>
+    <p class={HINT} data-pay-kept-until hidden></p>
+    <button class={PRIMARY} type="button" data-pay-retry>
+      {text('payment.tryAgain')}
+    </button>
+  </div>
+
+  <div class={PANEL} data-pay-panel="closed" role="status" hidden>
+    <h1 class={AUTH_TITLE}>{text('payment.closedTitle')}</h1>
+    <p class={HINT}>{text('payment.closedDetail')}</p>
+    <div class={LINKS}>
+      <a class={PRIMARY + ' inline-flex items-center'} href={routePath(locale, 'catalog')}>
+        {text('goToCatalog')}
+      </a>
+      <PhoneCta variant="soft" />
+    </div>
+  </div>
+
+  <div class={PANEL} data-pay-panel="error" role="alert" hidden>
+    <h1 class={AUTH_TITLE}>{text('payment.metaTitle')}</h1>
+    <p class={NOTICE_ERROR} data-pay-error></p>
+    <PhoneCta variant="soft" />
+  </div>
+
+  <p class={NOTICE_ERROR + ' mt-4'} data-pay-retry-error role="alert" hidden>
+    {text('payment.openFailed')}
+  </p>
+</div>

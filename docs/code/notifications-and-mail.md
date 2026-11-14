@@ -431,8 +431,8 @@ MAIL_TRANSPORT=console pnpm dev
 ```
 
 Place an order, then read the boxed block in the server log. It contains both links.
-Paste the `attiva-account` one into a browser to activate; paste the
-`segnala-ordine` one to file a dispute.
+Paste the `activate-account` one into a browser to activate; paste the
+`report-order` one to file a dispute.
 
 To exercise a real provider, set `MAIL_TRANSPORT` to `plunk`, `cloudflare` or `ses`
 with a sending domain verified **with that provider**, and confirm the links resolve

@@ -1,13 +1,14 @@
 /** HTTP edge only: validate, delegate to a service, map records to DTOs. */
 
 import { P } from '@mia/permissions';
-import { CheckoutDraftSchema, PlaceOrderSchema } from '@mia/validators';
+import { CheckoutDraftSchema, DEFAULT_LANGUAGE, PlaceOrderSchema } from '@mia/validators';
 import { Hono } from 'hono';
 
 import { requirePermission } from '../../shared/auth/guards.ts';
 import type { AppEnv } from '../../shared/http/context.ts';
 import { clientIp, rateLimit } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
+import { startForOrder } from '../payments/start.ts';
 import { toPageMeta } from '../products/mapper.ts';
 import {
   toCalendarEvent,
@@ -44,7 +45,7 @@ const previewRateLimit = rateLimit({ limit: 120, windowMs: 60 * 60 * 1000 });
 
 /** ----------------------------------------------------------------------------
 POST /api/orders (public)
-Places a rental order from the storefront and returns its number.
+Places an order from the storefront and starts its online payment.
 ---------------------------------------------------------------------------- **/
 /**
  * Placing an order needs no account: the storefront takes rentals from people who
@@ -53,8 +54,8 @@ Places a rental order from the storefront and returns its number.
  * `resolve.ts` — so the worst a crafted request can do is order the wrong thing
  * at the right price.
  *
- * 201 with the order number: the storefront reads it back to the customer, and it
- * is the reference the phone call opens with.
+ * 201 with the order number and where to pay: the storefront sends the browser
+ * to `payment.redirectUrl`, the gateway's page.
  */
 export const orderPublicRoutes = new Hono<AppEnv>()
   .post('/', placementRateLimit, validate('json', PlaceOrderSchema), async (c) => {
@@ -64,12 +65,16 @@ export const orderPublicRoutes = new Hono<AppEnv>()
       as `confirmed`; otherwise placement resolves an account from the email and
       marks the link `unverified`.
     */
-    const placed = await service.place(c.get('db'), c.req.valid('json'), {
+    const input = c.req.valid('json');
+    const placed = await service.place(c.get('db'), input, {
       session: c.get('customer'),
       ipAddress: clientIp(c),
       userAgent: c.req.header('user-agent') ?? null,
     });
-    return c.json({ data: toPlacedOrder(placed) }, 201);
+    /* The order is committed; the gateway comes after. If it cannot be reached,
+       the answer still carries a result-page token that offers the retry. */
+    const payment = await startForOrder(c.get('db'), placed.id, input.language ?? DEFAULT_LANGUAGE);
+    return c.json({ data: toPlacedOrder(placed, payment) }, 201);
   })
 
   /** --------------------------------------------------------------------------

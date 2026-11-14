@@ -1,11 +1,68 @@
 /**
- * Public route paths — single source of truth.
+ * Route paths — single source of truth.
  *
- * Changing a public URL is an SEO event, so every path lives here rather than
- * as a literal scattered through components. Italian slugs match the storefront
- * design and the live site's URL shape.
+ * Two kinds of route, with opposite rules:
+ *
+ *   PUBLIC (SEO)  home, catalogue, product, search, help-me-choose, support,
+ *                 terms, privacy, cookies, blog. Written by hand per language
+ *                 below; changing one is an SEO event. Italian slugs match the
+ *                 storefront design and the live site's URL shape.
+ *
+ *   PRIVATE       everything in `PRIVATE_ROUTES`: cart, checkout, sign-in, the
+ *                 account area, token pages, the payment result. Never meant
+ *                 for a search engine, so ONE English segment from
+ *                 `PRIVATE_SEGMENTS`, identical in every language — only the
+ *                 language prefix changes. Never translated, never given an
+ *                 Italian page file. The old per-language paths live on only as
+ *                 301s in `legacy-routes.ts`, because emails already sent still
+ *                 carry them.
+ *
+ *   it  /account/orders/     en  /en/account/orders/     fr  /fr/account/orders/
+ *
+ * `routes.ts` imports only the language registry (no `i18n.ts`, which reaches
+ * JSON through the `~/` alias) so `node --test` can load it.
  */
-import { SOURCE_LANGUAGE, type SiteLocale } from './i18n.ts';
+import { SOURCE_LANGUAGE } from '@mia/validators/language';
+
+import type { SiteLocale } from './i18n.ts';
+
+/**
+ * The private routes' path, once, without a language prefix.
+ *
+ * ⚠️ The server builds email links from its own copy of these paths, in
+ * apps/server/src/modules/notifications/links.ts — it cannot import from this
+ * app. Change a path here and you must change it there, or every link in every
+ * account email 404s. `paymentResult` is mirrored there too (PAYMENT_RESULT_PATHS).
+ *
+ * `deleteProfile` is the URL filed with Google Play.
+ */
+export const PRIVATE_SEGMENTS = {
+  cart: '/cart/',
+  checkout: '/checkout/',
+  login: '/sign-in/',
+  account: '/account/',
+  accountOrders: '/account/orders/',
+  accountNotifications: '/account/notifications/',
+  activateAccount: '/activate-account/',
+  resetPassword: '/reset-password/',
+  reportOrder: '/report-order/',
+  signContract: '/sign-contract/',
+  /* Where the payment gateway sends the customer back. */
+  paymentResult: '/payment/',
+  deleteProfile: '/delete-profile/',
+} as const;
+
+type PrivateKey = keyof typeof PRIVATE_SEGMENTS;
+
+/** Every private route under one language prefix ('' for the source language). */
+function privatePaths<P extends string>(
+  prefix: P,
+): { readonly [K in PrivateKey]: `${P}${(typeof PRIVATE_SEGMENTS)[K]}` } {
+  const entries = Object.entries(PRIVATE_SEGMENTS).map(([key, segment]) => [key, prefix + segment]);
+  return Object.fromEntries(entries) as {
+    [K in PrivateKey]: `${P}${(typeof PRIVATE_SEGMENTS)[K]}`;
+  };
+}
 
 export const routePaths = {
   it: {
@@ -27,31 +84,11 @@ export const routePaths = {
      */
     productFinder: '/aiutami-a-scegliere/',
     support: '/assistenza/',
-    cart: '/carrello/',
-    /* "Checkout" is the loanword Italian e-commerce actually uses, and it is what
-     the owner's reference design names this step. */
-    checkout: '/checkout/',
     terms: '/termini-e-condizioni/',
     privacy: '/privacy-policy/',
     cookies: '/cookie-policy/',
-
-    /* Customer area. "Area clienti" is the term Italian e-commerce actually uses.
-     ⚠️ The server builds email links from its own copy of these paths, in
-     apps/server/src/modules/notifications/links.ts — it cannot import from this
-     app. Change a path here and you must change it there, or every link in every
-     account email 404s. */
-    login: '/accedi/',
-    account: '/area-clienti/',
-    accountOrders: '/area-clienti/ordini/',
-    accountNotifications: '/area-clienti/notifiche/',
-    activateAccount: '/attiva-account/',
-    resetPassword: '/reimposta-password/',
-    reportOrder: '/segnala-ordine/',
-    signContract: '/firma-contratto/',
-    /* English in every language on purpose: `/delete-profile/` is the URL filed
-     with Google Play. Only the language prefix changes, so the switcher works. */
-    deleteProfile: '/delete-profile/',
     blog: '/blog/',
+    ...privatePaths(''),
   },
   en: {
     home: '/en/',
@@ -62,21 +99,11 @@ export const routePaths = {
     search: '/en/search/',
     productFinder: '/en/help-me-choose/',
     support: '/en/support/',
-    cart: '/en/cart/',
-    checkout: '/en/checkout/',
     terms: '/en/terms-and-conditions/',
     privacy: '/en/privacy-policy/',
     cookies: '/en/cookie-policy/',
-    login: '/en/sign-in/',
-    account: '/en/customer-area/',
-    accountOrders: '/en/customer-area/orders/',
-    accountNotifications: '/en/customer-area/notifications/',
-    activateAccount: '/en/activate-account/',
-    resetPassword: '/en/reset-password/',
-    reportOrder: '/en/report-order/',
-    signContract: '/en/sign-contract/',
-    deleteProfile: '/en/delete-profile/',
     blog: '/en/blog/',
+    ...privatePaths('/en'),
   },
   /**
    * French. Every path is prefixed, exactly like English — only the source
@@ -97,27 +124,16 @@ export const routePaths = {
     search: '/fr/recherche/',
     productFinder: '/fr/aidez-moi-a-choisir/',
     support: '/fr/assistance/',
-    cart: '/fr/panier/',
-    checkout: '/fr/commande/',
     terms: '/fr/conditions-generales/',
     privacy: '/fr/politique-de-confidentialite/',
     cookies: '/fr/politique-de-cookies/',
-    login: '/fr/connexion/',
-    account: '/fr/espace-client/',
-    accountOrders: '/fr/espace-client/commandes/',
-    accountNotifications: '/fr/espace-client/notifications/',
-    activateAccount: '/fr/activer-le-compte/',
-    resetPassword: '/fr/reinitialiser-le-mot-de-passe/',
-    reportOrder: '/fr/signaler-une-commande/',
-    signContract: '/fr/signer-le-contrat/',
-    deleteProfile: '/fr/delete-profile/',
     blog: '/fr/blog/',
+    ...privatePaths('/fr'),
   },
   /**
    * German. Slugs are written as German reads them rather than as calques of
-   * the Italian: `agb` is what a German site calls its terms, `warenkorb` its
-   * cart, and `auswahlhilfe` is the compound German forms where French needed a
-   * phrase. Umlauts are transliterated — `zuruecksetzen`, not `zurücksetzen` —
+   * the Italian: `agb` is what a German site calls its terms, and `auswahlhilfe`
+   * is the compound German forms where French needed a phrase. Umlauts are transliterated — `zuruecksetzen`, not `zurücksetzen` —
    * for the same reason the French paths dropped their accents.
    *
    * Like the French block these carry no SEO history yet, and inherit the
@@ -132,21 +148,11 @@ export const routePaths = {
     search: '/de/suche/',
     productFinder: '/de/auswahlhilfe/',
     support: '/de/kundenservice/',
-    cart: '/de/warenkorb/',
-    checkout: '/de/kasse/',
     terms: '/de/agb/',
     privacy: '/de/datenschutz/',
     cookies: '/de/cookie-richtlinie/',
-    login: '/de/anmelden/',
-    account: '/de/kundenbereich/',
-    accountOrders: '/de/kundenbereich/bestellungen/',
-    accountNotifications: '/de/kundenbereich/benachrichtigungen/',
-    activateAccount: '/de/konto-aktivieren/',
-    resetPassword: '/de/passwort-zuruecksetzen/',
-    reportOrder: '/de/bestellung-melden/',
-    signContract: '/de/vertrag-unterzeichnen/',
-    deleteProfile: '/de/delete-profile/',
     blog: '/de/blog/',
+    ...privatePaths('/de'),
   },
 } as const;
 
@@ -324,16 +330,4 @@ export function accountOrderPathTemplate(locale: SiteLocale = SOURCE_LANGUAGE): 
  * cache or an index; and a sign-in form in search results is a phishing surface
  * with no upside, since nobody finds their order history through Google.
  */
-export const PRIVATE_ROUTES: RouteKey[] = [
-  'cart',
-  'checkout',
-  'login',
-  'account',
-  'accountOrders',
-  'accountNotifications',
-  'activateAccount',
-  'resetPassword',
-  'reportOrder',
-  'signContract',
-  'deleteProfile',
-];
+export const PRIVATE_ROUTES = Object.keys(PRIVATE_SEGMENTS) as RouteKey[];

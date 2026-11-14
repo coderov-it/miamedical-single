@@ -38,7 +38,7 @@ export function adminDisputeAlert(input: {
   return {
     to: input.to,
     subject,
-    html: `${header({ heading: subject, audience: 'internal' })}
+    html: `${header({ heading: subject, audience: 'internal', language: 'en' })}
 ${paragraph({ text: `Somebody reports they did not place order ${input.order.number}.` })}
 ${subheading({ text: DETAILS_SECTION })}
 ${paragraph({ text: `Order email: ${input.orderEmail}` })}
@@ -48,7 +48,7 @@ ${paragraph({ text: input.message, preLine: true })}
 ${subheading({ text: ACTION_SECTION })}
 ${paragraph({ text: 'Contact them on WhatsApp before changing anything on the order.' })}
 ${button({ href: input.adminUrl, label: 'Open in the admin panel' })}
-${footer({ audience: 'internal' })}`,
+${footer({ audience: 'internal', language: 'en' })}`,
     text: textBody(
       [
         `Somebody reports they did not place order ${input.order.number}.`,
@@ -65,6 +65,7 @@ ${footer({ audience: 'internal' })}`,
         `Admin: ${input.adminUrl}`,
       ],
       'internal',
+      'en',
     ),
   };
 }

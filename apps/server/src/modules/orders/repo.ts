@@ -15,7 +15,8 @@ import {
   products,
 } from '@mia/db/schema';
 
-import { emit, emitToAdmins } from '../notifications/write.ts';
+import { emitToAdmins } from '../notifications/write.ts';
+import { applyStockMoves } from './stock.ts';
 import type {
   ActorRef,
   OrderAggregate,
@@ -137,6 +138,8 @@ export interface NewOrderData {
   billingAddress: Record<string, unknown> | null;
   delivery: Record<string, unknown>;
   notes: string | null;
+  /** When it is cancelled if still unpaid; null for no deadline. */
+  paymentDueAt: Date | null;
   items: NewOrderItemData[];
 }
 
@@ -196,6 +199,8 @@ export async function insertOrder(
         billingAddress: data.billingAddress,
         delivery: data.delivery,
         notes: data.notes,
+        paymentDueAt: data.paymentDueAt,
+        stockTaken: true,
       })
       .returning({ id: orders.id, number: orders.number, placedAt: orders.placedAt });
 
@@ -212,6 +217,11 @@ export async function insertOrder(
         configuration: item.configuration,
       })),
     );
+
+    /* The units leave the shelf now, with the order, so two customers can never
+       pay for the same last one. Short stock rolls the whole order back as an
+       `out_of_stock` 409 — see stock.ts and docs/code/orders-stock.md. */
+    await applyStockMoves(tx, data.items, null, 'pending', false);
 
     /**
      * Demand, counted once per order rather than per unit — three of the same
@@ -279,69 +289,6 @@ export interface OrderPatch {
 
 export async function update(db: Database, id: string, patch: OrderPatch): Promise<void> {
   await db.update(orders).set(patch).where(eq(orders.id, id));
-}
-
-export interface StatusEventData {
-  orderId: string;
-  field: 'status' | 'paymentStatus';
-  fromValue: string;
-  toValue: string;
-  note: string | null;
-  actorAdminUserId: string | null;
-}
-
-/**
- * The status column and its audit entry move together or not at all. The
- * transaction lives here rather than in the service because that is where the
- * other multi-statement writes in this codebase keep theirs — and because a
- * status with no explanation is precisely the state the timeline exists to
- * prevent.
- */
-export async function applyTransition(db: Database, event: StatusEventData): Promise<void> {
-  await db.transaction(async (tx) => {
-    await tx
-      .update(orders)
-      .set({ [event.field]: event.toValue })
-      .where(eq(orders.id, event.orderId));
-    await tx.insert(orderStatusEvents).values(event);
-    /* The customer's copy of the same fact, in the same transaction and under
-       the same rollback. It reaches nobody until the customer feed ships in
-       phase two — the row is written now so the feed opens with history rather
-       than with an empty list. */
-    await emitOrderStatusChanged(tx, event);
-  });
-}
-
-/**
- * The customer-facing half of a transition, written only where there is a
- * customer to tell.
- *
- * An unclaimed order has no account id, and `notifications_recipient_check`
- * refuses a customer row without one — correctly: there is nobody to address.
- * Those orders are reachable through the emailed order link instead, which is
- * what the placement mail already provides.
- */
-async function emitOrderStatusChanged(tx: Transaction, event: StatusEventData): Promise<void> {
-  const [order] = await tx
-    .select({ number: orders.number, customerAccountId: orders.customerAccountId })
-    .from(orders)
-    .where(eq(orders.id, event.orderId))
-    .limit(1);
-
-  if (!order?.customerAccountId) return;
-
-  await emit(tx, {
-    audience: 'customer',
-    customerAccountId: order.customerAccountId,
-    type: 'order.status_changed',
-    orderId: event.orderId,
-    data: {
-      orderNumber: order.number,
-      field: event.field,
-      from: event.fromValue,
-      to: event.toValue,
-    },
-  });
 }
 
 export interface ContractEventData {

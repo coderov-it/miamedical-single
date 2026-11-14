@@ -15,23 +15,29 @@
      English word naming the same artefact: `codiceFiscale`, `partitaIva`,
      `codiceUnivoco` — never `taxCode`/`vatNumber`. Wording around them stays
      English: `companyCodiceFiscale`.
-  2. **Public route paths stay Italian** (`/carrello/`, `/catalogo-noleggio/`) — an
-     SEO commitment governed in `apps/website/src/lib/routes.ts`. Query and form keys
-     are wire format, not routes, so English.
+  2. **SEO route paths are Italian** (`/catalogo-noleggio/`, `/cerca/`) — an SEO
+     commitment governed in `apps/website/src/lib/routes.ts`. Query and form keys
+     are wire format, so English.
 
-- **File names are English — except where the file name IS the URL.** Every
-  directory and file in the repo is named in English. The single exception is
-  `apps/website/src/pages/**`: in Astro a page file's path is its public route, so
-  `pages/carrello.astro` is not a badly named file, it is the declaration of
-  `/carrello/`, and renaming it is the SEO event the rule above forbids. Two
-  consequences:
+- **File names are English; an SEO page file is named by its URL.** Every
+  directory and file in the repo is named in English. In `apps/website/src/pages/**`
+  a page file's path is its public route, so an SEO page file carries its URL's
+  Italian segment: `pages/catalogo-vendita.astro` declares `/catalogo-vendita/`, and
+  its name changes only together with the URL. Two consequences:
 
-  1. **Only page files may carry an Italian name, and only for the segment the URL
-     needs.** `pages/prodotto/[slug].astro` — yes. `lib/carrello-stato.ts`,
-     `components/product/PdpConfigurazione.astro` — no.
-  2. **A page file is a route declaration, not a place to keep code.** When a page
-     outgrows the size rule below, the logic moves to an English-named module or
-     view component and the Italian file stays the thin shim that names the URL.
+  1. **An Italian name belongs to SEO page files, for the segment the URL needs.**
+     `pages/prodotto/[slug].astro`. Everything else is English: `lib/cart-state.ts`,
+     `components/product/PdpConfiguration.astro`, `pages/cart.astro`.
+  2. **A page file is a route declaration.** When a page outgrows the size rule
+     below, its logic moves to an English-named module or view component and the
+     page file stays the thin shim that names the URL.
+
+- **Private routes are English and identical in every language.** Every route in
+  `PRIVATE_ROUTES` — cart, checkout, sign-in, the account area, token pages, payment
+  result — has one English path segment shared by all locales, and only the
+  language prefix changes: `/account/`, `/en/account/`, `/fr/account/`. Its page file
+  carries the same English name (`pages/account/orders/index.astro`). The segments
+  live in `PRIVATE_SEGMENTS` in `apps/website/src/lib/routes.ts`.
 
 - **Nothing lands in the repo root but mainstream repo furniture** — assets go to
   `assets/` or `/docs/assets/`, anything doc-shaped to `/docs/`, scratch outside the repo. don't forget to add auto generated folder in .gitignore.

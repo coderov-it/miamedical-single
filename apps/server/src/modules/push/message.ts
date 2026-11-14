@@ -118,25 +118,23 @@ export function buildAlert(input: AlertInput): PushAlert {
 }
 
 /**
- * Where a tap should land, as a path rather than a screen name.
+ * The FCM `data` block of one push: facts only, never a screen or an address.
  *
- * A path means adding an event type later changes nothing in the app: it follows
- * whatever it is given. A screen name would be a second vocabulary to keep in
- * step across two repositories, and the one that drifts is always the one nobody
- * can deploy quickly.
+ * The app decides what a notification opens, so nothing here names a page —
+ * not a website path, not a screen name.
  *
- * `contract.awaiting_signature` deliberately does NOT point at the signing page.
- * That page needs a one-time token which lives nowhere in this row — correctly,
- * because a stored notification is not where a signing secret belongs — so the
- * tap lands on the order and the app mints the link from
- * `/api/customer/contracts/{number}/signing-link`.
+ *   row                                          pushData(row.id, row.type, row.data)
+ *   1. id      "8f3c…"                           notificationId  "8f3c…"
+ *   2. type    "order.status_changed"            type            "order.status_changed"
+ *   3. data    { orderNumber: "MIA-2026-001042", payload
+ *                field: "status",                 '{"orderNumber":"MIA-2026-001042","field":"status",
+ *                from: "pending", to: "paid" }     "from":"pending","to":"paid"}'
+ *
+ * `payload` is ONE JSON string rather than one key per field because FCM data
+ * values must be strings and FCM rejects some keys outright — `from`, which
+ * `order.status_changed` carries, is reserved. The payload shape per `type` is
+ * `NotificationPayloads` in `packages/validators/src/notification.ts`.
  */
-export function tapRoute(type: NotificationType, data: NotificationData): string | null {
-  const payload = data as Record<string, unknown>;
-  const orderNumber = payload.orderNumber;
-
-  if (typeof orderNumber === 'string' && orderNumber !== '') {
-    return `/area-clienti/ordini/${encodeURIComponent(orderNumber)}/`;
-  }
-  return '/area-clienti/notifiche/';
+export function pushData(id: string, type: NotificationType, data: NotificationData) {
+  return { notificationId: id, type, payload: JSON.stringify(data) };
 }

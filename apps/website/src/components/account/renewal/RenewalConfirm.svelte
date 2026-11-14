@@ -3,13 +3,14 @@
   (components/checkout/CheckoutConfirm.astro): review tiles, the payment note,
   one button.
 
-  Until online payment exists this places the renewal and the shop collects the
-  money (operator "Record payment" then activates it — the contract is already
-  signed). When a payment provider lands, its button replaces "Conferma la
-  proroga" here and paying activates it the same way.
+  "Pay and Confirm" places the renewal, already signed, then sends the
+  customer to the payment gateway; paying makes it active
+  (docs/code/online-payments.md). If the gateway cannot be opened, the modal
+  closes on the placed renewal and its card offers "Pay now".
 
-    "Conferma la proroga"  POST /api/customer/rental-extensions/:number
-                           { days, contractSignature } → onplaced()
+    "Pay and Confirm"      POST /api/customer/rental-extensions/:number
+                           { days, contractSignature }
+                           → POST /api/customer/payments/orders/:number → the gateway
     422 on the signature   → onrejected('contract'): step 2, box cleared
     422 on the length      → onrejected('days'): step 1
     anything else          → said above the button, nothing moves
@@ -17,7 +18,10 @@
 <script lang="ts">
   import { accountContext, say } from '~/lib/account-context';
   import { errorMessage } from '~/lib/account-state.svelte';
-  import { ApiError, formatDate } from '~/lib/customer-session';
+  import { API_BASE } from '~/lib/api-base';
+  import { ApiError, formatDate, formatMoney } from '~/lib/customer-session';
+  import { fill } from '~/scripts/account/copy';
+  import { goToPayment, payOrder } from '~/scripts/payment/client';
   import type { ExtensionOverview } from '~/lib/rental-extension';
   import { placeRenewal } from '~/lib/rental-extension';
 
@@ -30,12 +34,13 @@
   interface Props {
     number: string;
     option: Option | null;
+    currency: string;
     signatureDataUrl: string | null;
     onplaced: () => void;
     onrejected: (step: 'days' | 'contract', message: string) => void;
   }
 
-  const { number, option, signatureDataUrl, onplaced, onrejected }: Props = $props();
+  const { number, option, currency, signatureDataUrl, onplaced, onrejected }: Props = $props();
 
   const { copy, session } = accountContext();
 
@@ -49,8 +54,8 @@
     failure = null;
     try {
       await placeRenewal(number, option.days, signatureDataUrl);
-      onplaced();
     } catch (error) {
+      busy = false;
       if (session.escalate(error)) return;
       const message = errorMessage(error, say(copy, 'account.genericError'));
       if (error instanceof ApiError && error.fields.contractSignature) {
@@ -62,8 +67,14 @@
         return;
       }
       failure = message;
-    } finally {
+      return;
+    }
+    try {
+      goToPayment(await payOrder(API_BASE, number), copy.routes.paymentResult);
+    } catch {
+      /* Placed and signed, not yet paid: the card's "Pay now" takes it from here. */
       busy = false;
+      onplaced();
     }
   }
 
@@ -106,7 +117,9 @@
   <span class="flex flex-col gap-0.5">
     <strong class="text-[14.5px]">{say(copy, 'account.renewal.payment')}</strong>
     <span class="text-ink-2 text-[14px] leading-normal">
-      {say(copy, 'account.renewal.paymentNote')}
+      {fill(say(copy, 'account.renewal.paymentOnline'), {
+        amount: formatMoney(option?.amount ?? '0', currency),
+      })}
     </span>
   </span>
 </div>
@@ -117,5 +130,5 @@
 
 <button class={STEP_CTA} type="button" aria-busy={busy} onclick={place}>
   <span class={SPINNER} aria-hidden="true"></span>
-  {say(copy, 'account.renewal.submit')}
+  {say(copy, 'payAndConfirm')}
 </button>

@@ -1,0 +1,310 @@
+---
+/**
+ * The card every emailed sign-in link lands on: activation, magic link and
+ * password reset. Behaviour: scripts/account/activate-account.ts.
+ *
+ * One card in four states, switched by `data-state` on the card:
+ *   checking   the link is being redeemed — envelope badge, orbiting ring
+ *   signed-in  nothing left to ask — check badge while the browser leaves
+ *   ready      the password form
+ *   error      the link failed — warning badge and a way to a new link
+ * The badge is drawn once and its glyph and ring follow the state in CSS, so
+ * moving between states moves nothing on the page.
+ */
+import { CUSTOMER_PASSWORD_MIN_LENGTH } from '@mia/validators/password-policy';
+
+import AccountCopy from '~/components/account/AccountCopy.astro';
+import {
+  ANNOUNCE,
+  AUTH_CARD,
+  AUTH_LEDE,
+  AUTH_TITLE,
+  FIELD,
+  FIELD_ERROR,
+  HINT,
+  LABEL,
+  NOTICE_ERROR,
+  PRIMARY,
+  SPINNER,
+  TEXT_ACTION,
+} from '~/components/account/fields';
+import { localeFromLocals, translate } from '~/lib/i18n';
+
+interface Props {
+  heading: string;
+  intro: string;
+  /** Reset must set a password; activation may skip and stay magic-link only. */
+  passwordRequired: boolean;
+}
+
+const { heading, intro, passwordRequired } = Astro.props;
+
+const locale = localeFromLocals(Astro.locals);
+const text = (key: string) => translate(locale, key);
+
+/** What the script writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'account.activate.linkIncomplete',
+  'account.activate.linkUnverifiable',
+  'account.activate.requestNewLink',
+  'account.genericError',
+  'account.signIn.tooManyAttempts',
+] as const;
+
+/* Reset shows its form at once: its link is spent by the save, not the visit. */
+const initialState = passwordRequired ? 'ready' : 'checking';
+---
+
+<AccountCopy keys={SCRIPT_KEYS} />
+<div
+  class={`${AUTH_CARD} activate-card`}
+  data-page
+  data-state={initialState}
+  data-password-required={String(passwordRequired)}
+>
+  <div class="activate-badge" aria-hidden="true">
+    <svg class="activate-ring" viewBox="0 0 80 80" fill="none">
+      <circle cx="40" cy="40" r="37" stroke-width="3" class="stroke-accent/12" />
+      <circle
+        cx="40"
+        cy="40"
+        r="37"
+        stroke-width="3"
+        stroke-linecap="round"
+        pathLength="100"
+        class="activate-arc"
+      ></circle>
+    </svg>
+    <svg
+      class="activate-glyph"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <g data-glyph="checking">
+        <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
+        <path d="m3.5 7 8.5 6 8.5-6"></path>
+      </g>
+      <g data-glyph="ready">
+        <rect x="5" y="10.5" width="14" height="10" rx="2"></rect>
+        <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path>
+        <circle cx="12" cy="15.5" r="1.2" fill="currentColor" stroke="none"></circle>
+      </g>
+      <g data-glyph="signed-in">
+        <path d="m5.5 12.5 4.25 4.25L18.5 8"></path>
+      </g>
+      <g data-glyph="error">
+        <path d="M12 7.5v5.5"></path>
+        <circle cx="12" cy="16.75" r="1.1" fill="currentColor" stroke="none"></circle>
+        <circle cx="12" cy="12" r="9"></circle>
+      </g>
+    </svg>
+  </div>
+
+  <h1 class={`${AUTH_TITLE} text-center`}>{heading}</h1>
+
+  <!-- The redemption happens on load, not on submit: the link itself is the
+       credential, so waiting for a form would leave someone who closes the tab
+       still unactivated. -->
+  <p class={`${AUTH_LEDE} activate-dots text-center`} data-show="checking" role="status">
+    {text('account.activate.checking')}
+  </p>
+
+  <p class={`${AUTH_LEDE} text-center`} data-show="signed-in" role="status">
+    {text('account.activate.signedIn')}
+  </p>
+
+  <div data-error data-show="error" class={`${NOTICE_ERROR} mt-6 text-center`}></div>
+
+  <div data-show="ready">
+    <p class={`${AUTH_LEDE} text-center`}>{intro}</p>
+
+    <div data-submit-error hidden class={`${NOTICE_ERROR} mt-6`}></div>
+
+    <form data-form class="mt-7 space-y-5" novalidate>
+      <div data-gate="password">
+        <label class={LABEL} for="password">
+          {text('account.newPassword')}
+        </label>
+        <input
+          class={FIELD}
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="new-password"
+          minlength={CUSTOMER_PASSWORD_MIN_LENGTH}
+        />
+        <p class={`${HINT} mt-2`}>{text('account.minChars')}</p>
+        <p class={FIELD_ERROR} data-field-error="password" hidden>
+          {text('account.passwordTooShort')}
+        </p>
+      </div>
+      <button
+        class={`${PRIMARY} group inline-flex w-full items-center justify-center gap-2`}
+        type="submit"
+        data-submit
+      >
+        <span class={SPINNER} aria-hidden="true"></span>
+        {text('account.activate.saveContinue')}
+      </button>
+      <p
+        class={ANNOUNCE}
+        role="status"
+        aria-live="polite"
+        data-announce
+        data-message-one={text('errorCountOne')}
+        data-message-many={text('errorCountMany')}
+      ></p>
+    </form>
+
+    {!passwordRequired && (
+      <p class="mt-5 text-center">
+        <button class={TEXT_ACTION} type="button" data-skip>
+          {text('account.activate.skip')}
+        </button>
+      </p>
+    )}
+  </div>
+</div>
+
+<script>
+  import '~/scripts/account/activate-account';
+</script>
+
+<style>
+  /* Only the current state's lines are on screen. */
+  .activate-card [data-show] {
+    display: none;
+  }
+  .activate-card[data-state='checking'] [data-show='checking'],
+  .activate-card[data-state='signed-in'] [data-show='signed-in'],
+  .activate-card[data-state='ready'] [data-show='ready'],
+  .activate-card[data-state='error'] [data-show='error'] {
+    display: block;
+  }
+
+  .activate-badge {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 5rem;
+    height: 5rem;
+    margin: 0 auto 1.25rem;
+    border-radius: 9999px;
+    color: var(--color-accent);
+  }
+  .activate-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0.5rem;
+    border-radius: inherit;
+    background: var(--color-accent-tint);
+    transition: background-color 0.3s ease;
+  }
+  .activate-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .activate-arc {
+    stroke: currentColor;
+    stroke-dasharray: 26 100;
+    transform-origin: 40px 40px;
+    animation: activate-orbit 1.1s linear infinite;
+  }
+  .activate-glyph {
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+  }
+  .activate-glyph g {
+    display: none;
+  }
+  .activate-card[data-state='checking'] [data-glyph='checking'],
+  .activate-card[data-state='ready'] [data-glyph='ready'],
+  .activate-card[data-state='signed-in'] [data-glyph='signed-in'],
+  .activate-card[data-state='error'] [data-glyph='error'] {
+    display: inline;
+    animation: activate-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: 12px 12px;
+  }
+  .activate-card[data-state='checking'] [data-glyph='checking'] {
+    animation: activate-float 1.6s ease-in-out infinite;
+  }
+
+  /* The ring runs only while something is actually being waited for. */
+  .activate-card:not([data-state='checking'], [data-state='signed-in']) .activate-arc {
+    display: none;
+  }
+  .activate-card[data-state='signed-in'] .activate-badge {
+    color: var(--color-ok);
+  }
+  .activate-card[data-state='signed-in'] .activate-badge::before {
+    background: color-mix(in srgb, var(--color-ok) 10%, white);
+  }
+  .activate-card[data-state='error'] .activate-badge {
+    color: var(--color-danger);
+  }
+  .activate-card[data-state='error'] .activate-badge::before {
+    background: var(--color-danger-tint);
+  }
+
+  /* Three dots that keep counting, so the wait never reads as stuck. */
+  .activate-dots::after {
+    content: '';
+    display: inline-block;
+    width: 1.2em;
+    text-align: left;
+    animation: activate-dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes activate-orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes activate-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+  @keyframes activate-pop {
+    from {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+  }
+  @keyframes activate-dots {
+    0% {
+      content: '';
+    }
+    25% {
+      content: '.';
+    }
+    50% {
+      content: '..';
+    }
+    75% {
+      content: '...';
+    }
+  }
+
+  /* Slower, never frozen: a still ring reads as "stuck". */
+  @media (prefers-reduced-motion: reduce) {
+    .activate-arc {
+      animation-duration: 3s;
+    }
+    .activate-card [data-glyph] {
+      animation: none !important;
+    }
+  }
+</style>

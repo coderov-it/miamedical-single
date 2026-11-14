@@ -1,6 +1,6 @@
-# The customer-area island
+# The account island
 
-`/area-clienti/**` is one Svelte island. Three thin Astro pages declare the
+`/account/**` is one Svelte island. Three thin Astro pages declare the
 routes; `components/account/AccountApp.svelte` is the application.
 
 Accounts themselves — how an order comes to belong to one, sessions, emailed
@@ -23,16 +23,16 @@ built an entire order view as a single `innerHTML` string.
   form validation     none, and one violation   the storefront's own gate
 ```
 
-Four pages that are NOT part of it — `accedi`, `attiva-account`,
-`reimposta-password`, `segnala-ordine` — still use `<AccountCopy>` and their own
-inline scripts. `firma-contratto` too. Nothing about them changed.
+Four pages that are NOT part of it — `sign-in`, `activate-account`,
+`reset-password`, `report-order` — still use `<AccountCopy>` and their own
+inline scripts. `sign-contract` too. Nothing about them changed.
 
 ## The pieces
 
 ```text
-pages/area-clienti/index.astro            30 lines  → initial={{ name: 'account' }}
-pages/area-clienti/ordini/index.astro     26 lines  → initial={{ name: 'orders' }}
-pages/area-clienti/ordini/[number].astro  42 lines  → initial={{ name: 'orderDetail', … }}
+pages/account/index.astro            30 lines  → initial={{ name: 'account' }}
+pages/account/orders/index.astro     26 lines  → initial={{ name: 'orders' }}
+pages/account/orders/[number].astro  42 lines  → initial={{ name: 'orderDetail', … }}
 
 components/account/
   AccountApp.svelte          context, session gate, screen switch, focus, title, switcher
@@ -97,9 +97,9 @@ construction in all four languages.
 Order matters when parsing, and `account-routes.test.ts` covers it in all four:
 
 ```text
-  /de/kundenbereich/                        → { name: 'account' }
-  /de/kundenbereich/bestellungen/           → { name: 'orders' }
-  /de/kundenbereich/bestellungen/MIA-…/     → { name: 'orderDetail', number: 'MIA-…' }
+  /de/account/                  → { name: 'account' }
+  /de/account/orders/           → { name: 'orders' }
+  /de/account/orders/MIA-…/     → { name: 'orderDetail', number: 'MIA-…' }
 ```
 
 `account` is a prefix of `accountOrders`, which is itself the order-detail
@@ -250,3 +250,10 @@ Astro island's props are.
 - **A `{#if}`-remounted control needs its gate written as a thunk.**
   `controls: () => [el]`, never `controls: [el]`, or a future edit silently
   captures a dead node.
+
+## Loading plate
+
+The server cannot see the API's session cookie, so it paints a plain spinner.
+The account-shaped skeleton (`AccountSkeleton.svelte`) appears only in a browser
+that was signed in last time (`lib/signed-in-hint.ts`), so a signed-out visitor
+never sees a dashboard about to fill in before the redirect to sign-in.

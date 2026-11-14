@@ -11,7 +11,7 @@
  * Both are `type="submit"` on the SAME form, and that is what makes the second
  * one work without JavaScript: `formaction` overrides the form's `/checkout/`
  * target, so "aggiungi" degrades to a plain GET of this configuration to
- * `/carrello/` — the cart renders it server-side and folds it into the store on
+ * `/cart/` — the cart renders it server-side and folds it into the store on
  * mount. The script only upgrades that to "stay on the page"; it never becomes
  * the only way to add something.
  *
@@ -43,7 +43,7 @@ const locale = localeForRequest();
   Both are `type="submit"` on the SAME form, which is what makes the second
   one work without JavaScript: `formaction` overrides the form's `/checkout/`
   target, so "aggiungi" degrades to a plain GET of this configuration to
-  `/carrello/` — the cart renders it server-side and folds it into the store
+  `/cart/` — the cart renders it server-side and folds it into the store
   on mount. The script below only upgrades that to "stay on the page"; it
   never becomes the only way to add something.
 */}

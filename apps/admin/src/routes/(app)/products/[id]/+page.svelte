@@ -47,6 +47,7 @@
   import TranslateDialog from '~/lib/components/translate-dialog.svelte';
   import ResourceView from '~/lib/components/resource-view.svelte';
   import BusyLabel from '~/lib/components/busy-label.svelte';
+  import ProductStatusControl from '~/lib/components/product-status-control.svelte';
   import {
     autoTranslate,
     type PlanField,
@@ -206,23 +207,40 @@
   <PageHeader eyebrow="Catalog" title={product.data ? title : 'Product'}>
     {#snippet actions()}
       {#if autoTranslate.available && product.data}
-        <Button variant="outline" onclick={openTranslate}>
+        <Button size="sm" variant="outline" onclick={openTranslate}>
           <WandSparklesIcon />
           Translate
         </Button>
       {/if}
       {#if storefrontUrl}
-        <Button href={storefrontUrl} target="_blank" rel="noreferrer" variant="outline">
+        <Button size="sm" href={storefrontUrl} target="_blank" rel="noreferrer" variant="outline">
           <ExternalLinkIcon />
           View on site
         </Button>
       {/if}
-      <Button href={routes.products} variant="outline">
+      <Button size="sm" href={routes.products} variant="outline">
         <ArrowLeftIcon />
         Products
       </Button>
+      {#if session.can(P.PRODUCT_UPDATE) && product.data}
+        <ProductStatusControl
+          productId={product.data.id}
+          status={product.data.status}
+          mode="button"
+          canStart={() => {
+            if (!dirty.any) return true;
+            toast.error('Save or discard your changes first, then publish.');
+            return false;
+          }}
+          onChanged={(updated) => {
+            product.set(updated as AdminProduct);
+            // Tabs keep the row they read at mount; remount so Basics shows the new status.
+            productVersion += 1;
+          }}
+        />
+      {/if}
       {#if session.can(P.PRODUCT_DELETE) && product.data}
-        <Button variant="destructive" onclick={() => (deleting = true)}>
+        <Button size="sm" variant="destructive" onclick={() => (deleting = true)}>
           <Trash2Icon />
           Delete
         </Button>
@@ -233,12 +251,18 @@
   <ResourceView resource={product} noun="product">
     {#snippet children(current)}
       <!--
-        Status on the left, the editor-wide content language on the right. The
-        language lives here rather than on the section strip: both were underline
-        tabs on one line, which read as one strip of thirteen sections and
-        crushed each other on a narrow window. On a narrow one this row wraps.
+        Status on the left, the editor-wide content language on the right; the
+        section strip on its own row below, so neither crushes the other.
+
+        Only the language and the section strip stick under the top bar (h-14);
+        the status badges scroll away. All of it is one flex container with the
+        panels inside, so each sticky item travels the whole page. Wide, the
+        language parks over the right end of the stuck strip — one slim bar.
+        Narrower than @6xl it would cover tabs, so it takes its own full-width
+        row and the strip sticks just below it. Both bleed into the layout's
+        side padding so content can't peek past them.
       -->
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+      <div class="@container flex flex-wrap items-center gap-x-6 gap-y-3">
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
             {current.status}
@@ -258,78 +282,83 @@
             Updated {relativeTime(current.updatedAt)}
           </span>
         </div>
-        <LanguageSwitcher
-          lang={contentLang}
-          progress={progressFromStates(current.translationStatus.languages)}
-          variant="segmented"
-          class="ml-auto"
-        />
-      </div>
+        <div
+          class="sticky top-14 z-6 ml-auto flex justify-end bg-background @max-6xl:-mx-4 @max-6xl:grow @max-6xl:basis-full @max-6xl:px-4 @max-6xl:pt-2 @max-6xl:sm:-mx-6 @max-6xl:sm:px-6 @max-6xl:lg:-mx-8 @max-6xl:lg:px-8 @6xl:top-[4.25rem]"
+        >
+          <LanguageSwitcher
+            lang={contentLang}
+            progress={progressFromStates(current.translationStatus.languages)}
+            variant="segmented"
+          />
+        </div>
 
-      <!--
-        A plain button strip rather than the Tabs primitive: the panels below are
-        all mounted at once, which is the opposite of what a tablist implies to
-        a screen reader. `aria-current` describes what is actually true here.
-      -->
-      <div class="mt-4 border-b">
-        <div class="overflow-x-auto [scrollbar-width:none]">
-          <div class="flex min-w-max gap-1">
-            {#each PRODUCT_TABS as tab (tab.key)}
-              {@const active = activeTab === tab.key}
-              <button
-                type="button"
-                onclick={() => openTab(tab.key)}
-                aria-current={active ? 'page' : undefined}
-                class={cn(
-                  'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
-                  active
-                    ? 'border-primary font-medium text-foreground'
-                    : 'border-transparent text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {tab.label}
-                {#if dirty.has(tab.key)}
-                  <span
-                    class="size-1.5 rounded-full bg-primary"
-                    title="Unsaved changes in {tab.label}"
-                  ></span>
-                {/if}
-              </button>
-            {/each}
+        <!--
+          A plain button strip rather than the Tabs primitive: the panels below are
+          all mounted at once, which is the opposite of what a tablist implies to
+          a screen reader. `aria-current` describes what is actually true here.
+        -->
+        <div
+          class="sticky top-14 z-5 -mx-4 min-w-0 grow basis-full border-b bg-background px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 @max-6xl:top-[5.75rem] @6xl:pt-2"
+        >
+          <div class="[scrollbar-width:none] overflow-x-auto">
+            <div class="flex min-w-max gap-1">
+              {#each PRODUCT_TABS as tab (tab.key)}
+                {@const active = activeTab === tab.key}
+                <button
+                  type="button"
+                  onclick={() => openTab(tab.key)}
+                  aria-current={active ? 'page' : undefined}
+                  class={cn(
+                    'flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm transition-colors',
+                    active
+                      ? 'border-primary font-medium text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {tab.label}
+                  {#if dirty.has(tab.key)}
+                    <span
+                      class="size-1.5 rounded-full bg-primary"
+                      title="Unsaved changes in {tab.label}"
+                    ></span>
+                  {/if}
+                </button>
+              {/each}
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Every panel mounted; only the active one is shown. Keyed on the
-           translation version so a saved generation run remounts them against the
-           row the server returned — a tab keeps the copy it read at mount. -->
-      {#key productVersion}
-        <div class="mt-5 max-w-5xl">
-          {#each PRODUCT_TABS as tab (tab.key)}
-            <div hidden={activeTab !== tab.key}>
-              {#if tab.key === 'basics'}
-                <BasicsTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'description'}
-                <DescriptionTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'pricing'}
-                <PricingTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'specs'}
-                <SpecsTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'media'}
-                <MediaTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'addons'}
-                <AddonsTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'faqs'}
-                <FaqsTab product={current} {onSaved} {dirty} />
-              {:else if tab.key === 'questions'}
-                <QuestionsTab product={current} {onSaved} {dirty} />
-              {:else}
-                <TermsTab product={current} {onSaved} {dirty} />
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/key}
+        <!-- Every panel mounted; only the active one is shown. Keyed on the
+             translation version so a saved generation run remounts them against the
+             row the server returned — a tab keeps the copy it read at mount. -->
+        {#key productVersion}
+          <div class="mt-2 w-full max-w-5xl min-w-0">
+            {#each PRODUCT_TABS as tab (tab.key)}
+              <div hidden={activeTab !== tab.key}>
+                {#if tab.key === 'basics'}
+                  <BasicsTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'description'}
+                  <DescriptionTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'pricing'}
+                  <PricingTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'specs'}
+                  <SpecsTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'media'}
+                  <MediaTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'addons'}
+                  <AddonsTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'faqs'}
+                  <FaqsTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'questions'}
+                  <QuestionsTab product={current} {onSaved} {dirty} />
+                {:else}
+                  <TermsTab product={current} {onSaved} {dirty} />
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {/key}
+      </div>
     {/snippet}
   </ResourceView>
 </section>

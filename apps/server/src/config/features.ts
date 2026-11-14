@@ -1,6 +1,8 @@
 import { styleText } from 'node:util';
 
 import { env } from './env.ts';
+import { EXTERNAL_APIS } from './external-apis.ts';
+import { paymentEnv } from './payment-env.ts';
 
 /**
  * Which optional features this process starts with, decided ONCE at boot.
@@ -26,7 +28,30 @@ import { env } from './env.ts';
  */
 export const FEATURES = {
   mediaReclaim: env.MEDIA_ORPHAN_SWEEP === 'delete',
+  /**
+   * The card gateway, with its key and hosts, or `null` when checkout charges
+   * nobody (development only — `payment-env.ts` refuses it in production).
+   */
+  payments: resolvePayments(),
 } as const;
+
+export interface PaymentsFeature {
+  provider: 'nexi';
+  apiKey: string;
+  baseUrl: string;
+  /** Absolute API origin, for the gateway's notification URL. */
+  apiOrigin: string;
+}
+
+function resolvePayments(): PaymentsFeature | null {
+  if (paymentEnv.PAYMENT_PROVIDER !== 'nexi' || !paymentEnv.NEXI_API_KEY) return null;
+  return {
+    provider: 'nexi',
+    apiKey: paymentEnv.NEXI_API_KEY,
+    baseUrl: EXTERNAL_APIS.nexiBaseUrl[paymentEnv.NEXI_ENVIRONMENT],
+    apiOrigin: paymentEnv.PUBLIC_API_URL,
+  };
+}
 
 /**
  * Printed once at startup, next to the listening line.
@@ -43,6 +68,7 @@ export function logFeatureSummary(): void {
     ['object storage', objectStorageState()],
     ['translation', translationState()],
     ['media sweep', mediaSweepState()],
+    ['payments', paymentsState()],
   ];
 
   for (const line of renderTable(rows)) console.log(line);
@@ -209,4 +235,14 @@ function mediaSweepState(): State {
     value: 'report',
     note: 'unreferenced photos and icons are counted, never deleted',
   };
+}
+
+function paymentsState(): State {
+  if (!FEATURES.payments) {
+    return { tone: 'notice', value: 'off', note: 'orders are placed unpaid, nobody is charged' };
+  }
+  if (paymentEnv.NEXI_ENVIRONMENT === 'sandbox') {
+    return { tone: 'notice', value: 'nexi sandbox', note: 'test cards only, no real money' };
+  }
+  return { tone: 'ok', value: 'nexi' };
 }

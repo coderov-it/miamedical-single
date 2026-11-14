@@ -30,7 +30,7 @@ const NUMBER_SLOT = '{number}';
 
 /**
  * Astro sets no `trailingSlash`, so the default `'ignore'` serves
- * `/area-clienti/ordini` and `/area-clienti/ordini/` as the same route. The
+ * `/account/ordini` and `/account/orders/` as the same route. The
  * route table always carries the slash, so normalise before comparing.
  */
 function withTrailingSlash(path: string): string {

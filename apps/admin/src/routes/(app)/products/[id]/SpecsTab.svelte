@@ -89,6 +89,16 @@
   // Seeded once per (category, product) pair — the definitions arrive
   // asynchronously, so this cannot run at component init.
   let seededFor = $state<string | null>(null);
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
+    const specs = category.data?.specs;
+    if (!specs) return;
+    edits = snapshot(specs, product);
+    saved = snapshot(specs, product);
+    brand = product.brand ?? '';
+    savedBrand = product.brand ?? '';
+  }
+
   $effect(() => {
     const specs = category.data?.specs;
     if (!specs) return;
@@ -97,10 +107,7 @@
     if (stamp === seededFor) return;
     seededFor = stamp;
 
-    edits = snapshot(specs, product);
-    saved = snapshot(specs, product);
-    brand = product.brand ?? '';
-    savedBrand = product.brand ?? '';
+    discard();
   });
 
   const isDirty = $derived(!sameAsSaved(edits, saved) || brand.trim() !== savedBrand);
@@ -204,7 +211,7 @@
   {saving}
   error={error ?? category.error}
   onSave={category.data ? save : undefined}
-  saveLabel="Save specifications"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   {#if !category.data}

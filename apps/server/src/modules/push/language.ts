@@ -9,7 +9,8 @@ import { DEFAULT_LANGUAGE, isLanguageCode, type LanguageCode } from '@mia/valida
  * ```text
  * push, localized   the phone's own OS locale — we send no language at all
  * push, fallback    push_devices.language → customer_accounts.language → 'it'
- * email             customer_accounts.language → 'it'
+ * email, asked for  the page's language → customer_accounts.language → 'it'
+ * email, unasked    customer_accounts.language → 'it'  (modules/customer-auth/language.ts)
  * in-app feed       customer_accounts.language → 'it'
  * ```
  *

@@ -25,15 +25,15 @@ resources compiled into your app**, not from the payload.
 
 In rough order of dependency.
 
-| #   | Task                                                                            | Notes                                                                       |
-| --- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| 1   | Add `@capacitor/push-notifications`                                             | Or `@capacitor-firebase/messaging` if you prefer — the server does not care |
-| 2   | `requestPermissions()` then `register()`                                        | Android 13+ needs this too, it is no longer iOS-only                        |
-| 3   | `POST /api/customer/push/devices` on every launch and on every token refresh    | See §4                                                                      |
-| 4   | `DELETE /api/customer/push/devices` **before** clearing the session on sign-out | See §4                                                                      |
-| 5   | Drop in the generated string resources                                          | See §6 — without these, notifications arrive blank or as raw keys           |
-| 6   | Tap handler: read `data.route`, navigate there, mark `data.notificationId` read | See §7                                                                      |
-| 7   | (Optional) a notifications screen and a settings screen                         | Endpoints in §8 and §9                                                      |
+| #   | Task                                                                                                            | Notes                                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 1   | Add `@capacitor/push-notifications`                                                                             | Or `@capacitor-firebase/messaging` if you prefer — the server does not care |
+| 2   | `requestPermissions()` then `register()`                                                                        | Android 13+ needs this too, it is no longer iOS-only                        |
+| 3   | `POST /api/customer/push/devices` on every launch and on every token refresh                                    | See §4                                                                      |
+| 4   | `DELETE /api/customer/push/devices` **before** clearing the session on sign-out                                 | See §4                                                                      |
+| 5   | Drop in the generated string resources                                                                          | See §6 — without these, notifications arrive blank or as raw keys           |
+| 6   | Tap handler: switch on `data.type`, parse `data.payload`, open your own screen, mark `data.notificationId` read | See §7                                                                      |
+| 7   | (Optional) a notifications screen and a settings screen                                                         | Endpoints in §8 and §9                                                      |
 
 ---
 
@@ -137,6 +137,10 @@ not an error.
 
 ## 5. What a push actually looks like
 
+> **Change for the app developer.** `data.route` is gone. A push no longer carries
+> a website address or any screen name: read `data.type` and `data.payload`
+> instead (§7). `data.payload` is a JSON string you must `JSON.parse`.
+
 ```jsonc
 {
   "message": {
@@ -144,7 +148,7 @@ not an error.
     "data": {
       "notificationId": "8f3c…",
       "type": "order.status_changed",
-      "route": "/area-clienti/ordini/MIA-2026-001042/",
+      "payload": "{\"orderNumber\":\"MIA-2026-001042\",\"field\":\"status\",\"from\":\"pending\",\"to\":\"paid\"}",
     },
     "android": {
       "priority": "high",
@@ -246,9 +250,12 @@ things that are identical in every language.
 
 ## 7. Handling a tap
 
+The push carries facts, never a destination. The app switches on `data.type`,
+parses `data.payload` and opens one of its own screens.
+
 ```ts
 PushNotifications.addListener('pushNotificationActionPerformed', async ({ notification }) => {
-  const { route, notificationId } = notification.data as Record<string, string>;
+  const { type, payload, notificationId } = notification.data as Record<string, string>;
 
   if (notificationId) {
     // Fire and forget; a failure here must not block navigation.
@@ -260,30 +267,49 @@ PushNotifications.addListener('pushNotificationActionPerformed', async ({ notifi
     });
   }
 
-  if (route) router.navigate(route);
+  // Switch on `type` for any screen of your own; the order-or-feed rule covers the rest.
+  const facts = JSON.parse(payload ?? '{}');
+  if (facts.orderNumber) openOrderDetail(facts.orderNumber);
+  else openNotificationsFeed();
 });
 ```
 
-`route` is a **path**, deliberately, not a screen name. It means a new event type
-added on the server needs no change in your app — you follow whatever you are
-given. Paths you can currently receive:
+Worked example:
 
-| `data.type`                   | `data.route`                           |
-| ----------------------------- | -------------------------------------- |
-| `order.status_changed`        | `/area-clienti/ordini/{orderNumber}/`  |
-| `order.upcoming`              | `/area-clienti/ordini/{orderNumber}/`  |
-| `rental.ending_soon`          | `/area-clienti/ordini/{orderNumber}/`  |
-| `contract.awaiting_signature` | `/area-clienti/notifiche/` — see below |
+```text
+data.type     "order.status_changed"
+data.payload  '{"orderNumber":"MIA-2026-001042","field":"status","from":"pending","to":"paid"}'
+              → payload.orderNumber is set → open YOUR order-detail screen for MIA-2026-001042
+
+data.type     "contract.awaiting_signature"
+data.payload  '{"contractNumber":"CTR-1","orderNumber":null}'
+              → no order number → open YOUR notifications screen
+```
+
+`payload` is **one JSON string**, not one key per field: FCM data values must be
+strings, and FCM rejects some keys outright (`from`, which `order.status_changed`
+carries, is reserved). The shape per `type` is `NotificationPayloads` in
+`packages/validators/src/notification.ts`. The customer-facing types you can
+receive, and the fields in each payload:
+
+| `data.type`                   | `data.payload` fields                                                       |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| `order.status_changed`        | `orderNumber`, `field` (`status` or `paymentStatus`), `from`, `to`          |
+| `order.upcoming`              | `orderNumber`, `startsOn` (`YYYY-MM-DD`), `daysUntil` (number)              |
+| `rental.ending_soon`          | `orderNumber`, `endsOn` (`YYYY-MM-DD`), `daysLeft` (number), `customerName` |
+| `rental.extend_offer`         | `orderNumber`, `endsOn` (`YYYY-MM-DD`), `daysLeft` (number)                 |
+| `contract.awaiting_signature` | `contractNumber`, `orderNumber` (string or `null`)                          |
+
+`order.status_changed` `from` and `to` are enum members, never labels. Treat an
+unknown `type` as "open the notifications feed": a new event type ships on the
+server first, and your app must not crash on it.
 
 > **Signing a contract from a push is not yet possible end to end.** The signing
 > page needs a one-time `?token=` that only travels by email, and a stored
-> notification is not where a signing secret belongs. So that tap lands on the
-> feed. The endpoint that closes this —
+> notification is not where a signing secret belongs. So that tap should open the
+> order (or the feed). The endpoint that closes this —
 > `GET /api/customer/contracts/{number}/signing-link` — is **not built yet**. Ask
 > for it when you get to that screen.
-
-Paths are Italian because they are real public URLs on the storefront and an SEO
-commitment. Do not translate them.
 
 ---
 
@@ -398,7 +424,7 @@ Useful context if you or your LLM are weighing a change.
 | **Localization keys, not rendered text**       | No translated prose crosses the wire, and the language is the phone's own — correct the moment someone changes their device language, with nothing stored or guessed. |
 | **`appVersion` gate with a rendered fallback** | Lets a new event type ship server-side the same day instead of waiting on an App Store release. The fallback goes quiet one release cycle later.                      |
 | **Data-only messages rejected**                | iOS throttles and drops `content-available` at Apple's discretion, so customers would silently miss notifications. This is the one shape we will not ship.            |
-| **`route` is a path, not a screen name**       | A screen-name vocabulary is a second contract across two repos, and the one that drifts is always the one nobody can deploy quickly.                                  |
+| **Facts only, no route**                       | The push names no page and no screen, so the app is not coupled to website paths: it reads `data.type` + `data.payload` and builds its own UI.                        |
 | **Push requires sign-in**                      | A device row must name an account; nothing weaker than a session proves which. See §3.                                                                                |
 | **Status and day count live in the key**       | `loc_args` are printed verbatim and there is no formatter. See §6.                                                                                                    |
 | **Feed is the record, push is a hint**         | A dropped push costs a delay, never a notification. Nothing is ever reconstructed from what arrived.                                                                  |

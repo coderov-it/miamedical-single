@@ -311,7 +311,7 @@ root
   ?.querySelector<HTMLButtonElement>('[data-reset]')
   ?.addEventListener('click', (event) => requestReset(event.currentTarget as HTMLButtonElement));
 
-/* Already signed in — a bookmarked /accedi/, or the back button after signing
+/* Already signed in — a bookmarked /sign-in/, or the back button after signing
    in. Nothing to do here, so go where they were headed. */
 void loadCustomer()
   .then((customer) => {

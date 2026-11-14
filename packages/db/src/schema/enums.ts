@@ -66,6 +66,18 @@ export const paymentStatus = pgEnum('payment_status', [
   'failed',
 ]);
 
+/**
+ * One trip to the payment gateway. `pending` until the gateway answers; the
+ * other four are final. See docs/code/online-payments.md.
+ */
+export const paymentAttemptStatus = pgEnum('payment_attempt_status', [
+  'pending',
+  'paid',
+  'failed',
+  'cancelled',
+  'expired',
+]);
+
 export const addressKind = pgEnum('address_kind', ['shipping', 'billing']);
 
 /**

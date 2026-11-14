@@ -307,10 +307,10 @@ export function resolveLine(
 
   const rental = resolveRental(input, product, rentalPackage, field);
 
-  /* A point-in-time check, not a reservation: nothing decrements stock and
-     nothing knows which dates a unit is already out on. It refuses an order for
-     something the shelf says is gone, which is what a stale tab produces — the
-     phone call still settles real availability. */
+  /* A point-in-time check, not a reservation: stock only moves when the order
+     is paid (stock.ts). It refuses an order for something the shelf says is
+     gone, which is what a stale tab produces — the phone call still settles
+     future availability. */
   if (!product.inStock) {
     reject(`"${product.title}" is out of stock.`, `${field}.productSlug`);
   }

@@ -349,7 +349,7 @@
           <Input id="period-to" type="date" bind:value={periodTo} required />
         </div>
         <Dialog.Footer>
-          <Button type="button" variant="outline" onclick={() => (periodDialogOpen = false)}>
+          <Button type="button" variant="destructive" onclick={() => (periodDialogOpen = false)}>
             Cancel
           </Button>
           <BusyButton

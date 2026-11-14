@@ -36,4 +36,9 @@ export interface CustomerOrderDetailDto {
   notes: string | null;
   linkStatus: 'unverified' | 'confirmed';
   placedAt: string;
+  /**
+   * When this unpaid order is cancelled unless paid — the account shows "Pay
+   * now" until then. Null once paid, cancelled, or when it never had a deadline.
+   */
+  payBy: string | null;
 }

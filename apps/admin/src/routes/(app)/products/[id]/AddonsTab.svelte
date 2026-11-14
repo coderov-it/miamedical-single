@@ -56,11 +56,17 @@
   let saved = $state(untrack(() => comparable(addons)));
 
   let seededFor = $state(untrack(() => product.id));
+
+  /** Back to what the server last returned — drops this tab's unsaved edits. */
+  function discard() {
+    addons = product.addons.map(toEdit);
+    saved = comparable(addons);
+  }
+
   $effect(() => {
     if (product.id === seededFor) return;
     seededFor = product.id;
-    addons = product.addons.map(toEdit);
-    saved = comparable(addons);
+    discard();
   });
 
   const isDirty = $derived(!sameAsSaved(comparable(addons), saved));
@@ -139,7 +145,7 @@
   {saving}
   {error}
   onSave={save}
-  saveLabel="Save addons"
+  onDiscard={discard}
   disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
 >
   <div class="space-y-3">

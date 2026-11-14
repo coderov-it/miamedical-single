@@ -1,5 +1,6 @@
 import { accountDeletionCode } from './account-deletion-code.ts';
 import { adminDisputeAlert } from './admin-dispute-alert.ts';
+import type { EmailLanguage } from './component/language.ts';
 import type { EmailMessage } from './component/message.ts';
 import { magicLink } from './magic-link.ts';
 import { orderPlacedActivateReminder } from './order-placed-activate-reminder.ts';
@@ -22,81 +23,90 @@ const SITE = 'https://miamedicalitalia.com';
 
 export interface EmailSample {
   name: string;
-  render: () => EmailMessage;
+  /** Customer messages render in `language`; the internal alert ignores it. */
+  render: (language?: EmailLanguage) => EmailMessage;
 }
 
 export const EMAIL_SAMPLES: EmailSample[] = [
   {
     name: 'orderPlacedNewAccount',
-    render: () =>
+    render: (language = 'it') =>
       orderPlacedNewAccount({
+        language,
         to: 'elena.moretti@example.it',
         recipient: RECIPIENT,
         order: ORDER,
-        activationUrl: `${SITE}/attiva-account/?token=sample`,
-        reportUrl: `${SITE}/segnala-ordine/?token=sample`,
+        activationUrl: `${SITE}/activate-account/?token=sample`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
       }),
   },
   {
     name: 'orderPlacedActivateReminder',
-    render: () =>
+    render: (language = 'it') =>
       orderPlacedActivateReminder({
+        language,
         to: 'elena.moretti@example.it',
         recipient: RECIPIENT,
         order: ORDER,
-        activationUrl: `${SITE}/attiva-account/?token=sample`,
-        reportUrl: `${SITE}/segnala-ordine/?token=sample`,
+        activationUrl: `${SITE}/activate-account/?token=sample`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
       }),
   },
   {
     name: 'orderPlacedConfirmation',
-    render: () =>
+    render: (language = 'it') =>
       orderPlacedConfirmation({
+        language,
         to: 'elena.moretti@example.it',
         recipient: RECIPIENT,
         order: ORDER,
-        ordersUrl: `${SITE}/area-clienti/ordini/`,
-        reportUrl: `${SITE}/segnala-ordine/?token=sample`,
+        ordersUrl: `${SITE}/account/orders/`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
       }),
   },
   {
     name: 'magicLink',
-    render: () =>
+    render: (language = 'it') =>
       magicLink({
+        language,
         to: 'elena.moretti@example.it',
-        url: `${SITE}/attiva-account/?token=sample`,
+        url: `${SITE}/activate-account/?token=sample`,
         variant: 'signIn',
       }),
   },
   {
     name: 'magicLinkFirstSignIn',
-    render: () =>
+    render: (language = 'it') =>
       magicLink({
+        language,
         to: 'elena.moretti@example.it',
-        url: `${SITE}/attiva-account/?token=sample`,
+        url: `${SITE}/activate-account/?token=sample`,
         variant: 'firstSignIn',
       }),
   },
   {
     name: 'magicLinkRegister',
-    render: () =>
+    render: (language = 'it') =>
       magicLink({
+        language,
         to: 'elena.moretti@example.it',
-        url: `${SITE}/attiva-account/?token=sample`,
+        url: `${SITE}/activate-account/?token=sample`,
         variant: 'register',
       }),
   },
   {
     name: 'passwordReset',
-    render: () =>
+    render: (language = 'it') =>
       passwordReset({
+        language,
         to: 'elena.moretti@example.it',
-        url: `${SITE}/reimposta-password/?token=sample`,
+        url: `${SITE}/reset-password/?token=sample`,
       }),
   },
   {
     name: 'accountDeletionCode',
-    render: () => accountDeletionCode({ to: 'elena.moretti@example.it', code: '482915' }),
+    render: (language = 'it') =>
+      accountDeletionCode({ to: 'elena.moretti@example.it', code: '482915', language }),
   },
   {
     name: 'adminDisputeAlert',

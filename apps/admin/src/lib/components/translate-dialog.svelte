@@ -295,7 +295,11 @@
       />
 
       <Dialog.Footer>
-        <Dialog.Close>Cancel</Dialog.Close>
+        <Dialog.Close>
+          {#snippet child({ props })}
+            <Button variant="destructive" {...props}>Cancel</Button>
+          {/snippet}
+        </Dialog.Close>
         {#if chosenCount > 0}
           <Button onclick={run}>
             <SparklesIcon />
