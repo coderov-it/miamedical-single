@@ -14,3 +14,17 @@
 export function documentLocale(): string {
   return document.documentElement.lang || 'it-IT';
 }
+
+/** The language codes a request to the API may carry — the storefront's four. */
+export type PageLanguage = 'it' | 'en' | 'fr' | 'de';
+
+const LANGUAGES: readonly PageLanguage[] = ['it', 'en', 'fr', 'de'];
+
+/**
+ * `<html lang="en-GB">` → `en`: the language this page is in, as the API names
+ * it. Sent with every request whose email or follow-up page should speak it.
+ */
+export function pageLanguage(): PageLanguage {
+  const code = documentLocale().slice(0, 2) as PageLanguage;
+  return LANGUAGES.includes(code) ? code : 'it';
+}

@@ -1,5 +1,6 @@
 import type { Database } from '@mia/db';
 import type { ContractLanguage, MagicLinkVariant } from '@mia/templates';
+import type { LanguageCode } from '@mia/validators/language';
 import * as templates from '@mia/templates';
 
 import { mailSender } from '../../infra/mail/index.ts';
@@ -76,6 +77,8 @@ export interface OrderMailContext {
   order: templates.OrderRef;
   /** Single-use token bound to this order, for the "I did not order this" page. */
   reportToken: string;
+  /** The language the order was placed in — the email and its links follow it. */
+  language: LanguageCode;
 }
 
 /** A brand-new, unclaimed account: confirm the order and invite them to claim it. */
@@ -88,8 +91,9 @@ export function sendOrderPlacedNewAccount(
       to: input.email,
       recipient: { firstName: input.firstName, lastName: input.lastName },
       order: input.order,
-      activationUrl: links.activationUrl(input.activationToken),
-      reportUrl: links.reportOrderUrl(input.reportToken),
+      activationUrl: links.activationUrl(input.activationToken, input.language),
+      reportUrl: links.reportOrderUrl(input.reportToken, input.language),
+      language: input.language,
     }),
     { kind: 'order_placed_new_account', context: `order ${input.order.number} (new account)` },
     trail,
@@ -106,8 +110,9 @@ export function sendOrderPlacedActivateReminder(
       to: input.email,
       recipient: { firstName: input.firstName, lastName: input.lastName },
       order: input.order,
-      activationUrl: links.activationUrl(input.activationToken),
-      reportUrl: links.reportOrderUrl(input.reportToken),
+      activationUrl: links.activationUrl(input.activationToken, input.language),
+      reportUrl: links.reportOrderUrl(input.reportToken, input.language),
+      language: input.language,
     }),
     {
       kind: 'order_placed_activate_reminder',
@@ -127,8 +132,9 @@ export function sendOrderPlacedConfirmation(
       to: input.email,
       recipient: { firstName: input.firstName, lastName: input.lastName },
       order: input.order,
-      ordersUrl: links.accountOrdersUrl(),
-      reportUrl: links.reportOrderUrl(input.reportToken),
+      ordersUrl: links.accountOrdersUrl(input.language),
+      reportUrl: links.reportOrderUrl(input.reportToken, input.language),
+      language: input.language,
     }),
     { kind: 'order_placed_confirmation', context: `order ${input.order.number} (confirmation)` },
     trail,
@@ -152,7 +158,7 @@ export function sendContractReady(
       customerName: input.customerName,
       contractNumber: input.contractNumber,
       orderNumber: input.orderNumber,
-      signingUrl: links.contractSigningUrl(input.signingToken),
+      signingUrl: links.contractSigningUrl(input.signingToken, input.language),
       language: input.language,
     }),
     { kind: 'contract_ready', context: `contract ${input.contractNumber} ready` },
@@ -187,25 +193,41 @@ export function sendMagicLink(input: {
   email: string;
   token: string;
   variant: MagicLinkVariant;
+  language: LanguageCode;
 }): Promise<void> {
   return sendOrThrow(
     templates.magicLink({
       to: input.email,
-      url: links.magicLinkUrl(input.token),
+      url: links.magicLinkUrl(input.token, input.language),
       variant: input.variant,
+      language: input.language,
     }),
   );
 }
 
-export function sendPasswordReset(input: { email: string; token: string }): Promise<void> {
+export function sendPasswordReset(input: {
+  email: string;
+  token: string;
+  language: LanguageCode;
+}): Promise<void> {
   return sendOrThrow(
-    templates.passwordReset({ to: input.email, url: links.passwordResetUrl(input.token) }),
+    templates.passwordReset({
+      to: input.email,
+      url: links.passwordResetUrl(input.token, input.language),
+      language: input.language,
+    }),
   );
 }
 
 /** Thrown on failure: the page is about to ask for a code that must have arrived. */
-export function sendAccountDeletionCode(input: { email: string; code: string }): Promise<void> {
-  return sendOrThrow(templates.accountDeletionCode({ to: input.email, code: input.code }));
+export function sendAccountDeletionCode(input: {
+  email: string;
+  code: string;
+  language: LanguageCode;
+}): Promise<void> {
+  return sendOrThrow(
+    templates.accountDeletionCode({ to: input.email, code: input.code, language: input.language }),
+  );
 }
 
 export function sendRentalReminder(
@@ -216,6 +238,7 @@ export function sendRentalReminder(
     productTitle: string;
     rentalEndDate: string;
     extendUrl?: string;
+    language: LanguageCode;
   },
   trail?: OrderTrail,
 ): Promise<MailResult> {
@@ -227,6 +250,7 @@ export function sendRentalReminder(
       productTitle: input.productTitle,
       rentalEndDate: input.rentalEndDate,
       ...(input.extendUrl ? { extendUrl: input.extendUrl } : {}),
+      language: input.language,
     }),
     { kind: 'rental_reminder', context: `rental reminder for order ${input.orderNumber}` },
     trail,

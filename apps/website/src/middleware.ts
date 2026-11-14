@@ -24,6 +24,7 @@ import {
   SOURCE_LANGUAGE,
 } from '~/lib/i18n';
 import { legacyRedirect } from '~/lib/legacy-routes';
+import { linkLanguageRedirect } from '~/lib/reader-language';
 import { PRIVATE_ROUTES, routePaths, type RouteKey } from '~/lib/routes';
 
 /**
@@ -188,6 +189,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
       const permanent = context.request.method === 'GET' || context.request.method === 'HEAD';
       return context.redirect(moved, permanent ? 301 : 308);
     }
+
+    /* An emailed link opens in its reader's language when they arrive from
+       outside the site — lib/reader-language.ts. 302: it is one person's answer. */
+    const readerPath = await linkLanguageRedirect(
+      context.request,
+      context.url,
+      localeFromPrefix(pathname) ?? SOURCE_LANGUAGE,
+    );
+    if (readerPath) return context.redirect(readerPath, 302);
 
     /* The source language is served unprefixed, so its own prefix is not a
        route — `/it/` must not become a second copy of the whole site. */

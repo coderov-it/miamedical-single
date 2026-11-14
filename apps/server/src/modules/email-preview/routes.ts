@@ -1,4 +1,10 @@
 import { EMAIL_SAMPLES } from '@mia/templates/samples';
+import {
+  DEFAULT_LANGUAGE,
+  isLanguageCode,
+  LANGUAGE_CODES,
+  type LanguageCode,
+} from '@mia/validators/language';
 import { Hono } from 'hono';
 
 import type { AppEnv } from '../../shared/http/context.ts';
@@ -25,6 +31,11 @@ function find(name: string) {
   return EMAIL_SAMPLES.find((sample) => sample.name === name) ?? null;
 }
 
+/** `?language=en` picks the copy; anything else falls back to the source language. */
+function languageOf(raw: string | undefined): LanguageCode {
+  return isLanguageCode(raw) ? raw : DEFAULT_LANGUAGE;
+}
+
 const NOT_FOUND = `Unknown template. Try one of: ${NAMES.join(', ')}`;
 
 export const emailPreviewRoutes = new Hono<AppEnv>()
@@ -34,12 +45,15 @@ export const emailPreviewRoutes = new Hono<AppEnv>()
   -------------------------------------------------------------------------- **/
   .get('/', (c) => {
     const first = EMAIL_SAMPLES[0]!;
+    const language = languageOf(c.req.query('language'));
     return c.html(
       previewPage({
         names: NAMES,
         active: first.name,
-        message: first.render(),
+        message: first.render(language),
         basePath: BASE_PATH,
+        language,
+        languages: LANGUAGE_CODES,
       }),
     );
   })
@@ -52,7 +66,7 @@ export const emailPreviewRoutes = new Hono<AppEnv>()
     const sample = find(c.req.param('name'));
     if (!sample) return c.text(NOT_FOUND, 404);
     /* The body exactly as SES sends it — no wrapper, no injected styles. */
-    return c.html(sample.render().html);
+    return c.html(sample.render(languageOf(c.req.query('language'))).html);
   })
 
   /** --------------------------------------------------------------------------
@@ -62,7 +76,7 @@ export const emailPreviewRoutes = new Hono<AppEnv>()
   .get('/:name/text', (c) => {
     const sample = find(c.req.param('name'));
     if (!sample) return c.text(NOT_FOUND, 404);
-    return c.text(sample.render().text);
+    return c.text(sample.render(languageOf(c.req.query('language'))).text);
   })
 
   /** --------------------------------------------------------------------------
@@ -72,12 +86,15 @@ export const emailPreviewRoutes = new Hono<AppEnv>()
   .get('/:name', (c) => {
     const sample = find(c.req.param('name'));
     if (!sample) return c.text(NOT_FOUND, 404);
+    const language = languageOf(c.req.query('language'));
     return c.html(
       previewPage({
         names: NAMES,
         active: sample.name,
-        message: sample.render(),
+        message: sample.render(language),
         basePath: BASE_PATH,
+        language,
+        languages: LANGUAGE_CODES,
       }),
     );
   });

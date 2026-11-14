@@ -12,6 +12,7 @@ import {
 } from '../../shared/rental-calendar.ts';
 import * as links from './links.ts';
 import * as mail from './mail.ts';
+import { orderReaderLanguage } from './order-language.ts';
 import { extendOfferKey } from './reminder-keys.ts';
 import { emit } from './write.ts';
 
@@ -103,6 +104,7 @@ export async function sweepExtendOffers(db: Database): Promise<number> {
 
     /* The email goes only with a NEW row — the dedupe key is what stops a
        restart from mailing the same offer twice. */
+    const language = await orderReaderLanguage(db, rental.orderId);
     await mail.sendRentalReminder(
       {
         email: rental.email,
@@ -110,7 +112,8 @@ export async function sweepExtendOffers(db: Database): Promise<number> {
         orderNumber: rental.orderNumber,
         productTitle: rental.productTitle,
         rentalEndDate: rental.endsOn,
-        extendUrl: links.accountRenewUrl(rental.orderNumber),
+        extendUrl: links.accountRenewUrl(rental.orderNumber, language),
+        language,
       },
       { db, orderId: rental.orderId },
     );

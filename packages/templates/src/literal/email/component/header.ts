@@ -1,6 +1,7 @@
 import { BRAND, COLORS } from '../../../brand.ts';
 import type { Audience } from './audience.ts';
 import { escapeHtml } from './escape.ts';
+import type { EmailLanguage } from './language.ts';
 
 const FONT = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
 
@@ -33,9 +34,12 @@ const FONT = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
  * so its padding cannot drift with the body's and every message opens identically. Why
  * it is type and not the logo file: see `brand.ts`.
  */
-export function header(props: { heading: string; audience: Audience }): string {
-  /* The copy is Italian for customers and English for the operations team. */
-  const lang = props.audience === 'customer' ? 'it' : 'en';
+export function header(props: {
+  heading: string;
+  audience: Audience;
+  language: EmailLanguage;
+}): string {
+  const lang = props.language;
 
   return `<!doctype html>
 <html lang="${lang}">

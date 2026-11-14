@@ -82,6 +82,7 @@ export const ACCOUNT_ISLAND_KEYS = [
   'firstName',
   'lastName',
   'account.whatsappNumber',
+  'account.preferredLanguage',
   'account.save',
   'account.profileSaved',
   'errorFirstName',

@@ -1,5 +1,26 @@
 import { COLORS } from '../../../brand.ts';
 import { escapeHtml } from './escape.ts';
+import type { EmailLanguage, Translated } from './language.ts';
+
+/** The question, and the plain-text lead-in to the link. `text.ts` prints the second. */
+export const REPORT_COPY: Translated<{ question: string; textLead: string }> = {
+  it: {
+    question: 'Non hai effettuato tu questo ordine?',
+    textLead: 'Non hai effettuato tu questo ordine? Segnalacelo qui:',
+  },
+  en: {
+    question: 'You did not place this order?',
+    textLead: 'You did not place this order? Tell us here:',
+  },
+  fr: {
+    question: 'Vous n’avez pas passé cette commande ?',
+    textLead: 'Vous n’avez pas passé cette commande ? Signalez-le ici :',
+  },
+  de: {
+    question: 'Sie haben diese Bestellung nicht aufgegeben?',
+    textLead: 'Sie haben diese Bestellung nicht aufgegeben? Melden Sie es hier:',
+  },
+};
 
 /**
  * "You didn't place this order?" — the quiet escape hatch, in all three order emails
@@ -9,6 +30,6 @@ import { escapeHtml } from './escape.ts';
  * One piece rather than the same sentence written three times, so the copy cannot
  * drift between the three messages.
  */
-export function reportLink(props: { reportUrl: string }): string {
-  return `<p style="margin:0 0 10px;font-size:13px"><a href="${escapeHtml(props.reportUrl)}" style="color:${COLORS.inkSoft}">Non hai effettuato tu questo ordine?</a></p>`;
+export function reportLink(props: { reportUrl: string; language: EmailLanguage }): string {
+  return `<p style="margin:0 0 10px;font-size:13px"><a href="${escapeHtml(props.reportUrl)}" style="color:${COLORS.inkSoft}">${REPORT_COPY[props.language].question}</a></p>`;
 }

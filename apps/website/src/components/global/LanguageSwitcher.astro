@@ -60,6 +60,27 @@ const choices = LANGUAGES.flatMap((language) => {
 </details>
 
 <script>
+  import { saveLanguage } from '~/lib/customer-session';
+  import { wasSignedIn } from '~/lib/signed-in-hint';
+
+  /*
+   * A signed-in customer's pick is also their language from now on — emails,
+   * and the page an emailed link or a bookmark opens on. Without it, choosing
+   * Italian here would hold only until their next arrival from outside, which
+   * would send them back to the language saved before (lib/reader-language.ts).
+   * Fired with `keepalive`, so the switch never waits on it.
+   */
+  document.addEventListener('click', (event) => {
+    const choice = (event.target as Element | null)?.closest<HTMLAnchorElement>(
+      '[data-language-switcher] a[data-language]',
+    );
+    const language = choice?.dataset.language;
+    if (!language || !wasSignedIn()) return;
+    saveLanguage(language).catch(() => {
+      // Signed out meanwhile, or offline: the page still switches.
+    });
+  });
+
   /*
    * The two dismissals `<details>` does not have.
    *

@@ -1,6 +1,9 @@
 import { BRAND } from '../../../brand.ts';
 import { CONTACT, whatsappUrl } from '../../../contact.ts';
 import type { Audience } from './audience.ts';
+import { CONTACT_COPY } from './contact-footer.ts';
+import type { EmailLanguage } from './language.ts';
+import { REPORT_COPY } from './report-link.ts';
 
 /**
  * The plain-text body's pieces.
@@ -14,19 +17,20 @@ import type { Audience } from './audience.ts';
  */
 
 /** The text twin of `contactFooter()`. Same two channels, same notice. */
-export function contactFooterText(): string {
+export function contactFooterText(language: EmailLanguage): string {
+  const copy = CONTACT_COPY[language];
   return [
     '--',
-    'Questa email arriva da un indirizzo che non riceve risposte: se rispondi, non la leggeremo.',
-    'Hai bisogno di aiuto? Scrivici su WhatsApp o chiamaci.',
+    copy.noReply,
+    copy.help,
     `WhatsApp: ${whatsappUrl()}`,
-    `Numero verde: ${CONTACT.phoneDisplay} (gratuito, ${CONTACT.hours})`,
+    `${copy.freephone} ${CONTACT.phoneDisplay} (${copy.hours})`,
   ].join('\n');
 }
 
 /** The text twin of `reportLink()`. */
-export function reportLinkText(props: { reportUrl: string }): string {
-  return `Non hai effettuato tu questo ordine? Segnalacelo qui:\n${props.reportUrl}`;
+export function reportLinkText(props: { reportUrl: string; language: EmailLanguage }): string {
+  return `${REPORT_COPY[props.language].textLead}\n${props.reportUrl}`;
 }
 
 /**
@@ -35,9 +39,9 @@ export function reportLinkText(props: { reportUrl: string }): string {
  * Blank runs are collapsed because composing from optional lines leaves them behind,
  * and a text body with three blank lines in the middle reads as broken.
  */
-export function textBody(lines: string[], audience: Audience): string {
+export function textBody(lines: string[], audience: Audience, language: EmailLanguage): string {
   const parts = [...lines, '', `${BRAND.name} · ${BRAND.domain}`];
-  if (audience === 'customer') parts.push('', contactFooterText());
+  if (audience === 'customer') parts.push('', contactFooterText(language));
   return parts
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')

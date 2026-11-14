@@ -24,12 +24,12 @@ export function contractReady(input: {
     return {
       to: [input.to],
       subject,
-      html: `${header({ heading: subject, audience: 'customer' })}
+      html: `${header({ heading: subject, audience: 'customer', language: input.language })}
 ${paragraph({ text: `Dear ${input.customerName},` })}
 ${paragraph({ text: `${readyLine} Please review the contract details and sign it electronically using the button below.` })}
 ${button({ href: input.signingUrl, label: 'Sign the contract' })}
 ${paragraph({ text: 'This link is valid for 30 days. If you have any questions about the contract, please contact us.' })}
-${footer({ audience: 'customer' })}`,
+${footer({ audience: 'customer', language: input.language })}`,
       text: textBody(
         [
           `Dear ${input.customerName},`,
@@ -41,6 +41,7 @@ ${footer({ audience: 'customer' })}`,
           'This link is valid for 30 days.',
         ],
         'customer',
+        input.language,
       ),
     };
   }
@@ -52,12 +53,12 @@ ${footer({ audience: 'customer' })}`,
   return {
     to: [input.to],
     subject,
-    html: `${header({ heading: subject, audience: 'customer' })}
+    html: `${header({ heading: subject, audience: 'customer', language: input.language })}
 ${paragraph({ text: `Gentile ${input.customerName},` })}
 ${paragraph({ text: `${readyLine} Ti preghiamo di verificare i dettagli del contratto e firmarlo elettronicamente utilizzando il pulsante qui sotto.` })}
 ${button({ href: input.signingUrl, label: 'Firma il contratto' })}
 ${paragraph({ text: 'Questo link è valido per 30 giorni. Per qualsiasi domanda sul contratto, non esitare a contattarci.' })}
-${footer({ audience: 'customer' })}`,
+${footer({ audience: 'customer', language: input.language })}`,
     text: textBody(
       [
         `Gentile ${input.customerName},`,
@@ -69,6 +70,7 @@ ${footer({ audience: 'customer' })}`,
         'Questo link è valido per 30 giorni.',
       ],
       'customer',
+      input.language,
     ),
   };
 }

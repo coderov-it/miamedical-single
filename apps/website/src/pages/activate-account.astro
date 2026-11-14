@@ -1,232 +1,32 @@
 ---
 /**
- * Where every emailed sign-in link lands: activation, magic link, and — via
- * reset-password.astro, which reuses this script — password reset.
+ * `/activate-account/` — where activation and magic-link emails land.
  *
- * One page rather than three because the server treats them as one operation:
- * redeem a token, get a session. What differs is only the copy, so the page reads
- * its wording from a prop instead of existing three times.
+ * A ROUTE DECLARATION, deliberately thin: the card is
+ * `views/account/ActivateAccountView.astro`, its behaviour
+ * `scripts/account/activate-account.ts`. reset-password.astro renders the same
+ * view with its own copy.
  */
-import { CUSTOMER_PASSWORD_MIN_LENGTH } from '@mia/validators/password-policy';
-
-import AccountCopy from '~/components/account/AccountCopy.astro';
-import {
-  ANNOUNCE,
-  AUTH_CARD,
-  AUTH_LEDE,
-  AUTH_TITLE,
-  FIELD,
-  FIELD_ERROR,
-  HINT,
-  LABEL,
-  NOTICE_ERROR,
-  PRIMARY,
-  TEXT_ACTION,
-} from '~/components/account/fields';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { localeFromLocals, translate } from '~/lib/i18n';
+import ActivateAccountView from '~/views/account/ActivateAccountView.astro';
 
 export const prerender = false;
 
-interface Props {
-  /** Message keys, not copy: the reset flow renders this page with its own two. */
-  headingKey?: string;
-  introKey?: string;
-  /** Reset must set a password; activation may skip and stay magic-link only. */
-  passwordRequired?: boolean;
-}
-
-const {
-  headingKey = 'account.activate.heading',
-  introKey = 'account.activate.intro',
-  passwordRequired = false,
-} = Astro.props;
-
 const locale = localeFromLocals(Astro.locals);
-const text = (key: string) => translate(locale, key);
-const heading = text(headingKey);
-const intro = text(introKey);
-
-/** What the script below writes into the DOM. See lib/account-page.ts. */
-const SCRIPT_KEYS = [
-  'account.activate.linkIncomplete',
-  'account.activate.linkUnverifiable',
-  'account.activate.requestNewLink',
-  'account.genericError',
-  'account.signIn.tooManyAttempts',
-] as const;
+const heading = translate(locale, 'account.activate.heading');
 ---
 
 <BaseLayout
   title={`${heading} | Mia Medical Italia`}
-  description={text('account.activate.metaDescription')}
+  description={translate(locale, 'account.activate.metaDescription')}
   noindex
   fillGround
   bare
 >
-  <AccountCopy keys={SCRIPT_KEYS} />
-  <div class={AUTH_CARD} data-page data-password-required={String(passwordRequired)}>
-    <h1 class={AUTH_TITLE}>{heading}</h1>
-
-    <!-- Shown while the token is being redeemed. The redemption happens on load,
-         not on submit: the link itself is the credential, so waiting for a form
-         would leave someone who closes the tab still unactivated. -->
-    <p data-checking class={AUTH_LEDE}>
-      {text('account.activate.checking')}
-    </p>
-
-    <div data-error hidden class={`${NOTICE_ERROR} mt-6`}></div>
-
-    <div data-ready hidden>
-      <p class={AUTH_LEDE}>{intro}</p>
-
-      <form data-form class="mt-7 space-y-5" novalidate>
-        <div data-gate="password">
-          <label class={LABEL} for="password">
-            {text('account.newPassword')}
-          </label>
-          <input
-            class={FIELD}
-            id="password"
-            name="password"
-            type="password"
-            autocomplete="new-password"
-            minlength={CUSTOMER_PASSWORD_MIN_LENGTH}
-          />
-          <p class={`${HINT} mt-2`}>{text('account.minChars')}</p>
-          <p class={FIELD_ERROR} data-field-error="password" hidden>
-            {text('account.passwordTooShort')}
-          </p>
-        </div>
-        <button class={`${PRIMARY} w-full`} type="submit" data-submit>
-          {text('account.activate.saveContinue')}
-        </button>
-        <p
-          class={ANNOUNCE}
-          role="status"
-          aria-live="polite"
-          data-announce
-          data-message-one={text('errorCountOne')}
-          data-message-many={text('errorCountMany')}
-        ></p>
-      </form>
-
-      <p class="mt-5 text-center" data-skip-wrap>
-        <button class={TEXT_ACTION} type="button" data-skip>
-          {text('account.activate.skip')}
-        </button>
-      </p>
-    </div>
-  </div>
+  <ActivateAccountView
+    {heading}
+    intro={translate(locale, 'account.activate.intro')}
+    passwordRequired={false}
+  />
 </BaseLayout>
-
-<script>
-  import { ApiError, redeemToken, setPassword, tokenFromQuery } from '~/lib/customer-session';
-  import { createFormGate } from '~/lib/form-validation';
-  import { readAccountCopy } from '~/scripts/account/copy';
-
-  const copy = readAccountCopy();
-  const say = (key: string) => copy.text[key] ?? '';
-
-  const page = document.querySelector<HTMLElement>('[data-page]');
-  const passwordRequired = page?.dataset.passwordRequired === 'true';
-
-  const checking = document.querySelector<HTMLElement>('[data-checking]');
-  const errorBox = document.querySelector<HTMLElement>('[data-error]');
-  const ready = document.querySelector<HTMLElement>('[data-ready]');
-  const form = document.querySelector<HTMLFormElement>('[data-form]');
-  const submit = document.querySelector<HTMLButtonElement>('[data-submit]');
-  const skip = document.querySelector<HTMLButtonElement>('[data-skip]');
-  const skipWrap = document.querySelector<HTMLElement>('[data-skip-wrap]');
-  const passwordInput = document.querySelector<HTMLInputElement>('#password');
-
-  function fail(message: string) {
-    if (checking) checking.hidden = true;
-    if (ready) ready.hidden = true;
-    if (!errorBox) return;
-    errorBox.hidden = false;
-    errorBox.innerHTML = `${message} <a class="underline" href="${copy.routes.login}">${say('account.activate.requestNewLink')}</a>.`;
-  }
-
-  /*
-    Redeem on load. The token is single-use, so this page can only ever work once —
-    which is also why the password step below uses the session it just established
-    rather than the token again.
-  */
-  const token = tokenFromQuery();
-
-  if (!token) {
-    fail(say('account.activate.linkIncomplete'));
-  } else {
-    try {
-      const customer = await redeemToken(token);
-      // Registered with a password, or set one before: nothing left to ask.
-      // "One moment…" stays up while the browser leaves.
-      if (customer.hasPassword && !passwordRequired) {
-        window.location.replace(copy.routes.accountOrders);
-      } else {
-        if (checking) checking.hidden = true;
-        if (ready) ready.hidden = false;
-        // Reset flows must end with a password; activation may legitimately not.
-        if (passwordRequired && skipWrap) skipWrap.hidden = true;
-        passwordInput?.focus();
-      }
-    } catch (error) {
-      // The API's own message is English; only its status is read here.
-      const rateLimited = error instanceof ApiError && error.status === 429;
-      fail(say(rateLimited ? 'account.signIn.tooManyAttempts' : 'account.activate.linkUnverifiable'));
-    }
-  }
-
-  /* A too-short password is said at the field, like every other storefront form:
-     marked, described, focused, and the count announced. The floor is read back
-     off the rendered `minlength`, which already carries
-     CUSTOMER_PASSWORD_MIN_LENGTH, so there is no second number to keep in step. */
-  const gate = form
-    ? createFormGate(
-        form,
-        [
-          {
-            key: 'password',
-            isSatisfied: () => (passwordInput?.value.length ?? 0) >= (passwordInput?.minLength ?? 0),
-            controls: () => [passwordInput],
-          },
-        ],
-        { announce: form.querySelector<HTMLElement>('[data-announce]') },
-      )
-    : null;
-  form?.addEventListener('input', () => gate?.refresh());
-
-  let busy = false;
-
-  form?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    if (!gate?.enforce()) return;
-    // A second press while saving is ignored, not blocked: the button stays live.
-    if (busy) return;
-    if (errorBox) errorBox.hidden = true;
-
-    void (async () => {
-      busy = true;
-      submit?.setAttribute('aria-busy', 'true');
-      try {
-        await setPassword({ newPassword: passwordInput?.value ?? '' });
-        window.location.assign(copy.routes.accountOrders);
-      } catch (error) {
-        if (errorBox) {
-          errorBox.hidden = false;
-          const rateLimited = error instanceof ApiError && error.status === 429;
-          errorBox.textContent = say(
-            rateLimited ? 'account.signIn.tooManyAttempts' : 'account.genericError',
-          );
-        }
-      } finally {
-        busy = false;
-        submit?.removeAttribute('aria-busy');
-      }
-    })();
-  });
-
-  // Already signed in by the redemption above, so skipping just moves on.
-  skip?.addEventListener('click', () => window.location.assign(copy.routes.accountOrders));
-</script>

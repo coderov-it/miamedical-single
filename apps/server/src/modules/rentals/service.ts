@@ -5,6 +5,7 @@ import { notFound } from '../../shared/http/errors.ts';
 import * as contractRepo from '../contracts/repo.ts';
 import * as contractService from '../contracts/service.ts';
 import * as notifications from '../notifications/mail.ts';
+import { orderReaderLanguage } from '../notifications/order-language.ts';
 import * as orderService from '../orders/service.ts';
 import * as extensionRepo from '../rental-extensions/repo.ts';
 import type { ExtensionStatus } from '../rental-extensions/types.ts';
@@ -32,6 +33,7 @@ export async function sendReminder(db: Database, orderId: string): Promise<void>
       orderNumber: rental.orderNumber,
       productTitle: rental.productTitle,
       rentalEndDate: rental.rentalEndDate ?? '',
+      language: await orderReaderLanguage(db, orderId),
     },
     { db, orderId },
   );

@@ -3,17 +3,9 @@
  * and go where the answer says. Used by the checkout, the payment result page
  * and the customer area. Flow: docs/code/online-payments.md.
  */
-import { documentLocale } from '../locale';
+import { pageLanguage } from '../locale';
 
-export type PageLanguage = 'it' | 'en' | 'fr' | 'de';
-
-const LANGUAGES: readonly PageLanguage[] = ['it', 'en', 'fr', 'de'];
-
-/** `<html lang="en-GB">` → `en`. The gateway's page speaks the same language. */
-export function pageLanguage(): PageLanguage {
-  const code = documentLocale().slice(0, 2) as PageLanguage;
-  return LANGUAGES.includes(code) ? code : 'it';
-}
+export { pageLanguage, type PageLanguage } from '../locale';
 
 export interface PaymentStart {
   /** The result page's key. */

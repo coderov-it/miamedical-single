@@ -1,6 +1,8 @@
 import type { Database } from '@mia/db';
+import type { LanguageCode } from '@mia/validators/language';
 
 import type { SessionCustomer } from '../../shared/http/context.ts';
+import { rememberLanguage, requestLanguage } from './language.ts';
 import * as repo from './repo.ts';
 import * as service from './service.ts';
 import type { CustomerAccountRow } from './types.ts';
@@ -39,6 +41,8 @@ export interface ResolvedOrderAccount {
   firstName: string;
   lastName: string;
   mailPlan: MailPlan;
+  /** What the order email is written in — see `language.ts`. */
+  language: LanguageCode;
 }
 
 export interface OrderCustomerInput {
@@ -46,6 +50,8 @@ export interface OrderCustomerInput {
   firstName: string;
   lastName: string;
   phone: string | null;
+  /** The checkout page's language. */
+  language?: LanguageCode;
 }
 
 /**
@@ -80,6 +86,8 @@ export async function resolveForOrder(
       });
 
   const isBrandNew = existing === undefined;
+  // Anyone can check out under any address, so this only fills a blank.
+  await rememberLanguage(db, account.id, customer.language, false);
 
   const mailPlan = await planMail(db, account.id, {
     isBrandNew,
@@ -96,6 +104,7 @@ export async function resolveForOrder(
     firstName: account.firstName,
     lastName: account.lastName,
     mailPlan,
+    language: requestLanguage(customer.language, account.language),
   };
 }
 
@@ -105,6 +114,11 @@ async function resolveForSession(
   session: SessionCustomer,
   customer: OrderCustomerInput,
 ): Promise<ResolvedOrderAccount> {
+  // Signed in, so the checkout's language is theirs to state.
+  await rememberLanguage(db, session.id, customer.language, true);
+  const needsRow = !customer.language || !session.firstName || !session.lastName;
+  const row = needsRow ? await repo.findById(db, session.id) : undefined;
+
   const resolved = {
     customerAccountId: session.id,
     customerLinkStatus: 'confirmed',
@@ -112,11 +126,11 @@ async function resolveForSession(
     firstName: session.firstName,
     lastName: session.lastName,
     mailPlan: 'confirmation',
+    language: requestLanguage(customer.language, row?.language),
   } as const;
   if (session.firstName && session.lastName) return resolved;
 
   // Signed in through the sign-in page and never filled the profile.
-  const row = await repo.findById(db, session.id);
   if (!row) return resolved;
   const filled = await fillBlankProfile(db, row, customer);
   return { ...resolved, firstName: filled.firstName, lastName: filled.lastName };

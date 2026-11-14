@@ -90,9 +90,18 @@ Nobody is made to have one. Redeeming any token signs you in, so the password
 form on `/activate-account/` carries a skip button beside it, and an account that
 never sets one stays magic-link only for good — `password_hash` is nullable and
 that is the normal arrival, not a broken row. The one exception is
-`/reset-password/`, which renders the same page with `passwordRequired`:
+`/reset-password/`, which renders the same card with `passwordRequired`:
 somebody who asked to reset a password and then skipped would have achieved
-nothing.
+nothing. It also spends its link later — on save, with the new password in the
+same `token/redeem` call — because a session alone could not change a password
+the account has without proving the old one.
+
+```text
+ activation   /activate-account/?token=A  load → redeem(A)        → signed in, token dropped from the URL
+              switch language / reload     load → redeem(A) fails  → session found → same form, no dead link
+ reset        /reset-password/?token=R    load → form at once
+                                           save → redeem(R, pw)    → password set, every session revoked
+```
 
 A rule strict enough to fail the form was costing activations and protecting
 nothing, which is why the customer floor is half the operator one.
@@ -280,6 +289,39 @@ Two rate limiters guard the mail routes: one keyed on the caller's IP, one on th
 **address being mailed**. The second is not redundant — an attacker rotates IPs far
 more cheaply than a victim changes their email, so without it we are a way to flood
 somebody else's inbox.
+
+## The customer's language
+
+Every customer email exists in all four storefront languages, and every link in
+it carries that language's prefix. Which language a customer gets, and how we
+learn it, is decided in `modules/customer-auth/language.ts`:
+
+```text
+ request                                   email in         account.language
+ sign-in link / reset / register,           page language    filled only if empty
+   guest checkout             (anyone)
+ password sign-in, link clicked,            page language    set to page language
+   signed-in checkout         (proven)
+ profile "Preferred language",              —                set to the choice
+   header language menu while signed in
+ reminders, extend offers                   account.language, else Italian
+```
+
+Only a proven request may overwrite: anybody can type a stranger's address into
+the sign-in form, so an anonymous request only fills a blank.
+
+Arriving from outside the site (email, bookmark, typed address) on a private
+page in another language moves the customer to theirs — never an in-site
+navigation, so the language menu always wins. `apps/website/src/lib/reader-language.ts`:
+
+```text
+ Gmail → /activate-account/?token=A      account en   → 302 /en/activate-account/?token=A   (server, GET /auth/token/language)
+ bookmark → /account/orders/             account en   → /en/account/orders/                 (browser, after /auth/me)
+ language menu → /account/orders/        account en   → stays, and the account becomes it
+```
+
+The account area redirects in the browser because the session cookie lives on
+the API's host, out of the storefront server's sight.
 
 ## Route paths are duplicated, on purpose
 

@@ -132,6 +132,7 @@ export async function place(
       firstName: input.customer.firstName,
       lastName: input.customer.lastName,
       phone: input.customer.phone,
+      ...(input.language ? { language: input.language } : {}),
     },
     context.session,
     context.ipAddress,
