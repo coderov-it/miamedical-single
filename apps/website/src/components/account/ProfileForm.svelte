@@ -1,5 +1,5 @@
 <!--
-  Name and phone. Email is absent rather than disabled — changing it needs a
+  Name, phone and preferred language. Email is absent rather than disabled — changing it needs a
   re-verification round trip, and a greyed-out field only invites the question.
 
   This form had NO validation before: three `required` attributes on a form
@@ -8,12 +8,14 @@
 -->
 <script lang="ts">
   import { isPlausiblePhone } from '@mia/validators/contact';
+  import { LANGUAGES } from '@mia/validators/language';
 
   import { accountContext, say } from '~/lib/account-context';
   import { errorMessage } from '~/lib/account-state.svelte';
   import { ApiError, updateProfile } from '~/lib/customer-session';
   import { formGate } from '~/lib/form-gate-action';
   import type { FieldGate, FormGate } from '~/lib/form-validation';
+  import { pageLanguage } from '~/scripts/locale';
 
   import FieldError from './FieldError.svelte';
   import { ANNOUNCE, FIELD, LABEL, PRIMARY } from './fields';
@@ -26,6 +28,9 @@
   let firstName = $state(session.customer?.firstName ?? '');
   let lastName = $state(session.customer?.lastName ?? '');
   let phone = $state(session.customer?.phone ?? '');
+  /* What emails are written in and what an emailed link opens in. Never told
+     us yet → the page they are reading now, which is what saving would state. */
+  let language = $state<string>(session.customer?.language ?? pageLanguage());
 
   let firstNameEl = $state<HTMLInputElement>();
   let lastNameEl = $state<HTMLInputElement>();
@@ -81,6 +86,7 @@
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
+        language,
       });
       session.adopt(updated);
       feedback = { text: say(copy, 'account.profileSaved'), failed: false };
@@ -89,7 +95,9 @@
       /* A field the server refused is said at that field, through the gate. */
       if (error instanceof ApiError && Object.keys(error.fields).length > 0) {
         const values: Record<string, string> = { firstName, lastName, phone };
-        rejected = Object.fromEntries(Object.keys(error.fields).map((key) => [key, values[key] ?? '']));
+        rejected = Object.fromEntries(
+          Object.keys(error.fields).map((key) => [key, values[key] ?? '']),
+        );
         feedback = null;
         gate?.enforce();
         return;
@@ -145,6 +153,15 @@
     <span class={LABEL}>{say(copy, 'account.whatsappNumber')}</span>
     <input class={FIELD} type="tel" autocomplete="tel" bind:this={phoneEl} bind:value={phone} />
     <FieldError key="phone" message={say(copy, 'errorPhone')} />
+  </label>
+
+  <label class="block">
+    <span class={LABEL}>{say(copy, 'account.preferredLanguage')}</span>
+    <select class={FIELD} bind:value={language}>
+      {#each LANGUAGES as option (option.code)}
+        <option value={option.code} lang={option.code}>{option.label}</option>
+      {/each}
+    </select>
   </label>
 
   <button class={PRIMARY} type="submit">{say(copy, 'account.save')}</button>

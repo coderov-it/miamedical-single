@@ -1,7 +1,7 @@
 import { safeRedirectPath } from '@mia/validators/redirect';
 import type { InferResponseType } from 'hono/client';
 
-import { documentLocale } from '../scripts/locale.ts';
+import { documentLocale, pageLanguage } from '../scripts/locale.ts';
 import type { api } from './api.ts';
 import { API_BASE } from './api-base.ts';
 import { rememberSignedIn } from './signed-in-hint.ts';
@@ -133,7 +133,7 @@ export async function loadCustomer(): Promise<Customer | null> {
 export async function login(email: string, password: string): Promise<Customer> {
   const customer = await request<Customer>('/api/customer/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, language: pageLanguage() }),
   });
   rememberSignedIn(true);
   return customer;
@@ -148,7 +148,7 @@ export function logout(): Promise<void> {
 export function requestMagicLink(email: string): Promise<{ message: string }> {
   return request('/api/customer/auth/magic-link', {
     method: 'POST',
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, language: pageLanguage() }),
   });
 }
 
@@ -156,14 +156,14 @@ export function requestMagicLink(email: string): Promise<{ message: string }> {
 export function register(email: string, password: string): Promise<{ message: string }> {
   return request('/api/customer/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, language: pageLanguage() }),
   });
 }
 
 export function requestPasswordReset(email: string): Promise<{ message: string }> {
   return request('/api/customer/auth/password-reset', {
     method: 'POST',
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, language: pageLanguage() }),
   });
 }
 
@@ -175,10 +175,26 @@ export function requestPasswordReset(email: string): Promise<{ message: string }
 export async function redeemToken(token: string, password?: string): Promise<Customer> {
   const customer = await request<Customer>('/api/customer/auth/token/redeem', {
     method: 'POST',
-    body: JSON.stringify(password ? { token, password, confirmPassword: password } : { token }),
+    body: JSON.stringify({
+      token,
+      language: pageLanguage(),
+      ...(password ? { password, confirmPassword: password } : {}),
+    }),
   });
   rememberSignedIn(true);
   return customer;
+}
+
+/**
+ * Saves the language a signed-in customer is written to in. `keepalive` lets the
+ * language switcher fire it and navigate in the same moment.
+ */
+export function saveLanguage(language: string): Promise<{ ok: boolean }> {
+  return request('/api/customer/auth/language', {
+    method: 'PUT',
+    body: JSON.stringify({ language }),
+    keepalive: true,
+  });
 }
 
 export function setPassword(input: {
@@ -199,6 +215,7 @@ export function updateProfile(input: {
   firstName: string;
   lastName: string;
   phone: string;
+  language: string;
 }): Promise<Customer> {
   return request<Customer>('/api/customer/profile', {
     method: 'PATCH',

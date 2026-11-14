@@ -3,7 +3,9 @@ import {
   EmailOnlySchema,
   RedeemAuthTokenSchema,
   RegisterCustomerSchema,
+  SetCustomerLanguageSchema,
   SetCustomerPasswordSchema,
+  TokenLanguageQuerySchema,
 } from '@mia/validators';
 import { Hono } from 'hono';
 
@@ -17,7 +19,9 @@ import type { AppEnv } from '../../shared/http/context.ts';
 import { clientIp, rateLimit } from '../../shared/http/rate-limit.ts';
 import { validate } from '../../shared/http/validate.ts';
 import * as orderLinks from '../customer-account/order-links.ts';
+import { tokenLanguage } from './language.ts';
 import { toCustomer } from './mapper.ts';
+import { setLanguage } from './repo.ts';
 import * as service from './service.ts';
 
 /**
@@ -122,12 +126,8 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     emailRateLimitByAddress,
     validate('json', EmailOnlySchema),
     async (c) => {
-      await service.requestEmailedLink(
-        c.get('db'),
-        c.req.valid('json').email,
-        'magic_link',
-        clientIp(c),
-      );
+      const { email, language } = c.req.valid('json');
+      await service.requestEmailedLink(c.get('db'), email, 'magic_link', clientIp(c), language);
       return c.json({ data: LINK_SENT });
     },
   )
@@ -157,12 +157,8 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     emailRateLimitByAddress,
     validate('json', EmailOnlySchema),
     async (c) => {
-      await service.requestEmailedLink(
-        c.get('db'),
-        c.req.valid('json').email,
-        'password_reset',
-        clientIp(c),
-      );
+      const { email, language } = c.req.valid('json');
+      await service.requestEmailedLink(c.get('db'), email, 'password_reset', clientIp(c), language);
       return c.json({ data: CHECK_YOUR_INBOX });
     },
   )
@@ -192,6 +188,30 @@ export const customerAuthRoutes = new Hono<AppEnv>()
     setCustomerSessionCookie(c, token, expiresAt);
 
     return c.json({ data: toCustomer(account) });
+  })
+
+  /** --------------------------------------------------------------------------
+  GET /api/customer/auth/token/language (public)
+  The language of the account behind a live emailed link, without spending it.
+  -------------------------------------------------------------------------- **/
+  /**
+   * Read by the storefront's server before it renders a link's page, so an old
+   * Italian link opens in the reader's language. Not rate limited by IP: the
+   * caller is the storefront server, one address for every visitor, and a token
+   * cannot be guessed into — the answer is only ever a language.
+   */
+  .get('/token/language', validate('query', TokenLanguageQuerySchema), async (c) => {
+    const language = await tokenLanguage(c.get('db'), c.req.valid('query').token);
+    return c.json({ data: { language } });
+  })
+
+  /** --------------------------------------------------------------------------
+  PUT /api/customer/auth/language (customer)
+  Saves the language the customer is written to in — the language switcher's call.
+  -------------------------------------------------------------------------- **/
+  .put('/language', requireCustomer, validate('json', SetCustomerLanguageSchema), async (c) => {
+    await setLanguage(c.get('db'), currentCustomer(c).id, c.req.valid('json').language);
+    return c.json({ data: { ok: true } });
   })
 
   /** --------------------------------------------------------------------------

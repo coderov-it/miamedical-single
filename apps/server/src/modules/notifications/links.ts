@@ -1,9 +1,9 @@
-import type { LanguageCode } from '@mia/validators';
+import { type LanguageCode, SOURCE_LANGUAGE } from '@mia/validators/language';
 
 import { env } from '../../config/env.ts';
 
 /**
- * Absolute URLs for the pages emails point at.
+ * Absolute URLs for the pages emails point at, in the reader's language.
  *
  * ⚠️ These paths mirror `PRIVATE_SEGMENTS` in `apps/website/src/lib/routes.ts`,
  * the source of truth. The server cannot import from the website app, so they
@@ -11,12 +11,15 @@ import { env } from '../../config/env.ts';
  * in every email 404s. There is no build-time check binding them together;
  * `docs/code/customer-accounts.md` records the pairing.
  *
- * Private routes are English and identical in every language, so only the
- * payment result — the one link built in the customer's language — carries a
- * language prefix.
+ * Private routes are English and identical in every language, so a language
+ * changes only the prefix — the storefront's own rule: none for the source
+ * language, `/<code>` for every other.
  *
- * Query keys are English, per the naming rule: the Italian path is content, the
- * query string is a machine wire format.
+ *   activationUrl('A', 'it')  →  https://…/activate-account/?token=A
+ *   activationUrl('A', 'en')  →  https://…/en/activate-account/?token=A
+ *
+ * Query keys are English, per the naming rule: the query string is a machine
+ * wire format.
  */
 
 const PATHS = {
@@ -25,50 +28,50 @@ const PATHS = {
   accountOrders: '/account/orders/',
   reportOrder: '/report-order/',
   login: '/sign-in/',
+  signContract: '/sign-contract/',
+  paymentResult: '/payment/',
 } as const;
 
-function siteUrl(path: string, token?: string): string {
-  const url = new URL(env.PUBLIC_SITE_URL + path);
+function siteUrl(path: string, language: LanguageCode, token?: string): string {
+  const prefix = language === SOURCE_LANGUAGE ? '' : `/${language}`;
+  const url = new URL(env.PUBLIC_SITE_URL + prefix + path);
   if (token) url.searchParams.set('token', token);
   return url.toString();
 }
 
 /** Sets a password and signs them in. Doubles as the order-confirmation click. */
-export const activationUrl = (token: string) => siteUrl(PATHS.activateAccount, token);
+export const activationUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PATHS.activateAccount, language, token);
 
-export const passwordResetUrl = (token: string) => siteUrl(PATHS.resetPassword, token);
+export const passwordResetUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PATHS.resetPassword, language, token);
 
 /** Magic-link sign-in lands on the same page as activation — it redeems a token. */
-export const magicLinkUrl = (token: string) => siteUrl(PATHS.activateAccount, token);
+export const magicLinkUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PATHS.activateAccount, language, token);
 
-export const reportOrderUrl = (token: string) => siteUrl(PATHS.reportOrder, token);
+export const reportOrderUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PATHS.reportOrder, language, token);
 
-export const accountOrdersUrl = () => siteUrl(PATHS.accountOrders);
+export const accountOrdersUrl = (language: LanguageCode) => siteUrl(PATHS.accountOrders, language);
 
 /** One order in the customer area — where its rental card lives. */
-export const accountOrderUrl = (orderNumber: string) =>
-  siteUrl(`${PATHS.accountOrders}${encodeURIComponent(orderNumber)}/`);
+export const accountOrderUrl = (orderNumber: string, language: LanguageCode) =>
+  siteUrl(`${PATHS.accountOrders}${encodeURIComponent(orderNumber)}/`, language);
 
 /** The same order with the renewal modal open — the extend offer's button. */
-export const accountRenewUrl = (orderNumber: string) => `${accountOrderUrl(orderNumber)}?renew=1`;
+export const accountRenewUrl = (orderNumber: string, language: LanguageCode) =>
+  `${accountOrderUrl(orderNumber, language)}?renew=1`;
 
-export const loginUrl = () => siteUrl(PATHS.login);
+export const loginUrl = (language: LanguageCode) => siteUrl(PATHS.login, language);
 
-export const contractSigningUrl = (token: string) => siteUrl('/sign-contract/', token);
+/** In the contract's own language, like the email that carries it. */
+export const contractSigningUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PATHS.signContract, language, token);
 
-/**
- * Where the payment gateway sends the customer back, in the language they paid
- * in. Mirrors `paymentResult` in the website's routes.ts, like every path here.
- */
-const PAYMENT_RESULT_PATHS: Record<LanguageCode, string> = {
-  it: '/payment/',
-  en: '/en/payment/',
-  fr: '/fr/payment/',
-  de: '/de/payment/',
-};
-
+/** Where the payment gateway sends the customer back, in the language they paid in. */
 export const paymentResultUrl = (token: string, language: LanguageCode) =>
-  siteUrl(PAYMENT_RESULT_PATHS[language], token);
+  siteUrl(PATHS.paymentResult, language, token);
 
 /** Deep link into the admin SPA for an internal alert. */
 export const adminDisputeUrl = (disputeId: string) =>

@@ -1,3 +1,5 @@
+import type { LanguageCode } from '@mia/validators/language';
+
 /**
  * Network contracts for storefront accounts. Note what is absent: the password
  * hash, `isActive`, `deletedAt`, and the timestamps the storefront has no use for.
@@ -20,4 +22,9 @@ export interface CustomerDto {
    * and lets the UI avoid offering a password sign-in that cannot work.
    */
   hasPassword: boolean;
+  /**
+   * The language they are written to in. Null until a page or the profile has
+   * told us — the storefront then neither redirects nor preselects.
+   */
+  language: LanguageCode | null;
 }

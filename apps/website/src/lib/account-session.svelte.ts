@@ -12,7 +12,9 @@
  * inside one long-lived Node process, so module scope is shared between
  * visitors. That is the hazard `lib/i18n.ts` keeps an `AsyncLocalStorage` for.
  */
+import { pageLanguage } from '../scripts/locale.ts';
 import { ApiError, type Customer, loadCustomer, logout as apiLogout } from './customer-session.ts';
+import { accountLanguageRedirect } from './reader-language.ts';
 import { rememberSignedIn } from './signed-in-hint.ts';
 
 export class AccountSession {
@@ -55,8 +57,13 @@ export class AccountSession {
 
   async #load(): Promise<void> {
     this.#loading = true;
+    let leaving = false;
     try {
-      this.#customer = await loadCustomer();
+      const customer = await loadCustomer();
+      /* Arrived from outside on a page in another language than theirs: the
+         loading plate stays up while the browser moves (lib/reader-language.ts). */
+      leaving = customer !== null && accountLanguageRedirect(customer.language, pageLanguage());
+      this.#customer = customer;
     } catch {
       /* A network failure is not a sign-out. `AccountApp` reads `customer`
          being null on a settled load as "send them to sign in", which is the
@@ -64,7 +71,7 @@ export class AccountSession {
          prove who they are. */
       this.#customer = null;
     } finally {
-      this.#loading = false;
+      if (!leaving) this.#loading = false;
     }
   }
 

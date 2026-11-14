@@ -1,6 +1,7 @@
 import { BRAND, COLORS } from '../../../brand.ts';
 import type { Audience } from './audience.ts';
 import { contactFooter } from './contact-footer.ts';
+import type { EmailLanguage } from './language.ts';
 
 /**
  * Everything below a message's own copy, closing what `header()` opened — including the
@@ -15,8 +16,8 @@ import { contactFooter } from './contact-footer.ts';
  * closing matter rather than more message, so the reader's eye stops at the last
  * paragraph instead of carrying on into the boilerplate.
  */
-export function footer(props: { audience: Audience }): string {
-  return `${props.audience === 'customer' ? contactFooter() : ''}
+export function footer(props: { audience: Audience; language: EmailLanguage }): string {
+  return `${props.audience === 'customer' ? contactFooter(props.language) : ''}
 <p style="margin:26px 0 0;font-size:12px;color:${COLORS.inkFaint};text-align:center">${BRAND.name} · ${BRAND.domain}</p>
 </td></tr>
 </table>

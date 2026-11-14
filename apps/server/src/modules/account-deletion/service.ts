@@ -10,6 +10,7 @@ import { hashToken } from '../../shared/auth/session.ts';
 import { httpError } from '../../shared/http/errors.ts';
 import * as accounts from '../customer-auth/repo.ts';
 import { TOKEN_TTL_MS } from '../customer-auth/service.ts';
+import { requestLanguage } from '../customer-auth/language.ts';
 import type { CustomerAccountRow } from '../customer-auth/types.ts';
 import * as notifications from '../notifications/mail.ts';
 import * as repo from './repo.ts';
@@ -68,7 +69,11 @@ export async function requestCode(
     ipAddress,
   });
 
-  await notifications.sendAccountDeletionCode({ email: account.email, code });
+  await notifications.sendAccountDeletionCode({
+    email: account.email,
+    code,
+    language: requestLanguage(input.language, account.language),
+  });
 }
 
 /** The page's middle step: is this code right? Spends nothing. */
