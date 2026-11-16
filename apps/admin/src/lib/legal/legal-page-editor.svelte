@@ -50,6 +50,7 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   import { type Draft, draftFrom, isSameDraft, toPayload } from './draft.ts';
@@ -129,16 +130,16 @@
       {
         ...base,
         key: 'title',
-        label: 'Title',
+        label: t('legal.fieldTitle'),
         format: 'text',
         createsRow: true,
         values: current.title,
       },
-      { ...base, key: 'body', label: 'Text', format: 'html', values: current.body },
+      { ...base, key: 'body', label: t('legal.fieldText'), format: 'html', values: current.body },
       {
         ...base,
         key: 'metaTitle',
-        label: 'Meta title',
+        label: t('legal.metaTitle'),
         format: 'text',
         deriveFrom: 'title',
         values: current.metaTitle,
@@ -146,7 +147,7 @@
       {
         ...base,
         key: 'metaDescription',
-        label: 'Meta description',
+        label: t('legal.metaDescription'),
         format: 'text',
         values: current.metaDescription,
       },
@@ -163,7 +164,7 @@
 
   function openTranslate() {
     if (dirty.any) {
-      toast.error('Save your changes first — a run reads the saved text.');
+      toast.error(t('legal.toastSaveFirst'));
       return;
     }
     translateOpen = true;
@@ -180,7 +181,7 @@
         await api.api.admin.legal[':code'].$put({ param: { code }, json: toPayload(current) }),
       );
       page.set(updated);
-      toast.success('Saved. The site picks it up within a few minutes.');
+      toast.success(t('legal.toastSaved'));
     } catch (error) {
       fields = errorFields(error);
       toast.error(errorMessage(error));
@@ -214,23 +215,23 @@
 <UnsavedChangesGuard {dirty} />
 
 <section class="admin-page">
-  <PageHeader eyebrow="Content" {title} {description}>
+  <PageHeader eyebrow={t('legal.eyebrow')} {title} {description}>
     {#snippet actions()}
       {#if autoTranslate.available && canEdit && page.data}
         <Button variant="outline" onclick={openTranslate}>
           <WandSparklesIcon />
-          Translate
+          {t('legal.translate')}
         </Button>
       {/if}
       {#if storefrontUrl}
         <Button href={storefrontUrl} target="_blank" rel="noreferrer" variant="outline">
           <ExternalLinkIcon />
-          View
+          {t('legal.view')}
         </Button>
       {/if}
       {#if canEdit}
-        <BusyButton busy={saving} busyLabel="Saving…" disabled={!draft} onclick={save}>
-          Save
+        <BusyButton busy={saving} busyLabel={t('common.saving')} disabled={!draft} onclick={save}>
+          {t('common.save')}
         </BusyButton>
       {/if}
     {/snippet}
@@ -252,16 +253,16 @@
 
       <div class="space-y-5 p-5">
         <TranslatedInput
-          label="Title"
+          label={t('legal.fieldTitle')}
           bind:value={draft.title}
           error={fields['title.it']}
           placeholder="Informativa sulla privacy"
-          hint="The h1 on the page and the first half of its browser tab title."
+          hint={t('legal.titleHint')}
         />
 
         <TranslatedRichText
-          label="Text"
-          name="Policy text"
+          label={t('legal.fieldText')}
+          name={t('legal.textName')}
           bind:value={draft.body}
           error={fields['body.it']}
         />
@@ -270,43 +271,43 @@
 
     <Card.Root class="mt-5 gap-0 py-0">
       <div class="border-b px-5 py-3">
-        <h2 class="text-sm font-semibold">Search listing</h2>
+        <h2 class="text-sm font-semibold">{t('legal.searchHeading')}</h2>
         <p class="text-xs text-muted-foreground">
-          Left empty, the page falls back to its own title and first paragraph.
+          {t('legal.searchHint')}
         </p>
       </div>
 
       <div class="space-y-5 p-5">
         <TranslatedInput
-          label="Meta title"
+          label={t('legal.metaTitle')}
           bind:value={draft.metaTitle}
           required={false}
           error={fields['metaTitle.it']}
-          hint="Around 60 characters — Google cuts it there."
+          hint={t('legal.metaTitleHint')}
         />
 
         <TranslatedInput
-          label="Meta description"
+          label={t('legal.metaDescription')}
           bind:value={draft.metaDescription}
           required={false}
           error={fields['metaDescription.it']}
           multiline
           rows={3}
-          hint="Around 160 characters."
+          hint={t('legal.metaDescriptionHint')}
         />
 
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label class="mb-1.5" for="legal-effective-at">In effect from</Label>
+            <Label class="mb-1.5" for="legal-effective-at">{t('legal.effectiveFrom')}</Label>
             <Input id="legal-effective-at" type="date" bind:value={draft.effectiveAt} />
             <p class="mt-1 text-xs text-muted-foreground">
-              Shown under the title. Not the same as the last edit — fixing a typo does not move it.
+              {t('legal.effectiveHint')}
             </p>
           </div>
 
           {#if page.data?.exists}
             <div class="text-sm">
-              <span class="text-muted-foreground">Last edited</span>
+              <span class="text-muted-foreground">{t('legal.lastEdited')}</span>
               <p>{formatDateTime(page.data.updatedAt)}</p>
             </div>
           {/if}

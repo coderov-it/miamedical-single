@@ -6,11 +6,12 @@
 -->
 <script lang="ts">
   import LegalPageEditor from '~/lib/legal/legal-page-editor.svelte';
+  import { t } from '~/lib/ui-text';
 </script>
 
 <LegalPageEditor
   code="privacy-policy"
-  title="Privacy policy"
-  description="The notice published at /privacy-policy/, in every language the site serves."
+  title={t('legal.privacyTitle')}
+  description={t('legal.privacyDescription')}
   publicPath="/privacy-policy/"
 />

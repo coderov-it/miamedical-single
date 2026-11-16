@@ -1,4 +1,5 @@
 import type { PaymentStatus } from '~/lib/orders/status';
+import { t } from '~/lib/ui-text';
 
 export const PAYMENT_STATUS_ORDER: readonly PaymentStatus[] = [
   'unpaid',
@@ -19,6 +20,7 @@ function toIso(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** Call at render time — the labels follow the interface language. */
 export function datePresets(): DatePreset[] {
   const now = new Date();
   const today = toIso(now);
@@ -32,9 +34,9 @@ export function datePresets(): DatePreset[] {
   const yearStart = new Date(now.getFullYear(), 0, 1);
 
   return [
-    { label: 'Today', from: today, to: today },
-    { label: 'This week', from: toIso(weekStart), to: today },
-    { label: 'This month', from: toIso(monthStart), to: today },
-    { label: 'This year', from: toIso(yearStart), to: today },
+    { label: t('status.presetToday'), from: today, to: today },
+    { label: t('status.presetThisWeek'), from: toIso(weekStart), to: today },
+    { label: t('status.presetThisMonth'), from: toIso(monthStart), to: today },
+    { label: t('status.presetThisYear'), from: toIso(yearStart), to: today },
   ];
 }

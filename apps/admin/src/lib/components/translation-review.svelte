@@ -15,6 +15,7 @@
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import { Checkbox } from '$lib/components/ui/checkbox/index.js';
   import { languageOf, type PlanField, type TargetLanguageCode } from '~/lib/i18n';
+  import { t, tn } from '~/lib/ui-text';
 
   interface Props {
     fields: PlanField[];
@@ -82,9 +83,11 @@
           <span class="text-xs text-muted-foreground uppercase">{code}</span>
         </button>
         <span class="ml-auto text-xs text-muted-foreground">
-          {acceptedCount(code)} fields
+          {tn('components.fieldCount', acceptedCount(code))}
           {#if refusedCount(code) > 0}
-            · <span class="text-amber-600 dark:text-amber-400">{refusedCount(code)} too long</span>
+            · <span class="text-amber-600 dark:text-amber-400"
+              >{tn('components.reviewTooLong', refusedCount(code))}</span
+            >
           {/if}
         </span>
       </div>
@@ -121,7 +124,7 @@
                         <span
                           class="ml-1 rounded bg-muted px-1 py-0.5 text-[0.625rem] text-muted-foreground"
                         >
-                          derived
+                          {t('components.reviewDerived')}
                         </span>
                       {/if}
                     </dd>

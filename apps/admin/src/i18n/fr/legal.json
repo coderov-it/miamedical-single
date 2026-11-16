@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Contenu",
+  "privacyTitle": "Politique de confidentialité",
+  "privacyDescription": "L'avis publié sur /privacy-policy/, dans toutes les langues du site.",
+  "translate": "Traduire",
+  "view": "Afficher",
+  "toastSaveFirst": "Enregistrez d'abord vos modifications : la traduction part du texte enregistré.",
+  "toastSaved": "Enregistré. Le site le prend en compte d'ici quelques minutes.",
+  "fieldTitle": "Titre",
+  "titleHint": "Le h1 de la page et la première moitié du titre de l'onglet du navigateur.",
+  "fieldText": "Texte",
+  "textName": "Texte de la politique",
+  "searchHeading": "Aperçu dans les résultats de recherche",
+  "searchHint": "Laissés vides, la page utilise son propre titre et son premier paragraphe.",
+  "metaTitle": "Meta title",
+  "metaTitleHint": "Environ 60 caractères — Google le coupe au-delà.",
+  "metaDescription": "Meta description",
+  "metaDescriptionHint": "Environ 160 caractères.",
+  "effectiveFrom": "En vigueur depuis le",
+  "effectiveHint": "Affichée sous le titre. Différente de la dernière modification : corriger une coquille ne la change pas.",
+  "lastEdited": "Dernière modification"
+}

@@ -33,6 +33,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
 
   type ListResponse = InferResponseType<typeof api.api.admin.rentals.$get, 200>;
 
@@ -67,7 +68,7 @@
     acting = orderId;
     try {
       await unwrap(await api.api.admin.rentals[':id'].reminder.$post({ param: { id: orderId } }));
-      toast.success(`Reminder sent for order ${orderNumber}`);
+      toast.success(t('rentals.toastReminderSent', { number: orderNumber }));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -79,7 +80,7 @@
     acting = orderId;
     try {
       await unwrap(await api.api.admin.rentals[':id'].contract.$post({ param: { id: orderId } }));
-      toast.success(`Contract resent for order ${orderNumber}`);
+      toast.success(t('rentals.toastContractResent', { number: orderNumber }));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -91,7 +92,7 @@
     acting = orderId;
     try {
       await unwrap(await api.api.admin.rentals[':id'].finish.$post({ param: { id: orderId } }));
-      toast.success(`Return confirmed for rental ${orderNumber}`);
+      toast.success(t('rentals.toastReturnConfirmed', { number: orderNumber }));
       rentals.refresh();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -108,7 +109,7 @@
         }),
       );
       await navigator.clipboard.writeText(url);
-      toast.success('Signing link copied to clipboard');
+      toast.success(t('rentals.toastLinkCopied'));
     } catch (err) {
       toast.error(errorMessage(err));
     }
@@ -122,7 +123,7 @@
 </script>
 
 <section class="admin-page">
-  <PageHeader eyebrow="Sales" title="Rent Management" />
+  <PageHeader eyebrow={t('rentals.eyebrowSales')} title={t('rentals.title')} />
 
   <div class="flex flex-wrap items-center gap-1 rounded-lg border bg-card p-1">
     {#each [ANY, ...RENTAL_STATUS_ORDER] as value (value)}
@@ -139,13 +140,13 @@
         {#if value !== ANY}
           <span class={cn('size-1.5 rounded-full', rentalStatusMeta(value).dot)}></span>
         {/if}
-        {value === ANY ? 'All' : rentalStatusMeta(value).label}
+        {value === ANY ? t('rentals.filterAll') : rentalStatusMeta(value).label}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="rental"
+    countKey="entities.rental"
     meta={rentals.data?.meta}
     loading={rentals.loading}
     error={rentals.error}
@@ -169,14 +170,16 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Order, name, email…"
-            aria-label="Search rentals"
+            placeholder={t('rentals.searchPlaceholder')}
+            aria-label={t('rentals.searchLabel')}
             class="h-8 w-64 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('rentals.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('rentals.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
@@ -185,13 +188,13 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Order</Table.Head>
-            <Table.Head>Customer</Table.Head>
-            <Table.Head>Product</Table.Head>
-            <Table.Head>Period</Table.Head>
-            <Table.Head>Due date</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Contract</Table.Head>
+            <Table.Head>{t('rentals.colOrder')}</Table.Head>
+            <Table.Head>{t('rentals.colCustomer')}</Table.Head>
+            <Table.Head>{t('rentals.colProduct')}</Table.Head>
+            <Table.Head>{t('rentals.colPeriod')}</Table.Head>
+            <Table.Head>{t('rentals.colDueDate')}</Table.Head>
+            <Table.Head>{t('rentals.colStatus')}</Table.Head>
+            <Table.Head>{t('rentals.colContract')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -245,7 +248,7 @@
                 {#if rental.openExtensionStatus}
                   {@const eMeta = extensionStatusMeta(rental.openExtensionStatus)}
                   <p class={cn('mt-0.5 text-[11px] font-semibold', eMeta.tone)}>
-                    Extension · {eMeta.label}
+                    {t('rentals.extensionLine', { status: eMeta.label })}
                   </p>
                 {/if}
               </Table.Cell>
@@ -260,12 +263,12 @@
                   </a>
                   {#if rental.contractStatus !== 'signed'}
                     <p class="mt-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                      Not signed
+                      {t('rentals.notSigned')}
                     </p>
                   {/if}
                 {:else}
                   <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    Not signed
+                    {t('rentals.notSigned')}
                   </span>
                 {/if}
               </Table.Cell>
@@ -274,7 +277,7 @@
                   <DropdownMenu.Root>
                     <DropdownMenu.Trigger
                       class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                      aria-label="Row actions"
+                      aria-label={t('rentals.rowActions')}
                       disabled={acting === rental.orderId}
                     >
                       <EllipsisVerticalIcon class="size-4" />
@@ -289,14 +292,14 @@
                             })}
                         >
                           <CalendarPlusIcon class="size-4" />
-                          Extend rental
+                          {t('rentals.extendRental')}
                         </DropdownMenu.Item>
                       {:else}
                         <DropdownMenu.Item
                           onSelect={() => goto(routes.orderDetail(rental.orderId))}
                         >
                           <CalendarPlusIcon class="size-4" />
-                          Open extension
+                          {t('rentals.openExtension')}
                         </DropdownMenu.Item>
                       {/if}
                       <DropdownMenu.Separator />
@@ -304,7 +307,7 @@
                         onSelect={() => sendReminder(rental.orderId, rental.orderNumber)}
                       >
                         <MailIcon class="size-4" />
-                        Send reminder
+                        {t('rentals.sendReminder')}
                       </DropdownMenu.Item>
                       {#if rental.contractId}
                         <DropdownMenu.Separator />
@@ -312,11 +315,11 @@
                           onSelect={() => resendContract(rental.orderId, rental.orderNumber)}
                         >
                           <FileSignatureIcon class="size-4" />
-                          Resend contract
+                          {t('rentals.resendContract')}
                         </DropdownMenu.Item>
                         <DropdownMenu.Item onSelect={() => copySigningLink(rental.contractId!)}>
                           <ClipboardIcon class="size-4" />
-                          Copy signing link
+                          {t('rentals.copySigningLink')}
                         </DropdownMenu.Item>
                       {/if}
                       <DropdownMenu.Separator />
@@ -324,7 +327,7 @@
                         onSelect={() => finishRental(rental.orderId, rental.orderNumber)}
                       >
                         <CheckCircleIcon class="size-4" />
-                        Confirm return
+                        {t('rentals.confirmReturn')}
                       </DropdownMenu.Item>
                     </DropdownMenu.Content>
                   </DropdownMenu.Root>
@@ -341,17 +344,17 @@
         <Empty.Header>
           <Empty.Media variant="icon"><CalendarClockIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No rentals match these filters' : 'No active rentals'}
+            {query.isFiltered ? t('rentals.emptyFilteredTitle') : t('rentals.emptyTitle')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try a different status, or clear the filters.'
-              : 'Rentals appear here when orders with rental items are placed.'}
+            {query.isFiltered ? t('rentals.emptyFilteredHint') : t('rentals.emptyHint')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => query.reset()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => query.reset()}>
+              {t('rentals.clearFilters')}
+            </Button>
           </Empty.Content>
         {/if}
       </Empty.Root>

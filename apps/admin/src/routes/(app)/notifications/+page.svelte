@@ -41,6 +41,7 @@
   import PageHeader from '~/lib/components/page-header.svelte';
   import { notificationFeed, NotificationRow } from '~/lib/notifications';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t as ui } from '~/lib/ui-text';
 
   const t = $derived((key: Parameters<typeof notificationUiLabel>[0]) =>
     notificationUiLabel(key, uiLang.current),
@@ -78,7 +79,7 @@
 </script>
 
 <section class="admin-page mx-auto w-full max-w-[1440px]">
-  <PageHeader eyebrow="Overview" title={t('heading')} />
+  <PageHeader eyebrow={ui('nav.overview')} title={t('heading')} />
 
   <div class="grid gap-x-8 gap-y-5 md:grid-cols-[13rem_minmax(0,1fr)] md:items-start">
     <!-- The rail. A horizontal strip on a phone, a column from md up — the same

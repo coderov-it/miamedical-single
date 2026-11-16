@@ -1,0 +1,22 @@
+{
+  "overview": "Panoramica",
+  "catalog": "Catalogo",
+  "sales": "Vendite",
+  "content": "Contenuti",
+  "settings": "Impostazioni",
+  "dashboard": "Dashboard",
+  "notifications": "Notifiche",
+  "products": "Prodotti",
+  "categories": "Categorie",
+  "terms": "Termini",
+  "orders": "Ordini",
+  "rentManagement": "Gestione noleggi",
+  "contracts": "Contratti",
+  "payments": "Pagamenti",
+  "carts": "Carrelli",
+  "disputedOrders": "Ordini contestati",
+  "blogPosts": "Articoli del blog",
+  "privacyPolicy": "Informativa sulla privacy",
+  "general": "Generali",
+  "adminUsers": "Utenti amministratori"
+}

@@ -28,6 +28,7 @@
   import { cn } from '$lib/utils.js';
   import type { ContentLang } from '~/lib/content-lang.svelte';
   import LanguageFlag from '~/lib/components/language-flag.svelte';
+  import { t } from '~/lib/ui-text';
   import {
     INLINE_SWITCHER_LIMIT,
     LANGUAGES,
@@ -87,7 +88,7 @@
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
-        aria-label="Content language"
+        aria-label={t('shell.contentLanguage')}
       >
         <LanguageFlag code={lang.current} />
         <span class="font-medium">{currentLabel}</span>
@@ -110,7 +111,7 @@
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   {:else}
-    <div class={look.group} role="group" aria-label="Content language">
+    <div class={look.group} role="group" aria-label={t('shell.contentLanguage')}>
       {#each LANGUAGES as language (language.code)}
         {@const active = lang.current === language.code}
         {@const state = stateOf(language.code)}
@@ -128,8 +129,8 @@
             <span
               class={cn('size-1.5 rounded-full', RING[state])}
               title={state === 'partial'
-                ? `${language.label} is partly translated`
-                : `${language.label} has no translation yet`}
+                ? t('shell.languagePartial', { language: language.label })
+                : t('shell.languageMissing', { language: language.label })}
             ></span>
           {/if}
         </button>
@@ -142,10 +143,12 @@
          reads as progress, where "EN missing" read as an error the operator had
          already decided not to care about. -->
     <p class="ml-auto text-xs whitespace-nowrap text-muted-foreground">
-      {summary.done} of {summary.total} translated
+      {t('shell.translatedProgress', { done: summary.done, total: summary.total })}
       {#if summary.incomplete.length > 0}
         <span class="text-muted-foreground/70">
-          · {summary.incomplete.map((entry) => entry.code.toUpperCase()).join(' ')} pending
+          · {t('shell.pendingLanguages', {
+            languages: summary.incomplete.map((entry) => entry.code.toUpperCase()).join(' '),
+          })}
         </span>
       {/if}
     </p>

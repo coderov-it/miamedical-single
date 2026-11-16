@@ -16,6 +16,7 @@
 
   import { Input } from '$lib/components/ui/input/index.js';
   import { cn } from '$lib/utils.js';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     value: number;
@@ -65,13 +66,15 @@
     'disabled:pointer-events-none disabled:opacity-40';
 </script>
 
-<div class="flex w-full items-stretch overflow-hidden rounded-lg border border-input transition-colors">
+<div
+  class="flex w-full items-stretch overflow-hidden rounded-lg border border-input transition-colors"
+>
   <button
     type="button"
     class={button}
     onclick={() => nudge(-step)}
     disabled={disabled || atMin}
-    aria-label="Decrease {label}"
+    aria-label={t('components.stepperDecrease', { label })}
   >
     <MinusIcon class="size-5" />
   </button>
@@ -88,7 +91,7 @@
     onblur={normalize}
     aria-label={label}
     class={cn(
-      'h-10 min-w-0 flex-1 rounded-none border-0 border-x border-input bg-background text-center text-base font-medium tabular-nums shadow-none focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30',
+      'h-10 min-w-0 flex-1 rounded-none border-0 border-x border-input bg-background text-center text-base font-medium tabular-nums shadow-none focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-inset',
       '[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
       className,
     )}
@@ -99,7 +102,7 @@
     class={button}
     onclick={() => nudge(step)}
     disabled={disabled || atMax}
-    aria-label="Increase {label}"
+    aria-label={t('components.stepperIncrease', { label })}
   >
     <PlusIcon class="size-5" />
   </button>

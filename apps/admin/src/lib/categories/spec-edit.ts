@@ -39,15 +39,6 @@ export interface SpecEdit {
   options: SpecOptionEdit[];
 }
 
-export const VALUE_TYPES = [
-  { value: 'single_select', label: 'Single select' },
-  { value: 'multi_select', label: 'Multiple select' },
-  { value: 'boolean', label: 'Yes / No' },
-  { value: 'number', label: 'Number' },
-  { value: 'number_range', label: 'Number range' },
-  { value: 'string', label: 'Free text' },
-] as const;
-
 export function isSelectType(valueType: string): boolean {
   return valueType === 'single_select' || valueType === 'multi_select';
 }

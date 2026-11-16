@@ -38,6 +38,7 @@
   import * as Select from '$lib/components/ui/select/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { cn } from '$lib/utils.js';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     /** Sanitised HTML. Empty string for "nothing written yet". */
@@ -53,16 +54,21 @@
     ariaLabel?: string;
   }
 
-  let { value, onChange, key = 'default', ariaLabel = 'Description' }: Props = $props();
+  let { value, onChange, key = 'default', ariaLabel }: Props = $props();
 
   const BLOCKS = [
-    { value: 'p', label: 'Paragraph' },
-    { value: '2', label: 'Heading 2' },
-    { value: '3', label: 'Heading 3' },
-    { value: '4', label: 'Heading 4' },
-    { value: '5', label: 'Heading 5' },
-    { value: '6', label: 'Heading 6' },
+    { value: 'p' },
+    { value: '2' },
+    { value: '3' },
+    { value: '4' },
+    { value: '5' },
+    { value: '6' },
   ] as const;
+
+  const blockLabel = (value: string) =>
+    value === 'p'
+      ? t('components.editorParagraph')
+      : t('components.editorHeading', { level: value });
 
   let element = $state<HTMLDivElement>();
   /**
@@ -76,6 +82,12 @@
    */
   let box = $state<{ editor: Editor | null }>({ editor: null });
   const editor = $derived(box.editor);
+
+  // The editor is built once, so an interface-language switch updates its label here.
+  const editorLabel = $derived(ariaLabel ?? t('components.editorDefaultLabel'));
+  $effect(() => {
+    editor?.view.dom.setAttribute('aria-label', editorLabel);
+  });
 
   /** `<p></p>` is what an emptied editor serialises to — store nothing instead. */
   const htmlOf = (instance: Editor) => (instance.isEmpty ? '' : instance.getHTML());
@@ -92,7 +104,7 @@
      * caret was in no longer exists). Content only ever comes back in through the
      * `key` effect below.
      */
-    const { html: initial, label } = untrack(() => ({ html: value, label: ariaLabel }));
+    const { html: initial, label } = untrack(() => ({ html: value, label: editorLabel }));
 
     const instance = new Editor({
       element: target,
@@ -157,7 +169,7 @@
   function promptLink() {
     if (!editor) return;
     const current = editor.getAttributes('link').href as string | undefined;
-    const href = window.prompt('Link URL (empty to remove)', current ?? 'https://');
+    const href = window.prompt(t('components.editorLinkPrompt'), current ?? 'https://');
     if (href === null) return;
     const chain = editor.chain().focus().extendMarkRange('link');
     if (!href.trim()) chain.unsetLink().run();
@@ -195,15 +207,15 @@
   <div
     class="flex flex-wrap items-center gap-0.5 border-b border-input bg-muted/40 px-1.5 py-1"
     role="toolbar"
-    aria-label="Formatting"
+    aria-label={t('components.editorToolbar')}
   >
     <Select.Root type="single" value={activeBlock} onValueChange={setBlock}>
       <Select.Trigger size="sm" class="w-33 border-transparent bg-transparent">
-        {BLOCKS.find((block) => block.value === activeBlock)?.label ?? 'Paragraph'}
+        {blockLabel(BLOCKS.find((block) => block.value === activeBlock)?.value ?? 'p')}
       </Select.Trigger>
       <Select.Content>
         {#each BLOCKS as block (block.value)}
-          <Select.Item value={block.value}>{block.label}</Select.Item>
+          <Select.Item value={block.value}>{blockLabel(block.value)}</Select.Item>
         {/each}
       </Select.Content>
     </Select.Root>
@@ -212,25 +224,25 @@
 
     {#if editor}
       {@render tool(
-        'Bold',
+        t('components.editorBold'),
         BoldIcon,
         () => editor.chain().focus().toggleBold().run(),
         editor.isActive('bold'),
       )}
       {@render tool(
-        'Italic',
+        t('components.editorItalic'),
         ItalicIcon,
         () => editor.chain().focus().toggleItalic().run(),
         editor.isActive('italic'),
       )}
       {@render tool(
-        'Underline',
+        t('components.editorUnderline'),
         UnderlineIcon,
         () => editor.chain().focus().toggleUnderline().run(),
         editor.isActive('underline'),
       )}
       {@render tool(
-        'Strikethrough',
+        t('components.editorStrikethrough'),
         StrikethroughIcon,
         () => editor.chain().focus().toggleStrike().run(),
         editor.isActive('strike'),
@@ -239,26 +251,26 @@
       <Separator orientation="vertical" class="mx-1 h-5" />
 
       {@render tool(
-        'Bullet list',
+        t('components.editorBulletList'),
         ListIcon,
         () => editor.chain().focus().toggleBulletList().run(),
         editor.isActive('bulletList'),
       )}
       {@render tool(
-        'Numbered list',
+        t('components.editorNumberedList'),
         ListOrderedIcon,
         () => editor.chain().focus().toggleOrderedList().run(),
         editor.isActive('orderedList'),
       )}
       {@render tool(
-        'Indent',
+        t('components.editorIndent'),
         IndentIncreaseIcon,
         () => editor.chain().focus().sinkListItem('listItem').run(),
         false,
         !editor.can().sinkListItem('listItem'),
       )}
       {@render tool(
-        'Outdent',
+        t('components.editorOutdent'),
         IndentDecreaseIcon,
         () => editor.chain().focus().liftListItem('listItem').run(),
         false,
@@ -268,27 +280,29 @@
       <Separator orientation="vertical" class="mx-1 h-5" />
 
       {@render tool(
-        'Quote',
+        t('components.editorQuote'),
         QuoteIcon,
         () => editor.chain().focus().toggleBlockquote().run(),
         editor.isActive('blockquote'),
       )}
-      {@render tool('Link', LinkIcon, promptLink, editor.isActive('link'))}
-      {@render tool('Divider', MinusIcon, () => editor.chain().focus().setHorizontalRule().run())}
-      {@render tool('Clear formatting', RemoveFormattingIcon, () =>
+      {@render tool(t('components.editorLink'), LinkIcon, promptLink, editor.isActive('link'))}
+      {@render tool(t('components.editorDivider'), MinusIcon, () =>
+        editor.chain().focus().setHorizontalRule().run(),
+      )}
+      {@render tool(t('components.editorClearFormatting'), RemoveFormattingIcon, () =>
         editor.chain().focus().unsetAllMarks().clearNodes().run(),
       )}
 
       <ButtonGroup.Root class="ml-auto">
         {@render tool(
-          'Undo',
+          t('components.editorUndo'),
           UndoIcon,
           () => editor.chain().focus().undo().run(),
           false,
           !editor.can().undo(),
         )}
         {@render tool(
-          'Redo',
+          t('components.editorRedo'),
           RedoIcon,
           () => editor.chain().focus().redo().run(),
           false,

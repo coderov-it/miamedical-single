@@ -1,0 +1,14 @@
+{
+  "pageDescription": "Platform-wide options. Your own name and password are under your account.",
+  "alertsTitle": "Alert email recipients",
+  "alertsDescription": "Who receives platform alerts by email. Operators already see these in their notification inbox; this list reaches people who are not in the panel.",
+  "removeRecipient": "Remove recipient",
+  "addAddress": "Add address",
+  "maxRecipients": "Ten is the maximum — use a distribution group beyond that.",
+  "savedNoRecipients": "Saved. With no recipients, alerts appear in the panel only.",
+  "savedRecipients.one": "Saved {count} recipient.",
+  "savedRecipients.other": "Saved {count} recipients.",
+  "loadFailed": "Load failed.",
+  "saveFailed": "Could not save.",
+  "readOnly": "You have read-only access to settings."
+}

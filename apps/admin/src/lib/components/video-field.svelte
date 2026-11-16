@@ -27,6 +27,7 @@
   import type { LocalizedOptional } from '~/lib/i18n';
   import { uploadFile } from '~/lib/media/upload';
   import { Reorder } from '~/lib/reorder.svelte';
+  import { type MessageKey, t, tn } from '~/lib/ui-text';
 
   export interface ExternalVideoItem {
     provider: VideoProvider;
@@ -48,11 +49,11 @@
 
   type Source = 'file' | VideoProvider;
 
-  const SOURCES: Array<{ id: Source; label: string }> = [
-    { id: 'file', label: 'Upload file' },
-    { id: 'link', label: 'Link' },
-    { id: 'youtube', label: 'YouTube' },
-    { id: 'facebook', label: 'Facebook' },
+  const SOURCES: Array<{ id: Source; label: MessageKey }> = [
+    { id: 'file', label: 'components.videoSourceFile' },
+    { id: 'link', label: 'components.videoSourceLink' },
+    { id: 'youtube', label: 'components.videoSourceYoutube' },
+    { id: 'facebook', label: 'components.videoSourceFacebook' },
   ];
 
   const PLACEHOLDER: Record<VideoProvider, string> = {
@@ -61,10 +62,10 @@
     facebook: 'https://www.facebook.com/…/videos/…',
   };
 
-  const NOT_THAT_PROVIDER: Record<VideoProvider, string> = {
-    link: 'Enter an https link to a video file (mp4 or webm).',
-    youtube: 'That is not a YouTube video link.',
-    facebook: 'That is not a Facebook video link — use the URL of the video or reel itself.',
+  const NOT_THAT_PROVIDER: Record<VideoProvider, MessageKey> = {
+    link: 'components.videoErrorLink',
+    youtube: 'components.videoErrorYoutube',
+    facebook: 'components.videoErrorFacebook',
   };
 
   let source = $state<Source>('file');
@@ -94,7 +95,7 @@
     uploadError = null;
     for (const file of files) {
       if (items.length >= MAX_VIDEOS) {
-        uploadError = `A product can have at most ${MAX_VIDEOS} videos.`;
+        uploadError = t('components.videoLimit', { max: MAX_VIDEOS });
         break;
       }
       pending = { name: file.name, fraction: 0 };
@@ -106,7 +107,7 @@
         sessionPaths.add(result.path);
         items.push({ path: result.path, mimeType: result.mimeType, alt: {} });
       } catch (err) {
-        uploadError = err instanceof Error ? err.message : 'Upload failed.';
+        uploadError = err instanceof Error ? err.message : t('common.uploadFailed');
         break;
       } finally {
         pending = null;
@@ -120,18 +121,18 @@
   }
 
   function addUrl(provider: VideoProvider) {
-    if (!url.trim()) return invalidUrl('Paste the video link first.');
+    if (!url.trim()) return invalidUrl(t('components.videoErrorEmpty'));
 
     const parsed = parseVideoUrl(url);
     // Under "Link" a platform URL is welcome — it is simply filed as what it is.
     if (!parsed || (provider !== 'link' && parsed.provider !== provider)) {
-      return invalidUrl(NOT_THAT_PROVIDER[provider]);
+      return invalidUrl(t(NOT_THAT_PROVIDER[provider]));
     }
     if (items.some((item) => keyOf(item) === parsed.url)) {
-      return invalidUrl('This video is already in the list.');
+      return invalidUrl(t('components.videoErrorDuplicate'));
     }
     if (items.length >= MAX_VIDEOS) {
-      return invalidUrl(`A product can have at most ${MAX_VIDEOS} videos.`);
+      return invalidUrl(t('components.videoLimit', { max: MAX_VIDEOS }));
     }
 
     items.push({ provider: parsed.provider, url: parsed.url, alt: {} });
@@ -182,11 +183,11 @@
 
 <div>
   <div class="mb-1.5 flex items-baseline justify-between gap-2">
-    <Label>Videos</Label>
+    <Label>{t('components.videoLabel')}</Label>
     {#if hint}<span class="text-xs text-muted-foreground">{hint}</span>{/if}
   </div>
 
-  <ButtonGroup.Root class="mb-2" aria-label="How to add a video">
+  <ButtonGroup.Root class="mb-2" aria-label={t('components.videoHowToAdd')}>
     {#each SOURCES as option (option.id)}
       <Button
         variant={source === option.id ? 'secondary' : 'outline'}
@@ -194,7 +195,7 @@
         aria-pressed={source === option.id}
         onclick={() => pick(option.id)}
       >
-        {option.label}
+        {t(option.label)}
       </Button>
     {/each}
   </ButtonGroup.Root>
@@ -224,12 +225,16 @@
         type="url"
         inputmode="url"
         placeholder={PLACEHOLDER[provider]}
-        aria-label="{SOURCES.find((option) => option.id === provider)?.label} video URL"
+        aria-label={t('components.videoUrlLabel', {
+          source: t(
+            SOURCES.find((option) => option.id === provider)?.label ?? 'components.videoSourceLink',
+          ),
+        })}
         aria-invalid={urlError ? 'true' : undefined}
         aria-describedby={urlError ? 'video-url-error' : undefined}
         oninput={() => (urlError = null)}
       />
-      <Button type="submit" variant="outline">Add video</Button>
+      <Button type="submit" variant="outline">{t('components.videoAdd')}</Button>
     </form>
     {#if urlError}
       <p id="video-url-error" class="mt-1 text-xs text-destructive" role="alert">{urlError}</p>
@@ -258,7 +263,7 @@
       {/each}
     </ul>
     <p class="mt-1.5 text-xs text-muted-foreground">
-      {items.length === 1 ? '1 video' : `${items.length} videos`} · max {MAX_VIDEOS}
+      {tn('components.videoCount', items.length, { max: MAX_VIDEOS })}
     </p>
   {/if}
 </div>

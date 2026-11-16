@@ -23,6 +23,7 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminUser } from './access';
 
   interface Props {
@@ -46,14 +47,14 @@
 <DropdownMenu.Root>
   <DropdownMenu.Trigger
     class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-    aria-label="Row actions"
+    aria-label={t('access.rowActions')}
   >
     <MoreHorizontalIcon />
   </DropdownMenu.Trigger>
   <DropdownMenu.Content align="end">
     <DropdownMenu.Item onSelect={onEdit}>
       <PencilIcon />
-      {canUpdate ? 'Edit' : 'View access'}
+      {canUpdate ? t('common.edit') : t('access.viewAccess')}
     </DropdownMenu.Item>
 
     <!--
@@ -68,7 +69,7 @@
         {#snippet child({ props })}
           <a href={routes.profile} {...props}>
             <CircleUserIcon />
-            My account
+            {t('access.myAccount')}
           </a>
         {/snippet}
       </DropdownMenu.Item>
@@ -77,15 +78,15 @@
     {#if canUpdate && !isSelf}
       <DropdownMenu.Item onSelect={onSetPassword}>
         <KeyRoundIcon />
-        Set password
+        {t('access.setPassword')}
       </DropdownMenu.Item>
       <DropdownMenu.Item disabled={busy} onSelect={onToggleActive}>
         {#if user.isActive}
           <UserXIcon />
-          Disable account
+          {t('access.disableAccount')}
         {:else}
           <UserCheckIcon />
-          Enable account
+          {t('access.enableAccount')}
         {/if}
       </DropdownMenu.Item>
     {/if}
@@ -94,7 +95,7 @@
       <DropdownMenu.Separator />
       <DropdownMenu.Item variant="destructive" onSelect={onDelete}>
         <Trash2Icon />
-        Delete
+        {t('common.delete')}
       </DropdownMenu.Item>
     {/if}
   </DropdownMenu.Content>

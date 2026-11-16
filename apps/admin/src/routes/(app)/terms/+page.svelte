@@ -29,6 +29,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
   import BusyLabel from '~/lib/components/busy-label.svelte';
   import {
@@ -148,7 +149,7 @@
       } else {
         await unwrap(await api.api.admin.terms.$post({ json: payload }));
       }
-      toast.success(`Saved "${editing.title.it || editing.code}".`);
+      toast.success(t('terms.toastSaved', { name: editing.title.it || editing.code }));
       editing = null;
       documents.refresh();
     } catch (err) {
@@ -167,7 +168,7 @@
     deleteBusy = true;
     try {
       await unwrap(await api.api.admin.terms[':id'].$delete({ param: { id: target.id } }));
-      toast.success(`Deleted "${titleOf(target)}".`);
+      toast.success(t('terms.toastDeleted', { name: titleOf(target) }));
       deleting = null;
       documents.refresh();
     } catch (err) {
@@ -180,22 +181,22 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Catalog"
-    title="Terms documents"
-    description="Rental conditions, warranty and returns. Products link to these rather than restating them."
+    eyebrow={t('terms.pageEyebrow')}
+    title={t('terms.pageTitle')}
+    description={t('terms.pageDescription')}
   >
     {#snippet actions()}
       {#if session.can(P.TERMS_CREATE)}
         <Button onclick={() => startEdit()}>
           <PlusIcon />
-          New document
+          {t('terms.newDocument')}
         </Button>
       {/if}
     {/snippet}
   </PageHeader>
 
   <ListCard
-    noun="document"
+    countKey="entities.document"
     meta={documents.data
       ? { page: 1, perPage: rows.length || 1, total: rows.length, pageCount: 1 }
       : undefined}
@@ -210,10 +211,10 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[45%]">Document</Table.Head>
-            <Table.Head>Code</Table.Head>
-            <Table.Head>English</Table.Head>
-            <Table.Head>Updated</Table.Head>
+            <Table.Head class="w-[45%]">{t('terms.colDocument')}</Table.Head>
+            <Table.Head>{t('terms.colCode')}</Table.Head>
+            <Table.Head>{t('terms.colEnglish')}</Table.Head>
+            <Table.Head>{t('terms.colUpdated')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -241,20 +242,20 @@
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger
                     class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                    aria-label="Row actions"
+                    aria-label={t('terms.rowActions')}
                   >
                     <MoreHorizontalIcon />
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Content align="end">
                     <DropdownMenu.Item onSelect={() => startEdit(doc)}>
                       <PencilIcon />
-                      Edit
+                      {t('common.edit')}
                     </DropdownMenu.Item>
                     {#if session.can(P.TERMS_DELETE)}
                       <DropdownMenu.Separator />
                       <DropdownMenu.Item variant="destructive" onSelect={() => (deleting = doc)}>
                         <Trash2Icon />
-                        Delete
+                        {t('common.delete')}
                       </DropdownMenu.Item>
                     {/if}
                   </DropdownMenu.Content>
@@ -270,16 +271,14 @@
       <Empty.Root class="border-0">
         <Empty.Header>
           <Empty.Media variant="icon"><FileTextIcon /></Empty.Media>
-          <Empty.Title>No terms documents yet</Empty.Title>
-          <Empty.Description>
-            Rental products need conditions to link to before they can be published.
-          </Empty.Description>
+          <Empty.Title>{t('terms.emptyTitle')}</Empty.Title>
+          <Empty.Description>{t('terms.emptyDescription')}</Empty.Description>
         </Empty.Header>
         {#if session.can(P.TERMS_CREATE)}
           <Empty.Content>
             <Button onclick={() => startEdit()}>
               <PlusIcon />
-              New document
+              {t('terms.newDocument')}
             </Button>
           </Empty.Content>
         {/if}
@@ -300,11 +299,9 @@
     showCloseButton={false}
   >
     <Sheet.Header class="border-b bg-muted/50">
-      <Sheet.Title>{editing?.id ? 'Edit document' : 'New document'}</Sheet.Title>
-      <Sheet.Description>
-        Published as-is on the storefront. English is only used when the whole document is
-        translated.
-      </Sheet.Description>
+      <Sheet.Title>{editing?.id ? t('terms.sheetTitleEdit') : t('terms.sheetTitleNew')}</Sheet.Title
+      >
+      <Sheet.Description>{t('terms.sheetDescription')}</Sheet.Description>
     </Sheet.Header>
 
     <div class="flex border-b px-6">
@@ -321,13 +318,13 @@
 
         <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
           <TranslatedInput
-            label="Title"
+            label={t('terms.fieldTitle')}
             bind:value={editing.title}
             error={fields['translations.it.title']}
             placeholder="Condizioni di noleggio"
           />
           <div>
-            <Label class="mb-1.5" for="terms-code">Code</Label>
+            <Label class="mb-1.5" for="terms-code">{t('terms.fieldCode')}</Label>
             <Input
               id="terms-code"
               bind:value={editing.code}
@@ -342,28 +339,30 @@
         </div>
 
         <TranslatedInput
-          label="Slug"
+          label={t('terms.fieldSlug')}
           bind:value={editing.slug}
           error={fields['translations.it.slug']}
           placeholder="condizioni-di-noleggio"
-          hint="The URL segment on the storefront."
+          hint={t('terms.slugHint')}
         />
 
         <TranslatedInput
-          label="Body"
+          label={t('terms.fieldBody')}
           bind:value={editing.body}
           error={fields['translations.it.body']}
           multiline
           rows={18}
-          placeholder="The full text of the document."
+          placeholder={t('terms.bodyPlaceholder')}
         />
       </div>
     {/if}
 
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
-      <Button variant="destructive" disabled={saving} onclick={() => (editing = null)}>Cancel</Button>
-      <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
-        {editing?.id ? 'Save changes' : 'Create document'}
+      <Button variant="destructive" disabled={saving} onclick={() => (editing = null)}>
+        {t('common.cancel')}
+      </Button>
+      <BusyButton busy={saving} busyLabel={t('common.saving')} onclick={save}>
+        {editing?.id ? t('terms.saveChanges') : t('terms.createDocument')}
       </BusyButton>
     </Sheet.Footer>
   </Sheet.Content>
@@ -377,14 +376,13 @@
 >
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete this document?</AlertDialog.Title>
+      <AlertDialog.Title>{t('terms.deleteTitle')}</AlertDialog.Title>
       <AlertDialog.Description>
-        "{deleting ? titleOf(deleting) : ''}" is removed. Products linking to it lose the link, and
-        rental products may no longer be publishable.
+        {t('terms.deleteDescription', { name: deleting ? titleOf(deleting) : '' })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={deleteBusy}>{t('common.cancel')}</AlertDialog.Cancel>
       <AlertDialog.Action
         disabled={deleteBusy}
         class={buttonVariants({ variant: 'destructive' })}
@@ -393,7 +391,9 @@
           void confirmDelete();
         }}
       >
-        <BusyLabel busy={deleteBusy} label="Deleting…">Delete document</BusyLabel>
+        <BusyLabel busy={deleteBusy} label={t('terms.deleting')}>
+          {t('terms.deleteAction')}
+        </BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

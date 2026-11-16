@@ -17,6 +17,7 @@
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
   import type { Profile } from './profile';
 
@@ -52,8 +53,8 @@
 
   function localIssues(): Record<string, string> {
     const issues: Record<string, string> = {};
-    if (fullName.trim().length < 2) issues.fullName = 'Enter a name of at least 2 characters.';
-    if (canEditEmail && !email.trim()) issues.email = 'Enter an email address.';
+    if (fullName.trim().length < 2) issues.fullName = t('profile.nameInvalid');
+    if (canEditEmail && !email.trim()) issues.email = t('profile.emailRequired');
     return issues;
   }
 
@@ -103,7 +104,7 @@
       // component — and this toast — mid-save.
       await session.refreshUser();
       onSaved(next);
-      toast.success('Details saved.');
+      toast.success(t('profile.detailsSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -123,8 +124,8 @@
     }}
   >
     <div>
-      <h2 class="text-sm font-semibold">Your details</h2>
-      <p class="mt-0.5 text-sm text-muted-foreground">How you are named across the back office.</p>
+      <h2 class="text-sm font-semibold">{t('profile.detailsTitle')}</h2>
+      <p class="mt-0.5 text-sm text-muted-foreground">{t('profile.detailsHint')}</p>
     </div>
 
     {#if error}
@@ -134,7 +135,7 @@
     {/if}
 
     <div>
-      <Label class="mb-1.5" for="profile-name">Full name</Label>
+      <Label class="mb-1.5" for="profile-name">{t('profile.fullNameLabel')}</Label>
       <Input
         id="profile-name"
         bind:value={fullName}
@@ -147,12 +148,12 @@
     </div>
 
     <div>
-      <Label class="mb-1.5" for="profile-phone">Phone</Label>
+      <Label class="mb-1.5" for="profile-phone">{t('profile.phoneLabel')}</Label>
       <Input
         id="profile-phone"
         bind:value={phone}
         autocomplete="tel"
-        placeholder="Mobile, desk or extension"
+        placeholder={t('profile.phonePlaceholder')}
         aria-invalid={fields.phone ? 'true' : undefined}
       />
       {#if fields.phone}
@@ -161,7 +162,7 @@
     </div>
 
     <div>
-      <Label class="mb-1.5" for="profile-email">Email</Label>
+      <Label class="mb-1.5" for="profile-email">{t('auth.email')}</Label>
       <Input
         id="profile-email"
         type="email"
@@ -175,11 +176,13 @@
         <p class="mt-1 text-xs text-destructive" role="alert">{fields.email}</p>
       {:else if !canEditEmail}
         <p class="mt-1 text-xs text-muted-foreground">
-          This is what you sign in with. Ask an administrator to change it.
+          {t('profile.emailLocked')}
         </p>
       {/if}
     </div>
 
-    <BusyButton type="submit" busy={saving} busyLabel="Saving…">Save details</BusyButton>
+    <BusyButton type="submit" busy={saving} busyLabel={t('common.saving')}>
+      {t('profile.saveDetails')}
+    </BusyButton>
   </form>
 </Card.Root>
