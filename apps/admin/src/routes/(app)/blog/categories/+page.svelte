@@ -29,6 +29,7 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t, tn } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   type CategoryList = InferResponseType<
@@ -103,10 +104,10 @@
           param: { id: editId },
           json: payload,
         });
-        toast.success('Category updated.');
+        toast.success(t('blog.catToastUpdated'));
       } else {
         await api.api.admin.blog.categories.$post({ json: payload });
-        toast.success('Category created.');
+        toast.success(t('blog.catToastCreated'));
       }
 
       resetForm();
@@ -122,7 +123,7 @@
     busy = true;
     try {
       await api.api.admin.blog.categories[':id'].$delete({ param: { id } });
-      toast.success('Category deleted.');
+      toast.success(t('blog.catToastDeleted'));
       categories.refresh();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -133,10 +134,14 @@
 </script>
 
 <section class="admin-page">
-  <PageHeader eyebrow="Blog" title="Blog Categories" description="Organize blog posts by topic.">
+  <PageHeader
+    eyebrow={t('blog.blogEyebrow')}
+    title={t('blog.catPageTitle')}
+    description={t('blog.catPageDescription')}
+  >
     {#snippet actions()}
       <div class="flex items-center gap-2">
-        <Button href={routes.blog} variant="outline">Back to posts</Button>
+        <Button href={routes.blog} variant="outline">{t('blog.backToPosts')}</Button>
         {#if canManage}
           <Button
             onclick={() => {
@@ -145,7 +150,7 @@
             }}
           >
             <PlusIcon />
-            New category
+            {t('blog.catNew')}
           </Button>
         {/if}
       </div>
@@ -155,7 +160,7 @@
   {#if showForm}
     <Card.Root class="mx-auto max-w-lg">
       <Card.Header>
-        <Card.Title>{editId ? 'Edit category' : 'New category'}</Card.Title>
+        <Card.Title>{editId ? t('blog.catEdit') : t('blog.catNew')}</Card.Title>
       </Card.Header>
       <Card.Content>
         <form
@@ -166,17 +171,28 @@
           }}
         >
           <div>
-            <label class="mb-1.5 block text-sm font-medium" for="cat-code">Code</label>
-            <Input id="cat-code" bind:value={code} placeholder="e.g. news" />
+            <label class="mb-1.5 block text-sm font-medium" for="cat-code"
+              >{t('blog.catCode')}</label
+            >
+            <Input id="cat-code" bind:value={code} placeholder={t('blog.catCodePlaceholder')} />
           </div>
           <LanguageSwitcher lang={contentLang} {progress} class="border-b pb-2" />
-          <TranslatedInput id="cat-name" label="Name" bind:value={name} placeholder="Notizie" />
+          <TranslatedInput
+            id="cat-name"
+            label={t('blog.catName')}
+            bind:value={name}
+            placeholder="Notizie"
+          />
           <div>
-            <label class="mb-1.5 block text-sm font-medium" for="cat-slug">Slug</label>
+            <label class="mb-1.5 block text-sm font-medium" for="cat-slug"
+              >{t('blog.catSlug')}</label
+            >
             <Input id="cat-slug" bind:value={slug} placeholder="news" />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium" for="cat-pos">Position</label>
+            <label class="mb-1.5 block text-sm font-medium" for="cat-pos"
+              >{t('blog.catPosition')}</label
+            >
             <Input id="cat-pos" type="number" bind:value={position} />
           </div>
           <div class="flex gap-2">
@@ -186,9 +202,11 @@
               {busy}
               disabled={!code.trim() || !sourceName || !slug.trim()}
             >
-              {editId ? 'Update' : 'Create'}
+              {editId ? t('blog.catUpdate') : t('common.create')}
             </BusyButton>
-            <Button type="button" variant="destructive" onclick={resetForm}>Cancel</Button>
+            <Button type="button" variant="destructive" onclick={resetForm}>
+              {t('common.cancel')}
+            </Button>
           </div>
         </form>
       </Card.Content>
@@ -198,8 +216,7 @@
   <Card.Root class="gap-0 overflow-hidden py-0">
     <div class="border-b px-4 py-3">
       <p class="text-sm font-medium">
-        {rows.length}
-        {rows.length === 1 ? 'category' : 'categories'}
+        {tn('entities.category', rows.length)}
       </p>
     </div>
 
@@ -213,18 +230,18 @@
       <Empty.Root class="border-0">
         <Empty.Header>
           <Empty.Media variant="icon"><TagsIcon /></Empty.Media>
-          <Empty.Title>No categories yet</Empty.Title>
-          <Empty.Description>Create categories to organize your blog posts.</Empty.Description>
+          <Empty.Title>{t('blog.catEmptyTitle')}</Empty.Title>
+          <Empty.Description>{t('blog.catEmptyDescription')}</Empty.Description>
         </Empty.Header>
       </Empty.Root>
     {:else}
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Code</Table.Head>
-            <Table.Head>Name</Table.Head>
-            <Table.Head>Slug</Table.Head>
-            <Table.Head class="text-right">Position</Table.Head>
+            <Table.Head>{t('blog.catCode')}</Table.Head>
+            <Table.Head>{t('blog.catName')}</Table.Head>
+            <Table.Head>{t('blog.catSlug')}</Table.Head>
+            <Table.Head class="text-right">{t('blog.catPosition')}</Table.Head>
             {#if canManage}
               <Table.Head class="w-24"></Table.Head>
             {/if}
@@ -243,7 +260,9 @@
               {#if canManage}
                 <Table.Cell class="text-right">
                   <div class="flex justify-end gap-1">
-                    <Button variant="ghost" size="sm" onclick={() => startEdit(cat)}>Edit</Button>
+                    <Button variant="ghost" size="sm" onclick={() => startEdit(cat)}>
+                      {t('common.edit')}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -251,7 +270,7 @@
                       disabled={busy}
                       onclick={() => deleteCategory(cat.id)}
                     >
-                      Delete
+                      {t('common.delete')}
                     </Button>
                   </div>
                 </Table.Cell>

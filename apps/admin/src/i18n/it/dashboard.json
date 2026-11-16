@@ -1,0 +1,23 @@
+{
+  "description": "L’attività di oggi tra catalogo e coda degli ordini.",
+  "tileRevenue": "Incassi ({days} giorni)",
+  "hintRevenueBasis": "Solo ordini pagati ed evasi",
+  "tileOrders": "Ordini ({days} giorni)",
+  "hintOrders": "Conteggio sulla stessa base degli incassi",
+  "tileAwaiting": "In attesa di accettazione",
+  "hintAwaiting": "Ordini ancora in sospeso",
+  "tileProducts": "Prodotti attivi",
+  "hintProducts": "Online sul sito",
+  "calendarTitle": "Calendario noleggi",
+  "calendarFailed": "Impossibile caricare il calendario: {error}",
+  "placedOn": "Ordini effettuati il {date}",
+  "clear": "Azzera",
+  "colOrder": "Ordine",
+  "colCustomer": "Cliente",
+  "colStatus": "Stato",
+  "colPayment": "Pagamento",
+  "colPlaced": "Effettuato",
+  "colTotal": "Totale",
+  "emptyTitle": "Ancora nessun ordine",
+  "emptyHint": "Compariranno qui appena il sito ne riceve uno."
+}

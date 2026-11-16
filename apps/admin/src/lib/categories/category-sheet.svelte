@@ -42,6 +42,7 @@
     translationError,
   } from '~/lib/i18n';
   import { session } from '~/lib/session.svelte';
+  import { t, tn } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
   import SpecFieldList from './spec-field-list.svelte';
   import {
@@ -155,7 +156,7 @@
   async function onTranslated(rows: TranslationRows) {
     applyTranslations({ name, slug, description, specs }, rows);
     const count = Object.keys(rows).length;
-    toast.success(`Filled ${count} ${count === 1 ? 'language' : 'languages'}. Save to keep them.`);
+    toast.success(tn('categories.translateFilled', count));
   }
 
   /** A category counts as translated once it has a name and a slug. */
@@ -199,7 +200,7 @@
         }),
       );
 
-      toast.success(`Saved "${textFor(name, SOURCE_LANGUAGE) || code}".`);
+      toast.success(t('categories.toastSaved', { name: textFor(name, SOURCE_LANGUAGE) || code }));
       onSaved();
       onClose();
     } catch (err) {
@@ -225,11 +226,10 @@
     showCloseButton={false}
   >
     <Sheet.Header class="border-b bg-muted/50">
-      <Sheet.Title>{isEdit ? 'Edit category' : 'New category'}</Sheet.Title>
-      <Sheet.Description>
-        The specs defined here become the filters and comparison rows for every product in this
-        category.
-      </Sheet.Description>
+      <Sheet.Title
+        >{isEdit ? t('categories.sheetTitleEdit') : t('categories.sheetTitleNew')}</Sheet.Title
+      >
+      <Sheet.Description>{t('categories.sheetDescription')}</Sheet.Description>
     </Sheet.Header>
 
     <div class="flex items-center justify-between gap-2 border-b px-6">
@@ -242,7 +242,7 @@
           onclick={() => (translateOpen = true)}
         >
           <WandSparklesIcon />
-          Translate
+          {t('categories.translate')}
         </Button>
       {/if}
     </div>
@@ -255,31 +255,31 @@
       <section class="space-y-4 p-6">
         <div class="grid gap-4 sm:grid-cols-2">
           <TranslatedInput
-            label="Name"
+            label={t('categories.fieldName')}
             bind:value={name}
             error={translationError(fields, 'name')}
             placeholder="Carrozzine"
           />
           <TranslatedInput
-            label="Slug"
+            label={t('categories.fieldSlug')}
             bind:value={slug}
             error={translationError(fields, 'slug')}
             placeholder="carrozzine"
-            hint="The URL segment on the storefront."
+            hint={t('categories.slugHint')}
           />
         </div>
 
         <TranslatedInput
-          label="Description"
+          label={t('categories.fieldDescription')}
           bind:value={description}
           required={false}
           multiline
-          placeholder="Shown at the top of the category page."
+          placeholder={t('categories.descriptionPlaceholder')}
         />
 
         <div class="grid items-start gap-4 sm:grid-cols-[1fr_auto_auto]">
           <div>
-            <Label class="mb-1.5" for="category-code">Code</Label>
+            <Label class="mb-1.5" for="category-code">{t('categories.fieldCode')}</Label>
             <Input
               id="category-code"
               bind:value={code}
@@ -288,17 +288,17 @@
               aria-invalid={fields.code ? 'true' : undefined}
             />
             <p class="mt-1 text-xs text-muted-foreground">
-              Internal identifier. Stable — products reference it.
+              {t('categories.codeHint')}
             </p>
             {#if fields.code}
               <p class="mt-1 text-xs text-destructive" role="alert">{fields.code}</p>
             {/if}
           </div>
 
-          <IconPicker label="Icon" bind:value={icon} compact />
+          <IconPicker label={t('categories.fieldIcon')} bind:value={icon} compact />
 
           <div>
-            <Label class="mb-1.5" for="category-active">Active</Label>
+            <Label class="mb-1.5" for="category-active">{t('categories.fieldActive')}</Label>
             <div class="flex h-9 items-center gap-2">
               <Switch
                 id="category-active"
@@ -306,13 +306,13 @@
                 onCheckedChange={(checked) => (isActive = checked)}
               />
               <span class="text-sm text-muted-foreground">
-                {isActive ? 'Visible on the storefront' : 'Hidden'}
+                {isActive ? t('categories.activeOn') : t('categories.activeOff')}
               </span>
             </div>
           </div>
 
           <div>
-            <Label class="mb-1.5" for="category-deposit">Security deposit</Label>
+            <Label class="mb-1.5" for="category-deposit">{t('categories.fieldDeposit')}</Label>
             <div class="flex h-9 items-center gap-2">
               <Switch
                 id="category-deposit"
@@ -320,9 +320,7 @@
                 onCheckedChange={(checked) => (requiresDeposit = checked)}
               />
               <span class="text-sm text-muted-foreground">
-                {requiresDeposit
-                  ? 'Rentals sign the deposit contract'
-                  : 'Rentals sign the standard contract'}
+                {requiresDeposit ? t('categories.depositOn') : t('categories.depositOff')}
               </span>
             </div>
           </div>
@@ -331,10 +329,8 @@
 
       <section class="space-y-3 p-6">
         <div>
-          <h3 class="text-sm font-medium">Spec fields</h3>
-          <p class="mt-0.5 text-sm text-muted-foreground">
-            Order matters — it is the order they appear in on the storefront.
-          </p>
+          <h3 class="text-sm font-medium">{t('categories.specsHeading')}</h3>
+          <p class="mt-0.5 text-sm text-muted-foreground">{t('categories.specsHint')}</p>
         </div>
         <SpecFieldList bind:specs disabled={saving} />
       </section>
@@ -343,9 +339,10 @@
     <!-- Cancel far left, Save far right: the two are not peers, and putting a
          destructive-ish action next to the confirming one invites misfires. -->
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
-      <Button variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
-      <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
-        {isEdit ? 'Save changes' : 'Create category'}
+      <Button variant="destructive" disabled={saving} onclick={onClose}>{t('common.cancel')}</Button
+      >
+      <BusyButton busy={saving} busyLabel={t('common.saving')} onclick={save}>
+        {isEdit ? t('categories.saveChanges') : t('categories.createCategory')}
       </BusyButton>
     </Sheet.Footer>
   </Sheet.Content>

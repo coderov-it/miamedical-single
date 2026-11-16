@@ -6,22 +6,24 @@
  * message. Three hand-maintained copies is how a tab ends up unreachable.
  */
 
+import { type MessageKey, t } from '~/lib/ui-text';
+
 export const PRODUCT_TABS = [
-  { key: 'basics', label: 'Basics' },
+  { key: 'basics', labelKey: 'products.tabBasics' },
   /**
    * The long description has its own tab because it is the one field edited in
    * a rich-text surface: it needs a toolbar and room to write, and both fight
    * a column of single-line fields.
    */
-  { key: 'description', label: 'Description' },
-  { key: 'pricing', label: 'Pricing' },
-  { key: 'specs', label: 'Specs' },
-  { key: 'media', label: 'Media' },
-  { key: 'addons', label: 'Addons' },
-  { key: 'faqs', label: 'FAQs' },
-  { key: 'questions', label: 'Questions' },
-  { key: 'terms', label: 'Terms' },
-] as const;
+  { key: 'description', labelKey: 'products.tabDescription' },
+  { key: 'pricing', labelKey: 'products.tabPricing' },
+  { key: 'specs', labelKey: 'products.tabSpecs' },
+  { key: 'media', labelKey: 'products.tabMedia' },
+  { key: 'addons', labelKey: 'products.tabAddons' },
+  { key: 'faqs', labelKey: 'products.tabFaqs' },
+  { key: 'questions', labelKey: 'products.tabQuestions' },
+  { key: 'terms', labelKey: 'products.tabTerms' },
+] as const satisfies ReadonlyArray<{ key: string; labelKey: MessageKey }>;
 
 export type ProductTabKey = (typeof PRODUCT_TABS)[number]['key'];
 
@@ -32,6 +34,8 @@ export function parseTab(value: string | null): ProductTabKey {
   return PRODUCT_TABS.some((tab) => tab.key === value) ? (value as ProductTabKey) : DEFAULT_TAB;
 }
 
+/** Translated at call time — the strip and the unsaved-changes guard both call it from markup. */
 export function tabLabel(key: string): string {
-  return PRODUCT_TABS.find((tab) => tab.key === key)?.label ?? key;
+  const tab = PRODUCT_TABS.find((entry) => entry.key === key);
+  return tab ? t(tab.labelKey) : key;
 }

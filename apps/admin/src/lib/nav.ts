@@ -23,62 +23,64 @@ import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 import type { Component } from 'svelte';
 
+import type { MessageKey } from '~/lib/ui-text';
+
 import { canVisit } from './route-access.ts';
 import { routes } from './routes.ts';
 
 export interface NavItem {
-  readonly title: string;
+  readonly titleKey: MessageKey;
   readonly url: string;
   readonly icon: Component;
 }
 
 export interface NavSection {
-  readonly title: string;
+  readonly titleKey: MessageKey;
   readonly items: readonly NavItem[];
 }
 
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
-    title: 'Overview',
+    titleKey: 'nav.overview',
     items: [
-      { title: 'Dashboard', url: routes.dashboard, icon: GaugeIcon },
+      { titleKey: 'nav.dashboard', url: routes.dashboard, icon: GaugeIcon },
       /* The inbox, not the alert-email setting — that moved into Settings. The
          bell in the topbar reaches the same page; this is here because a section
          of the back office you can open should be findable in the nav. */
-      { title: 'Notifications', url: routes.notifications, icon: BellIcon },
+      { titleKey: 'nav.notifications', url: routes.notifications, icon: BellIcon },
     ],
   },
   {
-    title: 'Catalog',
+    titleKey: 'nav.catalog',
     items: [
-      { title: 'Products', url: routes.products, icon: PackageIcon },
-      { title: 'Categories', url: routes.categories, icon: TagsIcon },
-      { title: 'Terms', url: routes.terms, icon: FileTextIcon },
+      { titleKey: 'nav.products', url: routes.products, icon: PackageIcon },
+      { titleKey: 'nav.categories', url: routes.categories, icon: TagsIcon },
+      { titleKey: 'nav.terms', url: routes.terms, icon: FileTextIcon },
     ],
   },
   {
-    title: 'Sales',
+    titleKey: 'nav.sales',
     items: [
-      { title: 'Orders', url: routes.orders, icon: ShoppingCartIcon },
-      { title: 'Rent Management', url: routes.rentals, icon: CalendarClockIcon },
-      { title: 'Contracts', url: routes.contracts, icon: FileSignatureIcon },
-      { title: 'Payments', url: routes.payments, icon: WalletIcon },
-      { title: 'Carts', url: routes.carts, icon: BanknoteIcon },
-      { title: 'Disputed Orders', url: routes.orderDisputes, icon: ShieldAlertIcon },
+      { titleKey: 'nav.orders', url: routes.orders, icon: ShoppingCartIcon },
+      { titleKey: 'nav.rentManagement', url: routes.rentals, icon: CalendarClockIcon },
+      { titleKey: 'nav.contracts', url: routes.contracts, icon: FileSignatureIcon },
+      { titleKey: 'nav.payments', url: routes.payments, icon: WalletIcon },
+      { titleKey: 'nav.carts', url: routes.carts, icon: BanknoteIcon },
+      { titleKey: 'nav.disputedOrders', url: routes.orderDisputes, icon: ShieldAlertIcon },
     ],
   },
   {
-    title: 'Content',
+    titleKey: 'nav.content',
     items: [
-      { title: 'Blog Posts', url: routes.blog, icon: NewspaperIcon },
-      { title: 'Privacy Policy', url: routes.privacyPolicy, icon: ShieldCheckIcon },
+      { titleKey: 'nav.blogPosts', url: routes.blog, icon: NewspaperIcon },
+      { titleKey: 'nav.privacyPolicy', url: routes.privacyPolicy, icon: ShieldCheckIcon },
     ],
   },
   {
-    title: 'Settings',
+    titleKey: 'nav.settings',
     items: [
-      { title: 'General', url: routes.settings, icon: SlidersHorizontalIcon },
-      { title: 'Admin Users', url: routes.adminUsers, icon: UsersIcon },
+      { titleKey: 'nav.general', url: routes.settings, icon: SlidersHorizontalIcon },
+      { titleKey: 'nav.adminUsers', url: routes.adminUsers, icon: UsersIcon },
     ],
   },
 ];
@@ -100,11 +102,12 @@ export function isNavItemActive(pathname: string, url: string): boolean {
   return pathname === url || pathname.startsWith(`${url}/`);
 }
 
-/** Breadcrumb label for the current path, or undefined for the dashboard. */
-export function navTitleFor(pathname: string): string | undefined {
+/** Breadcrumb label key for the current path, or undefined for the dashboard. */
+export function navTitleFor(pathname: string): MessageKey | undefined {
   for (const section of NAV_SECTIONS) {
     for (const item of section.items) {
-      if (item.url !== routes.dashboard && isNavItemActive(pathname, item.url)) return item.title;
+      if (item.url !== routes.dashboard && isNavItemActive(pathname, item.url))
+        return item.titleKey;
     }
   }
   return undefined;

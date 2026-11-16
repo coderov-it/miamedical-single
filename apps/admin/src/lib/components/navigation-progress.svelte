@@ -19,6 +19,8 @@
 <script lang="ts">
   import { navigating } from '$app/state';
 
+  import { t } from '~/lib/ui-text';
+
   const DELAY = 150;
 
   let visible = $state(false);
@@ -59,7 +61,7 @@
   <div
     class="pointer-events-none fixed inset-x-0 top-0 z-[100] h-0.5"
     role="progressbar"
-    aria-label="Loading page"
+    aria-label={t('shell.loadingPage')}
   >
     <div
       class="h-full bg-primary transition-[width,opacity] duration-200 ease-out"

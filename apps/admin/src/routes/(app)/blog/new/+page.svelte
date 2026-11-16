@@ -12,6 +12,7 @@
   import PageHeader from '~/lib/components/page-header.svelte';
   import { errorMessage } from '~/lib/request';
   import { routes } from '~/lib/routes';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   let title = $state('');
@@ -44,7 +45,7 @@
         },
       });
       const json = (await res.json()) as { data: { id: string } };
-      toast.success('Post created.');
+      toast.success(t('blog.toastCreated'));
       void goto(routes.blogDetail(json.data.id));
     } catch (err) {
       toast.error(errorMessage(err));
@@ -54,22 +55,23 @@
 </script>
 
 <section class="admin-page">
-  <PageHeader eyebrow="Blog" title="New Post" description="Start a new blog post.">
+  <PageHeader
+    eyebrow={t('blog.blogEyebrow')}
+    title={t('blog.newTitle')}
+    description={t('blog.newDescription')}
+  >
     {#snippet actions()}
       <Button href={routes.blog} variant="outline">
         <ArrowLeftIcon />
-        Back to posts
+        {t('blog.backToPosts')}
       </Button>
     {/snippet}
   </PageHeader>
 
   <Card.Root class="mx-auto max-w-2xl">
     <Card.Header>
-      <Card.Title>Create post</Card.Title>
-      <Card.Description
-        >Fill in at least the Italian title and body. You can add English, SEO, and images from the
-        editor.</Card.Description
-      >
+      <Card.Title>{t('blog.createCardTitle')}</Card.Title>
+      <Card.Description>{t('blog.createCardDescription')}</Card.Description>
     </Card.Header>
     <Card.Content>
       <form
@@ -80,15 +82,16 @@
         }}
       >
         <div>
-          <label class="mb-1.5 block text-sm font-medium" for="title">Title (IT)</label>
+          <label class="mb-1.5 block text-sm font-medium" for="title">{t('blog.titleSource')}</label
+          >
           <Input id="title" bind:value={title} placeholder="Titolo dell'articolo" required />
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium" for="body">Body (IT)</label>
+          <label class="mb-1.5 block text-sm font-medium" for="body">{t('blog.bodySource')}</label>
           <Textarea id="body" bind:value={body} rows={12} placeholder="Contenuto…" required />
         </div>
         <BusyButton type="submit" class="w-full" {busy} disabled={!title.trim() || !body.trim()}>
-          Create post
+          {t('blog.createPost')}
         </BusyButton>
       </form>
     </Card.Content>

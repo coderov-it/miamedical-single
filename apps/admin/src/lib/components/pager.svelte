@@ -12,6 +12,7 @@
 
   import { Button } from '$lib/components/ui/button/index.js';
   import { formatNumber } from '~/lib/format';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     meta: { page: number; perPage: number; total: number; pageCount: number } | undefined;
@@ -32,9 +33,13 @@
   >
     <p class="tabular-nums">
       {#if meta.total === 0}
-        No results
+        {t('common.noResults')}
       {:else}
-        {formatNumber(from)}–{formatNumber(to)} of {formatNumber(meta.total)}
+        {t('components.pagerRange', {
+          from: formatNumber(from),
+          to: formatNumber(to),
+          total: formatNumber(meta.total),
+        })}
       {/if}
     </p>
 
@@ -47,7 +52,7 @@
           onclick={() => onPage(meta.page - 1)}
         >
           <ChevronLeftIcon />
-          Previous
+          {t('common.previous')}
         </Button>
         <span class="px-2 tabular-nums">{meta.page} / {meta.pageCount}</span>
         <Button
@@ -56,7 +61,7 @@
           disabled={busy || meta.page >= meta.pageCount}
           onclick={() => onPage(meta.page + 1)}
         >
-          Next
+          {t('common.next')}
           <ChevronRightIcon />
         </Button>
       </div>

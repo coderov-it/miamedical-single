@@ -27,18 +27,19 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.payments.$get, 200>;
 
   const ANY = '__any';
   const TYPE_OPTIONS = [
-    { value: ANY, label: 'All' },
-    { value: 'rental', label: 'Noleggio' },
-    { value: 'fixed', label: 'Vendita' },
-  ] as const;
+    { value: ANY, labelKey: 'payments.filterAll' },
+    { value: 'rental', labelKey: 'payments.typeRental' },
+    { value: 'fixed', labelKey: 'payments.typeSale' },
+  ] as const satisfies readonly { value: string; labelKey: MessageKey }[];
 
-  const presets = datePresets();
+  const presets = $derived(datePresets());
 
   const query = new QueryState({
     q: '',
@@ -101,9 +102,9 @@
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      toast.success('CSV exported');
+      toast.success(t('payments.toastExported'));
     } catch {
-      toast.error('Failed to export CSV');
+      toast.error(t('payments.toastExportFailed'));
     } finally {
       exporting = false;
     }
@@ -117,7 +118,7 @@
           json: { to: 'paid' },
         }),
       );
-      toast.success(`Order ${orderNumber} marked as paid`);
+      toast.success(t('payments.toastMarkedPaid', { number: orderNumber }));
       payments.refresh();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -126,11 +127,16 @@
 </script>
 
 <section class="admin-page">
-  <PageHeader eyebrow="Finance" title="Payments">
+  <PageHeader eyebrow={t('payments.eyebrowFinance')} title={t('payments.title')}>
     {#snippet actions()}
-      <BusyButton variant="outline" onclick={exportCsv} busy={exporting} busyLabel="Exporting…">
+      <BusyButton
+        variant="outline"
+        onclick={exportCsv}
+        busy={exporting}
+        busyLabel={t('payments.exporting')}
+      >
         <DownloadIcon class="size-4" />
-        Export CSV
+        {t('payments.exportCsv')}
       </BusyButton>
     {/snippet}
   </PageHeader>
@@ -138,15 +144,15 @@
   {#if stats}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="rounded-lg border bg-card p-4">
-        <p class="text-sm text-muted-foreground">Total revenue (paid)</p>
+        <p class="text-sm text-muted-foreground">{t('payments.statRevenue')}</p>
         <p class="text-2xl font-semibold">{formatMoney(stats.totalRevenue, stats.currency)}</p>
       </div>
       <div class="rounded-lg border bg-card p-4">
-        <p class="text-sm text-muted-foreground">Pending payments</p>
+        <p class="text-sm text-muted-foreground">{t('payments.statPending')}</p>
         <p class="text-2xl font-semibold">{formatNumber(stats.pendingCount)}</p>
       </div>
       <div class="rounded-lg border bg-card p-4">
-        <p class="text-sm text-muted-foreground">Paid orders</p>
+        <p class="text-sm text-muted-foreground">{t('payments.statPaid')}</p>
         <p class="text-2xl font-semibold">{formatNumber(stats.paidCount)}</p>
       </div>
     </div>
@@ -170,7 +176,7 @@
         value={query.current.from}
         onchange={(e) => query.set({ from: e.currentTarget.value, page: 1 })}
         class="h-8 w-36"
-        aria-label="From date"
+        aria-label={t('payments.dateFromLabel')}
       />
       <span class="text-muted-foreground">–</span>
       <Input
@@ -178,12 +184,12 @@
         value={query.current.to}
         onchange={(e) => query.set({ to: e.currentTarget.value, page: 1 })}
         class="h-8 w-36"
-        aria-label="To date"
+        aria-label={t('payments.dateToLabel')}
       />
     </div>
     {#if query.current.from || query.current.to}
       <Button variant="ghost" size="sm" onclick={() => query.set({ from: '', to: '', page: 1 })}>
-        Clear dates
+        {t('payments.clearDates')}
       </Button>
     {/if}
   </div>
@@ -204,7 +210,7 @@
         {#if value !== ANY}
           <span class={cn('size-1.5 rounded-full', paymentStatusMeta(value).dot)}></span>
         {/if}
-        {value === ANY ? 'All' : paymentStatusMeta(value).label}
+        {value === ANY ? t('payments.filterAll') : paymentStatusMeta(value).label}
       </button>
     {/each}
   </div>
@@ -222,13 +228,13 @@
           active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
         )}
       >
-        {opt.label}
+        {t(opt.labelKey)}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="payment"
+    countKey="entities.payment"
     meta={payments.data?.meta}
     loading={payments.loading}
     error={payments.error}
@@ -252,14 +258,16 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Order number or email…"
-            aria-label="Search payments"
+            placeholder={t('payments.searchPlaceholder')}
+            aria-label={t('payments.searchLabel')}
             class="h-8 w-64 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('payments.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('payments.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
@@ -268,13 +276,13 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Order</Table.Head>
-            <Table.Head>Customer</Table.Head>
-            <Table.Head>Type</Table.Head>
-            <Table.Head>Amount</Table.Head>
-            <Table.Head>Payment</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Date</Table.Head>
+            <Table.Head>{t('payments.colOrder')}</Table.Head>
+            <Table.Head>{t('payments.colCustomer')}</Table.Head>
+            <Table.Head>{t('payments.colType')}</Table.Head>
+            <Table.Head>{t('payments.colAmount')}</Table.Head>
+            <Table.Head>{t('payments.colPayment')}</Table.Head>
+            <Table.Head>{t('payments.colStatus')}</Table.Head>
+            <Table.Head>{t('payments.colDate')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -299,7 +307,7 @@
               </Table.Cell>
               <Table.Cell>
                 <span class="text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                  {payment.type === 'rental' ? 'Noleggio' : 'Vendita'}
+                  {payment.type === 'rental' ? t('payments.typeRental') : t('payments.typeSale')}
                 </span>
               </Table.Cell>
               <Table.Cell class="font-medium">
@@ -324,7 +332,7 @@
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger
                     class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                    aria-label="Row actions"
+                    aria-label={t('payments.rowActions')}
                   >
                     <EllipsisVerticalIcon class="size-4" />
                   </DropdownMenu.Trigger>
@@ -333,7 +341,7 @@
                       onSelect={() => window.location.assign(routes.orderDetail(payment.orderId))}
                     >
                       <ExternalLinkIcon class="size-4" />
-                      View order
+                      {t('payments.viewOrder')}
                     </DropdownMenu.Item>
                     {#if payment.paymentStatus !== 'paid' && payment.paymentStatus !== 'refunded' && session.can(P.ORDER_UPDATE)}
                       <DropdownMenu.Separator />
@@ -341,7 +349,7 @@
                         onSelect={() => markAsPaid(payment.orderId, payment.orderNumber)}
                       >
                         <BanknoteIcon class="size-4" />
-                        Mark as paid
+                        {t('payments.markPaid')}
                       </DropdownMenu.Item>
                     {/if}
                   </DropdownMenu.Content>
@@ -358,17 +366,17 @@
         <Empty.Header>
           <Empty.Media variant="icon"><WalletIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No payments match these filters' : 'No payments yet'}
+            {query.isFiltered ? t('payments.emptyFilteredTitle') : t('payments.emptyTitle')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try different filters, or clear them.'
-              : 'Payments appear here when orders are placed.'}
+            {query.isFiltered ? t('payments.emptyFilteredHint') : t('payments.emptyHint')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => query.reset()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => query.reset()}>
+              {t('payments.clearFilters')}
+            </Button>
           </Empty.Content>
         {/if}
       </Empty.Root>

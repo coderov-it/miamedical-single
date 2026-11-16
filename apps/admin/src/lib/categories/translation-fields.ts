@@ -7,6 +7,7 @@ import {
   textFor,
 } from '~/lib/i18n';
 import { slugify } from '~/lib/slug';
+import { t } from '~/lib/ui-text';
 
 import { isSelectType, type Localized, type SpecEdit } from './spec-edit';
 
@@ -38,16 +39,18 @@ export interface CategoryForm {
 
 export type TranslationRows = Partial<Record<TargetLanguageCode, Record<string, string>>>;
 
-const SECTION = {
-  details: 'Category details',
-  specs: 'Spec fields',
-  options: 'Spec options',
-} as const;
+/** Resolved per call: the plan is rebuilt in markup, so it follows the interface language. */
+const sections = () => ({
+  details: t('categories.sectionDetails'),
+  specs: t('categories.sectionSpecs'),
+  options: t('categories.sectionOptions'),
+});
 
 const DETAILS = 'details';
 
 export function buildPlanFields(form: CategoryForm): PlanField[] {
   const fields: PlanField[] = [];
+  const SECTION = sections();
 
   /** Caps mirror `CategoryTranslationFields` and `SpecInputSchema` in `@mia/validators`. */
   const details = { section: SECTION.details, group: DETAILS, groupLabel: SECTION.details };
@@ -55,7 +58,7 @@ export function buildPlanFields(form: CategoryForm): PlanField[] {
     {
       ...details,
       key: `${DETAILS}.name`,
-      label: 'Name',
+      label: t('categories.fieldName'),
       format: 'text',
       maxLength: 120,
       createsRow: true,
@@ -64,7 +67,7 @@ export function buildPlanFields(form: CategoryForm): PlanField[] {
     {
       ...details,
       key: `${DETAILS}.description`,
-      label: 'Description',
+      label: t('categories.fieldDescription'),
       format: 'text',
       maxLength: 5000,
       values: form.description,
@@ -73,14 +76,21 @@ export function buildPlanFields(form: CategoryForm): PlanField[] {
 
   form.specs.forEach((spec, index) => {
     const group = `spec:${index}`;
-    const groupLabel = textFor(spec.label, SOURCE_LANGUAGE) || `Spec field ${index + 1}`;
+    const groupLabel =
+      textFor(spec.label, SOURCE_LANGUAGE) || t('categories.specNumbered', { number: index + 1 });
     const base = { section: SECTION.specs, group, groupLabel, format: 'text' as const };
     fields.push(
-      { ...base, key: `${group}.label`, label: 'Label', maxLength: 200, values: spec.label },
+      {
+        ...base,
+        key: `${group}.label`,
+        label: t('categories.specLabel'),
+        maxLength: 200,
+        values: spec.label,
+      },
       {
         ...base,
         key: `${group}.helpText`,
-        label: 'Help text',
+        label: t('categories.specHelpText'),
         maxLength: 500,
         values: spec.helpText,
       },
@@ -96,7 +106,7 @@ export function buildPlanFields(form: CategoryForm): PlanField[] {
       const optionGroup = `${group}.option:${optionIndex}`;
       fields.push({
         key: optionGroup,
-        label: 'Option label',
+        label: t('categories.optionLabel'),
         section: SECTION.options,
         group: optionGroup,
         groupLabel: `${groupLabel} · ${textFor(option.label, SOURCE_LANGUAGE) || option.value}`,

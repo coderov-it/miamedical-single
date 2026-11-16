@@ -1,3 +1,5 @@
+import { t } from '~/lib/ui-text';
+
 /**
  * The one place responses are unwrapped. Every server error travels as
  * `{ error: { code, message, fields? } }` — this turns that envelope into a
@@ -31,7 +33,7 @@ export async function unwrap<T>(response: Response): Promise<T> {
     throw new ApiError(
       response.status,
       body?.error?.code ?? 'error',
-      body?.error?.message ?? `Request failed (${response.status}).`,
+      body?.error?.message ?? t('components.requestFailed', { status: response.status }),
       body?.error?.fields ?? {},
     );
   }
@@ -46,7 +48,7 @@ export async function unwrapFull<T>(response: Response): Promise<T> {
     throw new ApiError(
       response.status,
       body?.error?.code ?? 'error',
-      body?.error?.message ?? `Request failed (${response.status}).`,
+      body?.error?.message ?? t('components.requestFailed', { status: response.status }),
       body?.error?.fields ?? {},
     );
   }
@@ -56,7 +58,7 @@ export async function unwrapFull<T>(response: Response): Promise<T> {
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
   if (error instanceof Error) return error.message;
-  return 'Something went wrong.';
+  return t('common.somethingWrong');
 }
 
 export function errorFields(error: unknown): Record<string, string> {

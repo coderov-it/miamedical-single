@@ -24,9 +24,10 @@
   import NotificationBell from '~/lib/components/notification-bell.svelte';
   import { navTitleFor } from '~/lib/nav';
   import { routes } from '~/lib/routes';
+  import { t } from '~/lib/ui-text';
   import { UI_LANGUAGES, uiLang, type UiLanguage } from '~/lib/ui-lang.svelte';
 
-  const sectionTitle = $derived(navTitleFor(page.url.pathname));
+  const sectionKey = $derived(navTitleFor(page.url.pathname));
 </script>
 
 <!--
@@ -45,10 +46,10 @@
       <Breadcrumb.Item class="hidden sm:block">
         <Breadcrumb.Link href={routes.dashboard}>Admin</Breadcrumb.Link>
       </Breadcrumb.Item>
-      {#if sectionTitle}
+      {#if sectionKey}
         <Breadcrumb.Separator class="hidden sm:block" />
         <Breadcrumb.Item>
-          <Breadcrumb.Page>{sectionTitle}</Breadcrumb.Page>
+          <Breadcrumb.Page>{t(sectionKey)}</Breadcrumb.Page>
         </Breadcrumb.Item>
       {/if}
     </Breadcrumb.List>
@@ -60,13 +61,13 @@
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class={buttonVariants({ variant: 'ghost', size: 'sm' })}
-        aria-label="Interface language"
+        aria-label={t('shell.interfaceLanguage')}
       >
         <LanguageFlag code={uiLang.current} />
         <span class="text-xs font-medium uppercase">{uiLang.current}</span>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
-        <DropdownMenu.Label>Interface language</DropdownMenu.Label>
+        <DropdownMenu.Label>{t('shell.interfaceLanguage')}</DropdownMenu.Label>
         <DropdownMenu.RadioGroup
           value={uiLang.current}
           onValueChange={(value) => uiLang.set(value as UiLanguage)}
@@ -86,7 +87,7 @@
       <MoonIcon
         class="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
       />
-      <span class="sr-only">Toggle theme</span>
+      <span class="sr-only">{t('shell.toggleTheme')}</span>
     </Button>
   </div>
 </header>

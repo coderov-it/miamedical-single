@@ -28,6 +28,7 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminCategory, AdminProduct, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -143,7 +144,9 @@
     // every missing field at once beats one round trip per omission.
     const missing = specs.filter((spec) => spec.isRequired && isEmpty(spec, edits[spec.id]!));
     if (missing.length > 0) {
-      error = `Still required: ${missing.map((spec) => spec.label.it).join(', ')}.`;
+      error = t('products.specsStillRequired', {
+        names: missing.map((spec) => spec.label.it).join(', '),
+      });
       return;
     }
 
@@ -191,7 +194,7 @@
       savedBrand = updated.brand ?? '';
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Specifications saved.');
+      toast.success(t('products.specsSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -200,19 +203,22 @@
     }
   }
 
-  const booleanLabel = (value: string) =>
-    value === 'true' ? 'Sì' : value === 'false' ? 'No' : '—';
+  const booleanLabel = (value: string) => {
+    if (value === 'true') return t('common.yes');
+    if (value === 'false') return t('common.no');
+    return '—';
+  };
 </script>
 
 <TabPanel
-  title="Specifications"
-  description="Defined by the category. These are what the storefront filters and compares on."
+  title={t('products.specsTitle')}
+  description={t('products.specsDescription')}
   dirty={isDirty}
   {saving}
   error={error ?? category.error}
   onSave={category.data ? save : undefined}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   {#if !category.data}
     <div class="space-y-3">
@@ -229,14 +235,17 @@
         eighteen chances to word it differently.
       -->
       <div class="rounded-lg border p-4">
-        <Label class="mb-2.5 block text-sm font-medium" for="specs-brand">Brand</Label>
+        <Label class="mb-2.5 block text-sm font-medium" for="specs-brand"
+          >{t('products.brand')}</Label
+        >
         <Input id="specs-brand" bind:value={brand} disabled={!canUpdate} class="max-w-sm" />
       </div>
 
       {#if category.data.specs.length === 0}
         <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          The category “{category.data.translations.it?.name ?? category.data.code}” defines no
-          further specifications. Add spec fields to it under Categories.
+          {t('products.specsNoFurther', {
+            name: category.data.translations.it?.name ?? category.data.code,
+          })}
         </p>
       {/if}
 
@@ -253,8 +262,12 @@
                 <span class="text-xs text-muted-foreground">({spec.unit})</span>
               {/if}
               <span class="ml-auto flex gap-1">
-                {#if spec.isFilterable}<Badge variant="secondary">filter</Badge>{/if}
-                {#if spec.isComparable}<Badge variant="secondary">compare</Badge>{/if}
+                {#if spec.isFilterable}<Badge variant="secondary"
+                    >{t('products.specFilterBadge')}</Badge
+                  >{/if}
+                {#if spec.isComparable}<Badge variant="secondary"
+                    >{t('products.specCompareBadge')}</Badge
+                  >{/if}
               </span>
             </div>
 
@@ -277,20 +290,20 @@
                   type="number"
                   step="any"
                   bind:value={edit.numberMin}
-                  placeholder="min"
+                  placeholder={t('products.specMinPlaceholder')}
                   disabled={!canUpdate}
                   class="w-28"
-                  aria-label="{spec.label.it} minimum"
+                  aria-label={t('products.specMinAria', { label: spec.label.it })}
                 />
                 <span class="text-muted-foreground">–</span>
                 <Input
                   type="number"
                   step="any"
                   bind:value={edit.numberMax}
-                  placeholder="max"
+                  placeholder={t('products.specMaxPlaceholder')}
                   disabled={!canUpdate}
                   class="w-28"
-                  aria-label="{spec.label.it} maximum"
+                  aria-label={t('products.specMaxAria', { label: spec.label.it })}
                 />
               </div>
             {:else if spec.valueType === 'boolean'}
@@ -298,8 +311,8 @@
                 <Select.Trigger class="w-32">{booleanLabel(edit.booleanValue)}</Select.Trigger>
                 <Select.Content>
                   <Select.Item value={NONE}>—</Select.Item>
-                  <Select.Item value="true">Sì</Select.Item>
-                  <Select.Item value="false">No</Select.Item>
+                  <Select.Item value="true">{t('common.yes')}</Select.Item>
+                  <Select.Item value="false">{t('common.no')}</Select.Item>
                 </Select.Content>
               </Select.Root>
             {:else if spec.valueType === 'single_select'}

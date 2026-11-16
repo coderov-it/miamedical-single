@@ -1,6 +1,12 @@
 <script lang="ts">
   import PlusIcon from '@lucide/svelte/icons/plus';
-  import { durationLabel, rentalUnitOptions, unitLabel } from '@mia/i18n';
+  import {
+    durationLabel,
+    perUnitLabel,
+    pricingModeLabel,
+    rentalUnitOptions,
+    unitLabel,
+  } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -18,6 +24,7 @@
   import { session } from '~/lib/session.svelte';
   import { SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -95,7 +102,7 @@
   const MAX_PACKAGES = 15;
   const MIN_PACKAGES = 1;
   const unitOptions = $derived(rentalUnitOptions(uiLang.current));
-  const perUnit = $derived(unitLabel(form.rentalUnit, uiLang.current));
+  const perUnit = $derived(perUnitLabel(form.rentalUnit, uiLang.current));
 
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -170,7 +177,7 @@
       savedPackages = comparable(packages);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Pricing saved.');
+      toast.success(t('products.pricingSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -181,13 +188,13 @@
 </script>
 
 <TabPanel
-  title="Pricing"
+  title={t('products.tabPricing')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="space-y-6">
     <div class="max-w-md space-y-4">
@@ -198,11 +205,14 @@
         belongs on the pricing tab even when it cannot be changed.
       -->
       <div>
-        <Label class="mb-1.5" for="pricing-mode">Pricing mode</Label>
-        <Input id="pricing-mode" value={isRental ? 'Rental' : 'Fixed price'} disabled />
+        <Label class="mb-1.5" for="pricing-mode">{t('products.pricingMode')}</Label>
+        <Input
+          id="pricing-mode"
+          value={pricingModeLabel(isRental ? 'rental' : 'fixed', uiLang.current)}
+          disabled
+        />
         <p class="mt-1 text-xs text-muted-foreground">
-          Chosen at creation and permanent. A rental is priced by its packages; a fixed product by
-          its base price.
+          {t('products.pricingModeHint')}
         </p>
       </div>
 
@@ -216,28 +226,26 @@
         -->
         <div>
           <div class="mb-1.5 flex items-center gap-2">
-            <Label for="marketing-rate">Marketing rate</Label>
-            <InfoHint label="About the marketing rate">
-              <p class="font-medium text-foreground">Display copy, never charged.</p>
+            <Label for="marketing-rate">{t('products.marketingRate')}</Label>
+            <InfoHint label={t('products.marketingRateAbout')}>
+              <p class="font-medium text-foreground">{t('products.marketingRateHintTitle')}</p>
               <p>
-                Shown as “from €X per {perUnit}” under the product title. The packages below are
-                what a customer actually pays; the two need not agree. Empty shows the cheapest
-                package instead.
+                {t('products.marketingRateHintBody', { per: perUnit })}
               </p>
             </InfoHint>
           </div>
           <div class="flex items-center gap-2">
             <MoneyInput
               id="marketing-rate"
-              label="Marketing rate"
+              label={t('products.marketingRate')}
               hideLabel
               bind:value={form.marketingRate}
               error={fields.marketingRate}
               suffix={product.currency}
             />
-            <span class="text-sm text-muted-foreground">per</span>
+            <span class="text-sm text-muted-foreground">{t('products.perWord')}</span>
             <Select.Root type="single" bind:value={form.rentalUnit}>
-              <Select.Trigger class="w-28" aria-label="Marketing rate unit">
+              <Select.Trigger class="w-28" aria-label={t('products.marketingUnitAria')}>
                 {unitLabel(form.rentalUnit, uiLang.current, 'one')}
               </Select.Trigger>
               <Select.Content>
@@ -253,7 +261,7 @@
         </div>
       {:else}
         <MoneyInput
-          label="Base price"
+          label={t('products.basePrice')}
           bind:value={form.basePrice}
           error={fields.basePrice}
           suffix={product.currency}
@@ -270,12 +278,11 @@
       <div class="space-y-3 border-t pt-6">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-2">
-            <h3 class="text-sm font-medium">Rental packages</h3>
-            <InfoHint label="About rental packages">
-              <p class="font-medium text-foreground">These are the price. At least one.</p>
+            <h3 class="text-sm font-medium">{t('products.packagesTitle')}</h3>
+            <InfoHint label={t('products.packagesAbout')}>
+              <p class="font-medium text-foreground">{t('products.packagesHintTitle')}</p>
               <p>
-                The duration sets the return date: 3 days from 10 August ends 13 August. Variant
-                modifiers are added once on top, not per day.
+                {t('products.packagesHintBody')}
               </p>
             </InfoHint>
           </div>
@@ -286,7 +293,7 @@
             disabled={packages.length >= MAX_PACKAGES}
           >
             <PlusIcon />
-            Add package
+            {t('products.addPackage')}
           </Button>
         </div>
 
@@ -298,18 +305,18 @@
           <p
             class="rounded-lg border border-dashed border-destructive p-6 text-center text-sm text-destructive"
           >
-            This product cannot be sold without a package — add one.
+            {t('products.packageNone')}
           </p>
         {/if}
 
         <SortableList
           bind:items={packages}
-          label="Package"
+          label={t('products.packageLabel')}
           key={(item) => item.uid}
-          describe={(item) => textFor(item.name, SOURCE_LANGUAGE) || 'this package'}
+          describe={(item) => textFor(item.name, SOURCE_LANGUAGE) || t('products.packageFallback')}
           onRemove={(index) => {
             if (packages.length <= MIN_PACKAGES) {
-              toast.error('A rental product needs at least one package.');
+              toast.error(t('products.packageMinError'));
               return;
             }
             packages.splice(index, 1);
@@ -318,16 +325,20 @@
           {#snippet row(item)}
             <div class="grid flex-1 gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
               <TranslatedInput
-                label="Package name"
+                label={t('products.packageName')}
                 bind:value={item.name}
                 required={false}
                 placeholder={durationLabel(Number(item.duration) || 1, item.unit, uiLang.current)}
               />
 
-              <MoneyInput label="Total price" bind:value={item.price} suffix={product.currency} />
+              <MoneyInput
+                label={t('products.totalPrice')}
+                bind:value={item.price}
+                suffix={product.currency}
+              />
 
               <div>
-                <Label class="mb-1.5" for="pkg-duration-{item.uid}">Duration</Label>
+                <Label class="mb-1.5" for="pkg-duration-{item.uid}">{t('products.duration')}</Label>
                 <Input
                   id="pkg-duration-{item.uid}"
                   type="number"
@@ -339,7 +350,7 @@
               </div>
 
               <div>
-                <Label class="mb-1.5">Unit</Label>
+                <Label class="mb-1.5">{t('products.unit')}</Label>
                 <Select.Root type="single" bind:value={item.unit}>
                   <Select.Trigger class="w-28">
                     {unitLabel(
@@ -361,7 +372,7 @@
 
         {#if packages.length >= MAX_PACKAGES}
           <p class="text-xs text-muted-foreground">
-            {MAX_PACKAGES} packages is the maximum.
+            {t('products.packagesMax', { max: MAX_PACKAGES })}
           </p>
         {/if}
       </div>

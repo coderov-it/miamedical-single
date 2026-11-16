@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { optionsOf, QUESTION_VALUE_TYPE } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import XIcon from '@lucide/svelte/icons/x';
@@ -15,6 +16,8 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -41,16 +44,6 @@
     maxLength: string;
     options: OptionEdit[];
   }
-
-  const TYPES = [
-    { value: 'string', label: 'Short text' },
-    { value: 'text', label: 'Long text' },
-    { value: 'number', label: 'Number' },
-    { value: 'single_select', label: 'Single select' },
-    { value: 'multi_select', label: 'Multiple select' },
-    { value: 'boolean', label: 'Yes / No' },
-    { value: 'date', label: 'Date' },
-  ] as const;
 
   const isSelect = (type: string) => type === 'single_select' || type === 'multi_select';
 
@@ -99,6 +92,7 @@
   $effect(() => dirty.set(SECTION, isDirty));
 
   const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+  const types = $derived(optionsOf(QUESTION_VALUE_TYPE, uiLang.current));
 
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -155,7 +149,7 @@
       saved = comparable(questions);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Questions saved.');
+      toast.success(t('products.questionsSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -166,34 +160,34 @@
 </script>
 
 <TabPanel
-  title="Intake questions"
-  description="Answered by the customer at checkout — floor number, lift availability, delivery slot — so the order arrives actionable."
+  title={t('products.questionsTitle')}
+  description={t('products.questionsDescription')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="max-w-3xl space-y-3">
     {#if questions.length === 0}
       <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        No intake questions yet.
+        {t('products.questionsEmpty')}
       </p>
     {/if}
 
     <SortableList
       bind:items={questions}
-      label="Question"
+      label={t('products.questionLabel')}
       key={(question) => question.uid}
-      describe={(question) => question.prompt.it || 'this question'}
+      describe={(question) => question.prompt.it || t('products.questionFallback')}
       onRemove={(index) => questions.splice(index, 1)}
     >
       {#snippet row(question)}
         <div class="space-y-3">
           <div class="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label class="mb-1.5" for="q-key-{question.uid}">Key</Label>
+              <Label class="mb-1.5" for="q-key-{question.uid}">{t('products.questionKey')}</Label>
               <Input
                 id="q-key-{question.uid}"
                 bind:value={question.key}
@@ -202,14 +196,14 @@
               />
             </div>
             <div>
-              <Label class="mb-1.5">Type</Label>
+              <Label class="mb-1.5">{t('products.questionType')}</Label>
               <Select.Root type="single" bind:value={question.questionValueType}>
                 <Select.Trigger class="w-full">
-                  {TYPES.find((type) => type.value === question.questionValueType)?.label ??
+                  {types.find((type) => type.value === question.questionValueType)?.label ??
                     question.questionValueType}
                 </Select.Trigger>
                 <Select.Content>
-                  {#each TYPES as type (type.value)}
+                  {#each types as type (type.value)}
                     <Select.Item value={type.value}>{type.label}</Select.Item>
                   {/each}
                 </Select.Content>
@@ -217,8 +211,12 @@
             </div>
           </div>
 
-          <TranslatedInput label="Prompt" bind:value={question.prompt} />
-          <TranslatedInput label="Help text" bind:value={question.helpText} required={false} />
+          <TranslatedInput label={t('products.questionPrompt')} bind:value={question.prompt} />
+          <TranslatedInput
+            label={t('products.questionHelp')}
+            bind:value={question.helpText}
+            required={false}
+          />
 
           <div class="flex flex-wrap items-end gap-4">
             <div class="flex items-center gap-2 pb-2">
@@ -227,12 +225,12 @@
                 checked={question.isRequired}
                 onCheckedChange={(checked) => (question.isRequired = checked)}
               />
-              <Label for="q-required-{question.uid}" class="text-sm">Required</Label>
+              <Label for="q-required-{question.uid}" class="text-sm">{t('common.required')}</Label>
             </div>
 
             {#if question.questionValueType === 'number'}
               <div>
-                <Label class="mb-1.5" for="q-min-{question.uid}">Min</Label>
+                <Label class="mb-1.5" for="q-min-{question.uid}">{t('products.questionMin')}</Label>
                 <Input
                   id="q-min-{question.uid}"
                   type="number"
@@ -241,7 +239,7 @@
                 />
               </div>
               <div>
-                <Label class="mb-1.5" for="q-max-{question.uid}">Max</Label>
+                <Label class="mb-1.5" for="q-max-{question.uid}">{t('products.questionMax')}</Label>
                 <Input
                   id="q-max-{question.uid}"
                   type="number"
@@ -253,7 +251,9 @@
 
             {#if question.questionValueType === 'string' || question.questionValueType === 'text'}
               <div>
-                <Label class="mb-1.5" for="q-len-{question.uid}">Max length</Label>
+                <Label class="mb-1.5" for="q-len-{question.uid}"
+                  >{t('products.questionMaxLength')}</Label
+                >
                 <Input
                   id="q-len-{question.uid}"
                   type="number"
@@ -267,7 +267,7 @@
           {#if isSelect(question.questionValueType)}
             <div class="rounded-lg border bg-muted/40 p-3">
               <div class="mb-2 flex items-center justify-between">
-                <Label class="text-xs font-semibold">Options</Label>
+                <Label class="text-xs font-semibold">{t('products.questionOptions')}</Label>
                 <Button
                   variant="ghost"
                   size="xs"
@@ -279,7 +279,7 @@
                     })}
                 >
                   <PlusIcon />
-                  Add option
+                  {t('products.addOption')}
                 </Button>
               </div>
 
@@ -287,7 +287,9 @@
                 {#each question.options as option (option.uid)}
                   <div class="flex items-end gap-2">
                     <div>
-                      <Label class="mb-1 text-xs" for="q-opt-{option.uid}">Value</Label>
+                      <Label class="mb-1 text-xs" for="q-opt-{option.uid}"
+                        >{t('products.optionValue')}</Label
+                      >
                       <Input
                         id="q-opt-{option.uid}"
                         bind:value={option.value}
@@ -295,13 +297,16 @@
                       />
                     </div>
                     <div class="min-w-0 flex-1">
-                      <TranslatedInput label="Label" bind:value={option.label} />
+                      <TranslatedInput
+                        label={t('products.optionLabel')}
+                        bind:value={option.label}
+                      />
                     </div>
                     <Button
                       variant="ghost"
                       size="icon-sm"
                       class="mb-0.5 text-muted-foreground hover:text-destructive"
-                      aria-label="Remove option"
+                      aria-label={t('products.removeOption')}
                       onclick={() =>
                         (question.options = question.options.filter(
                           (entry) => entry.uid !== option.uid,
@@ -320,7 +325,7 @@
 
     <Button variant="outline" size="sm" onclick={addQuestion}>
       <PlusIcon />
-      Add question
+      {t('products.addQuestion')}
     </Button>
 
     {#if Object.keys(fields).length > 0}

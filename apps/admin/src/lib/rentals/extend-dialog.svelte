@@ -23,6 +23,7 @@
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { formatDate, formatMoney } from '~/lib/format';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { t } from '~/lib/ui-text';
 
   type Overview = InferResponseType<
     (typeof api.api.admin)['rental-extensions']['by-order'][':orderId']['$get'],
@@ -90,8 +91,8 @@
     const issues: Record<string, string> = {};
     if (picked) return issues;
     const days = Number(customDays);
-    if (!Number.isInteger(days) || days < 1) issues.days = 'Enter a whole number of days.';
-    if (!amount || Number(amount) <= 0) issues.amount = 'Enter the agreed amount.';
+    if (!Number.isInteger(days) || days < 1) issues.days = t('rentals.extendErrorDays');
+    if (!amount || Number(amount) <= 0) issues.amount = t('rentals.extendErrorAmount');
     return issues;
   }
 
@@ -116,9 +117,7 @@
           json,
         }),
       );
-      toast.success(
-        `Extension opened for ${current.orderNumber} — record the payment to send the contract.`,
-      );
+      toast.success(t('rentals.toastExtensionOpened', { number: current.orderNumber }));
       onDone();
       onClose();
     } catch (err) {
@@ -138,15 +137,21 @@
 >
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Extend rental</Dialog.Title>
+      <Dialog.Title>{t('rentals.extendRental')}</Dialog.Title>
       <Dialog.Description>
-        Order {target?.orderNumber}
-        {#if overview?.endDate}· due back {formatDate(overview.endDate)}{/if}
+        {#if overview?.endDate}
+          {t('rentals.extendOrderDue', {
+            number: target?.orderNumber ?? '',
+            date: formatDate(overview.endDate),
+          })}
+        {:else}
+          {t('rentals.extendOrder', { number: target?.orderNumber ?? '' })}
+        {/if}
       </Dialog.Description>
     </Dialog.Header>
 
     {#if loading || !overview}
-      <LoadingState label="Loading the extension options…" />
+      <LoadingState label={t('rentals.extendLoading')} />
     {:else}
       <form
         class="space-y-4"
@@ -178,14 +183,14 @@
             class="flex cursor-pointer items-center gap-3 rounded-md border p-3 has-[[data-state=checked]]:border-primary"
           >
             <RadioGroup.Item value={CUSTOM} id="extend-custom" />
-            <span class="font-medium">Other length, agreed amount</span>
+            <span class="font-medium">{t('rentals.extendCustom')}</span>
           </Label>
         </RadioGroup.Root>
 
         {#if choice === CUSTOM}
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <Label class="mb-1.5" for="extend-days">Days</Label>
+              <Label class="mb-1.5" for="extend-days">{t('rentals.extendDays')}</Label>
               <Input
                 id="extend-days"
                 inputmode="numeric"
@@ -198,7 +203,7 @@
             </div>
             <MoneyInput
               id="extend-amount"
-              label="Amount"
+              label={t('rentals.extendAmount')}
               bind:value={amount}
               suffix={overview.currency}
               error={fields.amount}
@@ -207,8 +212,12 @@
         {/if}
 
         <Dialog.Footer>
-          <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
-          <BusyButton type="submit" busy={saving} busyLabel="Opening…">Open extension</BusyButton>
+          <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <BusyButton type="submit" busy={saving} busyLabel={t('rentals.extendOpening')}>
+            {t('rentals.openExtension')}
+          </BusyButton>
         </Dialog.Footer>
       </form>
     {/if}

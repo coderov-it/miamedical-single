@@ -6,7 +6,13 @@
  * the machine, and the UI renders buttons from that — so a rule change on the
  * server reaches the admin without a matching client edit. What lives here is
  * only what the server has no opinion about: labels, colours and order.
+ *
+ * Labels are resolved per call in the interface language — order and payment
+ * statuses from `@mia/i18n`, the catalogue the storefront shows customers too.
  */
+import { orderStatusLabel, paymentStatusLabel } from '@mia/i18n';
+
+import { uiLang } from '~/lib/ui-lang.svelte';
 
 export type OrderStatus = 'pending' | 'paid' | 'fulfilled' | 'cancelled' | 'refunded';
 
@@ -21,79 +27,75 @@ export interface StatusMeta {
   dot: string;
 }
 
-const NEUTRAL: StatusMeta = {
-  label: '—',
+/** A status's colours. The label is looked up when the meta is asked for. */
+export type StatusTone = Omit<StatusMeta, 'label'>;
+
+export const NEUTRAL_TONE: StatusTone = {
   tone: 'text-muted-foreground',
   dot: 'bg-muted-foreground',
 };
 
-export const ORDER_STATUS_META: Record<OrderStatus, StatusMeta> = {
+export const ORDER_STATUS_TONE: Record<OrderStatus, StatusTone> = {
   pending: {
-    label: 'Pending',
     tone: 'border-amber-500/40 text-amber-600 dark:text-amber-400',
     dot: 'bg-amber-500',
   },
   paid: {
-    label: 'Paid',
     tone: 'border-blue-500/40 text-blue-600 dark:text-blue-400',
     dot: 'bg-blue-500',
   },
   fulfilled: {
-    label: 'Fulfilled',
     tone: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400',
     dot: 'bg-emerald-500',
   },
   cancelled: {
-    label: 'Cancelled',
     tone: 'border-border text-muted-foreground',
     dot: 'bg-muted-foreground',
   },
   refunded: {
-    label: 'Refunded',
     tone: 'border-rose-500/40 text-rose-600 dark:text-rose-400',
     dot: 'bg-rose-500',
   },
 };
 
-export const PAYMENT_STATUS_META: Record<PaymentStatus, StatusMeta> = {
+export const PAYMENT_STATUS_TONE: Record<PaymentStatus, StatusTone> = {
   unpaid: {
-    label: 'Unpaid',
     tone: 'border-border text-muted-foreground',
     dot: 'bg-muted-foreground',
   },
   authorized: {
-    label: 'Authorized',
     tone: 'border-amber-500/40 text-amber-600 dark:text-amber-400',
     dot: 'bg-amber-500',
   },
   paid: {
-    label: 'Paid',
     tone: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400',
     dot: 'bg-emerald-500',
   },
   partially_refunded: {
-    label: 'Partly refunded',
     tone: 'border-orange-500/40 text-orange-600 dark:text-orange-400',
     dot: 'bg-orange-500',
   },
   refunded: {
-    label: 'Refunded',
     tone: 'border-rose-500/40 text-rose-600 dark:text-rose-400',
     dot: 'bg-rose-500',
   },
   failed: {
-    label: 'Failed',
     tone: 'border-destructive/40 text-destructive',
     dot: 'bg-destructive',
   },
 };
 
+/** Call at render time — the label follows the interface language. */
 export function orderStatusMeta(status: string): StatusMeta {
-  return ORDER_STATUS_META[status as OrderStatus] ?? { ...NEUTRAL, label: status };
+  const tone = ORDER_STATUS_TONE[status as OrderStatus];
+  if (!tone) return { ...NEUTRAL_TONE, label: status };
+  return { ...tone, label: orderStatusLabel(status as OrderStatus, uiLang.current) };
 }
 
 export function paymentStatusMeta(status: string): StatusMeta {
-  return PAYMENT_STATUS_META[status as PaymentStatus] ?? { ...NEUTRAL, label: status };
+  const tone = PAYMENT_STATUS_TONE[status as PaymentStatus];
+  if (!tone) return { ...NEUTRAL_TONE, label: status };
+  return { ...tone, label: paymentStatusLabel(status as PaymentStatus, uiLang.current) };
 }
 
 /**

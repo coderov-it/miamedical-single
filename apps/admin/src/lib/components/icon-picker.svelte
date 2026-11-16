@@ -13,6 +13,7 @@
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { mediaUrl } from '~/lib/api';
   import { uploadFile } from '~/lib/media/upload';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     label: string;
@@ -49,7 +50,7 @@
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       previewUrl = URL.createObjectURL(file);
     } catch (err) {
-      localError = err instanceof Error ? err.message : 'Upload failed.';
+      localError = err instanceof Error ? err.message : t('common.uploadFailed');
     } finally {
       uploading = false;
       // Clearing lets the same file be re-picked after a failure.
@@ -57,7 +58,11 @@
     }
   }
 
-  const size = $derived(profile === 'icon_256' ? '256 × 256' : 'up to 1024 × 1024');
+  const caption = $derived(
+    profile === 'icon_256'
+      ? t('components.iconPickerCaptionExact', { size: '256 × 256' })
+      : t('components.iconPickerCaptionMax', { size: '1024 × 1024' }),
+  );
 </script>
 
 <div>
@@ -87,7 +92,7 @@
         onclick={() => input?.click()}
       >
         <UploadIcon />
-        {value ? 'Replace' : 'Upload'}
+        {value ? t('common.replace') : t('common.upload')}
       </Button>
       {#if value}
         <Button
@@ -100,7 +105,7 @@
             previewUrl = null;
           }}
         >
-          Remove
+          {t('common.remove')}
         </Button>
       {/if}
     </div>
@@ -108,7 +113,7 @@
 
   {#if !compact}
     <p class="mt-1.5 text-xs text-muted-foreground">
-      SVG is kept as-is; any other image becomes a square {size} WebP.
+      {caption}
     </p>
   {/if}
 

@@ -29,6 +29,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
 
   type Stats = InferResponseType<typeof api.api.admin.orders.stats.$get, 200>['data'];
   type OrderList = InferResponseType<typeof api.api.admin.orders.$get, 200>;
@@ -66,29 +67,29 @@
 
   const tiles = $derived<Tile[]>([
     {
-      label: `Revenue (${stats.data?.windowDays ?? 30} days)`,
+      label: t('dashboard.tileRevenue', { days: stats.data?.windowDays ?? 30 }),
       value: stats.data ? formatMoney(stats.data.revenue, stats.data.currency) : undefined,
-      hint: stats.data?.revenueBasis ?? 'Paid and fulfilled orders only',
+      hint: stats.data?.revenueBasis ?? t('dashboard.hintRevenueBasis'),
       icon: BanknoteIcon,
     },
     {
-      label: `Orders (${stats.data?.windowDays ?? 30} days)`,
+      label: t('dashboard.tileOrders', { days: stats.data?.windowDays ?? 30 }),
       value: stats.data ? formatNumber(stats.data.orderCount) : undefined,
-      hint: 'Counted on the same basis as revenue',
+      hint: t('dashboard.hintOrders'),
       icon: ShoppingCartIcon,
       href: routes.orders,
     },
     {
-      label: 'Waiting to accept',
+      label: t('dashboard.tileAwaiting'),
       value: stats.data ? formatNumber(stats.data.awaitingCount) : undefined,
-      hint: 'Orders still pending',
+      hint: t('dashboard.hintAwaiting'),
       icon: ClockIcon,
       href: routes.orders,
     },
     {
-      label: 'Active products',
+      label: t('dashboard.tileProducts'),
       value: activeProducts.data ? formatNumber(activeProducts.data.meta.total) : undefined,
-      hint: 'Live on the storefront',
+      hint: t('dashboard.hintProducts'),
       icon: PackageIcon,
       href: routes.products,
     },
@@ -160,9 +161,9 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Dashboard"
-    title="Overview"
-    description="Today's activity across the catalog and the order queue."
+    eyebrow={t('nav.dashboard')}
+    title={t('nav.overview')}
+    description={t('dashboard.description')}
   />
 
   <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -190,7 +191,7 @@
   {#if canReadOrders}
     <Card.Root>
       <Card.Header>
-        <Card.Description>Rental calendar</Card.Description>
+        <Card.Description>{t('dashboard.calendarTitle')}</Card.Description>
       </Card.Header>
       <Card.Content>
         {#if calendarEvents.loading && !calendarEvents.hasData}
@@ -206,10 +207,10 @@
             class="flex flex-col items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-4"
           >
             <p class="text-sm text-destructive">
-              The calendar could not load: {calendarEvents.error}
+              {t('dashboard.calendarFailed', { error: calendarEvents.error })}
             </p>
             <Button variant="outline" size="sm" onclick={() => calendarEvents.refresh()}>
-              Try again
+              {t('common.retry')}
             </Button>
           </div>
         {:else}
@@ -225,7 +226,7 @@
     </Card.Root>
 
     <ListCard
-      noun="order"
+      countKey="entities.order"
       meta={orders.data?.meta}
       loading={orders.loading}
       error={orders.error}
@@ -237,9 +238,11 @@
         {#if query.current.day}
           <div class="flex items-center gap-2">
             <span class="text-sm text-muted-foreground">
-              Placed on {formatDate(query.current.day)}
+              {t('dashboard.placedOn', { date: formatDate(query.current.day) })}
             </span>
-            <Button variant="ghost" size="sm" onclick={() => query.set({ day: '' })}>Clear</Button>
+            <Button variant="ghost" size="sm" onclick={() => query.set({ day: '' })}>
+              {t('dashboard.clear')}
+            </Button>
           </div>
         {/if}
       {/snippet}
@@ -248,12 +251,12 @@
         <Table.Root>
           <Table.Header>
             <Table.Row>
-              <Table.Head>Order</Table.Head>
-              <Table.Head>Customer</Table.Head>
-              <Table.Head>Status</Table.Head>
-              <Table.Head>Payment</Table.Head>
-              <Table.Head>Placed</Table.Head>
-              <Table.Head class="text-right">Total</Table.Head>
+              <Table.Head>{t('dashboard.colOrder')}</Table.Head>
+              <Table.Head>{t('dashboard.colCustomer')}</Table.Head>
+              <Table.Head>{t('dashboard.colStatus')}</Table.Head>
+              <Table.Head>{t('dashboard.colPayment')}</Table.Head>
+              <Table.Head>{t('dashboard.colPlaced')}</Table.Head>
+              <Table.Head class="text-right">{t('dashboard.colTotal')}</Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -285,10 +288,8 @@
             <InboxIcon class="size-8 text-muted-foreground" />
           </Empty.Media>
           <Empty.Header>
-            <Empty.Title>No orders yet</Empty.Title>
-            <Empty.Description>
-              They appear here as soon as the storefront takes one.
-            </Empty.Description>
+            <Empty.Title>{t('dashboard.emptyTitle')}</Empty.Title>
+            <Empty.Description>{t('dashboard.emptyHint')}</Empty.Description>
           </Empty.Header>
         </Empty.Root>
       {/snippet}

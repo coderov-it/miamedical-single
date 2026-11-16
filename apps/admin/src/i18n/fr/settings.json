@@ -1,0 +1,14 @@
+{
+  "pageDescription": "Options valables pour toute la plateforme. Votre nom et votre mot de passe se trouvent dans votre compte.",
+  "alertsTitle": "Destinataires des e-mails d'alerte",
+  "alertsDescription": "Qui reçoit les alertes de la plateforme par e-mail. Les opérateurs les voient déjà dans leur boîte de notifications ; cette liste touche les personnes absentes du panneau.",
+  "removeRecipient": "Retirer le destinataire",
+  "addAddress": "Ajouter une adresse",
+  "maxRecipients": "Dix est le maximum — au-delà, utilisez une liste de diffusion.",
+  "savedNoRecipients": "Enregistré. Sans destinataires, les alertes n'apparaissent que dans le panneau.",
+  "savedRecipients.one": "{count} destinataire enregistré.",
+  "savedRecipients.other": "{count} destinataires enregistrés.",
+  "loadFailed": "Échec du chargement.",
+  "saveFailed": "Impossible d'enregistrer.",
+  "readOnly": "Vous avez un accès en lecture seule aux paramètres."
+}
