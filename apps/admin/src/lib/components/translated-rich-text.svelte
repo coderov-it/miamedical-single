@@ -13,6 +13,7 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { gapsIn, type LocalizedValue, setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
+  import { t } from '~/lib/ui-text';
 
   import RichTextEditor from './rich-text-editor.svelte';
   import TranslationGaps from './translation-gaps.svelte';
@@ -34,7 +35,7 @@
 
   let { label, name, value = $bindable(), error, hint }: Props = $props();
 
-  const ariaLabel = $derived(name ?? label ?? 'Rich text');
+  const ariaLabel = $derived(name ?? label ?? t('components.richTextLabel'));
 
   const contentLang = useContentLang();
   const lang = $derived(contentLang.current);
@@ -73,7 +74,9 @@
       <Collapsible.Trigger
         class="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:underline"
       >
-        <span class="font-medium uppercase">{SOURCE_LANGUAGE}</span> · show the source text
+        <span class="font-medium uppercase">{SOURCE_LANGUAGE}</span> · {t(
+          'components.showSourceText',
+        )}
       </Collapsible.Trigger>
       <Collapsible.Content>
         <div class="source-preview mt-1.5 rounded-lg border bg-muted/30 p-3 text-sm">

@@ -9,7 +9,13 @@
   `products` refuses the row — so one is collected here and the rest later.
 -->
 <script lang="ts">
-  import { durationLabel } from '@mia/i18n';
+  import {
+    durationLabel,
+    perUnitLabel,
+    pricingModeLabel,
+    rentalUnitOptions,
+    unitLabel,
+  } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
   import type { InferResponseType } from 'hono/client';
@@ -33,6 +39,8 @@
   import { session } from '~/lib/session.svelte';
   import { slugify } from '~/lib/slug';
   import BusyButton from '~/lib/components/busy-button.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
 
   type Category = InferResponseType<typeof api.api.admin.categories.$get, 200>['data'][number];
 
@@ -67,7 +75,8 @@
 
   const categoryOptions = $derived(categories.data ?? []);
   const categoryLabel = $derived(
-    categoryOptions.find((entry) => entry.id === categoryId)?.translations.it?.name ?? 'Choose…',
+    categoryOptions.find((entry) => entry.id === categoryId)?.translations.it?.name ??
+      t('products.newChoose'),
   );
 
   // The slug tracks the title until the operator edits it by hand, after which
@@ -107,7 +116,7 @@
           },
         }),
       );
-      toast.success(`Created "${title}".`);
+      toast.success(t('products.newCreated', { title }));
       await goto(routes.productDetail(created.id));
     } catch (err) {
       error = errorMessage(err);
@@ -119,9 +128,9 @@
 
 <section class="admin-page mx-auto max-w-2xl">
   <PageHeader
-    eyebrow="Catalog"
-    title="New product"
-    description="Just enough to create a draft. The full editor opens next."
+    eyebrow={t('nav.catalog')}
+    title={t('products.newProduct')}
+    description={t('products.newDescription')}
   />
 
   <form
@@ -133,7 +142,7 @@
     <Card.Root class="gap-0 py-0">
       <div class="space-y-4 p-5">
         <div>
-          <Label class="mb-1.5" for="new-title">Title (Italian)</Label>
+          <Label class="mb-1.5" for="new-title">{t('products.newTitleLabel')}</Label>
           <Input
             id="new-title"
             bind:value={title}
@@ -148,7 +157,7 @@
         </div>
 
         <div>
-          <Label class="mb-1.5" for="new-slug">Slug (Italian)</Label>
+          <Label class="mb-1.5" for="new-slug">{t('products.newSlugLabel')}</Label>
           <Input
             id="new-slug"
             bind:value={slug}
@@ -165,7 +174,7 @@
         </div>
 
         <div>
-          <Label class="mb-1.5">Category</Label>
+          <Label class="mb-1.5">{t('products.fieldCategory')}</Label>
           <Select.Root type="single" bind:value={categoryId}>
             <Select.Trigger class="w-full">{categoryLabel}</Select.Trigger>
             <Select.Content>
@@ -187,9 +196,9 @@
         <div class="flex items-start gap-2">
           <TriangleAlertIcon class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
-            <Label class="text-sm font-medium">Pricing mode</Label>
+            <Label class="text-sm font-medium">{t('products.pricingMode')}</Label>
             <p class="mt-0.5 text-xs text-muted-foreground">
-              Permanent. A product is sold <em>or</em> rented, and this can never be changed after creation.
+              {t('products.newModeWarning')}
             </p>
           </div>
         </div>
@@ -197,31 +206,38 @@
         <RadioGroup.Root bind:value={pricingMode} class="flex gap-6">
           <div class="flex items-center gap-2">
             <RadioGroup.Item value="fixed" id="mode-fixed" />
-            <Label for="mode-fixed" class="font-normal">Fixed price</Label>
+            <Label for="mode-fixed" class="font-normal"
+              >{pricingModeLabel('fixed', uiLang.current)}</Label
+            >
           </div>
           <div class="flex items-center gap-2">
             <RadioGroup.Item value="rental" id="mode-rental" />
-            <Label for="mode-rental" class="font-normal">Rental</Label>
+            <Label for="mode-rental" class="font-normal"
+              >{pricingModeLabel('rental', uiLang.current)}</Label
+            >
           </div>
         </RadioGroup.Root>
 
         {#if pricingMode === 'rental'}
           <div class="flex flex-wrap items-end gap-4">
             <div>
-              <Label class="mb-1.5">Billed per</Label>
+              <Label class="mb-1.5">{t('products.newBilledPer')}</Label>
               <Select.Root type="single" bind:value={rentalUnit}>
                 <Select.Trigger class="w-32">
-                  {rentalUnit === 'hour' ? 'Hour' : 'Day'}
+                  {unitLabel(rentalUnit as 'day', uiLang.current)}
                 </Select.Trigger>
                 <Select.Content>
-                  <Select.Item value="day">Day</Select.Item>
-                  <Select.Item value="hour">Hour</Select.Item>
+                  {#each rentalUnitOptions(uiLang.current) as option (option.value)}
+                    <Select.Item value={option.value}>{option.label}</Select.Item>
+                  {/each}
                 </Select.Content>
               </Select.Root>
             </div>
 
             <MoneyInput
-              label="Marketing rate per {rentalUnit} (optional)"
+              label={t('products.newMarketingRate', {
+                per: perUnitLabel(rentalUnit as 'day', uiLang.current),
+              })}
               bind:value={marketingRate}
               error={fields.marketingRate}
               suffix="EUR"
@@ -230,15 +246,15 @@
 
           <div class="space-y-2 rounded-lg border border-dashed p-4">
             <div class="flex items-center gap-2">
-              <Label class="text-sm font-medium">First package</Label>
-              <InfoHint label="Why a package is required here">
-                <p class="font-medium text-foreground">A rental has no price without one.</p>
-                <p>Add the rest on the pricing tab after saving.</p>
+              <Label class="text-sm font-medium">{t('products.newFirstPackage')}</Label>
+              <InfoHint label={t('products.newFirstPackageAbout')}>
+                <p class="font-medium text-foreground">{t('products.newFirstPackageHintTitle')}</p>
+                <p>{t('products.newFirstPackageHintBody')}</p>
               </InfoHint>
             </div>
             <div class="flex flex-wrap items-end gap-4">
               <div>
-                <Label class="mb-1.5" for="pkg-duration">Duration</Label>
+                <Label class="mb-1.5" for="pkg-duration">{t('products.duration')}</Label>
                 <Input
                   id="pkg-duration"
                   type="number"
@@ -249,10 +265,14 @@
                 />
               </div>
               <span class="pb-2 text-sm text-muted-foreground">
-                {packageDuration === 1 ? rentalUnit : `${rentalUnit}s`}
+                {unitLabel(
+                  rentalUnit as 'day',
+                  uiLang.current,
+                  packageDuration === 1 ? 'one' : 'many',
+                )}
               </span>
               <MoneyInput
-                label="Total price"
+                label={t('products.totalPrice')}
                 bind:value={packagePrice}
                 error={fields.rentalPackages}
                 suffix="EUR"
@@ -260,7 +280,12 @@
             </div>
           </div>
         {:else}
-          <MoneyInput label="Price" bind:value={basePrice} error={fields.basePrice} suffix="EUR" />
+          <MoneyInput
+            label={t('products.price')}
+            bind:value={basePrice}
+            error={fields.basePrice}
+            suffix="EUR"
+          />
         {/if}
       </div>
 
@@ -269,8 +294,10 @@
       {/if}
 
       <div class="flex items-center justify-between gap-3 bg-muted/40 px-5 py-3">
-        <Button href={routes.products} variant="destructive">Cancel</Button>
-        <BusyButton type="submit" busy={saving} busyLabel="Creating…">Create product</BusyButton>
+        <Button href={routes.products} variant="destructive">{t('common.cancel')}</Button>
+        <BusyButton type="submit" busy={saving} busyLabel={t('products.newCreating')}
+          >{t('products.newCreate')}</BusyButton
+        >
       </div>
     </Card.Root>
   </form>

@@ -18,21 +18,22 @@
   import { api } from '~/lib/api';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
-  import { EM_DASH, formatMoney, pluralize, relativeTime } from '~/lib/format';
+  import { EM_DASH, formatMoney, relativeTime } from '~/lib/format';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
   import { unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t, tn } from '~/lib/ui-text';
 
   type ListResponse = InferResponseType<typeof api.api.admin.carts.$get, 200>;
 
   const ANY = '__any';
 
-  const STATES = [
-    { value: ANY, label: 'All' },
-    { value: 'active', label: 'Active' },
-    { value: 'abandoned', label: 'Abandoned' },
-  ] as const;
+  const STATES: readonly { value: string; labelKey: MessageKey }[] = [
+    { value: ANY, labelKey: 'carts.filterAll' },
+    { value: 'active', labelKey: 'carts.stateActive' },
+    { value: 'abandoned', labelKey: 'carts.stateAbandoned' },
+  ];
 
   const query = new QueryState({ q: '', state: ANY, page: 1 });
   const draft = new QueryDraft(query);
@@ -60,9 +61,9 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Sales"
-    title="Carts"
-    description="What is sitting in baskets right now, and what has been left behind."
+    eyebrow={t('nav.sales')}
+    title={t('nav.carts')}
+    description={t('carts.description')}
   />
 
   <div class="flex flex-wrap items-center gap-1 rounded-lg border bg-card p-1">
@@ -77,13 +78,13 @@
           active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
         )}
       >
-        {option.label}
+        {t(option.labelKey)}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="cart"
+    countKey="entities.cart"
     meta={carts.data?.meta}
     loading={carts.loading}
     error={carts.error}
@@ -107,14 +108,16 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Cart token…"
-            aria-label="Search carts"
+            placeholder={t('carts.searchPlaceholder')}
+            aria-label={t('carts.searchLabel')}
             class="h-8 w-56 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('carts.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('carts.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
@@ -123,13 +126,13 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Cart</Table.Head>
-            <Table.Head>Customer</Table.Head>
-            <Table.Head class="text-right">Items</Table.Head>
-            <Table.Head>State</Table.Head>
-            <Table.Head>Last touched</Table.Head>
-            <Table.Head>Age</Table.Head>
-            <Table.Head class="text-right">Value</Table.Head>
+            <Table.Head>{t('carts.colCart')}</Table.Head>
+            <Table.Head>{t('carts.colCustomer')}</Table.Head>
+            <Table.Head class="text-right">{t('carts.colItems')}</Table.Head>
+            <Table.Head>{t('carts.colState')}</Table.Head>
+            <Table.Head>{t('carts.colLastTouched')}</Table.Head>
+            <Table.Head>{t('carts.colAge')}</Table.Head>
+            <Table.Head class="text-right">{t('carts.colValue')}</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -137,20 +140,20 @@
             <Table.Row>
               <Table.Cell class="font-mono text-xs">{cart.token}</Table.Cell>
               <Table.Cell class="text-muted-foreground">
-                {cart.customerEmail ?? 'Guest'}
+                {cart.customerEmail ?? t('carts.guest')}
               </Table.Cell>
               <Table.Cell class="text-right tabular-nums">{cart.itemCount}</Table.Cell>
               <Table.Cell>
                 {#if cart.isAbandoned}
                   <Badge variant="outline" class="border-border text-muted-foreground">
-                    Abandoned
+                    {t('carts.stateAbandoned')}
                   </Badge>
                 {:else}
                   <Badge
                     variant="outline"
                     class="border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
                   >
-                    Active
+                    {t('carts.stateActive')}
                   </Badge>
                 {/if}
               </Table.Cell>
@@ -170,12 +173,10 @@
         <Empty.Header>
           <Empty.Media variant="icon"><ShoppingCartIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No carts match these filters' : 'No carts yet'}
+            {query.isFiltered ? t('carts.emptyFiltered') : t('carts.emptyNone')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try a different state, or clear the filters.'
-              : 'Carts appear as soon as someone adds a product on the storefront.'}
+            {query.isFiltered ? t('carts.emptyFilteredHint') : t('carts.emptyNoneHint')}
           </Empty.Description>
         </Empty.Header>
       </Empty.Root>
@@ -184,8 +185,7 @@
 
   {#if rows.length > 0}
     <p class="text-xs text-muted-foreground">
-      Showing {pluralize(rows.length, 'cart')}. Carts are read-only here — they belong to the
-      shopper until checkout turns one into an order.
+      {tn('carts.footnote', rows.length)}
     </p>
   {/if}
 </section>

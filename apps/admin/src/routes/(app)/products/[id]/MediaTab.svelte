@@ -8,6 +8,7 @@
   import VideoField from '~/lib/components/video-field.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, TabProps } from './shared';
   import { sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -76,7 +77,7 @@
       saved = snapshot(updated);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Media saved.');
+      toast.success(t('products.mediaSaved'));
     } catch (err) {
       error = errorMessage(err);
       // Media errors are per-slot; naming the slot is the difference between
@@ -90,38 +91,42 @@
 </script>
 
 <TabPanel
-  title="Media"
-  description="Images become WebP on the server at high quality; SVG is stored as-is. Removed files are cleaned up when you save."
+  title={t('products.tabMedia')}
+  description={t('products.mediaDescription')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="max-w-3xl space-y-6">
     <MediaDropzone
-      label="Thumbnail"
+      label={t('products.mediaThumbnail')}
       bind:items={form.thumbnail}
       profile="product_image"
       single
-      hint="The one image used in listings and search"
+      hint={t('products.mediaThumbnailHint')}
     />
     <MediaDropzone
-      label="Clean cutout"
+      label={t('products.mediaCutout')}
       bind:items={form.cleanPng}
       profile="product_image"
       single
-      hint="Transparent background, used in comparisons"
+      hint={t('products.mediaCutoutHint')}
     />
-    <MediaDropzone label="Gallery" bind:items={form.gallery} profile="product_image" />
-    <VideoField bind:items={form.videos} hint="Upload mp4/webm (max 30 MB), or add a link" />
     <MediaDropzone
-      label="Documents"
+      label={t('products.mediaGallery')}
+      bind:items={form.gallery}
+      profile="product_image"
+    />
+    <VideoField bind:items={form.videos} hint={t('products.mediaVideoHint')} />
+    <MediaDropzone
+      label={t('products.mediaDocuments')}
       bind:items={form.documents}
       profile="document"
       accept="application/pdf"
-      hint="PDF, max 15 MB — the alt text is the visible file label"
+      hint={t('products.mediaDocumentsHint')}
     />
   </div>
 </TabPanel>

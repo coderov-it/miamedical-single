@@ -9,6 +9,7 @@
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
 
   let { children } = $props();
 
@@ -23,9 +24,9 @@
 </script>
 
 {#if session.loading}
-  <LoadingState class="h-svh" label="Loading your workspace…" />
+  <LoadingState class="h-svh" label={t('shell.loadingWorkspace')} />
 {:else if !session.isAuthenticated}
-  <LoadingState class="h-svh" label="Redirecting to sign in…" />
+  <LoadingState class="h-svh" label={t('shell.redirectingToSignIn')} />
 {:else}
   <Sidebar.Provider>
     <AppSidebar />

@@ -17,6 +17,7 @@
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { sameAsSaved, translationError } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -101,7 +102,7 @@
       const translations = buildTranslations(translationFor, () => true);
       if (!translations) {
         throw new Error(
-          `This product has no ${languageOf(SOURCE_LANGUAGE).label} title yet — save the Basics tab first.`,
+          t('products.descriptionNoSourceTitle', { language: languageOf(SOURCE_LANGUAGE).label }),
         );
       }
       const updated = await unwrap<AdminProduct>(
@@ -115,7 +116,7 @@
       form = snapshot(updated);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Description saved.');
+      toast.success(t('products.descriptionSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -126,14 +127,14 @@
 </script>
 
 <TabPanel
-  title="Description"
-  description="The long copy on the product page, under “Descrizione”."
+  title={t('products.tabDescription')}
+  description={t('products.descriptionPanelHint')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="space-y-3">
     {#if blockedLanguage}
@@ -141,15 +142,14 @@
         class="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400"
         role="status"
       >
-        Give this product a {blockedLanguage} title and slug on the Basics tab first — the API stores
-        a translation as a whole row, so a {blockedLanguage} description has nowhere to go until then.
+        {t('products.descriptionBlocked', { language: blockedLanguage })}
       </p>
     {/if}
 
     <TranslatedRichText
-      name="Description"
+      name={t('products.tabDescription')}
       bind:value={form}
-      hint="Headings start at H2 — the product title is the page's only H1. Images and video live on the Media tab."
+      hint={t('products.descriptionHint')}
       error={translationError(fields, 'description')}
     />
   </div>

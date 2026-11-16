@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Inhalte",
+  "privacyTitle": "Datenschutzerklärung",
+  "privacyDescription": "Die unter /privacy-policy/ veröffentlichte Erklärung in allen Sprachen der Website.",
+  "translate": "Übersetzen",
+  "view": "Ansehen",
+  "toastSaveFirst": "Speichern Sie zuerst Ihre Änderungen – die Übersetzung geht vom gespeicherten Text aus.",
+  "toastSaved": "Gespeichert. Die Website übernimmt es innerhalb weniger Minuten.",
+  "fieldTitle": "Titel",
+  "titleHint": "Die H1 der Seite und die erste Hälfte des Browser-Tab-Titels.",
+  "fieldText": "Text",
+  "textName": "Text der Erklärung",
+  "searchHeading": "Suchergebnis-Eintrag",
+  "searchHint": "Bleiben die Felder leer, verwendet die Seite ihren eigenen Titel und den ersten Absatz.",
+  "metaTitle": "Meta-Titel",
+  "metaTitleHint": "Etwa 60 Zeichen – danach schneidet Google ab.",
+  "metaDescription": "Meta-Beschreibung",
+  "metaDescriptionHint": "Etwa 160 Zeichen.",
+  "effectiveFrom": "Gültig ab",
+  "effectiveHint": "Wird unter dem Titel angezeigt. Nicht identisch mit der letzten Änderung – eine Tippfehlerkorrektur verschiebt sie nicht.",
+  "lastEdited": "Zuletzt bearbeitet"
+}

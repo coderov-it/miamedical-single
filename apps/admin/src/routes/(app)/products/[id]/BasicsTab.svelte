@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { optionsOf, PRODUCT_STATUS } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -12,6 +13,8 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import ChipsField from './ChipsField.svelte';
   import type { AdminCategory, AdminProduct, ChipEdit, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved, translationError } from './shared';
@@ -21,12 +24,6 @@
   let { product, onSaved, dirty }: TabProps = $props();
 
   const SECTION = 'basics';
-
-  const STATUSES = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'active', label: 'Active' },
-    { value: 'archived', label: 'Archived' },
-  ] as const;
 
   /**
    * The DTO carries one `translations` row per language; the Translated*
@@ -100,10 +97,11 @@
   const categoryOptions = $derived(categories.data ?? []);
   const categoryLabel = $derived(
     categoryOptions.find((entry) => entry.id === form.categoryId)?.translations.it?.name ??
-      'Choose a category',
+      t('products.chooseCategory'),
   );
 
   const canUpdate = $derived(session.can(P.PRODUCT_UPDATE));
+  const statusOptions = $derived(optionsOf(PRODUCT_STATUS, uiLang.current));
 
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -158,7 +156,7 @@
       form = snapshot(updated);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Basics saved.');
+      toast.success(t('products.basicsSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -169,32 +167,32 @@
 </script>
 
 <TabPanel
-  title="Basics"
-  description="Names, descriptions and where this product sits in the catalog."
+  title={t('products.tabBasics')}
+  description={t('products.basicsDescription')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="space-y-4">
     <TranslatedInput
-      label="Title"
+      label={t('products.fieldTitle')}
       bind:value={form.title}
       error={translationError(fields, 'title')}
     />
     <TranslatedInput
-      label="Slug"
+      label={t('products.fieldSlug')}
       bind:value={form.slug}
       error={translationError(fields, 'slug')}
-      hint="The URL segment on the storefront."
+      hint={t('products.slugHint')}
     />
     <TranslatedInput
-      label="Short description"
+      label={t('products.fieldShortDescription')}
       bind:value={form.shortDescription}
       required={false}
-      hint="One line, shown on cards and in search results."
+      hint={t('products.shortDescriptionHint')}
     />
 
     <!--
@@ -205,7 +203,7 @@
     -->
     <div class="grid gap-4 sm:grid-cols-2">
       <div>
-        <Label class="mb-1.5">Category</Label>
+        <Label class="mb-1.5">{t('products.fieldCategory')}</Label>
         <Select.Root type="single" bind:value={form.categoryId}>
           <Select.Trigger class="w-full">{categoryLabel}</Select.Trigger>
           <Select.Content>
@@ -217,7 +215,7 @@
           </Select.Content>
         </Select.Root>
         <p class="mt-1 text-xs text-muted-foreground">
-          Changing it drops spec values belonging to the old category.
+          {t('products.categoryChangeHint')}
         </p>
         {#if fields.categoryId}
           <p class="mt-1 text-xs text-destructive" role="alert">{fields.categoryId}</p>
@@ -225,13 +223,13 @@
       </div>
 
       <div>
-        <Label class="mb-1.5">Status</Label>
+        <Label class="mb-1.5">{t('products.fieldStatus')}</Label>
         <Select.Root type="single" bind:value={form.status}>
           <Select.Trigger class="w-full">
-            {STATUSES.find((entry) => entry.value === form.status)?.label ?? form.status}
+            {statusOptions.find((entry) => entry.value === form.status)?.label ?? form.status}
           </Select.Trigger>
           <Select.Content>
-            {#each STATUSES as option (option.value)}
+            {#each statusOptions as option (option.value)}
               <Select.Item value={option.value}>{option.label}</Select.Item>
             {/each}
           </Select.Content>
@@ -248,13 +246,13 @@
         an "Esaurito" plate — and the order endpoint refuses the line.
       -->
       <div>
-        <Label class="mb-1.5" for="basics-stock">Stock</Label>
+        <Label class="mb-1.5" for="basics-stock">{t('products.fieldStock')}</Label>
         <NumberStepper
           id="basics-stock"
           bind:value={form.stock}
           min={0}
           disabled={!canUpdate}
-          label="Stock"
+          label={t('products.fieldStock')}
         />
         {#if fields.stock}
           <p class="mt-1 text-xs text-destructive" role="alert">{fields.stock}</p>
@@ -268,7 +266,7 @@
         checked={form.isFeatured}
         onCheckedChange={(checked) => (form.isFeatured = checked)}
       />
-      <Label for="basics-featured">Featured on the home page</Label>
+      <Label for="basics-featured">{t('products.featuredOnHome')}</Label>
     </div>
 
     <!--
@@ -278,9 +276,13 @@
       last few words being typed.
     -->
     <div class="grid items-start gap-4 border-t pt-4 sm:grid-cols-2">
-      <TranslatedInput label="Meta title" bind:value={form.metaTitle} required={false} />
       <TranslatedInput
-        label="Meta description"
+        label={t('products.fieldMetaTitle')}
+        bind:value={form.metaTitle}
+        required={false}
+      />
+      <TranslatedInput
+        label={t('products.fieldMetaDescription')}
         bind:value={form.metaDescription}
         required={false}
         multiline

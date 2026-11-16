@@ -24,6 +24,7 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import BusyButton from '~/lib/components/busy-button.svelte';
   import type { AdminUser } from './access';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     /** The operator whose password is being set, or `undefined` when closed. */
@@ -57,8 +58,8 @@
 
   function localIssues(): Record<string, string> {
     const issues: Record<string, string> = {};
-    if (password.length < 12) issues.password = 'Use at least 12 characters.';
-    else if (confirm !== password) issues.confirm = 'The two passwords do not match.';
+    if (password.length < 12) issues.password = t('access.passwordMin');
+    else if (confirm !== password) issues.confirm = t('access.passwordMismatch');
     return issues;
   }
 
@@ -83,7 +84,7 @@
           json: { password },
         }),
       );
-      toast.success(`Password set. ${target.email} was signed out everywhere.`);
+      toast.success(t('access.passwordSetToast', { email: target.email }));
       onClose();
     } catch (err) {
       error = errorMessage(err);
@@ -103,9 +104,9 @@
 >
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Set a password</Dialog.Title>
+      <Dialog.Title>{t('access.setPasswordTitle')}</Dialog.Title>
       <Dialog.Description>
-        For {open?.email}. Every session they have open is ended.
+        {t('access.setPasswordFor', { email: open?.email ?? '' })}
       </Dialog.Description>
     </Dialog.Header>
 
@@ -123,13 +124,13 @@
       {/if}
 
       <div>
-        <Label class="mb-1.5" for="set-password">New password</Label>
+        <Label class="mb-1.5" for="set-password">{t('access.newPasswordLabel')}</Label>
         <Input
           id="set-password"
           type="password"
           autocomplete="new-password"
           bind:value={password}
-          placeholder="At least 12 characters"
+          placeholder={t('access.passwordPlaceholder')}
           aria-invalid={fields.password ? 'true' : undefined}
         />
         {#if fields.password}
@@ -138,7 +139,7 @@
       </div>
 
       <div>
-        <Label class="mb-1.5" for="set-password-confirm">Repeat password</Label>
+        <Label class="mb-1.5" for="set-password-confirm">{t('access.repeatPasswordLabel')}</Label>
         <Input
           id="set-password-confirm"
           type="password"
@@ -152,8 +153,12 @@
       </div>
 
       <Dialog.Footer>
-        <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
-        <BusyButton type="submit" busy={saving} busyLabel="Saving…">Set password</BusyButton>
+        <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>
+          {t('common.cancel')}
+        </Button>
+        <BusyButton type="submit" busy={saving} busyLabel={t('common.saving')}>
+          {t('access.setPassword')}
+        </BusyButton>
       </Dialog.Footer>
     </form>
   </Dialog.Content>

@@ -22,6 +22,14 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import InfoHint from '~/lib/components/info-hint.svelte';
+  import { t, tn } from '~/lib/ui-text';
+
+  import {
+    bundleDescription,
+    bundleLabel,
+    permissionGroupLabel,
+    permissionLabel,
+  } from './permission-labels';
 
   interface Props {
     codes: number[];
@@ -100,20 +108,18 @@
     />
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-1.5">
-        <Label for="access-superuser">Superuser</Label>
-        <InfoHint label="About superuser">
-          A superuser passes every check, including permissions added to the panel later — which is
-          why granting the whole list by hand is not the same thing. There must always be at least
-          one, or nobody can grant access again.
+        <Label for="access-superuser">{t('shell.superuser')}</Label>
+        <InfoHint label={t('access.superuserAbout')}>
+          {t('access.superuserInfo')}
         </InfoHint>
       </div>
       <p class="mt-0.5 text-xs text-muted-foreground">
         {#if isSuperuser}
-          Holds everything, now and in future. The selection below is kept but not consulted.
+          {t('access.superuserOn')}
         {:else if canGrantSuperuser}
-          Off — access is exactly the permissions selected below.
+          {t('access.superuserOff')}
         {:else}
-          Only a superuser can hand this out.
+          {t('access.superuserOnlySuper')}
         {/if}
       </p>
     </div>
@@ -126,11 +132,9 @@
   {#if !readOnly}
     <div>
       <div class="mb-2 flex items-center gap-1.5">
-        <span class="text-sm font-medium">Sets</span>
-        <InfoHint label="About permission sets">
-          A set is a shortcut, not a role: clicking it copies its permissions into the selection and
-          is then forgotten. Nothing at runtime resolves a set, so editing one later never changes
-          what an existing account can reach.
+        <span class="text-sm font-medium">{t('access.setsLabel')}</span>
+        <InfoHint label={t('access.setsAbout')}>
+          {t('access.setsInfo')}
         </InfoHint>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -141,13 +145,13 @@
             variant={coverage === 'full' ? 'secondary' : 'outline'}
             size="sm"
             disabled={frozen}
-            title={bundle.description}
+            title={bundleDescription(bundle)}
             onclick={() => toggleBundle(bundle)}
           >
             {#if coverage === 'full'}<CheckIcon />{/if}
-            {bundle.label}
+            {bundleLabel(bundle)}
             <span class="text-muted-foreground">
-              {coverage === 'partial' ? 'part' : bundle.codes.length}
+              {coverage === 'partial' ? t('access.setPartial') : bundle.codes.length}
             </span>
           </Button>
         {/each}
@@ -157,16 +161,18 @@
 
   <div class="flex items-center justify-between gap-3 border-t pt-3">
     <p class="text-sm font-medium tabular-nums">
-      {codes.length} of {total} permissions
+      {t('access.selectedCount', { count: codes.length, total })}
     </p>
     {#if !frozen && codes.length > 0}
-      <Button type="button" variant="ghost" size="sm" onclick={() => set([])}>Clear all</Button>
+      <Button type="button" variant="ghost" size="sm" onclick={() => set([])}>
+        {t('access.clearAll')}
+      </Button>
     {/if}
   </div>
 
   {#if lockedCount > 0 && !readOnly}
     <p class="text-xs text-muted-foreground">
-      {lockedCount} permissions are dimmed: you cannot grant access you do not hold yourself.
+      {tn('access.lockedNotice', lockedCount)}
     </p>
   {/if}
 
@@ -176,7 +182,7 @@
       {@const selected = groupCodes.filter((code) => held.has(code)).length}
       <div class="rounded-lg border">
         <div class="flex items-center gap-2 border-b bg-muted/40 px-3 py-2">
-          <span class="text-sm font-medium">{group.group}</span>
+          <span class="text-sm font-medium">{permissionGroupLabel(group.group)}</span>
           <span class="text-xs text-muted-foreground tabular-nums">
             {selected}/{groupCodes.length}
           </span>
@@ -188,7 +194,7 @@
               class="ml-auto h-7 px-2 text-xs"
               onclick={() => toggleGroup(groupCodes, selected < groupCodes.length)}
             >
-              {selected < groupCodes.length ? 'Select all' : 'Clear'}
+              {selected < groupCodes.length ? t('access.selectAll') : t('access.clearGroup')}
             </Button>
           {/if}
         </div>
@@ -219,7 +225,8 @@
                 onCheckedChange={() => toggle(permission.code)}
               />
               <span>
-                <span class="block text-sm leading-tight whitespace-nowrap">{permission.label}</span
+                <span class="block text-sm leading-tight whitespace-nowrap"
+                  >{permissionLabel(permission)}</span
                 >
                 <code
                   class="mt-0.5 block font-mono text-[11px] whitespace-nowrap text-muted-foreground"

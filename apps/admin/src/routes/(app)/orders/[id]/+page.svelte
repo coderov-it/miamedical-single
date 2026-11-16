@@ -4,6 +4,7 @@
   can never disagree about what an order says.
 -->
 <script lang="ts">
+  import { t } from '~/lib/ui-text';
   import { P } from '@mia/permissions';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import type { InferResponseType } from 'hono/client';
@@ -36,19 +37,21 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Sales"
-    title={order.data?.number ?? 'Order'}
-    description={order.data ? `Placed ${formatDateTime(order.data.placedAt)}` : ''}
+    eyebrow={t('nav.sales')}
+    title={order.data?.number ?? t('orders.orderFallback')}
+    description={order.data
+      ? t('orders.detailPlaced', { date: formatDateTime(order.data.placedAt) })
+      : ''}
   >
     {#snippet actions()}
       <Button href={routes.orders} variant="outline">
         <ArrowLeftIcon />
-        Back to queue
+        {t('orders.backToQueue')}
       </Button>
     {/snippet}
   </PageHeader>
 
-  <ResourceView resource={order} noun="order">
+  <ResourceView resource={order} noun={t('entities.orderNoun')}>
     {#snippet children(current)}
       <div class="flex flex-wrap items-center gap-2">
         <StatusBadge status={current.status} dot />

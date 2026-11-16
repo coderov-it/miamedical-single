@@ -21,7 +21,7 @@
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
-  import { formatDate, formatMoney, pluralize, relativeTime } from '~/lib/format';
+  import { formatDate, formatMoney, relativeTime } from '~/lib/format';
   import OrderDetailView from '~/lib/orders/order-detail-view.svelte';
   import { ORDER_STATUS_ORDER, orderStatusMeta } from '~/lib/orders/status';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
@@ -30,17 +30,18 @@
   import { routes } from '~/lib/routes';
   import { rowClick } from '~/lib/row-click';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t, tn } from '~/lib/ui-text';
 
   type ListResponse = InferResponseType<typeof api.api.admin.orders.$get, 200>;
   type OrderDetail = InferResponseType<(typeof api.api.admin.orders)[':id']['$get'], 200>['data'];
 
   const ANY = '__any';
 
-  const TYPE_OPTIONS = [
-    { value: ANY, label: 'All' },
-    { value: 'rental', label: 'Noleggio' },
-    { value: 'fixed', label: 'Vendita' },
-  ] as const;
+  const TYPE_OPTIONS: readonly { value: string; labelKey: MessageKey }[] = [
+    { value: ANY, labelKey: 'orders.filterAll' },
+    { value: 'rental', labelKey: 'orders.typeRental' },
+    { value: 'fixed', labelKey: 'orders.typeSale' },
+  ];
 
   const query = new QueryState({ q: '', status: ANY, type: ANY, page: 1 });
   const draft = new QueryDraft(query);
@@ -113,16 +114,16 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Sales"
-    title="Orders"
-    description="The queue, oldest work first. Open an order to move it along."
+    eyebrow={t('nav.sales')}
+    title={t('nav.orders')}
+    description={t('orders.description')}
   >
     {#snippet actions()}
       <!-- Stays clickable while a fetch is in flight: a second click supersedes
            the first, and a control that vanishes mid-load reads as broken. -->
       <Button variant="outline" onclick={() => orders.refresh()}>
         <RefreshCwIcon class={cn(orders.loading && 'animate-spin')} />
-        Refresh
+        {t('orders.refresh')}
       </Button>
     {/snippet}
   </PageHeader>
@@ -130,7 +131,7 @@
   <!-- KPI strip. `pageValue` is labelled "this page" because that is exactly
        what it sums — a money figure must never imply more than it covers. -->
   <div class="grid gap-4 sm:grid-cols-3">
-    {#each [{ label: 'Total orders', value: orders.data?.meta.total, hint: 'All time' }, { label: 'Waiting to accept', value: stats?.awaitingCount, hint: 'Status is pending' }] as tile (tile.label)}
+    {#each [{ label: t('orders.kpiTotal'), value: orders.data?.meta.total, hint: t('orders.kpiTotalHint') }, { label: t('orders.kpiAwaiting'), value: stats?.awaitingCount, hint: t('orders.kpiAwaitingHint') }] as tile (tile.label)}
       <Card.Root>
         <Card.Header><Card.Description>{tile.label}</Card.Description></Card.Header>
         <Card.Content>
@@ -145,7 +146,7 @@
     {/each}
 
     <Card.Root>
-      <Card.Header><Card.Description>Value on this page</Card.Description></Card.Header>
+      <Card.Header><Card.Description>{t('orders.kpiPageValue')}</Card.Description></Card.Header>
       <Card.Content>
         {#if !stats}
           <Skeleton class="h-8 w-24" />
@@ -155,7 +156,7 @@
           </p>
         {/if}
         <p class="mt-1 text-xs text-muted-foreground">
-          {orders.data ? pluralize(rows.length, 'order') : 'This page only'} — not the whole queue
+          {orders.data ? tn('orders.pageValueCount', rows.length) : t('orders.pageValueOnly')}
         </p>
       </Card.Content>
     </Card.Root>
@@ -178,7 +179,7 @@
         {#if value !== ANY}
           <span class={cn('size-1.5 rounded-full', orderStatusMeta(value).dot)}></span>
         {/if}
-        {value === ANY ? 'All' : orderStatusMeta(value).label}
+        {value === ANY ? t('orders.filterAll') : orderStatusMeta(value).label}
       </button>
     {/each}
   </div>
@@ -195,13 +196,13 @@
           active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
         )}
       >
-        {opt.label}
+        {t(opt.labelKey)}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="order"
+    countKey="entities.order"
     meta={orders.data?.meta}
     loading={orders.loading}
     error={orders.error}
@@ -225,14 +226,16 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Order number or email…"
-            aria-label="Search orders"
+            placeholder={t('orders.searchPlaceholder')}
+            aria-label={t('orders.searchLabel')}
             class="h-8 w-64 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('orders.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('orders.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
@@ -241,14 +244,14 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Order</Table.Head>
-            <Table.Head>Customer</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Payment</Table.Head>
-            <Table.Head>Contract</Table.Head>
-            <Table.Head class="text-right">Items</Table.Head>
-            <Table.Head>Placed</Table.Head>
-            <Table.Head class="text-right">Total</Table.Head>
+            <Table.Head>{t('orders.colOrder')}</Table.Head>
+            <Table.Head>{t('orders.colCustomer')}</Table.Head>
+            <Table.Head>{t('orders.colStatus')}</Table.Head>
+            <Table.Head>{t('orders.colPayment')}</Table.Head>
+            <Table.Head>{t('orders.colContract')}</Table.Head>
+            <Table.Head class="text-right">{t('orders.colItems')}</Table.Head>
+            <Table.Head>{t('orders.colPlaced')}</Table.Head>
+            <Table.Head class="text-right">{t('orders.colTotal')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -270,11 +273,11 @@
                   <span class="text-muted-foreground">—</span>
                 {:else if order.contractStatus === 'signed'}
                   <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    Signed
+                    {t('status.contractSigned')}
                   </span>
                 {:else}
                   <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    Not signed
+                    {t('orders.contractNotSigned')}
                   </span>
                 {/if}
               </Table.Cell>
@@ -293,7 +296,7 @@
                   href={routes.orderDetail(order.id)}
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="Open {order.number} as a page"
+                  aria-label={t('orders.openAsPageNamed', { number: order.number })}
                 >
                   <ExternalLinkIcon />
                 </Button>
@@ -309,17 +312,17 @@
         <Empty.Header>
           <Empty.Media variant="icon"><InboxIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No orders match these filters' : 'No orders yet'}
+            {query.isFiltered ? t('orders.emptyFiltered') : t('orders.emptyNone')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try a different status, or clear the filters.'
-              : 'Orders placed on the storefront land here.'}
+            {query.isFiltered ? t('orders.emptyFilteredHint') : t('orders.emptyNoneHint')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => query.reset()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => query.reset()}>
+              {t('orders.clearFilters')}
+            </Button>
           </Empty.Content>
         {/if}
       </Empty.Root>
@@ -342,7 +345,7 @@
   <Sheet.Content side="right" class="gap-0 p-0 data-[side=right]:sm:max-w-3xl">
     <Sheet.Header class="border-b">
       <Sheet.Title class="flex items-center gap-3">
-        <span class="font-mono">{detail.data?.number ?? 'Order'}</span>
+        <span class="font-mono">{detail.data?.number ?? t('orders.orderFallback')}</span>
         {#if detail.data}
           <StatusBadge status={detail.data.status} dot />
           <StatusBadge status={detail.data.paymentStatus} kind="payment" />
@@ -350,12 +353,12 @@
       </Sheet.Title>
       <Sheet.Description>
         {#if detail.data}
-          Placed {formatDate(detail.data.placedAt)} ·
+          {t('orders.drawerPlaced', { date: formatDate(detail.data.placedAt) })} ·
           <a href={routes.orderDetail(detail.data.id)} class="underline underline-offset-4">
-            open as a page
+            {t('orders.openAsPageLink')}
           </a>
         {:else}
-          Loading the order…
+          {t('orders.drawerLoading')}
         {/if}
       </Sheet.Description>
     </Sheet.Header>

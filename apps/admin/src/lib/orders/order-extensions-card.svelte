@@ -27,7 +27,9 @@
   import { extensionStatusMeta, paymentMethodLabel } from '~/lib/rentals/extension-status';
   import { errorMessage, unwrap } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
+  import { contractStatusMeta } from '~/lib/contracts/status';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t, tn } from '~/lib/ui-text';
 
   type Overview = InferResponseType<
     (typeof api.api.admin)['rental-extensions']['by-order'][':orderId']['$get'],
@@ -78,7 +80,7 @@
           param: { id: extension.id },
         }),
       );
-      toast.success('A new renewal contract is out for signature.');
+      toast.success(t('orders.extReissued'));
       changed();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -87,25 +89,25 @@
     }
   }
 
-  const BLOCK_NOTES: Record<string, string> = {
-    closed: 'Rental closed — the equipment is back.',
-    hourly: 'Hourly rentals are extended by hand.',
+  const BLOCK_NOTES: Record<string, MessageKey> = {
+    closed: 'orders.extBlockClosed',
+    hourly: 'orders.extBlockHourly',
   };
 </script>
 
 {#snippet period(extension: Extension)}
   {formatDate(extension.fromDate)} → {formatDate(extension.toDate)}
-  <span class="text-muted-foreground">· {extension.days} days ·</span>
+  <span class="text-muted-foreground">· {tn('orders.extDays', extension.days)} ·</span>
   {formatMoney(extension.amount, extension.currency)}
 {/snippet}
 
 <Card.Root class="gap-0 py-0">
   <div class="flex items-center justify-between border-b px-4 py-2 text-sm font-medium">
-    Extensions
+    {t('orders.extTitle')}
     {#if canUpdate && overview.data?.blockedBy === null}
       <Button size="sm" variant="outline" onclick={() => (extendTarget = { orderId, orderNumber })}>
         <CalendarPlusIcon class="size-4" />
-        Extend
+        {t('orders.extExtend')}
       </Button>
     {/if}
   </div>
@@ -122,37 +124,51 @@
           </Badge>
           <p>{@render period(open)}</p>
           <p class="text-xs text-muted-foreground">
-            Requested by {open.requestedBy ?? 'unknown'} · {formatDate(open.createdAt)}
+            {t('orders.extRequestedBy', {
+              name: open.requestedBy ?? t('orders.extUnknown'),
+              date: formatDate(open.createdAt),
+            })}
             {#if open.paidAt}
-              · paid {formatDate(open.paidAt)} ({paymentMethodLabel(open.paymentMethod)})
+              · {t('orders.extPaid', {
+                date: formatDate(open.paidAt),
+                method: paymentMethodLabel(open.paymentMethod),
+              })}
             {/if}
-            {#if open.contractNumber}· contract {open.contractNumber} ({open.contractStatus}){/if}
+            {#if open.contractNumber}
+              · {t('orders.extContractWithStatus', {
+                number: open.contractNumber,
+                status: contractStatusMeta(open.contractStatus ?? '').label,
+              })}
+            {/if}
           </p>
           {#if canUpdate}
             <div class="flex flex-wrap gap-2 pt-1">
               {#if open.status === 'renew_pending'}
-                <Button size="sm" onclick={() => (payTarget = open)}>Record payment</Button>
+                <Button size="sm" onclick={() => (payTarget = open)}>
+                  {t('orders.extRecordPayment')}
+                </Button>
               {/if}
               {#if open.status === 'awaiting_signature' && (!open.contractId || open.contractStatus === 'voided')}
                 <BusyButton
                   size="sm"
                   busy={reissuing}
-                  busyLabel="Sending…"
+                  busyLabel={t('orders.extSending')}
                   onclick={() => reissue(open)}
                 >
-                  Reissue contract
+                  {t('orders.extReissue')}
                 </BusyButton>
               {/if}
-              <Button size="sm" variant="destructive" onclick={() => (cancelTarget = open)}>Cancel</Button
-              >
+              <Button size="sm" variant="destructive" onclick={() => (cancelTarget = open)}>
+                {t('common.cancel')}
+              </Button>
             </div>
           {/if}
         </div>
       {:else if overview.data.blockedBy && BLOCK_NOTES[overview.data.blockedBy]}
-        <p class="text-muted-foreground">{BLOCK_NOTES[overview.data.blockedBy]}</p>
+        <p class="text-muted-foreground">{t(BLOCK_NOTES[overview.data.blockedBy]!)}</p>
       {:else if past.length === 0}
         <p class="text-muted-foreground">
-          Due back {formatDate(overview.data.endDate)}. Not extended yet.
+          {t('orders.extDueBack', { date: formatDate(overview.data.endDate) })}
         </p>
       {/if}
 
@@ -166,7 +182,7 @@
                 {@render period(extension)}
                 <span class="block text-xs text-muted-foreground">
                   {meta.label}{#if extension.contractNumber}
-                    · contract {extension.contractNumber}{/if}
+                    · {t('orders.extContractNumber', { number: extension.contractNumber })}{/if}
                   {#if extension.cancelReason}
                     · {extension.cancelReason}{/if}
                 </span>

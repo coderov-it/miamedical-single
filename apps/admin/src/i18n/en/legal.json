@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Content",
+  "privacyTitle": "Privacy policy",
+  "privacyDescription": "The notice published at /privacy-policy/, in every language the site serves.",
+  "translate": "Translate",
+  "view": "View",
+  "toastSaveFirst": "Save your changes first — a run reads the saved text.",
+  "toastSaved": "Saved. The site picks it up within a few minutes.",
+  "fieldTitle": "Title",
+  "titleHint": "The h1 on the page and the first half of its browser tab title.",
+  "fieldText": "Text",
+  "textName": "Policy text",
+  "searchHeading": "Search listing",
+  "searchHint": "Left empty, the page falls back to its own title and first paragraph.",
+  "metaTitle": "Meta title",
+  "metaTitleHint": "Around 60 characters — Google cuts it there.",
+  "metaDescription": "Meta description",
+  "metaDescriptionHint": "Around 160 characters.",
+  "effectiveFrom": "In effect from",
+  "effectiveHint": "Shown under the title. Not the same as the last edit — fixing a typo does not move it.",
+  "lastEdited": "Last edited"
+}

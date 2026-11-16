@@ -8,6 +8,7 @@ import {
   type TargetLanguageCode,
   textFor,
 } from './languages.ts';
+import { t } from '~/lib/ui-text';
 
 /**
  * Who gets translated, and who must be left alone.
@@ -181,7 +182,9 @@ export function planTranslations(fields: PlanField[], source: LanguageCode): Lan
           ...group,
           gaps: [],
           authored,
-          blockedReason: `no ${languageOf(source).label} ${missingTitle.label.toLowerCase()}`,
+          blockedReason: t('products.planMissingSourceTitle', {
+            language: languageOf(source).label,
+          }),
         };
       }
       return {
@@ -258,7 +261,7 @@ export function summariseSections(fields: PlanField[]): SectionSummary[] {
   return order.map((name) => ({ name, count: counts.get(name)! }));
 }
 
-/** `"2 add-ons"` — the wording the dialog uses for a group's authored fields. */
+/** `"Title, Short description"` — the field labels the dialog names for a group's authored fields. */
 export function authoredSummary(group: PlannedGroup): string {
-  return group.authored.map((field) => field.label.toLowerCase()).join(', ');
+  return group.authored.map((field) => field.label).join(', ');
 }

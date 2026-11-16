@@ -25,6 +25,7 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
 
   type ListResponse = InferResponseType<typeof api.api.admin.blog.$get, 200>;
 
@@ -60,22 +61,22 @@
     return (
       translations?.[uiLang.current]?.title ??
       translations?.[SOURCE_LANGUAGE]?.title ??
-      '(no title)'
+      t('blog.untitled')
     );
   }
 </script>
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Content"
-    title="Blog Posts"
-    description="Manage blog content for the public website."
+    eyebrow={t('blog.eyebrow')}
+    title={t('blog.pageTitle')}
+    description={t('blog.pageDescription')}
   >
     {#snippet actions()}
       {#if session.can(P.BLOG_CREATE)}
         <Button href={routes.blogNew}>
           <PlusIcon />
-          New post
+          {t('blog.newPost')}
         </Button>
       {/if}
     {/snippet}
@@ -96,13 +97,13 @@
         {#if value !== ANY}
           <span class={cn('size-1.5 rounded-full', blogStatusMeta(value).dot)}></span>
         {/if}
-        {value === ANY ? 'All' : blogStatusMeta(value).label}
+        {value === ANY ? t('blog.filterAll') : blogStatusMeta(value).label}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="post"
+    countKey="entities.post"
     meta={posts.data?.meta}
     loading={posts.loading}
     error={posts.error}
@@ -126,14 +127,16 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Search by title…"
-            aria-label="Search blog posts"
+            placeholder={t('blog.searchPlaceholder')}
+            aria-label={t('blog.searchAria')}
             class="h-8 w-64 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('blog.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('blog.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
@@ -142,10 +145,10 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Title</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Published</Table.Head>
-            <Table.Head>Updated</Table.Head>
+            <Table.Head>{t('blog.colTitle')}</Table.Head>
+            <Table.Head>{t('blog.colStatus')}</Table.Head>
+            <Table.Head>{t('blog.colPublished')}</Table.Head>
+            <Table.Head>{t('blog.colUpdated')}</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -189,23 +192,23 @@
         <Empty.Header>
           <Empty.Media variant="icon"><NewspaperIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No posts match these filters' : 'No blog posts yet'}
+            {query.isFiltered ? t('blog.emptyFilteredTitle') : t('blog.emptyTitle')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try a different status, or clear the filters.'
-              : 'Create your first blog post to get started.'}
+            {query.isFiltered ? t('blog.emptyFilteredDescription') : t('blog.emptyDescription')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => query.reset()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => query.reset()}>
+              {t('blog.clearFilters')}
+            </Button>
           </Empty.Content>
         {:else if session.can(P.BLOG_CREATE)}
           <Empty.Content>
             <Button href={routes.blogNew}>
               <PlusIcon />
-              New post
+              {t('blog.newPost')}
             </Button>
           </Empty.Content>
         {/if}

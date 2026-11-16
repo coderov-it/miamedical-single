@@ -14,9 +14,12 @@
   import { page } from '$app/state';
 
   import * as Empty from '$lib/components/ui/empty/index.js';
-  import { permissionByCode } from '@mia/permissions';
+  import { permissionLabelByCode } from '~/lib/access/permission-labels';
   import { resolveRouteAccess } from '~/lib/route-access';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
+  import { languageOf } from '~/lib/i18n/languages';
+  import { uiLang } from '~/lib/ui-lang.svelte';
 
   let { children }: { children: Snippet } = $props();
 
@@ -29,9 +32,12 @@
   // visitor can act on — they can ask for it by name.
   const missing = $derived(
     (entry?.requiredAny ?? [])
-      .map((code) => permissionByCode(code)?.key)
-      .filter((key): key is string => Boolean(key))
-      .join(' or '),
+      .map((code) => permissionLabelByCode(code))
+      .filter((label): label is string => Boolean(label))
+      .map((label) => t('shell.quoted', { text: label })),
+  );
+  const missingList = $derived(
+    new Intl.ListFormat(languageOf(uiLang.current).tag, { type: 'disjunction' }).format(missing),
   );
 </script>
 
@@ -43,13 +49,12 @@
       <Empty.Media variant="icon">
         <LockIcon />
       </Empty.Media>
-      <Empty.Title>This page is locked</Empty.Title>
+      <Empty.Title>{t('shell.lockedTitle')}</Empty.Title>
       <Empty.Description>
-        {#if missing}
-          You need <code class="font-mono">{missing}</code> to open it. Ask an administrator to grant
-          it.
+        {#if missing.length > 0}
+          {t('shell.lockedNeeds', { permission: missingList })}
         {:else}
-          You do not have access to this page.
+          {t('shell.lockedNoAccess')}
         {/if}
       </Empty.Description>
     </Empty.Header>

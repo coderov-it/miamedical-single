@@ -44,6 +44,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Props {
@@ -103,7 +104,10 @@
           json: { to, ...notePayload() },
         }),
       (updated) =>
-        `Order ${updated.number} is now ${orderStatusMeta(updated.status).label.toLowerCase()}.`,
+        t('orders.statusChanged', {
+          number: updated.number,
+          status: orderStatusMeta(updated.status).label,
+        }),
     );
   }
 
@@ -132,10 +136,10 @@
       shipping !== null &&
       billing !== null &&
       ADDRESS_FIELDS.every((field) => shipping[field] === billing[field]);
-    if (same) return [{ title: 'Shipping & billing', value: shipping }];
+    if (same) return [{ title: t('orders.addressShippingBilling'), value: shipping }];
     return [
-      { title: 'Shipping', value: shipping },
-      { title: 'Billing', value: billing },
+      { title: t('orders.addressShipping'), value: shipping },
+      { title: t('orders.addressBilling'), value: billing },
     ].filter((entry) => entry.value !== null);
   }
 
@@ -148,15 +152,19 @@
    * raw — and an id this build has never heard of falls through to itself instead
    * of to a blank, which is what makes an older stored order still readable.
    */
-  const DELIVERY_LABELS: Record<string, string> = {
-    homeDelivery: 'Home delivery',
-    storePickup: 'Collection from a branch',
+  const DELIVERY_LABELS: Record<string, MessageKey> = {
+    homeDelivery: 'orders.deliveryHome',
+    storePickup: 'orders.deliveryPickup',
   };
 
+  function deliveryLabel(method: string): string {
+    const key = DELIVERY_LABELS[method];
+    if (!key) return method;
+    return t(key);
+  }
+
   const delivery = $derived(order.delivery);
-  const deliveryMethod = $derived(
-    delivery ? (DELIVERY_LABELS[delivery.method] ?? delivery.method) : null,
-  );
+  const deliveryMethod = $derived(delivery ? deliveryLabel(delivery.method) : null);
   /** The one detail the chosen method carries. */
   const deliveryDetail = $derived(
     [delivery?.deliveryAddress, delivery?.deliveryPostalCode, delivery?.pickupCity]
@@ -205,29 +213,45 @@
           json: { shippingTotal: shippingDraft },
         }),
       (updated) =>
-        `Delivery on ${updated.number} is ${formatMoney(
-          updated.totals.shippingTotal,
-          updated.totals.currency,
-        )}.`,
+        t('orders.shippingSaved', {
+          number: updated.number,
+          amount: formatMoney(updated.totals.shippingTotal, updated.totals.currency),
+        }),
     );
   }
 
-  const CUSTOMER_TYPE_LABELS: Record<string, string> = {
-    private: 'Private customer',
-    company: 'Company',
-    tourist: 'Tourist',
+  const CUSTOMER_TYPE_LABELS: Record<string, MessageKey> = {
+    private: 'orders.customerPrivate',
+    company: 'orders.customerCompany',
+    tourist: 'orders.customerTourist',
   };
+
+  function customerTypeLabel(type: string): string {
+    const key = CUSTOMER_TYPE_LABELS[type];
+    if (!key) return type;
+    return t(key);
+  }
 
   /**
    * Checkout takes whatever email it is given, so matching an existing account is
    * a claim until the customer confirms it from their own session. These labels
    * exist so the panel never presents an unconfirmed match as an identity.
    */
-  const CUSTOMER_LINK_LABELS: Record<string, string> = {
-    unverified: 'Account matched by email · unconfirmed',
-    confirmed: 'Account confirmed by the customer',
-    rejected: 'Account link rejected by the customer',
+  const CUSTOMER_LINK_LABELS: Record<string, MessageKey> = {
+    unverified: 'orders.linkUnverified',
+    confirmed: 'orders.linkConfirmed',
+    rejected: 'orders.linkRejected',
   };
+
+  /** Which sentence describes how this order relates to a customer account. */
+  function customerLinkLabel(): string {
+    if (order.customerAccountId) {
+      const key = CUSTOMER_LINK_LABELS[order.customerLinkStatus];
+      return key ? t(key) : order.customerLinkStatus;
+    }
+    if (order.customerLinkStatus === 'rejected') return t('orders.linkRejected');
+    return t('orders.customerGuest');
+  }
 
   type ContractSummaries = InferResponseType<
     (typeof api.api.admin.contracts)['by-order'][':orderId']['$get'],
@@ -262,7 +286,7 @@
     try {
       await unwrap(await api.api.admin.contracts.generate.$post({ json: { orderId: order.id } }));
       orderContracts.refresh();
-      toast.success('Contract generated and sent for signing.');
+      toast.success(t('orders.contractGenerated'));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -294,14 +318,14 @@
       <StatusBadge status={order.status} dot />
       <StatusBadge status={order.paymentStatus} kind="payment" dot />
       <span class="ml-auto text-sm text-muted-foreground">
-        Placed {formatDateTime(order.placedAt)}
+        {t('orders.detailPlaced', { date: formatDateTime(order.placedAt) })}
       </span>
     </div>
   {/if}
 
   <!-- Money strip. Every figure comes from the server as a decimal string. -->
   <div class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border @2xl:grid-cols-5">
-    {#each [{ label: 'Subtotal', value: order.totals.subtotal }, { label: 'Shipping', value: order.totals.shippingTotal }, { label: 'Tax', value: order.totals.taxTotal }, { label: 'Discount', value: order.totals.discountTotal }] as entry (entry.label)}
+    {#each [{ label: t('orders.moneySubtotal'), value: order.totals.subtotal }, { label: t('orders.moneyShipping'), value: order.totals.shippingTotal }, { label: t('orders.moneyTax'), value: order.totals.taxTotal }, { label: t('orders.moneyDiscount'), value: order.totals.discountTotal }] as entry (entry.label)}
       <div class="bg-card px-3 py-2.5">
         <p class="text-xs text-muted-foreground">{entry.label}</p>
         <p class="mt-0.5 text-sm tabular-nums">
@@ -312,7 +336,7 @@
     <!-- Five figures over two columns leaves a sixth cell showing as a grey
          box, so the total takes the whole last row rather than half of it. -->
     <div class="col-span-2 bg-card px-3 py-2.5 @2xl:col-span-1">
-      <p class="text-xs text-muted-foreground">Total</p>
+      <p class="text-xs text-muted-foreground">{t('orders.moneyTotal')}</p>
       <p class="mt-0.5 text-sm font-semibold tabular-nums">
         {formatMoney(order.totals.total, order.totals.currency)}
       </p>
@@ -345,7 +369,7 @@
     {/each}
     {#if stepIndex < 0}
       <span class="ml-2 text-sm text-muted-foreground">
-        — {orderStatusMeta(order.status).label.toLowerCase()}, so the path above ended early.
+        {t('orders.stepperEndedEarly', { status: orderStatusMeta(order.status).label })}
       </span>
     {/if}
   </div>
@@ -370,7 +394,7 @@
 
     <div class="space-y-5 @4xl:col-start-3 @4xl:row-span-2 @4xl:row-start-1">
       <Card.Root class="gap-0 py-0">
-        <div class="border-b px-4 py-2.5 text-sm font-medium">Customer</div>
+        <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.customerTitle')}</div>
         <div class="space-y-1 p-4 text-sm">
           <p>{order.email}</p>
           {#if order.phone}
@@ -379,7 +403,7 @@
           {/if}
           {#if order.customerType}
             <p class="text-muted-foreground">
-              {CUSTOMER_TYPE_LABELS[order.customerType] ?? order.customerType}
+              {customerTypeLabel(order.customerType)}
             </p>
           {/if}
           {#if order.partitaIva}
@@ -397,19 +421,17 @@
                match. Never show "Registered account" on its own: unconfirmed and
                confirmed look identical, and only one of them is evidence. -->
           <p class="text-muted-foreground">
-            {order.customerAccountId
-              ? CUSTOMER_LINK_LABELS[order.customerLinkStatus]
-              : order.customerLinkStatus === 'rejected'
-                ? 'Account link rejected by the customer'
-                : 'Guest checkout'}
+            {customerLinkLabel()}
           </p>
-          <p class="text-muted-foreground">Placed {relativeTime(order.placedAt)}</p>
+          <p class="text-muted-foreground">
+            {t('orders.detailPlaced', { date: relativeTime(order.placedAt) })}
+          </p>
         </div>
       </Card.Root>
 
       {#if delivery}
         <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">Delivery</div>
+          <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.deliveryTitle')}</div>
           <div class="space-y-1 p-4 text-sm">
             <p class="font-medium">{deliveryMethod}</p>
             {#if deliveryDetail}
@@ -423,7 +445,7 @@
               </span>
               {#if deliveryOwed}
                 <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  To agree by phone
+                  {t('orders.deliveryToAgree')}
                 </span>
               {/if}
             </p>
@@ -435,7 +457,7 @@
             {#if canUpdate}
               <div class="flex items-end gap-2 pt-2">
                 <MoneyInput
-                  label="Delivery fee"
+                  label={t('orders.deliveryFee')}
                   bind:value={shippingDraft}
                   suffix={order.totals.currency}
                   disabled={busy !== null}
@@ -446,11 +468,11 @@
                   variant="outline"
                   class="h-8"
                   busy={busy === 'shipping'}
-                  busyLabel="Saving…"
+                  busyLabel={t('common.saving')}
                   disabled={busy !== null || shippingDraft === order.totals.shippingTotal}
                   onclick={saveShipping}
                 >
-                  Save
+                  {t('common.save')}
                 </BusyButton>
               </div>
             {/if}
@@ -459,7 +481,7 @@
             {#if returnAddress}
               <p class="pt-1">
                 <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  Collect from
+                  {t('orders.collectFrom')}
                 </span>
                 <span class="text-muted-foreground">{returnAddress}</span>
               </p>
@@ -471,7 +493,7 @@
       <!-- Contract. Renewals stack up, so this card reads as a history: the
            live contract on top, every earlier one dated beneath it. -->
       <Card.Root class="gap-0 py-0">
-        <div class="border-b px-4 py-2.5 text-sm font-medium">Contract</div>
+        <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.contractTitle')}</div>
         <div class="p-4 text-sm">
           {#if orderContracts.loading && !orderContracts.data}
             <div class="space-y-2">
@@ -493,11 +515,13 @@
                 <!-- The one fact an operator must not miss: no signature, no
                      money and no goods. It gates "Mark paid" on the server. -->
                 <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  Contract not signed — the order cannot be marked paid yet.
+                  {t('orders.contractBlocked')}
                 </p>
               {:else}
                 <p class="text-xs text-muted-foreground">
-                  Signed {liveContract.signedAt ? formatDateTime(liveContract.signedAt) : ''}
+                  {t('orders.contractSignedOn', {
+                    date: liveContract.signedAt ? formatDateTime(liveContract.signedAt) : '',
+                  })}
                 </p>
               {/if}
               <Button
@@ -507,12 +531,14 @@
                 class="w-full"
               >
                 <FileSignatureIcon class="size-4" />
-                View contract
+                {t('orders.contractView')}
               </Button>
 
               {#if (orderContracts.data?.length ?? 0) > 1}
                 <div class="space-y-1 border-t pt-2">
-                  <p class="text-xs font-medium text-muted-foreground">History</p>
+                  <p class="text-xs font-medium text-muted-foreground">
+                    {t('orders.contractHistory')}
+                  </p>
                   {#each orderContracts.data ?? [] as history (history.id)}
                     {#if history.id !== liveContract.id}
                       {@const hMeta = contractStatusMeta(history.status)}
@@ -535,12 +561,12 @@
             </div>
           {:else if !hasRental}
             <p class="text-muted-foreground">
-              Nothing on this order is rented, so no rental contract applies.
+              {t('orders.contractNoRental')}
             </p>
           {:else}
             <div class="space-y-2">
               <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                Contract not signed — no contract has been generated for this rental.
+                {t('orders.contractNoneYet')}
               </p>
               {#if session.can(P.CONTRACT_CREATE)}
                 <BusyButton
@@ -548,11 +574,11 @@
                   size="sm"
                   class="w-full"
                   busy={generating}
-                  busyLabel="Generate contract"
+                  busyLabel={t('orders.contractGenerate')}
                   onclick={generateContract}
                 >
                   <FileSignatureIcon class="size-4" />
-                  Generate contract
+                  {t('orders.contractGenerate')}
                 </BusyButton>
               {/if}
             </div>
@@ -588,7 +614,7 @@
 
       {#if order.notes}
         <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">Notes</div>
+          <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.notesTitle')}</div>
           <p class="p-4 text-sm whitespace-pre-wrap">{order.notes}</p>
         </Card.Root>
       {/if}
@@ -598,11 +624,11 @@
          the column under the items. -->
     <Card.Root class="gap-0 py-0 @4xl:col-span-2 @4xl:col-start-1 @4xl:row-start-2">
       <div class="flex items-center gap-2 border-b px-4 py-2.5">
-        <span class="text-sm font-medium">Actions</span>
+        <span class="text-sm font-medium">{t('orders.actionsTitle')}</span>
         {#if !canUpdate}
           <Badge variant="outline" class="gap-1 text-muted-foreground">
             <LockIcon class="size-3" />
-            needs <code class="font-mono">{updateKey}</code>
+            {t('orders.actionsNeeds')} <code class="font-mono">{updateKey}</code>
           </Badge>
         {/if}
       </div>
@@ -610,16 +636,15 @@
       <div class="space-y-3 p-4">
         {#if order.allowedStatuses.length === 0}
           <p class="text-sm text-muted-foreground">
-            This order is {orderStatusMeta(order.status).label.toLowerCase()}. There is nothing left
-            to move.
+            {t('orders.actionsNothingLeft', { status: orderStatusMeta(order.status).label })}
           </p>
         {:else}
           <Textarea
             bind:value={note}
             rows={2}
             disabled={!canUpdate}
-            placeholder="Optional note — it is written to the timeline with the change."
-            aria-label="Note for the next status change"
+            placeholder={t('orders.actionsNotePlaceholder')}
+            aria-label={t('orders.actionsNoteLabel')}
           />
 
           <div class="flex flex-wrap items-center gap-2">
@@ -631,7 +656,7 @@
                 onclick={() => moveStatus(to as OrderStatus)}
               >
                 {#if busy === `status:${to}`}<Spinner />{/if}
-                Mark {orderStatusMeta(to as OrderStatus).label.toLowerCase()}
+                {t('orders.actionsMarkAs', { status: orderStatusMeta(to as OrderStatus).label })}
               </Button>
             {/each}
           </div>
@@ -641,6 +666,8 @@
   </div>
 
   <p class="text-xs text-muted-foreground">
-    Last updated {order.updatedAt ? formatDateTime(order.updatedAt) : EM_DASH}
+    {t('orders.detailUpdated', {
+      date: order.updatedAt ? formatDateTime(order.updatedAt) : EM_DASH,
+    })}
   </p>
 </div>

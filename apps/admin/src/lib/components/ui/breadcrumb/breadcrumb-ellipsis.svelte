@@ -1,6 +1,7 @@
 <script lang="ts">
   import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
   import { cn, type WithElementRef, type WithoutChildren } from '$lib/utils.js';
+  import { t } from '~/lib/ui-text';
   import type { HTMLAttributes } from 'svelte/elements';
 
   let {
@@ -19,5 +20,5 @@
   {...restProps}
 >
   <MoreHorizontalIcon />
-  <span class="sr-only">More</span>
+  <span class="sr-only">{t('shell.breadcrumbMore')}</span>
 </span>
