@@ -1,0 +1,23 @@
+{
+  "description": "Today's activity across the catalog and the order queue.",
+  "tileRevenue": "Revenue ({days} days)",
+  "hintRevenueBasis": "Paid and fulfilled orders only",
+  "tileOrders": "Orders ({days} days)",
+  "hintOrders": "Counted on the same basis as revenue",
+  "tileAwaiting": "Waiting to accept",
+  "hintAwaiting": "Orders still pending",
+  "tileProducts": "Active products",
+  "hintProducts": "Live on the storefront",
+  "calendarTitle": "Rental calendar",
+  "calendarFailed": "The calendar could not load: {error}",
+  "placedOn": "Placed on {date}",
+  "clear": "Clear",
+  "colOrder": "Order",
+  "colCustomer": "Customer",
+  "colStatus": "Status",
+  "colPayment": "Payment",
+  "colPlaced": "Placed",
+  "colTotal": "Total",
+  "emptyTitle": "No orders yet",
+  "emptyHint": "They appear here as soon as the storefront takes one."
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { type MessageKey, t } from '~/lib/ui-text';
   import { P } from '@mia/permissions';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import SaveIcon from '@lucide/svelte/icons/save';
@@ -125,13 +126,19 @@
         }),
       );
       post.set(updated);
-      toast.success('Post saved.');
+      toast.success(t('blog.toastSaved'));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
       busy = null;
     }
   }
+
+  const STATUS_TOASTS: Record<'draft' | 'published' | 'archived', MessageKey> = {
+    draft: 'blog.toastDraft',
+    published: 'blog.toastPublished',
+    archived: 'blog.toastArchived',
+  };
 
   async function changeStatus(status: 'draft' | 'published' | 'archived') {
     const p = post.data;
@@ -145,7 +152,7 @@
         }),
       );
       post.set(updated);
-      toast.success(`Post ${blogStatusMeta(status).label.toLowerCase()}.`);
+      toast.success(t(STATUS_TOASTS[status]));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -156,15 +163,19 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Blog"
-    title={post.data ? (post.data.translations?.it?.title ?? 'Post') : 'Post'}
-    description={post.data ? `Last updated ${formatDateTime(post.data.updatedAt)}` : ''}
+    eyebrow={t('blog.blogEyebrow')}
+    title={post.data
+      ? (post.data.translations?.it?.title ?? t('blog.postFallback'))
+      : t('blog.postFallback')}
+    description={post.data
+      ? t('blog.lastUpdated', { date: formatDateTime(post.data.updatedAt) })
+      : ''}
   >
     {#snippet actions()}
       <div class="flex items-center gap-2">
         <Button href={routes.blog} variant="outline">
           <ArrowLeftIcon />
-          Back to posts
+          {t('blog.backToPosts')}
         </Button>
         {#if post.data && canUpdate}
           <!-- The source-language title is the one field the API requires. -->
@@ -173,14 +184,14 @@
             disabled={busy !== null || !textFor(title, SOURCE_LANGUAGE).trim()}
           >
             {#if busy === 'save'}<Spinner />{:else}<SaveIcon class="size-4" />{/if}
-            Save
+            {t('common.save')}
           </Button>
         {/if}
       </div>
     {/snippet}
   </PageHeader>
 
-  <ResourceView resource={post} noun="post">
+  <ResourceView resource={post} noun={t('entities.postNoun')}>
     {#snippet children(p)}
       {@const meta = blogStatusMeta(p.status)}
 
@@ -190,9 +201,9 @@
           {meta.label}
         </Badge>
         {#if p.publishedAt}
-          <span class="text-sm text-muted-foreground"
-            >Published {formatDateTime(p.publishedAt)}</span
-          >
+          <span class="text-sm text-muted-foreground">
+            {t('blog.publishedOn', { date: formatDateTime(p.publishedAt) })}
+          </span>
         {/if}
       </div>
 
@@ -204,18 +215,24 @@
           <Card.Root>
             <Card.Content class="space-y-4">
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="post-title">Title</label>
+                <label class="mb-1.5 block text-sm font-medium" for="post-title"
+                  >{t('blog.fieldTitle')}</label
+                >
                 <Input
                   id="post-title"
                   value={textFor(title, lang)}
                   oninput={(event) => setTextFor(title, lang, event.currentTarget.value)}
                   disabled={!canUpdate}
-                  placeholder={isSource ? '' : `${languageOf(lang).label} title (optional)`}
+                  placeholder={isSource
+                    ? ''
+                    : t('blog.titlePlaceholderLang', { language: languageOf(lang).label })}
                 />
                 <TranslationGaps value={title} class="mt-1" />
               </div>
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="post-slug">Slug</label>
+                <label class="mb-1.5 block text-sm font-medium" for="post-slug"
+                  >{t('blog.fieldSlug')}</label
+                >
                 <Input
                   id="post-slug"
                   value={textFor(slug, lang)}
@@ -225,25 +242,31 @@
                 />
               </div>
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="post-body">Body</label>
+                <label class="mb-1.5 block text-sm font-medium" for="post-body"
+                  >{t('blog.fieldBody')}</label
+                >
                 <Textarea
                   id="post-body"
                   value={textFor(body, lang)}
                   oninput={(event) => setTextFor(body, lang, event.currentTarget.value)}
                   rows={20}
                   disabled={!canUpdate}
-                  placeholder={isSource ? '' : `${languageOf(lang).label} body (optional)`}
+                  placeholder={isSource
+                    ? ''
+                    : t('blog.bodyPlaceholderLang', { language: languageOf(lang).label })}
                 />
               </div>
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="post-excerpt">Excerpt</label>
+                <label class="mb-1.5 block text-sm font-medium" for="post-excerpt"
+                  >{t('blog.fieldExcerpt')}</label
+                >
                 <Textarea
                   id="post-excerpt"
                   value={textFor(excerpt, lang)}
                   oninput={(event) => setTextFor(excerpt, lang, event.currentTarget.value)}
                   rows={3}
                   disabled={!canUpdate}
-                  placeholder="Short summary for listing cards…"
+                  placeholder={t('blog.excerptPlaceholder')}
                 />
               </div>
             </Card.Content>
@@ -252,22 +275,24 @@
           <!-- SEO -->
           <Card.Root class="gap-0 py-0">
             <div class="border-b px-4 py-2.5 text-sm font-medium">
-              SEO ({lang.toUpperCase()})
+              {t('blog.seoHeading', { lang: lang.toUpperCase() })}
             </div>
             <div class="space-y-4 p-4">
               <div>
-                <label class="mb-1.5 block text-sm font-medium" for="meta-title">Meta title</label>
+                <label class="mb-1.5 block text-sm font-medium" for="meta-title"
+                  >{t('blog.metaTitle')}</label
+                >
                 <Input
                   id="meta-title"
                   value={textFor(metaTitle, lang)}
                   oninput={(event) => setTextFor(metaTitle, lang, event.currentTarget.value)}
                   disabled={!canUpdate}
-                  placeholder="Custom page title for search engines"
+                  placeholder={t('blog.metaTitlePlaceholder')}
                 />
               </div>
               <div>
                 <label class="mb-1.5 block text-sm font-medium" for="meta-desc">
-                  Meta description
+                  {t('blog.metaDescription')}
                 </label>
                 <Textarea
                   id="meta-desc"
@@ -275,7 +300,7 @@
                   oninput={(event) => setTextFor(metaDescription, lang, event.currentTarget.value)}
                   rows={2}
                   disabled={!canUpdate}
-                  placeholder="Short description for search results"
+                  placeholder={t('blog.metaDescriptionPlaceholder')}
                 />
               </div>
             </div>
@@ -285,7 +310,7 @@
         <div class="space-y-5">
           <!-- Status actions -->
           <Card.Root class="gap-0 py-0">
-            <div class="border-b px-4 py-2.5 text-sm font-medium">Status</div>
+            <div class="border-b px-4 py-2.5 text-sm font-medium">{t('blog.statusHeading')}</div>
             <div class="space-y-2 p-4">
               {#if p.status === 'draft' && canPublish}
                 <Button
@@ -296,7 +321,7 @@
                   onclick={() => changeStatus('published')}
                 >
                   {#if busy === 'status:published'}<Spinner />{/if}
-                  Publish
+                  {t('blog.publish')}
                 </Button>
               {/if}
               {#if p.status === 'published' && canPublish}
@@ -308,7 +333,7 @@
                   onclick={() => changeStatus('archived')}
                 >
                   {#if busy === 'status:archived'}<Spinner />{/if}
-                  Archive
+                  {t('blog.archive')}
                 </Button>
               {/if}
               {#if p.status === 'archived' && canPublish}
@@ -320,7 +345,7 @@
                   onclick={() => changeStatus('draft')}
                 >
                   {#if busy === 'status:draft'}<Spinner />{/if}
-                  Return to draft
+                  {t('blog.returnToDraft')}
                 </Button>
               {/if}
             </div>
@@ -328,34 +353,34 @@
 
           <!-- Featured image -->
           <Card.Root class="gap-0 py-0">
-            <div class="border-b px-4 py-2.5 text-sm font-medium">Featured Image</div>
+            <div class="border-b px-4 py-2.5 text-sm font-medium">{t('blog.featuredImage')}</div>
             <div class="p-4">
               <Input
                 bind:value={featuredImage}
                 disabled={!canUpdate}
-                placeholder="R2 storage key or URL"
+                placeholder={t('blog.featuredImagePlaceholder')}
               />
               <p class="mt-1.5 text-xs text-muted-foreground">
-                Enter the media storage key from the media library.
+                {t('blog.featuredImageHint')}
               </p>
             </div>
           </Card.Root>
 
           <!-- Info -->
           <Card.Root class="gap-0 py-0">
-            <div class="border-b px-4 py-2.5 text-sm font-medium">Info</div>
+            <div class="border-b px-4 py-2.5 text-sm font-medium">{t('blog.infoHeading')}</div>
             <div class="space-y-2 p-4 text-sm">
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Created</span>
+                <span class="text-muted-foreground">{t('blog.infoCreated')}</span>
                 <span>{formatDateTime(p.createdAt)}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Updated</span>
+                <span class="text-muted-foreground">{t('blog.infoUpdated')}</span>
                 <span>{formatDateTime(p.updatedAt)}</span>
               </div>
               {#if p.publishedAt}
                 <div class="flex justify-between">
-                  <span class="text-muted-foreground">Published</span>
+                  <span class="text-muted-foreground">{t('blog.infoPublished')}</span>
                   <span>{formatDateTime(p.publishedAt)}</span>
                 </div>
               {/if}

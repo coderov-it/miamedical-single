@@ -14,6 +14,7 @@
   import BusyButton from '~/lib/components/busy-button.svelte';
   import { focusFirstIssue } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     target: { id: string } | undefined;
@@ -40,7 +41,7 @@
     if (!current) return;
 
     if (!reason.trim()) {
-      fields = { reason: 'Say why, for the order timeline.' };
+      fields = { reason: t('rentals.cancelErrorReason') };
       focusFirstIssue(fields, [{ key: 'reason', id: 'cancel-reason' }]);
       return;
     }
@@ -53,7 +54,7 @@
           json: { reason: reason.trim() },
         }),
       );
-      toast.success('Extension cancelled.');
+      toast.success(t('rentals.toastExtensionCancelled'));
       onDone();
       onClose();
     } catch (err) {
@@ -73,8 +74,8 @@
 >
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Cancel extension</Dialog.Title>
-      <Dialog.Description>The rental keeps its current end date.</Dialog.Description>
+      <Dialog.Title>{t('rentals.cancelTitle')}</Dialog.Title>
+      <Dialog.Description>{t('rentals.cancelDescription')}</Dialog.Description>
     </Dialog.Header>
     <form
       class="space-y-4"
@@ -84,7 +85,7 @@
       }}
     >
       <div>
-        <Label class="mb-1.5" for="cancel-reason">Reason</Label>
+        <Label class="mb-1.5" for="cancel-reason">{t('rentals.cancelReason')}</Label>
         <Textarea
           id="cancel-reason"
           bind:value={reason}
@@ -96,9 +97,16 @@
         {/if}
       </div>
       <Dialog.Footer>
-        <Button type="button" variant="ghost" disabled={saving} onclick={onClose}>Back</Button>
-        <BusyButton type="submit" variant="destructive" busy={saving} busyLabel="Cancelling…">
-          Cancel extension
+        <Button type="button" variant="ghost" disabled={saving} onclick={onClose}>
+          {t('common.back')}
+        </Button>
+        <BusyButton
+          type="submit"
+          variant="destructive"
+          busy={saving}
+          busyLabel={t('rentals.cancelling')}
+        >
+          {t('rentals.cancelTitle')}
         </BusyButton>
       </Dialog.Footer>
     </form>

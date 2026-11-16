@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { type MessageKey, t } from '~/lib/ui-text';
   import { P } from '@mia/permissions';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import CheckIcon from '@lucide/svelte/icons/check';
@@ -46,8 +47,8 @@
 
   const headerDescription = $derived.by(() => {
     if (!contract.data) return '';
-    if (!contract.data.orderNumber) return 'Manual contract';
-    return `Order ${contract.data.orderNumber}`;
+    if (!contract.data.orderNumber) return t('contracts.headerManual');
+    return t('contracts.headerOrder', { number: contract.data.orderNumber });
   });
 
   let busy = $state<string | null>(null);
@@ -73,12 +74,12 @@
       signal: controller.signal,
     })
       .then(async (r) => {
-        if (!r.ok) throw new Error(`The preview could not be loaded (${r.status}).`);
+        if (!r.ok) throw new Error(t('contracts.previewLoadFailedStatus', { status: r.status }));
         previewHtml = await r.text();
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        previewError = err instanceof Error ? err.message : 'The preview could not be loaded.';
+        previewError = err instanceof Error ? err.message : t('contracts.previewLoadFailed');
       });
     return () => controller.abort();
   });
@@ -97,11 +98,11 @@
   }
 
   const TIMELINE_STEPS = [
-    { key: 'createdAt', label: 'Generated' },
-    { key: 'sentAt', label: 'Sent' },
-    { key: 'viewedAt', label: 'Viewed' },
-    { key: 'signedAt', label: 'Signed' },
-  ] as const;
+    { key: 'createdAt', labelKey: 'status.contractGenerated' },
+    { key: 'sentAt', labelKey: 'status.contractSent' },
+    { key: 'viewedAt', labelKey: 'status.contractViewed' },
+    { key: 'signedAt', labelKey: 'status.contractSigned' },
+  ] as const satisfies readonly { key: string; labelKey: MessageKey }[];
 
   const timelineIndex = $derived.by(() => {
     if (!contract.data) return -1;
@@ -122,7 +123,7 @@
         await api.api.admin.contracts[':id'].send.$post({ param: { id: c.id } }),
       );
       contract.set(updated);
-      toast.success(`Signing link resent for ${c.number}.`);
+      toast.success(t('contracts.toastLinkResent', { number: c.number }));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -143,7 +144,7 @@
       );
       contract.set(updated);
       voidReason = '';
-      toast.success(`Contract ${c.number} voided.`);
+      toast.success(t('contracts.toastVoided', { number: c.number }));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -154,19 +155,19 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Contracts"
-    title={contract.data?.number ?? 'Contract'}
+    eyebrow={t('contracts.listTitle')}
+    title={contract.data?.number ?? t('contracts.detailFallbackTitle')}
     description={headerDescription}
   >
     {#snippet actions()}
       <Button href={routes.contracts} variant="outline">
         <ArrowLeftIcon />
-        Back to contracts
+        {t('contracts.backToContracts')}
       </Button>
     {/snippet}
   </PageHeader>
 
-  <ResourceView resource={contract} noun="contract">
+  <ResourceView resource={contract} noun={t('entities.contractNoun')}>
     {#snippet children(c)}
       {@const meta = contractStatusMeta(c.status)}
 
@@ -178,7 +179,7 @@
         <Badge variant="outline">{variantLabel(c.variant)}</Badge>
         {#if c.requiresDeposit}
           <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
-            Deposit required
+            {t('contracts.depositRequired')}
           </Badge>
         {/if}
       </div>
@@ -199,7 +200,7 @@
               {#if done}<CheckIcon class="size-3" />{:else}{index + 1}{/if}
             </span>
             <span class={cn('text-sm', done ? 'font-medium' : 'text-muted-foreground')}>
-              {step.label}
+              {t(step.labelKey)}
             </span>
           </div>
           {#if index < TIMELINE_STEPS.length - 1}
@@ -210,7 +211,7 @@
         {/each}
         {#if c.status === 'voided'}
           <span class="ml-2 text-sm text-muted-foreground">
-            — voided, so the path above ended early.
+            {t('contracts.timelineVoided')}
           </span>
         {/if}
       </div>
@@ -220,15 +221,15 @@
           <!-- Contract preview -->
           <Card.Root class="gap-0 overflow-hidden py-0">
             <div class="flex items-center justify-between gap-2 border-b px-4 py-2.5">
-              <span class="text-sm font-medium">Contract Preview</span>
+              <span class="text-sm font-medium">{t('contracts.previewTitle')}</span>
               <div class="flex items-center gap-1">
                 <Button variant="ghost" size="sm" disabled={!previewHtml} onclick={openPreviewTab}>
                   <ExternalLinkIcon class="size-4" />
-                  Open in new tab
+                  {t('contracts.openInNewTab')}
                 </Button>
                 <Button variant="ghost" size="sm" disabled={!previewHtml} onclick={printContract}>
                   <PrinterIcon class="size-4" />
-                  Download / print PDF
+                  {t('contracts.printPdf')}
                 </Button>
               </div>
             </div>
@@ -236,7 +237,7 @@
               <iframe
                 bind:this={previewFrame}
                 srcdoc={previewHtml}
-                title="Contract preview"
+                title={t('contracts.previewTitle')}
                 class="h-[600px] w-full border-0 bg-white"
               ></iframe>
             {:else if previewError}
@@ -252,14 +253,16 @@
         <div class="space-y-5">
           <!-- Details -->
           <Card.Root class="gap-0 py-0">
-            <div class="border-b px-4 py-2.5 text-sm font-medium">Details</div>
+            <div class="border-b px-4 py-2.5 text-sm font-medium">
+              {t('contracts.detailsTitle')}
+            </div>
             <div class="space-y-2 p-4 text-sm">
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Contract</span>
+                <span class="text-muted-foreground">{t('contracts.colContract')}</span>
                 <span class="font-mono font-medium">{c.number}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Order</span>
+                <span class="text-muted-foreground">{t('contracts.colOrder')}</span>
                 {#if c.orderId}
                   <a
                     href={routes.orderDetail(c.orderId)}
@@ -268,20 +271,20 @@
                     {c.orderNumber}
                   </a>
                 {:else}
-                  <span class="text-muted-foreground">Manual — no order</span>
+                  <span class="text-muted-foreground">{t('contracts.manualNoOrder')}</span>
                 {/if}
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Variant</span>
+                <span class="text-muted-foreground">{t('contracts.colVariant')}</span>
                 <span>{variantLabel(c.variant)}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Language</span>
+                <span class="text-muted-foreground">{t('contracts.detailLanguage')}</span>
                 <span class="uppercase">{c.language}</span>
               </div>
               {#if c.requiresDeposit}
                 <div class="flex justify-between">
-                  <span class="text-muted-foreground">Deposit</span>
+                  <span class="text-muted-foreground">{t('contracts.detailDeposit')}</span>
                   <span class="tabular-nums"
                     >{c.depositAmount ? `€ ${c.depositAmount}` : EM_DASH}</span
                   >
@@ -292,38 +295,40 @@
 
           <!-- Timestamps -->
           <Card.Root class="gap-0 py-0">
-            <div class="border-b px-4 py-2.5 text-sm font-medium">Timestamps</div>
+            <div class="border-b px-4 py-2.5 text-sm font-medium">
+              {t('contracts.timestampsTitle')}
+            </div>
             <div class="space-y-2 p-4 text-sm">
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Created</span>
+                <span class="text-muted-foreground">{t('contracts.detailCreated')}</span>
                 <span>{formatDateTime(c.createdAt)}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Sent</span>
+                <span class="text-muted-foreground">{t('status.contractSent')}</span>
                 <span>{orDash(c.sentAt ? formatDateTime(c.sentAt) : null)}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Viewed</span>
+                <span class="text-muted-foreground">{t('status.contractViewed')}</span>
                 <span>{orDash(c.viewedAt ? formatDateTime(c.viewedAt) : null)}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Signed</span>
+                <span class="text-muted-foreground">{t('status.contractSigned')}</span>
                 <span>{orDash(c.signedAt ? formatDateTime(c.signedAt) : null)}</span>
               </div>
               {#if c.voidedAt}
                 <div class="flex justify-between">
-                  <span class="text-muted-foreground">Voided</span>
+                  <span class="text-muted-foreground">{t('status.contractVoided')}</span>
                   <span>{formatDateTime(c.voidedAt)}</span>
                 </div>
                 {#if c.voidedByAdminName}
                   <div class="flex justify-between">
-                    <span class="text-muted-foreground">Voided by</span>
+                    <span class="text-muted-foreground">{t('contracts.voidedBy')}</span>
                     <span>{c.voidedByAdminName}</span>
                   </div>
                 {/if}
                 {#if c.voidReason}
                   <div>
-                    <span class="text-muted-foreground">Reason</span>
+                    <span class="text-muted-foreground">{t('contracts.detailReason')}</span>
                     <p class="mt-1 whitespace-pre-wrap">{c.voidReason}</p>
                   </div>
                 {/if}
@@ -334,7 +339,9 @@
           <!-- Actions -->
           {#if c.status !== 'signed' && c.status !== 'voided'}
             <Card.Root class="gap-0 py-0">
-              <div class="border-b px-4 py-2.5 text-sm font-medium">Actions</div>
+              <div class="border-b px-4 py-2.5 text-sm font-medium">
+                {t('common.actions')}
+              </div>
               <div class="space-y-3 p-4">
                 <Button
                   variant="outline"
@@ -345,7 +352,7 @@
                 >
                   {#if busy === 'send'}<Spinner />{/if}
                   <MailIcon class="size-4" />
-                  {c.sentAt ? 'Resend signing link' : 'Send signing link'}
+                  {c.sentAt ? t('contracts.resendSigningLink') : t('contracts.sendSigningLink')}
                 </Button>
 
                 <div class="space-y-2">
@@ -353,8 +360,8 @@
                     bind:value={voidReason}
                     rows={2}
                     disabled={!canUpdate}
-                    placeholder="Reason for voiding…"
-                    aria-label="Void reason"
+                    placeholder={t('contracts.voidReasonPlaceholder')}
+                    aria-label={t('contracts.voidReasonLabel')}
                   />
                   <Button
                     variant="destructive"
@@ -365,7 +372,7 @@
                   >
                     {#if busy === 'void'}<Spinner />{/if}
                     <XCircleIcon class="size-4" />
-                    Void contract
+                    {t('contracts.voidAction')}
                   </Button>
                 </div>
               </div>
@@ -375,7 +382,9 @@
       </div>
 
       <p class="text-xs text-muted-foreground">
-        Last updated {c.updatedAt ? formatDateTime(c.updatedAt) : EM_DASH}
+        {t('contracts.lastUpdated', {
+          date: c.updatedAt ? formatDateTime(c.updatedAt) : EM_DASH,
+        })}
       </p>
     {/snippet}
   </ResourceView>

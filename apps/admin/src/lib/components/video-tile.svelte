@@ -16,6 +16,7 @@
   import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import type { ContentLanguage } from '~/lib/content-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import type { VideoItem } from './video-field.svelte';
 
   interface Props {
@@ -65,7 +66,7 @@
     {#if embed}
       <iframe
         src={embed}
-        title={item.alt?.[lang] || `${source} video`}
+        title={item.alt?.[lang] || t('components.videoIframeTitle', { source })}
         loading="lazy"
         allow={VIDEO_IFRAME_ALLOW}
         allowfullscreen
@@ -84,7 +85,7 @@
       ></video>
     {:else if broken}
       <p class="px-4 text-center text-xs text-destructive" role="alert">
-        This link does not play as a video file (mp4 or webm).
+        {t('components.videoBroken')}
       </p>
     {:else}
       <!-- Uploaded but not yet public: show that it exists, not a gap. -->
@@ -102,8 +103,8 @@
       </p>
       <Input
         value={item.alt?.[lang] ?? ''}
-        placeholder="Alt text ({lang.toUpperCase()})"
-        aria-label="Alt text for {name}"
+        placeholder={t('components.altTextPlaceholder', { lang: lang.toUpperCase() })}
+        aria-label={t('components.altTextFor', { name })}
         class="mt-1.5 h-7 text-xs"
         oninput={(event) => onAlt(event.currentTarget.value)}
       />
@@ -117,7 +118,7 @@
             size="icon-sm"
             disabled={!canMoveEarlier}
             onclick={() => onMove(-1)}
-            aria-label="Move earlier"
+            aria-label={t('components.moveEarlier')}
           >
             <ChevronLeftIcon />
           </Button>
@@ -126,7 +127,7 @@
             size="icon-sm"
             disabled={!canMoveLater}
             onclick={() => onMove(1)}
-            aria-label="Move later"
+            aria-label={t('components.moveLater')}
           >
             <ChevronRightIcon />
           </Button>
@@ -137,7 +138,7 @@
         size="icon-sm"
         class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
         onclick={onRemove}
-        aria-label="Remove {name}"
+        aria-label={t('components.removeNamed', { name })}
       >
         <XIcon />
       </Button>

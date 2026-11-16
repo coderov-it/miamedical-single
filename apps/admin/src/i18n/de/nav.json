@@ -1,0 +1,22 @@
+{
+  "overview": "Übersicht",
+  "catalog": "Katalog",
+  "sales": "Verkauf",
+  "content": "Inhalte",
+  "settings": "Einstellungen",
+  "dashboard": "Dashboard",
+  "notifications": "Benachrichtigungen",
+  "products": "Produkte",
+  "categories": "Kategorien",
+  "terms": "Bedingungen",
+  "orders": "Bestellungen",
+  "rentManagement": "Mietverwaltung",
+  "contracts": "Verträge",
+  "payments": "Zahlungen",
+  "carts": "Warenkörbe",
+  "disputedOrders": "Strittige Bestellungen",
+  "blogPosts": "Blogbeiträge",
+  "privacyPolicy": "Datenschutzerklärung",
+  "general": "Allgemein",
+  "adminUsers": "Administratoren"
+}

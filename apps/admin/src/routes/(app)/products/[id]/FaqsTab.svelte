@@ -12,6 +12,7 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -86,7 +87,7 @@
       saved = comparable(faqs);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('FAQs saved.');
+      toast.success(t('products.faqsSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -106,40 +107,45 @@
 </script>
 
 <TabPanel
-  title="FAQs"
-  description="Shown on the product page, in this order."
+  title={t('products.tabFaqs')}
+  description={t('products.faqsDescription')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="max-w-3xl space-y-3">
     {#if faqs.length === 0}
       <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        No FAQs yet. They answer the questions that would otherwise become emails.
+        {t('products.faqsEmpty')}
       </p>
     {/if}
 
     <SortableList
       bind:items={faqs}
-      label="FAQ"
+      label={t('products.faqLabel')}
       key={(faq) => faq.uid}
-      describe={(faq) => faq.question.it || 'this FAQ'}
+      describe={(faq) => faq.question.it || t('products.faqFallback')}
       onRemove={(index) => faqs.splice(index, 1)}
     >
       {#snippet row(faq)}
         <div class="space-y-3">
-          <TranslatedInput label="Question" bind:value={faq.question} />
-          <TranslatedInput label="Answer" bind:value={faq.answer} multiline rows={3} />
+          <TranslatedInput label={t('products.fieldQuestion')} bind:value={faq.question} />
+          <TranslatedInput
+            label={t('products.fieldAnswer')}
+            bind:value={faq.answer}
+            multiline
+            rows={3}
+          />
           <div class="flex items-center gap-2">
             <Switch
               id="faq-active-{faq.uid}"
               checked={faq.isActive}
               onCheckedChange={(checked) => (faq.isActive = checked)}
             />
-            <Label for="faq-active-{faq.uid}" class="text-sm">Visible on the site</Label>
+            <Label for="faq-active-{faq.uid}" class="text-sm">{t('products.faqVisible')}</Label>
           </div>
         </div>
       {/snippet}
@@ -147,7 +153,7 @@
 
     <Button variant="outline" size="sm" onclick={add}>
       <PlusIcon />
-      Add FAQ
+      {t('products.addFaq')}
     </Button>
 
     {#if Object.keys(fields).length > 0}

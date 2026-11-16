@@ -36,6 +36,7 @@
   import { formatBytes } from '~/lib/format';
   import { uploadFile } from '~/lib/media/upload';
   import { Reorder } from '~/lib/reorder.svelte';
+  import { t, tn } from '~/lib/ui-text';
   import type { LocalizedOptional } from '~/lib/i18n';
 
   export interface MediaItem {
@@ -94,7 +95,7 @@
         sessionPaths.add(result.path);
         items.push({ path: result.path, mimeType: result.mimeType, alt: {} });
       } catch (err) {
-        error = err instanceof Error ? err.message : 'Upload failed.';
+        error = err instanceof Error ? err.message : t('common.uploadFailed');
         break;
       } finally {
         pending = null;
@@ -173,7 +174,7 @@
         size="icon-sm"
         disabled={earlier ? index === 0 : index === items.length - 1}
         onclick={() => move(index, earlier ? -1 : 1)}
-        aria-label="Move {earlier ? 'earlier' : 'later'}"
+        aria-label={earlier ? t('components.moveEarlier') : t('components.moveLater')}
       >
         {#if earlier}
           <ChevronLeftIcon />
@@ -212,8 +213,8 @@
             <p class="truncate text-xs text-muted-foreground">{item.path.split('/').at(-1)}</p>
             <Input
               value={item.alt?.[lang] ?? ''}
-              placeholder="Alt text ({lang.toUpperCase()})"
-              aria-label="Alt text for {item.path.split('/').at(-1)}"
+              placeholder={t('components.altTextPlaceholder', { lang: lang.toUpperCase() })}
+              aria-label={t('components.altTextFor', { name: item.path.split('/').at(-1) ?? '' })}
               class="mt-1 h-7 text-xs"
               oninput={(event) => {
                 item.alt = { ...item.alt, [lang]: event.currentTarget.value || undefined };
@@ -236,7 +237,7 @@
               size="icon-sm"
               class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               onclick={() => void remove(index)}
-              aria-label="Remove {item.path.split('/').at(-1)}"
+              aria-label={t('components.removeNamed', { name: item.path.split('/').at(-1) ?? '' })}
             >
               <XIcon />
             </Button>
@@ -248,8 +249,8 @@
 
   {#if items.length > 0}
     <p class="mt-1.5 text-xs text-muted-foreground">
-      {items.length === 1 ? '1 file' : `${items.length} files`}
-      {#if pending}· uploading {formatBytes(pending.size)}{/if}
+      {tn('components.fileCount', items.length)}
+      {#if pending}· {t('components.uploadingSize', { size: formatBytes(pending.size) })}{/if}
     </p>
   {/if}
 </div>

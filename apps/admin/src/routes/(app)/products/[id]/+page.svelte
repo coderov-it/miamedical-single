@@ -16,7 +16,9 @@
   screen lying about what got through.
 -->
 <script lang="ts">
+  import { t, tn } from '~/lib/ui-text';
   import { P } from '@mia/permissions';
+  import { perUnitLabel, productStatusLabel } from '@mia/i18n';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
@@ -141,7 +143,7 @@
 
   function openTranslate() {
     if (dirty.any) {
-      toast.error('Save or discard your unsaved changes first — generating reloads the tabs.');
+      toast.error(t('products.translateDirty'));
       return;
     }
     translateOpen = true;
@@ -161,7 +163,7 @@
     product.set(updated);
     productVersion += 1;
     const count = Object.keys(rows).length;
-    toast.success(`Saved ${count} ${count === 1 ? 'language' : 'languages'}.`);
+    toast.success(tn('products.translationsSaved', count));
   }
 
   let deleting = $state(false);
@@ -177,7 +179,11 @@
       // Clear first: the guard must not challenge a navigation away from a
       // product that no longer exists.
       dirty.clearAll();
-      toast.success(`Deleted "${current.translations.it?.title ?? 'product'}".`);
+      toast.success(
+        t('products.deleted', {
+          title: current.translations.it?.title ?? t('entities.productNoun'),
+        }),
+      );
       await goto(routes.products);
     } catch (err) {
       toast.error(errorMessage(err));
@@ -189,7 +195,7 @@
   const title = $derived(
     product.data?.translations[uiLang.current]?.title ||
       product.data?.translations.it?.title ||
-      'Product',
+      t('products.fallbackTitle'),
   );
 
   /** Only offered once the product is actually reachable on the storefront. */
@@ -204,23 +210,23 @@
 <UnsavedChangesGuard {dirty} label={tabLabel} />
 
 <section class="admin-page">
-  <PageHeader eyebrow="Catalog" title={product.data ? title : 'Product'}>
+  <PageHeader eyebrow={t('nav.catalog')} title={product.data ? title : t('products.fallbackTitle')}>
     {#snippet actions()}
       {#if autoTranslate.available && product.data}
         <Button size="sm" variant="outline" onclick={openTranslate}>
           <WandSparklesIcon />
-          Translate
+          {t('products.translateButton')}
         </Button>
       {/if}
       {#if storefrontUrl}
         <Button size="sm" href={storefrontUrl} target="_blank" rel="noreferrer" variant="outline">
           <ExternalLinkIcon />
-          View on site
+          {t('products.viewOnSite')}
         </Button>
       {/if}
       <Button size="sm" href={routes.products} variant="outline">
         <ArrowLeftIcon />
-        Products
+        {t('nav.products')}
       </Button>
       {#if session.can(P.PRODUCT_UPDATE) && product.data}
         <ProductStatusControl
@@ -229,7 +235,7 @@
           mode="button"
           canStart={() => {
             if (!dirty.any) return true;
-            toast.error('Save or discard your changes first, then publish.');
+            toast.error(t('products.publishDirty'));
             return false;
           }}
           onChanged={(updated) => {
@@ -242,13 +248,13 @@
       {#if session.can(P.PRODUCT_DELETE) && product.data}
         <Button size="sm" variant="destructive" onclick={() => (deleting = true)}>
           <Trash2Icon />
-          Delete
+          {t('common.delete')}
         </Button>
       {/if}
     {/snippet}
   </PageHeader>
 
-  <ResourceView resource={product} noun="product">
+  <ResourceView resource={product} noun={t('entities.productNoun')}>
     {#snippet children(current)}
       <!--
         Status on the left, the editor-wide content language on the right; the
@@ -265,10 +271,12 @@
       <div class="@container flex flex-wrap items-center gap-x-6 gap-y-3">
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <Badge variant={current.status === 'active' ? 'default' : 'secondary'}>
-            {current.status}
+            {productStatusLabel(current.status, uiLang.current)}
           </Badge>
           <Badge variant="outline">
-            {current.pricingMode === 'rental' ? `rental / ${current.rentalUnit}` : 'fixed price'}
+            {current.pricingMode === 'rental'
+              ? t('products.badgeRental', { per: perUnitLabel(current.rentalUnit, uiLang.current) })
+              : t('products.badgeFixedPrice')}
           </Badge>
           <Badge variant="outline">
             {formatMoney(current.basePrice, current.currency)}
@@ -279,7 +287,7 @@
             />
           </Badge>
           <span class="text-muted-foreground">
-            Updated {relativeTime(current.updatedAt)}
+            {t('products.updatedAgo', { when: relativeTime(current.updatedAt) })}
           </span>
         </div>
         <div
@@ -315,11 +323,11 @@
                       : 'border-transparent text-muted-foreground hover:text-foreground',
                   )}
                 >
-                  {tab.label}
+                  {tabLabel(tab.key)}
                   {#if dirty.has(tab.key)}
                     <span
                       class="size-1.5 rounded-full bg-primary"
-                      title="Unsaved changes in {tab.label}"
+                      title={t('products.tabUnsavedTitle', { tab: tabLabel(tab.key) })}
                     ></span>
                   {/if}
                 </button>
@@ -373,14 +381,13 @@
 >
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete this product?</AlertDialog.Title>
+      <AlertDialog.Title>{t('products.deleteTitle')}</AlertDialog.Title>
       <AlertDialog.Description>
-        "{title}" and everything attached to it — specs, media, add-ons — are removed. This cannot
-        be undone.
+        {t('products.deleteDescription', { title })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={deleteBusy}>{t('common.cancel')}</AlertDialog.Cancel>
       <AlertDialog.Action
         disabled={deleteBusy}
         class={buttonVariants({ variant: 'destructive' })}
@@ -389,7 +396,9 @@
           void confirmDelete();
         }}
       >
-        <BusyLabel busy={deleteBusy} label="Deleting…">Delete product</BusyLabel>
+        <BusyLabel busy={deleteBusy} label={t('products.deleting')}
+          >{t('products.deleteAction')}</BusyLabel
+        >
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

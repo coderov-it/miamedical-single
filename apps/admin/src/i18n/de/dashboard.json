@@ -1,0 +1,23 @@
+{
+  "description": "Die heutige Aktivität in Katalog und Bestellwarteschlange.",
+  "tileRevenue": "Umsatz ({days} Tage)",
+  "hintRevenueBasis": "Nur bezahlte und erfüllte Bestellungen",
+  "tileOrders": "Bestellungen ({days} Tage)",
+  "hintOrders": "Gleiche Berechnungsbasis wie beim Umsatz",
+  "tileAwaiting": "Warten auf Annahme",
+  "hintAwaiting": "Noch offene Bestellungen",
+  "tileProducts": "Aktive Produkte",
+  "hintProducts": "Im Shop online",
+  "calendarTitle": "Mietkalender",
+  "calendarFailed": "Der Kalender konnte nicht geladen werden: {error}",
+  "placedOn": "Aufgegeben am {date}",
+  "clear": "Zurücksetzen",
+  "colOrder": "Bestellung",
+  "colCustomer": "Kunde",
+  "colStatus": "Status",
+  "colPayment": "Zahlung",
+  "colPlaced": "Aufgegeben",
+  "colTotal": "Summe",
+  "emptyTitle": "Noch keine Bestellungen",
+  "emptyHint": "Sie erscheinen hier, sobald der Shop eine erhält."
+}

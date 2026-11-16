@@ -1,5 +1,6 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
+  import { optionsOf, PRODUCT_STATUS, productStatusLabel, unitLabel } from '@mia/i18n';
   import ImageIcon from '@lucide/svelte/icons/image';
   import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
   import PackageIcon from '@lucide/svelte/icons/package';
@@ -28,6 +29,7 @@
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import TranslationProgress from '~/lib/components/translation-progress.svelte';
   import { progressFromStates } from '~/lib/i18n';
   import BusyLabel from '~/lib/components/busy-label.svelte';
@@ -79,15 +81,13 @@
   const rows = $derived(products.data?.data ?? []);
   const categoryOptions = $derived(categories.data?.data ?? []);
 
-  const statuses = [
-    { value: ANY, label: 'All statuses' },
-    { value: 'draft', label: 'Draft' },
-    { value: 'active', label: 'Active' },
-    { value: 'archived', label: 'Archived' },
-  ];
+  const statuses = $derived([
+    { value: ANY, label: t('products.allStatuses') },
+    ...optionsOf(PRODUCT_STATUS, uiLang.current),
+  ]);
 
   const statusLabel = $derived(
-    statuses.find((s) => s.value === draft.values.status)?.label ?? 'All statuses',
+    statuses.find((s) => s.value === draft.values.status)?.label ?? t('products.allStatuses'),
   );
   // Category names in the filter follow the interface language too.
   const categoryName = (category: Category) =>
@@ -95,7 +95,7 @@
 
   const categoryLabel = $derived(
     draft.values.category === ANY
-      ? 'All categories'
+      ? t('products.allCategories')
       : (() => {
           const match = categoryOptions.find((c) => c.code === draft.values.category);
           return match ? categoryName(match) : draft.values.category;
@@ -121,7 +121,7 @@
     deleteBusy = true;
     try {
       await unwrapFull(await api.api.admin.products[':id'].$delete({ param: { id: target.id } }));
-      toast.success(`Deleted "${target.title || 'product'}".`);
+      toast.success(t('products.deleted', { title: target.title || t('entities.productNoun') }));
       deleting = null;
       products.refresh();
     } catch (err) {
@@ -134,22 +134,22 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Catalog"
-    title="Products"
-    description="Everything in the catalog, in every state — draft, live and archived."
+    eyebrow={t('nav.catalog')}
+    title={t('nav.products')}
+    description={t('products.listDescription')}
   >
     {#snippet actions()}
       {#if session.can(P.PRODUCT_CREATE)}
         <Button href={routes.productNew}>
           <PlusIcon />
-          New product
+          {t('products.newProduct')}
         </Button>
       {/if}
     {/snippet}
   </PageHeader>
 
   <ListCard
-    noun="product"
+    countKey="entities.product"
     meta={products.data?.meta}
     loading={products.loading}
     error={products.error}
@@ -177,18 +177,18 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Search products…"
-            aria-label="Search products"
+            placeholder={t('products.searchPlaceholder')}
+            aria-label={t('products.searchAria')}
             class="h-8 w-56 pl-8"
           />
         </div>
 
         <Select.Root type="single" bind:value={draft.values.category}>
-          <Select.Trigger class="w-44" aria-label="Filter by category">
+          <Select.Trigger class="w-44" aria-label={t('products.filterCategoryAria')}>
             {categoryLabel}
           </Select.Trigger>
           <Select.Content>
-            <Select.Item value={ANY}>All categories</Select.Item>
+            <Select.Item value={ANY}>{t('products.allCategories')}</Select.Item>
             {#each categoryOptions as option (option.id)}
               <Select.Item value={option.code}>
                 {categoryName(option)}
@@ -198,7 +198,9 @@
         </Select.Root>
 
         <Select.Root type="single" bind:value={draft.values.status}>
-          <Select.Trigger class="w-36" aria-label="Filter by status">{statusLabel}</Select.Trigger>
+          <Select.Trigger class="w-36" aria-label={t('products.filterStatusAria')}
+            >{statusLabel}</Select.Trigger
+          >
           <Select.Content>
             {#each statuses as option (option.value)}
               <Select.Item value={option.value}>{option.label}</Select.Item>
@@ -206,9 +208,11 @@
           </Select.Content>
         </Select.Root>
 
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('products.filterApply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}
+            >{t('products.filterClear')}</Button
+          >
         {/if}
       </form>
     {/snippet}
@@ -217,13 +221,13 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[40%]">Product</Table.Head>
-            <Table.Head>Category</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>English</Table.Head>
-            <Table.Head>Updated</Table.Head>
-            <Table.Head class="text-right">Stock</Table.Head>
-            <Table.Head class="text-right">Price</Table.Head>
+            <Table.Head class="w-[40%]">{t('products.colProduct')}</Table.Head>
+            <Table.Head>{t('products.colCategory')}</Table.Head>
+            <Table.Head>{t('products.colStatus')}</Table.Head>
+            <Table.Head>{t('products.colTranslations')}</Table.Head>
+            <Table.Head>{t('products.colUpdated')}</Table.Head>
+            <Table.Head class="text-right">{t('products.colStock')}</Table.Head>
+            <Table.Head class="text-right">{t('products.colPrice')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -251,7 +255,7 @@
                       href={routes.productDetail(product.id)}
                       class="block truncate font-medium hover:underline"
                     >
-                      {product.title || 'Untitled'}
+                      {product.title || t('products.untitled')}
                     </a>
                     <p class="truncate text-xs text-muted-foreground">
                       {product.categoryName}
@@ -272,7 +276,7 @@
                   />
                 {:else}
                   <Badge variant={statusVariant[product.status] ?? 'outline'}>
-                    {product.status}
+                    {productStatusLabel(product.status, uiLang.current)}
                   </Badge>
                 {/if}
               </Table.Cell>
@@ -310,7 +314,9 @@
                 {#if product.pricingMode === 'rental'}
                   {#if product.marketingRate}
                     {formatMoney(product.marketingRate, product.currency)}
-                    <span class="text-muted-foreground">/{product.rentalUnit}</span>
+                    <span class="text-muted-foreground"
+                      >/{unitLabel(product.rentalUnit ?? 'day', uiLang.current)}</span
+                    >
                   {:else}
                     <span class="text-muted-foreground">—</span>
                   {/if}
@@ -323,7 +329,7 @@
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger
                     class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                    aria-label="Row actions"
+                    aria-label={t('products.rowActions')}
                   >
                     <MoreHorizontalIcon />
                   </DropdownMenu.Trigger>
@@ -333,7 +339,7 @@
                       {#snippet child({ props })}
                         <a href={routes.productDetail(product.id)} {...props}>
                           <PencilIcon />
-                          Edit
+                          {t('common.edit')}
                         </a>
                       {/snippet}
                     </DropdownMenu.Item>
@@ -344,7 +350,7 @@
                         onSelect={() => (deleting = product)}
                       >
                         <Trash2Icon />
-                        Delete
+                        {t('common.delete')}
                       </DropdownMenu.Item>
                     {/if}
                   </DropdownMenu.Content>
@@ -361,21 +367,21 @@
         <Empty.Header>
           <Empty.Media variant="icon"><PackageIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No products match these filters' : 'No products yet'}
+            {query.isFiltered ? t('products.emptyFilteredTitle') : t('products.emptyTitle')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try widening the search, or clear the filters to see everything.'
-              : 'Add the first product to start building the catalog.'}
+            {query.isFiltered ? t('products.emptyFilteredHint') : t('products.emptyHint')}
           </Empty.Description>
         </Empty.Header>
         <Empty.Content>
           {#if query.isFiltered}
-            <Button variant="outline" onclick={() => draft.clear()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => draft.clear()}
+              >{t('products.clearFilters')}</Button
+            >
           {:else if session.can(P.PRODUCT_CREATE)}
             <Button href={routes.productNew}>
               <PlusIcon />
-              New product
+              {t('products.newProduct')}
             </Button>
           {/if}
         </Empty.Content>
@@ -392,14 +398,13 @@
 >
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete this product?</AlertDialog.Title>
+      <AlertDialog.Title>{t('products.deleteTitle')}</AlertDialog.Title>
       <AlertDialog.Description>
-        "{deleting?.title}" and everything attached to it — specs, media, add-ons — are removed.
-        This cannot be undone.
+        {t('products.deleteDescription', { title: deleting?.title ?? '' })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={deleteBusy}>{t('common.cancel')}</AlertDialog.Cancel>
       <AlertDialog.Action
         disabled={deleteBusy}
         class={buttonVariants({ variant: 'destructive' })}
@@ -409,7 +414,9 @@
           void confirmDelete();
         }}
       >
-        <BusyLabel busy={deleteBusy} label="Deleting…">Delete product</BusyLabel>
+        <BusyLabel busy={deleteBusy} label={t('products.deleting')}
+          >{t('products.deleteAction')}</BusyLabel
+        >
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

@@ -15,6 +15,7 @@
   import * as Card from '$lib/components/ui/card/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
   import BusyButton from '~/lib/components/busy-button.svelte';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     title: string;
@@ -42,7 +43,7 @@
     saving = false,
     error = null,
     onSave,
-    saveLabel = 'Save changes',
+    saveLabel,
     onDiscard,
     disabledReason,
     children,
@@ -74,21 +75,21 @@
       {#if disabledReason}
         <p class="mr-auto text-sm text-muted-foreground">{disabledReason}</p>
       {:else if dirty}
-        <p class="mr-auto text-sm text-muted-foreground">Unsaved changes</p>
+        <p class="mr-auto text-sm text-muted-foreground">{t('products.unsavedChanges')}</p>
       {/if}
       {#if onDiscard && dirty && !disabledReason}
         <Popover.Root bind:open={discardOpen}>
           <Popover.Trigger>
             {#snippet child({ props })}
-              <Button {...props} variant="destructive" type="button">Cancel</Button>
+              <Button {...props} variant="destructive" type="button">{t('common.cancel')}</Button>
             {/snippet}
           </Popover.Trigger>
           <Popover.Content align="end" side="top" class="w-64">
-            <p class="font-medium">Discard your changes?</p>
-            <p class="text-xs text-muted-foreground">Edits in this section will be lost.</p>
+            <p class="font-medium">{t('products.discardTitle')}</p>
+            <p class="text-xs text-muted-foreground">{t('products.discardHint')}</p>
             <div class="flex justify-end gap-2">
               <Button size="sm" variant="ghost" onclick={() => (discardOpen = false)}>
-                Keep editing
+                {t('products.keepEditing')}
               </Button>
               <Button
                 size="sm"
@@ -98,7 +99,7 @@
                   onDiscard();
                 }}
               >
-                Discard
+                {t('products.discard')}
               </Button>
             </div>
           </Popover.Content>
@@ -106,11 +107,11 @@
       {/if}
       <BusyButton
         busy={saving}
-        busyLabel="Saving…"
+        busyLabel={t('common.saving')}
         disabled={Boolean(disabledReason)}
         onclick={onSave}
       >
-        {saveLabel}
+        {saveLabel ?? t('products.saveChanges')}
       </BusyButton>
     </div>
   {/if}

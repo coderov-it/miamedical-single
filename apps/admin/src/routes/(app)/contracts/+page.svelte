@@ -28,6 +28,7 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.contracts.$get, 200>;
@@ -82,7 +83,7 @@
           json: { from: periodFrom, to: periodTo },
         }),
       );
-      toast.success(`Contract ${periodContractNumber} updated and resent`);
+      toast.success(t('contracts.toastPeriodUpdated', { number: periodContractNumber }));
       periodDialogOpen = false;
       contracts.refresh();
     } catch (err) {
@@ -95,7 +96,7 @@
   async function resendContract(contractId: string, contractNumber: string) {
     try {
       await unwrap(await api.api.admin.contracts[':id'].send.$post({ param: { id: contractId } }));
-      toast.success(`Contract ${contractNumber} resent`);
+      toast.success(t('contracts.toastResent', { number: contractNumber }));
       contracts.refresh();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -110,7 +111,7 @@
         }),
       );
       await navigator.clipboard.writeText(url);
-      toast.success('Signing link copied to clipboard');
+      toast.success(t('contracts.toastLinkCopied'));
     } catch (err) {
       toast.error(errorMessage(err));
     }
@@ -119,15 +120,15 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Sales"
-    title="Contracts"
-    description="Rental contracts generated from orders or created by hand. Track signing status and resend links."
+    eyebrow={t('contracts.eyebrowSales')}
+    title={t('contracts.listTitle')}
+    description={t('contracts.listDescription')}
   >
     {#snippet actions()}
       {#if session.can(P.CONTRACT_CREATE)}
         <Button href={routes.contractNew}>
           <PlusIcon />
-          New contract
+          {t('contracts.newContract')}
         </Button>
       {/if}
     {/snippet}
@@ -148,13 +149,13 @@
         {#if value !== ANY}
           <span class={cn('size-1.5 rounded-full', contractStatusMeta(value).dot)}></span>
         {/if}
-        {value === ANY ? 'All' : contractStatusMeta(value).label}
+        {value === ANY ? t('contracts.filterAll') : contractStatusMeta(value).label}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="contract"
+    countKey="entities.contract"
     meta={contracts.data?.meta}
     loading={contracts.loading}
     error={contracts.error}
@@ -178,14 +179,16 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Contract, order, name, email, phone…"
-            aria-label="Search contracts"
+            placeholder={t('contracts.searchPlaceholder')}
+            aria-label={t('contracts.searchLabel')}
             class="h-8 w-72 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('contracts.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('contracts.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
@@ -194,13 +197,13 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Contract</Table.Head>
-            <Table.Head>Customer</Table.Head>
-            <Table.Head>Order</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Variant</Table.Head>
-            <Table.Head>Sent</Table.Head>
-            <Table.Head>Signed</Table.Head>
+            <Table.Head>{t('contracts.colContract')}</Table.Head>
+            <Table.Head>{t('contracts.colCustomer')}</Table.Head>
+            <Table.Head>{t('contracts.colOrder')}</Table.Head>
+            <Table.Head>{t('contracts.colStatus')}</Table.Head>
+            <Table.Head>{t('contracts.colVariant')}</Table.Head>
+            <Table.Head>{t('status.contractSent')}</Table.Head>
+            <Table.Head>{t('status.contractSigned')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -237,7 +240,7 @@
                     {contract.orderNumber}
                   </a>
                 {:else}
-                  <span class="text-muted-foreground">Manual</span>
+                  <span class="text-muted-foreground">{t('contracts.manual')}</span>
                 {/if}
               </Table.Cell>
               <Table.Cell>
@@ -270,7 +273,7 @@
                   <DropdownMenu.Root>
                     <DropdownMenu.Trigger
                       class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                      aria-label="Row actions"
+                      aria-label={t('contracts.rowActions')}
                     >
                       <EllipsisVerticalIcon class="size-4" />
                     </DropdownMenu.Trigger>
@@ -279,18 +282,18 @@
                         onSelect={() => resendContract(contract.id, contract.number)}
                       >
                         <MailIcon class="size-4" />
-                        Send signing link
+                        {t('contracts.sendSigningLink')}
                       </DropdownMenu.Item>
                       <DropdownMenu.Item onSelect={() => copySigningLink(contract.id)}>
                         <ClipboardIcon class="size-4" />
-                        Copy signing link
+                        {t('contracts.copySigningLink')}
                       </DropdownMenu.Item>
                       <DropdownMenu.Separator />
                       <DropdownMenu.Item
                         onSelect={() => openPeriodDialog(contract.id, contract.number)}
                       >
                         <CalendarIcon class="size-4" />
-                        Send updated contract
+                        {t('contracts.sendUpdated')}
                       </DropdownMenu.Item>
                     </DropdownMenu.Content>
                   </DropdownMenu.Root>
@@ -307,17 +310,17 @@
         <Empty.Header>
           <Empty.Media variant="icon"><FileSignatureIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No contracts match these filters' : 'No contracts yet'}
+            {query.isFiltered ? t('contracts.emptyFilteredTitle') : t('contracts.emptyTitle')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try a different status, or clear the filters.'
-              : 'Contracts are generated automatically when orders are placed.'}
+            {query.isFiltered ? t('contracts.emptyFilteredHint') : t('contracts.emptyHint')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => query.reset()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => query.reset()}>
+              {t('contracts.clearFilters')}
+            </Button>
           </Empty.Content>
         {/if}
       </Empty.Root>
@@ -327,10 +330,9 @@
   <Dialog.Root bind:open={periodDialogOpen}>
     <Dialog.Content class="sm:max-w-md">
       <Dialog.Header>
-        <Dialog.Title>Update rental period</Dialog.Title>
+        <Dialog.Title>{t('contracts.periodTitle')}</Dialog.Title>
         <Dialog.Description>
-          Set the new rental period for contract {periodContractNumber}. The contract will be
-          regenerated and a new signing link sent to the customer.
+          {t('contracts.periodDescription', { number: periodContractNumber })}
         </Dialog.Description>
       </Dialog.Header>
       <form
@@ -341,24 +343,24 @@
         }}
       >
         <div class="grid gap-1.5">
-          <label for="period-from" class="text-sm font-medium">From</label>
+          <label for="period-from" class="text-sm font-medium">{t('contracts.periodFrom')}</label>
           <Input id="period-from" type="date" bind:value={periodFrom} required />
         </div>
         <div class="grid gap-1.5">
-          <label for="period-to" class="text-sm font-medium">To</label>
+          <label for="period-to" class="text-sm font-medium">{t('contracts.periodTo')}</label>
           <Input id="period-to" type="date" bind:value={periodTo} required />
         </div>
         <Dialog.Footer>
           <Button type="button" variant="destructive" onclick={() => (periodDialogOpen = false)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <BusyButton
             type="submit"
             busy={periodSubmitting}
-            busyLabel="Sending…"
+            busyLabel={t('contracts.periodSending')}
             disabled={!periodFrom || !periodTo}
           >
-            Update & send
+            {t('contracts.periodSubmit')}
           </BusyButton>
         </Dialog.Footer>
       </form>

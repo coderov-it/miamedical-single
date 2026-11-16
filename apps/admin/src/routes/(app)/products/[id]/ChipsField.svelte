@@ -28,6 +28,7 @@
   import InfoHint from '~/lib/components/info-hint.svelte';
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { Reorder } from '~/lib/reorder.svelte';
+  import { t } from '~/lib/ui-text';
   import type { ChipEdit } from './shared';
   import { MAX_CHIP_LENGTH, MAX_CHIPS } from './shared';
   import { languageOf, setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
@@ -74,19 +75,11 @@
 
 <div>
   <div class="mb-1.5 flex items-center gap-2">
-    <Label>Chips</Label>
-    <InfoHint label="About chips">
-      <p class="font-medium text-foreground">Short claims, not specifications.</p>
-      <p>
-        Chips are the first thing a customer reads on the card and at the top of the product page —
-        “Portata 170&nbsp;kg”, “Telecomando incluso”. Up to {MAX_CHIPS}, but
-        <strong>three read best</strong>: the card gives them one line and crops whatever does not
-        fit.
-      </p>
-      <p>
-        Keep each under {MAX_CHIP_LENGTH} characters and lead with the number or the word that sells it.
-        Leave them empty and the page falls back to the category’s comparable specs.
-      </p>
+    <Label>{t('products.chipsLabel')}</Label>
+    <InfoHint label={t('products.chipsAbout')}>
+      <p class="font-medium text-foreground">{t('products.chipsHintTitle')}</p>
+      <p>{t('products.chipsHintBody1', { max: MAX_CHIPS })}</p>
+      <p>{t('products.chipsHintBody2', { max: MAX_CHIP_LENGTH })}</p>
     </InfoHint>
     <span class="ml-auto text-xs text-muted-foreground tabular-nums">
       {items.length} / {MAX_CHIPS}
@@ -110,10 +103,10 @@
               value={text}
               maxlength={MAX_CHIP_LENGTH}
               placeholder={isSource
-                ? 'Short claim'
-                : textFor(chip.text, SOURCE_LANGUAGE) || 'Short claim'}
+                ? t('products.chipPlaceholder')
+                : textFor(chip.text, SOURCE_LANGUAGE) || t('products.chipPlaceholder')}
               class="pr-13"
-              aria-label="Chip {index + 1}"
+              aria-label={t('products.chipName', { n: index + 1 })}
               aria-invalid={error ? 'true' : undefined}
               oninput={(event) => setText(chip, event.currentTarget.value)}
             />
@@ -136,7 +129,9 @@
                 size="icon"
                 disabled={index === 0}
                 onclick={() => move(index, -1)}
-                aria-label="Move chip {index + 1} up"
+                aria-label={t('components.moveUp', {
+                  name: t('products.chipName', { n: index + 1 }),
+                })}
               >
                 <ChevronUpIcon />
               </Button>
@@ -145,7 +140,9 @@
                 size="icon"
                 disabled={index === items.length - 1}
                 onclick={() => move(index, 1)}
-                aria-label="Move chip {index + 1} down"
+                aria-label={t('components.moveDown', {
+                  name: t('products.chipName', { n: index + 1 }),
+                })}
               >
                 <ChevronDownIcon />
               </Button>
@@ -157,7 +154,9 @@
             size="icon"
             class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             onclick={() => items.splice(index, 1)}
-            aria-label="Remove chip {index + 1}"
+            aria-label={t('components.removeNamed', {
+              name: t('products.chipName', { n: index + 1 }),
+            })}
           >
             <Trash2Icon />
           </Button>
@@ -173,17 +172,20 @@
   {#if items.length < MAX_CHIPS}
     <Button variant="outline" size="sm" class="mt-2" onclick={add}>
       <PlusIcon />
-      Add chip
+      {t('products.addChip')}
     </Button>
   {/if}
 
   <p class="mt-1.5 text-xs text-muted-foreground">
     {#if items.length === 0}
-      No chips — the card and the product page fall back to comparable specs.
+      {t('products.chipsEmpty')}
     {:else if !isSource}
-      Blank {languageOf(lang).label} chips fall back to the {languageOf(SOURCE_LANGUAGE).label} text.
+      {t('products.chipsFallback', {
+        language: languageOf(lang).label,
+        source: languageOf(SOURCE_LANGUAGE).label,
+      })}
     {:else}
-      Shown in this order on the card and the product page.
+      {t('products.chipsOrder')}
     {/if}
   </p>
 </div>
