@@ -103,6 +103,35 @@ export async function findAggregate(
 }
 
 /**
+ * A product with only what an order line asks about: translations, category name, add-ons and
+ * questions. Specs, FAQs and terms are left out (the relations are the slow part of the full
+ * aggregate) and come back empty, so the public mapper still runs unchanged.
+ */
+export async function findLineAggregate(
+  db: Database,
+  productId: string,
+): Promise<ProductAggregate | undefined> {
+  const row = await db.query.products.findFirst({
+    where: eq(products.id, productId),
+    with: {
+      translations: true,
+      category: { with: { translations: true } },
+      addons: true,
+      questions: { with: { options: true } },
+    },
+  });
+  if (!row) return undefined;
+  return {
+    ...row,
+    specs: [],
+    specValues: [],
+    specValueOptions: [],
+    faqs: [],
+    terms: [],
+  } as unknown as ProductAggregate;
+}
+
+/**
  * `findAggregate` for several products in one query, keyed by id. An id with no
  * product is simply absent from the map; the caller decides what that means.
  */

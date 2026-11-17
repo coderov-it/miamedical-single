@@ -1,3 +1,4 @@
+import type { MessageKey } from '~/lib/ui-text';
 import type { LineProduct } from './types';
 
 /**
@@ -45,10 +46,18 @@ export const needsTime = (line: LineDraft): boolean => packageOf(line)?.unit ===
 const filled = (values: string[] | undefined): string[] =>
   (values ?? []).map((value) => value.trim()).filter((value) => value !== '');
 
-/** Whether the line says enough to be priced. Required answers are the server's to refuse. */
+/** Keys of the required questions the line has no answer for yet. */
+export function missingAnswers(line: LineDraft): string[] {
+  return line.product.questions
+    .filter((question) => question.isRequired && filled(line.answers[question.key]).length === 0)
+    .map((question) => question.key);
+}
+
+/** Whether the line says enough to be priced: package, start and required answers. */
 export function isLineReady(line: LineDraft): boolean {
-  if (!isRental(line)) return line.quantity >= 1;
-  if (line.quantity < 1 || !line.packageCode || !line.startDate) return false;
+  if (line.quantity < 1 || missingAnswers(line).length > 0) return false;
+  if (!isRental(line)) return true;
+  if (!line.packageCode || !line.startDate) return false;
   return !needsTime(line) || line.startTime !== '';
 }
 
@@ -76,4 +85,20 @@ export function toWireItem(line: LineDraft) {
     addons,
     answers,
   };
+}
+
+/**
+ * What a line still lacks before it can be priced, named precisely: a package picked but
+ * no date reads "Choose a start date", a date but no package reads "Choose a package".
+ * Null once the line is ready.
+ */
+export function pendingMessage(line: LineDraft): MessageKey | null {
+  if (isRental(line)) {
+    if (!line.packageCode && !line.startDate) return 'newOrder.linePending';
+    if (!line.packageCode) return 'newOrder.errorPackage';
+    if (!line.startDate) return 'newOrder.errorStartDate';
+    if (needsTime(line) && line.startTime === '') return 'newOrder.errorStartTime';
+  }
+  if (missingAnswers(line).length > 0) return 'newOrder.errorAnswer';
+  return null;
 }
