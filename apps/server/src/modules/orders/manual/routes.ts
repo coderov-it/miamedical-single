@@ -17,6 +17,7 @@ import {
 import { Hono } from 'hono';
 
 import { currentUser, requirePermission } from '../../../shared/auth/guards.ts';
+import { notFound } from '../../../shared/http/errors.ts';
 import type { AppEnv } from '../../../shared/http/context.ts';
 import { validate } from '../../../shared/http/validate.ts';
 import { issueLink } from '../../order-links/service.ts';
@@ -26,7 +27,7 @@ import { searchAccounts } from './accounts.ts';
 import { createManualOrder } from './create.ts';
 import { setDiscount } from './discount.ts';
 import { recordPayment } from './payment.ts';
-import { searchLineProducts } from './products.ts';
+import { getLineProduct, searchLineProducts } from './products.ts';
 import { quoteManualOrder } from './quote.ts';
 
 export const manualOrderRoutes = new Hono<AppEnv>()
@@ -45,15 +46,30 @@ export const manualOrderRoutes = new Hono<AppEnv>()
 
   /** --------------------------------------------------------------------------
   GET /api/admin/orders/manual/products (order:create)
-  Sellable catalogue products matching a search, with the packages, add-ons and questions a line needs.
+  One page of sellable products, best sellers first (search, category, sale/rental filters) with image, from-price, stock and the choices a line needs.
   -------------------------------------------------------------------------- **/
   .get(
     '/manual/products',
     requirePermission(P.ORDER_CREATE),
     validate('query', LineProductSearchSchema),
     async (c) => {
-      const found = await searchLineProducts(c.get('db'), c.req.valid('query').q, c.get('user'));
-      return c.json({ data: found });
+      const found = await searchLineProducts(c.get('db'), c.req.valid('query'), c.get('user'));
+      return c.json({ data: found.rows, meta: found.meta });
+    },
+  )
+
+  /** --------------------------------------------------------------------------
+  GET /api/admin/orders/manual/products/:id (order:create)
+  One sellable product with the packages, add-ons and questions its line asks about.
+  -------------------------------------------------------------------------- **/
+  .get(
+    '/manual/products/:id',
+    requirePermission(P.ORDER_CREATE),
+    validate('param', OrderIdParamSchema),
+    async (c) => {
+      const product = await getLineProduct(c.get('db'), c.req.valid('param').id);
+      if (!product) throw notFound('Product');
+      return c.json({ data: product });
     },
   )
 

@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./branches": "./src/branches.ts",
     "./contact": "./src/contact.ts",
     "./language": "./src/language.ts",
     "./notification": "./src/notification.ts",

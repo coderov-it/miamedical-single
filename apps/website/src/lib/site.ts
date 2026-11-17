@@ -24,10 +24,8 @@ export const CONTACT = {
  */
 export const CONTACT_HOURS_KEY = 'contact.hours';
 
-export const LOCATIONS = [
-  { city: 'Roma', street: 'Via Gian Pietro Talamini 44' },
-  { city: 'Firenze', street: 'Viale Guidoni 129' },
-] as const;
+/** The branches live in `@mia/validators/branches`: the order API validates against the same list. */
+export { BRANCHES as LOCATIONS } from '@mia/validators/branches';
 
 export const COMPANY = {
   legalName: 'MIA MEDICAL ITALIA S.R.L.',
