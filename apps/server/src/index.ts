@@ -5,6 +5,7 @@ import { env } from './config/env.ts';
 import { logFeatureSummary } from './config/features.ts';
 import { db } from './infra/db/client.ts';
 import { r2FileUploader } from './infra/media.ts';
+import { startAnalyticsSweep } from './modules/analytics/sweep.ts';
 import { startMediaSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
 import { startNotificationSweep } from './modules/notifications/sweep.ts';
@@ -35,6 +36,9 @@ startPushSweep(db);
 /* Unpaid orders past their deadline give their stock back; abandoned gateway
    sessions are closed. See modules/payments/sweep.ts. */
 startPaymentSweep(db);
+/* Sales rollups for the admin analytics page: full rebuild on boot, then the days
+   of changed orders every minute. See modules/analytics/sweep.ts. */
+startAnalyticsSweep(db);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {

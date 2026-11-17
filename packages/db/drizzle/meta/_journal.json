@@ -148,6 +148,13 @@
       "when": 1794487821236,
       "tag": "0020_add_online_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794902378828,
+      "tag": "0021_add_sales_analytics",
+      "breakpoints": true
     }
   ]
 }

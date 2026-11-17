@@ -10,6 +10,8 @@
 
 export const routes = {
   dashboard: '/',
+  /** Sales charts over a date range — read from the rollups, see docs/code/sales-analytics.md. */
+  analytics: '/analytics',
 
   products: '/products',
   productNew: '/products/new',

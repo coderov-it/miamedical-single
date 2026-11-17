@@ -37,11 +37,15 @@
   --border: oklch(0.892 0.004 286);
   --input: oklch(0.858 0.005 286);
   --ring: oklch(0.62 0.012 286);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Categorical chart slots, used in this order and never cycled: blue, orange,
+     aqua, yellow, magenta. Validated as a set against the card surface for
+     colour-blind separation; dark mode below uses its own steps of the same hues.
+     3–5 sit under 3:1 on white, so they only ever appear beside a text label. */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
   --radius: 0.625rem;
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.155 0.006 286);
@@ -86,11 +90,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0.008 286);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
   --sidebar: oklch(0.205 0.004 286);
   --sidebar-foreground: oklch(0.92 0.004 286);
   --sidebar-primary: oklch(0.65 0.2 259.815);

@@ -21,6 +21,8 @@ export interface RouteAccess {
 
 export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { pattern: routes.dashboard, requiredAny: [P.DASHBOARD_READ] },
+  // Sales figures are order data, so the grant that reads orders reads these.
+  { pattern: routes.analytics, requiredAny: [P.ORDER_READ] },
 
   { pattern: routes.products, requiredAny: [P.PRODUCT_READ] },
   { pattern: routes.productNew, requiredAny: [P.PRODUCT_CREATE] },
