@@ -42,5 +42,11 @@
   "chartBars": "Bars",
   "chartLine": "Line",
   "noteExtensions": "incl. +{amount} extensions",
-  "noteRefunds": "incl. −{amount} refunds"
+  "noteRefunds": "incl. −{amount} refunds",
+  "tileViews": "Product views",
+  "viewsInfoLabel": "About product views",
+  "viewsInfo": "Counted per page view, not per person, and updated within a minute.",
+  "metricViews": "Views",
+  "mostViewedTitle": "Most viewed",
+  "mostViewedOrders": "{orders} · {rate}"
 }

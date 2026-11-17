@@ -72,3 +72,5 @@ cached 60 s per `(from, to, bucket)`.
 
 The report is one SQL statement (`report-sql.ts`: CTEs folded into a single json
 column), so a cold request is one database round trip and one pool connection.
+
+Product page views (separate table, same endpoint family): [product-views.md](product-views.md).

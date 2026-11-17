@@ -9,19 +9,23 @@
   import { type MessageKey, t } from '~/lib/ui-text';
 
   import { compactMoney, compactNumber, locale } from './format';
+  import { integerTicks } from '~/lib/charts/ticks';
+
   import { bucketLabel, bucketTitle } from './range';
   import Segmented from './segmented.svelte';
   import TrendBars from './trend-bars.svelte';
   import TrendLine from './trend-line.svelte';
-  import type { ChartKind, Metric, Sales, TrendModel } from './types';
+  import type { ChartKind, Metric, Sales, TrendModel, Views } from './types';
 
   interface Props {
     data: Sales;
+    /** Page views per bucket; the Views metric is offered once they have loaded. */
+    views: Views | undefined;
     kind: ChartKind;
     onKind: (kind: ChartKind) => void;
   }
 
-  let { data, kind, onKind }: Props = $props();
+  let { data, views, kind, onKind }: Props = $props();
 
   let metric = $state<Metric>('revenue');
 
@@ -29,15 +33,25 @@
     revenue: 'analytics.metricRevenue',
     orderCount: 'analytics.metricOrders',
     units: 'analytics.metricUnits',
+    views: 'analytics.metricViews',
   };
-  const METRICS: Metric[] = ['revenue', 'orderCount', 'units'];
+  const METRICS = $derived<Metric[]>(
+    views ? ['revenue', 'orderCount', 'units', 'views'] : ['revenue', 'orderCount', 'units'],
+  );
+  const viewsByKey = $derived(new Map(views?.series.map((s) => [s.key, s.views])));
+
+  function valueOf(s: Sales['series'][number]): number {
+    if (metric === 'revenue') return Number(s.revenue);
+    if (metric === 'views') return viewsByKey.get(s.key) ?? 0;
+    return s[metric];
+  }
 
   const points = $derived(
     data.series.map((s) => ({
       key: s.key,
       axis: bucketLabel(s.key, s.start, data.bucket, locale()),
       title: bucketTitle(s.key, s.start, data.bucket, locale()),
-      value: metric === 'revenue' ? Number(s.revenue) : s[metric],
+      value: valueOf(s),
     })),
   );
   const axisByKey = $derived(new Map(points.map((p) => [p.key, p.axis])));
@@ -63,8 +77,13 @@
     return formatNumber(value);
   }
 
+  const yTicks = $derived(
+    metric === 'revenue' ? undefined : integerTicks(Math.max(0, ...points.map((p) => p.value))),
+  );
+
   const model = $derived<TrendModel>({
     points,
+    ...(yTicks ? { yTicks } : {}),
     ticks,
     config,
     axisFormat: (key) => axisByKey.get(key) ?? key,

@@ -5,6 +5,7 @@ import { env } from './config/env.ts';
 import { logFeatureSummary } from './config/features.ts';
 import { db } from './infra/db/client.ts';
 import { r2FileUploader } from './infra/media.ts';
+import { flushViewsOnShutdown, startViewFlush } from './modules/product-views/views.ts';
 import { startAnalyticsSweep } from './modules/analytics/sweep.ts';
 import { startMediaSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
@@ -42,12 +43,17 @@ startPaymentSweep(db);
 /* Sales rollups for the admin analytics page: full rebuild on boot, then the days
    of changed orders every minute. See modules/analytics/sweep.ts. */
 startAnalyticsSweep(db);
+/* Product page views are counted in memory and written once a minute, and once more
+   on shutdown. See modules/product-views/views.ts. */
+startViewFlush(db);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
-    /* Unlisten first: the listener holds a connection outside the pool, and a
+    /* Flush the view counts (3 s at most), then unlisten: the listener holds a connection outside the pool, and a
        process that exits without releasing it leaves the backend sitting in
        `idle` until Postgres times it out. */
-    void listener.unlisten().finally(() => server.close(() => process.exit(0)));
+    void flushViewsOnShutdown()
+      .then(() => listener.unlisten())
+      .finally(() => server.close(() => process.exit(0)));
   });
 }

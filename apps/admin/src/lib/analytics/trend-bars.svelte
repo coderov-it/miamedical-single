@@ -19,7 +19,7 @@
   series={[{ key: 'value', label: model.config.value.label, color: model.config.value.color }]}
   props={{
     xAxis: { ticks: model.ticks, format: model.axisFormat },
-    yAxis: { format: model.yFormat },
+    yAxis: { format: model.yFormat, ...(model.yTicks ? { ticks: model.yTicks } : {}) },
     grid: { y: true },
     bars: { radius: 4, rounded: 'top' },
   }}

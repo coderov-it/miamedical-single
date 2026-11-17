@@ -117,6 +117,24 @@ Whichever of these changes, the check is the same: the well and the identity ban
 must end on the same line. If they do not, something has been added back into the
 identity column that belongs in the prose row.
 
+## Product-view beacon
+
+`scripts/product/view-beacon.ts` tells the API a product page was seen. The PDP
+root carries `data-product-id` and `data-api-base` (the public origin, never the
+LAN one); the rules are pure functions in `view-beacon-rules.ts`.
+
+```
+open page, tab visible          → POST /api/products/42/view   (sendBeacon, no body)
+reload within 30 min, same tab  → nothing (sessionStorage stamp)
+same product, other tab         → POST again (sessionStorage is per tab)
+page opened in a background tab → waits for the first visibilitychange to visible
+prerendered page                → waits for prerenderingchange
+navigator.webdriver / bot UA    → webdriver: not sent; other bots: server ignores
+```
+
+Blocked storage just means "send". No JS means no beacon; nothing else depends
+on it. Server side: [product-views.md](product-views.md).
+
 ## Still open
 
 The 493-character `shortDescription` repeats the opening of the Descrizione tab,

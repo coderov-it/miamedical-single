@@ -27,7 +27,7 @@
   points={dots}
   props={{
     xAxis: { ticks: model.ticks, format: model.axisFormat },
-    yAxis: { format: model.yFormat },
+    yAxis: { format: model.yFormat, ...(model.yTicks ? { ticks: model.yTicks } : {}) },
     grid: { y: true },
     spline: { strokeWidth: 2, curve: curveMonotoneX },
   }}

@@ -42,5 +42,11 @@
   "chartBars": "Barre",
   "chartLine": "Linea",
   "noteExtensions": "incl. +{amount} di proroghe",
-  "noteRefunds": "incl. −{amount} di rimborsi"
+  "noteRefunds": "incl. −{amount} di rimborsi",
+  "tileViews": "Visualizzazioni prodotti",
+  "viewsInfoLabel": "Informazioni sulle visualizzazioni",
+  "viewsInfo": "Contate per visualizzazione di pagina, non per persona, e aggiornate entro un minuto.",
+  "metricViews": "Visualizzazioni",
+  "mostViewedTitle": "Più visti",
+  "mostViewedOrders": "{orders} · {rate}"
 }
