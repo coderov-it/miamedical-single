@@ -11,6 +11,8 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { formatDateTime, formatMoney } from '~/lib/format';
+  import OrderDiscountDialog from '~/lib/orders/order-discount-dialog.svelte';
+  import { canEditDiscount, discountLock } from '~/lib/orders/manual-order';
   import OrderRefundDialog from '~/lib/orders/order-refund-dialog.svelte';
   import type { OrderDetail } from '~/lib/orders/types';
   import { session } from '~/lib/session.svelte';
@@ -24,8 +26,18 @@
   let { order, onUpdated }: Props = $props();
 
   let dialogOpen = $state(false);
+  let discountOpen = $state(false);
+  let discountLocked = $state('');
+
+  /** A locked discount says why at the button instead of the button vanishing. */
+  function editDiscount() {
+    const lock = discountLock(order);
+    discountLocked = lock ? t(lock) : '';
+    if (!lock) discountOpen = true;
+  }
 
   const money = (amount: string) => formatMoney(amount, order.totals.currency);
+  const hasDiscount = $derived(Number(order.totals.discountTotal) > 0);
   const hasExtensions = $derived(Number(order.extensionTotal) > 0);
   const hasRefunds = $derived(Number(order.refundedTotal) > 0);
   const canRefund = $derived(session.can(P.ORDER_REFUND) && Number(order.netTotal) > 0);
@@ -46,6 +58,15 @@
         <dt class="text-muted-foreground">{t('orders.moneyTotal')}</dt>
         <dd>{money(order.totals.total)}</dd>
       </div>
+      {#if hasDiscount}
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted-foreground">{t('newOrder.discountTitle')}</dt>
+          <dd>− {money(order.totals.discountTotal)}</dd>
+        </div>
+        {#if order.discountReason}
+          <p class="text-xs text-muted-foreground">{order.discountReason}</p>
+        {/if}
+      {/if}
       {#if hasExtensions}
         <div class="flex justify-between gap-4">
           <dt class="text-muted-foreground">{t('orders.moneyExtensions')}</dt>
@@ -88,6 +109,15 @@
       </ul>
     {/if}
 
+    {#if canEditDiscount(order) && session.can(P.ORDER_CREATE)}
+      <Button variant="outline" size="sm" class="w-full" onclick={editDiscount}>
+        {t('newOrder.discountEdit')}
+      </Button>
+      {#if discountLocked}
+        <p class="text-xs text-destructive" role="alert">{discountLocked}</p>
+      {/if}
+    {/if}
+
     {#if canRefund}
       <Button variant="outline" size="sm" class="w-full" onclick={() => (dialogOpen = true)}>
         {t('orders.refundRecord')}
@@ -97,3 +127,6 @@
 </Card.Root>
 
 <OrderRefundDialog {order} open={dialogOpen} onClose={() => (dialogOpen = false)} {onUpdated} />
+{#if discountOpen}
+  <OrderDiscountDialog {order} open onClose={() => (discountOpen = false)} {onUpdated} />
+{/if}

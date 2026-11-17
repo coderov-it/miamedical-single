@@ -296,3 +296,26 @@ export async function sendDisputeAlert(
     { db, orderId: input.orderId },
   );
 }
+
+/**
+ * STUB until Phase 4 of docs/code/manual-orders.md. The seam is this function: Phase 4
+ * replaces the inline message with `templates.manualOrderLink(...)` (translated, with
+ * the "Didn't ask for this order?" report link) and changes nothing else.
+ */
+export function sendManualOrderLink(
+  input: { email: string; orderNumber: string; total: string; url: string; language: LanguageCode },
+  trail?: OrderTrail,
+): Promise<MailResult> {
+  const subject = `Complete your order ${input.orderNumber}`;
+  const text = `Order ${input.orderNumber}, total ${input.total}.\nComplete it here: ${input.url}`;
+  return sendQuietly(
+    {
+      to: [input.email],
+      subject,
+      text,
+      html: `<p>Order ${input.orderNumber}, total ${input.total}.</p><p><a href="${input.url}">Complete your order</a></p>`,
+    },
+    { kind: 'manual_order_link', context: `order ${input.orderNumber} link` },
+    trail,
+  );
+}

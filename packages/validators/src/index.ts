@@ -10,6 +10,7 @@ export * from './terms.ts';
 export * from './legal.ts';
 export * from './cart.ts';
 export * from './order.ts';
+export * from './manual-order.ts';
 export * from './settings.ts';
 export * from './customer.ts';
 export * from './account-deletion.ts';

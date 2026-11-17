@@ -24,3 +24,19 @@ export async function insertDiscountEvent(
     actorCustomerAccountId: null,
   });
 }
+
+/** An order link minted for the customer, on the timeline as `link`. */
+export async function insertLinkEvent(
+  db: DatabaseWriter,
+  event: { orderId: string; steps: string; note: string; actorAdminUserId: string },
+): Promise<void> {
+  await db.insert(orderStatusEvents).values({
+    orderId: event.orderId,
+    field: 'link',
+    fromValue: null,
+    toValue: event.steps,
+    note: event.note,
+    actorAdminUserId: event.actorAdminUserId,
+    actorCustomerAccountId: null,
+  });
+}

@@ -17,7 +17,7 @@ import { orderTotal } from '../totals.ts';
 export interface DiscountInput {
   /** Two-decimal amount taken off the order; `0.00` removes the discount. */
   amount: string;
-  reason?: string | null;
+  reason?: string | null | undefined;
 }
 
 export function invalid(field: string, message: string) {

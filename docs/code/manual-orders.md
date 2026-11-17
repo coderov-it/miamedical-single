@@ -2,11 +2,11 @@
 
 An admin agent creates an order for a customer who phoned or wrote, then sends the
 customer a private link to complete it (details, contract, payment) or records
-a payment taken outside the gateway. Status: Phase 1 (schema + server rules) built;
-Phases 2-4 are spec. Update this file in the phase that ships each part.
+a payment taken outside the gateway. Status: Phases 1 (schema + server rules) and 2 (admin create,
+send link, record payment) built; Phases 3-4 are spec. Update this file in the phase that ships each part.
 
-Code: `apps/server/src/modules/orders/manual/` (built). Planned: `apps/server/src/modules/order-links/`,
-`apps/admin/src/lib/orders/new-order/`, `apps/website/src/pages/complete-order.astro`.
+Code: `apps/server/src/modules/orders/manual/`, `apps/server/src/modules/order-links/` (mint only),
+`apps/admin/src/lib/orders/new-order/` (built). Planned: `apps/website/src/pages/complete-order.astro`, public `order-links/routes.ts`.
 
 ## Worked examples
 
@@ -227,7 +227,7 @@ and total, and "Didn't ask for this order? Click here" pointing at `reportOrderU
    Done when: a manual order inserted with email only passes the DB; an online order with `private` and no codice fiscale is still refused;
    the sweep leaves a manual order pending past any time; both total derivations subtract the discount (tests); `recordPayment` refuses
    incomplete details and unsigned rentals and, when valid, writes both events in one move.
-2. Admin create + send link + record payment. Files: `orders/routes.ts`, `order-links/{service,token,repo}.ts` (mint only),
+2. BUILT. Admin create + send link + record payment. Files: `orders/routes.ts`, `order-links/{service,token,repo}.ts` (mint only),
    admin `orders/new`, `new-order/*`, detail dialogs, timeline labels, `ui-text`. Done when: an agent creates example (a) steps 1-3 end to end,
    the link is copied or mailed (console transport), click validation marks and focuses fields, example (b) completes through Record payment.
 3. Website token page. Files: `order-links/routes.ts` (public), `contracts/checkout.ts` (`'order_link'`), `routes.ts`, `links.ts`,
@@ -238,6 +238,41 @@ and total, and "Didn't ask for this order? Click here" pointing at `reportOrderU
 4. Emails + translations. Files: `manual-order-link.ts`, `samples.ts`, `mail.ts`, `mail-failure.ts`, `@mia/i18n` stage labels, website keys for all
    languages (`docs/code/adding-a-language.md`). Done when: the email renders in every language in `/email-preview`, the report link files a dispute,
    a failed send shows on the timeline.
+
+## Phase 2 as built
+
+```
+server  orders/manual/routes.ts     the six spec routes + GET /manual/products (line picker); mounted into
+                                    orderAdminRoutes with .route('/') ahead of /:id (banners carry full paths)
+        orders/manual/{accounts,quote,products}.ts   account search (+ prefill), quote, picker projection
+        order-links/{token,repo,service,validation}.ts   mint only: revoke previous, 30 d, `link` event, 422/409 rules
+        notifications/links.ts      completeOrderUrl + PATHS.completeOrder (website PRIVATE_SEGMENTS.completeOrder mirrors it)
+        notifications/mail.ts       sendManualOrderLink: STUB (plain subject/text/html, no report link) - Phase 4 swaps it
+packages/validators/src/manual-order.ts   ManualOrderSchema, ManualOrderQuoteSchema, ManualDiscountSchema,
+                                          SendOrderLinkSchema, RecordPaymentSchema, search schemas
+admin   routes/(app)/orders/new, lib/orders/new-order/*, order-manual-card / -link-dialog / -payment-dialog /
+        -discount-dialog, manual-order.ts, timeline labels, i18n namespace `newOrder` (en, it, fr, de)
+tests   order-links/validation.test.ts (pure), order-links/links.integration.test.ts (MIA_DB_TESTS=1, not yet run)
+```
+
+Deviations from the spec text:
+
+- The quote takes `discountAmount` (amount only), not the whole discount: the reason is checked at creation.
+- `GET /manual/products?q=` is new. The order desk bundle has no `product:read`, so the line picker cannot use the admin
+  products list; this route returns the storefront projection (`toPublicDetail`, Italian) trimmed to what `resolveLine` asks.
+- The link endpoint also refuses `sign` alone when the contract is already signed (422), and a non-manual or non-pending order (409).
+  It answers `{ url, expiresAt, delivered, emailSent }`; a failed email is `emailSent: false` (and a timeline `email` entry), not an HTTP error.
+- The Send link dialog always shows all three step options. A click on Send/Copy whose choice cannot work (sale + a sign option,
+  unsigned rental + "pay only", signed + "sign only") shows the reason at the radio group and focuses it; missing details with the
+  details box unchecked are listed at the checkbox. The server's 422 `fields` map to the same two controls.
+- The discount button stays visible; a signed contract is explained at the button on click. An open payment attempt is only
+  known to the server, so that case answers with a 409 toast from the dialog.
+- "Copy link" writes the URL to the clipboard and also shows it in a read-only field, because a clipboard write can be refused.
+- The `link` timeline entry shows the steps without a "from" value; `discount` shows the amounts.
+- The three new dialogs are mounted only while open (`{#if}`), so each opening starts from fresh state without an `$effect` reset.
+- Files over the size target were split with no behaviour change: the orders list page into `lib/orders/list/{orders-kpi-strip,orders-table,order-drawer}.svelte`,
+  the order detail view into `order-{customer,delivery,contract,address-cards}-card.svelte`.
+- The stub email carries no "Didn't ask for this order?" link; that belongs to the Phase 4 template.
 
 ## Decisions
 

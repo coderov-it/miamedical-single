@@ -30,6 +30,7 @@ const PATHS = {
   login: '/sign-in/',
   signContract: '/sign-contract/',
   paymentResult: '/payment/',
+  completeOrder: '/complete-order/',
 } as const;
 
 function siteUrl(path: string, language: LanguageCode, token?: string): string {
@@ -68,6 +69,10 @@ export const loginUrl = (language: LanguageCode) => siteUrl(PATHS.login, languag
 /** In the contract's own language, like the email that carries it. */
 export const contractSigningUrl = (token: string, language: LanguageCode) =>
   siteUrl(PATHS.signContract, language, token);
+
+/** The private page an agent's link opens to finish a manual order. */
+export const completeOrderUrl = (token: string, language: LanguageCode) =>
+  siteUrl(PATHS.completeOrder, language, token);
 
 /** Where the payment gateway sends the customer back, in the language they paid in. */
 export const paymentResultUrl = (token: string, language: LanguageCode) =>
