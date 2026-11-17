@@ -195,18 +195,21 @@ const FiscalCodeSchema = v.pipe(v.string(), v.trim(), v.toUpperCase(), v.maxLeng
  * step-1 validity applies, and the same one `orders_fiscal_check` holds in the
  * database. Raised on the field the customer was filling in.
  */
-const FISCAL_MESSAGE = 'This customer type needs its fiscal identifier.';
+export const FISCAL_MESSAGE = 'This customer type needs its fiscal identifier.';
+
+/** The customer block's fields, before the fiscal rules; `order-link.ts` reuses it without the email. */
+export const CheckoutCustomerFieldsSchema = v.strictObject({
+  firstName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
+  lastName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
+  email: EmailSchema,
+  phone: CustomerPhoneSchema,
+  customerType: CustomerTypeSchema,
+  codiceFiscale: v.optional(FiscalCodeSchema),
+  partitaIva: v.optional(FiscalCodeSchema),
+});
 
 export const CheckoutCustomerSchema = v.pipe(
-  v.strictObject({
-    firstName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
-    lastName: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80)),
-    email: EmailSchema,
-    phone: CustomerPhoneSchema,
-    customerType: CustomerTypeSchema,
-    codiceFiscale: v.optional(FiscalCodeSchema),
-    partitaIva: v.optional(FiscalCodeSchema),
-  }),
+  CheckoutCustomerFieldsSchema,
   v.forward(
     v.partialCheck(
       [['customerType'], ['codiceFiscale']],

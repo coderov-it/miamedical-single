@@ -13,7 +13,7 @@
 
 import { randomBytes } from 'node:crypto';
 
-import type { Database } from '@mia/db';
+import type { Database, DatabaseWriter } from '@mia/db';
 import { eq } from '@mia/db';
 import { orders, rentalExtensions } from '@mia/db/schema';
 import type { LanguageCode } from '@mia/validators';
@@ -100,7 +100,7 @@ export async function startForExtension(
   });
 }
 
-interface BeginInput {
+export interface BeginInput {
   orderId: string;
   orderNumber: string;
   rentalExtensionId: string | null;
@@ -111,10 +111,20 @@ interface BeginInput {
   language: LanguageCode;
 }
 
-async function begin(db: Database, input: BeginInput): Promise<PaymentStart> {
-  const gateway = paymentGateway;
-  const feature = FEATURES.payments;
-  if (!gateway || !feature) throw conflict('Online payment is not available.');
+/** An attempt row written, waiting for the gateway's session. */
+export interface OpenedAttempt {
+  id: string;
+  reference: string;
+  token: string;
+}
+
+/**
+ * Phase one of starting a payment: the attempt row, no gateway call. Split from
+ * `dispatch` so a caller can write it inside the transaction that holds the order's
+ * row lock (`order-links/payment.ts`), then call the gateway after the lock is gone.
+ */
+export async function openAttempt(db: DatabaseWriter, input: BeginInput): Promise<OpenedAttempt> {
+  if (!paymentGateway || !FEATURES.payments) throw conflict('Online payment is not available.');
 
   const sequence = (await attempts.countForOrder(db, input.orderId)) + 1;
   /* Nexi asks for at most 18 characters: MIA-2026-001042 → MIA2026001042P1. */
@@ -124,12 +134,25 @@ async function begin(db: Database, input: BeginInput): Promise<PaymentStart> {
   const attempt = await attempts.insert(db, {
     orderId: input.orderId,
     rentalExtensionId: input.rentalExtensionId,
-    provider: gateway.provider,
+    provider: paymentGateway.provider,
     providerReference: reference,
     accessToken: token,
     amount: input.amount,
     currency: input.currency,
   });
+  return { id: attempt.id, reference, token };
+}
+
+/** Phase two: the gateway's session for an opened attempt; a failure marks the attempt failed. */
+export async function dispatch(
+  db: Database,
+  opened: OpenedAttempt,
+  input: BeginInput,
+): Promise<PaymentStart> {
+  const gateway = paymentGateway;
+  const feature = FEATURES.payments;
+  if (!gateway || !feature) throw conflict('Online payment is not available.');
+  const { reference, token } = opened;
 
   const resultUrl = paymentResultUrl(token, input.language);
   try {
@@ -144,15 +167,19 @@ async function begin(db: Database, input: BeginInput): Promise<PaymentStart> {
       cancelUrl: resultUrl,
       notificationUrl: `${feature.apiOrigin}/api/webhooks/payments/${gateway.provider}`,
     });
-    await attempts.setSecret(db, attempt.id, started.secret);
+    await attempts.setSecret(db, opened.id, started.secret);
     return { token, redirectUrl: started.redirectUrl };
   } catch (error) {
     console.error(`[payments] ${reference} could not be started:`, error);
-    await attempts.finish(db, attempt.id, 'failed', {
+    await attempts.finish(db, opened.id, 'failed', {
       result: 'START_FAILED',
       operationId: null,
       circuit: null,
     });
     return { token, redirectUrl: null };
   }
+}
+
+async function begin(db: Database, input: BeginInput): Promise<PaymentStart> {
+  return dispatch(db, await openAttempt(db, input), input);
 }

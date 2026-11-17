@@ -1,4 +1,4 @@
-import type { Database } from '@mia/db';
+import type { Database, DatabaseWriter } from '@mia/db';
 import { eq } from '@mia/db';
 import { orders } from '@mia/db/schema';
 import type { ContractData } from '@mia/templates';
@@ -122,7 +122,7 @@ export interface GenerateFromOrderOptions {
  * signing is the one stored.
  */
 export async function termsFromOrder(
-  db: Database,
+  db: DatabaseWriter,
   orderId: string,
   extension?: RenewalSpan,
 ): Promise<ContractTerms> {
@@ -145,6 +145,7 @@ export async function termsFromOrder(
 
   /* An extension moves no goods, so it owes no delivery. */
   const shippingTotal = extension ? '0.00' : order.shippingTotal;
+  const discountTotal = extension ? '0.00' : order.discountTotal;
 
   return {
     orderNumber: order.number,
@@ -158,8 +159,9 @@ export async function termsFromOrder(
     codiceFiscale: order.codiceFiscale,
     partitaIva: order.partitaIva,
     items,
-    ...contractTotals(items, shippingTotal),
+    ...contractTotals(items, shippingTotal, discountTotal),
     shippingTotal,
+    ...(discountTotal === '0.00' ? {} : { discountTotal }),
     currency: order.currency,
     hasDepositProduct: await repo.orderRequiresDeposit(db, orderId),
   };

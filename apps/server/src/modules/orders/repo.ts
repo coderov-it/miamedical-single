@@ -10,7 +10,7 @@ import { orderItems, orders, orderStatusEvents, products } from '@mia/db/schema'
 
 import { emitToAdmins } from '../notifications/write.ts';
 import { applyStockMoves } from './stock.ts';
-import type { OrderSummaryRecord } from './types.ts';
+import type { OrderRow, OrderSummaryRecord } from './types.ts';
 
 export { findById, findEvents, findRefunds } from './detail-repo.ts';
 
@@ -224,6 +224,13 @@ export interface OrderPatch {
   discountTotal?: string;
   discountReason?: string | null;
   total?: string;
+  /** The customer block, written by the customer from a manual order's link (`order-links/details.ts`). */
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  customerType?: OrderRow['customerType'];
+  codiceFiscale?: string | null;
+  partitaIva?: string | null;
 }
 
 export async function update(db: DatabaseWriter, id: string, patch: OrderPatch): Promise<void> {

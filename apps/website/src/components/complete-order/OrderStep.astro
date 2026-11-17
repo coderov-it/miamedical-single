@@ -1,0 +1,35 @@
+---
+/**
+ * One numbered card of the order link's left column. Hidden until the script learns the
+ * token allows it; `data-state` (`active` | `done`) is the only thing the script writes
+ * for looks, as on the checkout's steps. The number is written by the script too, because
+ * it depends on which steps this link carries.
+ */
+interface Props {
+  step: 'details' | 'contract' | 'pay';
+  title: string;
+}
+
+const { step, title } = Astro.props;
+---
+
+<section
+  class="group/step border-hair shadow-pdp-card scroll-mt-24 overflow-hidden rounded-[14px] border bg-white"
+  data-co-step={step}
+  data-state="active"
+  hidden
+>
+  <header class="flex items-center gap-3.5 px-6 py-5 mid:px-7">
+    <span
+      class="bg-tint text-ink-2 grid size-7.5 flex-none place-items-center rounded-full text-[13.5px] font-bold group-data-[state=active]/step:bg-accent group-data-[state=active]/step:text-white group-data-[state=done]/step:bg-accent group-data-[state=done]/step:text-[15px] group-data-[state=done]/step:text-white"
+      aria-hidden="true"
+    >
+      <span class="group-data-[state=done]/step:hidden" data-co-number></span>
+      <span class="hidden group-data-[state=done]/step:block">✓</span>
+    </span>
+    <h2 class="text-[17px] font-bold">{title}</h2>
+  </header>
+  <div class="flex flex-col gap-5 px-6 pb-6 mid:px-7 mid:pb-7">
+    <slot />
+  </div>
+</section>
