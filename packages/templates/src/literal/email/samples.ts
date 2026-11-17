@@ -3,6 +3,7 @@ import { adminDisputeAlert } from './admin-dispute-alert.ts';
 import type { EmailLanguage } from './component/language.ts';
 import type { EmailMessage } from './component/message.ts';
 import { magicLink } from './magic-link.ts';
+import { manualOrderLink } from './manual-order-link.ts';
 import { orderPlacedActivateReminder } from './order-placed-activate-reminder.ts';
 import { orderPlacedConfirmation } from './order-placed-confirmation.ts';
 import { orderPlacedNewAccount } from './order-placed-new-account.ts';
@@ -101,6 +102,22 @@ export const EMAIL_SAMPLES: EmailSample[] = [
         language,
         to: 'elena.moretti@example.it',
         url: `${SITE}/reset-password/?token=sample`,
+      }),
+  },
+  {
+    name: 'manualOrderLink',
+    render: (language = 'it') =>
+      manualOrderLink({
+        language,
+        to: 'elena.moretti@example.it',
+        recipient: RECIPIENT,
+        order: ORDER,
+        discount: '20.00',
+        steps: 'sign_pay',
+        includeDetails: true,
+        url: `${SITE}/complete-order/?token=sample`,
+        reportUrl: `${SITE}/report-order/?token=sample`,
+        expiresAt: '2026-12-17T10:00:00.000Z',
       }),
   },
   {

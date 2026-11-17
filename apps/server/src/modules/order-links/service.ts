@@ -1,12 +1,12 @@
 /**
- * Minting the private link an agent sends for a manual order (Phase 2: mint only;
- * the public page that redeems it is Phase 3). Docs: docs/code/manual-orders.md.
+ * Minting the private link an agent sends for a manual order (the public page that redeems
+ * it is `routes.ts`). Docs: docs/code/manual-orders.md.
  *
  * ```
  * agent: steps sign_pay, details on, "Send by email"
  *   1. checks            → 422 with `fields` when the steps do not fit the order
  *   2. mint (30 d)       → new token stored hashed, the previous one revoked, `link` event
- *   3. deliver 'email'   → mail stub (Phase 4 swaps the template); 'copy' → URL returned
+ *   3. deliver 'email'   → manual-order-link template + report token; 'copy' → URL returned
  * ```
  * The raw token is stored nowhere, so "Copy link" mints a fresh one every time.
  */
@@ -21,6 +21,8 @@ import * as contractsRepo from '../contracts/repo.ts';
 import * as manualRepo from '../orders/manual/repo.ts';
 import { getById } from '../orders/service.ts';
 import { completeOrderUrl } from '../notifications/links.ts';
+import { issueAuthToken } from '../customer-auth/service.ts';
+import { httpError } from '../../shared/http/errors.ts';
 import { sendManualOrderLink } from '../notifications/mail.ts';
 import * as repo from './repo.ts';
 import { generateToken, tokenExpiry } from './token.ts';
@@ -55,6 +57,13 @@ export async function issueLink(
     input,
   );
 
+  const account = order.customerAccountId
+    ? await customerRepo.findById(db, order.customerAccountId)
+    : undefined;
+  if (input.deliver === 'email' && !account) {
+    throw httpError(409, 'This order has no customer account to email.', 'conflict');
+  }
+
   const token = generateToken();
   const expiresAt = tokenExpiry();
   await db.transaction(async (tx) => {
@@ -74,16 +83,32 @@ export async function issueLink(
     });
   });
 
-  const account = order.customerAccountId
-    ? await customerRepo.findById(db, order.customerAccountId)
-    : undefined;
   const language = requestLanguage(undefined, account?.language);
   const url = completeOrderUrl(token.raw, language);
   const base = { url, expiresAt: expiresAt.toISOString(), delivered: input.deliver } as const;
-  if (input.deliver === 'copy') return { ...base, emailSent: null };
+  if (input.deliver === 'copy' || !account) return { ...base, emailSent: null };
 
+  const { token: reportToken } = await issueAuthToken(db, {
+    customerAccountId: account.id,
+    purpose: 'order_report',
+    orderId,
+  });
   const result = await sendManualOrderLink(
-    { email: order.email, orderNumber: order.number, total: order.total, url, language },
+    {
+      email: order.email,
+      firstName: order.firstName ?? '',
+      lastName: order.lastName ?? '',
+      orderNumber: order.number,
+      total: order.total,
+      currency: order.currency,
+      discount: order.discountTotal,
+      steps: input.steps,
+      includeDetails: input.includeDetails,
+      url,
+      expiresAt: expiresAt.toISOString(),
+      reportToken,
+      language,
+    },
     { db, orderId },
   );
   return { ...base, emailSent: result.sent };

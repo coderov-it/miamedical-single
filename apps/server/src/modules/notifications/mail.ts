@@ -8,6 +8,7 @@ import type { MailMessage } from '../../infra/mail/index.ts';
 import { getNotificationRecipients } from '../settings/service.ts';
 import * as links from './links.ts';
 import { errorText, recordMailFailure } from './mail-failure.ts';
+import { buildManualOrderLinkMessage, type ManualOrderLinkMail } from './manual-order-mail.ts';
 import type { MailKind, MailResult, OrderTrail } from './mail-failure.ts';
 
 export type { MailResult, OrderTrail } from './mail-failure.ts';
@@ -297,24 +298,16 @@ export async function sendDisputeAlert(
   );
 }
 
-/**
- * STUB until Phase 4 of docs/code/manual-orders.md. The seam is this function: Phase 4
- * replaces the inline message with `templates.manualOrderLink(...)` (translated, with
- * the "Didn't ask for this order?" report link) and changes nothing else.
- */
+/** The agent's order link, sent to the customer. Failed sends land on the order timeline. */
 export function sendManualOrderLink(
-  input: { email: string; orderNumber: string; total: string; url: string; language: LanguageCode },
+  input: Omit<ManualOrderLinkMail, 'reportUrl'> & { reportToken: string },
   trail?: OrderTrail,
 ): Promise<MailResult> {
-  const subject = `Complete your order ${input.orderNumber}`;
-  const text = `Order ${input.orderNumber}, total ${input.total}.\nComplete it here: ${input.url}`;
   return sendQuietly(
-    {
-      to: [input.email],
-      subject,
-      text,
-      html: `<p>Order ${input.orderNumber}, total ${input.total}.</p><p><a href="${input.url}">Complete your order</a></p>`,
-    },
+    buildManualOrderLinkMessage({
+      ...input,
+      reportUrl: links.reportOrderUrl(input.reportToken, input.language),
+    }),
     { kind: 'manual_order_link', context: `order ${input.orderNumber} link` },
     trail,
   );
