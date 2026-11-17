@@ -6,6 +6,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { analyticsAdminRoutes } from './modules/analytics/routes.ts';
 import { accountDeletionRoutes } from './modules/account-deletion/routes.ts';
 import { adminUserRoutes } from './modules/admin-users/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
@@ -115,6 +116,7 @@ const routes = app
   .route('/api/admin/terms', termsAdminRoutes)
   .route('/api/admin/legal', legalAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
+  .route('/api/admin/analytics', analyticsAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
   .route('/api/admin/settings', settingsAdminRoutes)

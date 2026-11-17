@@ -10,6 +10,7 @@
 import type { LanguageCode } from '~/lib/i18n/languages';
 
 import type access from '~/i18n/en/access.json';
+import type analytics from '~/i18n/en/analytics.json';
 import type auth from '~/i18n/en/auth.json';
 import type blog from '~/i18n/en/blog.json';
 import type carts from '~/i18n/en/carts.json';
@@ -37,6 +38,7 @@ import type terms from '~/i18n/en/terms.json';
 /** Adding a namespace: one JSON file per language, plus one line in each place here. */
 interface Reference {
   access: typeof access;
+  analytics: typeof analytics;
   auth: typeof auth;
   blog: typeof blog;
   carts: typeof carts;

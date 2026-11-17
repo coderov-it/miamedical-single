@@ -8,6 +8,7 @@
 
 import BanknoteIcon from '@lucide/svelte/icons/banknote';
 import BellIcon from '@lucide/svelte/icons/bell';
+import ChartColumnIcon from '@lucide/svelte/icons/chart-column';
 import CalendarClockIcon from '@lucide/svelte/icons/calendar-clock';
 import ShieldAlertIcon from '@lucide/svelte/icons/shield-alert';
 import GaugeIcon from '@lucide/svelte/icons/gauge';
@@ -44,6 +45,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     titleKey: 'nav.overview',
     items: [
       { titleKey: 'nav.dashboard', url: routes.dashboard, icon: GaugeIcon },
+      { titleKey: 'nav.analytics', url: routes.analytics, icon: ChartColumnIcon },
       /* The inbox, not the alert-email setting — that moved into Settings. The
          bell in the topbar reaches the same page; this is here because a section
          of the back office you can open should be findable in the nav. */

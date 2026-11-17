@@ -18,3 +18,4 @@ export * from './blog.ts';
 export * from './notifications.ts';
 export * from './push-devices.ts';
 export * from './payments.ts';
+export * from './analytics.ts';
