@@ -28,7 +28,7 @@ import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
 import { CTA } from '~/components/checkout/styles';
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
-import { API_BASE } from '~/lib/api';
+import { PUBLIC_API_URL } from '~/lib/api-base';
 import type { Checkout } from '~/lib/checkout';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { t } from '~/lib/labels';
@@ -105,7 +105,7 @@ function gateHref(): string {
 <div
   class="checkout px-gutter mid:pb-24 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
   data-checkout
-  data-api-base={API_BASE}
+  data-api-base={PUBLIC_API_URL}
   data-payment-result={routePath(locale, 'paymentResult')}
 >
   <Breadcrumbs

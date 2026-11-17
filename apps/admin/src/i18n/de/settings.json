@@ -1,0 +1,14 @@
+{
+  "pageDescription": "Plattformweite Optionen. Ihr Name und Ihr Passwort finden Sie unter Ihrem Konto.",
+  "alertsTitle": "Empfänger der Warn-E-Mails",
+  "alertsDescription": "Wer Plattform-Warnungen per E-Mail erhält. Operatoren sehen diese bereits im Benachrichtigungseingang; diese Liste erreicht Personen, die nicht im Panel sind.",
+  "removeRecipient": "Empfänger entfernen",
+  "addAddress": "Adresse hinzufügen",
+  "maxRecipients": "Zehn ist das Maximum – darüber hinaus eine Verteilerliste verwenden.",
+  "savedNoRecipients": "Gespeichert. Ohne Empfänger erscheinen Warnungen nur im Panel.",
+  "savedRecipients.one": "{count} Empfänger gespeichert.",
+  "savedRecipients.other": "{count} Empfänger gespeichert.",
+  "loadFailed": "Laden fehlgeschlagen.",
+  "saveFailed": "Speichern nicht möglich.",
+  "readOnly": "Sie haben nur Lesezugriff auf die Einstellungen."
+}

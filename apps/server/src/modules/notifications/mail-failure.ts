@@ -15,6 +15,7 @@ export type MailKind =
   | 'order_placed_confirmation'
   | 'contract_ready'
   | 'contract_signed'
+  | 'manual_order_link'
   | 'rental_reminder'
   | 'dispute_alert';
 

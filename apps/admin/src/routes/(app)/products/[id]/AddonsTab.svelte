@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pricingModeLabel, rentalUnitOptions, unitLabel } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import { untrack } from 'svelte';
@@ -16,6 +17,8 @@
   import TranslatedInput from '~/lib/components/translated-input.svelte';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -128,7 +131,7 @@
       saved = comparable(addons);
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Addons saved.');
+      toast.success(t('products.addonsSaved'));
     } catch (err) {
       error = errorMessage(err);
       fields = errorFields(err);
@@ -139,42 +142,41 @@
 </script>
 
 <TabPanel
-  title="Addons"
-  description="Optional extras offered alongside the product, in this order."
+  title={t('products.tabAddons')}
+  description={t('products.addonsDescription')}
   dirty={isDirty}
   {saving}
   {error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="space-y-3">
     {#if product.pricingMode === 'fixed'}
       <p class="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-        This product is sold at a fixed price, so its addons can only be fixed-price too — a rental
-        addon would have nothing to bill against.
+        {t('products.addonsFixedNotice')}
       </p>
     {/if}
 
     {#if addons.length === 0}
       <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        No addons yet.
+        {t('products.addonsEmpty')}
       </p>
     {/if}
 
     <SortableList
       bind:items={addons}
-      label="Addon"
+      label={t('products.addonLabel')}
       key={(addon) => addon.uid}
-      describe={(addon) => addon.name.it || 'this addon'}
+      describe={(addon) => addon.name.it || t('products.addonFallback')}
       onRemove={(index) => addons.splice(index, 1)}
     >
       {#snippet row(addon)}
         <div class="space-y-3">
-          <TranslatedInput label="Name" bind:value={addon.name} />
+          <TranslatedInput label={t('products.fieldName')} bind:value={addon.name} />
 
           <TranslatedInput
-            label="Description"
+            label={t('products.fieldDescription')}
             bind:value={addon.description}
             required={false}
             multiline
@@ -183,12 +185,14 @@
 
           <div class="flex flex-wrap items-end gap-3">
             <div>
-              <Label class="mb-1.5">Pricing</Label>
+              <Label class="mb-1.5">{t('products.addonPricing')}</Label>
               <Select.Root type="single" bind:value={addon.pricingMode}>
-                <Select.Trigger class="w-28">{addon.pricingMode}</Select.Trigger>
+                <Select.Trigger class="w-28">
+                  {pricingModeLabel(addon.pricingMode as 'fixed', uiLang.current)}
+                </Select.Trigger>
                 <Select.Content>
                   {#each allowedModes as mode (mode)}
-                    <Select.Item value={mode}>{mode}</Select.Item>
+                    <Select.Item value={mode}>{pricingModeLabel(mode, uiLang.current)}</Select.Item>
                   {/each}
                 </Select.Content>
               </Select.Root>
@@ -196,21 +200,26 @@
 
             {#if addon.pricingMode === 'rental'}
               <div>
-                <Label class="mb-1.5">Per</Label>
+                <Label class="mb-1.5">{t('products.addonPer')}</Label>
                 <Select.Root type="single" bind:value={addon.rentalUnit}>
-                  <Select.Trigger class="w-24">{addon.rentalUnit}</Select.Trigger>
+                  <Select.Trigger class="w-24">
+                    {unitLabel(addon.rentalUnit as 'day', uiLang.current)}
+                  </Select.Trigger>
                   <Select.Content>
-                    <Select.Item value="day">day</Select.Item>
-                    <Select.Item value="hour">hour</Select.Item>
+                    {#each rentalUnitOptions(uiLang.current) as option (option.value)}
+                      <Select.Item value={option.value}>{option.label}</Select.Item>
+                    {/each}
                   </Select.Content>
                 </Select.Root>
               </div>
             {/if}
 
             <MoneyInput
-              label="Price"
+              label={t('products.price')}
               bind:value={addon.price}
-              suffix={addon.pricingMode === 'rental' ? `€ / ${addon.rentalUnit}` : '€'}
+              suffix={addon.pricingMode === 'rental'
+                ? `€ / ${unitLabel(addon.rentalUnit as 'day', uiLang.current)}`
+                : '€'}
             />
 
             <!--
@@ -219,19 +228,24 @@
               rather than a flag beside a number that could disagree with it.
             -->
             <div>
-              <Label class="mb-1.5" for="addon-multi-{addon.uid}">Selectable</Label>
+              <Label class="mb-1.5" for="addon-multi-{addon.uid}"
+                >{t('products.addonSelectable')}</Label
+              >
               <div class="flex h-9 items-center gap-2">
                 <Checkbox
                   id="addon-multi-{addon.uid}"
                   checked={addon.maxQuantity !== '1'}
                   onCheckedChange={(checked) => (addon.maxQuantity = checked ? '' : '1')}
                 />
-                <Label for="addon-multi-{addon.uid}" class="font-normal">Multiple</Label>
+                <Label for="addon-multi-{addon.uid}" class="font-normal"
+                  >{t('products.addonMultiple')}</Label
+                >
               </div>
             </div>
             {#if addon.maxQuantity !== '1'}
               <div>
-                <Label class="mb-1.5" for="addon-max-{addon.uid}">Max qty</Label>
+                <Label class="mb-1.5" for="addon-max-{addon.uid}">{t('products.addonMaxQty')}</Label
+                >
                 <Input
                   id="addon-max-{addon.uid}"
                   type="number"
@@ -244,14 +258,19 @@
             {/if}
           </div>
 
-          <IconPicker label="Icon" bind:value={addon.icon} profile="icon_1024" compact />
+          <IconPicker
+            label={t('products.addonIcon')}
+            bind:value={addon.icon}
+            profile="icon_1024"
+            compact
+          />
         </div>
       {/snippet}
     </SortableList>
 
     <Button variant="outline" size="sm" onclick={add}>
       <PlusIcon />
-      Add addon
+      {t('products.addAddon')}
     </Button>
 
     {#if Object.keys(fields).length > 0}

@@ -1,0 +1,23 @@
+{
+  "description": "L’activité du jour sur le catalogue et la file des commandes.",
+  "tileRevenue": "Chiffre d’affaires ({days} jours)",
+  "hintRevenueBasis": "Uniquement les commandes payées et traitées",
+  "tileOrders": "Commandes ({days} jours)",
+  "hintOrders": "Comptées sur la même base que le chiffre d’affaires",
+  "tileAwaiting": "En attente d’acceptation",
+  "hintAwaiting": "Commandes encore en attente",
+  "tileProducts": "Produits actifs",
+  "hintProducts": "En ligne sur la boutique",
+  "calendarTitle": "Calendrier des locations",
+  "calendarFailed": "Le calendrier n’a pas pu être chargé : {error}",
+  "placedOn": "Passées le {date}",
+  "clear": "Effacer",
+  "colOrder": "Commande",
+  "colCustomer": "Client",
+  "colStatus": "Statut",
+  "colPayment": "Paiement",
+  "colPlaced": "Passée",
+  "colTotal": "Total",
+  "emptyTitle": "Aucune commande pour l’instant",
+  "emptyHint": "Elles apparaîtront ici dès que la boutique en recevra une."
+}

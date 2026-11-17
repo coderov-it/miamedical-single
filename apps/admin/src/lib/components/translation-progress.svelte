@@ -17,6 +17,7 @@
 <script lang="ts">
   import { cn } from '$lib/utils.js';
   import { languageOf, type LanguageProgress } from '~/lib/i18n';
+  import { type MessageKey, t } from '~/lib/ui-text';
 
   interface Props {
     progress: LanguageProgress[];
@@ -33,10 +34,10 @@
     missing: 'text-muted-foreground/45',
   };
 
-  const WORD: Record<string, string> = {
-    complete: 'translated',
-    partial: 'partly translated',
-    missing: 'not translated',
+  const WORD: Record<string, MessageKey> = {
+    complete: 'components.progressComplete',
+    partial: 'components.progressPartial',
+    missing: 'components.progressMissing',
   };
 </script>
 
@@ -45,7 +46,10 @@
     {#each targets as entry (entry.code)}
       <span
         class={cn('uppercase', TONE[entry.state])}
-        title="{languageOf(entry.code).label}: {WORD[entry.state]}"
+        title={t('components.progressTitle', {
+          label: languageOf(entry.code).label,
+          state: t(WORD[entry.state] ?? 'components.progressMissing'),
+        })}
       >
         {entry.code}
       </span>

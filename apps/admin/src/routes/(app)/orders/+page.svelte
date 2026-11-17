@@ -1,7 +1,7 @@
 <script lang="ts">
   import { P } from '@mia/permissions';
-  import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
   import InboxIcon from '@lucide/svelte/icons/inbox';
+  import PlusIcon from '@lucide/svelte/icons/plus';
   import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
   import SearchIcon from '@lucide/svelte/icons/search';
   import type { InferResponseType } from 'hono/client';
@@ -10,37 +10,33 @@
   import { page } from '$app/state';
 
   import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-  import * as Table from '$lib/components/ui/table/index.js';
   import { cn } from '$lib/utils.js';
   import { api } from '~/lib/api';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
-  import StatusBadge from '~/lib/components/status-badge.svelte';
-  import { formatDate, formatMoney, pluralize, relativeTime } from '~/lib/format';
-  import OrderDetailView from '~/lib/orders/order-detail-view.svelte';
+  import OrderDrawer from '~/lib/orders/list/order-drawer.svelte';
+  import OrdersKpiStrip from '~/lib/orders/list/orders-kpi-strip.svelte';
+  import OrdersTable from '~/lib/orders/list/orders-table.svelte';
   import { ORDER_STATUS_ORDER, orderStatusMeta } from '~/lib/orders/status';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
   import { unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
-  import { rowClick } from '~/lib/row-click';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t } from '~/lib/ui-text';
 
   type ListResponse = InferResponseType<typeof api.api.admin.orders.$get, 200>;
   type OrderDetail = InferResponseType<(typeof api.api.admin.orders)[':id']['$get'], 200>['data'];
 
   const ANY = '__any';
 
-  const TYPE_OPTIONS = [
-    { value: ANY, label: 'All' },
-    { value: 'rental', label: 'Noleggio' },
-    { value: 'fixed', label: 'Vendita' },
-  ] as const;
+  const TYPE_OPTIONS: readonly { value: string; labelKey: MessageKey }[] = [
+    { value: ANY, labelKey: 'orders.filterAll' },
+    { value: 'rental', labelKey: 'orders.typeRental' },
+    { value: 'fixed', labelKey: 'orders.typeSale' },
+  ];
 
   const query = new QueryState({ q: '', status: ANY, type: ANY, page: 1 });
   const draft = new QueryDraft(query);
@@ -113,53 +109,32 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Sales"
-    title="Orders"
-    description="The queue, oldest work first. Open an order to move it along."
+    eyebrow={t('nav.sales')}
+    title={t('nav.orders')}
+    description={t('orders.description')}
   >
     {#snippet actions()}
       <!-- Stays clickable while a fetch is in flight: a second click supersedes
            the first, and a control that vanishes mid-load reads as broken. -->
       <Button variant="outline" onclick={() => orders.refresh()}>
         <RefreshCwIcon class={cn(orders.loading && 'animate-spin')} />
-        Refresh
+        {t('orders.refresh')}
       </Button>
+      {#if session.can(P.ORDER_CREATE)}
+        <Button href={routes.orderNew}>
+          <PlusIcon />
+          {t('newOrder.newOrder')}
+        </Button>
+      {/if}
     {/snippet}
   </PageHeader>
 
-  <!-- KPI strip. `pageValue` is labelled "this page" because that is exactly
-       what it sums — a money figure must never imply more than it covers. -->
-  <div class="grid gap-4 sm:grid-cols-3">
-    {#each [{ label: 'Total orders', value: orders.data?.meta.total, hint: 'All time' }, { label: 'Waiting to accept', value: stats?.awaitingCount, hint: 'Status is pending' }] as tile (tile.label)}
-      <Card.Root>
-        <Card.Header><Card.Description>{tile.label}</Card.Description></Card.Header>
-        <Card.Content>
-          {#if tile.value === undefined}
-            <Skeleton class="h-8 w-16" />
-          {:else}
-            <p class="text-2xl leading-tight font-semibold tabular-nums">{tile.value}</p>
-          {/if}
-          <p class="mt-1 text-xs text-muted-foreground">{tile.hint}</p>
-        </Card.Content>
-      </Card.Root>
-    {/each}
-
-    <Card.Root>
-      <Card.Header><Card.Description>Value on this page</Card.Description></Card.Header>
-      <Card.Content>
-        {#if !stats}
-          <Skeleton class="h-8 w-24" />
-        {:else}
-          <p class="text-2xl leading-tight font-semibold tabular-nums">
-            {formatMoney(stats.pageValue, stats.currency)}
-          </p>
-        {/if}
-        <p class="mt-1 text-xs text-muted-foreground">
-          {orders.data ? pluralize(rows.length, 'order') : 'This page only'} — not the whole queue
-        </p>
-      </Card.Content>
-    </Card.Root>
-  </div>
+  <OrdersKpiStrip
+    total={orders.data?.meta.total}
+    awaitingCount={stats?.awaitingCount}
+    pageValue={stats ? { amount: stats.pageValue, currency: stats.currency } : undefined}
+    rowCount={orders.data ? rows.length : undefined}
+  />
 
   <!-- Segmented status bar: one click, no Apply. It is a single choice, and
        making people confirm it would be friction with nothing behind it. -->
@@ -178,7 +153,7 @@
         {#if value !== ANY}
           <span class={cn('size-1.5 rounded-full', orderStatusMeta(value).dot)}></span>
         {/if}
-        {value === ANY ? 'All' : orderStatusMeta(value).label}
+        {value === ANY ? t('orders.filterAll') : orderStatusMeta(value).label}
       </button>
     {/each}
   </div>
@@ -195,13 +170,13 @@
           active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
         )}
       >
-        {opt.label}
+        {t(opt.labelKey)}
       </button>
     {/each}
   </div>
 
   <ListCard
-    noun="order"
+    countKey="entities.order"
     meta={orders.data?.meta}
     loading={orders.loading}
     error={orders.error}
@@ -225,83 +200,22 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Order number or email…"
-            aria-label="Search orders"
+            placeholder={t('orders.searchPlaceholder')}
+            aria-label={t('orders.searchLabel')}
             class="h-8 w-64 pl-8"
           />
         </div>
-        <Button type="submit" variant="secondary">Apply</Button>
+        <Button type="submit" variant="secondary">{t('orders.apply')}</Button>
         {#if query.isFiltered}
-          <Button type="button" variant="ghost" onclick={() => draft.clear()}>Clear</Button>
+          <Button type="button" variant="ghost" onclick={() => draft.clear()}>
+            {t('orders.clear')}
+          </Button>
         {/if}
       </form>
     {/snippet}
 
     {#snippet table()}
-      <Table.Root>
-        <Table.Header>
-          <Table.Row>
-            <Table.Head>Order</Table.Head>
-            <Table.Head>Customer</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Payment</Table.Head>
-            <Table.Head>Contract</Table.Head>
-            <Table.Head class="text-right">Items</Table.Head>
-            <Table.Head>Placed</Table.Head>
-            <Table.Head class="text-right">Total</Table.Head>
-            <Table.Head class="w-10"></Table.Head>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {#each rows as order (order.id)}
-            <Table.Row
-              class="cursor-pointer"
-              onclick={rowClick(() => openDrawer(order.id))}
-              aria-selected={openId === order.id}
-            >
-              <Table.Cell class="font-mono font-medium">{order.number}</Table.Cell>
-              <Table.Cell class="text-muted-foreground">{order.email}</Table.Cell>
-              <Table.Cell><StatusBadge status={order.status} dot /></Table.Cell>
-              <Table.Cell><StatusBadge status={order.paymentStatus} kind="payment" /></Table.Cell>
-              <Table.Cell>
-                <!-- Only rentals owe a contract, so a sale shows a dash rather
-                     than a warning it could never clear. -->
-                {#if !order.hasRental}
-                  <span class="text-muted-foreground">—</span>
-                {:else if order.contractStatus === 'signed'}
-                  <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    Signed
-                  </span>
-                {:else}
-                  <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    Not signed
-                  </span>
-                {/if}
-              </Table.Cell>
-              <Table.Cell class="text-right tabular-nums">{order.itemCount}</Table.Cell>
-              <Table.Cell class="text-muted-foreground">
-                <span title={formatDate(order.placedAt)}>{relativeTime(order.placedAt)}</span>
-              </Table.Cell>
-              <Table.Cell class="text-right font-medium tabular-nums">
-                {formatMoney(order.total, order.currency)}
-              </Table.Cell>
-              <Table.Cell>
-                <!-- A real link out of a row that is otherwise a drawer trigger,
-                     so the order can still be opened in a new tab. The row's
-                     handler steps aside for it; see lib/row-click.ts. -->
-                <Button
-                  href={routes.orderDetail(order.id)}
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Open {order.number} as a page"
-                >
-                  <ExternalLinkIcon />
-                </Button>
-              </Table.Cell>
-            </Table.Row>
-          {/each}
-        </Table.Body>
-      </Table.Root>
+      <OrdersTable {rows} {openId} onOpen={openDrawer} />
     {/snippet}
 
     {#snippet empty()}
@@ -309,17 +223,17 @@
         <Empty.Header>
           <Empty.Media variant="icon"><InboxIcon /></Empty.Media>
           <Empty.Title>
-            {query.isFiltered ? 'No orders match these filters' : 'No orders yet'}
+            {query.isFiltered ? t('orders.emptyFiltered') : t('orders.emptyNone')}
           </Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Try a different status, or clear the filters.'
-              : 'Orders placed on the storefront land here.'}
+            {query.isFiltered ? t('orders.emptyFilteredHint') : t('orders.emptyNoneHint')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => query.reset()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => query.reset()}>
+              {t('orders.clearFilters')}
+            </Button>
           </Empty.Content>
         {/if}
       </Empty.Root>
@@ -327,52 +241,4 @@
   </ListCard>
 </section>
 
-<Sheet.Root
-  open={openId !== null}
-  onOpenChange={(open) => {
-    if (!open) closeDrawer();
-  }}
->
-  <!--
-    The width override has to carry the same `data-[side=right]:sm:` prefix the
-    base class uses. A bare `sm:max-w-3xl` is a different variant group, so
-    tailwind-merge keeps both and the more specific base wins — the drawer
-    silently stays narrow.
-  -->
-  <Sheet.Content side="right" class="gap-0 p-0 data-[side=right]:sm:max-w-3xl">
-    <Sheet.Header class="border-b">
-      <Sheet.Title class="flex items-center gap-3">
-        <span class="font-mono">{detail.data?.number ?? 'Order'}</span>
-        {#if detail.data}
-          <StatusBadge status={detail.data.status} dot />
-          <StatusBadge status={detail.data.paymentStatus} kind="payment" />
-        {/if}
-      </Sheet.Title>
-      <Sheet.Description>
-        {#if detail.data}
-          Placed {formatDate(detail.data.placedAt)} ·
-          <a href={routes.orderDetail(detail.data.id)} class="underline underline-offset-4">
-            open as a page
-          </a>
-        {:else}
-          Loading the order…
-        {/if}
-      </Sheet.Description>
-    </Sheet.Header>
-
-    <!-- `min-h-0` is what lets a flex child actually scroll instead of growing. -->
-    <div class="min-h-0 flex-1 overflow-y-auto p-4">
-      {#if detail.error}
-        <p class="text-sm text-destructive" role="alert">{detail.error}</p>
-      {:else if !detail.data}
-        <div class="space-y-3">
-          {#each { length: 8 } as _, row (row)}
-            <Skeleton class="h-6 w-full" />
-          {/each}
-        </div>
-      {:else}
-        <OrderDetailView order={detail.data} {onUpdated} compact />
-      {/if}
-    </div>
-  </Sheet.Content>
-</Sheet.Root>
+<OrderDrawer {openId} {detail} onClose={closeDrawer} {onUpdated} />

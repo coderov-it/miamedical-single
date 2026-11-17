@@ -70,7 +70,15 @@ export interface OrderDeliveryDto {
 export interface OrderEventDto {
   id: string;
   /** `email` is a failed send; its `toValue` is the message kind (notifications/mail-failure.ts). */
-  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract' | 'extension' | 'email';
+  field:
+    | 'status'
+    | 'paymentStatus'
+    | 'customerLink'
+    | 'contract'
+    | 'extension'
+    | 'email'
+    | 'discount'
+    | 'link';
   fromValue: string | null;
   toValue: string;
   note: string | null;
@@ -84,6 +92,15 @@ export interface OrderEventDto {
   createdAt: string;
 }
 
+export interface OrderRefundDto {
+  id: string;
+  amount: string;
+  reason: string;
+  rentalExtensionId: string | null;
+  actorName: string | null;
+  createdAt: string;
+}
+
 export interface OrderTotalsDto {
   subtotal: string;
   shippingTotal: string;
@@ -92,6 +109,15 @@ export interface OrderTotalsDto {
   total: string;
   currency: string;
 }
+
+/** Who started the order: the storefront checkout, or an agent for a phoned-in customer. */
+export type OrderSource = 'online' | 'manual';
+
+/**
+ * Where a pending manual order waits, derived once in `mapper.ts` from existing data
+ * (no new status). Null on online orders and once the order is paid.
+ */
+export type ManualStage = 'awaiting_signature' | 'awaiting_payment';
 
 export interface AdminOrderSummaryDto {
   id: string;
@@ -104,7 +130,16 @@ export interface AdminOrderSummaryDto {
   hasRental: boolean;
   /** The newest non-voided contract's status, so the list can say "contract not signed". */
   contractStatus: string | null;
+  source: OrderSource;
+  manualStage: ManualStage | null;
+  discountReason: string | null;
+  /** The agent who created a manual order; null for an online one. */
+  createdByName: string | null;
   total: string;
+  /** Paid extensions, refunds and what is left — all kept by the database. */
+  extensionTotal: string;
+  refundedTotal: string;
+  netTotal: string;
   currency: string;
   placedAt: string;
   updatedAt: string;
@@ -132,9 +167,20 @@ export interface AdminOrderDetailDto {
    */
   customerAccountId: string | null;
   customerLinkStatus: 'unverified' | 'confirmed' | 'rejected';
+  source: OrderSource;
+  manualStage: ManualStage | null;
+  discountReason: string | null;
+  createdByName: string | null;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totals: OrderTotalsDto;
+  extensionTotal: string;
+  refundedTotal: string;
+  netTotal: string;
+  /** Newest first. */
+  refunds: OrderRefundDto[];
+  /** Partly refunded with no amount on record: a legacy row an operator must price. */
+  refundAmountMissing: boolean;
   items: OrderItemDto[];
   shippingAddress: AddressDto | null;
   billingAddress: AddressDto | null;
@@ -190,8 +236,7 @@ export interface OrderListStatsDto {
 }
 
 /**
- * Trailing-window figures for the dashboard. `revenue` counts only orders that
- * are `paid` or `fulfilled` — `revenueBasis` carries that definition to the UI
+ * Trailing-window figures for the dashboard. `revenue` is net of refunds — `revenueBasis` carries that definition to the UI
  * so the tile can state it instead of leaving the reader to guess.
  */
 export interface OrderWindowStatsDto {

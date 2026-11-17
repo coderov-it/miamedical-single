@@ -24,6 +24,7 @@
   import { api } from '~/lib/api';
   import { ApiError, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { t, tn } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Recipients {
@@ -49,7 +50,7 @@
     } catch (error) {
       feedback = {
         tone: 'error',
-        text: error instanceof ApiError ? error.message : 'Load failed.',
+        text: error instanceof ApiError ? error.message : t('settings.loadFailed'),
       };
     } finally {
       loading = false;
@@ -67,17 +68,15 @@
       // Read the saved value back rather than keeping the draft: the server
       // deduplicates and lowercases, so the draft is not what was stored.
       emails = data.emails.length > 0 ? [...data.emails] : [''];
-      feedback = {
-        tone: 'ok',
-        text:
-          data.emails.length === 0
-            ? 'Saved. With no recipients, alerts appear in the panel only.'
-            : `Saved ${data.emails.length} recipient${data.emails.length === 1 ? '' : 's'}.`,
-      };
+      const savedText =
+        data.emails.length === 0
+          ? t('settings.savedNoRecipients')
+          : tn('settings.savedRecipients', data.emails.length);
+      feedback = { tone: 'ok', text: savedText };
     } catch (error) {
       feedback = {
         tone: 'error',
-        text: error instanceof ApiError ? error.message : 'Could not save.',
+        text: error instanceof ApiError ? error.message : t('settings.saveFailed'),
       };
     } finally {
       saving = false;
@@ -89,16 +88,16 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Settings"
-    title="General"
-    description="Platform-wide options. Your own name and password are under your account."
+    eyebrow={t('nav.settings')}
+    title={t('nav.general')}
+    description={t('settings.pageDescription')}
   />
 
   <div class="max-w-4xl space-y-4">
     <SettingsSection
       icon={MailIcon}
-      title="Alert email recipients"
-      description="Who receives platform alerts by email. Operators already see these in their notification inbox; this list reaches people who are not in the panel."
+      title={t('settings.alertsTitle')}
+      description={t('settings.alertsDescription')}
     >
       {#if loading}
         <div class="space-y-2">
@@ -122,7 +121,7 @@
                 size="icon"
                 disabled={!canEdit || saving || emails.length === 1}
                 onclick={() => (emails = emails.filter((__, i) => i !== index))}
-                aria-label="Remove recipient"
+                aria-label={t('settings.removeRecipient')}
               >
                 <Trash2Icon class="size-4" />
               </Button>
@@ -138,11 +137,11 @@
             onclick={() => (emails = [...emails, ''])}
           >
             <PlusIcon class="size-4" />
-            Add address
+            {t('settings.addAddress')}
           </Button>
           {#if emails.length >= MAX_RECIPIENTS}
             <span class="text-xs text-muted-foreground">
-              Ten is the maximum — use a distribution group beyond that.
+              {t('settings.maxRecipients')}
             </span>
           {/if}
         </div>
@@ -159,9 +158,11 @@
 
         <div class="mt-4">
           {#if canEdit}
-            <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>Save</BusyButton>
+            <BusyButton busy={saving} busyLabel={t('common.saving')} onclick={save}>
+              {t('common.save')}
+            </BusyButton>
           {:else}
-            <p class="text-sm text-muted-foreground">You have read-only access to settings.</p>
+            <p class="text-sm text-muted-foreground">{t('settings.readOnly')}</p>
           {/if}
         </div>
       {/if}

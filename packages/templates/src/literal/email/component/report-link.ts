@@ -30,6 +30,12 @@ export const REPORT_COPY: Translated<{ question: string; textLead: string }> = {
  * One piece rather than the same sentence written three times, so the copy cannot
  * drift between the three messages.
  */
-export function reportLink(props: { reportUrl: string; language: EmailLanguage }): string {
-  return `<p style="margin:0 0 10px;font-size:13px"><a href="${escapeHtml(props.reportUrl)}" style="color:${COLORS.inkSoft}">${REPORT_COPY[props.language].question}</a></p>`;
+export function reportLink(props: {
+  reportUrl: string;
+  language: EmailLanguage;
+  /** Another wording for a message that is not an order confirmation. */
+  copy?: { question: string; textLead: string };
+}): string {
+  const question = escapeHtml((props.copy ?? REPORT_COPY[props.language]).question);
+  return `<p style="margin:0 0 10px;font-size:13px"><a href="${escapeHtml(props.reportUrl)}" style="color:${COLORS.inkSoft}">${question}</a></p>`;
 }

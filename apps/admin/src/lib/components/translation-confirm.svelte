@@ -23,6 +23,7 @@
     summariseSections,
     type TargetLanguageCode,
   } from '~/lib/i18n';
+  import { t, tn } from '~/lib/ui-text';
 
   interface Props {
     fields: PlanField[];
@@ -58,12 +59,12 @@
 
   const emptyMessage = $derived.by(() => {
     if (sourceOptions.length <= 1) {
-      return 'This record has a single language so far — there is nothing to generate from it.';
+      return t('components.confirmSingleLanguage');
     }
     if (blockedReasons.length > 0) {
-      return `Nothing to generate: ${blockedReasons.join(', ')}.`;
+      return t('components.confirmBlocked', { reasons: blockedReasons.join(', ') });
     }
-    return 'Every other language already has text — written by you, or by an earlier run. Clear one to generate it again.';
+    return t('components.confirmAllFilled');
   });
 </script>
 
@@ -74,7 +75,7 @@
     </p>
   {:else}
     <div class="flex flex-wrap items-center gap-2 text-sm">
-      <span class="text-muted-foreground">Generate</span>
+      <span class="text-muted-foreground">{t('components.confirmGenerate')}</span>
       {#each chosen as plan (plan.code)}
         <span
           class="rounded-md bg-primary/10 px-1.5 py-0.5 font-mono text-xs font-medium text-primary uppercase"
@@ -82,14 +83,14 @@
           {plan.code}
         </span>
       {/each}
-      <span class="text-muted-foreground">from</span>
+      <span class="text-muted-foreground">{t('components.confirmFrom')}</span>
       <span class="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs font-medium uppercase">
         {source.code}
       </span>
     </div>
 
     <div>
-      <Label class="mb-1.5" for="translate-source">Source language</Label>
+      <Label class="mb-1.5" for="translate-source">{t('components.confirmSource')}</Label>
       <Select.Root type="single" bind:value={sourceCode}>
         <Select.Trigger id="translate-source" class="w-full">{source.label}</Select.Trigger>
         <Select.Content>
@@ -101,7 +102,7 @@
     </div>
 
     <div class="space-y-1">
-      <Label>Languages to fill</Label>
+      <Label>{t('components.confirmTargets')}</Label>
       {#each plans as plan (plan.code)}
         <div class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent">
           {#if fillableCount(plan) > 0}
@@ -117,22 +118,23 @@
               <span>{plan.label}</span>
               <span class="text-xs text-muted-foreground uppercase">{plan.code}</span>
               <span class="ml-auto text-xs text-muted-foreground">
-                {fillableCount(plan)}
-                {fillableCount(plan) === 1 ? 'field' : 'fields'}
+                {tn('components.fieldCount', fillableCount(plan))}
               </span>
             </button>
           {:else}
             <span class="size-4 shrink-0 rounded-[4px] border border-dashed"></span>
             <span class="text-muted-foreground">{plan.label}</span>
             <span class="text-xs text-muted-foreground uppercase">{plan.code}</span>
-            <span class="ml-auto text-xs text-muted-foreground">nothing new</span>
+            <span class="ml-auto text-xs text-muted-foreground"
+              >{t('components.confirmNothingNew')}</span
+            >
           {/if}
         </div>
       {/each}
     </div>
 
     <div>
-      <Label class="mb-1.5">In scope</Label>
+      <Label class="mb-1.5">{t('components.confirmInScope')}</Label>
       <div class="flex flex-wrap gap-1.5">
         {#each sections as section (section.name)}
           <span class="rounded-md bg-muted px-1.5 py-0.5 text-xs">
@@ -144,14 +146,13 @@
 
     {#if derivesSomething}
       <p class="text-xs text-muted-foreground">
-        "Meta title" and "Meta description" have nothing in {source.label} to translate, so they are filled
-        from that language's own title and short description.
+        {t('components.confirmDerived', { source: source.label })}
       </p>
     {/if}
 
     {#if keptEntries.length > 0}
       <div>
-        <Label class="mb-1.5">Kept as you wrote them</Label>
+        <Label class="mb-1.5">{t('components.confirmKept')}</Label>
         <ul class="space-y-0.5 text-xs text-muted-foreground">
           {#each keptEntries.slice(0, 8) as entry (`${entry.code}:${entry.group.id}`)}
             <li>
@@ -160,7 +161,9 @@
           {/each}
         </ul>
         {#if keptEntries.length > 8}
-          <p class="mt-0.5 text-xs text-muted-foreground">and {keptEntries.length - 8} more.</p>
+          <p class="mt-0.5 text-xs text-muted-foreground">
+            {t('components.confirmMore', { count: keptEntries.length - 8 })}
+          </p>
         {/if}
       </div>
     {/if}

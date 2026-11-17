@@ -6,6 +6,8 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { beaconResourcePolicy, productViewRoutes } from './modules/product-views/routes.ts';
+import { analyticsAdminRoutes } from './modules/analytics/routes.ts';
 import { accountDeletionRoutes } from './modules/account-deletion/routes.ts';
 import { adminUserRoutes } from './modules/admin-users/routes.ts';
 import { authRoutes } from './modules/auth/routes.ts';
@@ -25,12 +27,15 @@ import { mediaRoutes } from './modules/media/routes.ts';
 import { notificationAdminRoutes } from './modules/notifications/admin-routes.ts';
 import { notificationCustomerRoutes } from './modules/notifications/customer-routes.ts';
 import { notificationPreferenceRoutes, pushDeviceRoutes } from './modules/push/routes.ts';
+import { stockHistoryAdminRoutes } from './modules/stock-history/routes.ts';
+import { orderRefundAdminRoutes } from './modules/order-refunds/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import {
   paymentCustomerRoutes,
   paymentPublicRoutes,
   paymentWebhookRoutes,
 } from './modules/payments/online-routes.ts';
+import { orderLinkPublicRoutes } from './modules/order-links/routes.ts';
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import {
@@ -50,6 +55,8 @@ import { requestLogger } from './shared/http/request-log.ts';
 const app = new Hono<AppEnv>();
 
 app.use('*', requestId());
+/* Before secureHeaders so it has the last word on this one route; see product-views/routes.ts. */
+app.post('/api/products/:id/view', beaconResourcePolicy);
 app.use('*', secureHeaders());
 app.use('*', requestLogger);
 app.use('*', async (c, next) => {
@@ -90,12 +97,14 @@ if (env.NODE_ENV !== 'production') {
 const routes = app
   .route('/health', healthRoutes)
   .route('/api/auth', authRoutes)
+  .route('/api/products', productViewRoutes)
   .route('/api/products', productPublicRoutes)
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)
   .route('/api/legal', legalPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
   .route('/api/payments', paymentPublicRoutes)
+  .route('/api/order-links', orderLinkPublicRoutes)
   .route('/api/webhooks/payments', paymentWebhookRoutes)
   .route('/api/order-disputes', orderDisputePublicRoutes)
   .route('/api/customer/auth', customerAuthRoutes)
@@ -111,10 +120,13 @@ const routes = app
   .route('/api/customer', customerAccountRoutes)
   .route('/api/media', mediaRoutes)
   .route('/api/admin/products', productAdminRoutes)
+  .route('/api/admin/products', stockHistoryAdminRoutes)
   .route('/api/admin/categories', categoryAdminRoutes)
   .route('/api/admin/terms', termsAdminRoutes)
   .route('/api/admin/legal', legalAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
+  .route('/api/admin/orders', orderRefundAdminRoutes)
+  .route('/api/admin/analytics', analyticsAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
   .route('/api/admin/settings', settingsAdminRoutes)

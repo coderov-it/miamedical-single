@@ -43,6 +43,13 @@ export async function resolveLines(
   return { lines, currency: lines[0]?.currency ?? 'EUR' };
 }
 
+/** What an address snapshot reads from the customer; a manual order may not have it yet. */
+export interface SnapshotCustomer {
+  firstName?: string | null | undefined;
+  lastName?: string | null | undefined;
+  phone?: string | null | undefined;
+}
+
 /**
  * Composes the `AddressSchema`-shaped snapshot the order stores.
  *
@@ -54,7 +61,7 @@ export async function resolveLines(
  * `null` for a collection, which has no address — see `deliverySnapshot`.
  */
 export function addressSnapshot(
-  customer: PlaceOrderInput['customer'],
+  customer: SnapshotCustomer,
   address: NonNullable<PlaceOrderInput['delivery']['address']> | null,
 ): Record<string, unknown> | null {
   if (!address) return null;
@@ -67,14 +74,14 @@ export function addressSnapshot(
     alone without a single change on their side.
   */
   return {
-    fullName: `${customer.firstName} ${customer.lastName}`.trim(),
+    fullName: `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim(),
     line1: address.line1,
     line2: null,
     city: null,
     region: null,
     postalCode: null,
     country: 'IT',
-    phone: customer.phone,
+    phone: customer.phone ?? null,
   };
 }
 

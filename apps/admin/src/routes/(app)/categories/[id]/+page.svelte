@@ -9,10 +9,11 @@
 
   import LoadingState from '~/lib/components/loading-state.svelte';
   import { routes } from '~/lib/routes';
+  import { t } from '~/lib/ui-text';
 
   $effect(() => {
     void goto(`${routes.categories}?edit=${page.params.id}`, { replaceState: true });
   });
 </script>
 
-<LoadingState label="Opening the category editor…" />
+<LoadingState label={t('categories.openingEditor')} />

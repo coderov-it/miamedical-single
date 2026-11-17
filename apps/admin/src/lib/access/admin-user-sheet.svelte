@@ -26,6 +26,7 @@
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
   import type { AdminUser } from './access';
   import PermissionPicker from './permission-picker.svelte';
@@ -64,9 +65,9 @@
   const readOnlyAll = $derived(!canEditProfile && (isSelf || !canAssign));
 
   const pickerReason = $derived.by(() => {
-    if (isSelf) return 'You cannot change your own access. Ask another administrator.';
+    if (isSelf) return t('access.selfAccessLocked');
     if (!canAssign) {
-      return 'You can edit this profile, but not what it reaches — that needs admin:permission_assign.';
+      return t('access.assignNeeded', { permission: 'admin:permission_assign' });
     }
     return undefined;
   });
@@ -110,9 +111,9 @@
 
   function localIssues(): Record<string, string> {
     const issues: Record<string, string> = {};
-    if (fullName.trim().length < 2) issues.fullName = 'Enter a name of at least 2 characters.';
-    if (!email.trim()) issues.email = 'Enter an email address.';
-    if (!isEdit && password.length < 12) issues.password = 'Use at least 12 characters.';
+    if (fullName.trim().length < 2) issues.fullName = t('access.nameInvalid');
+    if (!email.trim()) issues.email = t('access.emailRequired');
+    if (!isEdit && password.length < 12) issues.password = t('access.passwordMin');
     return issues;
   }
 
@@ -154,7 +155,7 @@
       if (open) await saveExisting(open);
       else await createNew();
 
-      toast.success(open ? `Saved ${email}.` : `Created ${email}.`);
+      toast.success(t(open ? 'access.toastSaved' : 'access.toastCreated', { email }));
       onSaved();
       onClose();
     } catch (err) {
@@ -223,10 +224,9 @@
     showCloseButton={false}
   >
     <Sheet.Header class="border-b bg-muted/50">
-      <Sheet.Title>{isEdit ? 'Edit operator' : 'New operator'}</Sheet.Title>
+      <Sheet.Title>{isEdit ? t('access.sheetEditTitle') : t('access.newOperator')}</Sheet.Title>
       <Sheet.Description>
-        Back-office accounts only. Customers sign in through the storefront and share nothing with
-        this list.
+        {t('access.sheetDescription')}
       </Sheet.Description>
     </Sheet.Header>
 
@@ -239,13 +239,13 @@
 
       {#if open && !open.hasPassword}
         <p class="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
-          This account has no password and cannot sign in. Use "Set password" on its row.
+          {t('access.noPasswordNotice')}
         </p>
       {/if}
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
-          <Label class="mb-1.5" for="operator-name">Full name</Label>
+          <Label class="mb-1.5" for="operator-name">{t('access.fullNameLabel')}</Label>
           <Input
             id="operator-name"
             disabled={!canEditProfile}
@@ -259,7 +259,7 @@
         </div>
 
         <div>
-          <Label class="mb-1.5" for="operator-email">Email</Label>
+          <Label class="mb-1.5" for="operator-email">{t('auth.email')}</Label>
           <Input
             id="operator-email"
             disabled={!canEditProfile}
@@ -274,18 +274,18 @@
         </div>
 
         <div>
-          <Label class="mb-1.5" for="operator-phone">Phone</Label>
+          <Label class="mb-1.5" for="operator-phone">{t('access.phoneLabel')}</Label>
           <Input
             id="operator-phone"
             disabled={!canEditProfile}
             bind:value={phone}
-            placeholder="Optional"
+            placeholder={t('common.optional')}
           />
         </div>
 
         {#if isEdit}
           <div>
-            <Label class="mb-1.5" for="operator-active">Account</Label>
+            <Label class="mb-1.5" for="operator-active">{t('access.accountLabel')}</Label>
             <div class="flex h-9 items-center gap-2">
               <Switch
                 id="operator-active"
@@ -295,22 +295,22 @@
               />
               <span class="text-sm text-muted-foreground">
                 {#if isSelf}
-                  You cannot disable your own account
+                  {t('access.cannotDisableSelf')}
                 {:else}
-                  {isActive ? 'Can sign in' : 'Disabled — signed out everywhere'}
+                  {isActive ? t('access.canSignIn') : t('access.disabledSignedOut')}
                 {/if}
               </span>
             </div>
           </div>
         {:else}
           <div>
-            <Label class="mb-1.5" for="operator-password">Password</Label>
+            <Label class="mb-1.5" for="operator-password">{t('auth.password')}</Label>
             <Input
               id="operator-password"
               type="password"
               bind:value={password}
               autocomplete="new-password"
-              placeholder="At least 12 characters"
+              placeholder={t('access.passwordPlaceholder')}
               aria-invalid={fields.password ? 'true' : undefined}
             />
             {#if fields.password}
@@ -334,11 +334,15 @@
 
     <Sheet.Footer class="flex-row items-center justify-between border-t bg-muted/50">
       {#if readOnlyAll}
-        <Button variant="destructive" class="ml-auto" onclick={onClose}>Close</Button>
+        <Button variant="destructive" class="ml-auto" onclick={onClose}>
+          {t('common.close')}
+        </Button>
       {:else}
-        <Button variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
-        <BusyButton busy={saving} busyLabel="Saving…" onclick={save}>
-          {isEdit ? 'Save changes' : 'Create operator'}
+        <Button variant="destructive" disabled={saving} onclick={onClose}>
+          {t('common.cancel')}
+        </Button>
+        <BusyButton busy={saving} busyLabel={t('common.saving')} onclick={save}>
+          {isEdit ? t('access.saveChanges') : t('access.createOperator')}
         </BusyButton>
       {/if}
     </Sheet.Footer>

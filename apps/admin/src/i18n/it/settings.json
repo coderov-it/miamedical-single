@@ -1,0 +1,14 @@
+{
+  "pageDescription": "Opzioni valide per l'intera piattaforma. Il tuo nome e la tua password si trovano nel tuo account.",
+  "alertsTitle": "Destinatari delle email di avviso",
+  "alertsDescription": "Chi riceve via email gli avvisi della piattaforma. Gli operatori li vedono già nella loro casella delle notifiche; questo elenco raggiunge chi non è nel pannello.",
+  "removeRecipient": "Rimuovi destinatario",
+  "addAddress": "Aggiungi indirizzo",
+  "maxRecipients": "Il massimo è dieci: oltre usa una lista di distribuzione.",
+  "savedNoRecipients": "Salvato. Senza destinatari, gli avvisi compaiono solo nel pannello.",
+  "savedRecipients.one": "{count} destinatario salvato.",
+  "savedRecipients.other": "{count} destinatari salvati.",
+  "loadFailed": "Caricamento non riuscito.",
+  "saveFailed": "Impossibile salvare.",
+  "readOnly": "Hai accesso alle impostazioni in sola lettura."
+}

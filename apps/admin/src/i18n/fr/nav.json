@@ -1,0 +1,23 @@
+{
+  "overview": "Aperçu",
+  "catalog": "Catalogue",
+  "sales": "Ventes",
+  "content": "Contenu",
+  "settings": "Paramètres",
+  "dashboard": "Tableau de bord",
+  "analytics": "Statistiques",
+  "notifications": "Notifications",
+  "products": "Produits",
+  "categories": "Catégories",
+  "terms": "Conditions",
+  "orders": "Commandes",
+  "rentManagement": "Gestion des locations",
+  "contracts": "Contrats",
+  "payments": "Paiements",
+  "carts": "Paniers",
+  "disputedOrders": "Commandes contestées",
+  "blogPosts": "Articles du blog",
+  "privacyPolicy": "Politique de confidentialité",
+  "general": "Général",
+  "adminUsers": "Utilisateurs administrateurs"
+}

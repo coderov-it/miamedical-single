@@ -7,6 +7,8 @@
   import StatusBadge from '~/lib/components/status-badge.svelte';
   import { formatDate } from '~/lib/format';
   import { routes } from '~/lib/routes';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { type MessageKey, t } from '~/lib/ui-text';
 
   interface CalendarEvent {
     orderId: string;
@@ -31,21 +33,22 @@
     onDayFilter?: (date: string) => void;
   } = $props();
 
-  const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
-  const MONTH_NAMES = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ] as const;
+  /** 2024-01-01 is a Monday, so index 0 is Monday. Names come from Intl in the interface language. */
+  const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+  const weekdays = $derived(
+    Array.from({ length: 7 }, (_, index) =>
+      capitalize(
+        new Intl.DateTimeFormat(uiLang.current, { weekday: 'short' }).format(
+          new Date(2024, 0, 1 + index),
+        ),
+      ),
+    ),
+  );
+  const monthName = $derived(
+    capitalize(
+      new Intl.DateTimeFormat(uiLang.current, { month: 'long' }).format(new Date(2024, month, 1)),
+    ),
+  );
 
   const EVENT_COLORS: Record<CalendarEvent['type'], string> = {
     'order-placed': 'bg-amber-500',
@@ -53,10 +56,10 @@
     'rental-end': 'bg-emerald-500',
   };
 
-  const EVENT_LABELS: Record<CalendarEvent['type'], string> = {
-    'order-placed': 'Placed',
-    'rental-start': 'Rental start',
-    'rental-end': 'Rental end',
+  const EVENT_LABELS: Record<CalendarEvent['type'], MessageKey> = {
+    'order-placed': 'components.calendarEventPlaced',
+    'rental-start': 'components.calendarEventRentalStart',
+    'rental-end': 'components.calendarEventRentalEnd',
   };
 
   const todayString = $derived(new Date().toISOString().slice(0, 10));
@@ -152,15 +155,25 @@
 <div class="flex flex-col gap-2">
   <div class="flex items-center justify-between">
     <h3 class="text-sm font-medium">
-      {MONTH_NAMES[month]}
+      {monthName}
       {year}
     </h3>
     <div class="flex items-center gap-1">
-      <Button variant="ghost" size="sm" onclick={goToday}>Today</Button>
-      <Button variant="ghost" size="icon-sm" onclick={prevMonth}>
+      <Button variant="ghost" size="sm" onclick={goToday}>{t('components.calendarToday')}</Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t('components.calendarPreviousMonth')}
+        onclick={prevMonth}
+      >
         <ChevronLeftIcon class="size-4" />
       </Button>
-      <Button variant="ghost" size="icon-sm" onclick={nextMonth}>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t('components.calendarNextMonth')}
+        onclick={nextMonth}
+      >
         <ChevronRightIcon class="size-4" />
       </Button>
     </div>
@@ -168,13 +181,16 @@
 
   <div class="flex gap-4 text-xs text-muted-foreground">
     <span class="flex items-center gap-1.5"
-      ><span class="size-2 rounded-full bg-blue-500"></span> Start</span
+      ><span class="size-2 rounded-full bg-blue-500"></span>
+      {t('components.calendarLegendStart')}</span
     >
     <span class="flex items-center gap-1.5"
-      ><span class="size-2 rounded-full bg-emerald-500"></span> End</span
+      ><span class="size-2 rounded-full bg-emerald-500"></span>
+      {t('components.calendarLegendEnd')}</span
     >
     <span class="flex items-center gap-1.5"
-      ><span class="size-2 rounded-full bg-amber-500"></span> Placed</span
+      ><span class="size-2 rounded-full bg-amber-500"></span>
+      {t('components.calendarEventPlaced')}</span
     >
   </div>
 
@@ -182,7 +198,7 @@
     <table class="w-full table-fixed border-collapse text-sm">
       <thead>
         <tr>
-          {#each WEEKDAYS as day (day)}
+          {#each weekdays as day (day)}
             <th class="border-b px-1 py-1.5 text-center text-xs font-medium text-muted-foreground"
               >{day}</th
             >
@@ -212,7 +228,7 @@
                     {#each cell.events.slice(0, 2) as event, eventIndex (`${event.orderNumber}-${event.type}-${eventIndex}`)}
                       <span
                         class="flex min-w-0 items-center gap-1 rounded-sm bg-muted px-1 py-px"
-                        title="{event.orderNumber} — {EVENT_LABELS[event.type]}"
+                        title="{event.orderNumber} — {t(EVENT_LABELS[event.type])}"
                       >
                         <span class="size-1.5 shrink-0 rounded-full {EVENT_COLORS[event.type]}"
                         ></span>
@@ -223,7 +239,7 @@
                     {/each}
                     {#if cell.events.length > 2}
                       <span class="px-1 text-[10px] leading-tight text-muted-foreground">
-                        +{cell.events.length - 2} more
+                        {t('components.calendarMore', { count: cell.events.length - 2 })}
                       </span>
                     {/if}
                   </Popover.Trigger>
@@ -248,7 +264,7 @@
                                   >{event.orderNumber}</a
                                 >
                                 <span class="ml-1 text-xs text-muted-foreground"
-                                  >{EVENT_LABELS[event.type]}</span
+                                  >{t(EVENT_LABELS[event.type])}</span
                                 >
                                 {#if event.productTitle}
                                   <p class="truncate text-xs text-muted-foreground">
@@ -262,7 +278,7 @@
                         </div>
                       {:else}
                         <p class="py-2 text-sm text-muted-foreground">
-                          No orders or rentals on this day.
+                          {t('components.calendarEmptyDay')}
                         </p>
                       {/if}
                       {#if onDayFilter}
@@ -273,7 +289,7 @@
                             class="w-full"
                             onclick={() => onDayFilter?.(cell.dateString)}
                           >
-                            Filter orders to this day
+                            {t('components.calendarFilterDay')}
                           </Button>
                         </div>
                       {/if}

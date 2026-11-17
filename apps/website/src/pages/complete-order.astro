@@ -1,0 +1,65 @@
+---
+/**
+ * `/complete-order/` — where the private link an agent sends for a manual order opens.
+ *
+ * A ROUTE DECLARATION, deliberately thin: the body is in
+ * `views/complete-order/CompleteOrderBody.astro`, the behaviour in
+ * `scripts/complete-order/`. The `?token=` is the page's whole authorisation and it reveals
+ * only that order's summary. Never cached and never indexed (PRIVATE_ROUTES).
+ * Flow: docs/code/manual-orders.md.
+ */
+import AccountCopy from '~/components/account/AccountCopy.astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localeFromLocals, translate } from '~/lib/i18n';
+import CompleteOrderBody from '~/views/complete-order/CompleteOrderBody.astro';
+
+export const prerender = false;
+
+const locale = localeFromLocals(Astro.locals);
+
+/** What the script writes into the DOM. See lib/account-page.ts. */
+const SCRIPT_KEYS = [
+  'completeOrder.orderLine',
+  'completeOrder.loadError',
+  'completeOrder.linkIncomplete',
+  'completeOrder.gone.unknown',
+  'completeOrder.gone.revoked',
+  'completeOrder.gone.expired',
+  'completeOrder.gone.paid',
+  'completeOrder.gone.closed',
+  'completeOrder.status.awaitingSignature',
+  'completeOrder.status.awaitingPayment',
+  'completeOrder.subtotal',
+  'completeOrder.shipping',
+  'completeOrder.discount',
+  'completeOrder.details.saved',
+  'completeOrder.details.saveError',
+  'completeOrder.details.frozen',
+  'completeOrder.contract.signed',
+  'completeOrder.contract.signError',
+  'completeOrder.contract.changed',
+  'completeOrder.pay.button',
+  'completeOrder.pay.signFirst',
+  'completeOrder.pay.unavailable',
+  'completeOrder.pay.signedOnly',
+  'checkoutContract.document',
+  'checkoutContract.loadFailed',
+  'contract.submitting',
+  'payment.openFailed',
+  'openingPayment',
+] as const;
+---
+
+<BaseLayout
+  title={translate(locale, 'completeOrder.metaTitle')}
+  description={translate(locale, 'completeOrder.metaTitle')}
+  noindex
+  bare
+>
+  <AccountCopy keys={SCRIPT_KEYS} />
+  <CompleteOrderBody />
+</BaseLayout>
+
+<script>
+  import '~/scripts/complete-order/index.ts';
+</script>

@@ -20,7 +20,8 @@
   import MoneyInput from '~/lib/components/money-input.svelte';
   import { focusFirstIssue, type GateField } from '~/lib/form-gate';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
-  import { PAYMENT_METHOD_LABELS } from './extension-status';
+  import { t, tn } from '~/lib/ui-text';
+  import { paymentMethodLabel } from './extension-status';
 
   interface Props {
     target:
@@ -67,8 +68,8 @@
     if (!current) return;
 
     const issues: Record<string, string> = {};
-    if (!method) issues.method = 'Pick how the customer paid.';
-    if (!amount || Number(amount) <= 0) issues.amount = 'Enter the amount received.';
+    if (!method) issues.method = t('rentals.payErrorMethod');
+    if (!amount || Number(amount) <= 0) issues.amount = t('rentals.payErrorAmount');
     fields = issues;
     if (Object.keys(issues).length > 0 || !method) {
       focusFirstIssue(issues, GATE);
@@ -87,8 +88,8 @@
           },
         }),
       );
-      if (signed) toast.success('Payment recorded — the extension is active.');
-      else toast.success('Payment recorded — the renewal contract is out for signature.');
+      if (signed) toast.success(t('rentals.toastPaidActive'));
+      else toast.success(t('rentals.toastPaidSent'));
       onDone();
       onClose();
     } catch (err) {
@@ -108,13 +109,14 @@
 >
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Record payment</Dialog.Title>
+      <Dialog.Title>{t('rentals.payTitle')}</Dialog.Title>
       <Dialog.Description>
         {#if signed}
-          Extension of {target?.days} days. The customer already signed contract
-          {target?.contractNumber} for this amount, so saving activates the extension.
+          {tn('rentals.payDescriptionSigned', target?.days ?? 0, {
+            number: target?.contractNumber ?? '',
+          })}
         {:else}
-          Extension of {target?.days} days. Saving emails the customer the contract to sign.
+          {tn('rentals.payDescriptionPending', target?.days ?? 0)}
         {/if}
       </Dialog.Description>
     </Dialog.Header>
@@ -127,18 +129,18 @@
       }}
     >
       <div>
-        <Label class="mb-1.5" for="payment-method">Method</Label>
+        <Label class="mb-1.5" for="payment-method">{t('rentals.payMethod')}</Label>
         <Select.Root type="single" bind:value={method}>
           <Select.Trigger
             id="payment-method"
             class="w-full"
             aria-invalid={fields.method ? 'true' : undefined}
           >
-            {method ? PAYMENT_METHOD_LABELS[method] : 'Choose…'}
+            {method ? paymentMethodLabel(method) : t('rentals.payChoose')}
           </Select.Trigger>
           <Select.Content>
             {#each EXTENSION_PAYMENT_METHODS as option (option)}
-              <Select.Item value={option}>{PAYMENT_METHOD_LABELS[option]}</Select.Item>
+              <Select.Item value={option}>{paymentMethodLabel(option)}</Select.Item>
             {/each}
           </Select.Content>
         </Select.Root>
@@ -149,12 +151,13 @@
 
       {#if signed}
         <p class="text-sm">
-          Amount: <span class="font-medium tabular-nums">{target?.amount} {target?.currency}</span>
+          {t('rentals.payAmountLine')}
+          <span class="font-medium tabular-nums">{target?.amount} {target?.currency}</span>
         </p>
       {:else}
         <MoneyInput
           id="payment-amount"
-          label="Amount received"
+          label={t('rentals.payAmountReceived')}
           bind:value={amount}
           suffix={target?.currency ?? 'EUR'}
           error={fields.amount}
@@ -163,15 +166,18 @@
 
       <div>
         <Label class="mb-1.5" for="payment-reference">
-          Reference <span class="font-normal text-muted-foreground">(optional)</span>
+          {t('rentals.payReference')}
+          <span class="font-normal text-muted-foreground">{t('rentals.payOptional')}</span>
         </Label>
         <Input id="payment-reference" bind:value={reference} maxlength={120} />
       </div>
 
       <Dialog.Footer>
-        <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>Cancel</Button>
-        <BusyButton type="submit" busy={saving} busyLabel="Saving…">
-          {signed ? 'Record & activate' : 'Record & send contract'}
+        <Button type="button" variant="destructive" disabled={saving} onclick={onClose}>
+          {t('common.cancel')}
+        </Button>
+        <BusyButton type="submit" busy={saving} busyLabel={t('common.saving')}>
+          {signed ? t('rentals.payRecordActivate') : t('rentals.payRecordSend')}
         </BusyButton>
       </Dialog.Footer>
     </form>

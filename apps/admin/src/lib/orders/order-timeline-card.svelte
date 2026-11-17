@@ -10,8 +10,10 @@
   import { contractStatusMeta } from '~/lib/contracts/status';
   import { formatDateTime, orDash } from '~/lib/format';
   import { emailEventMeta } from '~/lib/orders/email-event';
+  import { manualEventMeta } from '~/lib/orders/manual-order';
   import { orderStatusMeta, paymentStatusMeta } from '~/lib/orders/status';
   import type { OrderEvent } from '~/lib/orders/types';
+  import { type MessageKey, t } from '~/lib/ui-text';
   import { extensionStatusMeta } from '~/lib/rentals/extension-status';
 
   interface Props {
@@ -20,29 +22,50 @@
 
   let { events }: Props = $props();
 
-  const FIELD_LABELS: Record<string, string> = {
-    status: 'Status',
-    paymentStatus: 'Payment',
-    customerLink: 'Account link',
-    contract: 'Contract',
-    extension: 'Extension',
-    email: 'Email',
+  const FIELD_LABELS: Record<string, MessageKey> = {
+    status: 'orders.fieldStatus',
+    paymentStatus: 'orders.fieldPayment',
+    customerLink: 'orders.fieldCustomerLink',
+    contract: 'orders.fieldContract',
+    extension: 'orders.fieldExtension',
+    email: 'orders.fieldEmail',
+    discount: 'newOrder.fieldDiscount',
+    link: 'newOrder.fieldLink',
   };
+
+  function fieldLabel(field: string): string {
+    const key = FIELD_LABELS[field];
+    if (!key) return field;
+    return t(key);
+  }
+
+  function actorLabel(event: OrderEvent): string {
+    const name = event.actorName ?? t('orders.actorSystem');
+    if (event.actorKind === 'customer') return t('orders.actorCustomer', { name });
+    return name;
+  }
 
   function eventMeta(field: string, toValue: string) {
     if (field === 'status') return orderStatusMeta(toValue);
     if (field === 'contract') return contractStatusMeta(toValue);
     if (field === 'extension') return extensionStatusMeta(toValue);
     if (field === 'email') return emailEventMeta(toValue);
+    if (field === 'discount' || field === 'link') return manualEventMeta(field, toValue);
     return paymentStatusMeta(toValue);
+  }
+
+  /** The value an event moved away from, labelled like the one it moved to. */
+  function fromLabel(event: OrderEvent): string {
+    if (!event.fromValue) return orDash(event.fromValue);
+    return eventMeta(event.field, event.fromValue).label;
   }
 </script>
 
 <Card.Root class="gap-0 py-0">
-  <div class="border-b px-4 py-2.5 text-sm font-medium">Timeline</div>
+  <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.timelineTitle')}</div>
   <div class="p-4">
     {#if events.length === 0}
-      <p class="text-sm text-muted-foreground">Nothing has happened since this order was placed.</p>
+      <p class="text-sm text-muted-foreground">{t('orders.timelineEmpty')}</p>
     {:else}
       <ol class="space-y-0">
         {#each events as event, index (event.id)}
@@ -57,10 +80,10 @@
             <div class="pb-4">
               <p class="text-sm">
                 <span class="text-muted-foreground">
-                  {FIELD_LABELS[event.field] ?? event.field}
+                  {fieldLabel(event.field)}
                 </span>
-                {#if event.field !== 'email'}
-                  {orDash(event.fromValue)}
+                {#if event.field !== 'email' && event.field !== 'link'}
+                  {fromLabel(event)}
                   <span class="text-muted-foreground">→</span>
                 {/if}
                 <span class="font-medium">{meta.label}</span>
@@ -72,9 +95,7 @@
                    and by the customer are different facts, and a bare name
                    reads as staff. -->
               <p class="mt-0.5 text-xs text-muted-foreground">
-                {event.actorName ?? 'System'}{event.actorKind === 'customer' ? ' (customer)' : ''} · {formatDateTime(
-                  event.createdAt,
-                )}
+                {actorLabel(event)} · {formatDateTime(event.createdAt)}
               </p>
             </div>
           </li>

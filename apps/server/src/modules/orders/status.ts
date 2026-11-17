@@ -38,10 +38,21 @@ const PAYMENT_TRANSITIONS: Record<PaymentStatus, readonly PaymentStatus[]> = {
   unpaid: ['authorized', 'paid', 'failed'],
   authorized: ['paid', 'failed'],
   paid: ['partially_refunded', 'refunded'],
-  partially_refunded: ['refunded'],
+  /* The self-loop is a second partial refund. Only the refund endpoint
+     (order-refunds) may make either of these moves; see REFUND_ONLY below. */
+  partially_refunded: ['partially_refunded', 'refunded'],
   refunded: [],
   failed: ['unpaid', 'authorized', 'paid'],
 };
+
+/**
+ * Payment statuses that carry an amount. A bare move into one of them would be a
+ * refund with no figure on it, so only `POST /orders/:id/refunds` may cause it.
+ */
+export const REFUND_ONLY_PAYMENT_STATUSES: readonly PaymentStatus[] = [
+  'partially_refunded',
+  'refunded',
+];
 
 export const TERMINAL_ORDER_STATUSES: readonly OrderStatus[] = ['cancelled', 'refunded'];
 
@@ -51,6 +62,11 @@ export function nextOrderStatuses(from: OrderStatus): readonly OrderStatus[] {
 
 export function nextPaymentStatuses(from: PaymentStatus): readonly PaymentStatus[] {
   return PAYMENT_TRANSITIONS[from];
+}
+
+/** The moves an operator may make by hand: the table minus the refund-only ones. */
+export function manualPaymentStatuses(from: PaymentStatus): PaymentStatus[] {
+  return PAYMENT_TRANSITIONS[from].filter((to) => !REFUND_ONLY_PAYMENT_STATUSES.includes(to));
 }
 
 export function canMoveOrder(from: OrderStatus, to: OrderStatus): boolean {

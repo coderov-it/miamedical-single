@@ -30,6 +30,7 @@
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   interface Props {
@@ -58,13 +59,13 @@
   function localIssues(): Record<string, string> {
     const issues: Record<string, string> = {};
     if (needsCurrent && currentPassword.length === 0) {
-      issues.currentPassword = 'Enter your current password.';
+      issues.currentPassword = t('profile.currentPasswordRequired');
     }
-    if (newPassword.length < 12) issues.newPassword = 'Use at least 12 characters.';
+    if (newPassword.length < 12) issues.newPassword = t('profile.passwordMin');
     else if (needsCurrent && newPassword === currentPassword) {
-      issues.newPassword = 'Choose a password you are not already using.';
+      issues.newPassword = t('profile.passwordReuse');
     } else if (confirmPassword !== newPassword) {
-      issues.confirmPassword = 'The two passwords do not match.';
+      issues.confirmPassword = t('profile.passwordMismatch');
     }
     return issues;
   }
@@ -117,7 +118,7 @@
       // is nothing left to revoke — drop the local copy rather than calling
       // logout against a session that no longer exists.
       session.clear();
-      toast.success('Password changed. Sign in again with the new one.');
+      toast.success(t('profile.passwordChanged'));
       await goto(routes.login);
     } catch (err) {
       error = errorMessage(err);
@@ -137,9 +138,9 @@
     }}
   >
     <div>
-      <h2 class="text-sm font-semibold">Password</h2>
+      <h2 class="text-sm font-semibold">{t('profile.passwordTitle')}</h2>
       <p class="mt-0.5 text-sm text-muted-foreground">
-        Changing it signs you out on every device, including this one.
+        {t('profile.passwordHint')}
       </p>
     </div>
 
@@ -151,7 +152,9 @@
 
     {#if needsCurrent}
       <div>
-        <Label class="mb-1.5" for="profile-current-password">Current password</Label>
+        <Label class="mb-1.5" for="profile-current-password"
+          >{t('profile.currentPasswordLabel')}</Label
+        >
         <Input
           id="profile-current-password"
           type="password"
@@ -166,13 +169,13 @@
     {/if}
 
     <div>
-      <Label class="mb-1.5" for="profile-new-password">New password</Label>
+      <Label class="mb-1.5" for="profile-new-password">{t('profile.newPasswordLabel')}</Label>
       <Input
         id="profile-new-password"
         type="password"
         autocomplete="new-password"
         bind:value={newPassword}
-        placeholder="At least 12 characters"
+        placeholder={t('profile.passwordPlaceholder')}
         aria-invalid={fields.newPassword ? 'true' : undefined}
       />
       {#if fields.newPassword}
@@ -181,7 +184,8 @@
     </div>
 
     <div>
-      <Label class="mb-1.5" for="profile-confirm-password">Repeat new password</Label>
+      <Label class="mb-1.5" for="profile-confirm-password">{t('profile.repeatPasswordLabel')}</Label
+      >
       <Input
         id="profile-confirm-password"
         type="password"
@@ -194,6 +198,8 @@
       {/if}
     </div>
 
-    <BusyButton type="submit" busy={saving} busyLabel="Saving…">Change password</BusyButton>
+    <BusyButton type="submit" busy={saving} busyLabel={t('common.saving')}>
+      {t('profile.changePassword')}
+    </BusyButton>
   </form>
 </Card.Root>

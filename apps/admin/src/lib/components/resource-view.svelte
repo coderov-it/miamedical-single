@@ -15,6 +15,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import DetailSkeleton from '~/lib/components/detail-skeleton.svelte';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     resource: {
@@ -45,7 +46,7 @@
         <CircleAlertIcon class="size-4 shrink-0 text-destructive" />
         <span class="text-destructive">{resource.error}</span>
         <Button variant="outline" size="sm" class="ml-auto" onclick={() => resource.refresh()}>
-          Retry
+          {t('common.retry')}
         </Button>
       </div>
     {/if}
@@ -54,11 +55,11 @@
 {:else if resource.error}
   <Empty.Root class="border bg-card">
     <Empty.Header>
-      <Empty.Title>This {noun} could not be loaded</Empty.Title>
+      <Empty.Title>{t('components.resourceLoadFailed', { noun })}</Empty.Title>
       <Empty.Description>{resource.error}</Empty.Description>
     </Empty.Header>
     <Empty.Content>
-      <Button variant="outline" onclick={() => resource.refresh()}>Try again</Button>
+      <Button variant="outline" onclick={() => resource.refresh()}>{t('common.retry')}</Button>
     </Empty.Content>
   </Empty.Root>
 {:else if skeleton}

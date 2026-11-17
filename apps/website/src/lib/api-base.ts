@@ -14,8 +14,15 @@
  * from there had to change.
  */
 
-/** The one place the API origin is named. Same variable the admin reads. */
-const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
+/**
+ * The one place the API origin is named. Same variable the admin reads.
+ *
+ * This is the origin the BROWSER calls. Anything SSR writes into HTML for a
+ * client script to read (`data-api-base`) must use this, never `API_BASE` —
+ * during SSR that is the LAN origin, and shipping it sends visitors' browsers
+ * to `localhost`.
+ */
+export const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787';
 
 /**
  * During SSR the backend can be reached over the LAN instead of its public

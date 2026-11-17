@@ -11,19 +11,25 @@ import type {
   OrderDeliveryDto,
   OrderEventDto,
   OrderItemDto,
+  OrderRefundDto,
   OrderTotalsDto,
   PlacedOrderDto,
 } from './dto.ts';
 import type { OrderItemConfiguration } from './resolve.ts';
-import { nextOrderStatuses, nextPaymentStatuses } from './status.ts';
+import { isRefundAmountMissing } from '../order-refunds/decision.ts';
+import { manualStage } from './manual/stage.ts';
+import { manualPaymentStatuses, nextOrderStatuses } from './status.ts';
 import type { CalendarEntryRow } from './list-repo.ts';
 import type {
   ActorRef,
+  AdminOrderAggregate,
   CartAggregate,
   CartItemRecord,
   CartSummaryRecord,
   OrderAggregate,
   OrderItemRow,
+  OrderRow,
+  OrderRefundRecord,
   OrderStatusEventRecord,
   AdminOrderSummaryRecord,
   OrderSummaryRecord,
@@ -142,6 +148,9 @@ function toTotals(row: OrderAggregate | OrderSummaryRecord): OrderTotalsDto {
   };
 }
 
+const isRentalItem = (item: OrderItemRow) =>
+  (item.configuration as Record<string, unknown> | null)?.pricingMode === 'rental';
+
 export function toOrderSummary(row: AdminOrderSummaryRecord): AdminOrderSummaryDto {
   return {
     id: row.id,
@@ -152,14 +161,39 @@ export function toOrderSummary(row: AdminOrderSummaryRecord): AdminOrderSummaryD
     itemCount: row.itemCount,
     hasRental: row.hasRental,
     contractStatus: row.contractStatus,
+    source: row.source,
+    manualStage: manualStage({ ...row }),
+    discountReason: row.discountReason,
+    createdByName: row.createdByName,
     total: row.total,
+    ...toMoney(row),
     currency: row.currency,
     placedAt: iso(row.placedAt),
     updatedAt: iso(row.updatedAt),
   };
 }
 
-export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
+function toMoney(row: OrderRow) {
+  return {
+    extensionTotal: row.extensionTotal,
+    refundedTotal: row.refundedTotal,
+    // Generated column: never null once stored, typed nullable by the ORM.
+    netTotal: row.netTotal ?? row.total,
+  };
+}
+
+export function toOrderRefund(row: OrderRefundRecord): OrderRefundDto {
+  return {
+    id: row.id,
+    amount: row.amount,
+    reason: row.reason,
+    rentalExtensionId: row.rentalExtensionId,
+    actorName: row.actorName,
+    createdAt: iso(row.createdAt),
+  };
+}
+
+export function toOrderDetail(row: AdminOrderAggregate): AdminOrderDetailDto {
   return {
     id: row.id,
     number: row.number,
@@ -172,9 +206,16 @@ export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
     partitaIva: row.partitaIva,
     customerAccountId: row.customerAccountId,
     customerLinkStatus: row.customerLinkStatus,
+    source: row.source,
+    manualStage: manualStage({ ...row, hasRental: row.items.some(isRentalItem) }),
+    discountReason: row.discountReason,
+    createdByName: row.createdByName,
     status: row.status,
     paymentStatus: row.paymentStatus,
     totals: toTotals(row),
+    ...toMoney(row),
+    refunds: row.refunds.map(toOrderRefund),
+    refundAmountMissing: isRefundAmountMissing(row.paymentStatus, row.refundedTotal),
     items: row.items.map(toOrderItem),
     shippingAddress: toAddress(row.shippingAddress),
     billingAddress: toAddress(row.billingAddress),
@@ -182,7 +223,8 @@ export function toOrderDetail(row: OrderAggregate): AdminOrderDetailDto {
     notes: row.notes,
     events: row.events.map(toOrderEvent),
     allowedStatuses: [...nextOrderStatuses(row.status)],
-    allowedPaymentStatuses: [...nextPaymentStatuses(row.paymentStatus)],
+    /* Refund moves are not buttons: they go through the refund form. */
+    allowedPaymentStatuses: manualPaymentStatuses(row.paymentStatus),
     placedAt: iso(row.placedAt),
     updatedAt: iso(row.updatedAt),
   };

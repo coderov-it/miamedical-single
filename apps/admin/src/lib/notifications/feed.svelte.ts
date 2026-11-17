@@ -6,6 +6,7 @@ import type {
 
 import { api, apiUrl } from '~/lib/api';
 import { unwrapFull } from '~/lib/request';
+import { t } from '~/lib/ui-text';
 
 /**
  * The operator's live feed.
@@ -168,7 +169,7 @@ class NotificationFeed {
 
       this.error = null;
     } catch (cause) {
-      this.error = cause instanceof Error ? cause.message : 'Could not load notifications.';
+      this.error = cause instanceof Error ? cause.message : t('notifications.loadFailed');
     } finally {
       this.loading = false;
     }
@@ -189,7 +190,7 @@ class NotificationFeed {
       this.#loadedPages += 1;
       this.error = null;
     } catch (cause) {
-      this.error = cause instanceof Error ? cause.message : 'Could not load notifications.';
+      this.error = cause instanceof Error ? cause.message : t('notifications.loadFailed');
     } finally {
       this.loading = false;
     }

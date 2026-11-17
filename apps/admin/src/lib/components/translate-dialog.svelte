@@ -43,6 +43,7 @@
     type TranslationLogLine,
   } from '~/lib/i18n';
   import { errorMessage } from '~/lib/request';
+  import { t, tn } from '~/lib/ui-text';
 
   interface Props {
     open: boolean;
@@ -161,12 +162,16 @@
     tooLong: Record<string, string>,
   ): string {
     const derivedCount = Object.keys(derived).length;
-    const parts = [
-      `${Object.keys(accepted).length - derivedCount} of ${plan.gaps.length} fields translated`,
-    ];
-    if (derivedCount > 0) parts.push(`${derivedCount} derived`);
-    if (Object.keys(tooLong).length > 0) parts.push(`${Object.keys(tooLong).length} too long`);
-    return `${plan.label} — ${parts.join(', ')}.`;
+    const tooLongCount = Object.keys(tooLong).length;
+    const params = {
+      label: plan.label,
+      translated: Object.keys(accepted).length - derivedCount,
+      total: plan.gaps.length,
+      derived: derivedCount,
+      tooLong: tooLongCount,
+    };
+    if (derivedCount === 0 && tooLongCount === 0) return t('components.translateSummary', params);
+    return t('components.translateSummaryDetailed', params);
   }
 
   async function run() {
@@ -185,7 +190,11 @@
         lines.push({
           id: nextLineId++,
           tone: 'skipped',
-          text: `${plan.label} · ${group.label} kept — ${group.authored.map((field) => field.label.toLowerCase()).join(', ')} written by hand.`,
+          text: t('components.translateKept', {
+            label: plan.label,
+            group: group.label,
+            fields: group.authored.map((field) => field.label).join(', '),
+          }),
         });
       }
     }
@@ -194,7 +203,11 @@
       if (excluded.includes(plan.code)) continue;
 
       const lineId = nextLineId++;
-      lines.push({ id: lineId, tone: 'pending', text: `Translating details to ${plan.label}…` });
+      lines.push({
+        id: lineId,
+        tone: 'pending',
+        text: t('components.translateRunningLine', { label: plan.label }),
+      });
       try {
         const payload = fieldPayload(plan.gaps, source);
         const result: Record<string, string> = {};
@@ -216,7 +229,10 @@
         for (const [key, text] of Object.entries(result)) {
           const maxLength = fieldByKey.get(key)?.maxLength;
           if (maxLength !== undefined && text.length > maxLength) {
-            tooLong[key] = `${text.length}/${maxLength} characters`;
+            tooLong[key] = t('components.translateTooLong', {
+              length: text.length,
+              max: maxLength,
+            });
             continue;
           }
           accepted[key] = text;
@@ -233,7 +249,11 @@
         derivedKeys[plan.code] = Object.keys(derived);
         replaceLine(lineId, 'done', summary(plan, accepted, derived, tooLong));
       } catch (err) {
-        replaceLine(lineId, 'error', `${plan.label} failed — ${errorMessage(err)}`);
+        replaceLine(
+          lineId,
+          'error',
+          t('components.translateFailed', { label: plan.label, error: errorMessage(err) }),
+        );
       }
       completed += 1;
     }
@@ -270,17 +290,17 @@
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">
         <SparklesIcon class="size-4 text-primary" />
-        Generate translations
+        {t('components.translateTitle')}
       </Dialog.Title>
       <Dialog.Description>
         {#if phase === 'confirm'}
-          Fill the languages you have not written in yet, from one you have.
+          {t('components.translateConfirmIntro')}
         {:else if phase === 'running'}
-          Translating {total} {total === 1 ? 'language' : 'languages'} from {sourceLabel}.
+          {tn('components.translateRunning', total, { source: sourceLabel })}
         {:else}
           {commit === 'apply'
-            ? 'Review what came back, then apply it to the form. Nothing is written until you save.'
-            : 'Review what came back, then save it. Nothing is written until you do.'}
+            ? t('components.translateReviewApply')
+            : t('components.translateReviewSave')}
         {/if}
       </Dialog.Description>
     </Dialog.Header>
@@ -297,27 +317,25 @@
       <Dialog.Footer>
         <Dialog.Close>
           {#snippet child({ props })}
-            <Button variant="destructive" {...props}>Cancel</Button>
+            <Button variant="destructive" {...props}>{t('common.cancel')}</Button>
           {/snippet}
         </Dialog.Close>
         {#if chosenCount > 0}
           <Button onclick={run}>
             <SparklesIcon />
-            Generate {chosenCount}
-            {chosenCount === 1 ? 'language' : 'languages'}
+            {tn('components.translateGenerate', chosenCount)}
           </Button>
         {:else if plans.some((plan) => plan.gaps.length > 0)}
           <!-- Absent rather than disabled, with the reason where the action would
                be: a greyed-out button teaches that the feature is broken. -->
-          <p class="text-xs text-muted-foreground">Tick at least one language to generate.</p>
+          <p class="text-xs text-muted-foreground">{t('components.translateTickOne')}</p>
         {/if}
       </Dialog.Footer>
     {:else if phase === 'running'}
       <TranslationLog {lines} {progress} />
       {#if autoTranslate.provider}
         <p class="text-xs text-muted-foreground">
-          Answered by <span class="font-mono">{autoTranslate.provider}</span>. Nothing is saved
-          until you review it.
+          {t('components.translateProvider', { provider: autoTranslate.provider })}
         </p>
       {/if}
     {:else}
@@ -342,16 +360,20 @@
       {/if}
 
       <Dialog.Footer>
-        <Button variant="ghost" onclick={() => (phase = 'confirm')}>Back</Button>
+        <Button variant="ghost" onclick={() => (phase = 'confirm')}>{t('common.back')}</Button>
         {#if included.length > 0}
           <Button onclick={save} disabled={saving}>
             {#if saving}<Spinner />{/if}
-            {saving
-              ? 'Saving…'
-              : `${commit === 'apply' ? 'Apply' : 'Save'} ${included.length} ${included.length === 1 ? 'language' : 'languages'}`}
+            {#if saving}
+              {t('common.saving')}
+            {:else if commit === 'apply'}
+              {tn('components.translateApply', included.length)}
+            {:else}
+              {tn('components.translateSave', included.length)}
+            {/if}
           </Button>
         {:else}
-          <p class="text-xs text-muted-foreground">Nothing to save — go back and try again.</p>
+          <p class="text-xs text-muted-foreground">{t('components.translateNothingToSave')}</p>
         {/if}
       </Dialog.Footer>
     {/if}

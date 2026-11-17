@@ -8,6 +8,7 @@ import type { MailMessage } from '../../infra/mail/index.ts';
 import { getNotificationRecipients } from '../settings/service.ts';
 import * as links from './links.ts';
 import { errorText, recordMailFailure } from './mail-failure.ts';
+import { buildManualOrderLinkMessage, type ManualOrderLinkMail } from './manual-order-mail.ts';
 import type { MailKind, MailResult, OrderTrail } from './mail-failure.ts';
 
 export type { MailResult, OrderTrail } from './mail-failure.ts';
@@ -294,5 +295,20 @@ export async function sendDisputeAlert(
     }),
     { kind: 'dispute_alert', context: `dispute ${input.disputeId}` },
     { db, orderId: input.orderId },
+  );
+}
+
+/** The agent's order link, sent to the customer. Failed sends land on the order timeline. */
+export function sendManualOrderLink(
+  input: Omit<ManualOrderLinkMail, 'reportUrl'> & { reportToken: string },
+  trail?: OrderTrail,
+): Promise<MailResult> {
+  return sendQuietly(
+    buildManualOrderLinkMessage({
+      ...input,
+      reportUrl: links.reportOrderUrl(input.reportToken, input.language),
+    }),
+    { kind: 'manual_order_link', context: `order ${input.orderNumber} link` },
+    trail,
   );
 }

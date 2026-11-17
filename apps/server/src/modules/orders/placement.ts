@@ -4,7 +4,7 @@
  */
 
 import type { Database } from '@mia/db';
-import { NO_DELIVERY_FEE, addMoney } from '@mia/pricing';
+import { NO_DELIVERY_FEE } from '@mia/pricing';
 import type { PlaceOrderInput } from '@mia/validators';
 
 import { FEATURES } from '../../config/features.ts';
@@ -25,9 +25,13 @@ import {
 import { sendPlacementMail } from './placement-mail.ts';
 import * as repo from './repo.ts';
 import { sumLines } from './resolve.ts';
+import { orderTotal } from './totals.ts';
 import type { AccountInvite, PlacedOrder } from './types.ts';
 
 export { previewContract } from './placement-contract.ts';
+
+/** Checkout never discounts; only an agent's manual order does. */
+const NO_DISCOUNT = '0.00';
 
 /**
  * Turns a finished checkout into an order.
@@ -105,7 +109,7 @@ export async function place(
     total the moment somebody agrees one. `docs/code/orders-placement.md`.
   */
   const shippingTotal = NO_DELIVERY_FEE;
-  const total = addMoney(subtotal, shippingTotal);
+  const total = orderTotal(subtotal, shippingTotal, NO_DISCOUNT);
 
   /*
     Both snapshots come from the delivery, and both are NULL on a collection.

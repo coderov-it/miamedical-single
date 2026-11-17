@@ -19,6 +19,7 @@
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { api } from '~/lib/api';
   import { errorMessage, unwrap } from '~/lib/request';
+  import { type MessageKey, t } from '~/lib/ui-text';
 
   type Status = 'draft' | 'active' | 'archived';
 
@@ -34,8 +35,13 @@
 
   let { productId, status, mode, canStart, onChanged }: Props = $props();
 
-  const LABELS: Record<Status, string> = { draft: 'Draft', active: 'Active', archived: 'Archived' };
+  const LABELS: Record<Status, MessageKey> = {
+    draft: 'components.productStatusDraft',
+    active: 'components.productStatusActive',
+    archived: 'components.productStatusArchived',
+  };
   const OPTIONS = Object.keys(LABELS) as Status[];
+  const labelOf = (value: string) => (value in LABELS ? t(LABELS[value as Status]) : value);
 
   let pending = $state<Status | null>(null);
   let busy = $state(false);
@@ -61,7 +67,7 @@
           json: { status: next },
         }),
       );
-      toast.success(`Status is now ${LABELS[next]}.`);
+      toast.success(t('components.productStatusChanged', { status: labelOf(next) }));
       pending = null;
       onChanged(updated, next);
     } catch (err) {
@@ -80,16 +86,17 @@
       variant={buttonTarget === 'active' ? 'default' : 'outline'}
       onclick={() => ask(buttonTarget)}
     >
-      {#if buttonTarget === 'active'}<EyeIcon />Publish{:else}<EyeOffIcon />Unpublish{/if}
+      {#if buttonTarget === 'active'}<EyeIcon />{t('components.productPublish')}{:else}<EyeOffIcon
+        />{t('components.productUnpublish')}{/if}
     </Button>
   {:else}
     <Select.Root type="single" value={status} onValueChange={(value) => ask(value as Status)}>
-      <Select.Trigger size="sm" class="w-28" aria-label="Change status">
-        {LABELS[status as Status] ?? status}
+      <Select.Trigger size="sm" class="w-28" aria-label={t('components.productStatusChange')}>
+        {labelOf(status)}
       </Select.Trigger>
       <Select.Content>
         {#each OPTIONS as option (option)}
-          <Select.Item value={option}>{LABELS[option]}</Select.Item>
+          <Select.Item value={option}>{labelOf(option)}</Select.Item>
         {/each}
       </Select.Content>
     </Select.Root>
@@ -114,17 +121,21 @@
     }}
   >
     <p class="font-medium">
-      {pending === 'active' ? 'Publish this product?' : `Set to ${pending ? LABELS[pending] : ''}?`}
+      {pending === 'active'
+        ? t('components.productPublishAsk')
+        : t('components.productSetStatusAsk', { status: pending ? labelOf(pending) : '' })}
     </p>
     <p class="text-xs text-muted-foreground">
       {pending === 'active'
-        ? 'It becomes visible on the storefront.'
-        : 'It disappears from the storefront.'}
+        ? t('components.productPublishHint')
+        : t('components.productUnpublishHint')}
     </p>
     <div class="flex justify-end gap-2">
-      <Button size="sm" variant="destructive" onclick={() => (pending = null)}>Cancel</Button>
+      <Button size="sm" variant="destructive" onclick={() => (pending = null)}
+        >{t('common.cancel')}</Button
+      >
       <Button size="sm" aria-busy={busy} onclick={() => void confirm()}>
-        {#if busy}<Spinner />Saving…{:else}Confirm{/if}
+        {#if busy}<Spinner />{t('common.saving')}{:else}{t('common.confirm')}{/if}
       </Button>
     </div>
   </Popover.Content>

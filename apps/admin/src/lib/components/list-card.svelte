@@ -17,12 +17,11 @@
   import * as Card from '$lib/components/ui/card/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import Pager from '~/lib/components/pager.svelte';
-  import { pluralize } from '~/lib/format';
+  import { type PluralKey, t, tn } from '~/lib/ui-text';
 
   interface Props {
-    /** Singular noun for the count, e.g. `product` → "3 products". */
-    noun: string;
-    nounPlural?: string;
+    /** The count line, e.g. `entities.product` → "3 prodotti". */
+    countKey: PluralKey;
     meta: { page: number; perPage: number; total: number; pageCount: number } | undefined;
     loading: boolean;
     error: string | null;
@@ -41,8 +40,7 @@
   }
 
   let {
-    noun,
-    nounPlural,
+    countKey,
     meta,
     loading,
     error,
@@ -62,7 +60,7 @@
   <div class="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center">
     <p class="text-sm font-medium whitespace-nowrap">
       {#if meta}
-        {pluralize(meta.total, noun, nounPlural)}
+        {tn(countKey, meta.total)}
       {:else}
         &nbsp;
       {/if}
@@ -97,7 +95,9 @@
     <div class="flex items-center gap-3 border-t bg-destructive/5 px-4 py-3 text-sm" role="alert">
       <CircleAlertIcon class="size-4 shrink-0 text-destructive" />
       <span class="text-destructive">{error}</span>
-      <Button variant="outline" size="sm" class="ml-auto" onclick={onRetry}>Retry</Button>
+      <Button variant="outline" size="sm" class="ml-auto" onclick={onRetry}
+        >{t('common.retry')}</Button
+      >
     </div>
   {:else if isEmpty && !firstLoad}
     {@render empty()}
