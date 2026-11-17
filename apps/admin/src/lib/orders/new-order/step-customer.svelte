@@ -20,7 +20,6 @@
       {:else}
         <CustomerPicker {form} />
         <div class="space-y-3 border-t pt-4">
-          <p class="text-sm text-muted-foreground">{t('newOrder.optionalDetails')}</p>
           <CustomerFields {form} />
         </div>
       {/if}

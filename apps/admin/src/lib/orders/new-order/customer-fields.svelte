@@ -1,4 +1,4 @@
-<!-- What can be added for a customer who has no account yet. All of it is optional. -->
+<!-- The rest of a new customer's details. The agent fills what they have; the customer completes the rest on the order link. -->
 <script lang="ts">
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
