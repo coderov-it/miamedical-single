@@ -21,7 +21,8 @@
   import Toolbar from '~/lib/analytics/toolbar.svelte';
   import TopProductsCard from '~/lib/analytics/top-products-card.svelte';
   import TrendCard from '~/lib/analytics/trend-card.svelte';
-  import type { ChartKind, Sales } from '~/lib/analytics/types';
+  import MostViewedCard from '~/lib/analytics/most-viewed-card.svelte';
+  import type { ChartKind, Sales, Views } from '~/lib/analytics/types';
   import PageHeader from '~/lib/components/page-header.svelte';
   import { formatDate, formatTime } from '~/lib/format';
   import { QueryState } from '~/lib/query-state.svelte';
@@ -40,19 +41,33 @@
     return unwrap<Sales>(await api.api.admin.analytics.sales.$get({ query: { from, to, bucket } }));
   });
 
+  const viewsCache = createCache<Views>(async (key) => {
+    const [from = '', to = '', bucket = 'day'] = key.split('|') as [string, string, Bucket];
+    return unwrap<Views>(await api.api.admin.analytics.views.$get({ query: { from, to, bucket } }));
+  });
+
   // A string key: `chart` changes `resolved` but not this, so it never refetches.
   const sales = new Resource(
     () => salesKey(resolved.range, resolved.bucket),
     (key) => cache.get(key),
   );
 
+  // Views is secondary: if it fails, the sales page still renders and the tile shows a dash.
+  const views = new Resource(
+    () => salesKey(resolved.range, resolved.bucket),
+    (key) => viewsCache.get(key),
+  );
+
   const chartKind = $derived<ChartKind>(query.current.chart === 'line' ? 'line' : 'bar');
 
   function hint(range: DayRange, bucket: Bucket) {
     cache.prefetch(salesKey(range, bucket));
+    viewsCache.prefetch(salesKey(range, bucket));
   }
 
-  const stale = $derived(sales.loading && sales.hasData);
+  const stale = $derived(
+    (sales.loading && sales.hasData) || (views.loading && views.hasData && sales.hasData),
+  );
 
   const period = $derived.by(() => {
     const data = sales.data;
@@ -91,7 +106,7 @@
       </Button>
     </div>
   {:else if sales.data === undefined}
-    <KpiTiles data={undefined} />
+    <KpiTiles data={undefined} views={undefined} viewsLoading={true} />
     <Skeleton class="h-80 w-full" />
     <div class="grid gap-4 lg:grid-cols-2">
       <Skeleton class="h-96 w-full" />
@@ -103,7 +118,7 @@
       <div class="pointer-events-none absolute inset-x-0 -top-3.5 h-0.5">
         {#if stale}<div class="admin-loading-bar"></div>{/if}
       </div>
-      <KpiTiles data={sales.data} />
+      <KpiTiles data={sales.data} views={views.data} viewsLoading={views.loading} />
       {#if isEmpty}
         <Empty.Root>
           <Empty.Header>
@@ -112,10 +127,18 @@
           </Empty.Header>
         </Empty.Root>
       {:else}
-        <TrendCard data={sales.data} kind={chartKind} onKind={(chart) => query.set({ chart })} />
+        <TrendCard
+          data={sales.data}
+          views={views.data}
+          kind={chartKind}
+          onKind={(chart) => query.set({ chart })}
+        />
         <div class="grid items-start gap-4 lg:grid-cols-2">
-          <TopProductsCard data={sales.data} />
-          <ModeSplitCard data={sales.data} />
+          <div class="space-y-4">
+            <TopProductsCard data={sales.data} />
+            <ModeSplitCard data={sales.data} />
+          </div>
+          <MostViewedCard views={views.data} loading={views.loading} />
         </div>
       {/if}
     </div>

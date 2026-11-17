@@ -1,7 +1,8 @@
-<!-- Four KPI tiles, each with its change against the previous period. -->
+<!-- Five KPI tiles, each with its change against the previous period. -->
 <script lang="ts">
   import BanknoteIcon from '@lucide/svelte/icons/banknote';
   import BoxesIcon from '@lucide/svelte/icons/boxes';
+  import EyeIcon from '@lucide/svelte/icons/eye';
   import ReceiptIcon from '@lucide/svelte/icons/receipt';
   import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
   import type { Component } from 'svelte';
@@ -14,21 +15,30 @@
 
   import { formatPercent } from './format';
   import { percentChange } from './range';
-  import type { Sales } from './types';
+  import type { Sales, Views } from './types';
 
   interface Props {
     data: Sales | undefined;
+    /** Undefined while loading or when the views request failed. */
+    views: Views | undefined;
+    viewsLoading: boolean;
   }
 
-  let { data }: Props = $props();
+  let { data, views, viewsLoading }: Props = $props();
 
   interface Tile {
     label: string;
     icon: Component;
-    value: string;
+    value: string | undefined;
     change: number | null;
-    info?: boolean;
+    info?: 'revenue' | 'views';
     note?: string;
+  }
+
+  function viewsValue(): string | undefined {
+    if (views) return formatNumber(views.totals.views);
+    if (viewsLoading) return undefined;
+    return EM_DASH;
   }
 
   const tiles = $derived.by<Tile[] | undefined>(() => {
@@ -51,7 +61,7 @@
         icon: BanknoteIcon,
         value: formatMoney(now.revenue, currency),
         change: percentChange(Number(now.revenue), Number(before.revenue)),
-        info: true,
+        info: 'revenue',
         ...(parts.length > 0 ? { note: parts.join(', ') } : {}),
       },
       {
@@ -72,13 +82,20 @@
         value: formatNumber(now.units),
         change: percentChange(now.units, before.units),
       },
+      {
+        label: t('analytics.tileViews'),
+        icon: EyeIcon,
+        value: viewsValue(),
+        change: views ? percentChange(views.totals.views, views.previousTotals.views) : null,
+        info: 'views',
+      },
     ];
   });
 
-  const placeholders = [0, 1, 2, 3];
+  const placeholders = [0, 1, 2, 3, 4];
 </script>
 
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
   {#if tiles}
     {#each tiles as tile (tile.label)}
       {@const Icon = tile.icon}
@@ -87,17 +104,26 @@
           <Card.Description class="flex items-center gap-1">
             {tile.label}
             {#if tile.info}
-              <InfoHint label={t('analytics.revenueBasisLabel')}>
-                {t('analytics.revenueBasis')}
-              </InfoHint>
+              {#if tile.info === 'views'}
+                <InfoHint label={t('analytics.viewsInfoLabel')}>{t('analytics.viewsInfo')}</InfoHint
+                >
+              {:else}
+                <InfoHint label={t('analytics.revenueBasisLabel')}>
+                  {t('analytics.revenueBasis')}
+                </InfoHint>
+              {/if}
             {/if}
           </Card.Description>
           <Card.Action><Icon class="size-4 text-muted-foreground" /></Card.Action>
         </Card.Header>
         <Card.Content>
-          <p class="text-2xl leading-tight font-semibold tracking-tight tabular-nums">
-            {tile.value}
-          </p>
+          {#if tile.value === undefined}
+            <Skeleton class="h-8 w-24" />
+          {:else}
+            <p class="text-2xl leading-tight font-semibold tracking-tight tabular-nums">
+              {tile.value}
+            </p>
+          {/if}
           {#if tile.note}
             <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">{tile.note}</p>
           {/if}

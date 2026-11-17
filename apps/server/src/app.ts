@@ -6,6 +6,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env.ts';
 import { db } from './infra/db/client.ts';
+import { beaconResourcePolicy, productViewRoutes } from './modules/product-views/routes.ts';
 import { analyticsAdminRoutes } from './modules/analytics/routes.ts';
 import { accountDeletionRoutes } from './modules/account-deletion/routes.ts';
 import { adminUserRoutes } from './modules/admin-users/routes.ts';
@@ -53,6 +54,8 @@ import { requestLogger } from './shared/http/request-log.ts';
 const app = new Hono<AppEnv>();
 
 app.use('*', requestId());
+/* Before secureHeaders so it has the last word on this one route; see product-views/routes.ts. */
+app.post('/api/products/:id/view', beaconResourcePolicy);
 app.use('*', secureHeaders());
 app.use('*', requestLogger);
 app.use('*', async (c, next) => {
@@ -93,6 +96,7 @@ if (env.NODE_ENV !== 'production') {
 const routes = app
   .route('/health', healthRoutes)
   .route('/api/auth', authRoutes)
+  .route('/api/products', productViewRoutes)
   .route('/api/products', productPublicRoutes)
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)

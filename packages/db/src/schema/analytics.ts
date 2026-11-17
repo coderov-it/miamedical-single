@@ -1,4 +1,15 @@
-import { date, index, integer, numeric, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import {
+  date,
+  index,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  uuid,
+} from 'drizzle-orm/pg-core';
+
+import { products } from './catalog.ts';
 
 import { pricingMode } from './enums.ts';
 
@@ -56,5 +67,29 @@ export const productSalesDaily = pgTable(
   (t) => [
     index('product_sales_daily_day_idx').on(t.day),
     index('product_sales_daily_product_day_idx').on(t.productId, t.day),
+  ],
+);
+
+/**
+ * Product page views per Europe/Rome day. Counts VIEWS, not people: nothing
+ * identifies a visitor, no IP or cookie is stored. The storefront sends one
+ * beacon per page view (a reload within 30 minutes in the same tab is not
+ * counted again), the server adds them up in memory and upserts the sums here
+ * once a minute — `views = views + excluded.views`, so several server processes
+ * add rather than overwrite. Known bots are not counted. Worked example:
+ * docs/code/product-views.md.
+ */
+export const productViewsDaily = pgTable(
+  'product_views_daily',
+  {
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    day: date({ mode: 'string' }).notNull(),
+    views: integer().notNull(),
+  },
+  (t) => [
+    primaryKey({ name: 'product_views_daily_pkey', columns: [t.productId, t.day] }),
+    index('product_views_daily_day_idx').on(t.day),
   ],
 );

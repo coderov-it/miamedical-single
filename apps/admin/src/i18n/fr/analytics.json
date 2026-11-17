@@ -42,5 +42,11 @@
   "chartBars": "Barres",
   "chartLine": "Courbe",
   "noteExtensions": "dont +{amount} de prolongations",
-  "noteRefunds": "dont −{amount} de remboursements"
+  "noteRefunds": "dont −{amount} de remboursements",
+  "tileViews": "Vues des produits",
+  "viewsInfoLabel": "À propos des vues",
+  "viewsInfo": "Comptées par affichage de page, pas par personne, et mises à jour en moins d’une minute.",
+  "metricViews": "Vues",
+  "mostViewedTitle": "Les plus vus",
+  "mostViewedOrders": "{orders} · {rate}"
 }

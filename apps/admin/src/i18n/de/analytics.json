@@ -42,5 +42,11 @@
   "chartBars": "Balken",
   "chartLine": "Linie",
   "noteExtensions": "inkl. +{amount} Verlängerungen",
-  "noteRefunds": "inkl. −{amount} Erstattungen"
+  "noteRefunds": "inkl. −{amount} Erstattungen",
+  "tileViews": "Produktaufrufe",
+  "viewsInfoLabel": "Über Produktaufrufe",
+  "viewsInfo": "Gezählt pro Seitenaufruf, nicht pro Person, und innerhalb einer Minute aktualisiert.",
+  "metricViews": "Aufrufe",
+  "mostViewedTitle": "Meistgesehen",
+  "mostViewedOrders": "{orders} · {rate}"
 }

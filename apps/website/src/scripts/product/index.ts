@@ -25,7 +25,9 @@ import { createEstimate } from './estimate.ts';
 import { readLabels } from './labels.ts';
 import { wireGallery, wireQuantitySteppers } from './controls.ts';
 import { wireOrderActions } from './order-actions.ts';
+import { startViewBeacon } from './view-beacon.ts';
 
+startViewBeacon();
 wireGallery();
 wireQuantitySteppers();
 

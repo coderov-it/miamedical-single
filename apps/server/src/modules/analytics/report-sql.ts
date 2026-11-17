@@ -20,7 +20,7 @@ export type ReportRows = {
   modeSplit: ModeSplit[];
 };
 
-const KEY_FORMAT: Record<Bucket, string> = {
+export const KEY_FORMAT: Record<Bucket, string> = {
   day: 'YYYY-MM-DD',
   week: 'IYYY-"W"IW',
   month: 'YYYY-MM',

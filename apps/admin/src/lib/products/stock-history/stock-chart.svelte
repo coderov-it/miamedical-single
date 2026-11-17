@@ -12,7 +12,7 @@
   import { formatNumber } from '~/lib/format';
   import { t, tn } from '~/lib/ui-text';
 
-  import { stockTicks } from './stock-math';
+  import { integerTicks } from '~/lib/charts/ticks';
   import type { StockHistory } from './types';
 
   interface Props {
@@ -32,7 +32,7 @@
     if (known.length === 1) return { r: 4 };
     return false;
   });
-  const yTicks = $derived(stockTicks(Math.max(0, ...known.map((p) => p.value))));
+  const yTicks = $derived(integerTicks(Math.max(0, ...known.map((p) => p.value))));
   const top = $derived(yTicks[yTicks.length - 1] ?? 1);
 
   const model = $derived<TrendModel>({
