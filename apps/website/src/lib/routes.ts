@@ -49,6 +49,7 @@ export const PRIVATE_SEGMENTS = {
   signContract: '/sign-contract/',
   /* Where the payment gateway sends the customer back. */
   paymentResult: '/payment/',
+  completeOrder: '/complete-order/',
   deleteProfile: '/delete-profile/',
 } as const;
 

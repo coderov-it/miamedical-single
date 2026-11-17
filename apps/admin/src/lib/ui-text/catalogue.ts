@@ -23,6 +23,7 @@ import type disputes from '~/i18n/en/disputes.json';
 import type entities from '~/i18n/en/entities.json';
 import type legal from '~/i18n/en/legal.json';
 import type nav from '~/i18n/en/nav.json';
+import type newOrder from '~/i18n/en/newOrder.json';
 import type notifications from '~/i18n/en/notifications.json';
 import type orders from '~/i18n/en/orders.json';
 import type payments from '~/i18n/en/payments.json';
@@ -52,6 +53,7 @@ interface Reference {
   entities: typeof entities;
   legal: typeof legal;
   nav: typeof nav;
+  newOrder: typeof newOrder;
   notifications: typeof notifications;
   orders: typeof orders;
   payments: typeof payments;

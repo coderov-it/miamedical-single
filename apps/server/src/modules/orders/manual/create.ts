@@ -27,20 +27,20 @@ import * as manualRepo from './repo.ts';
 export interface ManualOrderInput {
   email: string;
   /** An existing account the agent picked; absent for an email-only customer. */
-  customerAccountId?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  phone?: string | null;
-  customerType?: 'private' | 'company' | 'tourist' | null;
-  codiceFiscale?: string | null;
-  partitaIva?: string | null;
-  language?: LanguageCode;
+  customerAccountId?: string | null | undefined;
+  firstName?: string | null | undefined;
+  lastName?: string | null | undefined;
+  phone?: string | null | undefined;
+  customerType?: 'private' | 'company' | 'tourist' | null | undefined;
+  codiceFiscale?: string | null | undefined;
+  partitaIva?: string | null | undefined;
+  language?: LanguageCode | undefined;
   items: PlaceOrderInput['items'];
   delivery: PlaceOrderInput['delivery'];
   /** The agreed delivery fee; absent means none. */
-  shippingTotal?: string;
-  discount?: { amount: string; reason?: string | null } | null;
-  notes?: string | null;
+  shippingTotal?: string | undefined;
+  discount?: { amount: string; reason?: string | null | undefined } | null | undefined;
+  notes?: string | null | undefined;
 }
 
 export interface ManualOrderCreated {

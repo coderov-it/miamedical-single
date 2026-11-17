@@ -45,9 +45,9 @@ export async function resolveLines(
 
 /** What an address snapshot reads from the customer; a manual order may not have it yet. */
 export interface SnapshotCustomer {
-  firstName?: string | null;
-  lastName?: string | null;
-  phone?: string | null;
+  firstName?: string | null | undefined;
+  lastName?: string | null | undefined;
+  phone?: string | null | undefined;
 }
 
 /**
