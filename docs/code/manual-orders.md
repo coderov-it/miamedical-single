@@ -122,6 +122,8 @@ Static admin routes are registered before `/:id`, as `/customers` already is. Ea
 
 ```
 GET  /api/admin/orders/customer-accounts?q= (order:create)      accounts by email first, then name/phone
+GET  /api/admin/orders/manual/products      (order:create)      browser page of light cards: q, category, mode, sort, page, perPage (no facets)
+GET  /api/admin/orders/manual/products/:id  (order:create)      one product's packages, add-ons, questions; loaded when its card is picked
 POST /api/admin/orders/manual/quote         (order:create)      lines → priced lines + subtotal, for the form's totals
 POST /api/admin/orders/manual               (order:create)      creates the order (+ discount event)
 POST /api/admin/orders/:id/discount         (order:create)      set/replace discount on a pending manual order, reason required
@@ -180,24 +182,30 @@ Reuse and refactor:
 
 ## Admin UI
 
-Route `apps/admin/src/routes/(app)/orders/new/+page.svelte` (add `orderNew: '/orders/new'` to `apps/admin/src/lib/routes.ts`),
-a "New order" button on `orders/+page.svelte` shown with `session.can(P.ORDER_CREATE)`. Components in `apps/admin/src/lib/orders/new-order/`,
-split like `apps/admin/src/lib/contracts/new-contract/` (each file under 350 lines):
+Route `apps/admin/src/routes/(app)/orders/new/+page.svelte` (a thin shell), a "New order" button on `orders/+page.svelte` shown with
+`session.can(P.ORDER_CREATE)`. It is a 4-step wizard; components in `apps/admin/src/lib/orders/new-order/`.
 
-- `order-form.svelte.ts` state class, as `contract-form.svelte.ts` (`$state` fields, `busy`, derived totals from the quote, not client math).
-- `customer-section.svelte`: from `new-contract/customer-section.svelte` keep the debounced `Resource` + result list pattern, but query
-  `customer-accounts` (not `orders/customers`), email first; picking fills email, name, phone and, from that account's latest order,
-  customer type, codice fiscale, partita IVA and address (decision 4).
-- `lines-section.svelte`: catalogue product picker (existing admin products list endpoint), package, start date, add-ons, answers; no price inputs.
-  `new-contract/items-section.svelte` is NOT reusable (free-typed items and prices).
-- `discount-section.svelte` (amount + required reason), `delivery-notes-section.svelte`, `totals-card.svelte` (reuse `new-contract/totals-card.svelte`
-  and `money.ts`).
-- Order detail (`order-detail-view.svelte`): stage badge, "Send link" dialog (steps radio: sign + pay / sign only / pay only; checkbox "include customer
-  details form", checked by default; actions "Send by email" and "Copy link"), "Record payment" dialog (method + reference), discount shown in
-  `order-money-card.svelte`.
-- Validation follows CLAUDE.md: buttons are never `disabled`. Click validates; the server's 422 `fields` map to the offending controls, scroll to the
-  first, focus it. Details incomplete + details box unchecked → mark the missing fields. Rental unsigned + "pay only" → warning
-  "contract signing required for payment". Texts in `~/lib/ui-text`; no help text beyond one line on the steps radio.
+```
+Step 1 Products   (breadcrumb Admin › Orders › New order; the stepper is the first row) grid of horizontal cards (image, Sale/Rental badge, category, "from" price, stock); a card click toggles the line
+                  no search/filter → "Best sellers" (sort=best_selling = products.order_count); typed search → sort=relevance (title)
+                  search autofocus, arrows move the highlight, Enter toggles it; chips = categories (/api/categories) + Sale/Rental
+Step 2 Packages   one card per line: package chips "7 giorni · 30,00 €", start date (dd/mm/yyyy, date-field.svelte), time for hour
+                  packages, add-on toggle cards, required answers, Qty stepper; price and end date come from the quote, never client math
+Step 3 Customer   email-first combobox over customer-accounts (arrows + Enter) → customer card with "Change"; else optional fields;
+                  delivery: Home delivery (address) or Pick-up at one of BRANCHES (@mia/validators/branches), return, fee, notes
+Step 4 Review     left: products, discount (amount + required reason), customer, delivery; right: sticky Overview with totals and "Create order" last
+```
+
+- `order-form.svelte.ts` holds the state (`step`, `reached`, lines, customer, delivery, quote `Resource`). `step-issues.ts` is the per-step
+  client check, `form-errors.ts` maps a field path to its control id and its step, `order-payload.ts` builds the request body.
+- Layout: `wizard-stepper.svelte` (every step clickable; one ahead runs the steps between and stops at the first invalid), persistent
+  `order-summary.svelte` on the right from the `@4xl` container width, and below that a sticky `wizard-footer.svelte` carrying the total
+  (opens the summary in a bottom sheet), Back and Next/Create.
+- Validation follows CLAUDE.md: Next and Create are never `disabled` and never return silently. A click marks every offending field of the
+  step, scrolls to the first and focuses it; the server's 422 `fields` do the same and move to the step that shows the field.
+  A line is priced only when `isLineReady` (package, start, required answers); until then the summary says what it still needs.
+- Order detail (`order-detail-view.svelte`): stage badge, "Send link" dialog (steps radio: sign + pay / sign only / pay only; checkbox "include
+  customer details form", checked by default; actions "Send by email" and "Copy link"), "Record payment" dialog, discount in `order-money-card.svelte`.
 
 ## Website token page
 
@@ -287,7 +295,7 @@ tests   order-links/validation.test.ts (pure), order-links/links.integration.tes
 Deviations from the spec text:
 
 - The quote takes `discountAmount` (amount only), not the whole discount: the reason is checked at creation.
-- `GET /manual/products?q=` is new. The order desk bundle has no `product:read`, so the line picker cannot use the admin
+- `GET /manual/products` is new (phase 2: `?q=`; the wizard added `category`, `mode`, `sort`, `page`, `perPage` and a `meta` envelope). The order desk bundle has no `product:read`, so the line picker cannot use the admin
   products list; this route returns the storefront projection (`toPublicDetail`, Italian) trimmed to what `resolveLine` asks.
 - The link endpoint also refuses `sign` alone when the contract is already signed (422), and a non-manual or non-pending order (409).
   It answers `{ url, expiresAt, delivered, emailSent }`; a failed email is `emailSent: false` (and a timeline `email` entry), not an HTTP error.

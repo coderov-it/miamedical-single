@@ -122,6 +122,20 @@ export async function list(
   return { rows, total, facets: buildFacets(counts, filters), filters };
 }
 
+/**
+ * Card rows only, for callers that show no filters: skips the facet counts, which are
+ * the slowest part of `list` and which a picker never reads.
+ */
+export async function listRows(
+  db: Database,
+  query: ProductQuery,
+  user: SessionUser | null,
+): Promise<{ rows: PublicSummaryRowData[]; total: number }> {
+  const filters = await listFilters(db, query, user, 'storefront');
+  if (!filters) return { rows: [], total: 0 };
+  return findPublicSummaries(db, filters);
+}
+
 /** The back-office list: no facets, nothing merchandised. */
 export async function listAdmin(
   db: Database,
