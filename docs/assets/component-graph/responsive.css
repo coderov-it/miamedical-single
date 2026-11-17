@@ -1,0 +1,33 @@
+@media (max-width: 640px) {
+  .floating-left {
+    top: 12px;
+    left: 12px;
+  }
+  .details-toggle {
+    top: 12px;
+    right: 12px;
+  }
+  .floating-button {
+    padding: 10px 12px;
+  }
+  .sidebar,
+  #inspector {
+    top: 66px;
+    bottom: 80px;
+    width: min(310px, calc(100vw - 24px));
+  }
+  .sidebar {
+    left: 12px;
+  }
+  #inspector {
+    right: 12px;
+  }
+  .canvas-controls {
+    bottom: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}

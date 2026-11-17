@@ -30,7 +30,8 @@
     "admin:seed": "pnpm --filter @mia/server run admin:seed",
     "catalog:sync": "pnpm --filter @mia/catalog run sync",
     "catalog:preview": "pnpm --filter @mia/catalog run preview:html",
-    "catalog:media": "pnpm --filter @mia/catalog run media"
+    "catalog:media": "pnpm --filter @mia/catalog run media",
+    "components:graph": "node scripts/component-graph/build.mjs"
   },
   "devDependencies": {
     "@types/node": "catalog:",

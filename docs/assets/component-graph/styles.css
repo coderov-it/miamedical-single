@@ -1,0 +1,170 @@
+:root {
+  font-family:
+    'Cascadia Code', 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  color: #303137;
+  background: #fafbfe;
+  font-size: 14px;
+  --accent: #3846b1;
+  --line: #e3e6ef;
+  --muted: #687084;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+}
+button,
+input,
+output {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  color: inherit;
+  border: 0;
+  background: none;
+}
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+#viewport:focus-visible {
+  outline: 3px solid #8a95ed;
+  outline-offset: 3px;
+}
+svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.symbols {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+[hidden] {
+  display: none !important;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.graph-and-inspector {
+  height: 100dvh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.floating-left {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+}
+.floating-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 15px;
+  background: #ffffffed;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px #28304a06;
+  backdrop-filter: blur(12px);
+}
+.floating-button:hover,
+.floating-button[aria-expanded='true'] {
+  background: #eef0fb;
+  color: var(--accent);
+}
+.details-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 5;
+}
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+.panel-heading strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.panel-heading button {
+  font-size: 25px;
+  padding: 0 6px;
+  line-height: 1;
+}
+.about-button {
+  width: 100%;
+  text-align: left;
+  border-top: 1px solid var(--line);
+  padding: 16px 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.about-button:hover {
+  color: var(--accent);
+}
+.empty-detail {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.list-empty {
+  padding: 30px 12px;
+  font-size: 14px;
+  line-height: 2;
+}
+.list-empty span {
+  color: var(--muted);
+  font-size: 12px;
+}
+dialog {
+  width: min(530px, calc(100vw - 40px));
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 26px;
+  box-shadow: 0 20px 80px #24294330;
+  color: #303137;
+}
+dialog::backdrop {
+  background: #20253850;
+  backdrop-filter: blur(4px);
+}
+dialog h2 {
+  margin: 0;
+  font-size: 18px;
+}
+dialog p {
+  line-height: 1.8;
+  font-size: 14px;
+  color: #60697c;
+}
+dialog code {
+  display: block;
+  padding: 15px;
+  background: #f2f4fa;
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 13px;
+}
