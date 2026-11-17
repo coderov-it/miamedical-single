@@ -94,7 +94,7 @@ export async function findStale(db: Database, before: Date): Promise<AttemptRow[
     .where(and(eq(paymentAttempts.status, 'pending'), lt(paymentAttempts.createdAt, before)));
 }
 
-export async function hasPending(db: Database, orderId: string): Promise<boolean> {
+export async function hasPending(db: DatabaseWriter, orderId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: paymentAttempts.id })
     .from(paymentAttempts)
@@ -112,6 +112,8 @@ export async function findOverdueOrders(db: Database, now: Date) {
       and(
         eq(orders.status, 'pending'),
         eq(orders.paymentStatus, 'unpaid'),
+        /* A manual order has no deadline; the filter keeps it out even if one were set. */
+        eq(orders.source, 'online'),
         lt(orders.paymentDueAt, now),
       ),
     );

@@ -1,0 +1,78 @@
+---
+/**
+ * The order link's body. One panel shows at a time until the order loads, then the main
+ * layout: the steps the token allows on the left (details, contract, payment), the order
+ * summary on the right (above the steps on a phone).
+ *
+ *   loading   waiting for GET /api/order-links
+ *   gone      revoked / expired / paid / closed (410), or an unknown token (404)
+ *   error     the API did not answer
+ *   main      steps + summary
+ *
+ * `scripts/complete-order/index.ts` picks the panel and the steps; the copy it needs comes
+ * from <AccountCopy> in the page. Flow: docs/code/manual-orders.md.
+ */
+import { AUTH_TITLE, HINT, NOTICE_ERROR } from '~/components/account/fields';
+import DetailsForm from '~/components/complete-order/DetailsForm.astro';
+import ContractStep from '~/components/complete-order/ContractStep.astro';
+import OrderStep from '~/components/complete-order/OrderStep.astro';
+import OrderSummaryPanel from '~/components/complete-order/OrderSummaryPanel.astro';
+import PayStep from '~/components/complete-order/PayStep.astro';
+import PhoneCta from '~/components/global/PhoneCta.astro';
+import LoadingState from '~/components/primitives/LoadingState.svelte';
+import { PUBLIC_API_URL } from '~/lib/api-base';
+import { localeForRequest } from '~/lib/i18n';
+import { t } from '~/lib/labels';
+import { routePath } from '~/lib/routes';
+
+const locale = localeForRequest();
+const CARD =
+  'border-hair shadow-pdp-card flex max-w-150 flex-col items-start gap-4 rounded-[14px] border bg-white p-7';
+---
+
+<div
+  class="px-gutter mid:pb-24 max-w-page mx-auto w-full py-8 pb-[calc(var(--spacing-mobile-nav)+1.25rem)]"
+  data-complete-order
+  data-api-base={PUBLIC_API_URL}
+  data-payment-result={routePath(locale, 'paymentResult')}
+>
+  <div data-co-panel="loading">
+    <LoadingState label={t('completeOrder.loading')} />
+  </div>
+
+  <div class={CARD} data-co-panel="gone" role="status" hidden>
+    <h1 class={AUTH_TITLE}>{t('completeOrder.title')}</h1>
+    <p class={HINT} data-co-message></p>
+    <PhoneCta variant="soft" />
+  </div>
+
+  <div class={CARD} data-co-panel="error" role="alert" hidden>
+    <h1 class={AUTH_TITLE}>{t('completeOrder.title')}</h1>
+    <p class={NOTICE_ERROR} data-co-message></p>
+    <PhoneCta variant="soft" />
+  </div>
+
+  <div data-co-panel="main" hidden>
+    <h1 class="text-[30px] font-bold tracking-[-0.015em]">{t('completeOrder.title')}</h1>
+    <p class="text-ink-2 mt-1 mb-7 text-[15px]" data-co-order-line></p>
+
+    <div class="flex flex-wrap items-start gap-x-12 gap-y-6">
+      <main class="flex min-w-0 flex-[1_1_540px] flex-col gap-4">
+        <OrderStep step="details" title={t('yourDetails')}>
+          <DetailsForm />
+        </OrderStep>
+        <OrderStep step="contract" title={t('completeOrder.step.contract')}>
+          <ContractStep />
+        </OrderStep>
+        <OrderStep step="pay" title={t('completeOrder.step.pay')}>
+          <PayStep />
+        </OrderStep>
+        <p class="text-ink-2 m-0 text-[15px]" role="status" data-co-signed-only hidden>
+          {t('completeOrder.pay.signedOnly')}
+        </p>
+      </main>
+
+      <OrderSummaryPanel />
+    </div>
+  </div>
+</div>

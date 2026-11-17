@@ -35,6 +35,7 @@ import {
   paymentPublicRoutes,
   paymentWebhookRoutes,
 } from './modules/payments/online-routes.ts';
+import { orderLinkPublicRoutes } from './modules/order-links/routes.ts';
 import { paymentAdminRoutes } from './modules/payments/routes.ts';
 import { productAdminRoutes, productPublicRoutes } from './modules/products/routes.ts';
 import {
@@ -103,6 +104,7 @@ const routes = app
   .route('/api/legal', legalPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
   .route('/api/payments', paymentPublicRoutes)
+  .route('/api/order-links', orderLinkPublicRoutes)
   .route('/api/webhooks/payments', paymentWebhookRoutes)
   .route('/api/order-disputes', orderDisputePublicRoutes)
   .route('/api/customer/auth', customerAuthRoutes)

@@ -41,12 +41,13 @@ export interface CheckoutSignature {
   userAgent: string;
 }
 
-/** Where the page that took the signature was: checkout, or the account's renewal modal. */
-export type SignedChannel = 'checkout' | 'account_renewal';
+/** Where the page that took the signature was: checkout, the account's renewal modal, or a manual order's link. */
+export type SignedChannel = 'checkout' | 'account_renewal' | 'order_link';
 
 const SIGNED_NOTE: Record<SignedChannel, string> = {
   checkout: 'signed by the customer at checkout',
   account_renewal: 'signed by the customer when renewing from their account',
+  order_link: 'signed by the customer from the private order link',
 };
 
 /**

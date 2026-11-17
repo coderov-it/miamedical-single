@@ -51,6 +51,8 @@ export interface ContractData {
   items: ContractRentalItem[];
   subtotal: string;
   shippingTotal: string;
+  /** Order-level discount of a manual order, already taken off `total`. Absent: none. */
+  discountTotal?: string;
   total: string;
   currency: string;
   requiresDeposit: boolean;

@@ -54,7 +54,8 @@ export function orderLine(order: OrderRef, language: EmailLanguage): string {
   return `${ORDER_WORD[language]} ${order.number} · ${money(order.total, order.currency, language)}`;
 }
 
-/** "Ciao Elena," — the opening line of every order message. */
+/** "Ciao Elena," — the opening line of every order message; "Ciao," when no name is known yet. */
 export function greeting(recipient: Recipient, language: EmailLanguage): string {
-  return `${HELLO[language]} ${recipient.firstName},`;
+  const name = recipient.firstName.trim();
+  return name ? `${HELLO[language]} ${name},` : `${HELLO[language]},`;
 }
