@@ -2,8 +2,10 @@
 
 An admin agent creates an order for a customer who phoned or wrote, then sends the
 customer a private link to complete it (details, contract, payment) or records
-a payment taken outside the gateway. Status: Phases 1 (schema + server rules), 2 (admin create,
-send link, record payment) and 3 (website token page) built; Phase 4 is spec. Update this file in the phase that ships each part.
+a payment taken outside the gateway.
+
+**Status: feature complete (Phases 1-4 built), pending the DB-gated integration tests (`MIA_DB_TESTS=1`) and browser verification
+(admin dialogs, the token page flow, `/email-preview`).**
 
 Code: `apps/server/src/modules/orders/manual/`, `apps/server/src/modules/order-links/` (mint only),
 `apps/admin/src/lib/orders/new-order/`, `apps/website/src/{pages/complete-order.astro, views/complete-order, components/complete-order, scripts/complete-order}` (built).
@@ -214,7 +216,7 @@ split like `apps/admin/src/lib/contracts/new-contract/` (each file under 350 lin
 
 ## Emails
 
-New `packages/templates/src/literal/email/manual-order-link.ts` (+ entry in `samples.ts`, export in `index.ts`), separate from the
+`packages/templates/src/literal/email/manual-order-link.ts` (+ entry in `samples.ts`, export in `index.ts`), separate from the
 three `order-placed-*` templates. Content: greeting, what to do (sign / pay / fill details, per steps), the link button, the order number
 and total, and "Didn't ask for this order? Click here" pointing at `reportOrderUrl(reportToken, language)` (token from
 `issueAuthToken`, purpose `order_report`; `order-disputes/service.create` consumes it). Language follows the account
@@ -235,9 +237,36 @@ and total, and "Didn't ask for this order? Click here" pointing at `reportOrderU
    `paid` with the right stage labels in the admin; revoked/expired/paid-order links answer 410.
    Must do: the token payment endpoint locks the order row (`SELECT ... FOR UPDATE`) and re-checks the discount lock
    (`assertDiscountEditable` inputs) in the same transaction that opens the payment attempt, closing the race with `setDiscount`.
-4. Emails + translations. Files: `manual-order-link.ts`, `samples.ts`, `mail.ts`, `mail-failure.ts`, `@mia/i18n` stage labels, website keys for all
+4. BUILT. Emails + translations. Files: `manual-order-link.ts`, `samples.ts`, `mail.ts`, `mail-failure.ts`, `@mia/i18n` stage labels, website keys for all
    languages (`docs/code/adding-a-language.md`). Done when: the email renders in every language in `/email-preview`, the report link files a dispute,
    a failed send shows on the timeline.
+
+## Phase 4 as built
+
+```
+templates  literal/email/manual-order-link.ts   manualOrderLink({ steps, includeDetails, discount, url, reportUrl, expiresAt, ... })
+           samples.ts (manualOrderLink, it/en/fr/de in /email-preview), index.ts, manual-order-link.test.ts (per language)
+           component/{report-link,text}.ts      optional `copy` so this mail words the report link its own way
+           component/order.ts                   greeting() drops the name when the account has none ("Ciao,")
+server     notifications/manual-order-mail.ts   pure message builder (tested without env); mail.ts sendManualOrderLink sends it
+           order-links/service.ts               issues an `order_report` token bound to the order's account, language = account's
+```
+
+```
+ agent: "Send by email", steps sign_pay, details on, order 160.00 after a 20.00 discount, account language it
+ 1. mint link token (30 d) + issueAuthToken(order_report, orderId)
+ 2. email  subject "Completa il tuo ordine MIA-2026-001050"
+           1. Controlla e completa i tuoi dati  2. Leggi e firma il contratto di noleggio  3. Paga online in modo sicuro
+           [Completa il tuo ordine]  Ordine … · 160,00 €  Sconto: −20,00 €  "Il link è valido fino al 17 dicembre 2026."
+           "Non hai richiesto tu questo ordine? Clicca qui." → /report-order/?token=…
+ 3. send fails → `email` timeline entry, kind manual_order_link (mail-failure.ts), response emailSent: false
+ steps pay → only "Paga online…"; steps sign → only the signing line; discount line only when > 0
+```
+
+Notes: the four languages are the whole registry (`LANGUAGES`: it, en, fr, de); `Translated<>` makes a fifth a type error.
+The admin and website stage labels were already translated in Phases 2-3 (`newOrder.stage*`, `completeOrder.status.*`);
+`@mia/i18n` holds no manual-stage label, so Phase 4 adds none. The expiry date is formatted in `Europe/Rome`.
+`@mia/templates` gained a `test` script (it had none).
 
 ## Phase 2 as built
 
@@ -247,7 +276,7 @@ server  orders/manual/routes.ts     the six spec routes + GET /manual/products (
         orders/manual/{accounts,quote,products}.ts   account search (+ prefill), quote, picker projection
         order-links/{token,repo,service,validation}.ts   mint only: revoke previous, 30 d, `link` event, 422/409 rules
         notifications/links.ts      completeOrderUrl + PATHS.completeOrder (website PRIVATE_SEGMENTS.completeOrder mirrors it)
-        notifications/mail.ts       sendManualOrderLink: STUB (plain subject/text/html, no report link) - Phase 4 swaps it
+        notifications/mail.ts       sendManualOrderLink (was a plain-text stub; the template arrived in Phase 4)
 packages/validators/src/manual-order.ts   ManualOrderSchema, ManualOrderQuoteSchema, ManualDiscountSchema,
                                           SendOrderLinkSchema, RecordPaymentSchema, search schemas
 admin   routes/(app)/orders/new, lib/orders/new-order/*, order-manual-card / -link-dialog / -payment-dialog /
@@ -272,7 +301,6 @@ Deviations from the spec text:
 - The three new dialogs are mounted only while open (`{#if}`), so each opening starts from fresh state without an `$effect` reset.
 - Files over the size target were split with no behaviour change: the orders list page into `lib/orders/list/{orders-kpi-strip,orders-table,order-drawer}.svelte`,
   the order detail view into `order-{customer,delivery,contract,address-cards}-card.svelte`.
-- The stub email carries no "Didn't ask for this order?" link; that belongs to the Phase 4 template.
 
 ## Phase 3 as built
 
