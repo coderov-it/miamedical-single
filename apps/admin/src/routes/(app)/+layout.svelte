@@ -30,7 +30,7 @@
 {:else}
   <Sidebar.Provider>
     <AppSidebar />
-    <Sidebar.Inset class="min-w-0 bg-background">
+    <Sidebar.Inset class="min-w-0 overflow-x-clip bg-background">
       <AppTopbar />
       <div class="flex flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto w-full max-w-[1600px]">

@@ -28,6 +28,10 @@
   import { UI_LANGUAGES, uiLang, type UiLanguage } from '~/lib/ui-lang.svelte';
 
   const sectionKey = $derived(navTitleFor(page.url.pathname));
+  /** A page one level below its section (New order under Orders) adds a last crumb. */
+  const leafKey = $derived(
+    page.url.pathname === routes.orderNew ? 'newOrder.pageTitle' : undefined,
+  );
 </script>
 
 <!--
@@ -49,7 +53,17 @@
       {#if sectionKey}
         <Breadcrumb.Separator class="hidden sm:block" />
         <Breadcrumb.Item>
-          <Breadcrumb.Page>{t(sectionKey)}</Breadcrumb.Page>
+          {#if leafKey}
+            <Breadcrumb.Link href={routes.orders}>{t(sectionKey)}</Breadcrumb.Link>
+          {:else}
+            <Breadcrumb.Page>{t(sectionKey)}</Breadcrumb.Page>
+          {/if}
+        </Breadcrumb.Item>
+      {/if}
+      {#if leafKey}
+        <Breadcrumb.Separator />
+        <Breadcrumb.Item>
+          <Breadcrumb.Page>{t(leafKey)}</Breadcrumb.Page>
         </Breadcrumb.Item>
       {/if}
     </Breadcrumb.List>

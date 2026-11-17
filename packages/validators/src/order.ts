@@ -8,6 +8,7 @@ import {
   SlugSchema,
   UuidSchema,
 } from './common.ts';
+import { BRANCH_CITIES } from './branches.ts';
 import { LanguageCodeSchema } from './i18n.ts';
 
 export const AddressSchema = v.object({
@@ -252,7 +253,7 @@ export const CheckoutDeliverySchema = v.pipe(
   v.strictObject({
     method: DeliveryMethodSchema,
     address: v.optional(CheckoutAddressSchema),
-    pickupCity: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
+    pickupCity: v.optional(v.picklist(BRANCH_CITIES, 'Choose one of our branches.')),
 
     /**
      * A rental comes back, and where FROM is a different question from where it

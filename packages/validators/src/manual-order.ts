@@ -1,6 +1,12 @@
 import * as v from 'valibot';
 
-import { CustomerPhoneSchema, EmailSchema, MoneySchema, UuidSchema } from './common.ts';
+import {
+  CustomerPhoneSchema,
+  EmailSchema,
+  MoneySchema,
+  PaginationSchema,
+  UuidSchema,
+} from './common.ts';
 import { LanguageCodeSchema } from './i18n.ts';
 import {
   CheckoutDeliverySchema,
@@ -8,6 +14,7 @@ import {
   MAX_ORDER_ITEMS,
   PlaceOrderItemSchema,
 } from './order.ts';
+import { PricingModeSchema } from './product.ts';
 
 /**
  * What an agent sends to raise an order for a customer who phoned or wrote.
@@ -77,11 +84,22 @@ export const CustomerAccountSearchSchema = v.object({
   q: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(120)),
 });
 
-/** Free-text catalogue search for the lines picker. */
+/**
+ * The product browser's query: every part optional, so an empty query lists the
+ * first page of the catalogue. `category` is a category `code`, `mode` the sale
+ * (`fixed`) or rental half. `sort` is `best_selling` (units sold, the browser's
+ * default) or `relevance` (title order, for a typed search).
+ */
 export const LineProductSearchSchema = v.object({
-  q: v.pipe(v.string(), v.trim(), v.minLength(2), v.maxLength(120)),
+  q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
+  category: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(64))),
+  mode: v.optional(PricingModeSchema),
+  sort: v.optional(v.picklist(['best_selling', 'relevance']), 'best_selling'),
+  page: PaginationSchema.entries.page,
+  perPage: PaginationSchema.entries.perPage,
 });
 
+export type LineProductSearchInput = v.InferOutput<typeof LineProductSearchSchema>;
 export type ManualOrderInput = v.InferOutput<typeof ManualOrderSchema>;
 export type ManualOrderQuoteInput = v.InferOutput<typeof ManualOrderQuoteSchema>;
 export type ManualDiscountInput = v.InferOutput<typeof ManualDiscountSchema>;

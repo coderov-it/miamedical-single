@@ -1,10 +1,13 @@
 /**
  * Where a failed field lives on screen. The server names a field by its path
  * (`items.1.startDate`, `delivery.address`); the form needs the DOM id of the
- * control that carries it so the first issue can take focus (lib/form-gate.ts).
+ * control that carries it so the first issue can take focus (lib/form-gate.ts),
+ * and the wizard step that shows it so the page can go there first.
  */
 
 import type { GateField } from '~/lib/form-gate';
+
+import type { StepId } from './types';
 
 const STATIC_IDS: Record<string, string> = {
   email: 'no-email',
@@ -46,14 +49,23 @@ export function controlId(path: string): string | null {
   return suffix ? `no-line-${index}-${suffix}` : `no-line-${index}-package`;
 }
 
+/** The step that shows a field. An unknown path lands on the last step. */
+export function stepOf(path: string): StepId {
+  if (path === 'items') return 'products';
+  if (path.startsWith('items.')) return 'packages';
+  if (path.startsWith('discount.') || path === 'amount' || path === 'reason') return 'review';
+  return 'customer';
+}
+
+const STEP_ORDER: StepId[] = ['products', 'packages', 'customer', 'review'];
+
+/** Order on screen: by step, then by where the field sits in it. */
 function rank(path: string): number {
-  if (path === 'email') return 0;
-  if (path in STATIC_IDS && !path.startsWith('delivery') && path !== 'items') {
-    return path === 'amount' || path.startsWith('discount') || path === 'reason' ? 3 : 1;
-  }
-  if (path.startsWith('items')) return 2;
-  if (path.startsWith('delivery') || path === 'shippingTotal') return 4;
-  return 5;
+  const base = STEP_ORDER.indexOf(stepOf(path)) * 10;
+  if (path === 'email') return base;
+  if (path.startsWith('delivery') || path === 'shippingTotal') return base + 2;
+  if (path === 'notes') return base + 3;
+  return base + 1;
 }
 
 /** Fields in the order they appear on screen, so focus lands on the topmost one. */
