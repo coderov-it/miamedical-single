@@ -70,7 +70,15 @@ export interface OrderDeliveryDto {
 export interface OrderEventDto {
   id: string;
   /** `email` is a failed send; its `toValue` is the message kind (notifications/mail-failure.ts). */
-  field: 'status' | 'paymentStatus' | 'customerLink' | 'contract' | 'extension' | 'email';
+  field:
+    | 'status'
+    | 'paymentStatus'
+    | 'customerLink'
+    | 'contract'
+    | 'extension'
+    | 'email'
+    | 'discount'
+    | 'link';
   fromValue: string | null;
   toValue: string;
   note: string | null;
@@ -102,6 +110,15 @@ export interface OrderTotalsDto {
   currency: string;
 }
 
+/** Who started the order: the storefront checkout, or an agent for a phoned-in customer. */
+export type OrderSource = 'online' | 'manual';
+
+/**
+ * Where a pending manual order waits, derived once in `mapper.ts` from existing data
+ * (no new status). Null on online orders and once the order is paid.
+ */
+export type ManualStage = 'awaiting_signature' | 'awaiting_payment';
+
 export interface AdminOrderSummaryDto {
   id: string;
   number: string;
@@ -113,6 +130,11 @@ export interface AdminOrderSummaryDto {
   hasRental: boolean;
   /** The newest non-voided contract's status, so the list can say "contract not signed". */
   contractStatus: string | null;
+  source: OrderSource;
+  manualStage: ManualStage | null;
+  discountReason: string | null;
+  /** The agent who created a manual order; null for an online one. */
+  createdByName: string | null;
   total: string;
   /** Paid extensions, refunds and what is left — all kept by the database. */
   extensionTotal: string;
@@ -145,6 +167,10 @@ export interface AdminOrderDetailDto {
    */
   customerAccountId: string | null;
   customerLinkStatus: 'unverified' | 'confirmed' | 'rejected';
+  source: OrderSource;
+  manualStage: ManualStage | null;
+  discountReason: string | null;
+  createdByName: string | null;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totals: OrderTotalsDto;

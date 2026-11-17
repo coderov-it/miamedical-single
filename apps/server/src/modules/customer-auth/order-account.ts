@@ -2,6 +2,7 @@ import type { Database } from '@mia/db';
 import type { LanguageCode } from '@mia/validators/language';
 
 import type { SessionCustomer } from '../../shared/http/context.ts';
+import { notFound } from '../../shared/http/errors.ts';
 import { rememberLanguage, requestLanguage } from './language.ts';
 import * as repo from './repo.ts';
 import * as service from './service.ts';
@@ -104,6 +105,67 @@ export async function resolveForOrder(
     firstName: account.firstName,
     lastName: account.lastName,
     mailPlan,
+    language: requestLanguage(customer.language, account.language),
+  };
+}
+
+export interface ManualOrderCustomerInput {
+  email: string;
+  /** Empty strings are fine: an account made by the sign-in page has no name either. */
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  language?: LanguageCode;
+}
+
+export interface ResolvedManualAccount {
+  customerAccountId: string;
+  /** `confirmed` only when the agent picked an existing account. */
+  customerLinkStatus: 'unverified' | 'confirmed';
+  email: string;
+  language: LanguageCode;
+}
+
+/**
+ * The account behind an order an agent creates. No customer session exists and no
+ * activation mail is planned: the order link email is the only mail, and it carries
+ * the "Didn't ask for this order?" token that needs this account id.
+ *
+ * ```
+ * agent picked account Anna Rossi          → her account, link `confirmed` (the agent vouches)
+ * agent typed rossi@x.it, account exists   → that account, link `unverified`
+ * agent typed new@x.it, no account         → new account with empty names, `unverified`
+ * ```
+ */
+export async function resolveForManualOrder(
+  db: Database,
+  customer: ManualOrderCustomerInput,
+  pickedAccountId: string | null,
+): Promise<ResolvedManualAccount> {
+  if (pickedAccountId) {
+    const picked = await repo.findById(db, pickedAccountId);
+    if (!picked) throw notFound('Customer account');
+    return {
+      customerAccountId: picked.id,
+      customerLinkStatus: 'confirmed',
+      email: picked.email,
+      language: requestLanguage(customer.language, picked.language),
+    };
+  }
+
+  const account = await repo.createOrGetByEmail(db, {
+    email: customer.email,
+    firstName: customer.firstName,
+    lastName: customer.lastName,
+    phone: customer.phone,
+  });
+  // An agent typing a language proves nothing about the customer: fill a blank only.
+  await rememberLanguage(db, account.id, customer.language, false);
+
+  return {
+    customerAccountId: account.id,
+    customerLinkStatus: 'unverified',
+    email: account.email,
     language: requestLanguage(customer.language, account.language),
   };
 }

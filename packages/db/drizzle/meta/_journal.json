@@ -176,6 +176,13 @@
       "when": 1794916669857,
       "tag": "0024_add_product_views",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794922338440,
+      "tag": "0025_add_manual_orders",
+      "breakpoints": true
     }
   ]
 }

@@ -112,6 +112,8 @@ export async function findOverdueOrders(db: Database, now: Date) {
       and(
         eq(orders.status, 'pending'),
         eq(orders.paymentStatus, 'unpaid'),
+        /* A manual order has no deadline; the filter keeps it out even if one were set. */
+        eq(orders.source, 'online'),
         lt(orders.paymentDueAt, now),
       ),
     );

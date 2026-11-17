@@ -8,7 +8,6 @@
  */
 
 import type { Database } from '@mia/db';
-import { addMoney } from '@mia/pricing';
 
 import type { SessionUser } from '../../shared/http/context.ts';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
@@ -19,6 +18,7 @@ import { multiply, sumMoney } from './mapper.ts';
 import * as cartRepo from './cart-repo.ts';
 import * as listRepo from './list-repo.ts';
 import * as repo from './repo.ts';
+import { orderTotal } from './totals.ts';
 import * as transitionRepo from './transition-repo.ts';
 import {
   canMoveOrder,
@@ -120,7 +120,7 @@ export async function update(
   */
   if (input.shippingTotal !== undefined) {
     patch.shippingTotal = input.shippingTotal;
-    patch.total = addMoney(order.subtotal, input.shippingTotal);
+    patch.total = orderTotal(order.subtotal, input.shippingTotal, order.discountTotal);
   }
 
   await repo.update(db, id, patch);

@@ -17,6 +17,7 @@ import type {
 } from './dto.ts';
 import type { OrderItemConfiguration } from './resolve.ts';
 import { isRefundAmountMissing } from '../order-refunds/decision.ts';
+import { manualStage } from './manual/stage.ts';
 import { manualPaymentStatuses, nextOrderStatuses } from './status.ts';
 import type { CalendarEntryRow } from './list-repo.ts';
 import type {
@@ -147,6 +148,9 @@ function toTotals(row: OrderAggregate | OrderSummaryRecord): OrderTotalsDto {
   };
 }
 
+const isRentalItem = (item: OrderItemRow) =>
+  (item.configuration as Record<string, unknown> | null)?.pricingMode === 'rental';
+
 export function toOrderSummary(row: AdminOrderSummaryRecord): AdminOrderSummaryDto {
   return {
     id: row.id,
@@ -157,6 +161,10 @@ export function toOrderSummary(row: AdminOrderSummaryRecord): AdminOrderSummaryD
     itemCount: row.itemCount,
     hasRental: row.hasRental,
     contractStatus: row.contractStatus,
+    source: row.source,
+    manualStage: manualStage({ ...row }),
+    discountReason: row.discountReason,
+    createdByName: row.createdByName,
     total: row.total,
     ...toMoney(row),
     currency: row.currency,
@@ -198,6 +206,10 @@ export function toOrderDetail(row: AdminOrderAggregate): AdminOrderDetailDto {
     partitaIva: row.partitaIva,
     customerAccountId: row.customerAccountId,
     customerLinkStatus: row.customerLinkStatus,
+    source: row.source,
+    manualStage: manualStage({ ...row, hasRental: row.items.some(isRentalItem) }),
+    discountReason: row.discountReason,
+    createdByName: row.createdByName,
     status: row.status,
     paymentStatus: row.paymentStatus,
     totals: toTotals(row),
