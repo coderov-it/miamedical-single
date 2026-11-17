@@ -32,6 +32,10 @@ placing with stock 0                → 409 out_of_stock "Letto is no longer ava
                                        no order is written
 ```
 
+A manual order (`manual-orders.md`) takes its units at creation like a checkout order,
+with the creating agent as the history's actor. It has no `payment_due_at`, so the
+unpaid sweep never returns them: they come back only when the order is cancelled.
+
 ## Orders placed before this rule
 
 `orders.stock_taken` says whether a pending order holds its units. Placement
