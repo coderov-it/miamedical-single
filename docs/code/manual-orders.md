@@ -2,11 +2,11 @@
 
 An admin agent creates an order for a customer who phoned or wrote, then sends the
 customer a private link to complete it (details, contract, payment) or records
-a payment taken outside the gateway. Status: Phases 1 (schema + server rules) and 2 (admin create,
-send link, record payment) built; Phases 3-4 are spec. Update this file in the phase that ships each part.
+a payment taken outside the gateway. Status: Phases 1 (schema + server rules), 2 (admin create,
+send link, record payment) and 3 (website token page) built; Phase 4 is spec. Update this file in the phase that ships each part.
 
 Code: `apps/server/src/modules/orders/manual/`, `apps/server/src/modules/order-links/` (mint only),
-`apps/admin/src/lib/orders/new-order/` (built). Planned: `apps/website/src/pages/complete-order.astro`, public `order-links/routes.ts`.
+`apps/admin/src/lib/orders/new-order/`, `apps/website/src/{pages/complete-order.astro, views/complete-order, components/complete-order, scripts/complete-order}` (built).
 
 ## Worked examples
 
@@ -230,7 +230,7 @@ and total, and "Didn't ask for this order? Click here" pointing at `reportOrderU
 2. BUILT. Admin create + send link + record payment. Files: `orders/routes.ts`, `order-links/{service,token,repo}.ts` (mint only),
    admin `orders/new`, `new-order/*`, detail dialogs, timeline labels, `ui-text`. Done when: an agent creates example (a) steps 1-3 end to end,
    the link is copied or mailed (console transport), click validation marks and focuses fields, example (b) completes through Record payment.
-3. Website token page. Files: `order-links/routes.ts` (public), `contracts/checkout.ts` (`'order_link'`), `routes.ts`, `links.ts`,
+3. BUILT. Website token page. Files: `order-links/routes.ts` (public), `contracts/checkout.ts` (`'order_link'`), `routes.ts`, `links.ts`,
    `pages/complete-order.astro`, view and scripts. Done when: the link opens the page, details save, contract signs, Nexi sandbox pays and the order is
    `paid` with the right stage labels in the admin; revoked/expired/paid-order links answer 410.
    Must do: the token payment endpoint locks the order row (`SELECT ... FOR UPDATE`) and re-checks the discount lock
@@ -274,6 +274,53 @@ Deviations from the spec text:
   the order detail view into `order-{customer,delivery,contract,address-cards}-card.svelte`.
 - The stub email carries no "Didn't ask for this order?" link; that belongs to the Phase 4 template.
 
+## Phase 3 as built
+
+```
+server  order-links/routes.ts      GET / , PUT /details, POST /contract-preview, /sign, /payment   (mount /api/order-links)
+        order-links/access.ts      pure: linkRefusal (revoked > expired > paid > closed), allowedSteps, assertCanSign/Pay, assertSameTotal
+        order-links/{redeem,read,summary,details,sign,payment,notify}.ts
+        payments/start.ts          begin() split into openAttempt (a row) + dispatch (the gateway call); startForOrder unchanged
+        orders/manual/discount.ts  setDiscount takes the row lock FIRST, then checks signed / open attempt / pending
+        contracts/{draft,service,checkout}.ts + @mia/templates   discountTotal on the terms, a discount row, 'order_link' channel
+        orders/status-notice.ts    the creating agent hears `paid` (order.status_changed, admin audience, .admin labels in @mia/i18n)
+packages/validators/src/order-link.ts   OrderLinkQuery / Details / Sign / Payment schemas (details = CheckoutCustomerSchema minus email)
+website pages/complete-order.astro (shim) → views/complete-order/CompleteOrderBody.astro, components/complete-order/*,
+        scripts/complete-order/{index,client,details,contract,pay,summary,format,types}.ts; keys `completeOrder.*` in it/en/fr/de
+tests   order-links/access.test.ts, contracts/draft.test.ts (pure); order-links/pay-flow.integration.test.ts (MIA_DB_TESTS=1, not run)
+```
+
+```
+ customer opens /complete-order/?token=…   (steps sign_pay, details on, codice fiscale missing)
+ 1. GET summary                    → stage awaiting_signature, missingFields ['codiceFiscale'], total 160.00
+ 2. PUT details                    → missingFields []                         (409 once signed)
+ 3. POST contract-preview          → html + total 160.00, discount row "Sconto −20.00"
+ 4. POST sign {…, expectedTotal 160.00}
+        lock order row → re-check pending / unsigned / details / total → issueSigned('order_link')
+        → feed rows: contract.signed to contract:read operators and to the agent → receipt email after commit
+ 5. POST payment                   lock order row → isPayable, assertStartable, rental signed → attempt row (amount 160.00)
+        commit → Nexi start (HTTP, no lock) → redirect → /payment/ result page → settle → paid → agent hears "Order paid"
+ discount edit between 4 and 5     setDiscount waits for the lock, then sees the open attempt → 409
+ token replaced / 30 days / order paid or cancelled → 410 { reason: revoked | expired | paid | closed }
+```
+
+Deviations from the Phase 3 spec text:
+
+- Sign carries `expectedTotal` (the total the preview showed): an agent editing the discount between preview and signature
+  gets a 409 and the page re-reads, so nobody signs a text other than the one stored.
+- Sign (and the preview) need complete details first (409 + `fields`), because the contract states the customer; with a
+  link whose details box is off the details were already complete at mint time.
+- The discount reaches the contract as a `Sconto` row and a lower total; `contractTotals` clamps at 0.00. On a mixed
+  order the contract still covers the rented rows only (as before), so its total is the rented rows plus delivery less the discount.
+- The page does not ask for an address: the delivery is the agent's (Phase 2). The agent's discount reason is not shown to the customer.
+- Pay with an unsigned rental is a 409 `{ step: 'sign' }`; the page shows its own localized sentence at the pay card, since
+  the server's message is English. A link without the pay step answers 403 on `/payment`, one without sign 403 on `/sign`.
+- The agent's "paid" notice reuses `order.status_changed` with the `.admin` label variant and goes only to the creating agent (and
+  not when that agent recorded the payment themselves); no new notification kind. Contract-signed goes to the other `contract:read`
+  operators as well, as the emailed-link signature does.
+- `termsFromOrder` and `orderRequiresDeposit` take `DatabaseWriter` so they run inside the signing transaction.
+- The page was SSR-checked in all four locales; the browser flow (signature pad, dialogs, Nexi redirect) is not covered by tests.
+
 ## Decisions
 
 Owner-approved answers to the questions the first draft left open.
@@ -304,4 +351,4 @@ tests: orders/manual/manual.test.ts (pure) and manual.integration.test.ts (MIA_D
 
 `recordPayment` calls `moveStatus`, which moves the status and then the payment status in two transactions, as it
 does for the admin's own status move. `setDiscount` locks the order row for its write, but `startForOrder` does not
-lock, so a payment started in the same instant as a discount edit is not excluded; closed in Phase 3 (see its must-do).
+lock, so a payment started in the same instant as a discount edit is not excluded; closed in Phase 3 (see "Phase 3 as built").

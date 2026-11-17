@@ -1,11 +1,19 @@
 import { escapeHtml } from './escape.ts';
 import type { ContractRentalItem } from './types.ts';
 
+/** The order-level discount of a manual order; no row at all when there is none. */
+function discountRow(label: string, discount: string | undefined): string {
+  if (!discount || Number(discount) === 0) return '';
+  return `
+    <tr><td colspan="5">${label}</td><td class="num">−€${escapeHtml(discount)}</td></tr>`;
+}
+
 export function itemsTableIt(
   items: ContractRentalItem[],
   subtotal: string,
   shippingTotal: string,
   total: string,
+  discount?: string,
 ): string {
   const rows = items
     .map(
@@ -28,7 +36,7 @@ export function itemsTableIt(
   <tbody>${rows}</tbody>
   <tfoot>
     <tr><td colspan="5">Subtotale</td><td class="num">€${escapeHtml(subtotal)}</td></tr>
-    <tr><td colspan="5">Spedizione</td><td class="num">€${escapeHtml(shippingTotal)}</td></tr>
+    <tr><td colspan="5">Spedizione</td><td class="num">€${escapeHtml(shippingTotal)}</td></tr>${discountRow('Sconto', discount)}
     <tr><td colspan="5">Totale</td><td class="num">€${escapeHtml(total)}</td></tr>
   </tfoot>
 </table>`;
@@ -39,6 +47,7 @@ export function itemsTableEn(
   subtotal: string,
   shippingTotal: string,
   total: string,
+  discount?: string,
 ): string {
   const rows = items
     .map(
@@ -61,7 +70,7 @@ export function itemsTableEn(
   <tbody>${rows}</tbody>
   <tfoot>
     <tr><td colspan="5">Subtotal</td><td class="num">€${escapeHtml(subtotal)}</td></tr>
-    <tr><td colspan="5">Shipping</td><td class="num">€${escapeHtml(shippingTotal)}</td></tr>
+    <tr><td colspan="5">Shipping</td><td class="num">€${escapeHtml(shippingTotal)}</td></tr>${discountRow('Discount', discount)}
     <tr><td colspan="5">Total</td><td class="num">€${escapeHtml(total)}</td></tr>
   </tfoot>
 </table>`;

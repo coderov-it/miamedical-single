@@ -1,0 +1,43 @@
+---
+/**
+ * The order as the customer will be charged for it, beside the steps. Filled by
+ * `scripts/complete-order/summary.ts` from the link's summary; on a phone it sits above
+ * the steps so the customer sees what they are completing first.
+ */
+import { EYEBROW } from '~/components/checkout/styles';
+import { t } from '~/lib/labels';
+---
+
+<aside
+  class="border-hair shadow-pdp-panel wide:sticky wide:top-24 wide:order-last order-first flex max-w-100 min-w-0 flex-[1_1_320px] flex-col gap-4.5 rounded-2xl border bg-white p-6 mid:p-7"
+  aria-labelledby="co-summary-title"
+>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h2 class={EYEBROW} id="co-summary-title">
+      {t('orderSummary')}
+    </h2>
+    <span
+      class="bg-accent-tint rounded-full px-3 py-1 text-[12.5px] font-semibold text-accent"
+      data-co-status
+    ></span>
+  </div>
+  <ul class="m-0 flex list-none flex-col gap-4 p-0" data-co-lines></ul>
+  <dl class="border-hair m-0 flex flex-col gap-2 border-t pt-4 text-[14.5px]">
+    <div class="flex justify-between gap-3" data-co-subtotal-row>
+      <dt class="text-ink-2">{t('completeOrder.subtotal')}</dt>
+      <dd class="m-0 font-semibold tabular-nums" data-co-subtotal></dd>
+    </div>
+    <div class="flex justify-between gap-3" data-co-shipping-row hidden>
+      <dt class="text-ink-2">{t('completeOrder.shipping')}</dt>
+      <dd class="m-0 font-semibold tabular-nums" data-co-shipping></dd>
+    </div>
+    <div class="flex justify-between gap-3" data-co-discount-row hidden>
+      <dt class="text-ink-2">{t('completeOrder.discount')}</dt>
+      <dd class="m-0 font-semibold tabular-nums text-accent" data-co-discount></dd>
+    </div>
+    <div class="flex justify-between gap-3 text-[17px]">
+      <dt class="font-bold">{t('total')}</dt>
+      <dd class="m-0 font-bold tabular-nums" data-co-total></dd>
+    </div>
+  </dl>
+</aside>

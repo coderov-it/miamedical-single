@@ -11,6 +11,8 @@ export interface StatusNoticeData {
   field: 'status' | 'paymentStatus';
   fromValue: string;
   toValue: string;
+  /** The operator who made the move, if any; they are not told about their own action. */
+  actorAdminUserId?: string | null;
 }
 
 /**
@@ -25,23 +27,49 @@ export async function emitOrderStatusChanged(
   event: StatusNoticeData,
 ): Promise<void> {
   const [order] = await tx
-    .select({ number: orders.number, customerAccountId: orders.customerAccountId })
+    .select({
+      number: orders.number,
+      customerAccountId: orders.customerAccountId,
+      source: orders.source,
+      createdByAdminUserId: orders.createdByAdminUserId,
+    })
     .from(orders)
     .where(eq(orders.id, event.orderId))
     .limit(1);
 
-  if (!order?.customerAccountId) return;
+  if (!order) return;
+  const data = {
+    orderNumber: order.number,
+    field: event.field,
+    from: event.fromValue,
+    to: event.toValue,
+  };
 
+  /* A manual order's creating agent hears when it is paid (decision 7 of
+     docs/code/manual-orders.md), whether or not their role reads every order. */
+  const agent = order.createdByAdminUserId;
+  if (
+    order.source === 'manual' &&
+    agent &&
+    agent !== event.actorAdminUserId &&
+    event.field === 'status' &&
+    event.toValue === 'paid'
+  ) {
+    await emit(tx, {
+      audience: 'admin',
+      adminUserId: agent,
+      type: 'order.status_changed',
+      orderId: event.orderId,
+      data,
+    });
+  }
+
+  if (!order.customerAccountId) return;
   await emit(tx, {
     audience: 'customer',
     customerAccountId: order.customerAccountId,
     type: 'order.status_changed',
     orderId: event.orderId,
-    data: {
-      orderNumber: order.number,
-      field: event.field,
-      from: event.fromValue,
-      to: event.toValue,
-    },
+    data,
   });
 }

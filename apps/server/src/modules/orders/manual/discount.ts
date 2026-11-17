@@ -13,6 +13,7 @@ import { eq } from '@mia/db';
 import { orders } from '@mia/db/schema';
 
 import type { SessionUser } from '../../../shared/http/context.ts';
+import { notFound } from '../../../shared/http/errors.ts';
 import * as contractsRepo from '../../contracts/repo.ts';
 import * as attemptRepo from '../../payments/attempt-repo.ts';
 import * as repo from '../repo.ts';
@@ -32,19 +33,23 @@ export async function setDiscount(
   input: DiscountInput,
   actor: SessionUser,
 ): Promise<AdminOrderAggregate> {
-  const order = await getById(db, orderId);
-  const contract = await contractsRepo.findLatestActiveByOrderId(db, orderId);
-  assertDiscountEditable({
-    source: order.source,
-    status: order.status,
-    contractStatus: contract?.status ?? null,
-    hasPendingAttempt: await attemptRepo.hasPending(db, orderId),
-  });
-
-  const priced = priceDiscount(order, input);
   await db.transaction(async (tx) => {
-    /* Row lock: two agents editing at once cannot both pass the checks above on stale data. */
-    await tx.select({ id: orders.id }).from(orders).where(eq(orders.id, orderId)).for('update');
+    /* Row lock FIRST, then every check on what is committed now. The customer's payment
+       (`order-links/payment.ts`) takes the same lock before it opens its attempt, so the
+       two cannot interleave: either the attempt is already there and this is a 409, or
+       this edit lands first and the payment reads the new total. */
+    await contractsRepo.lockOrder(tx, orderId);
+    const order = await tx.query.orders.findFirst({ where: eq(orders.id, orderId) });
+    if (!order) throw notFound('Order');
+    const contract = await contractsRepo.findLatestActiveByOrderId(tx, orderId);
+    assertDiscountEditable({
+      source: order.source,
+      status: order.status,
+      contractStatus: contract?.status ?? null,
+      hasPendingAttempt: await attemptRepo.hasPending(tx, orderId),
+    });
+
+    const priced = priceDiscount(order, input);
     await repo.update(tx, orderId, priced);
     await manualRepo.insertDiscountEvent(tx, {
       orderId,

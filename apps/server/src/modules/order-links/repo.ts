@@ -31,3 +31,18 @@ export async function mint(db: DatabaseWriter, link: NewOrderLink): Promise<void
     createdByAdminUserId: link.createdByAdminUserId,
   });
 }
+
+export type LinkTokenRow = typeof orderLinkTokens.$inferSelect;
+
+/** The token row for a raw token's hash, or undefined for an unknown one. */
+export async function findByHash(
+  db: DatabaseWriter,
+  hash: string,
+): Promise<LinkTokenRow | undefined> {
+  const [row] = await db
+    .select()
+    .from(orderLinkTokens)
+    .where(eq(orderLinkTokens.id, hash))
+    .limit(1);
+  return row;
+}
