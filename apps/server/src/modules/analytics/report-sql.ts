@@ -30,6 +30,8 @@ function totalsBlock(r: DayRange) {
   return sql`(SELECT json_build_object(
       'revenue', COALESCE(sum(revenue), 0)::numeric(12,2)::text,
       'itemsRevenue', COALESCE(sum(items_revenue), 0)::numeric(12,2)::text,
+      'extensionRevenue', COALESCE(sum(extension_revenue), 0)::numeric(12,2)::text,
+      'refundedTotal', COALESCE(sum(refunded_total), 0)::numeric(12,2)::text,
       'orderCount', COALESCE(sum(order_count), 0)::int,
       'units', COALESCE(sum(units), 0)::int,
       'averageOrderValue', COALESCE(round(sum(revenue) / NULLIF(sum(order_count), 0), 2), 0)::numeric(12,2)::text)

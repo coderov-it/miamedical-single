@@ -11,7 +11,7 @@ import type { Database } from '@mia/db';
 import { addMoney } from '@mia/pricing';
 
 import type { SessionUser } from '../../shared/http/context.ts';
-import { conflict, notFound } from '../../shared/http/errors.ts';
+import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 /* Read-only: the newest live contract, for the signed-before-paid gate. The
    repo depends only on the schema, so no cycle. */
 import * as contractsRepo from '../contracts/repo.ts';
@@ -26,10 +26,12 @@ import {
   explainRejection,
   nextOrderStatuses,
   nextPaymentStatuses,
+  REFUND_ONLY_PAYMENT_STATUSES,
   type OrderStatus,
   type PaymentStatus,
 } from './status.ts';
 import type {
+  AdminOrderAggregate,
   CartAggregate,
   CartListFilters,
   CartSummaryRecord,
@@ -55,9 +57,9 @@ export async function list(
     stats: {
       total: result.total,
       awaitingCount,
-      // Summed over the rows we are actually returning. The admin labels this
+      // Net of refunds, summed over the rows we are actually returning. The admin labels this
       // "this page" — a money figure must never imply more than it covers.
-      pageValue: sumMoney(result.rows.map((row) => row.total)),
+      pageValue: sumMoney(result.rows.map((row) => row.netTotal ?? row.total)),
     },
   };
 }
@@ -84,11 +86,11 @@ export async function windowStats(db: Database, windowDays: number) {
     currency: window.currency,
     orderCount: window.orderCount,
     awaitingCount,
-    revenueBasis: 'Paid and fulfilled orders only',
+    revenueBasis: 'Paid, fulfilled and partly refunded orders, net of refunds, extensions included',
   };
 }
 
-export async function getById(db: Database, id: string): Promise<OrderAggregate> {
+export async function getById(db: Database, id: string): Promise<AdminOrderAggregate> {
   const order = await repo.findById(db, id);
   if (!order) throw notFound('Order');
   return order;
@@ -98,7 +100,7 @@ export async function update(
   db: Database,
   id: string,
   input: AdminUpdateOrderInput,
-): Promise<OrderAggregate> {
+): Promise<AdminOrderAggregate> {
   const order = await getById(db, id);
 
   const patch: repo.OrderPatch = {};
@@ -137,7 +139,7 @@ async function transition(
   to: string,
   note: string | null,
   actor: SessionUser | null,
-): Promise<OrderAggregate> {
+): Promise<AdminOrderAggregate> {
   const order = await getById(db, id);
   const from = field === 'status' ? order.status : order.paymentStatus;
 
@@ -211,7 +213,7 @@ export async function moveStatus(
   to: OrderStatus,
   note: string | null,
   actor: SessionUser | null,
-): Promise<OrderAggregate> {
+): Promise<AdminOrderAggregate> {
   if (to === 'paid') await assertContractSigned(db, id);
 
   let order = await transition(db, id, 'status', to, note, actor);
@@ -230,7 +232,12 @@ export function movePaymentStatus(
   to: PaymentStatus,
   note: string | null,
   actor: SessionUser | null,
-): Promise<OrderAggregate> {
+): Promise<AdminOrderAggregate> {
+  /* A refund with no amount is exactly the data that cannot be lost. */
+  if (REFUND_ONLY_PAYMENT_STATUSES.includes(to)) {
+    const message = 'Record a refund with its amount instead: POST /api/admin/orders/:id/refunds.';
+    throw httpError(422, message, 'validation_failed', { fields: { to: message } });
+  }
   return transition(db, id, 'paymentStatus', to, note, actor);
 }
 

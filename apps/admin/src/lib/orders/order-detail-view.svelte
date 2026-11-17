@@ -26,6 +26,8 @@
   import MoneyInput from '~/lib/components/money-input.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
   import OrderExtensionsCard from '~/lib/orders/order-extensions-card.svelte';
+  import OrderMoneyCard from '~/lib/orders/order-money-card.svelte';
+  import OrderRefundAllConfirm from '~/lib/orders/order-refund-all-confirm.svelte';
   import OrderItemsCard from '~/lib/orders/order-items-card.svelte';
   import OrderTimelineCard from '~/lib/orders/order-timeline-card.svelte';
   import { cn } from '$lib/utils.js';
@@ -94,6 +96,17 @@
   }
 
   const notePayload = () => (note.trim() ? { note: note.trim() } : {});
+
+  let confirmRefundAll = $state(false);
+
+  /** `refunded` moves money, so it asks first; every other move goes straight through. */
+  function requestMove(to: OrderStatus) {
+    if (to === 'refunded') {
+      confirmRefundAll = true;
+      return;
+    }
+    moveStatus(to);
+  }
 
   function moveStatus(to: OrderStatus) {
     void run(
@@ -586,6 +599,8 @@
         </div>
       </Card.Root>
 
+      <OrderMoneyCard {order} {onUpdated} />
+
       {#if hasRental}
         <OrderExtensionsCard
           orderId={order.id}
@@ -653,7 +668,7 @@
                 variant="outline"
                 size="sm"
                 disabled={!canUpdate || busy !== null}
-                onclick={() => moveStatus(to as OrderStatus)}
+                onclick={() => requestMove(to as OrderStatus)}
               >
                 {#if busy === `status:${to}`}<Spinner />{/if}
                 {t('orders.actionsMarkAs', { status: orderStatusMeta(to as OrderStatus).label })}
@@ -664,6 +679,13 @@
       </div>
     </Card.Root>
   </div>
+
+  <OrderRefundAllConfirm
+    {order}
+    open={confirmRefundAll}
+    onClose={() => (confirmRefundAll = false)}
+    onConfirm={() => moveStatus('refunded')}
+  />
 
   <p class="text-xs text-muted-foreground">
     {t('orders.detailUpdated', {

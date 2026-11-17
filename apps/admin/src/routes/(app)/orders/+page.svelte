@@ -251,7 +251,7 @@
             <Table.Head>{t('orders.colContract')}</Table.Head>
             <Table.Head class="text-right">{t('orders.colItems')}</Table.Head>
             <Table.Head>{t('orders.colPlaced')}</Table.Head>
-            <Table.Head class="text-right">{t('orders.colTotal')}</Table.Head>
+            <Table.Head class="text-right">{t('orders.colNet')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -285,8 +285,18 @@
               <Table.Cell class="text-muted-foreground">
                 <span title={formatDate(order.placedAt)}>{relativeTime(order.placedAt)}</span>
               </Table.Cell>
-              <Table.Cell class="text-right font-medium tabular-nums">
-                {formatMoney(order.total, order.currency)}
+              <Table.Cell class="text-right tabular-nums">
+                <span class="font-medium">{formatMoney(order.netTotal, order.currency)}</span>
+                {#if Number(order.refundedTotal) > 0 || Number(order.extensionTotal) > 0}
+                  <span
+                    class={[
+                      'block text-xs text-muted-foreground',
+                      Number(order.netTotal) < Number(order.total) && 'line-through',
+                    ]}
+                  >
+                    {formatMoney(order.total, order.currency)}
+                  </span>
+                {/if}
               </Table.Cell>
               <Table.Cell>
                 <!-- A real link out of a row that is otherwise a drawer trigger,

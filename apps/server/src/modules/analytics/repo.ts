@@ -3,6 +3,8 @@
 export type Totals = {
   revenue: string;
   itemsRevenue: string;
+  extensionRevenue: string;
+  refundedTotal: string;
   orderCount: number;
   units: number;
   averageOrderValue: string;

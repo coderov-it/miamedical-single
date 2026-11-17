@@ -28,11 +28,23 @@
     value: string;
     change: number | null;
     info?: boolean;
+    note?: string;
   }
 
   const tiles = $derived.by<Tile[] | undefined>(() => {
     if (!data) return undefined;
     const { totals: now, previousTotals: before, currency } = data;
+    const extensions = Number(now.extensionRevenue);
+    const refunds = Number(now.refundedTotal);
+    const parts: string[] = [];
+    if (extensions > 0) {
+      parts.push(
+        t('analytics.noteExtensions', { amount: formatMoney(now.extensionRevenue, currency) }),
+      );
+    }
+    if (refunds > 0) {
+      parts.push(t('analytics.noteRefunds', { amount: formatMoney(now.refundedTotal, currency) }));
+    }
     return [
       {
         label: t('analytics.tileRevenue'),
@@ -40,6 +52,7 @@
         value: formatMoney(now.revenue, currency),
         change: percentChange(Number(now.revenue), Number(before.revenue)),
         info: true,
+        ...(parts.length > 0 ? { note: parts.join(', ') } : {}),
       },
       {
         label: t('analytics.tileOrders'),
@@ -85,6 +98,9 @@
           <p class="text-2xl leading-tight font-semibold tracking-tight tabular-nums">
             {tile.value}
           </p>
+          {#if tile.note}
+            <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">{tile.note}</p>
+          {/if}
           <p class="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
             {#if tile.change === null}
               <span>{EM_DASH}</span>

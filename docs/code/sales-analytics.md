@@ -4,31 +4,45 @@
 (`packages/db/src/schema/analytics.ts`). Endpoint: `GET /api/admin/analytics/sales`
 (`order:read`).
 
-## Rollup: one order, one day
+## Rollup: what an order is finally worth, on its placed day
+
+Money rules (extension, refund, `net_total`): [order-money.md](order-money.md).
+Counted: status `paid`, `fulfilled` or `refunded` with `net_total > 0`.
 
 ```text
-order A  paid       placed 2026-11-16 23:30 UTC   total 35.00 (shipping 5.00)   1 × rollator
-order B  fulfilled  placed 2026-11-17 08:00 UTC   total 30.00                   1 × SLIM
-order C  pending    placed 2026-11-17 09:00 UTC   not counted
+order T  paid, placed 2026-03-10 (Rome)     total 100.00 = A rental 60.00 + B sale 40.00 (×2)
+  + paid extension, operator typed 50.00    line_amounts A 20.00, B 10.00  (sum 30.00)
+  + refund 33.34
+net_total = 100 + 50 - 33.34 = 116.66          -> day 2026-03-10, however late the extension/refund came
 
-Rome day:  A → 2026-11-17 (23:30 UTC is 00:30 in Rome)   B → 2026-11-17
+sales_daily 03-10:  revenue 116.66, extension_revenue 50.00, refunded_total 33.34,
+                    items_revenue 100.00, units 3 (an extension sells no unit)
 
-sales_daily  2026-11-17 : order_count 2, revenue 65.00 (SUM orders.total),
-                          items_revenue 60.00 (SUM order_items.total), units 2
-product_sales_daily      : (11-17, rollator, rental, 1 order, 1 unit, 30.00)
-                           (11-17, SLIM,     rental, 1 order, 1 unit, 30.00)
+per line:  line_gross  A = 60 + 20 + 20 (the 20.00 no line explains goes on the first rental line) = 100
+                       B = 40 + 10                                                                 =  50
+           factor = net_total / (total + extension_total) = 116.66 / 150
+           A = round(100 × factor, 2) = 77.77      B = round(50 × factor, 2) = 38.89
+           Σ = 116.66 = round(goods_net, 2); any rounding remainder goes on the line with the
+           largest gross (tie: lowest item id)
 ```
 
 Pricing mode of a line is `order_items.configuration->>'pricingMode'`, else the
-product's `pricing_mode`, else `fixed` (deleted product, no snapshot). A deleted
-product keeps its rows, grouped by the title snapshot (`product_id` null).
+product's `pricing_mode`, else `fixed`. A deleted product keeps its rows,
+grouped by the title snapshot (`product_id` null). `MIA-2026-001013` is `pending`
+with a paid extension: not counted.
+
+Every rebuild ends with a reconciliation inside the same transaction: (a)
+`sales_daily.revenue` = SUM(`net_total`) of counted orders, (b) the day's product
+revenue = Σ round(goods_net, 2). A mismatch is logged as
+`[analytics] reconciliation mismatch`; the data is kept.
 
 ## Refresh
 
 ```text
 boot            rebuild every day with an order or already in the rollups (deleted orders empty their day)
 every 60 s      days of orders with updated_at > lastRunStart - 5 min  -> rebuild
-A paid -> refunded at 10:00   A.updated_at = 10:00 -> 17 Nov rebuilt, A no longer counted
+A fully refunded at 10:00     A.updated_at = 10:00 -> 17 Nov rebuilt, net_total 0, A no longer counted
+an extension is paid / a partial refund is booked -> the trigger bumps updated_at, same day rebuilt
 ```
 
 `rebuildDays` runs in one transaction behind `pg_advisory_xact_lock`, so several
@@ -51,7 +65,7 @@ no query  to = today in Rome, from = to - 29 days, bucket = day
 ```
 
 Rejected with 422 `validation_failed`: `from` after `to`, an impossible date
-(`2026-02-30`), a span over 3660 days. Money is `numeric(12,2)` text, never a float.
+(`2026-02-30`), a span over 3660 days. Totals also carry `extensionRevenue` and `refundedTotal` (both already inside `revenue`). Money is `numeric(12,2)` text, never a float.
 `averageOrderValue` = revenue / orderCount to 2 dp, `0.00` with no orders. Top
 products show the current Italian title while the product exists. Responses are
 cached 60 s per `(from, to, bucket)`.

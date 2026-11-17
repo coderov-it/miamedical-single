@@ -12,26 +12,28 @@ import { pricingMode } from './enums.ts';
  * cannot be summed from per-product rows without counting a two-line order
  * twice.
  *
- * Only orders with status `paid` or `fulfilled` are counted, the same basis as
- * the dashboard's revenue tile. No foreign keys: a rollup must never block a
+ * Counted orders: status `paid`, `fulfilled` or `refunded` with `net_total > 0`,
+ * each on the Rome day it was PLACED — extensions and refunds land on that day
+ * too. Rules and worked example: docs/code/order-money.md. No foreign keys: a rollup must never block a
  * product delete, and the next refresh of that day corrects it anyway.
  */
 
 /** One row per Europe/Rome day that had at least one counted order. */
-export const salesDaily = pgTable(
-  'sales_daily',
-  {
-    day: date({ mode: 'string' }).primaryKey(),
-    orderCount: integer().notNull(),
-    /** `SUM(orders.total)` — includes shipping, net of discount. */
-    revenue: numeric({ precision: 12, scale: 2 }).notNull(),
-    /** `SUM(order_items.total)` — the goods only. */
-    itemsRevenue: numeric({ precision: 12, scale: 2 }).notNull(),
-    shippingTotal: numeric({ precision: 12, scale: 2 }).notNull(),
-    discountTotal: numeric({ precision: 12, scale: 2 }).notNull(),
-    units: integer().notNull(),
-  },
-);
+export const salesDaily = pgTable('sales_daily', {
+  day: date({ mode: 'string' }).primaryKey(),
+  orderCount: integer().notNull(),
+  /** `SUM(orders.net_total)` — placement + paid extensions − refunds. */
+  revenue: numeric({ precision: 12, scale: 2 }).notNull(),
+  /** `SUM(orders.extension_total)` — already inside `revenue`. */
+  extensionRevenue: numeric({ precision: 12, scale: 2 }).notNull(),
+  /** `SUM(orders.refunded_total)` — already taken out of `revenue`. */
+  refundedTotal: numeric({ precision: 12, scale: 2 }).notNull(),
+  /** `SUM(order_items.total)` — the goods only. */
+  itemsRevenue: numeric({ precision: 12, scale: 2 }).notNull(),
+  shippingTotal: numeric({ precision: 12, scale: 2 }).notNull(),
+  discountTotal: numeric({ precision: 12, scale: 2 }).notNull(),
+  units: integer().notNull(),
+});
 
 /**
  * One row per day × product × pricing mode. `productId` is null once a product

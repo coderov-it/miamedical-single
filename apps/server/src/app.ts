@@ -26,6 +26,7 @@ import { mediaRoutes } from './modules/media/routes.ts';
 import { notificationAdminRoutes } from './modules/notifications/admin-routes.ts';
 import { notificationCustomerRoutes } from './modules/notifications/customer-routes.ts';
 import { notificationPreferenceRoutes, pushDeviceRoutes } from './modules/push/routes.ts';
+import { orderRefundAdminRoutes } from './modules/order-refunds/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import {
   paymentCustomerRoutes,
@@ -116,6 +117,7 @@ const routes = app
   .route('/api/admin/terms', termsAdminRoutes)
   .route('/api/admin/legal', legalAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
+  .route('/api/admin/orders', orderRefundAdminRoutes)
   .route('/api/admin/analytics', analyticsAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
