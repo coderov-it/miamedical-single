@@ -11,9 +11,7 @@
 <script lang="ts">
   import { P, permissionByCode } from '@mia/permissions';
   import CheckIcon from '@lucide/svelte/icons/check';
-  import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
   import LockIcon from '@lucide/svelte/icons/lock';
-  import type { InferResponseType } from 'hono/client';
   import { toast } from 'svelte-sonner';
 
   import { Badge } from '$lib/components/ui/badge/index.js';
@@ -21,33 +19,26 @@
   import * as Card from '$lib/components/ui/card/index.js';
   import { Spinner } from '$lib/components/ui/spinner/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
-  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
   import { api } from '~/lib/api';
-  import MoneyInput from '~/lib/components/money-input.svelte';
   import StatusBadge from '~/lib/components/status-badge.svelte';
+  import OrderAddressCards from '~/lib/orders/order-address-cards.svelte';
+  import OrderContractCard from '~/lib/orders/order-contract-card.svelte';
+  import OrderCustomerCard from '~/lib/orders/order-customer-card.svelte';
+  import OrderDeliveryCard from '~/lib/orders/order-delivery-card.svelte';
   import OrderExtensionsCard from '~/lib/orders/order-extensions-card.svelte';
+  import OrderManualCard from '~/lib/orders/order-manual-card.svelte';
   import OrderMoneyCard from '~/lib/orders/order-money-card.svelte';
   import OrderRefundAllConfirm from '~/lib/orders/order-refund-all-confirm.svelte';
   import OrderItemsCard from '~/lib/orders/order-items-card.svelte';
   import OrderTimelineCard from '~/lib/orders/order-timeline-card.svelte';
   import { cn } from '$lib/utils.js';
-  import { contractStatusMeta, variantLabel } from '~/lib/contracts/status';
-  import {
-    EM_DASH,
-    formatDate,
-    formatDateTime,
-    formatMoney,
-    orDash,
-    relativeTime,
-  } from '~/lib/format';
+  import { EM_DASH, formatDateTime, formatMoney } from '~/lib/format';
+  import { STAGE_LABELS } from '~/lib/orders/manual-order';
   import { FULFILMENT_STEPS, orderStatusMeta, type OrderStatus } from '~/lib/orders/status';
   import { errorMessage, unwrap } from '~/lib/request';
-  import type { OrderAddress, OrderDetail } from '~/lib/orders/types';
-  import { Resource } from '~/lib/resource.svelte';
-  import { routes } from '~/lib/routes';
+  import type { OrderDetail } from '~/lib/orders/types';
   import { session } from '~/lib/session.svelte';
-  import { type MessageKey, t } from '~/lib/ui-text';
-  import BusyButton from '~/lib/components/busy-button.svelte';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     order: OrderDetail;
@@ -97,7 +88,29 @@
 
   const notePayload = () => (note.trim() ? { note: note.trim() } : {});
 
+  /** Whether anything on this order is rented — the case where extensions apply. */
+  const hasRental = $derived(
+    order.items.some((item) => item.configuration?.pricingMode === 'rental'),
+  );
+  let contractCard = $state<ReturnType<typeof OrderContractCard>>();
   let confirmRefundAll = $state(false);
+
+  /** The delivery card hands over the agreed fee; the request runs here with the rest. */
+  function saveShipping(amount: string) {
+    void run(
+      'shipping',
+      () =>
+        api.api.admin.orders[':id'].$patch({
+          param: { id: order.id },
+          json: { shippingTotal: amount },
+        }),
+      (updated) =>
+        t('orders.shippingSaved', {
+          number: updated.number,
+          amount: formatMoney(updated.totals.shippingTotal, updated.totals.currency),
+        }),
+    );
+  }
 
   /** `refunded` moves money, so it asks first; every other move goes straight through. */
   function requestMove(to: OrderStatus) {
@@ -124,192 +137,9 @@
     );
   }
 
-  const ADDRESS_FIELDS = [
-    'fullName',
-    'line1',
-    'line2',
-    'postalCode',
-    'city',
-    'region',
-    'country',
-    'phone',
-  ] as const satisfies ReadonlyArray<keyof OrderAddress>;
-
-  /**
-   * Most orders bill to the address they ship to, and two identical cards are a
-   * second thing to read that says nothing — they also hand the sidebar a card's
-   * worth of height the order beside it has no content to match. Matching
-   * addresses collapse to one card whose title names both; differing ones stand
-   * apart, which is the case an operator has to notice.
-   */
-  function addressCards() {
-    const shipping = order.shippingAddress;
-    const billing = order.billingAddress;
-    const same =
-      shipping !== null &&
-      billing !== null &&
-      ADDRESS_FIELDS.every((field) => shipping[field] === billing[field]);
-    if (same) return [{ title: t('orders.addressShippingBilling'), value: shipping }];
-    return [
-      { title: t('orders.addressShipping'), value: shipping },
-      { title: t('orders.addressBilling'), value: billing },
-    ].filter((entry) => entry.value !== null);
-  }
-
-  const addresses = $derived(addressCards());
-
-  /**
-   * How the order changes hands, in one line an operator can act on.
-   *
-   * The method comes back as its wire id, so it is titled here rather than shown
-   * raw — and an id this build has never heard of falls through to itself instead
-   * of to a blank, which is what makes an older stored order still readable.
-   */
-  const DELIVERY_LABELS: Record<string, MessageKey> = {
-    homeDelivery: 'orders.deliveryHome',
-    storePickup: 'orders.deliveryPickup',
-  };
-
-  function deliveryLabel(method: string): string {
-    const key = DELIVERY_LABELS[method];
-    if (!key) return method;
-    return t(key);
-  }
-
-  const delivery = $derived(order.delivery);
-  const deliveryMethod = $derived(delivery ? deliveryLabel(delivery.method) : null);
-  /** The one detail the chosen method carries. */
-  const deliveryDetail = $derived(
-    [delivery?.deliveryAddress, delivery?.deliveryPostalCode, delivery?.pickupCity]
-      .filter(Boolean)
-      .join(' · '),
-  );
-
-  /**
-   * Where the rental is collected from at the end.
-   *
-   * Only rendered when it is NOT the delivery address, because that is the case
-   * that changes somebody's route. Saying "same address" on every order would put
-   * a line on the card that never means anything.
-   */
-  const returnAddress = $derived(
-    delivery && delivery.returnToSameAddress === false ? delivery.returnAddress : null,
-  );
-
-  /**
-   * Whether this order still owes a delivery figure.
-   *
-   * Nothing prices delivery — every order is placed at 0,00 € and the storefront
-   * has told the customer we will contact them about it — so a home delivery
-   * sitting at zero is not free, it is UNAGREED, and it is the one thing on this
-   * page an operator has to go and do. A collection owes nothing and says nothing.
-   */
-  const deliveryOwed = $derived(
-    delivery?.method === 'homeDelivery' && Number(order.totals.shippingTotal) === 0,
-  );
-
-  /**
-   * The amount an operator types after the phone call.
-   *
-   * A WRITABLE derived: the field owns it while it is being typed into, and any
-   * fresh order arriving from the server resets it. That is what stops a status
-   * move landing underneath this card from leaving a stale figure sitting in it.
-   */
-  let shippingDraft = $derived(order.totals.shippingTotal);
-
-  function saveShipping() {
-    void run(
-      'shipping',
-      () =>
-        api.api.admin.orders[':id'].$patch({
-          param: { id: order.id },
-          json: { shippingTotal: shippingDraft },
-        }),
-      (updated) =>
-        t('orders.shippingSaved', {
-          number: updated.number,
-          amount: formatMoney(updated.totals.shippingTotal, updated.totals.currency),
-        }),
-    );
-  }
-
-  const CUSTOMER_TYPE_LABELS: Record<string, MessageKey> = {
-    private: 'orders.customerPrivate',
-    company: 'orders.customerCompany',
-    tourist: 'orders.customerTourist',
-  };
-
-  function customerTypeLabel(type: string): string {
-    const key = CUSTOMER_TYPE_LABELS[type];
-    if (!key) return type;
-    return t(key);
-  }
-
-  /**
-   * Checkout takes whatever email it is given, so matching an existing account is
-   * a claim until the customer confirms it from their own session. These labels
-   * exist so the panel never presents an unconfirmed match as an identity.
-   */
-  const CUSTOMER_LINK_LABELS: Record<string, MessageKey> = {
-    unverified: 'orders.linkUnverified',
-    confirmed: 'orders.linkConfirmed',
-    rejected: 'orders.linkRejected',
-  };
-
-  /** Which sentence describes how this order relates to a customer account. */
-  function customerLinkLabel(): string {
-    if (order.customerAccountId) {
-      const key = CUSTOMER_LINK_LABELS[order.customerLinkStatus];
-      return key ? t(key) : order.customerLinkStatus;
-    }
-    if (order.customerLinkStatus === 'rejected') return t('orders.linkRejected');
-    return t('orders.customerGuest');
-  }
-
-  type ContractSummaries = InferResponseType<
-    (typeof api.api.admin.contracts)['by-order'][':orderId']['$get'],
-    200
-  >['data'];
-
-  const orderContracts = new Resource(
-    () => order.id,
-    async (id, signal) =>
-      unwrap<ContractSummaries>(
-        await api.api.admin.contracts['by-order'][':orderId'].$get(
-          { param: { orderId: id } },
-          { init: { signal } },
-        ),
-      ),
-    { enabled: () => session.can(P.CONTRACT_READ) },
-  );
-
-  /** Whether anything on this order is rented — the case where a contract is owed. */
-  const hasRental = $derived(
-    order.items.some((item) => item.configuration?.pricingMode === 'rental'),
-  );
-  /** Newest first from the server; the first non-voided one is the live one. */
-  const liveContract = $derived(
-    orderContracts.data?.find((contract) => contract.status !== 'voided') ?? null,
-  );
-
-  let generating = $state(false);
-
-  async function generateContract() {
-    generating = true;
-    try {
-      await unwrap(await api.api.admin.contracts.generate.$post({ json: { orderId: order.id } }));
-      orderContracts.refresh();
-      toast.success(t('orders.contractGenerated'));
-    } catch (err) {
-      toast.error(errorMessage(err));
-    } finally {
-      generating = false;
-    }
-  }
-
   /** An extension wrote to the timeline and may have issued a contract. */
   async function reloadAfterExtension() {
-    orderContracts.refresh();
+    contractCard?.refresh();
     try {
       const res = await api.api.admin.orders[':id'].$get({ param: { id: order.id } });
       onUpdated(await unwrap<OrderDetail>(res));
@@ -330,6 +160,11 @@
       <h2 class="font-mono text-lg font-semibold tracking-tight">{order.number}</h2>
       <StatusBadge status={order.status} dot />
       <StatusBadge status={order.paymentStatus} kind="payment" dot />
+      {#if order.manualStage}
+        <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
+          {t(STAGE_LABELS[order.manualStage])}
+        </Badge>
+      {/if}
       <span class="ml-auto text-sm text-muted-foreground">
         {t('orders.detailPlaced', { date: formatDateTime(order.placedAt) })}
       </span>
@@ -406,198 +241,17 @@
     </div>
 
     <div class="space-y-5 @4xl:col-start-3 @4xl:row-span-2 @4xl:row-start-1">
-      <Card.Root class="gap-0 py-0">
-        <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.customerTitle')}</div>
-        <div class="space-y-1 p-4 text-sm">
-          <p>{order.email}</p>
-          {#if order.phone}
-            <!-- A tel: link, because the whole flow ends in a phone call. -->
-            <p><a class="hover:underline" href={`tel:${order.phone}`}>{order.phone}</a></p>
-          {/if}
-          {#if order.customerType}
-            <p class="text-muted-foreground">
-              {customerTypeLabel(order.customerType)}
-            </p>
-          {/if}
-          {#if order.partitaIva}
-            <p class="text-muted-foreground">
-              Partita IVA <span class="font-mono">{order.partitaIva}</span>
-            </p>
-          {/if}
-          {#if order.codiceFiscale}
-            <p class="text-muted-foreground">
-              Codice fiscale <span class="font-mono">{order.codiceFiscale}</span>
-            </p>
-          {/if}
-          <!-- An order is attached to an account on an email match alone, so the
-               status beside it is what says whether anyone has vouched for that
-               match. Never show "Registered account" on its own: unconfirmed and
-               confirmed look identical, and only one of them is evidence. -->
-          <p class="text-muted-foreground">
-            {customerLinkLabel()}
-          </p>
-          <p class="text-muted-foreground">
-            {t('orders.detailPlaced', { date: relativeTime(order.placedAt) })}
-          </p>
-        </div>
-      </Card.Root>
+      <OrderCustomerCard {order} />
 
-      {#if delivery}
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.deliveryTitle')}</div>
-          <div class="space-y-1 p-4 text-sm">
-            <p class="font-medium">{deliveryMethod}</p>
-            {#if deliveryDetail}
-              <p class="text-muted-foreground">{deliveryDetail}</p>
-            {/if}
-            <!-- An unagreed delivery records 0,00 €, so the amount alone would
-                 read as free. The line beside it is what says a figure is owed. -->
-            <p class="flex items-center gap-2 tabular-nums">
-              <span class="text-muted-foreground">
-                {formatMoney(order.totals.shippingTotal, order.totals.currency)}
-              </span>
-              {#if deliveryOwed}
-                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  {t('orders.deliveryToAgree')}
-                </span>
-              {/if}
-            </p>
-
-            <!-- Where the agreed amount lands. The only way a delivery fee ever
-                 reaches an order, which is why it sits on the card the operator is
-                 already reading rather than behind an edit screen. Saving
-                 re-derives the order total on the server. -->
-            {#if canUpdate}
-              <div class="flex items-end gap-2 pt-2">
-                <MoneyInput
-                  label={t('orders.deliveryFee')}
-                  bind:value={shippingDraft}
-                  suffix={order.totals.currency}
-                  disabled={busy !== null}
-                  dense
-                />
-                <BusyButton
-                  size="sm"
-                  variant="outline"
-                  class="h-8"
-                  busy={busy === 'shipping'}
-                  busyLabel={t('common.saving')}
-                  disabled={busy !== null || shippingDraft === order.totals.shippingTotal}
-                  onclick={saveShipping}
-                >
-                  {t('common.save')}
-                </BusyButton>
-              </div>
-            {/if}
-            <!-- A different collection address is a second stop on somebody's day,
-                 so it is called out rather than folded into the detail line. -->
-            {#if returnAddress}
-              <p class="pt-1">
-                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  {t('orders.collectFrom')}
-                </span>
-                <span class="text-muted-foreground">{returnAddress}</span>
-              </p>
-            {/if}
-          </div>
-        </Card.Root>
+      {#if order.delivery}
+        <OrderDeliveryCard {order} {busy} onSave={saveShipping} />
       {/if}
 
-      <!-- Contract. Renewals stack up, so this card reads as a history: the
-           live contract on top, every earlier one dated beneath it. -->
-      <Card.Root class="gap-0 py-0">
-        <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.contractTitle')}</div>
-        <div class="p-4 text-sm">
-          {#if orderContracts.loading && !orderContracts.data}
-            <div class="space-y-2">
-              <Skeleton class="h-5 w-32 rounded-full" />
-              <Skeleton class="h-4 w-48" />
-            </div>
-          {:else if liveContract}
-            {@const cMeta = contractStatusMeta(liveContract.status)}
-            <div class="space-y-2">
-              <div class="flex items-center gap-2">
-                <Badge variant="outline" class={cMeta.tone}>
-                  <span class={cn('size-1.5 rounded-full', cMeta.dot)}></span>
-                  {cMeta.label}
-                </Badge>
-                <span class="font-mono text-xs text-muted-foreground">{liveContract.number}</span>
-              </div>
-              <p class="text-muted-foreground">{variantLabel(liveContract.variant)}</p>
-              {#if liveContract.status !== 'signed'}
-                <!-- The one fact an operator must not miss: no signature, no
-                     money and no goods. It gates "Mark paid" on the server. -->
-                <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  {t('orders.contractBlocked')}
-                </p>
-              {:else}
-                <p class="text-xs text-muted-foreground">
-                  {t('orders.contractSignedOn', {
-                    date: liveContract.signedAt ? formatDateTime(liveContract.signedAt) : '',
-                  })}
-                </p>
-              {/if}
-              <Button
-                href={routes.contractDetail(liveContract.id)}
-                variant="outline"
-                size="sm"
-                class="w-full"
-              >
-                <FileSignatureIcon class="size-4" />
-                {t('orders.contractView')}
-              </Button>
+      <OrderContractCard {order} bind:this={contractCard} />
 
-              {#if (orderContracts.data?.length ?? 0) > 1}
-                <div class="space-y-1 border-t pt-2">
-                  <p class="text-xs font-medium text-muted-foreground">
-                    {t('orders.contractHistory')}
-                  </p>
-                  {#each orderContracts.data ?? [] as history (history.id)}
-                    {#if history.id !== liveContract.id}
-                      {@const hMeta = contractStatusMeta(history.status)}
-                      <p class="flex items-center gap-2 text-xs">
-                        <a
-                          href={routes.contractDetail(history.id)}
-                          class="font-mono hover:underline"
-                        >
-                          {history.number}
-                        </a>
-                        <span class={hMeta.tone}>{hMeta.label}</span>
-                        <span class="ml-auto text-muted-foreground">
-                          {formatDate(history.createdAt)}
-                        </span>
-                      </p>
-                    {/if}
-                  {/each}
-                </div>
-              {/if}
-            </div>
-          {:else if !hasRental}
-            <p class="text-muted-foreground">
-              {t('orders.contractNoRental')}
-            </p>
-          {:else}
-            <div class="space-y-2">
-              <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                {t('orders.contractNoneYet')}
-              </p>
-              {#if session.can(P.CONTRACT_CREATE)}
-                <BusyButton
-                  variant="outline"
-                  size="sm"
-                  class="w-full"
-                  busy={generating}
-                  busyLabel={t('orders.contractGenerate')}
-                  onclick={generateContract}
-                >
-                  <FileSignatureIcon class="size-4" />
-                  {t('orders.contractGenerate')}
-                </BusyButton>
-              {/if}
-            </div>
-          {/if}
-        </div>
-      </Card.Root>
+      {#if order.source === 'manual'}
+        <OrderManualCard {order} {onUpdated} />
+      {/if}
 
       <OrderMoneyCard {order} {onUpdated} />
 
@@ -609,30 +263,7 @@
         />
       {/if}
 
-      {#each addresses as entry (entry.title)}
-        {@const address = entry.value}
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">{entry.title}</div>
-          <address class="space-y-0.5 p-4 text-sm not-italic">
-            <p>{orDash(address?.fullName)}</p>
-            <p class="text-muted-foreground">{orDash(address?.line1)}</p>
-            {#if address?.line2}<p class="text-muted-foreground">{address.line2}</p>{/if}
-            <p class="text-muted-foreground">
-              {orDash(address?.postalCode)}
-              {orDash(address?.city)}{address?.region ? ` (${address.region})` : ''}
-            </p>
-            <p class="text-muted-foreground">{orDash(address?.country)}</p>
-            {#if address?.phone}<p class="text-muted-foreground">{address.phone}</p>{/if}
-          </address>
-        </Card.Root>
-      {/each}
-
-      {#if order.notes}
-        <Card.Root class="gap-0 py-0">
-          <div class="border-b px-4 py-2.5 text-sm font-medium">{t('orders.notesTitle')}</div>
-          <p class="p-4 text-sm whitespace-pre-wrap">{order.notes}</p>
-        </Card.Root>
-      {/if}
+      <OrderAddressCards {order} />
     </div>
 
     <!-- Actions last in the reading order, and at width the card that fills

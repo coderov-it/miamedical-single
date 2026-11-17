@@ -1,0 +1,141 @@
+---
+/**
+ * The contract, read in a dialog and signed on the page. A lighter cousin of the checkout's
+ * `CheckoutContract.astro`: no stepper, no "cancel the request" (the order already exists),
+ * and the contract is built from the order by the server (`POST /api/order-links/contract-preview`),
+ * so what is read is what `sign` stores. Behaviour: `scripts/complete-order/contract.ts`.
+ *
+ * Three panels, one visible at a time: waiting for details, the signing form, and signed.
+ * The sign button is never disabled: a click with something missing marks it where it is.
+ */
+import SignatureDialog from '~/components/contract/SignatureDialog.astro';
+import { CTA } from '~/components/checkout/styles';
+import LoadingState from '~/components/primitives/LoadingState.svelte';
+import { ANNOUNCE, FIELD_ERROR } from '~/components/account/fields';
+import { t } from '~/lib/labels';
+
+const SMALL_BUTTON =
+  "relative min-h-0 min-w-0 cursor-pointer rounded-full border border-hair bg-white px-4 py-1.75 text-[14px] font-semibold text-ink after:absolute after:top-1/2 after:left-1/2 after:size-full after:min-h-12 after:min-w-12 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:border-accent hover:text-accent";
+const BOX_BUTTON =
+  'text-ink-2 flex min-h-0 min-w-0 cursor-pointer items-center gap-1.5 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium shadow-sm hover:bg-white hover:text-accent';
+const DIALOG =
+  'border-hair m-auto w-[min(100%-2rem,52rem)] rounded-[14px] border bg-white p-0 text-ink shadow-xl backdrop:bg-black/45';
+---
+
+<p class="text-ink-2 m-0 text-[15px]" data-co-contract-panel="wait" hidden>
+  {t('completeOrder.contract.needDetails')}
+</p>
+
+<div class="flex flex-col gap-4" data-co-contract-panel="form" hidden>
+  <div class="border-hair flex flex-wrap items-center gap-3.5 rounded-xl border px-4 py-3.5">
+    <strong class="min-w-0 flex-[1_1_11rem] text-[15px]" data-co-contract-title>
+      {t('checkoutContract.document')}
+    </strong>
+    <span class="text-danger text-[13px]" role="status" data-co-contract-failed hidden>
+      {t('checkoutContract.loadFailed')}
+    </span>
+    <button class={SMALL_BUTTON} type="button" data-co-contract-view hidden>
+      {t('checkoutContract.view')}
+    </button>
+    <button class={SMALL_BUTTON} type="button" data-co-contract-retry hidden>
+      {t('retry')}
+    </button>
+  </div>
+
+  <div class="border-hair bg-tint rounded-xl border-2 border-dashed" data-co-contract-loading>
+    <LoadingState label={t('checkoutContract.preparing')} />
+  </div>
+
+  <div class="flex flex-col gap-4" data-co-sign-box hidden>
+    <p class="text-ink-2 m-0 text-[14px] font-medium" role="status" data-co-contract-changed hidden>
+      {t('completeOrder.contract.changed')}
+    </p>
+    <div class="flex flex-col gap-1.5" data-gate="contractSignature">
+      <div class="relative">
+        <canvas
+          class="border-hair bg-tint aria-invalid:border-danger block h-48 w-full cursor-crosshair touch-none rounded-xl border-2 border-dashed outline-none focus-visible:border-accent"
+          tabindex="0"
+          aria-label={t('contract.signatureHint')}
+          data-signature-canvas
+        ></canvas>
+        <span
+          class="text-ink-2 pointer-events-none absolute inset-0 grid place-items-center text-[17px] font-semibold opacity-60"
+          aria-hidden="true"
+          data-signature-placeholder
+        >
+          {t('checkoutContract.signHere')}
+        </span>
+        <span class="absolute top-2 right-2 flex gap-1.5">
+          <button class={BOX_BUTTON} type="button" data-signature-enlarge>
+            {t('checkoutContract.enlarge')}
+          </button>
+          <button class={BOX_BUTTON} type="button" data-signature-clear>
+            {t('contract.clear')}
+          </button>
+        </span>
+      </div>
+      <p class={FIELD_ERROR} data-field-error="contractSignature" hidden>
+        {t('contract.errorSignature')}
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-1.5" data-gate="contractConsent">
+      <label class="flex cursor-pointer items-start gap-3 text-[14.5px]">
+        <input
+          class="mt-0.5 size-4.5 min-h-0 min-w-0 flex-none cursor-pointer accent-accent"
+          type="checkbox"
+          name="contract-consent"
+          data-contract-consent
+        />
+        <span class="text-ink-2">{t('contract.consent')}</span>
+      </label>
+      <p class={FIELD_ERROR} data-field-error="contractConsent" hidden>
+        {t('contract.errorConsent')}
+      </p>
+    </div>
+
+    <button class={CTA} type="button" data-co-sign>
+      {t('checkoutContract.submit')}
+    </button>
+    <p
+      class={ANNOUNCE}
+      role="status"
+      aria-live="polite"
+      data-co-announce="contract"
+      data-message-one={t('errorCountOne')}
+      data-message-many={t('errorCountMany')}
+    ></p>
+  </div>
+
+  <p
+    class="bg-danger-tint text-danger m-0 rounded-xl px-4 py-3 text-[14.5px]"
+    role="alert"
+    data-co-contract-error
+    hidden
+  ></p>
+</div>
+
+<div class="flex flex-col gap-3" data-co-contract-panel="signed" hidden>
+  <p class="text-ink m-0 text-[15px] font-medium" role="status">
+    {t('completeOrder.contract.signed')}
+  </p>
+  <button class={`${SMALL_BUTTON} self-start`} type="button" data-co-contract-view-signed>
+    {t('checkoutContract.view')}
+  </button>
+</div>
+
+<dialog class={DIALOG} aria-labelledby="co-viewer-title" data-co-viewer>
+  <div class="flex max-h-[85vh] flex-col">
+    <header class="border-hair flex items-center gap-3 border-b px-5 py-3.5">
+      <h3 class="m-0 flex-1 text-[16px] font-bold" id="co-viewer-title" data-co-viewer-title>
+        {t('checkoutContract.document')}
+      </h3>
+      <button class={SMALL_BUTTON} type="button" data-co-viewer-close>
+        {t('checkoutContract.close')}
+      </button>
+    </header>
+    <div class="overflow-y-auto" data-co-viewer-body></div>
+  </div>
+</dialog>
+
+<SignatureDialog />

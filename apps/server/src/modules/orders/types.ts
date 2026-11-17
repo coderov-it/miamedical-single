@@ -39,6 +39,8 @@ export interface AdminOrderSummaryRecord extends OrderSummaryRecord {
   hasRental: boolean;
   /** The newest non-voided contract's status, or null when none exists. */
   contractStatus: string | null;
+  /** Name (else email) of the agent who created a manual order; null for online ones. */
+  createdByName: string | null;
 }
 
 export interface OrderRefundRecord {
@@ -58,6 +60,10 @@ export interface OrderAggregate extends OrderRow {
 /** The back-office read: the aggregate plus its refunds, newest first. */
 export interface AdminOrderAggregate extends OrderAggregate {
   refunds: OrderRefundRecord[];
+  /** The newest non-voided contract's status, or null when none exists. */
+  contractStatus: string | null;
+  /** Name (else email) of the agent who created a manual order; null for online ones. */
+  createdByName: string | null;
 }
 
 /**

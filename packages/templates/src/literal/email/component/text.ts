@@ -29,8 +29,12 @@ export function contactFooterText(language: EmailLanguage): string {
 }
 
 /** The text twin of `reportLink()`. */
-export function reportLinkText(props: { reportUrl: string; language: EmailLanguage }): string {
-  return `${REPORT_COPY[props.language].textLead}\n${props.reportUrl}`;
+export function reportLinkText(props: {
+  reportUrl: string;
+  language: EmailLanguage;
+  copy?: { question: string; textLead: string };
+}): string {
+  return `${(props.copy ?? REPORT_COPY[props.language]).textLead}\n${props.reportUrl}`;
 }
 
 /**

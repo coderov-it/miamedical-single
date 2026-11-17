@@ -9,7 +9,8 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "clean": "rm -rf .turbo node_modules"
+    "clean": "rm -rf .turbo node_modules",
+    "test": "node --test --experimental-strip-types 'src/**/*.test.ts'"
   },
   "devDependencies": {
     "@mia/tsconfig": "workspace:*",

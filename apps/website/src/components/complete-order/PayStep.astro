@@ -1,0 +1,17 @@
+---
+/**
+ * The payment step: one button that opens Nexi's hosted page. Never disabled: pressing it
+ * before the contract is signed shows the server's refusal here, in this card, and the
+ * button reads "Opening…" only while the request is in flight. Behaviour:
+ * `scripts/complete-order/pay.ts`.
+ */
+import { CTA } from '~/components/checkout/styles';
+---
+
+<button class={CTA} type="button" data-co-pay></button>
+<p
+  class="bg-danger-tint text-danger m-0 rounded-xl px-4 py-3 text-[14.5px]"
+  role="alert"
+  data-co-pay-error
+  hidden
+></p>

@@ -221,7 +221,7 @@ export async function findLatestActiveByOrderId(
  * query serves placement, admin generation and renewal alike; a line whose product
  * has since been deleted simply contributes nothing.
  */
-export async function orderRequiresDeposit(db: Database, orderId: string): Promise<boolean> {
+export async function orderRequiresDeposit(db: DatabaseWriter, orderId: string): Promise<boolean> {
   const rows = await db
     .select({ value: sql<boolean>`bool_or(${categories.requiresDeposit})` })
     .from(orderItems)

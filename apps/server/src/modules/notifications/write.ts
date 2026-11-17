@@ -99,9 +99,13 @@ export async function emitToAdmins<T extends AdminEventType>(
     data: NotificationPayloads[T];
     orderId?: string | null;
     dedupeKeyBase?: string | null;
+    /** An operator who caused the event and needs no notice of it (a manual order's creator). */
+    exceptAdminUserId?: string | null;
   },
 ): Promise<number> {
-  const recipients = await findAdminsWithPermission(tx, ADMIN_EVENT_PERMISSION[input.type]);
+  const recipients = (
+    await findAdminsWithPermission(tx, ADMIN_EVENT_PERMISSION[input.type])
+  ).filter((recipient) => recipient.id !== input.exceptAdminUserId);
 
   let written = 0;
   for (const recipient of recipients) {

@@ -6,7 +6,7 @@
 
 import type { Database, SQL } from '@mia/db';
 import { and, count, desc, eq, gte, ilike, inArray, lt, or, sql } from '@mia/db';
-import { orderItems, orders } from '@mia/db/schema';
+import { adminUsers, orderItems, orders } from '@mia/db/schema';
 
 import { romeDayRange } from '../../shared/rome-day.ts';
 import type { AdminOrderSummaryRecord, OrderListFilters } from './types.ts';
@@ -69,6 +69,7 @@ export async function findMany(
     db
       .select({
         order: orders,
+        createdByName: sql<string | null>`COALESCE(${adminUsers.fullName}, ${adminUsers.email})`,
         itemCount: count(orderItems.id),
         // Whether anything on the order is rented — the fact that decides if a
         // missing/unsigned contract is a problem worth flagging on the list.
@@ -84,7 +85,8 @@ export async function findMany(
       .from(page)
       .innerJoin(orders, eq(orders.id, page.id))
       .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
-      .groupBy(orders.id)
+      .leftJoin(adminUsers, eq(adminUsers.id, orders.createdByAdminUserId))
+      .groupBy(orders.id, adminUsers.id)
       .orderBy(desc(orders.placedAt), desc(orders.id)),
     db.select({ value: count() }).from(orders).where(where),
   ]);
@@ -95,6 +97,7 @@ export async function findMany(
       itemCount: row.itemCount,
       hasRental: row.hasRental,
       contractStatus: row.contractStatus,
+      createdByName: row.createdByName,
     })),
     total: totals[0]?.value ?? 0,
   };
