@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Component graph</title>
+    <style>
+      /* STYLES */
+    </style>
+  </head>
+  <body>
+    <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="layers" viewBox="0 0 24 24">
+        <path d="m12 3 10 6-10 6L2 9zM2 13l10 6 10-6M2 17l10 6 10-6" />
+      </symbol>
+      <symbol id="search-icon" viewBox="0 0 24 24">
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 5 5" />
+      </symbol>
+      <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" /></symbol>
+      <symbol id="fit" viewBox="0 0 24 24">
+        <path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6" />
+      </symbol>
+      <symbol id="code" viewBox="0 0 24 24">
+        <path d="m8 7-5 5 5 5m8-10 5 5-5 5M14 4l-4 16" />
+      </symbol>
+      <symbol id="branch" viewBox="0 0 24 24">
+        <rect x="9" y="2" width="6" height="6" rx="1" />
+        <rect x="2" y="16" width="6" height="6" rx="1" />
+        <rect x="16" y="16" width="6" height="6" rx="1" />
+        <path d="M12 8v4M5 16v-4h14v4" />
+      </symbol>
+      <symbol id="panel" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M9 4v16" />
+      </symbol>
+    </svg>
+    <main class="graph-and-inspector hide-inspector">
+      <div class="floating-left">
+        <button
+          id="toggle-sidebar"
+          class="floating-button"
+          aria-expanded="false"
+          aria-controls="sidebar"
+        >
+          <svg><use href="#panel" /></svg>Pages
+        </button>
+      </div>
+      <button
+        id="toggle-inspector"
+        class="floating-button details-toggle"
+        aria-expanded="false"
+        aria-controls="inspector"
+      >
+        <svg><use href="#layers" /></svg>Details
+      </button>
+      <section class="graph-panel" aria-label="Interactive component graph">
+        <div id="viewport" tabindex="0" aria-label="Top-to-bottom graph. Drag to pan.">
+          <div id="stage">
+            <svg id="connections" aria-hidden="true"></svg>
+            <div id="nodes"></div>
+          </div>
+        </div>
+        <div class="canvas-controls">
+          <button id="collapse" title="Collapse all" aria-label="Collapse all">⊟</button
+          ><button id="expand-level" title="Expand one level" aria-label="Expand one level">
+            ⊞</button
+          ><span class="control-divider"></span>
+          <button id="zoom-out" aria-label="Zoom out">−</button><output id="zoom-label">100%</output
+          ><button id="zoom-in" aria-label="Zoom in">+</button><span class="control-divider"></span
+          ><button id="fit-view" title="Fit to view" aria-label="Fit graph to view">
+            <svg><use href="#fit" /></svg>
+          </button>
+        </div>
+      </section>
+      <aside id="sidebar" class="sidebar" aria-label="Component selection" hidden>
+        <div class="panel-heading">
+          <strong>Pages and components</strong
+          ><button id="close-sidebar" aria-label="Close list">×</button>
+        </div>
+        <div class="app-switch" role="group" aria-label="Application">
+          <button data-app="website" aria-pressed="true">Website</button
+          ><button data-app="admin" aria-pressed="false">Admin</button>
+        </div>
+        <label class="search"
+          ><svg><use href="#search-icon" /></svg
+          ><input
+            id="search"
+            type="search"
+            placeholder="Search components…"
+            autocomplete="off"
+            aria-label="Search pages or components"
+          /><kbd>/</kbd></label
+        >
+        <div class="list-tabs" role="group" aria-label="File type">
+          <button data-list="pages" aria-pressed="true">Pages <span id="page-count"></span></button
+          ><button data-list="all" aria-pressed="false">All <span id="all-count"></span></button>
+        </div>
+        <label class="orphan-filter"
+          ><input id="orphans" type="checkbox" /> Not reachable from pages</label
+        >
+        <nav id="file-list" aria-label="Project files"></nav>
+        <button id="show-info" class="about-button">About this graph</button>
+      </aside>
+      <aside id="inspector" aria-label="Component details"></aside>
+    </main>
+    <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+    <dialog id="info-dialog">
+      <div class="panel-heading">
+        <h2>Reading the graph</h2>
+        <button id="close-info" aria-label="Close">×</button>
+      </div>
+      <p>
+        Connections follow component references in source files, including conditional branches.
+        Dashed lines indicate inherited layouts or dynamic imports. This is not a runtime DOM tree.
+      </p>
+      <p>
+        “Not reachable” means no page reaches the file through the detected connections. References
+        computed at runtime need manual verification.
+      </p>
+      <code>pnpm components:graph</code>
+    </dialog>
+    <script id="graph-data" type="application/json">
+      /* DATA */
+    </script>
+    <script>
+      /* GRAPH */
+      /* EXPLORER */
+    </script>
+  </body>
+</html>

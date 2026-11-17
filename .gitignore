@@ -135,3 +135,6 @@ miamedical_database.sql
 # Generated native string resources — source lives in packages/i18n, these are
 # build output for the mobile app repo to commit on its side.
 packages/i18n/generated/
+
+# Regenerable local component explorer.
+/docs/generated/
