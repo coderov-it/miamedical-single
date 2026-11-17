@@ -67,6 +67,7 @@
   import SpecsTab from './SpecsTab.svelte';
   import { PRODUCT_TABS, parseTab, tabLabel } from './tabs';
   import TermsTab from './TermsTab.svelte';
+  import StockHistoryPanel from '~/lib/products/stock-history/stock-history-panel.svelte';
   import { buildPlanFields } from './translation-fields';
   import { saveTranslations } from './translation-save';
 
@@ -359,6 +360,8 @@
                   <FaqsTab product={current} {onSaved} {dirty} />
                 {:else if tab.key === 'questions'}
                   <QuestionsTab product={current} {onSaved} {dirty} />
+                {:else if tab.key === 'stock'}
+                  <StockHistoryPanel productId={current.id} active={activeTab === 'stock'} />
                 {:else}
                   <TermsTab product={current} {onSaved} {dirty} />
                 {/if}

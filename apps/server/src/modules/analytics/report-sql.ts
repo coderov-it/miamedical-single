@@ -2,7 +2,8 @@ import type { Database } from '@mia/db';
 import { sql } from '@mia/db';
 import { SOURCE_LANGUAGE } from '@mia/validators';
 
-import type { Bucket, DayRange } from './range.ts';
+import type { DayRange } from '../../shared/day-range.ts';
+import type { Bucket } from './range.ts';
 import type { ModeSplit, SeriesPoint, TopProduct, Totals } from './repo.ts';
 
 /**

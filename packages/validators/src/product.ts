@@ -201,6 +201,8 @@ export const UpdateProductSchema = v.pipe(
       /** hour ↔ day is legal on a rental product; the service rejects it on fixed. */
       rentalUnit: RentalUnitSchema,
       stock: StockSchema,
+      /** Why the stock changed, shown in its history. Used only when `stock` changes. */
+      stockNote: v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(200))),
       isFeatured: v.boolean(),
       /** Replaces the whole list, like `rentalPackages` — `[]` clears it. */
       chips: ProductChipsSchema,

@@ -46,3 +46,5 @@ A line is a rental when `configuration.pricingMode === 'rental'`; everything els
 is a sale. Lines whose product was deleted (`productId` null) move nothing. Stock
 still knows nothing about future dates: two rentals for next month each take a
 unit today.
+
+Every stock change is also a row in the stock history, with its reason: see [stock-history.md](./stock-history.md).

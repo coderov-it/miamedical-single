@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { SalesRangeError, resolveRange, romeToday, spanDays } from './range.ts';
+import { DayRangeError, spanDays } from '../../shared/day-range.ts';
+import { resolveRange } from './range.ts';
 
 test('defaults: 30 days ending today in Rome, bucket day', () => {
   // 23:30 UTC on 16 Nov is already 17 Nov in Rome.
@@ -22,13 +23,8 @@ test('a single day has a one-day previous period', () => {
 });
 
 test('rejects from after to, impossible dates and spans over 3660 days', () => {
-  assert.throws(() => resolveRange({ from: '2026-11-02', to: '2026-11-01' }), SalesRangeError);
-  assert.throws(() => resolveRange({ from: '2026-02-30', to: '2026-03-01' }), SalesRangeError);
-  assert.throws(() => resolveRange({ from: '2016-01-01', to: '2026-11-01' }), SalesRangeError);
+  assert.throws(() => resolveRange({ from: '2026-11-02', to: '2026-11-01' }), DayRangeError);
+  assert.throws(() => resolveRange({ from: '2026-02-30', to: '2026-03-01' }), DayRangeError);
+  assert.throws(() => resolveRange({ from: '2016-01-01', to: '2026-11-01' }), DayRangeError);
   assert.doesNotThrow(() => resolveRange({ from: '2016-11-08', to: '2026-11-01' }));
-});
-
-test('romeToday follows daylight saving', () => {
-  assert.equal(romeToday(new Date('2026-07-01T22:30:00Z')), '2026-07-02');
-  assert.equal(romeToday(new Date('2026-01-01T22:30:00Z')), '2026-01-01');
 });

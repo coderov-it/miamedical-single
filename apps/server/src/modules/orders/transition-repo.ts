@@ -59,7 +59,10 @@ export async function applyTransition(db: Database, event: StatusEventData): Pro
         })
         .from(orderItems)
         .where(eq(orderItems.orderId, event.orderId));
-      await applyStockMoves(tx, lines, from, to, taken);
+      await applyStockMoves(tx, lines, from, to, taken, {
+        orderId: event.orderId,
+        actorAdminUserId: event.actorAdminUserId,
+      });
       const next = takenAfter(to, from, taken);
       if (next !== taken) {
         await tx.update(orders).set({ stockTaken: next }).where(eq(orders.id, event.orderId));

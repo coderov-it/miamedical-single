@@ -70,3 +70,13 @@ test('deltas sum per product and skip deleted products', () => {
   assert.equal(returned.get(BED)?.delta, 3);
   assert.equal(returned.has(CHAIR), false);
 });
+
+test('stockReason names the move for the history', async () => {
+  const { stockReason } = await import('./stock.ts');
+  assert.equal(stockReason(null, 'pending'), 'order_placed');
+  assert.equal(stockReason('pending', 'paid'), 'order_paid');
+  assert.equal(stockReason('pending', 'cancelled'), 'order_cancelled');
+  assert.equal(stockReason('paid', 'cancelled'), 'order_cancelled');
+  assert.equal(stockReason('paid', 'refunded'), 'order_refunded');
+  assert.equal(stockReason('paid', 'fulfilled'), 'rental_returned');
+});
