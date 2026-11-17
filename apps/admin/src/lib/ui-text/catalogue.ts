@@ -33,6 +33,7 @@ import type rentals from '~/i18n/en/rentals.json';
 import type settings from '~/i18n/en/settings.json';
 import type shell from '~/i18n/en/shell.json';
 import type status from '~/i18n/en/status.json';
+import type stock from '~/i18n/en/stock.json';
 import type terms from '~/i18n/en/terms.json';
 
 /** Adding a namespace: one JSON file per language, plus one line in each place here. */
@@ -61,6 +62,7 @@ interface Reference {
   settings: typeof settings;
   shell: typeof shell;
   status: typeof status;
+  stock: typeof stock;
   terms: typeof terms;
 }
 

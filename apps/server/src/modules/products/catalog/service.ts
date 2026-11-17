@@ -230,7 +230,11 @@ async function assertSlugsFree(
   }
 }
 
-export async function create(db: Database, input: CreateProductInput): Promise<ProductAggregate> {
+export async function create(
+  db: Database,
+  input: CreateProductInput,
+  actor: SessionUser | null = null,
+): Promise<ProductAggregate> {
   await assertSlugsFree(db, input.translations);
 
   const id = await repo.create(db, {
@@ -250,6 +254,7 @@ export async function create(db: Database, input: CreateProductInput): Promise<P
     isFeatured: input.isFeatured,
     chips: input.chips,
     translations: normalizeTranslations(input.translations),
+    actorAdminUserId: actor?.id ?? null,
   });
 
   return getAggregate(db, id);
@@ -281,6 +286,7 @@ export async function update(
   storage: FileUploader,
   id: string,
   input: UpdateProductInput,
+  actor: SessionUser | null = null,
 ): Promise<ProductAggregate> {
   const existing = await repo.findRow(db, id);
   if (!existing) throw notFound('Product');
@@ -334,7 +340,15 @@ export async function update(
     if (input.media !== undefined) {
       data.media = await commitProductMedia(storage, id, existing.media, input.media, committed);
     }
-    await repo.update(db, id, data);
+    const stockChanges = input.stock !== undefined && input.stock !== existing.stock;
+    await repo.update(
+      db,
+      id,
+      data,
+      stockChanges
+        ? { actorAdminUserId: actor?.id ?? null, note: input.stockNote ?? null }
+        : undefined,
+    );
   });
   return getAggregate(db, id);
 }

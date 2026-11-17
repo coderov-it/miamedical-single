@@ -123,7 +123,7 @@ export const productAdminRoutes = new Hono<AppEnv>()
     requirePermission(P.PRODUCT_CREATE),
     validate('json', CreateProductSchema),
     async (c) => {
-      const product = await catalogService.create(c.get('db'), c.req.valid('json'));
+      const product = await catalogService.create(c.get('db'), c.req.valid('json'), c.get('user'));
       return c.json({ data: toAdminDetail(product) }, 201);
     },
   )
@@ -154,7 +154,13 @@ export const productAdminRoutes = new Hono<AppEnv>()
     async (c) => {
       const { id } = c.req.valid('param');
       const input = c.req.valid('json');
-      let product = await catalogService.update(c.get('db'), r2FileUploader, id, input);
+      let product = await catalogService.update(
+        c.get('db'),
+        r2FileUploader,
+        id,
+        input,
+        c.get('user'),
+      );
       if (input.categoryId !== undefined) {
         // Spec values from the previous category no longer apply.
         await specsService.pruneForCategory(c.get('db'), id);

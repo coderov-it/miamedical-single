@@ -18,6 +18,7 @@ import { and, eq, gte, sql } from '@mia/db';
 import { products } from '@mia/db/schema';
 
 import { conflict, httpError } from '../../shared/http/errors.ts';
+import { setStockContext, type StockReason } from '../../shared/stock-context.ts';
 import type { OrderStatus } from './status.ts';
 
 export type LineMode = 'rental' | 'sale';
@@ -71,6 +72,15 @@ export function stockDeltas(
   return deltas;
 }
 
+/** Why the shelf moved, for the stock history. */
+export function stockReason(from: StockFrom, to: OrderStatus): StockReason {
+  if (from === null) return 'order_placed';
+  if (to === 'paid') return 'order_paid';
+  if (to === 'cancelled') return 'order_cancelled';
+  if (to === 'refunded') return 'order_refunded';
+  return 'rental_returned';
+}
+
 /**
  * The refusal when the shelf cannot cover a take. A customer at checkout gets
  * `out_of_stock` with the product named, which the storefront words in their
@@ -98,8 +108,12 @@ export async function applyStockMoves(
   from: StockFrom,
   to: OrderStatus,
   taken: boolean,
+  who: { orderId: string; actorAdminUserId: string | null },
 ): Promise<void> {
+  const reason = stockReason(from, to);
   for (const [productId, { delta, title }] of stockDeltas(lines, from, to, taken)) {
+    // One stock write per statement, and the trigger consumes the context: set it each time.
+    await setStockContext(tx, { reason, ...who });
     if (delta > 0) {
       await tx
         .update(products)

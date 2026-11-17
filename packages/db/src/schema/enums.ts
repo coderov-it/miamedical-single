@@ -78,6 +78,23 @@ export const paymentAttemptStatus = pgEnum('payment_attempt_status', [
   'expired',
 ]);
 
+/**
+ * Why `products.stock` moved. The app names it per write (see
+ * docs/code/stock-history.md); a write that names nothing is still recorded,
+ * as `unknown`, by the trigger that writes `stock_movements`.
+ */
+export const stockMovementReason = pgEnum('stock_movement_reason', [
+  'opening_balance',
+  'product_created',
+  'order_placed',
+  'order_paid',
+  'order_cancelled',
+  'order_refunded',
+  'rental_returned',
+  'manual_adjustment',
+  'unknown',
+]);
+
 export const addressKind = pgEnum('address_kind', ['shipping', 'billing']);
 
 /**

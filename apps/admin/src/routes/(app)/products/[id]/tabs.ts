@@ -23,6 +23,7 @@ export const PRODUCT_TABS = [
   { key: 'faqs', labelKey: 'products.tabFaqs' },
   { key: 'questions', labelKey: 'products.tabQuestions' },
   { key: 'terms', labelKey: 'products.tabTerms' },
+  { key: 'stock', labelKey: 'stock.tabTitle' },
 ] as const satisfies ReadonlyArray<{ key: string; labelKey: MessageKey }>;
 
 export type ProductTabKey = (typeof PRODUCT_TABS)[number]['key'];

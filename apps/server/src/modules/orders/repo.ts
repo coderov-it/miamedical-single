@@ -247,7 +247,10 @@ export async function insertOrder(
     /* The units leave the shelf now, with the order, so two customers can never
        pay for the same last one. Short stock rolls the whole order back as an
        `out_of_stock` 409 — see stock.ts and docs/code/orders-stock.md. */
-    await applyStockMoves(tx, data.items, null, 'pending', false);
+    await applyStockMoves(tx, data.items, null, 'pending', false, {
+      orderId: order.id,
+      actorAdminUserId: null,
+    });
 
     /**
      * Demand, counted once per order rather than per unit — three of the same
