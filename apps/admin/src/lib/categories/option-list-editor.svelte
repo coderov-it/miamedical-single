@@ -14,6 +14,7 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { setTextFor, SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
+  import { t, tn } from '~/lib/ui-text';
   import type { SpecOptionEdit } from './spec-edit';
 
   interface Props {
@@ -58,9 +59,9 @@
 
 <div>
   <div class="mb-1.5 flex items-center justify-between">
-    <Label>Options</Label>
+    <Label>{t('categories.optionsLabel')}</Label>
     <span class="text-xs text-muted-foreground">
-      {options.length} defined
+      {tn('categories.optionsDefined', options.length)}
     </span>
   </div>
 
@@ -75,14 +76,16 @@
           <Input
             value={textFor(option.label, contentLang.current)}
             oninput={(event) => onLabelInput(option, event.currentTarget.value)}
-            placeholder="Label ({contentLang.current.toUpperCase()})"
-            aria-label="Option label"
+            placeholder={t('categories.optionLabelPlaceholder', {
+              lang: contentLang.current.toUpperCase(),
+            })}
+            aria-label={t('categories.optionLabel')}
             class="h-8 flex-1"
           />
           <Input
             bind:value={option.value}
-            placeholder="value"
-            aria-label="Option value"
+            placeholder={t('categories.optionValuePlaceholder')}
+            aria-label={t('categories.optionValue')}
             class="h-8 w-36 font-mono text-xs"
           />
           <Button
@@ -90,7 +93,7 @@
             size="icon-sm"
             class="text-muted-foreground"
             {disabled}
-            aria-label="Remove option"
+            aria-label={t('categories.optionRemove')}
             onclick={() => (options = options.filter((entry) => entry.uid !== option.uid))}
           >
             <XIcon />
@@ -102,6 +105,6 @@
 
   <Button type="button" variant="ghost" size="sm" class="mt-1.5" {disabled} onclick={add}>
     <PlusIcon />
-    Add option
+    {t('categories.optionAdd')}
   </Button>
 </div>

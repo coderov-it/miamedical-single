@@ -148,6 +148,41 @@
       "when": 1794487821236,
       "tag": "0020_add_online_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794902378828,
+      "tag": "0021_add_sales_analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794907341518,
+      "tag": "0022_add_order_money",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794913050063,
+      "tag": "0023_add_stock_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794916669857,
+      "tag": "0024_add_product_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794922338440,
+      "tag": "0025_add_manual_orders",
+      "breakpoints": true
     }
   ]
 }

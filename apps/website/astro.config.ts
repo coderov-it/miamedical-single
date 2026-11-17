@@ -26,6 +26,18 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
 
   /**
+   * nginx terminates TLS and forwards `Host` + `X-Forwarded-Proto: https`.
+   * Since Astro 7.3.6 those headers are ignored unless the host is listed here,
+   * and the request URL falls back to `http://localhost:<port>` — which fails
+   * Astro's origin check on the checkout form POST (403 for browsers that do
+   * not send `Sec-Fetch-Site`) and puts localhost into `Astro.url.origin`.
+   * Only the storefront's own hostname is trusted, whatever the protocol.
+   */
+  security: {
+    allowedDomains: [{ hostname: new URL(site).hostname }],
+  },
+
+  /**
    * Svelte is here for the islands. Two of them: the cart
    * (`components/cart/`, docs/code/storefront-cart.md) and the customer area
    * (`components/account/`, docs/code/storefront-account-island.md). Every

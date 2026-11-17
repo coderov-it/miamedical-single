@@ -10,6 +10,7 @@
   reads like a name; the dot reads like unfinished work, which is what it is.
 -->
 <script lang="ts">
+  import { optionsOf, VALUE_TYPE } from '@mia/i18n';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
@@ -30,8 +31,10 @@
   import { useContentLang } from '~/lib/content-lang.svelte';
   import { Reorder } from '~/lib/reorder.svelte';
   import { SOURCE_LANGUAGE, textFor } from '~/lib/i18n';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { type MessageKey, t } from '~/lib/ui-text';
   import OptionListEditor from './option-list-editor.svelte';
-  import { isSelectType, VALUE_TYPES, type SpecEdit } from './spec-edit';
+  import { isSelectType, type SpecEdit } from './spec-edit';
 
   interface Props {
     specs: SpecEdit[];
@@ -89,23 +92,32 @@
   const title = (spec: SpecEdit) =>
     textFor(spec.label, contentLang.current) || textFor(spec.label, SOURCE_LANGUAGE);
 
-  const TOGGLES = [
+  /** Labels and hints are keys — `t()` runs in the markup, so a language switch re-renders. */
+  const TOGGLES: {
+    key: 'isFilterable' | 'isComparable' | 'isRequired';
+    label: MessageKey;
+    hint: MessageKey;
+  }[] = [
     {
-      key: 'isFilterable' as const,
-      label: 'Storefront filter',
-      hint: 'Shows as a filter in the category listing.',
+      key: 'isFilterable',
+      label: 'categories.toggleFilterLabel',
+      hint: 'categories.toggleFilterHint',
     },
     {
-      key: 'isComparable' as const,
-      label: 'Comparable',
-      hint: 'Appears as a row in the product comparison table.',
+      key: 'isComparable',
+      label: 'categories.toggleComparableLabel',
+      hint: 'categories.toggleComparableHint',
     },
     {
-      key: 'isRequired' as const,
-      label: 'Required',
-      hint: 'A product in this category cannot be published without it.',
+      key: 'isRequired',
+      label: 'categories.toggleRequiredLabel',
+      hint: 'categories.toggleRequiredHint',
     },
   ];
+
+  const valueTypes = $derived(optionsOf(VALUE_TYPE, uiLang.current));
+  const valueTypeName = (value: string) =>
+    valueTypes.find((type) => type.value === value)?.label ?? value;
 </script>
 
 <!-- No tooltip: on a row this dense it lands on top of the field it belongs to.
@@ -116,7 +128,9 @@
     size="icon-sm"
     disabled={disabled || (up ? index === 0 : index === specs.length - 1)}
     onclick={() => move(index, up ? -1 : 1)}
-    aria-label="Move {name || 'field'} {up ? 'up' : 'down'}"
+    aria-label={t(up ? 'components.moveUp' : 'components.moveDown', {
+      name: name || t('categories.specFieldFallback'),
+    })}
   >
     {#if up}
       <ChevronUpIcon />
@@ -154,14 +168,14 @@
             {:else}
               <span class="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <span class="size-1.5 rounded-full bg-destructive"></span>
-                No name yet
+                {t('categories.specNoName')}
               </span>
             {/if}
             {#if spec.key}
               <code class="truncate font-mono text-xs text-muted-foreground">{spec.key}</code>
             {/if}
             <span class="ml-auto shrink-0 text-xs text-muted-foreground">
-              {VALUE_TYPES.find((type) => type.value === spec.valueType)?.label ?? spec.valueType}
+              {valueTypeName(spec.valueType)}
             </span>
           </Collapsible.Trigger>
 
@@ -182,7 +196,9 @@
               class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               {disabled}
               onclick={() => remove(index)}
-              aria-label="Remove {label || 'field'}"
+              aria-label={t('components.removeNamed', {
+                name: label || t('categories.specFieldFallback'),
+              })}
             >
               <Trash2Icon />
             </Button>
@@ -193,12 +209,12 @@
           <div class="space-y-4 border-t bg-card p-4">
             <div class="grid gap-4 sm:grid-cols-2">
               <TranslatedInput
-                label="Label"
+                label={t('categories.specLabel')}
                 bind:value={spec.label}
                 placeholder="Larghezza seduta"
               />
               <div>
-                <Label class="mb-1.5" for="spec-key-{spec.uid}">Key</Label>
+                <Label class="mb-1.5" for="spec-key-{spec.uid}">{t('categories.specKey')}</Label>
                 <Input
                   id="spec-key-{spec.uid}"
                   bind:value={spec.key}
@@ -206,7 +222,7 @@
                   class="font-mono"
                 />
                 <p class="mt-1 text-xs text-muted-foreground">
-                  Used in filter URLs and in the product API. Changing it orphans existing values.
+                  {t('categories.specKeyHint')}
                 </p>
               </div>
             </div>
@@ -214,14 +230,14 @@
             <div class="grid gap-4 sm:grid-cols-[1fr_auto]">
               <div class="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label class="mb-1.5">Value type</Label>
+                  <Label class="mb-1.5">{t('categories.specValueType')}</Label>
                   <Select.Root type="single" bind:value={spec.valueType}>
                     <Select.Trigger class="w-full">
-                      {VALUE_TYPES.find((type) => type.value === spec.valueType)?.label ??
-                        'Choose a type'}
+                      {valueTypes.find((type) => type.value === spec.valueType)?.label ??
+                        t('categories.specChooseType')}
                     </Select.Trigger>
                     <Select.Content>
-                      {#each VALUE_TYPES as type (type.value)}
+                      {#each valueTypes as type (type.value)}
                         <Select.Item value={type.value}>{type.label}</Select.Item>
                       {/each}
                     </Select.Content>
@@ -231,22 +247,24 @@
                 <!-- Only numbers carry a unit, so the field appears with them. -->
                 {#if spec.valueType === 'number' || spec.valueType === 'number_range'}
                   <div>
-                    <Label class="mb-1.5" for="spec-unit-{spec.uid}">Unit</Label>
+                    <Label class="mb-1.5" for="spec-unit-{spec.uid}"
+                      >{t('categories.specUnit')}</Label
+                    >
                     <Input id="spec-unit-{spec.uid}" bind:value={spec.unit} placeholder="cm" />
                   </div>
                 {/if}
               </div>
 
-              <IconPicker label="Icon" bind:value={spec.icon} compact />
+              <IconPicker label={t('categories.fieldIcon')} bind:value={spec.icon} compact />
             </div>
 
             <TranslatedInput
-              label="Help text"
+              label={t('categories.specHelpText')}
               bind:value={spec.helpText}
               required={false}
               multiline
               rows={2}
-              placeholder="Shown under the filter on the storefront."
+              placeholder={t('categories.specHelpPlaceholder')}
             />
 
             {#if isSelectType(spec.valueType)}
@@ -263,8 +281,10 @@
                     {disabled}
                   />
                   <div class="min-w-0">
-                    <Label for="{toggle.key}-{spec.uid}" class="text-sm">{toggle.label}</Label>
-                    <p class="mt-0.5 text-xs leading-snug text-muted-foreground">{toggle.hint}</p>
+                    <Label for="{toggle.key}-{spec.uid}" class="text-sm">{t(toggle.label)}</Label>
+                    <p class="mt-0.5 text-xs leading-snug text-muted-foreground">
+                      {t(toggle.hint)}
+                    </p>
                   </div>
                 </div>
               {/each}
@@ -275,14 +295,12 @@
     </div>
   {:else}
     <div class="rounded-lg border border-dashed p-6 text-center">
-      <p class="text-sm text-muted-foreground">
-        No spec fields yet. They are what make this category filterable and comparable.
-      </p>
+      <p class="text-sm text-muted-foreground">{t('categories.specEmpty')}</p>
     </div>
   {/each}
 
   <Button type="button" variant="outline" size="sm" {disabled} onclick={add}>
     <PlusIcon />
-    Add spec field
+    {t('categories.specAdd')}
   </Button>
 </div>

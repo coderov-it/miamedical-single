@@ -94,12 +94,12 @@ storefront is threading a value through, not hunting down string literals.
 ## What this is _not_
 
 Not a UI-chrome translation system. Buttons, headings and validation prose are hundreds of
-open-ended strings and do not belong in a hand-maintained `as const` map. When the admin
-chrome gets translated, the tool for it is Paraglide JS (compiler-based, tree-shakeable,
-typed message functions), hanging off the hook `ui-lang.svelte.ts` already documents.
+open-ended strings and do not belong in a hand-maintained `as const` map. The admin chrome
+uses JSON catalogues and a typed `t()` hanging off `ui-lang.svelte.ts` — see
+[admin-ui-text.md](./admin-ui-text.md).
 
-The two are complementary: Paraglide gives ergonomics at scale, this gives exhaustiveness
-over a closed set. Enum labels stay here.
+The two are complementary: the catalogues give ergonomics at scale, this gives
+exhaustiveness over a closed set. Enum labels stay here.
 
 ## Adding a language
 

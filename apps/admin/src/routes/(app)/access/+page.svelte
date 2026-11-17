@@ -19,11 +19,12 @@
   import SetPasswordDialog from '~/lib/access/set-password-dialog.svelte';
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
-  import { orDash, pluralize, relativeTime } from '~/lib/format';
+  import { orDash, relativeTime } from '~/lib/format';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
   import { errorMessage, unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { session } from '~/lib/session.svelte';
+  import { t, tn, type MessageKey } from '~/lib/ui-text';
   import BusyLabel from '~/lib/components/busy-label.svelte';
 
   const query = new QueryState({ q: '', status: 'all', page: 1 });
@@ -50,13 +51,16 @@
   const rows = $derived(operators.data?.data ?? []);
   const canCreate = $derived(session.can(P.ADMIN_CREATE));
 
-  const statuses = [
-    { value: 'all', label: 'All accounts' },
-    { value: 'active', label: 'Active' },
-    { value: 'disabled', label: 'Disabled' },
+  const statuses: { value: string; labelKey: MessageKey }[] = [
+    { value: 'all', labelKey: 'access.stateAll' },
+    { value: 'active', labelKey: 'access.stateActive' },
+    { value: 'disabled', labelKey: 'access.stateDisabled' },
   ];
   const statusLabel = $derived(
-    statuses.find((option) => option.value === draft.values.status)?.label ?? 'All accounts',
+    t(
+      statuses.find((option) => option.value === draft.values.status)?.labelKey ??
+        'access.stateAll',
+    ),
   );
 
   /** `undefined` closed · `null` create · a row to edit. */
@@ -73,7 +77,9 @@
    * would hide the one that keeps growing on its own.
    */
   const accessLabel = (user: AdminUser) =>
-    user.isSuperuser ? 'Everything' : pluralize(user.permissions.length, 'permission');
+    user.isSuperuser
+      ? t('access.accessEverything')
+      : tn('shell.permissionCount', user.permissions.length);
 
   async function toggleActive(user: AdminUser) {
     busy = true;
@@ -84,7 +90,9 @@
           json: { isActive: !user.isActive },
         }),
       );
-      toast.success(`${user.email} ${user.isActive ? 'disabled' : 'enabled'}.`);
+      toast.success(
+        t(user.isActive ? 'access.toastDisabled' : 'access.toastEnabled', { email: user.email }),
+      );
       operators.refresh();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -100,7 +108,7 @@
     busy = true;
     try {
       await unwrap(await api.api.admin.users[':id'].$delete({ param: { id: target.id } }));
-      toast.success(`Deleted ${target.email}.`);
+      toast.success(t('access.toastDeleted', { email: target.email }));
       deleting = null;
       operators.refresh();
     } catch (err) {
@@ -113,22 +121,22 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Settings"
-    title="Admin users"
-    description="Who can open the back office, and what each of them may reach. Access is a set of permissions per account — there are no roles."
+    eyebrow={t('nav.settings')}
+    title={t('nav.adminUsers')}
+    description={t('access.pageDescription')}
   >
     {#snippet actions()}
       {#if canCreate}
         <Button onclick={() => (editing = null)}>
           <PlusIcon />
-          New operator
+          {t('access.newOperator')}
         </Button>
       {/if}
     {/snippet}
   </PageHeader>
 
   <ListCard
-    noun="operator"
+    countKey="entities.operator"
     meta={operators.data?.meta}
     loading={operators.loading}
     error={operators.error}
@@ -152,24 +160,26 @@
           <Input
             type="search"
             bind:value={draft.values.q}
-            placeholder="Search name or email…"
-            aria-label="Search operators"
+            placeholder={t('access.searchPlaceholder')}
+            aria-label={t('access.searchLabel')}
             class="h-8 w-56 pl-8"
           />
         </div>
 
         <Select.Root type="single" bind:value={draft.values.status}>
-          <Select.Trigger class="w-36" aria-label="Filter by account state">
+          <Select.Trigger class="w-36" aria-label={t('access.stateFilterLabel')}>
             {statusLabel}
           </Select.Trigger>
           <Select.Content>
             {#each statuses as option (option.value)}
-              <Select.Item value={option.value}>{option.label}</Select.Item>
+              <Select.Item value={option.value}>{t(option.labelKey)}</Select.Item>
             {/each}
           </Select.Content>
         </Select.Root>
 
-        <Button type="submit" variant="outline" size="sm">Apply</Button>
+        <Button type="submit" variant="outline" size="sm">
+          {t('access.apply')}
+        </Button>
       </form>
     {/snippet}
 
@@ -177,10 +187,10 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[32%]">Operator</Table.Head>
-            <Table.Head>Access</Table.Head>
-            <Table.Head>Account</Table.Head>
-            <Table.Head>Last sign-in</Table.Head>
+            <Table.Head class="w-[32%]">{t('access.colOperator')}</Table.Head>
+            <Table.Head>{t('access.colAccess')}</Table.Head>
+            <Table.Head>{t('access.colAccount')}</Table.Head>
+            <Table.Head>{t('access.colLastSignIn')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -200,7 +210,7 @@
 
               <Table.Cell>
                 {#if user.isSuperuser}
-                  <Badge>Superuser</Badge>
+                  <Badge>{t('shell.superuser')}</Badge>
                 {:else}
                   <span class="text-sm">{accessLabel(user)}</span>
                   <p class="text-xs text-muted-foreground">{groupSummary(user.permissions)}</p>
@@ -210,10 +220,10 @@
               <Table.Cell>
                 <div class="flex flex-wrap items-center gap-1.5">
                   {#if user.isActive}
-                    <Badge variant="secondary">Active</Badge>
+                    <Badge variant="secondary">{t('access.stateActive')}</Badge>
                   {:else}
                     <Badge variant="outline" class="border-destructive/40 text-destructive">
-                      Disabled
+                      {t('access.stateDisabled')}
                     </Badge>
                   {/if}
                   {#if !user.hasPassword}
@@ -221,17 +231,17 @@
                       variant="outline"
                       class="border-amber-500/40 text-amber-600 dark:text-amber-400"
                     >
-                      No password
+                      {t('access.badgeNoPassword')}
                     </Badge>
                   {/if}
                   {#if isSelf(user)}
-                    <Badge variant="outline">You</Badge>
+                    <Badge variant="outline">{t('access.badgeYou')}</Badge>
                   {/if}
                 </div>
               </Table.Cell>
 
               <Table.Cell class="text-muted-foreground">
-                {user.lastLoginAt ? relativeTime(user.lastLoginAt) : 'Never'}
+                {user.lastLoginAt ? relativeTime(user.lastLoginAt) : t('access.never')}
               </Table.Cell>
 
               <Table.Cell>
@@ -254,16 +264,16 @@
       <Empty.Root class="border-0">
         <Empty.Header>
           <Empty.Media variant="icon"><UsersIcon /></Empty.Media>
-          <Empty.Title>No operators match</Empty.Title>
+          <Empty.Title>{t('access.emptyTitle')}</Empty.Title>
           <Empty.Description>
-            {query.isFiltered
-              ? 'Clear the filters to see every account.'
-              : 'The first superuser is created from the command line — see script/create-admin.ts.'}
+            {query.isFiltered ? t('access.emptyFiltered') : t('access.emptyFirst')}
           </Empty.Description>
         </Empty.Header>
         {#if query.isFiltered}
           <Empty.Content>
-            <Button variant="outline" onclick={() => draft.clear()}>Clear filters</Button>
+            <Button variant="outline" onclick={() => draft.clear()}>
+              {t('access.clearFilters')}
+            </Button>
           </Empty.Content>
         {/if}
       </Empty.Root>
@@ -287,14 +297,13 @@
 >
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete this operator?</AlertDialog.Title>
+      <AlertDialog.Title>{t('access.deleteTitle')}</AlertDialog.Title>
       <AlertDialog.Description>
-        {deleting?.email} loses access immediately and every session they have open ends. Disabling the
-        account keeps the record and is reversible.
+        {t('access.deleteDescription', { email: deleting?.email ?? '' })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={busy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={busy}>{t('common.cancel')}</AlertDialog.Cancel>
       <AlertDialog.Action
         disabled={busy}
         class={buttonVariants({ variant: 'destructive' })}
@@ -303,7 +312,7 @@
           void confirmDelete();
         }}
       >
-        <BusyLabel {busy} label="Deleting…">Delete operator</BusyLabel>
+        <BusyLabel {busy} label={t('access.deleting')}>{t('access.deleteOperator')}</BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

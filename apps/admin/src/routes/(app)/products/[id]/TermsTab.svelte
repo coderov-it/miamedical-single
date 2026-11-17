@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { termsStatusLabel } from '@mia/i18n';
   import { P } from '@mia/permissions';
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -13,6 +14,8 @@
   import { Resource } from '~/lib/resource.svelte';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t } from '~/lib/ui-text';
   import type { AdminProduct, AdminTerms, TabProps } from './shared';
   import { sameAsSaved } from './shared';
   import TabPanel from './tab-panel.svelte';
@@ -74,7 +77,7 @@
       saved = [...updated.termsIds];
       dirty.clear(SECTION);
       onSaved(updated);
-      toast.success('Terms links saved.');
+      toast.success(t('products.termsSaved'));
     } catch (err) {
       error = errorMessage(err);
     } finally {
@@ -84,14 +87,14 @@
 </script>
 
 <TabPanel
-  title="Terms documents"
-  description="Linked documents appear on the product page and are accepted at checkout, in the order ticked."
+  title={t('products.termsTitle')}
+  description={t('products.termsDescription')}
   dirty={isDirty}
   {saving}
   error={error ?? documents.error}
   onSave={save}
   onDiscard={discard}
-  disabledReason={canUpdate ? undefined : 'You need product:update to change this.'}
+  disabledReason={canUpdate ? undefined : t('products.needUpdatePermission')}
 >
   <div class="max-w-2xl space-y-2">
     {#if !documents.data}
@@ -100,8 +103,10 @@
       {/each}
     {:else if documents.data.length === 0}
       <p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        No terms documents exist yet — create one under
-        <a href={routes.terms} class="underline underline-offset-4">Terms</a>.
+        {t('products.termsEmpty')}
+        <a href={routes.terms} class="underline underline-offset-4"
+          >{t('products.termsEmptyLink')}</a
+        >
       </p>
     {:else}
       {#each documents.data as doc (doc.id)}
@@ -117,13 +122,18 @@
             <span class="block truncate text-sm font-medium">
               {doc.translations.it?.title ?? doc.code}
             </span>
-            <span class="text-xs text-muted-foreground">v{doc.version} · {doc.status}</span>
+            <span class="text-xs text-muted-foreground">
+              {t('products.termsVersion', {
+                version: doc.version,
+                status: termsStatusLabel(doc.status, uiLang.current),
+              })}
+            </span>
           </span>
           {#if doc.status !== 'published'}
             <!-- Linkable, but flagged: a draft document is not something a
                  customer can be asked to accept at checkout. -->
             <Badge variant="outline" class="border-amber-500/40 text-amber-600 dark:text-amber-400">
-              not published
+              {t('products.termsNotPublished')}
             </Badge>
           {/if}
         </Label>

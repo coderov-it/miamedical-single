@@ -24,6 +24,7 @@
   import { isNavItemActive, visibleNavigation } from '~/lib/nav';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t, tn } from '~/lib/ui-text';
 
   const sections = $derived(visibleNavigation((code) => session.can(code)));
 
@@ -35,9 +36,9 @@
    */
   const access = $derived(
     session.user?.isSuperuser
-      ? 'Superuser'
+      ? t('shell.superuser')
       : session.user
-        ? `${session.user.permissions.length} permissions`
+        ? tn('shell.permissionCount', session.user.permissions.length)
         : '',
   );
   const initials = $derived(
@@ -60,7 +61,7 @@
       </div>
       <div class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
         <span class="truncate text-sm font-semibold">Mia Medical</span>
-        <span class="truncate text-xs text-muted-foreground">Back office</span>
+        <span class="truncate text-xs text-muted-foreground">{t('shell.backOffice')}</span>
       </div>
     </div>
   </Sidebar.Header>
@@ -70,9 +71,9 @@
        (the body-wide default) starts too late: the chunk is still in flight
        when the click arrives, and the old page sits there looking stuck. -->
   <Sidebar.Content data-sveltekit-preload-code="viewport">
-    {#each sections as section (section.title)}
+    {#each sections as section (section.titleKey)}
       <Sidebar.Group>
-        <Sidebar.GroupLabel>{section.title}</Sidebar.GroupLabel>
+        <Sidebar.GroupLabel>{t(section.titleKey)}</Sidebar.GroupLabel>
         <Sidebar.GroupContent>
           <Sidebar.Menu>
             {#each section.items as item (item.url)}
@@ -80,12 +81,12 @@
               <Sidebar.MenuItem>
                 <Sidebar.MenuButton
                   isActive={isNavItemActive(page.url.pathname, item.url)}
-                  tooltipContent={item.title}
+                  tooltipContent={t(item.titleKey)}
                 >
                   {#snippet child({ props })}
                     <a href={item.url} {...props}>
                       <Icon />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </a>
                   {/snippet}
                 </Sidebar.MenuButton>
@@ -114,7 +115,7 @@
         the item. Collapsed to icons, the row becomes the avatar alone.
       -->
       <Sidebar.MenuItem>
-        <Sidebar.MenuButton size="lg" tooltipContent="Your account">
+        <Sidebar.MenuButton size="lg" tooltipContent={t('shell.yourAccount')}>
           {#snippet child({ props })}
             <a href={routes.profile} {...props}>
               <span
@@ -133,21 +134,25 @@
         <AlertDialog.Root>
           <AlertDialog.Trigger>
             {#snippet child({ props })}
-              <Sidebar.MenuAction {...props} title="Sign out" aria-label="Sign out">
+              <Sidebar.MenuAction
+                {...props}
+                title={t('auth.signOut')}
+                aria-label={t('auth.signOut')}
+              >
                 <LogOutIcon />
               </Sidebar.MenuAction>
             {/snippet}
           </AlertDialog.Trigger>
           <AlertDialog.Content>
             <AlertDialog.Header>
-              <AlertDialog.Title>Sign out?</AlertDialog.Title>
+              <AlertDialog.Title>{t('auth.signOutTitle')}</AlertDialog.Title>
               <AlertDialog.Description>
-                Any unsaved changes on the current page will be lost.
+                {t('auth.signOutWarning')}
               </AlertDialog.Description>
             </AlertDialog.Header>
             <AlertDialog.Footer>
-              <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-              <AlertDialog.Action onclick={signOut}>Sign out</AlertDialog.Action>
+              <AlertDialog.Cancel>{t('common.cancel')}</AlertDialog.Cancel>
+              <AlertDialog.Action onclick={signOut}>{t('auth.signOut')}</AlertDialog.Action>
             </AlertDialog.Footer>
           </AlertDialog.Content>
         </AlertDialog.Root>

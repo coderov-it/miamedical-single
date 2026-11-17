@@ -38,19 +38,11 @@ export function rentalOrderClosed() {
 export const RENTAL_TIME_ZONE = 'Europe/Rome';
 
 /**
- * Today's calendar date in Rome, `YYYY-MM-DD`. Not `toISOString()`, which is
- * the UTC date: between 00:00 and 02:00 in Rome it is still yesterday there.
- *
- *   2026-10-12T22:30:00Z  → toISOString "2026-10-12"   romeToday "2026-10-13"
+ * Today's calendar date in Rome, `YYYY-MM-DD` (not the UTC date `toISOString()`
+ * gives): `2026-10-12T22:30:00Z` is "2026-10-13" here. One implementation, in
+ * day-range.ts; re-exported so rental call sites do not change.
  */
-export function romeToday(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: RENTAL_TIME_ZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(now);
-}
+export { romeToday } from './day-range.ts';
 
 /** SQL: the same date, from the database clock. */
 export const romeTodaySql = sql`(now() AT TIME ZONE 'Europe/Rome')::date`;

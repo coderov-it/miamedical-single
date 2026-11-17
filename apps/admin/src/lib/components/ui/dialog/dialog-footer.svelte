@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Dialog as DialogPrimitive } from 'bits-ui';
   import { Button } from '$lib/components/ui/button/index.js';
+  import { t } from '~/lib/ui-text';
   import { cn, type WithElementRef } from '$lib/utils.js';
   import type { HTMLAttributes } from 'svelte/elements';
 
@@ -28,7 +29,7 @@
   {#if showCloseButton}
     <DialogPrimitive.Close>
       {#snippet child({ props })}
-        <Button variant="destructive" {...props}>Close</Button>
+        <Button variant="destructive" {...props}>{t('common.close')}</Button>
       {/snippet}
     </DialogPrimitive.Close>
   {/if}

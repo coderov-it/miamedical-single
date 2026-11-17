@@ -39,6 +39,7 @@ type NotificationLabelKey =
 /** The events an operator is told about. Their customer entries may be unused. */
 type AdminEvent =
   | 'order.placed'
+  | 'order.status_changed'
   | 'order.link_disputed'
   | 'contract.signed'
   | 'contract.unsigned_blocking'
@@ -83,6 +84,19 @@ export const NOTIFICATION_LABELS = {
     en: 'Your order {orderNumber} is now {to}.',
     fr: 'Votre commande {orderNumber} est désormais {to}.',
     de: 'Ihre Bestellung {orderNumber} ist jetzt {to}.',
+  },
+
+  'order.status_changed.admin.title': {
+    it: 'Ordine pagato',
+    en: 'Order paid',
+    fr: 'Commande payée',
+    de: 'Bestellung bezahlt',
+  },
+  'order.status_changed.admin.body': {
+    it: 'L’ordine {orderNumber} è stato pagato.',
+    en: 'Order {orderNumber} has been paid.',
+    fr: 'La commande {orderNumber} a été payée.',
+    de: 'Bestellung {orderNumber} wurde bezahlt.',
   },
 
   'order.upcoming.title': {

@@ -1,33 +1,30 @@
 import type { BlogPostStatus } from '@mia/validators';
 
-import type { StatusMeta } from '~/lib/orders/status';
+import { NEUTRAL_TONE, type StatusMeta, type StatusTone } from '~/lib/orders/status';
+import { type MessageKey, t } from '~/lib/ui-text';
 
-const NEUTRAL: StatusMeta = {
-  label: '—',
-  tone: 'text-muted-foreground',
-  dot: 'bg-muted-foreground',
-};
-
-export const BLOG_STATUS_META: Record<BlogPostStatus, StatusMeta> = {
+export const BLOG_STATUS_TONE: Record<BlogPostStatus, StatusTone & { labelKey: MessageKey }> = {
   draft: {
-    label: 'Draft',
+    labelKey: 'status.blogDraft',
     tone: 'border-border text-muted-foreground',
     dot: 'bg-muted-foreground',
   },
   published: {
-    label: 'Published',
+    labelKey: 'status.blogPublished',
     tone: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400',
     dot: 'bg-emerald-500',
   },
   archived: {
-    label: 'Archived',
+    labelKey: 'status.blogArchived',
     tone: 'border-amber-500/40 text-amber-600 dark:text-amber-400',
     dot: 'bg-amber-500',
   },
 };
 
 export function blogStatusMeta(status: string): StatusMeta {
-  return BLOG_STATUS_META[status as BlogPostStatus] ?? { ...NEUTRAL, label: status };
+  const entry = BLOG_STATUS_TONE[status as BlogPostStatus];
+  if (!entry) return { ...NEUTRAL_TONE, label: status };
+  return { tone: entry.tone, dot: entry.dot, label: t(entry.labelKey) };
 }
 
 export const BLOG_STATUS_ORDER: readonly BlogPostStatus[] = ['draft', 'published', 'archived'];

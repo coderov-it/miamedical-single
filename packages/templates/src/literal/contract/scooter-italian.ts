@@ -17,7 +17,7 @@ export function scooterItalian(data: ContractData): string {
     lang: 'it',
     body: `${contractHeader({ contractNumber: data.contractNumber, title, date: data.generatedAt })}
 ${customerInfoIt(data.customer)}
-${itemsTableIt(data.items, data.subtotal, data.shippingTotal, data.total)}
+${itemsTableIt(data.items, data.subtotal, data.shippingTotal, data.total, data.discountTotal)}
 ${bankDetailsIt()}
 ${depositClauseIt(deposit)}
 ${importantNoticeIt()}

@@ -18,6 +18,7 @@
 <script lang="ts">
   import { cn } from '$lib/utils.js';
   import { autoTranslate, gapsIn, type LocalizedLike, languageOf } from '~/lib/i18n';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     value: LocalizedLike | null | undefined;
@@ -34,7 +35,7 @@
 
 {#if gaps.length > 0}
   <span class={cn('flex items-center gap-1.5 text-xs text-muted-foreground', className)}>
-    <span class="sr-only">Not yet translated into {names}.</span>
+    <span class="sr-only">{t('components.gapsNotTranslated', { names })}</span>
     <span aria-hidden="true" class="tracking-wide">
       {#each gaps as code, index (code)}
         {index > 0 ? ' · ' : ''}<span class="uppercase" title={languageOf(code).label}>{code}</span>
@@ -46,7 +47,7 @@
         onclick={onTranslate}
         class="cursor-pointer text-primary underline-offset-2 hover:underline"
       >
-        translate
+        {t('components.gapsTranslate')}
       </button>
     {/if}
   </span>

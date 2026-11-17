@@ -39,6 +39,14 @@ export const orderCustomerLink = pgEnum('order_customer_link', [
   'rejected',
 ]);
 
+/**
+ * Who started an order. `online` is the storefront checkout; `manual` is an admin
+ * agent creating it for a customer who phoned or wrote — see
+ * docs/code/manual-orders.md. The two differ in how complete the customer's
+ * details must be (`orders_fiscal_check`) and in the unpaid-order sweep.
+ */
+export const orderSource = pgEnum('order_source', ['online', 'manual']);
+
 /** Where an "I did not place this order" report has got to. */
 export const orderDisputeStatus = pgEnum('order_dispute_status', [
   'open',
@@ -76,6 +84,23 @@ export const paymentAttemptStatus = pgEnum('payment_attempt_status', [
   'failed',
   'cancelled',
   'expired',
+]);
+
+/**
+ * Why `products.stock` moved. The app names it per write (see
+ * docs/code/stock-history.md); a write that names nothing is still recorded,
+ * as `unknown`, by the trigger that writes `stock_movements`.
+ */
+export const stockMovementReason = pgEnum('stock_movement_reason', [
+  'opening_balance',
+  'product_created',
+  'order_placed',
+  'order_paid',
+  'order_cancelled',
+  'order_refunded',
+  'rental_returned',
+  'manual_adjustment',
+  'unknown',
 ]);
 
 export const addressKind = pgEnum('address_kind', ['shipping', 'billing']);

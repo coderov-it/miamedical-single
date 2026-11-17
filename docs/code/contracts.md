@@ -103,6 +103,12 @@ inside the transaction that creates the extension, the preview built by the same
 `service.termsFromOrder`. Flow: `docs/code/rental-extensions.md` § Renewed from
 the account.
 
+A manual order's private link signs the same way, channel `'order_link'`: the contract has no row until the
+customer signs, the preview is `renderDraft(termsFromOrder)`, and `issueSigned(tx, …, 'order_link')` runs in a
+transaction that holds the order row lock. The terms carry the order's discount (`discountTotal`, printed as a
+"Sconto" / "Discount" row and taken off the total), so the signed amount is the amount charged; the discount
+and the customer details are frozen once it is signed. Flow: `docs/code/manual-orders.md` § Phase 3 as built.
+
 ## Signing by email link
 
 The admin-issued contracts above. Opening the link never spends the token — `GET /api/contracts/sign` only moves

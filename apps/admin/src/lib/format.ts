@@ -9,15 +9,19 @@
  * `Invalid Date`.
  */
 
+import { languageOf } from '~/lib/i18n/languages';
+import { uiLang } from '~/lib/ui-lang.svelte';
+
 export const EM_DASH = '—';
 
 /**
- * Dates render as `en-GB`: day-first and 24-hour, matching how an Italian
- * back office reads a date, but with English month names so they do not clash
- * with the (English) UI chrome. Money is deliberately different — see
- * `formatMoney`.
+ * Dates and counts render in the interface language (`it-IT`, `en-GB`, …) —
+ * every registered tag is day-first and 24-hour. Read per call, so a language
+ * switch re-renders them. Money is deliberately different — see `formatMoney`.
  */
-const DATE_LOCALE = 'en-GB';
+function displayLocale(): string {
+  return languageOf(uiLang.current).tag;
+}
 
 /** What the customer's invoice says, so the admin and the storefront agree. */
 const MONEY_LOCALE = 'it-IT';
@@ -33,7 +37,7 @@ function toDate(value: DateInput): Date | null {
 
 function format(value: DateInput, options: Intl.DateTimeFormatOptions): string {
   const date = toDate(value);
-  if (date) return new Intl.DateTimeFormat(DATE_LOCALE, options).format(date);
+  if (date) return new Intl.DateTimeFormat(displayLocale(), options).format(date);
   // Absent → the em dash. Present but unparseable → show what we were given.
   return value === null || value === undefined || value === '' ? EM_DASH : String(value);
 }
@@ -78,7 +82,7 @@ export function relativeTime(value: DateInput, now: Date = new Date()): string {
   const date = toDate(value);
   if (!date) return value === null || value === undefined || value === '' ? EM_DASH : String(value);
 
-  const formatter = new Intl.RelativeTimeFormat(DATE_LOCALE, { numeric: 'auto' });
+  const formatter = new Intl.RelativeTimeFormat(displayLocale(), { numeric: 'auto' });
   let duration = (date.getTime() - now.getTime()) / 1000;
 
   for (const division of DIVISIONS) {
@@ -109,7 +113,7 @@ export function formatMoney(
 /** `1,204` — thousands separators for counts and quantities. */
 export function formatNumber(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return EM_DASH;
-  return new Intl.NumberFormat(DATE_LOCALE).format(value);
+  return new Intl.NumberFormat(displayLocale()).format(value);
 }
 
 /** Anything empty becomes the em dash; whitespace-only counts as empty. */
@@ -117,11 +121,6 @@ export function orDash(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return EM_DASH;
   const text = String(value);
   return text.trim() === '' ? EM_DASH : text;
-}
-
-/** `1 product` / `3 products`. Irregular plurals pass their own. */
-export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
-  return `${formatNumber(count)} ${count === 1 ? singular : plural}`;
 }
 
 /** `1.4 MB`. Used by the media tiles, which deal in bytes from the File API. */

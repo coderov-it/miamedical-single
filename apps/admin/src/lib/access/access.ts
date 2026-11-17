@@ -11,6 +11,9 @@ import { PERMISSION_GROUPS, permissionByCode, type PermissionGroup } from '@mia/
 import type { InferResponseType } from 'hono/client';
 
 import type { api } from '~/lib/api';
+import { t } from '~/lib/ui-text';
+
+import { permissionGroupLabel } from './permission-labels';
 
 export type AdminUserList = InferResponseType<typeof api.api.admin.users.$get, 200>;
 export type AdminUser = AdminUserList['data'][number];
@@ -31,8 +34,11 @@ export function groupsOf(codes: readonly number[]): PermissionGroup[] {
  */
 export function groupSummary(codes: readonly number[], limit = 2): string {
   const groups = groupsOf(codes);
-  if (groups.length === 0) return 'No areas';
-  const shown = groups.slice(0, limit).join(', ');
+  if (groups.length === 0) return t('access.noAreas');
+  const shown = groups
+    .slice(0, limit)
+    .map((group) => permissionGroupLabel(group))
+    .join(', ');
   const rest = groups.length - limit;
   return rest > 0 ? `${shown} +${rest}` : shown;
 }

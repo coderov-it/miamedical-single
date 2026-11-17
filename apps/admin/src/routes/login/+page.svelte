@@ -12,6 +12,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { t } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
 
   let email = $state('');
@@ -61,7 +62,7 @@
       </div>
       <div>
         <h1 class="text-lg font-semibold tracking-tight">Mia Medical</h1>
-        <p class="mt-0.5 text-sm text-muted-foreground">Sign in to the back office.</p>
+        <p class="mt-0.5 text-sm text-muted-foreground">{t('auth.signInSubtitle')}</p>
       </div>
     </div>
 
@@ -74,7 +75,7 @@
         {/if}
 
         <Field.Field>
-          <Field.Label for="email">Email</Field.Label>
+          <Field.Label for="email">{t('auth.email')}</Field.Label>
           <Input
             id="email"
             type="email"
@@ -89,7 +90,7 @@
         </Field.Field>
 
         <Field.Field>
-          <Field.Label for="password">Password</Field.Label>
+          <Field.Label for="password">{t('auth.password')}</Field.Label>
           <Input
             id="password"
             type="password"
@@ -101,8 +102,8 @@
           />
         </Field.Field>
 
-        <BusyButton type="submit" busy={submitting} busyLabel="Signing in…" class="w-full">
-          Sign in
+        <BusyButton type="submit" busy={submitting} busyLabel={t('auth.signingIn')} class="w-full">
+          {t('auth.signIn')}
         </BusyButton>
       </Field.Group>
     </form>

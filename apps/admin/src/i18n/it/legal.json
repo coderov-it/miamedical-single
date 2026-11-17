@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Contenuti",
+  "privacyTitle": "Informativa sulla privacy",
+  "privacyDescription": "L'informativa pubblicata su /privacy-policy/, in ogni lingua del sito.",
+  "translate": "Traduci",
+  "view": "Visualizza",
+  "toastSaveFirst": "Salva prima le modifiche: la traduzione parte dal testo salvato.",
+  "toastSaved": "Salvato. Il sito lo recepisce entro pochi minuti.",
+  "fieldTitle": "Titolo",
+  "titleHint": "L'h1 della pagina e la prima parte del titolo nella scheda del browser.",
+  "fieldText": "Testo",
+  "textName": "Testo dell'informativa",
+  "searchHeading": "Anteprima nei risultati di ricerca",
+  "searchHint": "Se lasciati vuoti, la pagina usa il proprio titolo e il primo paragrafo.",
+  "metaTitle": "Meta title",
+  "metaTitleHint": "Circa 60 caratteri: oltre, Google lo tronca.",
+  "metaDescription": "Meta description",
+  "metaDescriptionHint": "Circa 160 caratteri.",
+  "effectiveFrom": "In vigore dal",
+  "effectiveHint": "Mostrata sotto il titolo. Non coincide con l'ultima modifica: correggere un refuso non la sposta.",
+  "lastEdited": "Ultima modifica"
+}

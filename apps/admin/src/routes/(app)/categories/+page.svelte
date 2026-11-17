@@ -23,12 +23,13 @@
   import ListCard from '~/lib/components/list-card.svelte';
   import PageHeader from '~/lib/components/page-header.svelte';
   import TranslationProgress from '~/lib/components/translation-progress.svelte';
-  import { orDash, pluralize } from '~/lib/format';
+  import { orDash } from '~/lib/format';
   import { errorMessage, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
   import { localizedFrom, progressAcross, SOURCE_LANGUAGE } from '~/lib/i18n';
   import { session } from '~/lib/session.svelte';
   import { uiLang } from '~/lib/ui-lang.svelte';
+  import { t, tn } from '~/lib/ui-text';
   import BusyLabel from '~/lib/components/busy-label.svelte';
 
   type ListResponse = InferResponseType<typeof api.api.admin.categories.$get, 200>;
@@ -106,7 +107,7 @@
     deleteBusy = true;
     try {
       await unwrapFull(await api.api.admin.categories[':id'].$delete({ param: { id: target.id } }));
-      toast.success(`Deleted "${nameOf(target)}".`);
+      toast.success(t('categories.toastDeleted', { name: nameOf(target) }));
       deleting = null;
       categories.refresh();
     } catch (err) {
@@ -121,23 +122,22 @@
 
 <section class="admin-page">
   <PageHeader
-    eyebrow="Catalog"
-    title="Categories"
-    description="Each category defines the spec fields its products are filtered and compared by."
+    eyebrow={t('categories.pageEyebrow')}
+    title={t('categories.pageTitle')}
+    description={t('categories.pageDescription')}
   >
     {#snippet actions()}
       {#if session.can(P.CATEGORY_CREATE)}
         <Button onclick={() => openEditor('new')}>
           <PlusIcon />
-          New category
+          {t('categories.newCategory')}
         </Button>
       {/if}
     {/snippet}
   </PageHeader>
 
   <ListCard
-    noun="category"
-    nounPlural="categories"
+    countKey="entities.category"
     meta={categories.data
       ? { page: 1, perPage: rows.length || 1, total: rows.length, pageCount: 1 }
       : undefined}
@@ -152,11 +152,11 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[40%]">Category</Table.Head>
-            <Table.Head>Code</Table.Head>
-            <Table.Head>Spec fields</Table.Head>
-            <Table.Head>English</Table.Head>
-            <Table.Head>Status</Table.Head>
+            <Table.Head class="w-[40%]">{t('categories.colCategory')}</Table.Head>
+            <Table.Head>{t('categories.colCode')}</Table.Head>
+            <Table.Head>{t('categories.colSpecFields')}</Table.Head>
+            <Table.Head>{t('categories.colEnglish')}</Table.Head>
+            <Table.Head>{t('categories.colStatus')}</Table.Head>
             <Table.Head class="w-10"></Table.Head>
           </Table.Row>
         </Table.Header>
@@ -193,9 +193,9 @@
               <Table.Cell><code class="font-mono text-xs">{category.code}</code></Table.Cell>
 
               <Table.Cell class="text-muted-foreground">
-                {pluralize(category.specs.length, 'field')}
+                {tn('components.fieldCount', category.specs.length)}
                 {#if filterable > 0}
-                  <span class="text-xs">· {filterable} filterable</span>
+                  <span class="text-xs">· {tn('categories.filterableCount', filterable)}</span>
                 {/if}
               </Table.Cell>
 
@@ -205,7 +205,7 @@
 
               <Table.Cell>
                 <Badge variant={category.isActive ? 'default' : 'outline'}>
-                  {category.isActive ? 'active' : 'hidden'}
+                  {category.isActive ? t('categories.statusActive') : t('categories.statusHidden')}
                 </Badge>
               </Table.Cell>
 
@@ -213,14 +213,14 @@
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger
                     class={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
-                    aria-label="Row actions"
+                    aria-label={t('categories.rowActions')}
                   >
                     <MoreHorizontalIcon />
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Content align="end">
                     <DropdownMenu.Item onSelect={() => openEditor(category.id)}>
                       <PencilIcon />
-                      Edit
+                      {t('common.edit')}
                     </DropdownMenu.Item>
                     {#if session.can(P.CATEGORY_DELETE)}
                       <DropdownMenu.Separator />
@@ -229,7 +229,7 @@
                         onSelect={() => (deleting = category)}
                       >
                         <Trash2Icon />
-                        Delete
+                        {t('common.delete')}
                       </DropdownMenu.Item>
                     {/if}
                   </DropdownMenu.Content>
@@ -245,17 +245,14 @@
       <Empty.Root class="border-0">
         <Empty.Header>
           <Empty.Media variant="icon"><LayersIcon /></Empty.Media>
-          <Empty.Title>No categories yet</Empty.Title>
-          <Empty.Description>
-            A product needs a category, and a category's specs are what make the storefront
-            filterable. Start here.
-          </Empty.Description>
+          <Empty.Title>{t('categories.emptyTitle')}</Empty.Title>
+          <Empty.Description>{t('categories.emptyDescription')}</Empty.Description>
         </Empty.Header>
         {#if session.can(P.CATEGORY_CREATE)}
           <Empty.Content>
             <Button onclick={() => openEditor('new')}>
               <PlusIcon />
-              New category
+              {t('categories.newCategory')}
             </Button>
           </Empty.Content>
         {/if}
@@ -274,16 +271,15 @@
 >
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Delete this category?</AlertDialog.Title>
+      <AlertDialog.Title>{t('categories.deleteTitle')}</AlertDialog.Title>
       <AlertDialog.Description>
-        "{deleting ? nameOf(deleting) : ''}" and its {pluralize(
-          deleting?.specs.length ?? 0,
-          'spec field',
-        )} are removed. Categories that still have products cannot be deleted.
+        {tn('categories.deleteDescription', deleting?.specs.length ?? 0, {
+          name: deleting ? nameOf(deleting) : '',
+        })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={deleteBusy}>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={deleteBusy}>{t('common.cancel')}</AlertDialog.Cancel>
       <AlertDialog.Action
         disabled={deleteBusy}
         class={buttonVariants({ variant: 'destructive' })}
@@ -292,7 +288,9 @@
           void confirmDelete();
         }}
       >
-        <BusyLabel busy={deleteBusy} label="Deleting…">Delete category</BusyLabel>
+        <BusyLabel busy={deleteBusy} label={t('categories.deleting')}>
+          {t('categories.deleteAction')}
+        </BusyLabel>
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

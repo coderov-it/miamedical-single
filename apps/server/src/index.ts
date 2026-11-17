@@ -5,11 +5,14 @@ import { env } from './config/env.ts';
 import { logFeatureSummary } from './config/features.ts';
 import { db } from './infra/db/client.ts';
 import { r2FileUploader } from './infra/media.ts';
+import { flushViewsOnShutdown, startViewFlush } from './modules/product-views/views.ts';
+import { startAnalyticsSweep } from './modules/analytics/sweep.ts';
 import { startMediaSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
 import { startNotificationSweep } from './modules/notifications/sweep.ts';
 import { startPaymentSweep } from './modules/payments/sweep.ts';
 import { startPushSweep } from './modules/push/sweep.ts';
+import { checkLedger } from './modules/stock-history/service.ts';
 
 const server = serve({ fetch: app.fetch, port: env.API_PORT, hostname: env.API_HOST }, (info) => {
   console.log(`▲ Server listening on http://${env.API_HOST}:${info.port}`);
@@ -19,6 +22,8 @@ const server = serve({ fetch: app.fetch, port: env.API_PORT, hostname: env.API_H
 });
 
 startMediaSweep(r2FileUploader, db);
+/* Logs, never fixes, a product whose stock is not the sum of its movements. */
+checkLedger(db).catch((error: unknown) => console.error('[stock-history] check failed', error));
 
 /*
   The live feed's two halves. `hub.start()` opens the one LISTEN connection this
@@ -35,12 +40,20 @@ startPushSweep(db);
 /* Unpaid orders past their deadline give their stock back; abandoned gateway
    sessions are closed. See modules/payments/sweep.ts. */
 startPaymentSweep(db);
+/* Sales rollups for the admin analytics page: full rebuild on boot, then the days
+   of changed orders every minute. See modules/analytics/sweep.ts. */
+startAnalyticsSweep(db);
+/* Product page views are counted in memory and written once a minute, and once more
+   on shutdown. See modules/product-views/views.ts. */
+startViewFlush(db);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
-    /* Unlisten first: the listener holds a connection outside the pool, and a
+    /* Flush the view counts (3 s at most), then unlisten: the listener holds a connection outside the pool, and a
        process that exits without releasing it leaves the backend sitting in
        `idle` until Postgres times it out. */
-    void listener.unlisten().finally(() => server.close(() => process.exit(0)));
+    void flushViewsOnShutdown()
+      .then(() => listener.unlisten())
+      .finally(() => server.close(() => process.exit(0)));
   });
 }

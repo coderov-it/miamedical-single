@@ -1,0 +1,23 @@
+{
+  "overview": "Overview",
+  "catalog": "Catalog",
+  "sales": "Sales",
+  "content": "Content",
+  "settings": "Settings",
+  "dashboard": "Dashboard",
+  "analytics": "Analytics",
+  "notifications": "Notifications",
+  "products": "Products",
+  "categories": "Categories",
+  "terms": "Terms",
+  "orders": "Orders",
+  "rentManagement": "Rent Management",
+  "contracts": "Contracts",
+  "payments": "Payments",
+  "carts": "Carts",
+  "disputedOrders": "Disputed Orders",
+  "blogPosts": "Blog Posts",
+  "privacyPolicy": "Privacy Policy",
+  "general": "General",
+  "adminUsers": "Admin Users"
+}

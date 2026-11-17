@@ -6,7 +6,7 @@
 
 import type { Database, SQL } from '@mia/db';
 import { and, count, desc, eq, gte, ilike, inArray, lt, or, sql } from '@mia/db';
-import { orderItems, orders } from '@mia/db/schema';
+import { adminUsers, orderItems, orders } from '@mia/db/schema';
 
 import { romeDayRange } from '../../shared/rome-day.ts';
 import type { AdminOrderSummaryRecord, OrderListFilters } from './types.ts';
@@ -69,6 +69,7 @@ export async function findMany(
     db
       .select({
         order: orders,
+        createdByName: sql<string | null>`COALESCE(${adminUsers.fullName}, ${adminUsers.email})`,
         itemCount: count(orderItems.id),
         // Whether anything on the order is rented — the fact that decides if a
         // missing/unsigned contract is a problem worth flagging on the list.
@@ -84,7 +85,8 @@ export async function findMany(
       .from(page)
       .innerJoin(orders, eq(orders.id, page.id))
       .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
-      .groupBy(orders.id)
+      .leftJoin(adminUsers, eq(adminUsers.id, orders.createdByAdminUserId))
+      .groupBy(orders.id, adminUsers.id)
       .orderBy(desc(orders.placedAt), desc(orders.id)),
     db.select({ value: count() }).from(orders).where(where),
   ]);
@@ -95,6 +97,7 @@ export async function findMany(
       itemCount: row.itemCount,
       hasRental: row.hasRental,
       contractStatus: row.contractStatus,
+      createdByName: row.createdByName,
     })),
     total: totals[0]?.value ?? 0,
   };
@@ -109,10 +112,10 @@ export async function countAwaiting(db: Database): Promise<number> {
 /**
  * Dashboard figures over a trailing window.
  *
- * "Revenue" counts only `paid` and `fulfilled` orders. Pending is money that
- * has not arrived, and cancelled and refunded are money that left again —
- * folding any of them in would produce a number nobody could reconcile against
- * the bank. The DTO carries the definition to the UI so the tile can say so.
+ * "Revenue" is `net_total` (price + paid extensions − refunds) of `paid`,
+ * `fulfilled` and `refunded` orders that still keep money. Pending is money
+ * that has not arrived and cancelled never was taken; a fully refunded order
+ * has net 0 and drops out by itself. The DTO carries the definition to the UI.
  */
 export async function windowStats(
   db: Database,
@@ -120,12 +123,18 @@ export async function windowStats(
 ): Promise<{ revenue: string; orderCount: number; currency: string }> {
   const rows = await db
     .select({
-      revenue: sql<string>`COALESCE(SUM(${orders.total}), 0)::numeric(12,2)::text`,
+      revenue: sql<string>`COALESCE(SUM(${orders.netTotal}), 0)::numeric(12,2)::text`,
       orderCount: count(),
       currency: sql<string | null>`MIN(${orders.currency})`,
     })
     .from(orders)
-    .where(and(gte(orders.placedAt, since), inArray(orders.status, ['paid', 'fulfilled'])));
+    .where(
+      and(
+        gte(orders.placedAt, since),
+        inArray(orders.status, ['paid', 'fulfilled', 'refunded']),
+        sql`${orders.netTotal} > 0`,
+      ),
+    );
 
   const row = rows[0];
   return {

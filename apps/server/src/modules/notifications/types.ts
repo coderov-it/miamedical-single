@@ -66,6 +66,8 @@ export type NotificationInput<T extends NotificationType = NotificationType> = {
  */
 export const ADMIN_EVENT_PERMISSION = {
   'order.placed': P.ORDER_READ,
+  /* Not fanned out: only a manual order's creating agent gets it, as `paid` (orders/status-notice.ts). */
+  'order.status_changed': P.ORDER_READ,
   'order.link_disputed': P.ORDER_DISPUTE_READ,
   'contract.signed': P.CONTRACT_READ,
   'contract.unsigned_blocking': P.CONTRACT_READ,

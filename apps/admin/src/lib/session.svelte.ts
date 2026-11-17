@@ -3,6 +3,7 @@ import type { InferResponseType } from 'hono/client';
 
 import { api } from './api';
 import { notificationFeed } from './notifications';
+import { t } from './ui-text';
 
 type Me = InferResponseType<typeof api.api.auth.me.$get, 200>['data'];
 
@@ -86,7 +87,7 @@ class Session {
       const body = (await response.json().catch(() => null)) as {
         error?: { message?: string };
       } | null;
-      return body?.error?.message ?? `Sign in failed (${response.status}).`;
+      return body?.error?.message ?? t('auth.signInFailed', { status: response.status });
     }
 
     this.#user = ((await response.json()) as { data: Me }).data;

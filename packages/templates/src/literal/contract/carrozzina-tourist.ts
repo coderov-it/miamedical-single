@@ -14,7 +14,7 @@ export function carrozzinaTourist(data: ContractData): string {
     lang: 'en',
     body: `${contractHeader({ contractNumber: data.contractNumber, title, date: data.generatedAt })}
 ${customerInfoEn(data.customer)}
-${itemsTableEn(data.items, data.subtotal, data.shippingTotal, data.total)}
+${itemsTableEn(data.items, data.subtotal, data.shippingTotal, data.total, data.discountTotal)}
 ${importantNoticeEn()}
 ${articlesEnWheelchair(data.damages)}
 ${signatureBlockEn(data.signature)}`,

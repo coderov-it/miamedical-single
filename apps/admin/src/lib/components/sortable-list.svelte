@@ -22,6 +22,7 @@
   import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
   import { cn } from '$lib/utils.js';
   import { Reorder } from '~/lib/reorder.svelte';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     items: T[];
@@ -35,10 +36,13 @@
     label?: string;
   }
 
-  let { items = $bindable(), row, key, onRemove, describe, label = 'Item' }: Props = $props();
+  let { items = $bindable(), row, key, onRemove, describe, label }: Props = $props();
+
+  const rowLabel = $derived(label ?? t('components.sortableItem'));
 
   const rowName = (item: T, index: number) =>
-    describe?.(item, index) ?? `${label.toLowerCase()} ${index + 1}`;
+    describe?.(item, index) ??
+    t('components.sortableRowName', { label: rowLabel, number: index + 1 });
 
   const reorder = new Reorder();
 
@@ -62,7 +66,7 @@
     size="icon-sm"
     disabled={up ? index === 0 : index === items.length - 1}
     onclick={() => move(index, up ? -1 : 1)}
-    aria-label="Move {name} {up ? 'up' : 'down'}"
+    aria-label={up ? t('components.moveUp', { name }) : t('components.moveDown', { name })}
   >
     {#if up}
       <ChevronUpIcon />
@@ -83,7 +87,7 @@
     >
       <div class="flex items-center gap-2 pb-2 pl-1">
         <span class="text-xs font-medium text-muted-foreground">
-          {label}
+          {rowLabel}
           {index + 1}
         </span>
 
@@ -101,10 +105,10 @@
             size="sm"
             class="ml-auto text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             onclick={() => onRemove(index)}
-            aria-label="Remove {rowName(item, index)}"
+            aria-label={t('components.removeNamed', { name: rowName(item, index) })}
           >
             <Trash2Icon />
-            Remove
+            {t('common.remove')}
           </Button>
         {/if}
       </div>

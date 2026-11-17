@@ -18,6 +18,7 @@ import {
   toOrderSummary,
   toPlacedOrder,
 } from './mapper.ts';
+import { manualOrderRoutes } from './manual/routes.ts';
 import * as service from './service.ts';
 import {
   AdminCartQuerySchema,
@@ -175,6 +176,9 @@ export const orderAdminRoutes = new Hono<AppEnv>()
       return c.json({ data });
     },
   )
+
+  /* Manual-order endpoints: /customer-accounts must precede `/:id`. */
+  .route('/', manualOrderRoutes)
 
   /** --------------------------------------------------------------------------
   GET /api/admin/orders/:id (order:read)

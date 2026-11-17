@@ -15,6 +15,7 @@
 
   import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
   import type { DirtyState } from '~/lib/dirty.svelte';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     dirty: DirtyState;
@@ -28,7 +29,7 @@
   let bypass = false;
 
   const at = $derived(
-    dirty.sections.map((section) => label?.(section) ?? section).join(', ') || 'this page',
+    dirty.sections.map((section) => label?.(section) ?? section).join(', ') || t('shell.thisPage'),
   );
 
   beforeNavigate((navigation) => {
@@ -69,14 +70,14 @@
 >
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>Leave with unsaved changes?</AlertDialog.Title>
+      <AlertDialog.Title>{t('shell.leaveTitle')}</AlertDialog.Title>
       <AlertDialog.Description>
-        You have unsaved changes in {at}. Leaving now discards them.
+        {t('shell.leaveDescription', { where: at })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel variant="outline">Stay on this page</AlertDialog.Cancel>
-      <AlertDialog.Action onclick={discard}>Discard changes</AlertDialog.Action>
+      <AlertDialog.Cancel variant="outline">{t('shell.stayOnPage')}</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={discard}>{t('shell.discardChanges')}</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

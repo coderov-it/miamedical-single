@@ -24,6 +24,7 @@
   import { ApiError, unwrap, unwrapFull } from '~/lib/request';
   import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
+  import { type MessageKey, t } from '~/lib/ui-text';
 
   type ListResponse = InferResponseType<(typeof api.api.admin)['order-disputes']['$get'], 200>;
   type Row = ListResponse['data'][number];
@@ -32,12 +33,18 @@
     200
   >['data'];
 
-  const STATUSES = [
-    { value: 'open', label: 'Open' },
-    { value: 'contacted', label: 'Contacted' },
-    { value: 'resolved', label: 'Resolved' },
-    { value: 'confirmed_fraud', label: 'Confirmed fraud' },
-  ] as const;
+  const STATUSES: readonly { value: string; labelKey: MessageKey }[] = [
+    { value: 'open', labelKey: 'disputes.statusOpen' },
+    { value: 'contacted', labelKey: 'disputes.statusContacted' },
+    { value: 'resolved', labelKey: 'disputes.statusResolved' },
+    { value: 'confirmed_fraud', labelKey: 'disputes.statusConfirmedFraud' },
+  ];
+
+  function statusLabel(status: string): string {
+    const known = STATUSES.find((s) => s.value === status);
+    if (!known) return status;
+    return t(known.labelKey);
+  }
 
   /** Open is the only state that means "somebody still has to do something". */
   const TONE: Record<string, 'destructive' | 'secondary' | 'outline'> = {
@@ -77,7 +84,7 @@
         pageCount: Math.max(1, Math.ceil(payload.meta.total / payload.meta.perPage)),
       };
     } catch (caught) {
-      error = caught instanceof ApiError ? caught.message : 'Could not load disputes.';
+      error = caught instanceof ApiError ? caught.message : t('disputes.loadFailed');
     } finally {
       loading = false;
     }
@@ -92,7 +99,7 @@
       );
       notes = detail.adminNotes ?? '';
     } catch (caught) {
-      error = caught instanceof ApiError ? caught.message : 'Could not load the dispute.';
+      error = caught instanceof ApiError ? caught.message : t('disputes.loadOneFailed');
     }
   }
 
@@ -109,7 +116,7 @@
       await load();
       await open(selectedId);
     } catch (caught) {
-      error = caught instanceof ApiError ? caught.message : 'Could not update the dispute.';
+      error = caught instanceof ApiError ? caught.message : t('disputes.updateFailed');
     } finally {
       busy = false;
     }
@@ -118,16 +125,16 @@
   void load();
 </script>
 
-<PageHeader title="Disputed Orders">
+<PageHeader title={t('nav.disputedOrders')}>
   {#snippet actions()}
     {#if openCount > 0}
-      <Badge variant="destructive">{openCount} open</Badge>
+      <Badge variant="destructive">{t('disputes.openCount', { count: openCount })}</Badge>
     {/if}
   {/snippet}
 </PageHeader>
 
 <ListCard
-  noun="dispute"
+  countKey="entities.dispute"
   {meta}
   {loading}
   {error}
@@ -140,11 +147,11 @@
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.Head>Order</Table.Head>
-          <Table.Head>Order email</Table.Head>
-          <Table.Head>Reported number</Table.Head>
-          <Table.Head>Status</Table.Head>
-          <Table.Head>Raised</Table.Head>
+          <Table.Head>{t('disputes.colOrder')}</Table.Head>
+          <Table.Head>{t('disputes.colOrderEmail')}</Table.Head>
+          <Table.Head>{t('disputes.colReported')}</Table.Head>
+          <Table.Head>{t('disputes.colStatus')}</Table.Head>
+          <Table.Head>{t('disputes.colRaised')}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
@@ -158,7 +165,7 @@
             <Table.Cell class="font-mono text-xs">{row.reportedPhone}</Table.Cell>
             <Table.Cell>
               <Badge variant={TONE[row.status] ?? 'outline'}>
-                {STATUSES.find((s) => s.value === row.status)?.label ?? row.status}
+                {statusLabel(row.status)}
               </Badge>
             </Table.Cell>
             <Table.Cell class="text-muted-foreground">{relativeTime(row.createdAt)}</Table.Cell>
@@ -171,8 +178,8 @@
   {#snippet empty()}
     <Empty.Root class="py-12">
       <Empty.Media variant="icon"><ShieldAlertIcon /></Empty.Media>
-      <Empty.Title>No disputes</Empty.Title>
-      <Empty.Description>Nobody has reported an order they did not place.</Empty.Description>
+      <Empty.Title>{t('disputes.emptyTitle')}</Empty.Title>
+      <Empty.Description>{t('disputes.emptyHint')}</Empty.Description>
     </Empty.Root>
   {/snippet}
 </ListCard>
@@ -182,7 +189,7 @@
     <div class="space-y-4 p-5">
       <div class="flex flex-wrap items-baseline justify-between gap-3">
         <h2 class="text-base font-medium">
-          Order
+          {t('disputes.detailOrder')}
           <a class="underline" href={routes.orders}>{detail.orderNumber}</a>
         </h2>
         <span class="tabular-nums">
@@ -192,34 +199,34 @@
 
       <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         <div>
-          <dt class="text-muted-foreground">Order email</dt>
+          <dt class="text-muted-foreground">{t('disputes.fieldOrderEmail')}</dt>
           <dd>{detail.orderEmail}</dd>
         </div>
         <div>
-          <dt class="text-muted-foreground">Account on the order</dt>
+          <dt class="text-muted-foreground">{t('disputes.fieldAccountEmail')}</dt>
           <dd>{detail.accountEmail ?? EM_DASH}</dd>
         </div>
         <div>
-          <dt class="text-muted-foreground">Phone on the order</dt>
+          <dt class="text-muted-foreground">{t('disputes.fieldOrderPhone')}</dt>
           <dd class="font-mono text-xs">{detail.orderPhone ?? EM_DASH}</dd>
         </div>
         <div>
           <!-- The one to call. Spelled out because the two numbers differing is
                the whole signal here. -->
-          <dt class="text-muted-foreground">Number the reporter gave</dt>
+          <dt class="text-muted-foreground">{t('disputes.fieldReportedPhone')}</dt>
           <dd class="font-mono text-xs font-medium">{detail.reportedPhone}</dd>
         </div>
       </dl>
 
       <div>
-        <p class="mb-1 text-sm text-muted-foreground">What they wrote</p>
+        <p class="mb-1 text-sm text-muted-foreground">{t('disputes.whatTheyWrote')}</p>
         <p class="rounded-md bg-muted/50 p-3 text-sm whitespace-pre-line">{detail.message}</p>
       </div>
 
       {#if canResolve}
         <div>
-          <p class="mb-1 text-sm text-muted-foreground">Internal notes</p>
-          <Textarea bind:value={notes} rows={3} placeholder="What happened on the call…" />
+          <p class="mb-1 text-sm text-muted-foreground">{t('disputes.internalNotes')}</p>
+          <Textarea bind:value={notes} rows={3} placeholder={t('disputes.notesPlaceholder')} />
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -230,12 +237,12 @@
               disabled={busy}
               onclick={() => move(status.value)}
             >
-              {status.label}
+              {t(status.labelKey)}
             </Button>
           {/each}
         </div>
       {:else}
-        <p class="text-sm text-muted-foreground">You can view disputes but not resolve them.</p>
+        <p class="text-sm text-muted-foreground">{t('disputes.viewOnly')}</p>
       {/if}
     </div>
   </Card.Root>

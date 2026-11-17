@@ -1,0 +1,141 @@
+---
+/**
+ * The customer's own details, as the order link's first step. The same four questions as
+ * the checkout's step 1 (name, phone, who they are, the fiscal identifier that follows),
+ * without the email (the order has it), the delivery (the agent set it) or the notes.
+ * Rules live in `scripts/complete-order/details.ts`; the gate marks what is missing at the
+ * control and the save button is never disabled. Every control carries `data-bwignore`
+ * for the reason given in `components/checkout/CheckoutDetails.astro`.
+ */
+import CheckoutField from '~/components/checkout/CheckoutField.astro';
+import { ANNOUNCE } from '~/components/account/fields';
+import { CHIP, CTA, FIELD_GRID, FIELD_INPUT } from '~/components/checkout/styles';
+import { CUSTOMER_TYPES } from '~/lib/checkout';
+import { t } from '~/lib/labels';
+---
+
+<form class="flex flex-col gap-5" novalidate data-co-details-form>
+  <div class={FIELD_GRID}>
+    <CheckoutField label={t('firstName')} gate="firstName" error={t('errorFirstName')}>
+      <input
+        class={FIELD_INPUT}
+        type="text"
+        name="first-name"
+        autocomplete="given-name"
+        placeholder={t('placeholderFirstName')}
+        data-bwignore
+        data-field="firstName"
+      />
+    </CheckoutField>
+    <CheckoutField label={t('lastName')} gate="lastName" error={t('errorLastName')}>
+      <input
+        class={FIELD_INPUT}
+        type="text"
+        name="last-name"
+        autocomplete="family-name"
+        placeholder={t('placeholderLastName')}
+        data-bwignore
+        data-field="lastName"
+      />
+    </CheckoutField>
+  </div>
+
+  <CheckoutField label={t('phoneNumber')} gate="phone" error={t('errorPhone')}>
+    <input
+      class={FIELD_INPUT}
+      type="tel"
+      name="phone"
+      autocomplete="tel"
+      inputmode="tel"
+      placeholder={t('placeholderPhone')}
+      data-bwignore
+      data-field="phone"
+    />
+  </CheckoutField>
+
+  <div class="flex flex-col gap-2.5" role="radiogroup" aria-labelledby="co-type-label">
+    <span class="text-[14.5px] font-semibold" id="co-type-label">
+      {t('iAmA')}
+    </span>
+    <div class="flex flex-wrap gap-2">
+      {CUSTOMER_TYPES.map((type) => (
+        <button
+          class={CHIP}
+          type="button"
+          role="radio"
+          aria-checked="false"
+          aria-pressed="false"
+          data-customer-type={type.id}
+        >
+          {t(type.id)}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <div data-when-type="private" hidden>
+    <CheckoutField label={t('codiceFiscale')} gate="codiceFiscale" error={t('errorCodiceFiscale')}>
+      <input
+        class={`${FIELD_INPUT} uppercase`}
+        type="text"
+        name="codice-fiscale"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder={t('placeholderCodiceFiscale')}
+        data-bwignore
+        data-field="privateCodiceFiscale"
+      />
+    </CheckoutField>
+  </div>
+
+  <div class={FIELD_GRID} data-when-type="company" hidden>
+    <CheckoutField label={t('partitaIva')} gate="partitaIva" error={t('errorPartitaIva')}>
+      <input
+        class={`${FIELD_INPUT} uppercase`}
+        type="text"
+        name="partita-iva"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder={t('placeholderPartitaIva')}
+        data-bwignore
+        data-field="partitaIva"
+      />
+    </CheckoutField>
+    <CheckoutField
+      label={t('companyCodiceFiscale')}
+      gate="companyCodiceFiscale"
+      error={t('errorCompanyCodiceFiscale')}
+    >
+      <input
+        class={`${FIELD_INPUT} uppercase`}
+        type="text"
+        name="company-codice-fiscale"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder={t('placeholderCompanyCodiceFiscale')}
+        data-bwignore
+        data-field="companyCodiceFiscale"
+      />
+    </CheckoutField>
+  </div>
+
+  <button class={CTA} type="submit" data-co-details-save>
+    {t('completeOrder.details.save')}
+  </button>
+  <p
+    class={ANNOUNCE}
+    role="status"
+    aria-live="polite"
+    data-co-announce="details"
+    data-message-one={t('errorCountOne')}
+    data-message-many={t('errorCountMany')}
+  ></p>
+</form>
+
+<p class="text-ink-2 m-0 text-[14.5px]" role="status" data-co-details-note hidden></p>
+<p
+  class="bg-danger-tint text-danger m-0 rounded-xl px-4 py-3 text-[14.5px]"
+  role="alert"
+  data-co-details-error
+  hidden
+></p>

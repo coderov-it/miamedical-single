@@ -20,6 +20,7 @@ import {
 import { startingPrice } from '@mia/pricing';
 import { richTextToPlain } from '@mia/validators';
 
+import { setStockContext } from '../../../shared/stock-context.ts';
 import type { ProductAggregate, ProductListFilters } from '../types.ts';
 import { baseWhere } from './list-query.ts';
 
@@ -49,6 +50,8 @@ export interface CreateProductData {
   isFeatured: boolean;
   chips: ProductChip[];
   translations: Partial<Record<LanguageCode, TranslationData>>;
+  /** Who creates it, for the opening row of its stock history. */
+  actorAdminUserId?: string | null;
 }
 
 export interface UpdateProductData {
@@ -302,6 +305,10 @@ function translationInsert(productId: string, languageCode: LanguageCode, data: 
 
 export async function create(db: Database, data: CreateProductData): Promise<string> {
   return db.transaction(async (tx) => {
+    await setStockContext(tx, {
+      reason: 'product_created',
+      actorAdminUserId: data.actorAdminUserId ?? null,
+    });
     const [product] = await tx
       .insert(products)
       .values({
@@ -333,9 +340,21 @@ export async function create(db: Database, data: CreateProductData): Promise<str
 }
 
 /** `pricingMode` is never in the SET list — write-once by construction. */
-export async function update(db: Database, id: string, data: UpdateProductData): Promise<void> {
+export interface StockEdit {
+  actorAdminUserId: string | null;
+  note: string | null;
+}
+
+/** `stockEdit` is given only when this save really changes the stock. */
+export async function update(
+  db: Database,
+  id: string,
+  data: UpdateProductData,
+  stockEdit?: StockEdit,
+): Promise<void> {
   await db.transaction(async (tx) => {
     const { translations, ...columns } = data;
+    if (stockEdit) await setStockContext(tx, { reason: 'manual_adjustment', ...stockEdit });
     if (Object.keys(columns).length > 0) {
       await tx.update(products).set(columns).where(eq(products.id, id));
     } else {

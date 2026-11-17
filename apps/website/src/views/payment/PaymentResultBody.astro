@@ -23,7 +23,7 @@ import {
 import { EYEBROW } from '~/components/checkout/styles';
 import PhoneCta from '~/components/global/PhoneCta.astro';
 import LoadingState from '~/components/primitives/LoadingState.svelte';
-import { API_BASE } from '~/lib/api';
+import { PUBLIC_API_URL } from '~/lib/api-base';
 import { localeForRequest, translate } from '~/lib/i18n';
 import { routePath } from '~/lib/routes';
 
@@ -34,7 +34,7 @@ const PANEL = 'flex flex-col items-start gap-3';
 const LINKS = 'mt-2 flex flex-wrap gap-3';
 ---
 
-<div class={AUTH_CARD} data-payment-result data-api-base={API_BASE}>
+<div class={AUTH_CARD} data-payment-result data-api-base={PUBLIC_API_URL}>
   <div data-pay-panel="checking">
     <LoadingState label={text('payment.checking')} />
   </div>

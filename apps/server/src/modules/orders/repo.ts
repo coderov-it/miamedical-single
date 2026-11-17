@@ -1,103 +1,18 @@
 /**
- * DB writes and single-order reads. Plain records out — no auth, no DTOs. The
+ * DB writes (the single-order reads are in detail-repo.ts, re-exported here). Plain records out — no auth, no DTOs. The
  * list, dashboard, customer-lookup and calendar reads are in list-repo.ts, carts
  * in cart-repo.ts.
  */
 
 import type { Database, DatabaseWriter, Transaction } from '@mia/db';
-import { asc, eq, inArray, sql } from '@mia/db';
-import {
-  adminUsers,
-  customerAccounts,
-  orderItems,
-  orders,
-  orderStatusEvents,
-  products,
-} from '@mia/db/schema';
+import { eq, inArray, sql } from '@mia/db';
+import { orderItems, orders, orderStatusEvents, products } from '@mia/db/schema';
 
 import { emitToAdmins } from '../notifications/write.ts';
 import { applyStockMoves } from './stock.ts';
-import type {
-  ActorRef,
-  OrderAggregate,
-  OrderStatusEventRecord,
-  OrderSummaryRecord,
-} from './types.ts';
+import type { OrderRow, OrderSummaryRecord } from './types.ts';
 
-// --- orders ----------------------------------------------------------------
-
-export async function findById(db: Database, id: string): Promise<OrderAggregate | undefined> {
-  const order = await db.query.orders.findFirst({ where: eq(orders.id, id) });
-  if (!order) return undefined;
-
-  const [items, events] = await Promise.all([
-    db.query.orderItems.findMany({
-      where: eq(orderItems.orderId, id),
-      orderBy: asc(orderItems.id),
-    }),
-    findEvents(db, id),
-  ]);
-
-  return { ...order, items, events };
-}
-
-export async function findEvents(db: Database, orderId: string): Promise<OrderStatusEventRecord[]> {
-  const rows = await db
-    .select({
-      event: orderStatusEvents,
-      adminId: adminUsers.id,
-      adminEmail: adminUsers.email,
-      adminName: adminUsers.fullName,
-      customerId: customerAccounts.id,
-      customerEmail: customerAccounts.email,
-      customerFirstName: customerAccounts.firstName,
-      customerLastName: customerAccounts.lastName,
-    })
-    .from(orderStatusEvents)
-    // Two actor tables, at most one of which matches: an operator moved a status,
-    // or a customer confirmed or rejected the account link.
-    .leftJoin(adminUsers, eq(orderStatusEvents.actorAdminUserId, adminUsers.id))
-    .leftJoin(customerAccounts, eq(orderStatusEvents.actorCustomerAccountId, customerAccounts.id))
-    .where(eq(orderStatusEvents.orderId, orderId))
-    // Oldest first: a timeline is read downwards. `id` breaks ties so two
-    // events written in the same transaction keep a stable order.
-    .orderBy(asc(orderStatusEvents.createdAt), asc(orderStatusEvents.id));
-
-  return rows.map((row) => ({
-    ...row.event,
-    actor: resolveActor(row),
-  }));
-}
-
-/**
- * Collapses the two actor joins into one reference. `kind` matters to the reader:
- * "Confermato" from an operator and from the customer are different facts, and
- * without it the timeline would present them identically.
- */
-function resolveActor(row: {
-  adminId: string | null;
-  adminEmail: string | null;
-  adminName: string | null;
-  customerId: string | null;
-  customerEmail: string | null;
-  customerFirstName: string | null;
-  customerLastName: string | null;
-}): ActorRef | null {
-  if (row.adminId && row.adminEmail) {
-    return { kind: 'admin', id: row.adminId, email: row.adminEmail, fullName: row.adminName };
-  }
-
-  if (row.customerId && row.customerEmail) {
-    return {
-      kind: 'customer',
-      id: row.customerId,
-      email: row.customerEmail,
-      fullName: `${row.customerFirstName ?? ''} ${row.customerLastName ?? ''}`.trim() || null,
-    };
-  }
-
-  return null;
-}
+export { findById, findEvents, findRefunds } from './detail-repo.ts';
 
 // --- placing an order ------------------------------------------------------
 
@@ -118,17 +33,29 @@ export interface NewOrderData {
    */
   customerAccountId: string | null;
   customerLinkStatus: 'unverified' | 'confirmed' | 'rejected';
-  firstName: string;
-  lastName: string;
+  /**
+   * Nullable as a group, like the columns: a manual order starts with the email
+   * alone and the customer completes the rest at their order link.
+   */
+  firstName: string | null;
+  lastName: string | null;
   email: string;
-  phone: string;
-  customerType: 'private' | 'company' | 'tourist';
+  phone: string | null;
+  customerType: 'private' | 'company' | 'tourist' | null;
   codiceFiscale: string | null;
   partitaIva: string | null;
   currency: string;
   subtotal: string;
   shippingTotal: string;
+  /** Absent means a checkout order: no discount. */
+  discountTotal?: string;
+  discountReason?: string | null;
   total: string;
+  /** Absent means `online`. A `manual` order must name its agent. */
+  source?: 'online' | 'manual';
+  createdByAdminUserId?: string | null;
+  /** The opening timeline note; absent reads as the storefront's. */
+  openingNote?: string;
   /**
    * Null on a collection, which has no address: the checkout asks for one only
    * when something is being delivered. Both columns are nullable jsonb, so this is
@@ -186,6 +113,8 @@ export async function insertOrder(
         lastName: data.lastName,
         email: data.email,
         phone: data.phone,
+        source: data.source ?? 'online',
+        createdByAdminUserId: data.createdByAdminUserId ?? null,
         customerType: data.customerType,
         codiceFiscale: data.codiceFiscale,
         partitaIva: data.partitaIva,
@@ -194,6 +123,8 @@ export async function insertOrder(
         currency: data.currency,
         subtotal: data.subtotal,
         shippingTotal: data.shippingTotal,
+        discountTotal: data.discountTotal ?? '0.00',
+        discountReason: data.discountReason ?? null,
         total: data.total,
         shippingAddress: data.shippingAddress,
         billingAddress: data.billingAddress,
@@ -221,7 +152,10 @@ export async function insertOrder(
     /* The units leave the shelf now, with the order, so two customers can never
        pay for the same last one. Short stock rolls the whole order back as an
        `out_of_stock` 409 — see stock.ts and docs/code/orders-stock.md. */
-    await applyStockMoves(tx, data.items, null, 'pending', false);
+    await applyStockMoves(tx, data.items, null, 'pending', false, {
+      orderId: order.id,
+      actorAdminUserId: data.createdByAdminUserId ?? null,
+    });
 
     /**
      * Demand, counted once per order rather than per unit — three of the same
@@ -247,17 +181,19 @@ export async function insertOrder(
       // Nothing preceded it — the order did not move into `pending`, it began there.
       fromValue: null,
       toValue: 'pending',
-      note: 'Placed from the storefront checkout.',
-      actorAdminUserId: null,
+      note: data.openingNote ?? 'Placed from the storefront checkout.',
+      actorAdminUserId: data.createdByAdminUserId ?? null,
       actorCustomerAccountId: null,
     });
 
     /* Closes the gap `docs/code/notifications-and-mail.md` names outright: a new
        order alerted nobody. Inside the order's own transaction, so an operator
-       is never told about a checkout that rolled back. */
+       is never told about a checkout that rolled back. A manual order does not
+       tell the agent who just created it. */
     await emitToAdmins(tx, {
       type: 'order.placed',
       orderId: order.id,
+      exceptAdminUserId: data.createdByAdminUserId ?? null,
       data: {
         orderNumber: order.number,
         total: data.total,
@@ -284,10 +220,20 @@ export interface OrderPatch {
    * only the fee would leave the order's own arithmetic wrong.
    */
   shippingTotal?: string;
+  /** Set only by `manual/discount.ts`, together with its reason and the total. */
+  discountTotal?: string;
+  discountReason?: string | null;
   total?: string;
+  /** The customer block, written by the customer from a manual order's link (`order-links/details.ts`). */
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  customerType?: OrderRow['customerType'];
+  codiceFiscale?: string | null;
+  partitaIva?: string | null;
 }
 
-export async function update(db: Database, id: string, patch: OrderPatch): Promise<void> {
+export async function update(db: DatabaseWriter, id: string, patch: OrderPatch): Promise<void> {
   await db.update(orders).set(patch).where(eq(orders.id, id));
 }
 

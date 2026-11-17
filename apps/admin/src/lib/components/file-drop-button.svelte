@@ -8,6 +8,7 @@
   import UploadIcon from '@lucide/svelte/icons/upload';
 
   import { cn } from '$lib/utils.js';
+  import { t } from '~/lib/ui-text';
 
   interface Props {
     onFiles: (files: FileList | File[]) => void;
@@ -65,7 +66,7 @@
     {:else}
       <UploadIcon class="size-4 text-muted-foreground" />
       <span class="text-muted-foreground">
-        Drop {single ? 'a file' : 'files'} here, or click to choose
+        {single ? t('components.dropSingle') : t('components.dropMultiple')}
       </span>
     {/if}
   </button>

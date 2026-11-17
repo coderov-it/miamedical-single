@@ -10,6 +10,8 @@
 
 export const routes = {
   dashboard: '/',
+  /** Sales charts over a date range — read from the rollups, see docs/code/sales-analytics.md. */
+  analytics: '/analytics',
 
   products: '/products',
   productNew: '/products/new',
@@ -19,6 +21,8 @@ export const routes = {
   terms: '/terms',
 
   orders: '/orders',
+  /** An agent raises an order for a customer who phoned or wrote. */
+  orderNew: '/orders/new',
   orderDetail: (id: string) => `/orders/${id}`,
   /** The queue with a detail drawer open — deep-linkable and refresh-safe. */
   ordersWithDrawer: (id: string) => `/orders?order=${id}`,

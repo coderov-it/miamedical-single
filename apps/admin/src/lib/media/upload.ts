@@ -1,6 +1,7 @@
 import { MEDIA_PROFILES, type MediaProfileName } from '@mia/validators';
 
 import { api, apiUrl } from '../api';
+import { t } from '../ui-text';
 
 export interface UploadResult {
   /** Staging path — becomes real when the owning entity is saved. */
@@ -22,10 +23,12 @@ export async function uploadFile(
 ): Promise<UploadResult> {
   const { source } = MEDIA_PROFILES[profile];
   if (!(source.mime as readonly string[]).includes(file.type)) {
-    throw new Error(`This slot accepts: ${source.mime.join(', ')}.`);
+    throw new Error(t('components.uploadMimeRejected', { types: source.mime.join(', ') }));
   }
   if (file.size > source.maxBytes) {
-    throw new Error(`File is too large (max ${Math.round(source.maxBytes / 1_048_576)} MB).`);
+    throw new Error(
+      t('components.uploadTooLarge', { max: Math.round(source.maxBytes / 1_048_576) }),
+    );
   }
 
   const form = new FormData();
@@ -46,10 +49,14 @@ export async function uploadFile(
       if (xhr.status >= 200 && xhr.status < 300 && body?.data) {
         resolve(body.data);
       } else {
-        reject(new Error(body?.error?.message ?? `Upload failed (${xhr.status}).`));
+        reject(
+          new Error(
+            body?.error?.message ?? t('components.uploadFailedStatus', { status: xhr.status }),
+          ),
+        );
       }
     };
-    xhr.onerror = () => reject(new Error('Upload failed — network error.'));
+    xhr.onerror = () => reject(new Error(t('components.uploadNetworkError')));
     xhr.send(form);
   });
 }

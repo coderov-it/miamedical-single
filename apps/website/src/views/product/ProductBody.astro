@@ -31,6 +31,7 @@ import PdpOrderPanel from '~/components/product/PdpOrderPanel.astro';
 import PdpQuestions from '~/components/product/PdpQuestions.astro';
 import PdpSpecs from '~/components/product/PdpSpecs.astro';
 import { cardPrice } from '~/lib/api';
+import { PUBLIC_API_URL } from '~/lib/api-base';
 import type { ProductDetail } from '~/lib/catalog';
 import { localeForRequest, translate } from '~/lib/i18n';
 import type { BrowseAnswers, ProductImages } from '~/lib/product-page';
@@ -68,7 +69,12 @@ const leftColumn = 'flex min-w-0 flex-[1_1_540px] flex-col gap-13';
     The bottom padding clears BOTH fixed bars on phones: the price bar and the
     persistent navigation under it.
   */}
-<div class="pdp px-gutter mid:pb-20 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]">
+<div
+  data-pdp-root
+  data-product-id={product.id}
+  data-api-base={PUBLIC_API_URL}
+  class="pdp px-gutter mid:pb-20 max-w-page mx-auto w-full pb-[calc(var(--spacing-mobile-bar)+var(--spacing-mobile-nav)+1.25rem)]"
+>
   <Breadcrumbs
     items={[
       { label: translate(locale, 'home'), href: routePath(locale, 'home') },

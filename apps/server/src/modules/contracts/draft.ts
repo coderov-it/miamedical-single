@@ -24,6 +24,8 @@ export interface ContractTerms {
   items: ContractData['items'];
   subtotal: string;
   shippingTotal: string;
+  /** A manual order's discount, already taken off `total`; the contract prints it as a row. */
+  discountTotal?: string;
   total: string;
   currency: string;
   hasDepositProduct: boolean;
@@ -55,6 +57,7 @@ export function draftContract(
     items: terms.items,
     subtotal: terms.subtotal,
     shippingTotal: terms.shippingTotal,
+    ...(terms.discountTotal ? { discountTotal: terms.discountTotal } : {}),
     total: terms.total,
     currency: terms.currency,
     requiresDeposit: variant.requiresDeposit,
@@ -103,9 +106,11 @@ export function rentalItems(lines: ContractLine[]): ContractData['items'] {
 export function contractTotals(
   items: ContractData['items'],
   shippingTotal: string,
+  discountTotal = '0.00',
 ): { subtotal: string; total: string } {
   const cents = items.reduce((sum, item) => sum + toCents(item.total), 0);
-  return { subtotal: fromCents(cents), total: fromCents(cents + toCents(shippingTotal)) };
+  const total = Math.max(0, cents + toCents(shippingTotal) - toCents(discountTotal));
+  return { subtotal: fromCents(cents), total: fromCents(total) };
 }
 
 /** `"line1, postalCode city"` from an address snapshot, missing parts dropped; '' for none. */
