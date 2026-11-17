@@ -17,7 +17,7 @@
   "tileOrders": "Bestellungen",
   "tileAverageOrder": "Durchschnittlicher Bestellwert",
   "tileUnits": "Verkaufte Einheiten",
-  "revenueBasis": "Bezahlte und erfüllte Bestellungen, inklusive Versand.",
+  "revenueBasis": "Endwert bezahlter Bestellungen: Bestellung + bezahlte Verlängerungen − Erstattungen, gezählt am Tag der Bestellung.",
   "revenueBasisLabel": "Über den Umsatz",
   "vsPrevious": "gegenüber dem Vorzeitraum",
   "trendTitle": "Verlauf",
@@ -40,5 +40,7 @@
   "periodUpdated": "{period} · aktualisiert um {time}",
   "chartKindLabel": "Diagrammtyp",
   "chartBars": "Balken",
-  "chartLine": "Linie"
+  "chartLine": "Linie",
+  "noteExtensions": "inkl. +{amount} Verlängerungen",
+  "noteRefunds": "inkl. −{amount} Erstattungen"
 }

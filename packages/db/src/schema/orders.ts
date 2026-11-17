@@ -135,6 +135,18 @@ export const orders = pgTable(
     taxTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
     discountTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
     total: numeric({ precision: 12, scale: 2 }).notNull(),
+    /**
+     * Money that moved after placement. Both are written ONLY by the database:
+     * triggers recompute them from `rental_extensions` (paid ones) and
+     * `order_refunds` on every change there, so no app path can forget one.
+     * `net_total` is what the order is finally worth, and what analytics sum.
+     * Worked example: docs/code/order-money.md.
+     */
+    extensionTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
+    refundedTotal: numeric({ precision: 12, scale: 2 }).notNull().default('0.00'),
+    netTotal: numeric({ precision: 12, scale: 2 }).generatedAlwaysAs(
+      sql`total + extension_total - refunded_total`,
+    ),
     /** Address snapshots — orders must not change when a user edits an address. */
     shippingAddress: jsonb().$type<Record<string, unknown>>(),
     billingAddress: jsonb().$type<Record<string, unknown>>(),
@@ -198,6 +210,12 @@ export const orders = pgTable(
      * the panel the operator reads all hang off it.
      */
     check('orders_delivery_check', sql`${t.delivery} IS NULL OR ${t.delivery} ? 'method'`),
+    /** Never refund more than the order took in, extensions included. */
+    check(
+      'orders_money_check',
+      sql`${t.extensionTotal} >= 0 AND ${t.refundedTotal} >= 0
+        AND ${t.refundedTotal} <= ${t.total} + ${t.extensionTotal}`,
+    ),
     /**
      * The fiscal rule the checkout asks in words, held here so it survives any
      * other way an order gets written. `tourist` carries neither identifier, so

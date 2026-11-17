@@ -109,10 +109,10 @@ export async function countAwaiting(db: Database): Promise<number> {
 /**
  * Dashboard figures over a trailing window.
  *
- * "Revenue" counts only `paid` and `fulfilled` orders. Pending is money that
- * has not arrived, and cancelled and refunded are money that left again —
- * folding any of them in would produce a number nobody could reconcile against
- * the bank. The DTO carries the definition to the UI so the tile can say so.
+ * "Revenue" is `net_total` (price + paid extensions − refunds) of `paid`,
+ * `fulfilled` and `refunded` orders that still keep money. Pending is money
+ * that has not arrived and cancelled never was taken; a fully refunded order
+ * has net 0 and drops out by itself. The DTO carries the definition to the UI.
  */
 export async function windowStats(
   db: Database,
@@ -120,12 +120,18 @@ export async function windowStats(
 ): Promise<{ revenue: string; orderCount: number; currency: string }> {
   const rows = await db
     .select({
-      revenue: sql<string>`COALESCE(SUM(${orders.total}), 0)::numeric(12,2)::text`,
+      revenue: sql<string>`COALESCE(SUM(${orders.netTotal}), 0)::numeric(12,2)::text`,
       orderCount: count(),
       currency: sql<string | null>`MIN(${orders.currency})`,
     })
     .from(orders)
-    .where(and(gte(orders.placedAt, since), inArray(orders.status, ['paid', 'fulfilled'])));
+    .where(
+      and(
+        gte(orders.placedAt, since),
+        inArray(orders.status, ['paid', 'fulfilled', 'refunded']),
+        sql`${orders.netTotal} > 0`,
+      ),
+    );
 
   const row = rows[0];
   return {

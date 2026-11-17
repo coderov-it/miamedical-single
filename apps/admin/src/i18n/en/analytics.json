@@ -17,7 +17,7 @@
   "tileOrders": "Orders",
   "tileAverageOrder": "Average order value",
   "tileUnits": "Units sold",
-  "revenueBasis": "Paid and fulfilled orders, shipping included.",
+  "revenueBasis": "Final value of paid orders: placement + paid extensions − refunds, counted on the day the order was placed.",
   "revenueBasisLabel": "About revenue",
   "vsPrevious": "vs previous period",
   "trendTitle": "Trend",
@@ -40,5 +40,7 @@
   "periodUpdated": "{period} · updated {time}",
   "chartKindLabel": "Chart type",
   "chartBars": "Bars",
-  "chartLine": "Line"
+  "chartLine": "Line",
+  "noteExtensions": "incl. +{amount} extensions",
+  "noteRefunds": "incl. −{amount} refunds"
 }

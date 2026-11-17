@@ -5,11 +5,12 @@
  */
 
 import type { Database, DatabaseWriter, Transaction } from '@mia/db';
-import { asc, eq, inArray, sql } from '@mia/db';
+import { asc, desc, eq, inArray, sql } from '@mia/db';
 import {
   adminUsers,
   customerAccounts,
   orderItems,
+  orderRefunds,
   orders,
   orderStatusEvents,
   products,
@@ -19,26 +20,51 @@ import { emitToAdmins } from '../notifications/write.ts';
 import { applyStockMoves } from './stock.ts';
 import type {
   ActorRef,
-  OrderAggregate,
+  AdminOrderAggregate,
+  OrderRefundRecord,
   OrderStatusEventRecord,
   OrderSummaryRecord,
 } from './types.ts';
 
 // --- orders ----------------------------------------------------------------
 
-export async function findById(db: Database, id: string): Promise<OrderAggregate | undefined> {
+export async function findById(db: Database, id: string): Promise<AdminOrderAggregate | undefined> {
   const order = await db.query.orders.findFirst({ where: eq(orders.id, id) });
   if (!order) return undefined;
 
-  const [items, events] = await Promise.all([
+  const [items, events, refunds] = await Promise.all([
     db.query.orderItems.findMany({
       where: eq(orderItems.orderId, id),
       orderBy: asc(orderItems.id),
     }),
     findEvents(db, id),
+    findRefunds(db, id),
   ]);
 
-  return { ...order, items, events };
+  return { ...order, items, events, refunds };
+}
+
+/** Newest first; `id` breaks ties between refunds written in one instant. */
+export async function findRefunds(db: Database, orderId: string): Promise<OrderRefundRecord[]> {
+  const rows = await db
+    .select({
+      id: orderRefunds.id,
+      amount: orderRefunds.amount,
+      reason: orderRefunds.reason,
+      rentalExtensionId: orderRefunds.rentalExtensionId,
+      actorEmail: adminUsers.email,
+      actorFullName: adminUsers.fullName,
+      createdAt: orderRefunds.createdAt,
+    })
+    .from(orderRefunds)
+    .leftJoin(adminUsers, eq(orderRefunds.actorAdminUserId, adminUsers.id))
+    .where(eq(orderRefunds.orderId, orderId))
+    .orderBy(desc(orderRefunds.createdAt), desc(orderRefunds.id));
+
+  return rows.map(({ actorEmail, actorFullName, ...row }) => ({
+    ...row,
+    actorName: actorFullName ?? actorEmail,
+  }));
 }
 
 export async function findEvents(db: Database, orderId: string): Promise<OrderStatusEventRecord[]> {

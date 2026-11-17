@@ -41,9 +41,23 @@ export interface AdminOrderSummaryRecord extends OrderSummaryRecord {
   contractStatus: string | null;
 }
 
+export interface OrderRefundRecord {
+  id: string;
+  amount: string;
+  reason: string;
+  rentalExtensionId: string | null;
+  actorName: string | null;
+  createdAt: Date;
+}
+
 export interface OrderAggregate extends OrderRow {
   items: OrderItemRow[];
   events: OrderStatusEventRecord[];
+}
+
+/** The back-office read: the aggregate plus its refunds, newest first. */
+export interface AdminOrderAggregate extends OrderAggregate {
+  refunds: OrderRefundRecord[];
 }
 
 /**

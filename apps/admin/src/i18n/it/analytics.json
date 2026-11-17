@@ -17,7 +17,7 @@
   "tileOrders": "Ordini",
   "tileAverageOrder": "Valore medio ordine",
   "tileUnits": "Unità vendute",
-  "revenueBasis": "Ordini pagati ed evasi, spedizione inclusa.",
+  "revenueBasis": "Valore finale degli ordini pagati: ordine + proroghe pagate − rimborsi, contato nel giorno in cui l’ordine è stato effettuato.",
   "revenueBasisLabel": "Informazioni sui ricavi",
   "vsPrevious": "rispetto al periodo precedente",
   "trendTitle": "Andamento",
@@ -40,5 +40,7 @@
   "periodUpdated": "{period} · aggiornato alle {time}",
   "chartKindLabel": "Tipo di grafico",
   "chartBars": "Barre",
-  "chartLine": "Linea"
+  "chartLine": "Linea",
+  "noteExtensions": "incl. +{amount} di proroghe",
+  "noteRefunds": "incl. −{amount} di rimborsi"
 }

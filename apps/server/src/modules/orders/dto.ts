@@ -84,6 +84,15 @@ export interface OrderEventDto {
   createdAt: string;
 }
 
+export interface OrderRefundDto {
+  id: string;
+  amount: string;
+  reason: string;
+  rentalExtensionId: string | null;
+  actorName: string | null;
+  createdAt: string;
+}
+
 export interface OrderTotalsDto {
   subtotal: string;
   shippingTotal: string;
@@ -105,6 +114,10 @@ export interface AdminOrderSummaryDto {
   /** The newest non-voided contract's status, so the list can say "contract not signed". */
   contractStatus: string | null;
   total: string;
+  /** Paid extensions, refunds and what is left — all kept by the database. */
+  extensionTotal: string;
+  refundedTotal: string;
+  netTotal: string;
   currency: string;
   placedAt: string;
   updatedAt: string;
@@ -135,6 +148,13 @@ export interface AdminOrderDetailDto {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totals: OrderTotalsDto;
+  extensionTotal: string;
+  refundedTotal: string;
+  netTotal: string;
+  /** Newest first. */
+  refunds: OrderRefundDto[];
+  /** Partly refunded with no amount on record: a legacy row an operator must price. */
+  refundAmountMissing: boolean;
   items: OrderItemDto[];
   shippingAddress: AddressDto | null;
   billingAddress: AddressDto | null;
@@ -190,8 +210,7 @@ export interface OrderListStatsDto {
 }
 
 /**
- * Trailing-window figures for the dashboard. `revenue` counts only orders that
- * are `paid` or `fulfilled` — `revenueBasis` carries that definition to the UI
+ * Trailing-window figures for the dashboard. `revenue` is net of refunds — `revenueBasis` carries that definition to the UI
  * so the tile can state it instead of leaving the reader to guess.
  */
 export interface OrderWindowStatsDto {

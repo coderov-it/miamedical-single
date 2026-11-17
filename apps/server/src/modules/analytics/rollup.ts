@@ -1,21 +1,17 @@
 import type { Database } from '@mia/db';
 import { sql } from '@mia/db';
 
+import { reconcile } from './reconcile.ts';
+import { COUNTED, ORDER_DAY, orderLinesStatement } from './rollup-sql.ts';
+
 /**
  * Rebuilds the two rollup tables for whole Europe/Rome days. Counted orders are
- * `paid` and `fulfilled`. Walkthrough: docs/code/sales-analytics.md.
+ * `paid`, `fulfilled` and `refunded` with money left (`net_total > 0`), on the day
+ * they were placed. Walkthrough: docs/code/sales-analytics.md.
  */
 
 /** Serialises rebuilds across pm2 workers; any fixed number nobody else takes. */
 const ROLLUP_LOCK = 7_301_001n;
-
-/** The Rome day an order belongs to, as a SQL fragment over `orders o`. */
-const ORDER_DAY = sql.raw(`(o.placed_at AT TIME ZONE 'Europe/Rome')::date`);
-
-/** Lines' pricing mode: the order's own snapshot, else the product, else fixed. */
-const LINE_MODE = sql.raw(
-  `COALESCE(oi.configuration->>'pricingMode', p.pricing_mode::text, 'fixed')::pricing_mode`,
-);
 
 /** Every day with any order, plus every day the rollups already hold (orders since deleted). */
 export async function allOrderDays(db: Database): Promise<string[]> {
@@ -35,7 +31,7 @@ export async function daysChangedSince(db: Database, since: Date): Promise<strin
   return rows.map((r) => r.day);
 }
 
-/** One transaction: lock, delete the days from both tables, insert them again. */
+/** One transaction: lock, delete the days from both tables, insert them again, reconcile. */
 export async function rebuildDays(db: Database, days: string[]): Promise<void> {
   if (days.length === 0) return;
   const dayList = sql`(${sql.join(
@@ -49,28 +45,33 @@ export async function rebuildDays(db: Database, days: string[]): Promise<void> {
 
     await tx.execute(sql`
       INSERT INTO sales_daily
-        (day, order_count, revenue, items_revenue, shipping_total, discount_total, units)
-      SELECT d.day, count(*)::int, sum(d.total), sum(d.items_total),
-             sum(d.shipping_total), sum(d.discount_total), sum(d.units)::int
+        (day, order_count, revenue, extension_revenue, refunded_total, items_revenue,
+         shipping_total, discount_total, units)
+      SELECT d.day, count(*)::int, sum(d.net_total), sum(d.extension_total), sum(d.refunded_total),
+             sum(d.items_total), sum(d.shipping_total), sum(d.discount_total), sum(d.units)::int
       FROM (
-        SELECT ${ORDER_DAY} AS day, o.total, o.shipping_total, o.discount_total,
+        SELECT ${ORDER_DAY} AS day, o.net_total, o.extension_total, o.refunded_total,
+               o.shipping_total, o.discount_total,
                COALESCE((SELECT sum(oi.total) FROM order_items oi WHERE oi.order_id = o.id), 0) AS items_total,
                COALESCE((SELECT sum(oi.quantity) FROM order_items oi WHERE oi.order_id = o.id), 0) AS units
         FROM orders o
-        WHERE o.status IN ('paid', 'fulfilled') AND ${ORDER_DAY} IN ${dayList}
+        WHERE ${COUNTED} AND ${ORDER_DAY} IN ${dayList}
       ) d
       GROUP BY d.day`);
 
+    /* Dropped on commit; the explicit drop covers a rebuild nested in a caller's transaction. */
+    await tx.execute(sql`SET LOCAL client_min_messages = warning`);
+    await tx.execute(sql`DROP TABLE IF EXISTS analytics_order_lines`);
+    await tx.execute(orderLinesStatement(dayList));
     await tx.execute(sql`
       INSERT INTO product_sales_daily
         (day, product_id, product_title, pricing_mode, order_count, units, revenue)
-      SELECT ${ORDER_DAY}, oi.product_id, min(oi.product_title), ${LINE_MODE},
-             count(DISTINCT o.id)::int, sum(oi.quantity)::int, sum(oi.total)
-      FROM orders o
-      JOIN order_items oi ON oi.order_id = o.id
-      LEFT JOIN products p ON p.id = oi.product_id
-      WHERE o.status IN ('paid', 'fulfilled') AND ${ORDER_DAY} IN ${dayList}
-      GROUP BY ${ORDER_DAY}, oi.product_id,
-               CASE WHEN oi.product_id IS NULL THEN oi.product_title END, ${LINE_MODE}`);
+      SELECT l.day, l.product_id, min(l.product_title), l.mode,
+             count(DISTINCT l.order_id)::int, sum(l.quantity)::int, sum(l.line_net)
+      FROM analytics_order_lines l
+      GROUP BY l.day, l.product_id,
+               CASE WHEN l.product_id IS NULL THEN l.product_title END, l.mode`);
+
+    await reconcile(tx, dayList);
   });
 }

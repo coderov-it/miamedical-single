@@ -4,12 +4,13 @@
  * notification, in one transaction. See /docs/code/orders-status-machine.md.
  */
 
-import type { Database, Transaction } from '@mia/db';
+import type { Database } from '@mia/db';
 import { eq } from '@mia/db';
 import { orderItems, orders, orderStatusEvents } from '@mia/db/schema';
 
-import { emit } from '../notifications/write.ts';
+import { refundRemainingInTx } from '../order-refunds/write.ts';
 import type { OrderStatus } from './status.ts';
+import { emitOrderStatusChanged } from './status-notice.ts';
 import { applyStockMoves, takenAfter } from './stock.ts';
 
 export interface StatusEventData {
@@ -30,6 +31,11 @@ export interface StatusEventData {
  */
 export async function applyTransition(db: Database, event: StatusEventData): Promise<void> {
   await db.transaction(async (tx) => {
+    /* `refunded` means net 0: give back what is left, in this same transaction,
+       before the status itself moves. */
+    if (event.field === 'status' && event.toValue === 'refunded') {
+      await refundRemainingInTx(tx, event.orderId, event.note, event.actorAdminUserId);
+    }
     await tx
       .update(orders)
       .set({ [event.field]: event.toValue })
@@ -64,37 +70,5 @@ export async function applyTransition(db: Database, event: StatusEventData): Pro
        phase two — the row is written now so the feed opens with history rather
        than with an empty list. */
     await emitOrderStatusChanged(tx, event);
-  });
-}
-
-/**
- * The customer-facing half of a transition, written only where there is a
- * customer to tell.
- *
- * An unclaimed order has no account id, and `notifications_recipient_check`
- * refuses a customer row without one — correctly: there is nobody to address.
- * Those orders are reachable through the emailed order link instead, which is
- * what the placement mail already provides.
- */
-async function emitOrderStatusChanged(tx: Transaction, event: StatusEventData): Promise<void> {
-  const [order] = await tx
-    .select({ number: orders.number, customerAccountId: orders.customerAccountId })
-    .from(orders)
-    .where(eq(orders.id, event.orderId))
-    .limit(1);
-
-  if (!order?.customerAccountId) return;
-
-  await emit(tx, {
-    audience: 'customer',
-    customerAccountId: order.customerAccountId,
-    type: 'order.status_changed',
-    orderId: event.orderId,
-    data: {
-      orderNumber: order.number,
-      field: event.field,
-      from: event.fromValue,
-      to: event.toValue,
-    },
   });
 }
