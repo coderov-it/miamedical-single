@@ -31,7 +31,10 @@ catalog:
   globals: ^17.14.0
 
   # --- astro storefront ---
-  astro: ^7.4.12
+  # Pinned exactly: 7.4 ships @astrojs/compiler-rs 0.5, whose linux-x64 binary
+  # needs AVX — the production VPS CPU has none and `astro build` dies with
+  # "Illegal instruction". 7.3.2 uses compiler-rs 0.4, which runs there.
+  astro: 7.3.2
   # Pinned to v8: the project-wide carousel engine (SSR-safe, vanilla JS).
   # v9 renames the scroll API (scrollPrev -> goToPrev) — do not mix.
   embla-carousel: ^8.6.0
