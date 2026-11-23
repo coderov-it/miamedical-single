@@ -28,6 +28,7 @@
   "reasonOrderCancelled": "Commande annulée",
   "reasonOrderRefunded": "Commande remboursée",
   "reasonRentalReturned": "Location restituée",
+  "reasonUnitRepaired": "Unité réparée",
   "reasonManualAdjustment": "Ajustement manuel",
   "reasonUnknown": "Inconnu"
 }

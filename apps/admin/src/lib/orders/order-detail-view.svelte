@@ -3,24 +3,16 @@
   as the queue's drawer. One component is the point: a shareable link and a
   triage glance must never disagree about what an order says.
 
-  Blocked actions stay *visible*, disabled, with the missing permission named.
-  Hiding a button teaches nobody the order in which work happens — someone
-  without ORDER_UPDATE should still be able to see that "Mark fulfilled" is the
-  next step, and go ask for it by name.
+  The moves themselves live in `order-actions-card.svelte`, the step map in
+  `order-status-stepper.svelte`. Returned units are decided only on the Return check page.
 -->
 <script lang="ts">
-  import { P, permissionByCode } from '@mia/permissions';
-  import CheckIcon from '@lucide/svelte/icons/check';
-  import LockIcon from '@lucide/svelte/icons/lock';
   import { toast } from 'svelte-sonner';
 
   import { Badge } from '$lib/components/ui/badge/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Spinner } from '$lib/components/ui/spinner/index.js';
-  import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { api } from '~/lib/api';
   import StatusBadge from '~/lib/components/status-badge.svelte';
+  import OrderActionsCard from '~/lib/orders/order-actions-card.svelte';
   import OrderAddressCards from '~/lib/orders/order-address-cards.svelte';
   import OrderContractCard from '~/lib/orders/order-contract-card.svelte';
   import OrderCustomerCard from '~/lib/orders/order-customer-card.svelte';
@@ -28,16 +20,13 @@
   import OrderExtensionsCard from '~/lib/orders/order-extensions-card.svelte';
   import OrderManualCard from '~/lib/orders/order-manual-card.svelte';
   import OrderMoneyCard from '~/lib/orders/order-money-card.svelte';
-  import OrderRefundAllConfirm from '~/lib/orders/order-refund-all-confirm.svelte';
   import OrderItemsCard from '~/lib/orders/order-items-card.svelte';
+  import OrderStatusStepper from '~/lib/orders/order-status-stepper.svelte';
   import OrderTimelineCard from '~/lib/orders/order-timeline-card.svelte';
-  import { cn } from '$lib/utils.js';
   import { EM_DASH, formatDateTime, formatMoney } from '~/lib/format';
   import { STAGE_LABELS } from '~/lib/orders/manual-order';
-  import { FULFILMENT_STEPS, orderStatusMeta, type OrderStatus } from '~/lib/orders/status';
   import { errorMessage, unwrap } from '~/lib/request';
   import type { OrderDetail } from '~/lib/orders/types';
-  import { session } from '~/lib/session.svelte';
   import { t } from '~/lib/ui-text';
 
   interface Props {
@@ -50,22 +39,9 @@
 
   let { order, onUpdated, compact = false }: Props = $props();
 
-  const canUpdate = $derived(session.can(P.ORDER_UPDATE));
-  const updateKey = permissionByCode(P.ORDER_UPDATE)?.key ?? 'order:update';
-
   let busy = $state<string | null>(null);
-  let note = $state('');
 
-  // Where the order sits on the happy path. `-1` for an exit status, which is
-  // what greys the whole stepper out rather than pretending it is step one.
-  const stepIndex = $derived(FULFILMENT_STEPS.indexOf(order.status as OrderStatus));
-
-  /**
-   * The two endpoints take different literal unions for `to`, so they cannot
-   * share a call site without widening to `string` and losing the check. What
-   * they *can* share is everything around it — the busy key, the note, the
-   * toast and the error handling.
-   */
+  /** The shared shell around a request: busy key, toast and error handling. */
   async function run(
     key: string,
     request: () => Promise<Response>,
@@ -74,7 +50,6 @@
     busy = key;
     try {
       const updated = await unwrap<OrderDetail>(await request());
-      note = '';
       onUpdated(updated);
       toast.success(describe(updated));
     } catch (err) {
@@ -86,14 +61,11 @@
     }
   }
 
-  const notePayload = () => (note.trim() ? { note: note.trim() } : {});
-
   /** Whether anything on this order is rented — the case where extensions apply. */
   const hasRental = $derived(
     order.items.some((item) => item.configuration?.pricingMode === 'rental'),
   );
   let contractCard = $state<ReturnType<typeof OrderContractCard>>();
-  let confirmRefundAll = $state(false);
 
   /** The delivery card hands over the agreed fee; the request runs here with the rest. */
   function saveShipping(amount: string) {
@@ -108,31 +80,6 @@
         t('orders.shippingSaved', {
           number: updated.number,
           amount: formatMoney(updated.totals.shippingTotal, updated.totals.currency),
-        }),
-    );
-  }
-
-  /** `refunded` moves money, so it asks first; every other move goes straight through. */
-  function requestMove(to: OrderStatus) {
-    if (to === 'refunded') {
-      confirmRefundAll = true;
-      return;
-    }
-    moveStatus(to);
-  }
-
-  function moveStatus(to: OrderStatus) {
-    void run(
-      `status:${to}`,
-      () =>
-        api.api.admin.orders[':id'].status.$post({
-          param: { id: order.id },
-          json: { to, ...notePayload() },
-        }),
-      (updated) =>
-        t('orders.statusChanged', {
-          number: updated.number,
-          status: orderStatusMeta(updated.status).label,
         }),
     );
   }
@@ -191,36 +138,7 @@
     </div>
   </div>
 
-  <!-- Fulfilment stepper: the happy path only. -->
-  <div class="flex items-center gap-2">
-    {#each FULFILMENT_STEPS as step, index (step)}
-      {@const done = stepIndex >= 0 && index <= stepIndex}
-      <div class="flex items-center gap-2">
-        <span
-          class={cn(
-            'flex size-5 items-center justify-center rounded-full border text-[0.625rem] font-medium',
-            done
-              ? 'border-transparent bg-primary text-primary-foreground'
-              : 'border-border text-muted-foreground',
-          )}
-        >
-          {#if done}<CheckIcon class="size-3" />{:else}{index + 1}{/if}
-        </span>
-        <span class={cn('text-sm', done ? 'font-medium' : 'text-muted-foreground')}>
-          {orderStatusMeta(step).label}
-        </span>
-      </div>
-      {#if index < FULFILMENT_STEPS.length - 1}
-        <span class={cn('h-px w-6 shrink-0', stepIndex > index ? 'bg-primary' : 'bg-border')}
-        ></span>
-      {/if}
-    {/each}
-    {#if stepIndex < 0}
-      <span class="ml-2 text-sm text-muted-foreground">
-        {t('orders.stepperEndedEarly', { status: orderStatusMeta(order.status).label })}
-      </span>
-    {/if}
-  </div>
+  <OrderStatusStepper {order} />
 
   <!--
     Three grid children, not two columns with a trailer underneath: the sidebar
@@ -268,55 +186,10 @@
 
     <!-- Actions last in the reading order, and at width the card that fills
          the column under the items. -->
-    <Card.Root class="gap-0 py-0 @4xl:col-span-2 @4xl:col-start-1 @4xl:row-start-2">
-      <div class="flex items-center gap-2 border-b px-4 py-2.5">
-        <span class="text-sm font-medium">{t('orders.actionsTitle')}</span>
-        {#if !canUpdate}
-          <Badge variant="outline" class="gap-1 text-muted-foreground">
-            <LockIcon class="size-3" />
-            {t('orders.actionsNeeds')} <code class="font-mono">{updateKey}</code>
-          </Badge>
-        {/if}
-      </div>
-
-      <div class="space-y-3 p-4">
-        {#if order.allowedStatuses.length === 0}
-          <p class="text-sm text-muted-foreground">
-            {t('orders.actionsNothingLeft', { status: orderStatusMeta(order.status).label })}
-          </p>
-        {:else}
-          <Textarea
-            bind:value={note}
-            rows={2}
-            disabled={!canUpdate}
-            placeholder={t('orders.actionsNotePlaceholder')}
-            aria-label={t('orders.actionsNoteLabel')}
-          />
-
-          <div class="flex flex-wrap items-center gap-2">
-            {#each order.allowedStatuses as to (to)}
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!canUpdate || busy !== null}
-                onclick={() => requestMove(to as OrderStatus)}
-              >
-                {#if busy === `status:${to}`}<Spinner />{/if}
-                {t('orders.actionsMarkAs', { status: orderStatusMeta(to as OrderStatus).label })}
-              </Button>
-            {/each}
-          </div>
-        {/if}
-      </div>
-    </Card.Root>
+    <div class="@4xl:col-span-2 @4xl:col-start-1 @4xl:row-start-2">
+      <OrderActionsCard {order} {onUpdated} />
+    </div>
   </div>
-
-  <OrderRefundAllConfirm
-    {order}
-    open={confirmRefundAll}
-    onClose={() => (confirmRefundAll = false)}
-    onConfirm={() => moveStatus('refunded')}
-  />
 
   <p class="text-xs text-muted-foreground">
     {t('orders.detailUpdated', {

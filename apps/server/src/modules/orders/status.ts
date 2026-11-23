@@ -7,27 +7,91 @@
  * service, with a message written for a human to read.
  */
 
-export type OrderStatus = 'pending' | 'paid' | 'fulfilled' | 'cancelled' | 'refunded';
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'out_for_delivery'
+  | 'delivery_missed'
+  | 'delivered'
+  | 'out_for_pickup'
+  | 'pickup_missed'
+  | 'received'
+  | 'fulfilled'
+  | 'cancelled'
+  | 'refunded';
+
+/**
+ * The stages behind the admin list's filter bar. Every status belongs to exactly
+ * one stage (tested), so the segments partition the list. Mirrored for display in
+ * `apps/admin/src/lib/orders/status.ts`.
+ */
+export const ORDER_STAGES = {
+  pending: ['pending'],
+  paid: ['paid'],
+  delivery: ['out_for_delivery', 'delivery_missed', 'delivered'],
+  return: ['out_for_pickup', 'pickup_missed', 'received'],
+  fulfilled: ['fulfilled'],
+  closed: ['cancelled', 'refunded'],
+} as const satisfies Record<string, readonly OrderStatus[]>;
+
+export type OrderStage = keyof typeof ORDER_STAGES;
+
+/** A rental order if any line is rented; the order's goods then come back. */
+export type OrderFlow = 'sale' | 'rental';
+
+export function orderFlow(
+  items: ReadonlyArray<{ configuration: Record<string, unknown> | null }>,
+): OrderFlow {
+  return items.some((item) => item.configuration?.pricingMode === 'rental') ? 'rental' : 'sale';
+}
 
 export type PaymentStatus =
   'unpaid' | 'authorized' | 'paid' | 'partially_refunded' | 'refunded' | 'failed';
 
 /**
- * The forward path is `pending → paid → fulfilled`. `cancelled` and `refunded`
- * are exits, not stages: nothing continues out of them, which is what makes
- * them safe to treat as terminal in the UI.
+ * Forward step FIRST in every array: the admin makes the first entry that is not
+ * an exit or a `*_missed` the primary button. `cancelled` and `refunded` are exits,
+ * not stages. `delivered` branches on the flow: a sale closes, a rental goes out
+ * for pickup. `received → fulfilled` is not here: it is automatic, made by the
+ * last return inspection (return-inspections module), never by hand.
  *
- * Deliberately narrow. Reversing a move ("un-fulfil") is not modelled, because
- * the honest record is a *new* event, not a rewound one — and the timeline is
- * the artefact people actually reason from during a dispute.
+ * Deliberately narrow. Reversing a move is not modelled, because the honest
+ * record is a *new* event, not a rewound one.
  */
-const ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
+const COMMON_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   pending: ['paid', 'cancelled'],
-  paid: ['fulfilled', 'cancelled', 'refunded'],
+  paid: ['out_for_delivery', 'cancelled', 'refunded'],
+  out_for_delivery: ['delivered', 'delivery_missed'],
+  delivery_missed: ['out_for_delivery', 'cancelled'],
+  delivered: [],
+  out_for_pickup: ['received', 'pickup_missed'],
+  pickup_missed: ['out_for_pickup'],
+  received: [],
   fulfilled: ['refunded'],
   cancelled: [],
   refunded: [],
 };
+
+const DELIVERED_NEXT: Record<OrderFlow, readonly OrderStatus[]> = {
+  sale: ['fulfilled'],
+  rental: ['out_for_pickup'],
+};
+
+/** Every status money was taken for: all but `pending` and `cancelled`. */
+export const PAID_ONWARD_STATUSES: readonly OrderStatus[] = [
+  'paid',
+  'out_for_delivery',
+  'delivery_missed',
+  'delivered',
+  'out_for_pickup',
+  'pickup_missed',
+  'received',
+  'fulfilled',
+  'refunded',
+];
+
+/** The two `*_missed` statuses: a move into one needs a note saying what happened. */
+export const MISSED_ORDER_STATUSES: readonly OrderStatus[] = ['delivery_missed', 'pickup_missed'];
 
 /**
  * Payment moves independently: an order can be marked paid by a transfer that
@@ -56,8 +120,10 @@ export const REFUND_ONLY_PAYMENT_STATUSES: readonly PaymentStatus[] = [
 
 export const TERMINAL_ORDER_STATUSES: readonly OrderStatus[] = ['cancelled', 'refunded'];
 
-export function nextOrderStatuses(from: OrderStatus): readonly OrderStatus[] {
-  return ORDER_TRANSITIONS[from];
+/** The moves an operator may make by hand from `from`, for this flow. */
+export function nextOrderStatuses(from: OrderStatus, flow: OrderFlow): readonly OrderStatus[] {
+  if (from === 'delivered') return DELIVERED_NEXT[flow];
+  return COMMON_TRANSITIONS[from];
 }
 
 export function nextPaymentStatuses(from: PaymentStatus): readonly PaymentStatus[] {
@@ -69,8 +135,8 @@ export function manualPaymentStatuses(from: PaymentStatus): PaymentStatus[] {
   return PAYMENT_TRANSITIONS[from].filter((to) => !REFUND_ONLY_PAYMENT_STATUSES.includes(to));
 }
 
-export function canMoveOrder(from: OrderStatus, to: OrderStatus): boolean {
-  return ORDER_TRANSITIONS[from].includes(to);
+export function canMoveOrder(from: OrderStatus, to: OrderStatus, flow: OrderFlow): boolean {
+  return nextOrderStatuses(from, flow).includes(to);
 }
 
 export function canMovePayment(from: PaymentStatus, to: PaymentStatus): boolean {

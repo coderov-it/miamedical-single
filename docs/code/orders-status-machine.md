@@ -11,10 +11,14 @@ An order carries **two** independent statuses, and conflating them was the first
 thing to get right.
 
 ```
-status:        pending → paid → fulfilled
-                  ↓       ↓         ↓
-               cancelled  ↓      refunded
-                       refunded
+status:        pending ─▶ paid ─▶ out_for_delivery ─▶ delivered ─┬─ sale ───▶ fulfilled
+                  │        │        ▲     │                      └─ rental ─▶ out_for_pickup
+                  ▼        ▼        │     ▼                                   │     ▲  │
+               cancelled   │   delivery_missed ─▶ cancelled                     │     │  ▼
+                           ▼                                         pickup_missed   received
+                  cancelled / refunded                                                  │ (automatic,
+                                                                                        ▼  last inspection)
+                                                                                    fulfilled ─▶ refunded
 
 paymentStatus: unpaid → authorized → paid → partially_refunded → refunded
                   ↓          ↓
@@ -26,6 +30,27 @@ after the goods went out, and a partial refund does not un-fulfil an order.
 
 `cancelled` and `refunded` are **exits**, not stages — nothing continues out of
 them, which is what makes them safe for the UI to treat as terminal.
+
+## Flow-dependent edges and the automatic close
+
+`nextOrderStatuses(from, flow)` and `canMoveOrder(from, to, flow)` take the order's flow:
+`orderFlow(items)` is `rental` when any line has `pricingMode: 'rental'`, else `sale`. Only
+`delivered` branches (sale → `fulfilled`, rental → `out_for_pickup`). The forward step is
+first in every array; the admin makes the first entry that is not an exit or a `*_missed`
+the primary button.
+
+`received → fulfilled` is **not** a manual move: `nextOrderStatuses('received', …)` is empty and
+a hand request is a 409 ("This order closes by itself once every returned unit is decided.").
+The inspection that decides the last returned unit makes the move, in its own transaction
+(`modules/return-inspections`).
+
+A move into `delivery_missed` or `pickup_missed` needs a note: 422 `validation_failed`,
+`fields.note` "Write what happened.". A move to `delivered` may carry `deliveredOn`
+(default Rome today, not in the future, not before the order was placed): it shifts each
+rental line's dates in the same transaction (`orders/delivery-dates.ts`).
+
+`PAID_ONWARD_STATUSES` is every status except `pending` and `cancelled`: "money was taken".
+The orders list stats and the analytics rollup read it.
 
 ## The contract gate on `pending → paid`
 
@@ -42,7 +67,7 @@ The refusal is a 409 naming the contract, shown verbatim by the admin.
 
 ## What is deliberately _not_ modelled
 
-Reversal. There is no `fulfilled → paid`.
+Reversal. There is no `fulfilled → paid`, and no step back from `delivered` or `received`.
 
 An order that was fulfilled in error is not a rewound order, it is an order with
 a mistake in its history — and the timeline is the artefact people actually
@@ -64,7 +89,7 @@ next request, with no matching client edit to forget.
 
 `explainRejection` produces the 409 body, and the admin shows it verbatim:
 
-> This order is pending and cannot move to fulfilled. Possible next steps: paid,
+> This order is pending and cannot move to delivered. Possible next steps: paid,
 > cancelled.
 
 It names where the order is, what was asked, and what would actually work. A
@@ -74,15 +99,17 @@ bare "invalid transition" would send the reader to the source.
 
 Placement takes the units; `transition-repo.applyTransition` moves
 `products.stock` for every later move in the same transaction: cancelling an
-unpaid order puts them back, and so does a rental's `fulfilled` (Rent
-Management's "Confirm return"). An old order that holds nothing takes its units
-at `paid`. A take the shelf cannot cover is a 409 and the status does not move.
+unpaid order puts them back, and so does `cancelled`/`refunded` from `paid` or
+`delivery_missed`. Delivery, pickup, `received` and `fulfilled` move nothing: a
+returned rental unit is put back by its own inspection. An old order that holds
+nothing takes its units at `paid`. A take the shelf cannot cover is a 409 and the status does not move.
 See `orders-stock.md`. Online payment moves `pending → paid` itself, with no
 operator (`online-payments.md`).
 
 ## The audit trail is not optional
 
-`transition-repo.applyTransition` writes the status column **and** its
+`transition-repo.applyTransition` (a transaction around `applyTransitionInTx`, which other
+modules call inside theirs) writes the status column **and** its
 `order_status_events` row inside one transaction. If the event insert fails, the
 status change rolls back with it.
 
@@ -93,7 +120,9 @@ unaudited write path is the only way this invariant could be lost, so there
 isn't one.
 
 `order_status_events` is append-only. `field` is `status`, `paymentStatus`,
-`customerLink`, `contract`, `extension`, `email`, `discount` or `link`. `discount`
+`customerLink`, `contract`, `extension`, `email`, `discount`, `link` or `inspection` (a
+returned unit decided or resolved: `toValue` is the outcome or resolution, `note` the
+product and what was written). `discount`
 (manual orders) records the order-level discount, `fromValue`/`toValue` the amounts and `note`
 the reason. `link` records an order link being sent or revoked (written from Phase 2). A manual
 order's payment is recorded through `moveStatus` with the note "Payment recorded: bank transfer,

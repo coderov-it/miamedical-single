@@ -45,11 +45,16 @@ export async function resendContract(db: Database, orderId: string): Promise<voi
   await contractService.resend(db, contract.id);
 }
 
+/**
+ * "Confirm return": the equipment is back (`received`). It does not restock and
+ * does not close the order: each unit is then decided by a return inspection,
+ * and the last one moves the order to `fulfilled`.
+ */
 export async function finish(db: Database, orderId: string, user: SessionUser): Promise<void> {
   await orderService.moveStatus(
     db,
     orderId,
-    'fulfilled',
+    'received',
     'Return confirmed via Rent Management.',
     user,
   );

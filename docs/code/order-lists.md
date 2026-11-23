@@ -26,3 +26,19 @@ tiebreak keeps two orders placed in the same instant in one order across pages.
 The day filter is `romeDayRange` (`apps/server/src/shared/rome-day.ts`): an order
 placed at 00:30 on 2 October in Rome (22:30 UTC on 1 October) belongs to 2
 October, not 1 October.
+
+## Stage filter
+
+The admin queue's filter bar filters by stage, not by status: `?stage=` takes
+`pending | paid | delivery | return | fulfilled | closed`. The map is `ORDER_STAGES`
+in `apps/server/src/modules/orders/status.ts` (every status in exactly one stage,
+tested) and is mirrored for display in `apps/admin/src/lib/orders/status.ts`.
+
+```
+   stage=delivery  →  status IN (out_for_delivery, delivery_missed, delivered)
+   stage=closed    →  status IN (cancelled, refunded)
+   status=paid&stage=delivery  →  both apply (here: no rows)
+```
+
+`?status=` still works, so old links keep filtering by the exact status; the bar
+then highlights the stage that contains it.

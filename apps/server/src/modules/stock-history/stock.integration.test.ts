@@ -204,7 +204,7 @@ describe(
         await assertLedger(tx, product);
       }));
 
-    test('a rental marked fulfilled writes rental_returned', () =>
+    test('a paid rental cancelled before delivery writes order_cancelled', () =>
       rolledBack(async (tx) => {
         const product = await createProduct(tx, 5);
         const order = await createOrder(tx, product, 2, {
@@ -213,9 +213,9 @@ describe(
           taken: true,
           mode: 'rental',
         });
-        await transition(tx, order, 'paid', 'fulfilled');
+        await transition(tx, order, 'paid', 'cancelled');
         const last = (await movements(tx, product)).at(-1)!;
-        assert.deepEqual([last.reason, last.delta, last.order_id], ['rental_returned', 2, order]);
+        assert.deepEqual([last.reason, last.delta, last.order_id], ['order_cancelled', 2, order]);
         await assertLedger(tx, product);
       }));
 

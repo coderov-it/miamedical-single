@@ -18,7 +18,8 @@ import type {
 import type { OrderItemConfiguration } from './resolve.ts';
 import { isRefundAmountMissing } from '../order-refunds/decision.ts';
 import { manualStage } from './manual/stage.ts';
-import { manualPaymentStatuses, nextOrderStatuses } from './status.ts';
+import { toReturnUnits } from './return-units.ts';
+import { manualPaymentStatuses, nextOrderStatuses, orderFlow } from './status.ts';
 import type { CalendarEntryRow } from './list-repo.ts';
 import type {
   ActorRef,
@@ -194,6 +195,7 @@ export function toOrderRefund(row: OrderRefundRecord): OrderRefundDto {
 }
 
 export function toOrderDetail(row: AdminOrderAggregate): AdminOrderDetailDto {
+  const flow = orderFlow(row.items);
   return {
     id: row.id,
     number: row.number,
@@ -222,7 +224,9 @@ export function toOrderDetail(row: AdminOrderAggregate): AdminOrderDetailDto {
     delivery: toDelivery(row.delivery),
     notes: row.notes,
     events: row.events.map(toOrderEvent),
-    allowedStatuses: [...nextOrderStatuses(row.status)],
+    allowedStatuses: [...nextOrderStatuses(row.status, flow)],
+    flow,
+    returnUnits: toReturnUnits(row.items, row.inspections),
     /* Refund moves are not buttons: they go through the refund form. */
     allowedPaymentStatuses: manualPaymentStatuses(row.paymentStatus),
     placedAt: iso(row.placedAt),

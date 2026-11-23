@@ -15,11 +15,13 @@
     value: string;
     /** Earliest ISO date the picker offers. */
     min?: string;
+    /** Latest ISO date the picker offers. */
+    max?: string;
     invalid?: boolean;
     onChange?: () => void;
   }
 
-  let { id, value = $bindable(), min, invalid = false, onChange }: Props = $props();
+  let { id, value = $bindable(), min, max, invalid = false, onChange }: Props = $props();
 
   const toText = (iso: string): string => {
     const [y, m, d] = iso.split('-');
@@ -77,6 +79,7 @@
     bind:this={picker}
     type="date"
     {min}
+    {max}
     {value}
     onchange={onPick}
     tabindex="-1"

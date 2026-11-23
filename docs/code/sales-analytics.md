@@ -7,7 +7,8 @@
 ## Rollup: what an order is finally worth, on its placed day
 
 Money rules (extension, refund, `net_total`): [order-money.md](order-money.md).
-Counted: status `paid`, `fulfilled` or `refunded` with `net_total > 0`.
+Counted: status `paid` or any later one (`PAID_ONWARD_STATUSES`: everything except `pending` and
+`cancelled`) with `net_total > 0`.
 
 ```text
 order T  paid, placed 2026-03-10 (Rome)     total 100.00 = A rental 60.00 + B sale 40.00 (×2)

@@ -40,6 +40,7 @@ export const AdminOrderQuerySchema = v.object({
   ...PaginationSchema.entries,
   q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
   status: v.optional(OrderStatusSchema),
+  stage: v.optional(v.picklist(['pending', 'paid', 'delivery', 'return', 'fulfilled', 'closed'])),
   paymentStatus: v.optional(PaymentStatusSchema),
   type: v.optional(PricingModeSchema),
   from: v.optional(DateOnlySchema),
@@ -77,6 +78,8 @@ const NoteSchema = v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLengt
 export const OrderStatusTransitionSchema = v.object({
   to: OrderStatusSchema,
   note: NoteSchema,
+  /** Only with `to: 'delivered'`: the day the rental starts. Default Rome today. */
+  deliveredOn: v.optional(DateOnlySchema),
 });
 
 export const PaymentStatusTransitionSchema = v.object({

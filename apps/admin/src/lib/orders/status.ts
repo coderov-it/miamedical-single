@@ -13,8 +13,20 @@
 import { orderStatusLabel, paymentStatusLabel } from '@mia/i18n';
 
 import { uiLang } from '~/lib/ui-lang.svelte';
+import type { MessageKey } from '~/lib/ui-text';
 
-export type OrderStatus = 'pending' | 'paid' | 'fulfilled' | 'cancelled' | 'refunded';
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'out_for_delivery'
+  | 'delivery_missed'
+  | 'delivered'
+  | 'out_for_pickup'
+  | 'pickup_missed'
+  | 'received'
+  | 'fulfilled'
+  | 'cancelled'
+  | 'refunded';
 
 export type PaymentStatus =
   'unpaid' | 'authorized' | 'paid' | 'partially_refunded' | 'refunded' | 'failed';
@@ -43,6 +55,30 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, StatusTone> = {
   paid: {
     tone: 'border-blue-500/40 text-blue-600 dark:text-blue-400',
     dot: 'bg-blue-500',
+  },
+  out_for_delivery: {
+    tone: 'border-sky-500/40 text-sky-600 dark:text-sky-400',
+    dot: 'bg-sky-500',
+  },
+  delivery_missed: {
+    tone: 'border-orange-500/40 text-orange-600 dark:text-orange-400',
+    dot: 'bg-orange-500',
+  },
+  delivered: {
+    tone: 'border-blue-500/40 text-blue-600 dark:text-blue-400',
+    dot: 'bg-blue-500',
+  },
+  out_for_pickup: {
+    tone: 'border-indigo-500/40 text-indigo-600 dark:text-indigo-400',
+    dot: 'bg-indigo-500',
+  },
+  pickup_missed: {
+    tone: 'border-orange-500/40 text-orange-600 dark:text-orange-400',
+    dot: 'bg-orange-500',
+  },
+  received: {
+    tone: 'border-indigo-500/40 text-indigo-600 dark:text-indigo-400',
+    dot: 'bg-indigo-500',
   },
   fulfilled: {
     tone: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400',
@@ -98,22 +134,79 @@ export function paymentStatusMeta(status: string): StatusMeta {
   return { ...tone, label: paymentStatusLabel(status as PaymentStatus, uiLang.current) };
 }
 
-/**
- * The queue's filter bar, left to right in the order work actually moves.
- * `undefined` is the "All" segment — it is the absence of a filter, not a
- * status, which is why it is not part of the meta tables.
- */
-export const ORDER_STATUS_ORDER: readonly OrderStatus[] = [
-  'pending',
-  'paid',
-  'fulfilled',
-  'cancelled',
-  'refunded',
-];
+export type OrderStage = 'pending' | 'paid' | 'delivery' | 'return' | 'fulfilled' | 'closed';
+
+export interface StageMeta {
+  id: OrderStage;
+  /** Mirrors `ORDER_STAGES` in the server's orders/status.ts. */
+  statuses: readonly OrderStatus[];
+  dot: string;
+  labelKey: MessageKey;
+}
 
 /**
- * The three steps an order walks through when nothing goes wrong. The exits —
- * cancelled, refunded — are deliberately absent: a stepper that tries to show
- * every branch stops reading as a progression at all.
+ * The queue's filter bar segments, left to right in the order work moves.
+ * "All" is the absence of a filter, so it is not listed here.
  */
-export const FULFILMENT_STEPS: readonly OrderStatus[] = ['pending', 'paid', 'fulfilled'];
+export const ORDER_STAGES: readonly StageMeta[] = [
+  { id: 'pending', statuses: ['pending'], dot: 'bg-amber-500', labelKey: 'orders.stagePending' },
+  { id: 'paid', statuses: ['paid'], dot: 'bg-blue-500', labelKey: 'orders.stagePaid' },
+  {
+    id: 'delivery',
+    statuses: ['out_for_delivery', 'delivery_missed', 'delivered'],
+    dot: 'bg-sky-500',
+    labelKey: 'orders.stageDelivery',
+  },
+  {
+    id: 'return',
+    statuses: ['out_for_pickup', 'pickup_missed', 'received'],
+    dot: 'bg-indigo-500',
+    labelKey: 'orders.stageReturn',
+  },
+  {
+    id: 'fulfilled',
+    statuses: ['fulfilled'],
+    dot: 'bg-emerald-500',
+    labelKey: 'orders.stageFulfilled',
+  },
+  {
+    id: 'closed',
+    statuses: ['cancelled', 'refunded'],
+    dot: 'bg-muted-foreground',
+    labelKey: 'orders.stageClosed',
+  },
+];
+
+/** The stage containing a status, for highlighting a legacy `?status=` link. */
+export function stageOfStatus(status: string): OrderStage | undefined {
+  return ORDER_STAGES.find((stage) => stage.statuses.includes(status as OrderStatus))?.id;
+}
+
+export type OrderFlow = 'sale' | 'rental';
+
+/**
+ * The steps an order walks through when nothing goes wrong, per flow. The exits
+ * (cancelled, refunded) are deliberately absent: a stepper that tries to show
+ * every branch stops reading as a progression at all. A `*_missed` status is
+ * not a step either — it sits on its parent, see `MISSED_PARENT`.
+ */
+export function flowSteps(flow: OrderFlow): readonly OrderStatus[] {
+  if (flow === 'rental') {
+    return [
+      'pending',
+      'paid',
+      'out_for_delivery',
+      'delivered',
+      'out_for_pickup',
+      'received',
+      'fulfilled',
+    ];
+  }
+  return ['pending', 'paid', 'out_for_delivery', 'delivered', 'fulfilled'];
+}
+
+/** The step a failed attempt belongs to: the retry goes back to it. */
+export const MISSED_PARENT: Partial<Record<OrderStatus, OrderStatus>> = {
+  delivery_missed: 'out_for_delivery',
+  pickup_missed: 'out_for_pickup',
+};

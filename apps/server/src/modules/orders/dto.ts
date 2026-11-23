@@ -10,7 +10,7 @@ import type { CustomerType, DeliveryMethod } from '@mia/validators';
 
 import type { PageMetaDto } from '../products/dto.ts';
 import type { OrderItemConfiguration } from './resolve.ts';
-import type { OrderStatus, PaymentStatus } from './status.ts';
+import type { OrderFlow, OrderStatus, PaymentStatus } from './status.ts';
 import type { AccountInvite } from './types.ts';
 
 export type { PageMetaDto };
@@ -78,7 +78,8 @@ export interface OrderEventDto {
     | 'extension'
     | 'email'
     | 'discount'
-    | 'link';
+    | 'link'
+    | 'inspection';
   fromValue: string | null;
   toValue: string;
   note: string | null;
@@ -145,6 +146,25 @@ export interface AdminOrderSummaryDto {
   updatedAt: string;
 }
 
+/** One decided physical unit of a returned rental line. */
+export interface ReturnDecisionDto {
+  id: string;
+  outcome: 'restocked' | 'attention';
+  note: string | null;
+  resolution: 'repaired' | 'written_off' | null;
+  resolutionNote: string | null;
+  inspectedAt: string;
+  resolvedAt: string | null;
+}
+
+/** A rental line and the decisions made so far; `decisions.length < quantity` = still to inspect. */
+export interface ReturnUnitDto {
+  orderItemId: string;
+  productTitle: string;
+  quantity: number;
+  decisions: ReturnDecisionDto[];
+}
+
 export interface AdminOrderDetailDto {
   id: string;
   number: string;
@@ -195,6 +215,10 @@ export interface AdminOrderDetailDto {
    */
   allowedStatuses: OrderStatus[];
   allowedPaymentStatuses: PaymentStatus[];
+  /** `rental` when any line is rented; decides what follows `delivered`. */
+  flow: OrderFlow;
+  /** Rental lines only; empty for a sale. Inspections are recorded once the order is `received`. */
+  returnUnits: ReturnUnitDto[];
   placedAt: string;
   updatedAt: string;
 }

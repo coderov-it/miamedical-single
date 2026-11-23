@@ -234,12 +234,14 @@ contract.unsigned_blocking:<contractId>:<adminUserId>
 ```
 
 A reminder is about a date, so the date is in its key (`reminder-keys.ts`). The
-countdown starts on the delivery day, the booked start date, because there is no
-"delivered" status. Order `42`, 3-day rental Oct 10 → Oct 13, Rome dates:
+countdown starts once the order is marked `delivered` (`rentalStartedSql`: status
+`delivered`, `out_for_pickup` or `pickup_missed`), and the line's dates were moved to the
+delivery day in that same move. Order `42`, 3-day rental Oct 10 → Oct 13, delivered on
+time (Oct 10), Rome dates:
 
 ```text
  Normal
- 1. Oct  6  7 days left            → nothing: not delivered yet (starts Oct 10)
+ 1. Oct  6  7 days left            → nothing: not delivered yet (starts when marked delivered)
  2. Oct  8  2 days to start        → order.upcoming:42:2026-10-10
  3. Oct 10  3 days left            → rental.ending_soon:customer:42:2026-10-13:3d  + admin copy
  4. Oct 12  1 day left             → rental.ending_soon:customer:42:2026-10-13:1d
@@ -256,8 +258,8 @@ countdown starts on the delivery day, the booked start date, because there is no
 Without the end date, extended step 6 would reuse normal step 3's key and be
 dropped. "Today" is
 `romeTodaySql` in SQL and `romeToday()` in JS, both from
-`shared/rental-calendar.ts`, which also holds the closed statuses (`fulfilled`,
-`cancelled`, `refunded`) that the rentals list, the sweeps and extensions share.
+`shared/rental-calendar.ts`, which also holds the closed statuses (`received`, `fulfilled`,
+`cancelled`, `refunded`) and the running ones (`delivered`, `out_for_pickup`, `pickup_missed`) that the rentals list, the sweeps and extensions share.
 A `pending` order still counts down: the code does not tie delivery to payment.
 
 `ON CONFLICT DO NOTHING` against the partial unique index makes a restart, an

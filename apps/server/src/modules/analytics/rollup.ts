@@ -6,7 +6,7 @@ import { COUNTED, ORDER_DAY, orderLinesStatement } from './rollup-sql.ts';
 
 /**
  * Rebuilds the two rollup tables for whole Europe/Rome days. Counted orders are
- * `paid`, `fulfilled` and `refunded` with money left (`net_total > 0`), on the day
+ * `paid` and every later status with money left (`net_total > 0`), on the day
  * they were placed. Walkthrough: docs/code/sales-analytics.md.
  */
 

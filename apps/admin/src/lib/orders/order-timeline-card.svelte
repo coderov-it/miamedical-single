@@ -10,6 +10,7 @@
   import { contractStatusMeta } from '~/lib/contracts/status';
   import { formatDateTime, orDash } from '~/lib/format';
   import { emailEventMeta } from '~/lib/orders/email-event';
+  import { inspectionMeta } from '~/lib/orders/inspection';
   import { manualEventMeta } from '~/lib/orders/manual-order';
   import { orderStatusMeta, paymentStatusMeta } from '~/lib/orders/status';
   import type { OrderEvent } from '~/lib/orders/types';
@@ -29,6 +30,7 @@
     contract: 'orders.fieldContract',
     extension: 'orders.fieldExtension',
     email: 'orders.fieldEmail',
+    inspection: 'orders.fieldInspection',
     discount: 'newOrder.fieldDiscount',
     link: 'newOrder.fieldLink',
   };
@@ -50,6 +52,7 @@
     if (field === 'contract') return contractStatusMeta(toValue);
     if (field === 'extension') return extensionStatusMeta(toValue);
     if (field === 'email') return emailEventMeta(toValue);
+    if (field === 'inspection') return inspectionMeta(toValue);
     if (field === 'discount' || field === 'link') return manualEventMeta(field, toValue);
     return paymentStatusMeta(toValue);
   }
@@ -82,7 +85,7 @@
                 <span class="text-muted-foreground">
                   {fieldLabel(event.field)}
                 </span>
-                {#if event.field !== 'email' && event.field !== 'link'}
+                {#if event.field !== 'email' && event.field !== 'link' && event.field !== 'inspection'}
                   {fromLabel(event)}
                   <span class="text-muted-foreground">→</span>
                 {/if}

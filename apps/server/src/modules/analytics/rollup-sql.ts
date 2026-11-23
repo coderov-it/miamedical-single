@@ -1,5 +1,7 @@
 import { sql } from '@mia/db';
 
+import { PAID_ONWARD_STATUSES } from '../orders/status.ts';
+
 /**
  * SQL fragments shared by the rebuild and its reconciliation. Money rules and a
  * worked example: docs/code/sales-analytics.md and docs/code/order-money.md.
@@ -9,7 +11,9 @@ import { sql } from '@mia/db';
 export const ORDER_DAY = sql.raw(`(o.placed_at AT TIME ZONE 'Europe/Rome')::date`);
 
 /** Counted orders: money that stayed. `net_total` is total + extensions − refunds. */
-export const COUNTED = sql.raw(`o.status IN ('paid', 'fulfilled', 'refunded') AND o.net_total > 0`);
+export const COUNTED = sql.raw(
+  `o.status IN (${PAID_ONWARD_STATUSES.map((status) => `'${status}'`).join(', ')}) AND o.net_total > 0`,
+);
 
 /** A line's pricing mode: the order's own snapshot, else the product, else fixed. */
 export const LINE_MODE = sql.raw(

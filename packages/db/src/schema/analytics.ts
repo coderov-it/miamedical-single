@@ -23,7 +23,7 @@ import { pricingMode } from './enums.ts';
  * cannot be summed from per-product rows without counting a two-line order
  * twice.
  *
- * Counted orders: status `paid`, `fulfilled` or `refunded` with `net_total > 0`,
+ * Counted orders: status `paid` or any later one (not `pending`, `cancelled`) with `net_total > 0`,
  * each on the Rome day it was PLACED — extensions and refunds land on that day
  * too. Rules and worked example: docs/code/order-money.md. No foreign keys: a rollup must never block a
  * product delete, and the next refresh of that day corrects it anyway.

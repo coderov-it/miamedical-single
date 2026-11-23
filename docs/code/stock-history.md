@@ -13,7 +13,7 @@ action                                  delta  stock_after  reason              
                                                               product_created
 2. customer places order MIA-…-001042 (3)  -3       7        order_placed        001042  -
 3. order paid (stock already taken)         -        7        (no row, no change)
-4. rental order marked fulfilled (back)    +3      10        rental_returned     001042  operator
+4. return inspection: 3 units restocked    +3      10        rental_returned     001042  operator
 5. operator edits stock 10 -> 8, "Inventario"  -2    8        manual_adjustment    -     operator, note
 ```
 
@@ -22,8 +22,8 @@ running sum. `checkLedger` runs at boot and logs `[stock-history] ledger mismatc
 it never fixes data.
 
 Reasons by writer: placement `order_placed`; order moves `order_paid` /
-`order_cancelled` / `order_refunded` / `rental_returned` (`stockReason` in
-`orders/stock.ts`); product create `product_created`; a product edit that really
+`order_cancelled` / `order_refunded` (`stockReason` in `orders/stock.ts`); return
+inspections `rental_returned` (restocked) and `unit_repaired` (attention queue); product create `product_created`; a product edit that really
 changes stock `manual_adjustment` (+ optional `stockNote`).
 
 ## Consumed context (the fallback)

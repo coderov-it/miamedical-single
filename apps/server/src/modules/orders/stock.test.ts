@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
+import type { OrderStatus } from './status.ts';
 import { type StockLine, stockDeltas, stockDirection, takenAfter } from './stock.ts';
 
 const BED = '00000000-0000-4000-8000-00000000000a';
@@ -19,38 +20,44 @@ const sale = (productId: string | null, quantity: number): StockLine => ({
   configuration: { pricingMode: 'fixed' },
 });
 
-test('placing an order takes stock for rentals and sales alike', () => {
-  assert.equal(stockDirection(null, 'pending', 'rental', false), -1);
-  assert.equal(stockDirection(null, 'pending', 'sale', false), -1);
+test('placing an order takes stock', () => {
+  assert.equal(stockDirection(null, 'pending', false), -1);
 });
 
-test('paying an order that already holds its stock takes nothing more', () => {
-  assert.equal(stockDirection('pending', 'paid', 'rental', true), 0);
-  assert.equal(stockDirection('pending', 'paid', 'sale', true), 0);
-});
-
-test('an order placed before the rule takes its stock when paid', () => {
-  assert.equal(stockDirection('pending', 'paid', 'rental', false), -1);
+test('paying takes stock only when the order does not hold it yet', () => {
+  assert.equal(stockDirection('pending', 'paid', true), 0);
+  assert.equal(stockDirection('pending', 'paid', false), -1);
 });
 
 test('cancelling an unpaid order gives back only what it holds', () => {
-  assert.equal(stockDirection('pending', 'cancelled', 'rental', true), 1);
-  assert.equal(stockDirection('pending', 'cancelled', 'sale', false), 0);
+  assert.equal(stockDirection('pending', 'cancelled', true), 1);
+  assert.equal(stockDirection('pending', 'cancelled', false), 0);
 });
 
-test('a returned rental comes back; a fulfilled sale does not', () => {
-  assert.equal(stockDirection('paid', 'fulfilled', 'rental', true), 1);
-  assert.equal(stockDirection('paid', 'fulfilled', 'sale', true), 0);
+test('unwinding before delivery returns stock', () => {
+  const cases: Array<[OrderStatus, OrderStatus]> = [
+    ['paid', 'cancelled'],
+    ['paid', 'refunded'],
+    ['delivery_missed', 'cancelled'],
+  ];
+  for (const [from, to] of cases) assert.equal(stockDirection(from, to, true), 1, `${from}→${to}`);
 });
 
-test('unwinding a paid order returns its stock', () => {
-  assert.equal(stockDirection('paid', 'cancelled', 'sale', true), 1);
-  assert.equal(stockDirection('paid', 'refunded', 'rental', true), 1);
-});
-
-test('stock already back is not moved again', () => {
-  assert.equal(stockDirection('fulfilled', 'refunded', 'rental', true), 0);
-  assert.equal(stockDirection('fulfilled', 'refunded', 'sale', true), 0);
+test('every delivery, pickup and closing move leaves stock alone', () => {
+  const cases: Array<[OrderStatus, OrderStatus]> = [
+    ['paid', 'out_for_delivery'],
+    ['out_for_delivery', 'delivered'],
+    ['out_for_delivery', 'delivery_missed'],
+    ['delivery_missed', 'out_for_delivery'],
+    ['delivered', 'fulfilled'],
+    ['delivered', 'out_for_pickup'],
+    ['out_for_pickup', 'received'],
+    ['out_for_pickup', 'pickup_missed'],
+    ['pickup_missed', 'out_for_pickup'],
+    ['received', 'fulfilled'],
+    ['fulfilled', 'refunded'],
+  ];
+  for (const [from, to] of cases) assert.equal(stockDirection(from, to, true), 0, `${from}→${to}`);
 });
 
 test('the taken flag follows the units', () => {
@@ -66,9 +73,11 @@ test('deltas sum per product and skip deleted products', () => {
   assert.equal(placed.get(CHAIR)?.delta, -1);
   assert.equal(placed.size, 2);
 
-  const returned = stockDeltas(lines, 'paid', 'fulfilled', true);
-  assert.equal(returned.get(BED)?.delta, 3);
-  assert.equal(returned.has(CHAIR), false);
+  const unwound = stockDeltas(lines, 'paid', 'cancelled', true);
+  assert.equal(unwound.get(BED)?.delta, 3);
+  assert.equal(unwound.get(CHAIR)?.delta, 1);
+
+  assert.equal(stockDeltas(lines, 'received', 'fulfilled', true).size, 0);
 });
 
 test('stockReason names the move for the history', async () => {
@@ -78,5 +87,4 @@ test('stockReason names the move for the history', async () => {
   assert.equal(stockReason('pending', 'cancelled'), 'order_cancelled');
   assert.equal(stockReason('paid', 'cancelled'), 'order_cancelled');
   assert.equal(stockReason('paid', 'refunded'), 'order_refunded');
-  assert.equal(stockReason('paid', 'fulfilled'), 'rental_returned');
 });
