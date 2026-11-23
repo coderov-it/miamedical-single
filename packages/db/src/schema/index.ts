@@ -25,3 +25,4 @@ export * from './analytics.ts';
 export * from './order-refunds.ts';
 export * from './order-links.ts';
 export * from './stock-movements.ts';
+export * from './db-backups.ts';

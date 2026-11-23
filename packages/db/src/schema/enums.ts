@@ -199,3 +199,9 @@ export const blogPostStatus = pgEnum('blog_post_status', ['draft', 'published', 
  * CAP. Delivery is no longer priced online — see `geography.ts` — and both types
  * were dropped in `0003_drop_delivery_pricing_and_geography`.
  */
+
+/** Whether a database backup came from the 4-hourly schedule or an operator pressing the button. */
+export const backupKind = pgEnum('backup_kind', ['scheduled', 'manual']);
+
+/** Where a backup run is: dumping or uploading, done, or given up on. */
+export const backupStatus = pgEnum('backup_status', ['running', 'succeeded', 'failed']);

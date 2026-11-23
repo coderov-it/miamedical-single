@@ -20,6 +20,7 @@ import {
 } from './modules/order-disputes/routes.ts';
 import { blogAdminRoutes, blogPublicRoutes } from './modules/blog/routes.ts';
 import { contractAdminRoutes, contractPublicRoutes } from './modules/contracts/routes.ts';
+import { backupAdminRoutes } from './modules/backup/routes.ts';
 import { settingsAdminRoutes } from './modules/settings/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
@@ -138,6 +139,7 @@ const routes = app
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)
   .route('/api/admin/settings', settingsAdminRoutes)
+  .route('/api/admin/backups', backupAdminRoutes)
   .route('/api/admin/contracts', contractAdminRoutes)
   .route('/api/admin/blog', blogAdminRoutes)
   .route('/api/admin/users', adminUserRoutes)

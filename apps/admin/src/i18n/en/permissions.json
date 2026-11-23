@@ -43,6 +43,8 @@
   "perm.customer:export": "Export customer data",
   "perm.setting:read": "View settings",
   "perm.setting:update": "Update settings",
+  "perm.setting:backup_read": "View and download database backups",
+  "perm.setting:backup_create": "Run a manual database backup",
   "perm.admin:read": "View admin users",
   "perm.admin:update": "Update admin users",
   "perm.admin:create": "Create admin users",

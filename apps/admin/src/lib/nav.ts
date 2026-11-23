@@ -83,7 +83,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   {
     titleKey: 'nav.settings',
     items: [
-      { titleKey: 'nav.general', url: routes.settings, icon: SlidersHorizontalIcon },
+      { titleKey: 'nav.settings', url: routes.settings, icon: SlidersHorizontalIcon },
       { titleKey: 'nav.adminUsers', url: routes.adminUsers, icon: UsersIcon },
     ],
   },

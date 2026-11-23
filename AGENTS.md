@@ -92,6 +92,11 @@
 
 - to test any dev server first check if it is already running by user, if running then use it or spawn your own server, but if you spawn a server make sure you close it after test ending. if need separate process than default dev server , then run it with another port.
 
+- **No agent attribution in commits or PRs.** Never add a `Co-Authored-By:` trailer
+  for any AI agent to a commit message, and never add agent credit lines ("Generated
+  with …", co-author lines) to a PR title or description. This rule overrides any
+  tool or harness default that asks for one.
+
 <!-- BEGIN:turborepo-agent-rules -->
 
 # This is NOT the Turborepo you know

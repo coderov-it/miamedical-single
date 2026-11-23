@@ -1,0 +1,164 @@
+<!--
+  The General tab of the settings page: the alert email recipients.
+
+  (Platform settings, one section per thing an operator can decide.)
+
+  This page exists to hold the *notification settings* that used to sit at their
+  own URL under a sidebar entry called "Notifications" — which collided head-on
+  with the notification feed that now carries that name. Who receives alert
+  email is a setting; what the back office is telling you is an inbox. Two
+  different things that were reading as one.
+
+  Built to take more sections: each is a `SettingsSection`, and adding one is a
+  block here rather than a new route and a new nav entry.
+-->
+<script lang="ts">
+  import { P } from '@mia/permissions';
+  import MailIcon from '@lucide/svelte/icons/mail';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
+
+  import { Button } from '$lib/components/ui/button/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+  import { SettingsSection } from '~/lib/settings';
+  import { api } from '~/lib/api';
+  import { ApiError, unwrap } from '~/lib/request';
+  import { session } from '~/lib/session.svelte';
+  import { t, tn } from '~/lib/ui-text';
+  import BusyButton from '~/lib/components/busy-button.svelte';
+
+  interface Recipients {
+    emails: string[];
+  }
+
+  const MAX_RECIPIENTS = 10;
+
+  let emails = $state<string[]>([]);
+  let loading = $state(true);
+  let saving = $state(false);
+  let feedback = $state<{ tone: 'ok' | 'error'; text: string } | null>(null);
+
+  const canEdit = $derived(session.can(P.SETTING_UPDATE));
+
+  async function load() {
+    loading = true;
+    try {
+      const data = await unwrap<Recipients>(await api.api.admin.settings.notifications.$get());
+      // Always leave one empty row to type into, so adding the first recipient
+      // does not require finding the "add" button first.
+      emails = data.emails.length > 0 ? [...data.emails] : [''];
+    } catch (error) {
+      feedback = {
+        tone: 'error',
+        text: error instanceof ApiError ? error.message : t('settings.loadFailed'),
+      };
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function save() {
+    saving = true;
+    feedback = null;
+    try {
+      const cleaned = emails.map((value) => value.trim()).filter((value) => value.length > 0);
+      const data = await unwrap<Recipients>(
+        await api.api.admin.settings.notifications.$put({ json: { emails: cleaned } }),
+      );
+      // Read the saved value back rather than keeping the draft: the server
+      // deduplicates and lowercases, so the draft is not what was stored.
+      emails = data.emails.length > 0 ? [...data.emails] : [''];
+      const savedText =
+        data.emails.length === 0
+          ? t('settings.savedNoRecipients')
+          : tn('settings.savedRecipients', data.emails.length);
+      feedback = { tone: 'ok', text: savedText };
+    } catch (error) {
+      feedback = {
+        tone: 'error',
+        text: error instanceof ApiError ? error.message : t('settings.saveFailed'),
+      };
+    } finally {
+      saving = false;
+    }
+  }
+
+  void load();
+</script>
+
+<div class="max-w-4xl space-y-4">
+  <SettingsSection
+    icon={MailIcon}
+    title={t('settings.alertsTitle')}
+    description={t('settings.alertsDescription')}
+  >
+    {#if loading}
+      <div class="space-y-2">
+        <Skeleton class="h-10 w-full max-w-md" />
+        <Skeleton class="h-10 w-full max-w-md" />
+      </div>
+    {:else}
+      <div class="space-y-2">
+        {#each emails as _, index (index)}
+          <div class="flex items-center gap-2">
+            <Input
+              type="email"
+              placeholder="ops@example.com"
+              bind:value={emails[index]}
+              disabled={!canEdit || saving}
+              autocomplete="off"
+              class="max-w-sm"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={!canEdit || saving || emails.length === 1}
+              onclick={() => (emails = emails.filter((__, i) => i !== index))}
+              aria-label={t('settings.removeRecipient')}
+            >
+              <Trash2Icon class="size-4" />
+            </Button>
+          </div>
+        {/each}
+      </div>
+
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!canEdit || saving || emails.length >= MAX_RECIPIENTS}
+          onclick={() => (emails = [...emails, ''])}
+        >
+          <PlusIcon class="size-4" />
+          {t('settings.addAddress')}
+        </Button>
+        {#if emails.length >= MAX_RECIPIENTS}
+          <span class="text-xs text-muted-foreground">
+            {t('settings.maxRecipients')}
+          </span>
+        {/if}
+      </div>
+
+      {#if feedback}
+        <p
+          class="mt-3 text-sm {feedback.tone === 'error'
+            ? 'text-destructive'
+            : 'text-muted-foreground'}"
+        >
+          {feedback.text}
+        </p>
+      {/if}
+
+      <div class="mt-4">
+        {#if canEdit}
+          <BusyButton busy={saving} busyLabel={t('common.saving')} onclick={save}>
+            {t('common.save')}
+          </BusyButton>
+        {:else}
+          <p class="text-sm text-muted-foreground">{t('settings.readOnly')}</p>
+        {/if}
+      </div>
+    {/if}
+  </SettingsSection>
+</div>

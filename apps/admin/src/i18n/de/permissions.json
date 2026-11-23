@@ -43,6 +43,8 @@
   "perm.customer:export": "Kundendaten exportieren",
   "perm.setting:read": "Einstellungen anzeigen",
   "perm.setting:update": "Einstellungen bearbeiten",
+  "perm.setting:backup_read": "Datenbank-Backups anzeigen und herunterladen",
+  "perm.setting:backup_create": "Manuelles Datenbank-Backup starten",
   "perm.admin:read": "Administratoren anzeigen",
   "perm.admin:update": "Administratoren bearbeiten",
   "perm.admin:create": "Administratoren erstellen",
