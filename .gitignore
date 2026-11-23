@@ -74,10 +74,13 @@ logs/
 # Agent / assistant tooling (local, not project source)
 # Delete these two lines if you want the team to share them.
 # ---------------------------------------------------------------------------
-.agents/skills
+.agents/skills/*
 .claude/settings.local.json
-# Symlink into .agents/ — would dangle for anyone who clones.
-.claude/skills/
+# Symlinks into .agents/ — would dangle for anyone who clones.
+.claude/skills/*
+# Shared with the team: the skill and its .claude symlink (target is committed too).
+!.agents/skills/opus-boss-mode/
+!.claude/skills/opus-boss-mode
 
 # ---------------------------------------------------------------------------
 # Local scratch (never committed)
