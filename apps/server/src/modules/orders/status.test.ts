@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
+import { OrderStatusSchema } from '@mia/validators';
+
 import {
   canMoveOrder,
   canMovePayment,
   manualPaymentStatuses,
   nextOrderStatuses,
   orderFlow,
+  ORDER_STAGES,
   PAID_ONWARD_STATUSES,
   type OrderFlow,
   type OrderStatus,
@@ -67,4 +70,11 @@ test('money is taken from paid onward, never at pending or cancelled', () => {
   assert.equal(PAID_ONWARD_STATUSES.includes('pending'), false);
   assert.equal(PAID_ONWARD_STATUSES.includes('cancelled'), false);
   assert.equal(PAID_ONWARD_STATUSES.length, 9);
+});
+
+test('every order status belongs to exactly one stage', () => {
+  const all = OrderStatusSchema.options as readonly OrderStatus[];
+  const staged = Object.values(ORDER_STAGES).flat() as OrderStatus[];
+  assert.equal(new Set(staged).size, staged.length, 'no status in two stages');
+  assert.deepEqual([...staged].sort(), [...all].sort());
 });

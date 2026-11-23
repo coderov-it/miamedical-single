@@ -6,6 +6,8 @@ export interface PendingLine extends Omit<UnitDetails, 'receivedAt'> {
   orderId: string;
   orderNumber: string;
   orderItemId: string;
+  /** Null when the product was deleted. */
+  productId: string | null;
   productTitle: string;
   /** Decisions already written for this line. */
   decided: number;
@@ -16,6 +18,8 @@ export interface PendingUnit extends Omit<UnitDetails, 'receivedAt'> {
   orderId: string;
   orderNumber: string;
   orderItemId: string;
+  /** Null when the product was deleted. */
+  productId: string | null;
   productTitle: string;
   unitNumber: number;
   receivedAt: Date;

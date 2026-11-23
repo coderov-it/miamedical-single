@@ -20,6 +20,22 @@ export type OrderStatus =
   | 'cancelled'
   | 'refunded';
 
+/**
+ * The stages behind the admin list's filter bar. Every status belongs to exactly
+ * one stage (tested), so the segments partition the list. Mirrored for display in
+ * `apps/admin/src/lib/orders/status.ts`.
+ */
+export const ORDER_STAGES = {
+  pending: ['pending'],
+  paid: ['paid'],
+  delivery: ['out_for_delivery', 'delivery_missed', 'delivered'],
+  return: ['out_for_pickup', 'pickup_missed', 'received'],
+  fulfilled: ['fulfilled'],
+  closed: ['cancelled', 'refunded'],
+} as const satisfies Record<string, readonly OrderStatus[]>;
+
+export type OrderStage = keyof typeof ORDER_STAGES;
+
 /** A rental order if any line is rented; the order's goods then come back. */
 export type OrderFlow = 'sale' | 'rental';
 

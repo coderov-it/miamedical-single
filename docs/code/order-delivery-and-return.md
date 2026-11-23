@@ -93,10 +93,10 @@ POST /api/admin/attention/:id/resolve   { resolution, note? }          order:upd
 - Admin page `/returns` ("Return check", under Rent Management, `order:read`; buttons need
   `order:update`) has two tabs, kept in `?tab=`: **To check** (undecided units of `received`
   rentals, grouped by order, from `/returns/pending`) and **Needs attention** (the repair queue,
-  from `/attention`). The order page's returned-units card stays and links to `?tab=attention`.
+  from `/attention`). Units are decided only here; the order page shows a progress line and a link to this page.
   Code: `routes/(app)/returns/`, `lib/returns/`.
 - `/returns/pending` returns one element per undecided unit
-  `{ orderId, orderNumber, customerName, orderItemId, productTitle, unitNumber, receivedAt }`:
+  `{ orderId, orderNumber, customerName, orderItemId, productId, productTitle, unitNumber, receivedAt }`:
   `quantity − decisions` per rental line, `unitNumber` continuing after the decided ones, oldest
   `receivedAt` first (latest `received` status event). Pure part: `pending-units.ts`.
 - Every new move uses `order:update` (reads `order:read`); no new permissions.

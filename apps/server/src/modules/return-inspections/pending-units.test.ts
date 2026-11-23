@@ -16,6 +16,7 @@ const line = (over: Partial<PendingLine>): PendingLine => ({
   rentalEndDate: null,
   receivedByName: null,
   orderItemId: 'i1',
+  productId: 'p1',
   productTitle: 'Letto',
   quantity: 2,
   decided: 0,

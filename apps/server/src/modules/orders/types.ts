@@ -100,6 +100,8 @@ export interface OrderListFilters {
   perPage: number;
   q?: string | undefined;
   status?: OrderRow['status'] | undefined;
+  /** A group of statuses, see `ORDER_STAGES`; combined with `status` when both are sent. */
+  stage?: 'pending' | 'paid' | 'delivery' | 'return' | 'fulfilled' | 'closed' | undefined;
   paymentStatus?: OrderRow['paymentStatus'] | undefined;
   type?: 'rental' | 'fixed' | undefined;
   /** Inclusive ISO dates against `placedAt`. */

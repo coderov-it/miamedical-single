@@ -4,8 +4,7 @@
   triage glance must never disagree about what an order says.
 
   The moves themselves live in `order-actions-card.svelte`, the step map in
-  `order-status-stepper.svelte`, the returned-unit decisions in
-  `order-inspection-card.svelte`.
+  `order-status-stepper.svelte`. Returned units are decided only on the Return check page.
 -->
 <script lang="ts">
   import { toast } from 'svelte-sonner';
@@ -19,7 +18,6 @@
   import OrderCustomerCard from '~/lib/orders/order-customer-card.svelte';
   import OrderDeliveryCard from '~/lib/orders/order-delivery-card.svelte';
   import OrderExtensionsCard from '~/lib/orders/order-extensions-card.svelte';
-  import OrderInspectionCard from '~/lib/orders/order-inspection-card.svelte';
   import OrderManualCard from '~/lib/orders/order-manual-card.svelte';
   import OrderMoneyCard from '~/lib/orders/order-money-card.svelte';
   import OrderItemsCard from '~/lib/orders/order-items-card.svelte';
@@ -157,9 +155,6 @@
   <div class="grid gap-5 @4xl:grid-cols-3 @4xl:grid-rows-[auto_1fr] @4xl:items-start">
     <div class="space-y-5 @4xl:col-span-2 @4xl:col-start-1 @4xl:row-start-1">
       <OrderItemsCard items={order.items} currency={order.totals.currency} />
-      {#if order.flow === 'rental' && (order.status === 'received' || order.returnUnits.some((unit) => unit.decisions.length > 0))}
-        <OrderInspectionCard {order} {onUpdated} />
-      {/if}
       <OrderTimelineCard events={order.events} />
     </div>
 
