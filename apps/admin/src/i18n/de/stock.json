@@ -28,6 +28,7 @@
   "reasonOrderCancelled": "Bestellung storniert",
   "reasonOrderRefunded": "Bestellung erstattet",
   "reasonRentalReturned": "Miete zurückgegeben",
+  "reasonUnitRepaired": "Einheit repariert",
   "reasonManualAdjustment": "Manuelle Korrektur",
   "reasonUnknown": "Unbekannt"
 }

@@ -1,12 +1,20 @@
 /** Internal records for the orders module. Not wire types — those live in dto.ts. */
 
-import type { cartItems, carts, orderItems, orders, orderStatusEvents } from '@mia/db/schema';
+import type {
+  cartItems,
+  carts,
+  orderItems,
+  orders,
+  orderStatusEvents,
+  returnInspections,
+} from '@mia/db/schema';
 
 import type { ResolvedLine } from './resolve.ts';
 
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type OrderStatusEventRow = typeof orderStatusEvents.$inferSelect;
+export type ReturnInspectionRow = typeof returnInspections.$inferSelect;
 export type CartRow = typeof carts.$inferSelect;
 export type CartItemRow = typeof cartItems.$inferSelect;
 
@@ -64,6 +72,8 @@ export interface AdminOrderAggregate extends OrderAggregate {
   contractStatus: string | null;
   /** Name (else email) of the agent who created a manual order; null for online ones. */
   createdByName: string | null;
+  /** One row per decided returned unit, oldest first. */
+  inspections: ReturnInspectionRow[];
 }
 
 /**

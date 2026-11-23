@@ -28,6 +28,10 @@ export const routes = {
   ordersWithDrawer: (id: string) => `/orders?order=${id}`,
 
   rentals: '/rentals',
+  /** Stock decision for returned units; the Needs attention tab holds the repair queue. */
+  returns: '/returns',
+  /** The same page on its second tab. */
+  returnsAttention: '/returns?tab=attention',
   payments: '/payments',
 
   contracts: '/contracts',

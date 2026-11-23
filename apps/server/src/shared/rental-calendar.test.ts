@@ -18,8 +18,11 @@ test('romeToday follows winter time (CET, UTC+1)', () => {
   assert.equal(romeToday(new Date('2026-12-31T22:59:00Z')), '2026-12-31');
 });
 
-test('fulfilled, cancelled and refunded orders are closed; pending and paid are not', () => {
-  assert.deepEqual([...CLOSED_RENTAL_ORDER_STATUSES], ['fulfilled', 'cancelled', 'refunded']);
+test('received, fulfilled, cancelled and refunded orders are closed; pending and paid are not', () => {
+  assert.deepEqual(
+    [...CLOSED_RENTAL_ORDER_STATUSES],
+    ['received', 'fulfilled', 'cancelled', 'refunded'],
+  );
   assert.equal(isClosedRentalOrderStatus('refunded'), true);
   assert.equal(isClosedRentalOrderStatus('pending'), false);
   assert.equal(isClosedRentalOrderStatus('paid'), false);

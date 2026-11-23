@@ -12,6 +12,7 @@ export * from './catalog.ts';
 export * from './carts.ts';
 export * from './orders.ts';
 export * from './order-records.ts';
+export * from './return-inspections.ts';
 export * from './customer-auth.ts';
 export * from './settings.ts';
 export * from './contracts.ts';

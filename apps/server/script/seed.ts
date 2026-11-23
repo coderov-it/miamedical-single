@@ -620,8 +620,10 @@ if (!env.R2_BUCKET) {
 
 // --- orders and carts ---------------------------------------------------------
 //
-// One order per status, so the queue's filter bar and the detail page's action
-// set can both be exercised without hand-crafting rows. Lines snapshot the title
+// One order per sale-valid status, so the queue's filter bar and the detail
+// page's action set can both be exercised without hand-crafting rows. The
+// rental-only statuses are left out; `out_for_delivery` and `delivered` appear
+// twice so those rows keep the same count as the plan. Lines snapshot the title
 // exactly as checkout would: the order stays readable after the product moves.
 
 {
@@ -662,15 +664,36 @@ if (!env.R2_BUCKET) {
         phone: '+39 02 1234567',
       });
 
-      /** `pending` first so the queue's "waiting" count is non-zero on a fresh seed. */
+      /** `pending` first so the queue's "waiting" count is non-zero on a fresh seed.
+       Seeded orders carry no rental lines, so they are sale orders: rental-only
+       statuses (`out_for_pickup`, `pickup_missed`, `received`) are not used. */
       const PLAN = [
         { status: 'pending', paymentStatus: 'unpaid', days: 0 },
         { status: 'pending', paymentStatus: 'authorized', days: 1 },
         { status: 'paid', paymentStatus: 'paid', days: 3 },
+        { status: 'out_for_delivery', paymentStatus: 'paid', days: 4 },
+        { status: 'delivery_missed', paymentStatus: 'paid', days: 5 },
+        { status: 'delivered', paymentStatus: 'paid', days: 6 },
+        { status: 'out_for_delivery', paymentStatus: 'paid', days: 7 },
+        { status: 'delivered', paymentStatus: 'paid', days: 8 },
         { status: 'fulfilled', paymentStatus: 'paid', days: 9 },
         { status: 'cancelled', paymentStatus: 'failed', days: 14 },
         { status: 'refunded', paymentStatus: 'refunded', days: 21 },
       ] as const;
+
+      /** The moves each seeded status walked through, oldest first. */
+      const PATH = ['pending', 'paid', 'out_for_delivery', 'delivered'] as const;
+      const walk = (...steps: string[]) => steps.slice(1).map((to, i) => ({ from: steps[i]!, to }));
+      const TRAILS: Record<(typeof PLAN)[number]['status'], { from: string; to: string }[]> = {
+        pending: [],
+        paid: walk(...PATH.slice(0, 2)),
+        out_for_delivery: walk(...PATH.slice(0, 3)),
+        delivery_missed: walk(...PATH.slice(0, 3), 'delivery_missed'),
+        delivered: walk(...PATH),
+        fulfilled: walk(...PATH, 'fulfilled'),
+        cancelled: walk('pending', 'cancelled'),
+        refunded: walk('pending', 'paid', 'refunded'),
+      };
 
       const cents = (value: string) => Math.round(Number(value) * 100);
       const money = (value: number) => (value / 100).toFixed(2);
@@ -725,22 +748,7 @@ if (!env.R2_BUCKET) {
 
         // Backfill the timeline so a seeded order reads like one that actually
         // moved, rather than one that appeared in its final state.
-        const trail: { from: string; to: string }[] =
-          plan.status === 'pending'
-            ? []
-            : plan.status === 'cancelled'
-              ? [{ from: 'pending', to: 'cancelled' }]
-              : plan.status === 'refunded'
-                ? [
-                    { from: 'pending', to: 'paid' },
-                    { from: 'paid', to: 'refunded' },
-                  ]
-                : plan.status === 'fulfilled'
-                  ? [
-                      { from: 'pending', to: 'paid' },
-                      { from: 'paid', to: 'fulfilled' },
-                    ]
-                  : [{ from: 'pending', to: 'paid' }];
+        const trail = TRAILS[plan.status];
 
         for (const [step, move] of trail.entries()) {
           await db.insert(orderStatusEvents).values({

@@ -88,6 +88,37 @@ export const PRODUCT_STATUS = {
 export const ORDER_STATUS = {
   pending: { it: 'In attesa', en: 'Pending', fr: 'En attente', de: 'Ausstehend' },
   paid: { it: 'Pagato', en: 'Paid', fr: 'Payée', de: 'Bezahlt' },
+  out_for_delivery: {
+    it: 'In consegna',
+    en: 'Out for delivery',
+    fr: 'En cours de livraison',
+    de: 'In Zustellung',
+  },
+  delivery_missed: {
+    it: 'Consegna mancata',
+    en: 'Delivery missed',
+    fr: 'Livraison manquée',
+    de: 'Zustellung verpasst',
+  },
+  delivered: { it: 'Consegnato', en: 'Delivered', fr: 'Livrée', de: 'Zugestellt' },
+  out_for_pickup: {
+    it: 'Ritiro in corso',
+    en: 'Out for pickup',
+    fr: 'Enlèvement en cours',
+    de: 'Abholung unterwegs',
+  },
+  pickup_missed: {
+    it: 'Ritiro mancato',
+    en: 'Pickup missed',
+    fr: 'Enlèvement manqué',
+    de: 'Abholung verpasst',
+  },
+  received: {
+    it: 'Prodotto ricevuto',
+    en: 'Product received',
+    fr: 'Produit reçu',
+    de: 'Produkt erhalten',
+  },
   fulfilled: { it: 'Evaso', en: 'Fulfilled', fr: 'Traitée', de: 'Ausgeführt' },
   cancelled: { it: 'Annullato', en: 'Cancelled', fr: 'Annulée', de: 'Storniert' },
   refunded: { it: 'Rimborsato', en: 'Refunded', fr: 'Remboursée', de: 'Erstattet' },

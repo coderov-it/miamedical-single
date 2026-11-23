@@ -13,6 +13,7 @@
     "check": "tsc --noEmit",
     "clean": "rm -rf .turbo dist node_modules",
     "seed": "tsx --env-file-if-exists=../../.env script/seed.ts",
+    "legacy:delivered": "tsx --env-file-if-exists=../../.env script/move-legacy-rentals.ts",
     "admin:create": "tsx --env-file-if-exists=../../.env script/create-admin.ts",
     "admin:seed": "tsx --env-file-if-exists=../../.env script/seed-superadmin.ts",
     "push:test": "tsx --env-file-if-exists=../../.env script/push-test.ts",

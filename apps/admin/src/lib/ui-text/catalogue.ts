@@ -31,6 +31,7 @@ import type permissions from '~/i18n/en/permissions.json';
 import type products from '~/i18n/en/products.json';
 import type profile from '~/i18n/en/profile.json';
 import type rentals from '~/i18n/en/rentals.json';
+import type returns from '~/i18n/en/returns.json';
 import type settings from '~/i18n/en/settings.json';
 import type shell from '~/i18n/en/shell.json';
 import type status from '~/i18n/en/status.json';
@@ -61,6 +62,7 @@ interface Reference {
   products: typeof products;
   profile: typeof profile;
   rentals: typeof rentals;
+  returns: typeof returns;
   settings: typeof settings;
   shell: typeof shell;
   status: typeof status;

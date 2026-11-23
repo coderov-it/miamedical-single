@@ -322,13 +322,16 @@
                           {t('rentals.copySigningLink')}
                         </DropdownMenu.Item>
                       {/if}
-                      <DropdownMenu.Separator />
-                      <DropdownMenu.Item
-                        onSelect={() => finishRental(rental.orderId, rental.orderNumber)}
-                      >
-                        <CheckCircleIcon class="size-4" />
-                        {t('rentals.confirmReturn')}
-                      </DropdownMenu.Item>
+                      <!-- The return is confirmed once the courier is out collecting it. -->
+                      {#if rental.orderStatus === 'out_for_pickup'}
+                        <DropdownMenu.Separator />
+                        <DropdownMenu.Item
+                          onSelect={() => finishRental(rental.orderId, rental.orderNumber)}
+                        >
+                          <CheckCircleIcon class="size-4" />
+                          {t('rentals.confirmReturn')}
+                        </DropdownMenu.Item>
+                      {/if}
                     </DropdownMenu.Content>
                   </DropdownMenu.Root>
                 {/if}

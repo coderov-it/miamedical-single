@@ -32,6 +32,12 @@ export const CheckoutSchema = v.object({
 export const OrderStatusSchema = v.picklist([
   'pending',
   'paid',
+  'out_for_delivery',
+  'delivery_missed',
+  'delivered',
+  'out_for_pickup',
+  'pickup_missed',
+  'received',
   'fulfilled',
   'cancelled',
   'refunded',
