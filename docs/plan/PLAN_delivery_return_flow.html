@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order Delivery Flow</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --text: #1d1d1b; --muted: #6b6b66;
+    --line: #c9c9c2; --edge: #8a8a83;
+    --node: #ffffff; --node-stroke: #b8b8b0;
+    --new: #eef3ff; --new-stroke: #3d63dd; --new-text: #2747b0;
+    --exit: #f1f1ee; --exit-stroke: #c9c9c2;
+    --good: #1f8a4c; --warn: #b5650d; --warn-bg: #fff4e6; --warn-stroke: #e08a2b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161615; --card: #1f1f1d; --text: #ecece8; --muted: #a2a29b;
+      --line: #3a3a37; --edge: #8a8a83;
+      --node: #262624; --node-stroke: #4a4a46;
+      --new: #1c2440; --new-stroke: #7b9bff; --new-text: #a9bdff;
+      --exit: #222220; --exit-stroke: #3f3f3b;
+      --good: #4cc983; --warn: #f0a95a; --warn-bg: #2e2416; --warn-stroke: #c9802f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161615; --card: #1f1f1d; --text: #ecece8; --muted: #a2a29b;
+    --line: #3a3a37; --edge: #8a8a83;
+    --node: #262624; --node-stroke: #4a4a46;
+    --new: #1c2440; --new-stroke: #7b9bff; --new-text: #a9bdff;
+    --exit: #222220; --exit-stroke: #3f3f3b;
+    --good: #4cc983; --warn: #f0a95a; --warn-bg: #2e2416; --warn-stroke: #c9802f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 1140px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 32px 0 10px; color: var(--muted); font-weight: 600;
+       text-transform: uppercase; letter-spacing: .04em; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          padding: 16px; overflow-x: auto; }
+  svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  svg text { fill: var(--text); font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .n { fill: var(--node); stroke: var(--node-stroke); stroke-width: 1.2; }
+  .n-new { fill: var(--new); stroke: var(--new-stroke); stroke-width: 1.5; }
+  .n-exit { fill: var(--exit); stroke: var(--exit-stroke); stroke-width: 1.2; }
+  .n-warn { fill: var(--warn-bg); stroke: var(--warn-stroke); stroke-width: 1.5; }
+  .n-time { fill: none; stroke: var(--node-stroke); stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .t-title { font-weight: 600; }
+  .t-new { fill: var(--new-text) !important; font-weight: 600; }
+  .t-muted { fill: var(--muted) !important; font-size: 12px !important; }
+  .t-good { fill: var(--good) !important; font-size: 12px !important; font-weight: 600; }
+  .t-warn { fill: var(--warn) !important; font-size: 12px !important; font-weight: 600; }
+  .t-edge { fill: var(--muted) !important; font-size: 12px !important; }
+  .t-actor { fill: var(--new-text) !important; font-size: 12px !important; font-weight: 600; }
+  .e { fill: none; stroke: var(--edge); stroke-width: 1.4; }
+  .e-new { fill: none; stroke: var(--new-stroke); stroke-width: 1.6; }
+  .arrow { fill: var(--edge); }
+  .arrow-new { fill: var(--new-stroke); }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; color: var(--muted); font-size: 13px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  pre { margin: 0; font: 13px/1.7 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Order lifecycle: delivery, return and inspection</h1>
+  <p class="sub">Every physical step is handled by an agent in the admin panel. The blue steps are new.</p>
+
+  <h2>Proposed: rental and sale</h2>
+  <div class="card">
+    <svg viewBox="0 0 1090 800" role="img" aria-label="Order flow with delivery, pickup and return inspection">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" class="arrow"/>
+        </marker>
+        <marker id="an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" class="arrow-new"/>
+        </marker>
+      </defs>
+
+      <!-- ===== Row 1: order to delivery ===== -->
+      <rect class="n-exit" x="210" y="30" width="160" height="56" rx="8"/>
+      <text x="290" y="54" text-anchor="middle" class="t-title">cancelled / refunded</text>
+      <text x="290" y="73" text-anchor="middle" class="t-good">stock comes back</text>
+
+      <rect class="n" x="30" y="150" width="140" height="52" rx="8"/>
+      <text x="100" y="181" text-anchor="middle" class="t-title">pending</text>
+
+      <rect class="n" x="220" y="150" width="140" height="52" rx="8"/>
+      <text x="290" y="181" text-anchor="middle" class="t-title">paid</text>
+
+      <rect class="n-new" x="420" y="150" width="170" height="52" rx="8"/>
+      <text x="505" y="181" text-anchor="middle" class="t-new">out for delivery</text>
+
+      <rect class="n-new" x="650" y="150" width="150" height="52" rx="8"/>
+      <text x="725" y="181" text-anchor="middle" class="t-new">delivered</text>
+
+      <rect class="n" x="900" y="150" width="160" height="52" rx="8"/>
+      <text x="980" y="173" text-anchor="middle" class="t-title">fulfilled</text>
+      <text x="980" y="191" text-anchor="middle" class="t-muted">sale closed</text>
+
+      <rect class="n-exit" x="30" y="250" width="140" height="52" rx="8"/>
+      <text x="100" y="281" text-anchor="middle" class="t-title">cancelled</text>
+
+      <rect class="n-warn" x="420" y="250" width="170" height="52" rx="8"/>
+      <text x="505" y="273" text-anchor="middle" class="t-title">delivery missed</text>
+      <text x="505" y="291" text-anchor="middle" class="t-warn">with a note</text>
+
+      <path class="e" d="M170,176 L218,176" marker-end="url(#a)"/>
+      <text x="194" y="166" text-anchor="middle" class="t-edge">pay</text>
+      <path class="e" d="M290,150 L290,88" marker-end="url(#a)"/>
+      <path class="e" d="M100,202 L100,248" marker-end="url(#a)"/>
+
+      <path class="e-new" d="M360,176 L418,176" marker-end="url(#an)"/>
+      <text x="389" y="166" text-anchor="middle" class="t-actor">Driver</text>
+      <path class="e-new" d="M590,176 L648,176" marker-end="url(#an)"/>
+      <text x="619" y="166" text-anchor="middle" class="t-actor">Driver</text>
+
+      <path class="e-new" d="M480,202 L480,248" marker-end="url(#an)"/>
+      <path class="e-new" d="M530,250 L530,204" marker-end="url(#an)"/>
+      <text x="538" y="231" class="t-edge">retry</text>
+      <path class="e-new" d="M420,276 L172,276" marker-end="url(#an)"/>
+      <text x="296" y="268" text-anchor="middle" class="t-edge">give up</text>
+
+      <path class="e-new" d="M800,176 L898,176" marker-end="url(#an)"/>
+      <text x="849" y="166" text-anchor="middle" class="t-edge">sale</text>
+
+      <!-- delivered → rental row -->
+      <path class="e-new" d="M725,202 L725,340 L115,340 L115,388" marker-end="url(#an)"/>
+      <text x="735" y="330" class="t-edge">rental</text>
+
+      <!-- ===== Row 2: rental return ===== -->
+      <rect class="n-time" x="30" y="390" width="170" height="52" rx="8"/>
+      <text x="115" y="413" text-anchor="middle">with customer</text>
+      <text x="115" y="431" text-anchor="middle" class="t-muted">counts from delivery</text>
+
+      <rect class="n-new" x="260" y="390" width="160" height="52" rx="8"/>
+      <text x="340" y="421" text-anchor="middle" class="t-new">out for pickup</text>
+
+      <rect class="n-new" x="490" y="390" width="160" height="52" rx="8"/>
+      <text x="570" y="413" text-anchor="middle" class="t-new">product received</text>
+      <text x="570" y="431" text-anchor="middle" class="t-muted">stock unchanged</text>
+
+      <rect class="n" x="900" y="390" width="160" height="52" rx="8"/>
+      <text x="980" y="413" text-anchor="middle" class="t-title">fulfilled</text>
+      <text x="980" y="431" text-anchor="middle" class="t-muted">rental closed</text>
+
+      <rect class="n-warn" x="260" y="490" width="160" height="52" rx="8"/>
+      <text x="340" y="513" text-anchor="middle" class="t-title">pickup missed</text>
+      <text x="340" y="531" text-anchor="middle" class="t-warn">with a note</text>
+
+      <path class="e" d="M200,416 L258,416" marker-end="url(#a)"/>
+      <path class="e-new" d="M420,416 L488,416" marker-end="url(#an)"/>
+      <text x="454" y="406" text-anchor="middle" class="t-actor">Driver</text>
+
+      <path class="e-new" d="M315,442 L315,488" marker-end="url(#an)"/>
+      <path class="e-new" d="M365,490 L365,444" marker-end="url(#an)"/>
+      <text x="373" y="471" class="t-edge">retry</text>
+
+      <path class="e-new" d="M650,416 L898,416" marker-end="url(#an)"/>
+      <text x="774" y="406" text-anchor="middle" class="t-edge">every unit decided</text>
+
+      <!-- Inspection -->
+      <path class="e-new" d="M570,442 L570,580"/>
+      <text x="580" y="520" class="t-actor">Inspector decides each unit</text>
+      <path class="e-new" d="M470,580 L720,580"/>
+      <path class="e-new" d="M470,580 L470,608" marker-end="url(#an)"/>
+      <path class="e-new" d="M720,580 L720,608" marker-end="url(#an)"/>
+
+      <rect class="n-new" x="390" y="610" width="160" height="56" rx="8"/>
+      <text x="470" y="634" text-anchor="middle" class="t-new">Stock back</text>
+      <text x="470" y="653" text-anchor="middle" class="t-good">stock +1</text>
+
+      <rect class="n-warn" x="620" y="610" width="200" height="56" rx="8"/>
+      <text x="720" y="634" text-anchor="middle" class="t-title">Needs attention</text>
+      <text x="720" y="653" text-anchor="middle" class="t-warn">Attention queue · stock unchanged</text>
+
+      <path class="e-new" d="M720,666 L720,690"/>
+      <path class="e-new" d="M620,690 L840,690"/>
+      <path class="e-new" d="M620,690 L620,718" marker-end="url(#an)"/>
+      <path class="e-new" d="M840,690 L840,718" marker-end="url(#an)"/>
+
+      <rect class="n-new" x="530" y="720" width="180" height="56" rx="8"/>
+      <text x="620" y="744" text-anchor="middle" class="t-new">Repaired → Stock back</text>
+      <text x="620" y="763" text-anchor="middle" class="t-good">stock +1</text>
+
+      <rect class="n-new" x="750" y="720" width="180" height="56" rx="8"/>
+      <text x="840" y="744" text-anchor="middle" class="t-new">Write off</text>
+      <text x="840" y="763" text-anchor="middle" class="t-muted">stays out, with a reason</text>
+    </svg>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--new);border:1.5px solid var(--new-stroke)"></i>New step</span>
+      <span><i class="sw" style="background:var(--node);border:1.2px solid var(--node-stroke)"></i>Existing status</span>
+      <span><i class="sw" style="border:1.2px dashed var(--node-stroke)"></i>Time, not a status</span>
+      <span><i class="sw" style="background:var(--warn-bg);border:1.5px solid var(--warn-stroke)"></i>Needs follow-up</span>
+      <span><i class="sw" style="background:var(--exit);border:1.2px solid var(--exit-stroke)"></i>Exit</span>
+    </div>
+  </div>
+
+  <h2>Today</h2>
+  <div class="card"><pre>rental:  pending ──pay──▶ paid ──"Confirm return"──▶ fulfilled   (stock +1 straight away)
+sale:    pending ──pay──▶ paid ──▶ fulfilled (delivered)
+         delivery, missed delivery and pickup happen outside the system</pre></div>
+
+  <h2>Worked example: 2 beds, booked 10 days from 10 Nov, starting with 3 in stock</h2>
+  <div class="card"><pre> 1. Order placed                              → stock 1
+ 2. Paid                                      → stock 1
+ 3. 10 Nov  Driver: out for delivery
+ 4. 10 Nov  Customer not home                 → delivery missed (note)
+ 5. 11 Nov  Driver: out for delivery           (retry)
+ 6. 11 Nov  Driver: delivered                 → rental starts 11 Nov, due back 21 Nov
+                                                (booked 10 Nov was only the plan)
+ 7. 21 Nov  Driver: out for pickup
+ 8. 21 Nov  Driver: product received          → stock 1
+ 9. Inspector: bed #1 → Stock back             → stock 2
+10. Inspector: bed #2 → Needs attention        → stock 2, queue: 1, order → fulfilled
+11a. Later: bed #2 Repaired                    → stock 3
+11b. Fallback: bed #2 Written off              → stock 2, history notes why</pre></div>
+  <h2>Decisions so far</h2>
+  <div class="card"><pre>1. Every physical step (delivery, missed delivery, pickup, return) is an order status an agent sets in the admin panel.
+2. "Product received" does not restock. An inspector decides each unit: Stock back, or Needs attention.
+3. A rental starts when it is marked delivered. The booked start date is only the plan:
+     booked 10 Nov, 10 days, delivered 11 Nov  → due back 21 Nov
+     booked 10 Nov, 10 days, delivered  9 Nov  → due back 19 Nov
+
+Open: permission split (order:deliver, rental:inspect, product:stock); returns of sold items.</pre></div>
+</main>
+</body>
+</html>
