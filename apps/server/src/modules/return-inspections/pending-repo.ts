@@ -18,6 +18,7 @@ export async function findPendingLines(db: Database): Promise<PendingLine[]> {
       orderId: orders.id,
       orderNumber: orders.number,
       orderItemId: orderItems.id,
+      productId: orderItems.productId,
       productTitle: orderItems.productTitle,
       ...unitColumns,
     })
@@ -47,6 +48,7 @@ export async function findPendingLines(db: Database): Promise<PendingLine[]> {
       orderId: line.orderId,
       orderNumber: line.orderNumber,
       orderItemId: line.orderItemId,
+      productId: line.productId,
       productTitle: line.productTitle,
       ...details,
       decided: decidedByItem.get(line.orderItemId) ?? 0,

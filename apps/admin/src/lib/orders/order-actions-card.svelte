@@ -34,6 +34,7 @@
   import { orderStatusMeta, type OrderStatus } from '~/lib/orders/status';
   import type { OrderDetail } from '~/lib/orders/types';
   import { errorFields, errorMessage, unwrap } from '~/lib/request';
+  import { routes } from '~/lib/routes';
   import { session } from '~/lib/session.svelte';
   import { t } from '~/lib/ui-text';
 
@@ -64,6 +65,10 @@
 
   const status = $derived(order.status as OrderStatus);
   const primary = $derived(primaryMove(order.allowedStatuses));
+  const decidedUnits = $derived(
+    order.returnUnits.reduce((sum, line) => sum + line.decisions.length, 0),
+  );
+  const totalUnits = $derived(order.returnUnits.reduce((sum, line) => sum + line.quantity, 0));
   const asksDate = $derived(order.allowedStatuses.includes('delivered'));
 
   function variantFor(to: string): 'default' | 'outline' {
@@ -143,7 +148,12 @@
 
   <div class="space-y-3 p-4">
     {#if status === 'received'}
-      <p class="text-sm text-muted-foreground">{t('orders.actionsReceivedHint')}</p>
+      <p class="text-sm text-muted-foreground">
+        {t('orders.actionsWaitingReturnCheck', { decided: decidedUnits, total: totalUnits })}
+      </p>
+      <Button variant="outline" size="sm" href={routes.returns}>
+        {t('orders.actionsOpenReturnCheck')}
+      </Button>
     {:else if order.allowedStatuses.length === 0}
       <p class="text-sm text-muted-foreground">
         {t('orders.actionsNothingLeft', { status: orderStatusMeta(order.status).label })}

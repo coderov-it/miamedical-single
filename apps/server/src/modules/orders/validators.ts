@@ -40,6 +40,7 @@ export const AdminOrderQuerySchema = v.object({
   ...PaginationSchema.entries,
   q: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(120))),
   status: v.optional(OrderStatusSchema),
+  stage: v.optional(v.picklist(['pending', 'paid', 'delivery', 'return', 'fulfilled', 'closed'])),
   paymentStatus: v.optional(PaymentStatusSchema),
   type: v.optional(PricingModeSchema),
   from: v.optional(DateOnlySchema),

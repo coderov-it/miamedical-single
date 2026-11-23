@@ -9,7 +9,7 @@ import { and, count, desc, eq, gte, ilike, inArray, lt, or, sql } from '@mia/db'
 import { adminUsers, orderItems, orders } from '@mia/db/schema';
 
 import { romeDayRange } from '../../shared/rome-day.ts';
-import { PAID_ONWARD_STATUSES } from './status.ts';
+import { ORDER_STAGES, PAID_ONWARD_STATUSES } from './status.ts';
 import type { AdminOrderSummaryRecord, OrderListFilters } from './types.ts';
 
 function orderWhere(filters: OrderListFilters) {
@@ -20,6 +20,7 @@ function orderWhere(filters: OrderListFilters) {
     clauses.push(or(ilike(orders.number, term), ilike(orders.email, term)));
   }
   if (filters.status) clauses.push(eq(orders.status, filters.status));
+  if (filters.stage) clauses.push(inArray(orders.status, [...ORDER_STAGES[filters.stage]]));
   if (filters.paymentStatus) clauses.push(eq(orders.paymentStatus, filters.paymentStatus));
   if (filters.type) {
     clauses.push(

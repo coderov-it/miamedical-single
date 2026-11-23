@@ -97,7 +97,8 @@ export const orderPublicRoutes = new Hono<AppEnv>()
 export const orderAdminRoutes = new Hono<AppEnv>()
   /** --------------------------------------------------------------------------
   GET /api/admin/orders (order:read)
-  Paged order list with the awaiting count and the page's value.
+  Paged order list with the awaiting count and the page's value. Filters: q, status,
+  stage (pending|paid|delivery|return|fulfilled|closed; combines with status), paymentStatus, type, from, to.
   -------------------------------------------------------------------------- **/
   .get(
     '/',

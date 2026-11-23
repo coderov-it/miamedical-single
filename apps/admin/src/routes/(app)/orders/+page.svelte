@@ -19,7 +19,7 @@
   import OrderDrawer from '~/lib/orders/list/order-drawer.svelte';
   import OrdersKpiStrip from '~/lib/orders/list/orders-kpi-strip.svelte';
   import OrdersTable from '~/lib/orders/list/orders-table.svelte';
-  import { ORDER_STATUS_ORDER, orderStatusMeta } from '~/lib/orders/status';
+  import { ORDER_STAGES, stageOfStatus } from '~/lib/orders/status';
   import { QueryDraft, QueryState } from '~/lib/query-state.svelte';
   import { unwrap, unwrapFull } from '~/lib/request';
   import { Resource } from '~/lib/resource.svelte';
@@ -38,8 +38,16 @@
     { value: 'fixed', labelKey: 'orders.typeSale' },
   ];
 
-  const query = new QueryState({ q: '', status: ANY, type: ANY, page: 1 });
+  const query = new QueryState({ q: '', stage: ANY, status: ANY, type: ANY, page: 1 });
   const draft = new QueryDraft(query);
+
+  /** The highlighted segment: the stage, or the stage holding a legacy `?status=`. */
+  const activeStage = $derived.by(() => {
+    const { stage, status } = query.current;
+    if (stage !== ANY) return stage;
+    if (status !== ANY) return stageOfStatus(status) ?? ANY;
+    return ANY;
+  });
 
   const orders = new Resource(
     () => query.current,
@@ -50,6 +58,8 @@
             query: {
               page: String(current.page),
               ...(current.q ? { q: current.q } : {}),
+              ...(current.stage !== ANY ? { stage: current.stage } : {}),
+              // Old `?status=x` links keep filtering by the exact status.
               ...(current.status !== ANY ? { status: current.status } : {}),
               ...(current.type !== ANY ? { type: current.type } : {}),
             },
@@ -111,7 +121,6 @@
   <PageHeader
     eyebrow={t('nav.sales')}
     title={t('nav.orders')}
-    description={t('orders.description')}
   >
     {#snippet actions()}
       <!-- Stays clickable while a fetch is in flight: a second click supersedes
@@ -139,21 +148,21 @@
   <!-- Segmented status bar: one click, no Apply. It is a single choice, and
        making people confirm it would be friction with nothing behind it. -->
   <div class="flex flex-wrap items-center gap-1 rounded-lg border bg-card p-1">
-    {#each [ANY, ...ORDER_STATUS_ORDER] as value (value)}
-      {@const active = query.current.status === value}
+    {#each [{ id: ANY, dot: '', labelKey: 'orders.filterAll' as MessageKey }, ...ORDER_STAGES] as stage (stage.id)}
+      {@const active = activeStage === stage.id}
       <button
         type="button"
-        onclick={() => query.set({ status: value })}
+        onclick={() => query.set({ stage: stage.id, status: ANY })}
         aria-pressed={active}
         class={cn(
           'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-colors',
           active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
         )}
       >
-        {#if value !== ANY}
-          <span class={cn('size-1.5 rounded-full', orderStatusMeta(value).dot)}></span>
+        {#if stage.id !== ANY}
+          <span class={cn('size-1.5 rounded-full', stage.dot)}></span>
         {/if}
-        {value === ANY ? t('orders.filterAll') : orderStatusMeta(value).label}
+        {t(stage.labelKey)}
       </button>
     {/each}
   </div>

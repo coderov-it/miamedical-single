@@ -4,6 +4,8 @@
 export interface ReturnUnit {
   orderId: string;
   orderNumber: string;
+  /** Null when the product was deleted. */
+  productId: string | null;
   productTitle: string;
   /** Storage path; `mediaUrl()` adds the CDN base. Null: no image or product deleted. */
   productImage: string | null;

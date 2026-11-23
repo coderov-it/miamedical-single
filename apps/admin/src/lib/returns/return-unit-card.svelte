@@ -103,7 +103,13 @@
           )}
           title={unit.productTitle}
         >
-          {unit.productTitle}
+          {#if unit.productId}
+            <a href={routes.productDetail(unit.productId)} class="hover:underline">
+              {unit.productTitle}
+            </a>
+          {:else}
+            {unit.productTitle}
+          {/if}
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">

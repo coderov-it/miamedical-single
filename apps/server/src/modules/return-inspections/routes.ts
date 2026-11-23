@@ -71,7 +71,7 @@ export const returnsAdminRoutes = new Hono<AppEnv>()
   /** --------------------------------------------------------------------------
   GET /api/admin/returns/pending (order:read)
   Every returned rental unit not yet decided, oldest received first. Each unit carries
-  order, unitNumber/quantity, productTitle/productImage, customer name/email/phone/city,
+  order, unitNumber/quantity, productId (null once the product is deleted), productTitle/productImage, customer name/email/phone/city,
   rental start/end dates and receivedAt/receivedByName.
   -------------------------------------------------------------------------- **/
   .get('/pending', requirePermission(P.ORDER_READ), async (c) => {
@@ -81,6 +81,7 @@ export const returnsAdminRoutes = new Hono<AppEnv>()
         orderId: unit.orderId,
         orderNumber: unit.orderNumber,
         orderItemId: unit.orderItemId,
+        productId: unit.productId,
         productTitle: unit.productTitle,
         unitNumber: unit.unitNumber,
         ...toUnitDto(unit),

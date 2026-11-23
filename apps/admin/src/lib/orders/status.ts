@@ -13,6 +13,7 @@
 import { orderStatusLabel, paymentStatusLabel } from '@mia/i18n';
 
 import { uiLang } from '~/lib/ui-lang.svelte';
+import type { MessageKey } from '~/lib/ui-text';
 
 export type OrderStatus =
   | 'pending'
@@ -133,24 +134,53 @@ export function paymentStatusMeta(status: string): StatusMeta {
   return { ...tone, label: paymentStatusLabel(status as PaymentStatus, uiLang.current) };
 }
 
+export type OrderStage = 'pending' | 'paid' | 'delivery' | 'return' | 'fulfilled' | 'closed';
+
+export interface StageMeta {
+  id: OrderStage;
+  /** Mirrors `ORDER_STAGES` in the server's orders/status.ts. */
+  statuses: readonly OrderStatus[];
+  dot: string;
+  labelKey: MessageKey;
+}
+
 /**
- * The queue's filter bar, left to right in the order work actually moves.
- * `undefined` is the "All" segment — it is the absence of a filter, not a
- * status, which is why it is not part of the meta tables.
+ * The queue's filter bar segments, left to right in the order work moves.
+ * "All" is the absence of a filter, so it is not listed here.
  */
-export const ORDER_STATUS_ORDER: readonly OrderStatus[] = [
-  'pending',
-  'paid',
-  'out_for_delivery',
-  'delivery_missed',
-  'delivered',
-  'out_for_pickup',
-  'pickup_missed',
-  'received',
-  'fulfilled',
-  'cancelled',
-  'refunded',
+export const ORDER_STAGES: readonly StageMeta[] = [
+  { id: 'pending', statuses: ['pending'], dot: 'bg-amber-500', labelKey: 'orders.stagePending' },
+  { id: 'paid', statuses: ['paid'], dot: 'bg-blue-500', labelKey: 'orders.stagePaid' },
+  {
+    id: 'delivery',
+    statuses: ['out_for_delivery', 'delivery_missed', 'delivered'],
+    dot: 'bg-sky-500',
+    labelKey: 'orders.stageDelivery',
+  },
+  {
+    id: 'return',
+    statuses: ['out_for_pickup', 'pickup_missed', 'received'],
+    dot: 'bg-indigo-500',
+    labelKey: 'orders.stageReturn',
+  },
+  {
+    id: 'fulfilled',
+    statuses: ['fulfilled'],
+    dot: 'bg-emerald-500',
+    labelKey: 'orders.stageFulfilled',
+  },
+  {
+    id: 'closed',
+    statuses: ['cancelled', 'refunded'],
+    dot: 'bg-muted-foreground',
+    labelKey: 'orders.stageClosed',
+  },
 ];
+
+/** The stage containing a status, for highlighting a legacy `?status=` link. */
+export function stageOfStatus(status: string): OrderStage | undefined {
+  return ORDER_STAGES.find((stage) => stage.statuses.includes(status as OrderStatus))?.id;
+}
 
 export type OrderFlow = 'sale' | 'rental';
 
