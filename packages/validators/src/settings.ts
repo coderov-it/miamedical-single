@@ -25,3 +25,15 @@ export const NotificationRecipientsSchema = v.pipe(
 );
 
 export type NotificationRecipientsInput = v.InferOutput<typeof NotificationRecipientsSchema>;
+
+/** A manual database backup: the name becomes the start of the file name, so it is a slug. */
+export const ManualBackupSchema = v.object({
+  name: v.pipe(
+    v.string(),
+    v.trim(),
+    v.toLowerCase(),
+    v.regex(/^[a-z0-9][a-z0-9-]{0,59}$/, 'Use 1–60 lowercase letters, digits or dashes.'),
+  ),
+});
+
+export type ManualBackupInput = v.InferOutput<typeof ManualBackupSchema>;

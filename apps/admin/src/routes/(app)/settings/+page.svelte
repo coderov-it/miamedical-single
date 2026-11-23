@@ -1,171 +1,66 @@
 <!--
-  Platform settings, one section per thing an operator can decide.
+  Platform settings, one panel per area: General (alert recipients) and Database
+  (backup log, download, manual backup). A sub-sidebar of real links switches
+  between them; the panel lives in `?tab=`, so a reload or a shared link lands
+  on the same one.
 
-  This page exists to hold the *notification settings* that used to sit at their
-  own URL under a sidebar entry called "Notifications" — which collided head-on
-  with the notification feed that now carries that name. Who receives alert
-  email is a setting; what the back office is telling you is an inbox. Two
-  different things that were reading as one.
-
-  Built to take more sections: each is a `SettingsSection`, and adding one is a
-  block here rather than a new route and a new nav entry.
+  The page is a shim; each panel is a component in `~/lib/settings`.
 -->
 <script lang="ts">
+  import { page } from '$app/state';
   import { P } from '@mia/permissions';
-  import MailIcon from '@lucide/svelte/icons/mail';
-  import PlusIcon from '@lucide/svelte/icons/plus';
-  import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import DatabaseIcon from '@lucide/svelte/icons/database';
+  import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-  import PageHeader from '~/lib/components/page-header.svelte';
-  import { SettingsSection } from '~/lib/settings';
-  import { api } from '~/lib/api';
-  import { ApiError, unwrap } from '~/lib/request';
+  import { DatabaseTab, GeneralTab } from '~/lib/settings';
   import { session } from '~/lib/session.svelte';
-  import { t, tn } from '~/lib/ui-text';
-  import BusyButton from '~/lib/components/busy-button.svelte';
+  import { t } from '~/lib/ui-text';
 
-  interface Recipients {
-    emails: string[];
-  }
+  const canSeeDatabase = $derived(session.can(P.BACKUP_READ));
+  const activeTab = $derived(
+    page.url.searchParams.get('tab') === 'database' && canSeeDatabase ? 'database' : 'general',
+  );
 
-  const MAX_RECIPIENTS = 10;
-
-  let emails = $state<string[]>([]);
-  let loading = $state(true);
-  let saving = $state(false);
-  let feedback = $state<{ tone: 'ok' | 'error'; text: string } | null>(null);
-
-  const canEdit = $derived(session.can(P.SETTING_UPDATE));
-
-  async function load() {
-    loading = true;
-    try {
-      const data = await unwrap<Recipients>(await api.api.admin.settings.notifications.$get());
-      // Always leave one empty row to type into, so adding the first recipient
-      // does not require finding the "add" button first.
-      emails = data.emails.length > 0 ? [...data.emails] : [''];
-    } catch (error) {
-      feedback = {
-        tone: 'error',
-        text: error instanceof ApiError ? error.message : t('settings.loadFailed'),
-      };
-    } finally {
-      loading = false;
-    }
-  }
-
-  async function save() {
-    saving = true;
-    feedback = null;
-    try {
-      const cleaned = emails.map((value) => value.trim()).filter((value) => value.length > 0);
-      const data = await unwrap<Recipients>(
-        await api.api.admin.settings.notifications.$put({ json: { emails: cleaned } }),
-      );
-      // Read the saved value back rather than keeping the draft: the server
-      // deduplicates and lowercases, so the draft is not what was stored.
-      emails = data.emails.length > 0 ? [...data.emails] : [''];
-      const savedText =
-        data.emails.length === 0
-          ? t('settings.savedNoRecipients')
-          : tn('settings.savedRecipients', data.emails.length);
-      feedback = { tone: 'ok', text: savedText };
-    } catch (error) {
-      feedback = {
-        tone: 'error',
-        text: error instanceof ApiError ? error.message : t('settings.saveFailed'),
-      };
-    } finally {
-      saving = false;
-    }
-  }
-
-  void load();
+  const linkBase = 'flex items-center gap-2 rounded-md px-3 py-2 text-sm whitespace-nowrap';
+  const linkActive = 'bg-sidebar-accent font-medium text-sidebar-accent-foreground';
+  const linkIdle = 'text-muted-foreground hover:bg-accent/50 hover:text-foreground';
 </script>
 
 <section class="admin-page">
-  <PageHeader
-    eyebrow={t('nav.settings')}
-    title={t('nav.general')}
-    description={t('settings.pageDescription')}
-  />
-
-  <div class="max-w-4xl space-y-4">
-    <SettingsSection
-      icon={MailIcon}
-      title={t('settings.alertsTitle')}
-      description={t('settings.alertsDescription')}
-    >
-      {#if loading}
-        <div class="space-y-2">
-          <Skeleton class="h-10 w-full max-w-md" />
-          <Skeleton class="h-10 w-full max-w-md" />
-        </div>
-      {:else}
-        <div class="space-y-2">
-          {#each emails as _, index (index)}
-            <div class="flex items-center gap-2">
-              <Input
-                type="email"
-                placeholder="ops@example.com"
-                bind:value={emails[index]}
-                disabled={!canEdit || saving}
-                autocomplete="off"
-                class="max-w-sm"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!canEdit || saving || emails.length === 1}
-                onclick={() => (emails = emails.filter((__, i) => i !== index))}
-                aria-label={t('settings.removeRecipient')}
-              >
-                <Trash2Icon class="size-4" />
-              </Button>
-            </div>
-          {/each}
-        </div>
-
-        <div class="mt-3 flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!canEdit || saving || emails.length >= MAX_RECIPIENTS}
-            onclick={() => (emails = [...emails, ''])}
+  <div class="mx-auto w-full max-w-6xl">
+    <!-- The sub-sidebar's divider runs from the topbar (h-14) to the screen's bottom edge:
+         -my-6 cancels the layout's py-6, and both columns put that padding back inside. -->
+    <div class="flex flex-col gap-6 md:-my-6 md:min-h-[calc(100svh-3.5rem)] md:flex-row">
+      <nav
+        aria-label={t('nav.settings')}
+        class="md:relative md:w-52 md:shrink-0 md:border-r md:bg-[color-mix(in_oklch,var(--sidebar)_30%,var(--background))] md:pt-6 md:pr-4 md:before:absolute md:before:inset-y-0 md:before:right-full md:before:w-screen md:before:bg-[color-mix(in_oklch,var(--sidebar)_30%,var(--background))] md:before:content-['']"
+      >
+        <div class="flex gap-1 overflow-x-auto md:flex-col">
+          <a
+            href="?tab=general"
+            class={[linkBase, activeTab === 'general' ? linkActive : linkIdle]}
+            aria-current={activeTab === 'general' ? 'page' : undefined}
           >
-            <PlusIcon class="size-4" />
-            {t('settings.addAddress')}
-          </Button>
-          {#if emails.length >= MAX_RECIPIENTS}
-            <span class="text-xs text-muted-foreground">
-              {t('settings.maxRecipients')}
-            </span>
+            <SlidersHorizontalIcon class="size-4" />{t('settings.tabGeneral')}
+          </a>
+          {#if canSeeDatabase}
+            <a
+              href="?tab=database"
+              class={[linkBase, activeTab === 'database' ? linkActive : linkIdle]}
+              aria-current={activeTab === 'database' ? 'page' : undefined}
+            >
+              <DatabaseIcon class="size-4" />{t('settings.tabDatabase')}
+            </a>
           {/if}
         </div>
-
-        {#if feedback}
-          <p
-            class="mt-3 text-sm {feedback.tone === 'error'
-              ? 'text-destructive'
-              : 'text-muted-foreground'}"
-          >
-            {feedback.text}
-          </p>
+      </nav>
+      <div class="min-w-0 flex-1 md:py-6">
+        {#if activeTab === 'database'}
+          <DatabaseTab />
+        {:else}
+          <GeneralTab />
         {/if}
-
-        <div class="mt-4">
-          {#if canEdit}
-            <BusyButton busy={saving} busyLabel={t('common.saving')} onclick={save}>
-              {t('common.save')}
-            </BusyButton>
-          {:else}
-            <p class="text-sm text-muted-foreground">{t('settings.readOnly')}</p>
-          {/if}
-        </div>
-      {/if}
-    </SettingsSection>
+      </div>
+    </div>
   </div>
 </section>

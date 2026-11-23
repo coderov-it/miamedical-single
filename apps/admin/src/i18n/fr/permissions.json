@@ -43,6 +43,8 @@
   "perm.customer:export": "Exporter les données des clients",
   "perm.setting:read": "Voir les paramètres",
   "perm.setting:update": "Modifier les paramètres",
+  "perm.setting:backup_read": "Voir et télécharger les sauvegardes de la base de données",
+  "perm.setting:backup_create": "Lancer une sauvegarde manuelle de la base de données",
   "perm.admin:read": "Voir les utilisateurs administrateurs",
   "perm.admin:update": "Modifier les utilisateurs administrateurs",
   "perm.admin:create": "Créer des utilisateurs administrateurs",

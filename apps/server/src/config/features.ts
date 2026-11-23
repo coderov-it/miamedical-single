@@ -1,5 +1,8 @@
+import os from 'node:os';
+import path from 'node:path';
 import { styleText } from 'node:util';
 
+import { backupEnv } from './backup-env.ts';
 import { env } from './env.ts';
 import { EXTERNAL_APIS } from './external-apis.ts';
 import { paymentEnv } from './payment-env.ts';
@@ -33,6 +36,11 @@ export const FEATURES = {
    * nobody (development only — `payment-env.ts` refuses it in production).
    */
   payments: resolvePayments(),
+  /**
+   * The scheduled database dump, or `null` when `DB_BACKUP` is off. `backup-env.ts`
+   * refuses to start when it is on and the folder, bucket or R2 credentials are missing.
+   */
+  backup: resolveBackup(),
 } as const;
 
 export interface PaymentsFeature {
@@ -53,6 +61,31 @@ function resolvePayments(): PaymentsFeature | null {
   };
 }
 
+export interface BackupFeature {
+  /** DB_BACKUP_FOLDER */
+  folder: string;
+  databaseUrl: string;
+  /** DB_BACKUP_LOCAL_DIR, else ~/.local/data/backups. */
+  localDir: string;
+  /** The private backup bucket and the credentials that reach it. */
+  storage: { accountId: string; accessKeyId: string; secretAccessKey: string; bucket: string };
+}
+
+function resolveBackup(): BackupFeature | null {
+  if (backupEnv.DB_BACKUP !== 'on') return null;
+  if (!backupEnv.DB_BACKUP_FOLDER || !backupEnv.DB_BACKUP_R2_BUCKET) return null;
+  const accountId = env.R2_ACCOUNT_ID;
+  const accessKeyId = backupEnv.DB_BACKUP_R2_ACCESS_KEY_ID ?? env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = backupEnv.DB_BACKUP_R2_SECRET_ACCESS_KEY ?? env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+  return {
+    folder: backupEnv.DB_BACKUP_FOLDER,
+    databaseUrl: env.DATABASE_URL,
+    localDir: backupEnv.DB_BACKUP_LOCAL_DIR ?? path.join(os.homedir(), '.local', 'data', 'backups'),
+    storage: { accountId, accessKeyId, secretAccessKey, bucket: backupEnv.DB_BACKUP_R2_BUCKET },
+  };
+}
+
 /**
  * Printed once at startup, next to the listening line.
  *
@@ -69,6 +102,7 @@ export function logFeatureSummary(): void {
     ['translation', translationState()],
     ['media sweep', mediaSweepState()],
     ['payments', paymentsState()],
+    ['db backup', backupState()],
   ];
 
   for (const line of renderTable(rows)) console.log(line);
@@ -245,4 +279,15 @@ function paymentsState(): State {
     return { tone: 'notice', value: 'nexi sandbox', note: 'test cards only, no real money' };
   }
   return { tone: 'ok', value: 'nexi' };
+}
+
+function backupState(): State {
+  if (!FEATURES.backup) {
+    return { tone: 'notice', value: 'off', note: 'no database backups are taken' };
+  }
+  return {
+    tone: 'ok',
+    value: FEATURES.backup.folder,
+    note: `every 4h UTC → ${FEATURES.backup.localDir} + R2 ${FEATURES.backup.storage.bucket}`,
+  };
 }

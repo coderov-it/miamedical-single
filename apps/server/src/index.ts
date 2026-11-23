@@ -2,11 +2,13 @@ import { serve } from '@hono/node-server';
 
 import { app } from './app.ts';
 import { env } from './config/env.ts';
-import { logFeatureSummary } from './config/features.ts';
+import { FEATURES, logFeatureSummary } from './config/features.ts';
 import { db } from './infra/db/client.ts';
+import { backupUploader } from './infra/backup-storage.ts';
 import { r2FileUploader } from './infra/media.ts';
 import { flushViewsOnShutdown, startViewFlush } from './modules/product-views/views.ts';
 import { startAnalyticsSweep } from './modules/analytics/sweep.ts';
+import { startBackupSweep } from './modules/backup/sweep.ts';
 import { startMediaSweep } from './modules/media/sweep.ts';
 import * as notificationHub from './modules/notifications/hub.ts';
 import { startNotificationSweep } from './modules/notifications/sweep.ts';
@@ -43,6 +45,8 @@ startPaymentSweep(db);
 /* Sales rollups for the admin analytics page: full rebuild on boot, then the days
    of changed orders every minute. See modules/analytics/sweep.ts. */
 startAnalyticsSweep(db);
+/* Database dumps every 4h UTC, local + private R2 bucket copy. See modules/backup/sweep.ts. */
+if (FEATURES.backup && backupUploader) startBackupSweep(db, backupUploader, FEATURES.backup);
 /* Product page views are counted in memory and written once a minute, and once more
    on shutdown. See modules/product-views/views.ts. */
 startViewFlush(db);

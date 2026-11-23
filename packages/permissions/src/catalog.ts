@@ -188,6 +188,18 @@ export const PERMISSION_DEFINITIONS = {
     label: 'Update settings',
     group: 'Settings',
   },
+  BACKUP_READ: {
+    code: 1610,
+    key: 'setting:backup_read',
+    label: 'View and download database backups',
+    group: 'Settings',
+  },
+  BACKUP_CREATE: {
+    code: 1611,
+    key: 'setting:backup_create',
+    label: 'Run a manual database backup',
+    group: 'Settings',
+  },
 
   // --- 1700 · access control ----------------------------------------------
   ADMIN_READ: { code: 1700, key: 'admin:read', label: 'View admin users', group: 'Access' },
