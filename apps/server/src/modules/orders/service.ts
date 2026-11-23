@@ -10,6 +10,7 @@
 import type { Database } from '@mia/db';
 
 import type { SessionUser } from '../../shared/http/context.ts';
+import { isRealDay, romeToday } from '../../shared/day-range.ts';
 import { conflict, httpError, notFound } from '../../shared/http/errors.ts';
 /* Read-only: the newest live contract, for the signed-before-paid gate. The
    repo depends only on the schema, so no cycle. */
@@ -24,7 +25,9 @@ import {
   canMoveOrder,
   canMovePayment,
   explainRejection,
+  MISSED_ORDER_STATUSES,
   nextOrderStatuses,
+  orderFlow,
   nextPaymentStatuses,
   REFUND_ONLY_PAYMENT_STATUSES,
   type OrderStatus,
@@ -86,7 +89,7 @@ export async function windowStats(db: Database, windowDays: number) {
     currency: window.currency,
     orderCount: window.orderCount,
     awaitingCount,
-    revenueBasis: 'Paid, fulfilled and partly refunded orders, net of refunds, extensions included',
+    revenueBasis: 'Paid and later orders, net of refunds, extensions included',
   };
 }
 
@@ -139,9 +142,11 @@ async function transition(
   to: string,
   note: string | null,
   actor: SessionUser | null,
+  options: transitionRepo.TransitionOptions = {},
 ): Promise<AdminOrderAggregate> {
   const order = await getById(db, id);
   const from = field === 'status' ? order.status : order.paymentStatus;
+  const flow = orderFlow(order.items);
 
   if (from === to) {
     throw conflict(`This order is already ${to}.`);
@@ -149,28 +154,73 @@ async function transition(
 
   const allowed =
     field === 'status'
-      ? nextOrderStatuses(from as OrderStatus)
+      ? nextOrderStatuses(from as OrderStatus, flow)
       : nextPaymentStatuses(from as PaymentStatus);
 
   const permitted =
     field === 'status'
-      ? canMoveOrder(from as OrderStatus, to as OrderStatus)
+      ? canMoveOrder(from as OrderStatus, to as OrderStatus, flow)
       : canMovePayment(from as PaymentStatus, to as PaymentStatus);
 
   if (!permitted) {
+    if (field === 'status' && from === 'received' && to === 'fulfilled') {
+      throw conflict(AUTOMATIC_CLOSE_MESSAGE);
+    }
     throw conflict(explainRejection(field === 'status' ? 'order' : 'payment', from, to, allowed));
   }
 
-  await transitionRepo.applyTransition(db, {
-    orderId: id,
-    field,
-    fromValue: from,
-    toValue: to,
-    note: note ?? null,
-    actorAdminUserId: actor?.id ?? null,
-  });
+  if (field === 'status') assertMissedNote(to as OrderStatus, note);
+  const deliveredOn = to === 'delivered' ? resolveDeliveredOn(order.placedAt, options) : undefined;
+
+  await transitionRepo.applyTransition(
+    db,
+    {
+      orderId: id,
+      field,
+      fromValue: from,
+      toValue: to,
+      note: deliveredNote(note, deliveredOn),
+      actorAdminUserId: actor?.id ?? null,
+    },
+    { deliveredOn },
+  );
 
   return getById(db, id);
+}
+
+const AUTOMATIC_CLOSE_MESSAGE = 'This order closes by itself once every returned unit is decided.';
+
+function invalid(field: string, message: string) {
+  return httpError(422, message, 'validation_failed', { fields: { [field]: message } });
+}
+
+/** A missed delivery or pickup must say what happened: the next agent reads it cold. */
+function assertMissedNote(to: OrderStatus, note: string | null): void {
+  if (!MISSED_ORDER_STATUSES.includes(to)) return;
+  if (!note || note.trim() === '') throw invalid('note', 'Write what happened.');
+}
+
+/**
+ * The day the rental starts: Rome today unless an agent backdates it. Never in
+ * the future, never before the order was placed.
+ */
+function resolveDeliveredOn(placedAt: Date, options: transitionRepo.TransitionOptions): string {
+  const today = romeToday();
+  const day = options.deliveredOn ?? today;
+  if (!isRealDay(day)) throw invalid('deliveredOn', 'Not a real date.');
+  if (day > today) throw invalid('deliveredOn', 'The delivery day cannot be in the future.');
+  if (day < romeToday(placedAt)) {
+    throw invalid('deliveredOn', 'The delivery day cannot be before the order was placed.');
+  }
+  return day;
+}
+
+/** A backdated delivery says so at the head of its note. */
+function deliveredNote(note: string | null, deliveredOn: string | undefined): string | null {
+  const text = note && note.trim() !== '' ? note : null;
+  if (!deliveredOn || deliveredOn === romeToday()) return text;
+  const prefix = `Delivered on ${deliveredOn}.`;
+  return text ? `${prefix} ${text}` : prefix;
 }
 
 const PAYMENT_FOLLOWS_ORDER: Partial<Record<OrderStatus, PaymentStatus>> = {
@@ -213,10 +263,14 @@ export async function moveStatus(
   to: OrderStatus,
   note: string | null,
   actor: SessionUser | null,
+  options: { deliveredOn?: string | undefined } = {},
 ): Promise<AdminOrderAggregate> {
   if (to === 'paid') await assertContractSigned(db, id);
+  if (options.deliveredOn !== undefined && to !== 'delivered') {
+    throw invalid('deliveredOn', 'A delivery day only goes with the delivered status.');
+  }
 
-  let order = await transition(db, id, 'status', to, note, actor);
+  let order = await transition(db, id, 'status', to, note, actor, options);
 
   const follow = PAYMENT_FOLLOWS_ORDER[to];
   if (follow && canMovePayment(order.paymentStatus as PaymentStatus, follow)) {

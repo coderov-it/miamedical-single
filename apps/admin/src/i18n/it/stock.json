@@ -28,6 +28,7 @@
   "reasonOrderCancelled": "Ordine annullato",
   "reasonOrderRefunded": "Ordine rimborsato",
   "reasonRentalReturned": "Noleggio restituito",
+  "reasonUnitRepaired": "Unità riparata",
   "reasonManualAdjustment": "Rettifica manuale",
   "reasonUnknown": "Sconosciuta"
 }

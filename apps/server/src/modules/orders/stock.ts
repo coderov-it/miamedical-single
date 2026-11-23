@@ -3,10 +3,11 @@
  * the walk-through.
  *
  * Stock leaves the shelf the moment an order is placed — an unpaid order holds
- * its units until it is paid or expires — and comes back when a rental is
- * returned (`fulfilled`) or the order is unwound before it was fulfilled. A sold
- * unit never comes back on its own: a goods return after `fulfilled` is a hand
- * edit of stock, because nothing here knows the goods actually arrived.
+ * its units until it is paid or expires — and comes back when the order is
+ * unwound before delivery (`cancelled`, `refunded` from `paid` or
+ * `delivery_missed`). A returned rental unit is put back by its own return
+ * inspection (return-inspections module), never by a status move: `received` and
+ * `fulfilled` move nothing. A sold unit never comes back on its own.
  *
  * `taken` is `orders.stock_taken`: whether the PENDING order already holds its
  * units. Orders placed before stock moved to placement hold nothing, so theirs
@@ -38,19 +39,12 @@ export function lineMode(line: Pick<StockLine, 'configuration'>): LineMode {
 }
 
 /** -1 takes the line's quantity off the shelf, +1 puts it back, 0 leaves it. */
-export function stockDirection(
-  from: StockFrom,
-  to: OrderStatus,
-  mode: LineMode,
-  taken: boolean,
-): -1 | 0 | 1 {
+export function stockDirection(from: StockFrom, to: OrderStatus, taken: boolean): -1 | 0 | 1 {
   if (from === null) return -1;
   if (to === 'paid') return taken ? 0 : -1;
   if (from === 'pending') return to === 'cancelled' && taken ? 1 : 0;
-  if (from !== 'paid') return 0;
-  if (to === 'cancelled' || to === 'refunded') return 1;
-  if (to === 'fulfilled' && mode === 'rental') return 1;
-  return 0;
+  if (from !== 'paid' && from !== 'delivery_missed') return 0;
+  return to === 'cancelled' || to === 'refunded' ? 1 : 0;
 }
 
 /** Signed quantity per product. Lines whose product was deleted move nothing. */
@@ -63,7 +57,7 @@ export function stockDeltas(
   const deltas = new Map<string, { delta: number; title: string }>();
   for (const line of lines) {
     if (!line.productId) continue;
-    const delta = stockDirection(from, to, lineMode(line), taken) * line.quantity;
+    const delta = stockDirection(from, to, taken) * line.quantity;
     if (delta === 0) continue;
     const entry = deltas.get(line.productId) ?? { delta: 0, title: line.productTitle };
     entry.delta += delta;

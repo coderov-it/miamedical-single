@@ -51,9 +51,10 @@ Contract card, and the extension in the Extensions card and on the timeline.
 ## Late and closed cases
 
 ```text
- Late:    rental ended Oct 8, equipment still out, order not fulfilled
+ Late:    rental ended Oct 8, equipment still out, order not received
           → Extend still works, and the span starts Oct 8, so no days go unbilled
- Closed:  operator "Finish rental" → order fulfilled
+ Closed:  operator "Finish rental" → order received, then fulfilled
+          once every unit is inspected
           → no Extend; the customer sees "Order again", which links to each rented product
  Unpaid:  customer withdraws, or operator cancels  → cancelled, end date untouched;
           a contract signed in the modal is voided with it

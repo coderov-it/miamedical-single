@@ -190,7 +190,19 @@ export const ACCOUNT_ISLAND_KEYS = [
 ] as const;
 
 /** Order states, in the storefront's softer wording — not the back office's. */
-export const ORDER_STATUS_KEYS = ['pending', 'paid', 'fulfilled', 'cancelled', 'refunded'] as const;
+export const ORDER_STATUS_KEYS = [
+  'pending',
+  'paid',
+  'out_for_delivery',
+  'delivery_missed',
+  'delivered',
+  'out_for_pickup',
+  'pickup_missed',
+  'received',
+  'fulfilled',
+  'cancelled',
+  'refunded',
+] as const;
 
 /**
  * Payment states. A SECOND map rather than more entries in the one above,

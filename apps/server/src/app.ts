@@ -29,6 +29,11 @@ import { notificationCustomerRoutes } from './modules/notifications/customer-rou
 import { notificationPreferenceRoutes, pushDeviceRoutes } from './modules/push/routes.ts';
 import { stockHistoryAdminRoutes } from './modules/stock-history/routes.ts';
 import { orderRefundAdminRoutes } from './modules/order-refunds/routes.ts';
+import {
+  attentionAdminRoutes,
+  returnInspectionOrderRoutes,
+  returnsAdminRoutes,
+} from './modules/return-inspections/routes.ts';
 import { cartAdminRoutes, orderAdminRoutes, orderPublicRoutes } from './modules/orders/routes.ts';
 import {
   paymentCustomerRoutes,
@@ -126,6 +131,9 @@ const routes = app
   .route('/api/admin/legal', legalAdminRoutes)
   .route('/api/admin/orders', orderAdminRoutes)
   .route('/api/admin/orders', orderRefundAdminRoutes)
+  .route('/api/admin/orders', returnInspectionOrderRoutes)
+  .route('/api/admin/attention', attentionAdminRoutes)
+  .route('/api/admin/returns', returnsAdminRoutes)
   .route('/api/admin/analytics', analyticsAdminRoutes)
   .route('/api/admin/carts', cartAdminRoutes)
   .route('/api/admin/order-disputes', orderDisputeAdminRoutes)

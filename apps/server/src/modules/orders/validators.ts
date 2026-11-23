@@ -77,6 +77,8 @@ const NoteSchema = v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLengt
 export const OrderStatusTransitionSchema = v.object({
   to: OrderStatusSchema,
   note: NoteSchema,
+  /** Only with `to: 'delivered'`: the day the rental starts. Default Rome today. */
+  deliveredOn: v.optional(DateOnlySchema),
 });
 
 export const PaymentStatusTransitionSchema = v.object({

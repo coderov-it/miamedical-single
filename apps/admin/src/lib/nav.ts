@@ -16,6 +16,7 @@ import PackageIcon from '@lucide/svelte/icons/package';
 import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
 import TagsIcon from '@lucide/svelte/icons/tags';
 import UsersIcon from '@lucide/svelte/icons/users';
+import WrenchIcon from '@lucide/svelte/icons/wrench';
 import WalletIcon from '@lucide/svelte/icons/wallet';
 import FileSignatureIcon from '@lucide/svelte/icons/file-signature';
 import FileTextIcon from '@lucide/svelte/icons/file-text';
@@ -65,6 +66,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { titleKey: 'nav.orders', url: routes.orders, icon: ShoppingCartIcon },
       { titleKey: 'nav.rentManagement', url: routes.rentals, icon: CalendarClockIcon },
+      { titleKey: 'nav.returns', url: routes.returns, icon: WrenchIcon },
       { titleKey: 'nav.contracts', url: routes.contracts, icon: FileSignatureIcon },
       { titleKey: 'nav.payments', url: routes.payments, icon: WalletIcon },
       { titleKey: 'nav.carts', url: routes.carts, icon: BanknoteIcon },

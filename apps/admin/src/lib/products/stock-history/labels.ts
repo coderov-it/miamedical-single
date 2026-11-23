@@ -10,6 +10,7 @@ const REASON_KEYS: Record<Reason, MessageKey> = {
   order_cancelled: 'stock.reasonOrderCancelled',
   order_refunded: 'stock.reasonOrderRefunded',
   rental_returned: 'stock.reasonRentalReturned',
+  unit_repaired: 'stock.reasonUnitRepaired',
   manual_adjustment: 'stock.reasonManualAdjustment',
   unknown: 'stock.reasonUnknown',
 };

@@ -9,6 +9,7 @@ import { and, count, desc, eq, gte, ilike, inArray, lt, or, sql } from '@mia/db'
 import { adminUsers, orderItems, orders } from '@mia/db/schema';
 
 import { romeDayRange } from '../../shared/rome-day.ts';
+import { PAID_ONWARD_STATUSES } from './status.ts';
 import type { AdminOrderSummaryRecord, OrderListFilters } from './types.ts';
 
 function orderWhere(filters: OrderListFilters) {
@@ -112,8 +113,8 @@ export async function countAwaiting(db: Database): Promise<number> {
 /**
  * Dashboard figures over a trailing window.
  *
- * "Revenue" is `net_total` (price + paid extensions − refunds) of `paid`,
- * `fulfilled` and `refunded` orders that still keep money. Pending is money
+ * "Revenue" is `net_total` (price + paid extensions − refunds) of `paid`
+ * and every later status (`PAID_ONWARD_STATUSES`) orders that still keep money. Pending is money
  * that has not arrived and cancelled never was taken; a fully refunded order
  * has net 0 and drops out by itself. The DTO carries the definition to the UI.
  */
@@ -131,7 +132,7 @@ export async function windowStats(
     .where(
       and(
         gte(orders.placedAt, since),
-        inArray(orders.status, ['paid', 'fulfilled', 'refunded']),
+        inArray(orders.status, [...PAID_ONWARD_STATUSES]),
         sql`${orders.netTotal} > 0`,
       ),
     );

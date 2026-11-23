@@ -14,6 +14,7 @@ import {
   orderRefunds,
   orders,
   orderStatusEvents,
+  returnInspections,
 } from '@mia/db/schema';
 
 import type {
@@ -27,7 +28,7 @@ export async function findById(db: Database, id: string): Promise<AdminOrderAggr
   const order = await db.query.orders.findFirst({ where: eq(orders.id, id) });
   if (!order) return undefined;
 
-  const [items, events, refunds, createdByName, contractStatus] = await Promise.all([
+  const [items, events, refunds, createdByName, contractStatus, inspections] = await Promise.all([
     db.query.orderItems.findMany({
       where: eq(orderItems.orderId, id),
       orderBy: asc(orderItems.id),
@@ -36,9 +37,13 @@ export async function findById(db: Database, id: string): Promise<AdminOrderAggr
     findRefunds(db, id),
     findAdminName(db, order.createdByAdminUserId),
     findContractStatus(db, id),
+    db.query.returnInspections.findMany({
+      where: eq(returnInspections.orderId, id),
+      orderBy: [asc(returnInspections.inspectedAt), asc(returnInspections.id)],
+    }),
   ]);
 
-  return { ...order, items, events, refunds, createdByName, contractStatus };
+  return { ...order, items, events, refunds, createdByName, contractStatus, inspections };
 }
 
 /** The newest non-voided contract's status — what the manual stage reads. */

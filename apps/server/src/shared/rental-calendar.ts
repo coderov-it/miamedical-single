@@ -12,10 +12,12 @@ import type { OrderStatus } from '../modules/orders/status.ts';
  */
 
 /**
- * The equipment is back (`fulfilled`) or the order never ran or was unwound
- * (`cancelled`, `refunded`). No countdown, no extension, listed as completed.
+ * The equipment is back (`received`, then `fulfilled` once every unit is
+ * inspected) or the order never ran or was unwound (`cancelled`, `refunded`).
+ * No countdown, no extension, listed as completed.
  */
 export const CLOSED_RENTAL_ORDER_STATUSES = [
+  'received',
   'fulfilled',
   'cancelled',
   'refunded',
@@ -52,9 +54,21 @@ export const rentalStartDate = sql<string>`${orderItems.configuration}->'rental'
 export const rentalEndDate = sql<string>`${orderItems.configuration}->'rental'->>'endDate'`;
 export const isRentalLine = sql`${orderItems.configuration}->>'pricingMode' = 'rental'`;
 
+/** The statuses in which the equipment is with the customer. */
+export const RENTAL_RUNNING_STATUSES = [
+  'delivered',
+  'out_for_pickup',
+  'pickup_missed',
+] as const satisfies readonly OrderStatus[];
+
 /**
- * SQL: the rental has started. There is no "delivered" status; the booked start
- * date is the delivery day, so from that day the equipment is with the customer.
- * An extension keeps the original start date, so this stays true through it.
+ * SQL: the rental has started. A rental starts when its order is marked
+ * `delivered` (the line's start and end dates were shifted to the delivery day
+ * in that same move, see orders/delivery-dates.ts), and stays started through
+ * the pickup statuses. An extension keeps the original start date, so this stays
+ * true through it.
  */
-export const rentalStartedSql = sql`(${rentalStartDate})::date <= ${romeTodaySql}`;
+export const rentalStartedSql = sql`${orders.status} IN (${sql.join(
+  RENTAL_RUNNING_STATUSES.map((status) => sql`${status}`),
+  sql`, `,
+)})`;

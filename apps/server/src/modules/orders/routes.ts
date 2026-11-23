@@ -211,7 +211,8 @@ export const orderAdminRoutes = new Hono<AppEnv>()
 
   /** --------------------------------------------------------------------------
   POST /api/admin/orders/:id/status (order:update)
-  Moves the order to a new status, with an optional note.
+  Moves the order to a new status, with an optional note. Body `{ to, note?, deliveredOn? }`:
+  `deliveredOn` (YYYY-MM-DD) only with to=delivered; a missed status needs a note.
   -------------------------------------------------------------------------- **/
   /**
    * Every mutation returns the whole refreshed detail, so the client's cache
@@ -224,13 +225,14 @@ export const orderAdminRoutes = new Hono<AppEnv>()
     validate('param', OrderIdParamSchema),
     validate('json', OrderStatusTransitionSchema),
     async (c) => {
-      const { to, note } = c.req.valid('json');
+      const { to, note, deliveredOn } = c.req.valid('json');
       const order = await service.moveStatus(
         c.get('db'),
         c.req.valid('param').id,
         to,
         note ?? null,
         c.get('user'),
+        { deliveredOn },
       );
       return c.json({ data: toOrderDetail(order) });
     },

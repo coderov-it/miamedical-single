@@ -60,10 +60,26 @@ export const productStatus = pgEnum('product_status', ['draft', 'active', 'archi
 export const orderStatus = pgEnum('order_status', [
   'pending',
   'paid',
+  'out_for_delivery',
+  'delivery_missed',
+  'delivered',
+  'out_for_pickup',
+  'pickup_missed',
+  'received',
   'fulfilled',
   'cancelled',
   'refunded',
 ]);
+
+/**
+ * What a return inspector decided for ONE returned unit. `restocked` puts it back
+ * on the shelf; `attention` parks it in the attention queue until it is resolved.
+ * See docs/code/order-delivery-and-return.md.
+ */
+export const inspectionOutcome = pgEnum('inspection_outcome', ['restocked', 'attention']);
+
+/** How a unit in the attention queue ended: back on the shelf, or gone for good. */
+export const attentionResolution = pgEnum('attention_resolution', ['repaired', 'written_off']);
 
 export const paymentStatus = pgEnum('payment_status', [
   'unpaid',
@@ -99,6 +115,7 @@ export const stockMovementReason = pgEnum('stock_movement_reason', [
   'order_cancelled',
   'order_refunded',
   'rental_returned',
+  'unit_repaired',
   'manual_adjustment',
   'unknown',
 ]);

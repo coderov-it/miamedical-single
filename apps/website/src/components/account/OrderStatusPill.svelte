@@ -26,6 +26,11 @@
   function tone(state: string): string {
     if (state === 'pending') return 'bg-accent-tint text-accent';
     if (state === 'paid' || state === 'fulfilled') return 'bg-ok/10 text-ok';
+    if (state === 'delivery_missed' || state === 'pickup_missed')
+      return 'bg-accent-tint text-accent';
+    if (['out_for_delivery', 'delivered', 'out_for_pickup', 'received'].includes(state)) {
+      return 'bg-tint text-ink';
+    }
     if (state === 'cancelled') return 'bg-danger-tint text-danger';
     return 'bg-tint text-ink-2';
   }

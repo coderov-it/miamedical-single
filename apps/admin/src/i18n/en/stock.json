@@ -28,6 +28,7 @@
   "reasonOrderCancelled": "Order cancelled",
   "reasonOrderRefunded": "Order refunded",
   "reasonRentalReturned": "Rental returned",
+  "reasonUnitRepaired": "Unit repaired",
   "reasonManualAdjustment": "Manual adjustment",
   "reasonUnknown": "Unknown"
 }
