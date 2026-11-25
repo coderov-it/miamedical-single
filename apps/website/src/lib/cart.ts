@@ -37,7 +37,9 @@ import {
   MAX_ITEMS,
   splitItemParams,
 } from './checkout.ts';
+import type { ProductDetail } from './catalog.ts';
 import { resolveCheckout } from './checkout-resolve.ts';
+import { getDeliveryFallback, homeDeliveryFee } from './delivery-fee.ts';
 import { t } from './labels.ts';
 import { localeForRequest, localeTag } from './i18n.ts';
 import { FIELD, MAX_QUANTITY } from './request-config.ts';
@@ -121,6 +123,13 @@ export interface CartView {
   itemsTotal: number;
   /** Formatted `itemsTotal`, so the server-rendered total needs no client Intl. */
   itemsTotalLabel: string;
+  /**
+   * Formatted fee of a HOME delivery of this cart, or `null` while unpriced. The
+   * cart does not know the delivery method yet, so this is the figure the
+   * checkout will show if the customer picks delivery; collection stays free.
+   * Display only — `dueToday` is untouched by it. See docs/code/delivery-fee.md.
+   */
+  homeDeliveryFeeLabel: string | null;
   noPackage: boolean;
   /** Any line is a rental. A sale-only cart is never collected again (CART-014). */
   hasRental: boolean;
@@ -267,6 +276,12 @@ function toView(line: CartLine, item: CheckoutItem): CartLineView {
   };
 }
 
+/** A line that resolved: its view, and the product it was priced from. */
+interface KeptLine {
+  view: CartLineView;
+  product: ProductDetail;
+}
+
 /**
  * Prices a cart, one `resolveCheckout()` per line. THROWS when the catalogue
  * cannot read a line — `droppedIds` is for products that are gone, never for
@@ -292,13 +307,18 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
          it could not update — instead of pruning a line that still exists. */
       if (unavailable > 0) throw new Error(`cart line ${line.id} could not be read`);
       const item = items[0];
-      return item ? toView(line, item) : { droppedId: line.id };
+      return item ? { view: toView(line, item), product: item.product } : { droppedId: line.id };
     }),
   );
 
-  const views = resolved.filter((entry): entry is CartLineView => !('droppedId' in entry));
+  const kept = resolved.filter((entry): entry is KeptLine => 'view' in entry);
+  const views = kept.map((entry) => entry.view);
   const droppedIds = resolved.flatMap((entry) => ('droppedId' in entry ? [entry.droppedId] : []));
 
+  const fee = homeDeliveryFee(
+    kept.map((entry) => entry.product),
+    await getDeliveryFallback(),
+  );
   const itemsTotal = views.reduce((sum, view) => sum + view.total, 0);
 
   /* The first resolved line's currency, exactly as `resolveCheckout()` picks it.
@@ -307,10 +327,14 @@ export async function resolveCart(lines: CartLine[]): Promise<CartView> {
      mixed currencies ever arrive, summing `itemsTotal` is what breaks first. */
   const currency = views[0]?.currency ?? 'EUR';
 
+  let feeLabel: string | null = null;
+  if (fee !== null) feeLabel = formatMoney(fee, currency, localeTag(localeForRequest()));
+
   return {
     lines: views,
     itemsTotal,
     itemsTotalLabel: formatMoney(itemsTotal.toFixed(2), currency, localeTag(localeForRequest())),
+    homeDeliveryFeeLabel: feeLabel,
     noPackage: views.some((view) => view.noPackage),
     hasRental: views.some((view) => view.rental),
     currency,

@@ -7,16 +7,15 @@
  * It was removed: a hotel is an address, not a fulfilment method, and asking the
  * customer to classify their own building only invited them to get it wrong.
  *
- * NOTHING HERE PRICES DELIVERY, and nothing anywhere else does either. A zone
- * ladder used to quote a fee from the customer's CAP; it was retired in favour of
- * a distance-based fee that does not exist yet. Until it does, the storefront
- * shows the customer a message instead of an amount, an operator agrees the figure
- * by phone, and it is written onto `orders.shipping_total` from the admin.
- *
- * So every order is placed at `NO_DELIVERY_FEE`, and that is a real statement
- * rather than a placeholder: the order total records the part that is settled, and
- * the delivery amount joins it once somebody has actually agreed one.
+ * HOME DELIVERY IS PRICED AT PLACEMENT by `resolveDeliveryFee` below: the highest
+ * of each line's fee (the product's own, else the platform fallback), quantity
+ * never counted, collection always free. When no line resolves to a fee the
+ * delivery is UNPRICED (`null`) and the order carries `NO_DELIVERY_FEE` until an
+ * operator agrees a figure. A future scheme (per-km, zones) replaces that one
+ * function. Worked examples: docs/code/delivery-fee.md.
  */
+
+import { ZERO, fromHundredths, toHundredths } from './money.ts';
 
 export const DELIVERY_METHODS = [{ id: 'homeDelivery' }, { id: 'storePickup' }] as const;
 
@@ -35,3 +34,28 @@ export const DELIVERY_METHOD_IDS = DELIVERY_METHODS.map((method) => method.id) a
  * replaces it.
  */
 export const NO_DELIVERY_FEE = '0.00';
+
+/**
+ * The delivery fee of an order, or `null` when home delivery is unpriced.
+ *
+ * `productFees` holds one entry per line, the product's OWN fee (`null` = none).
+ * A line without one takes `fallback`; the highest line wins. No lines at all
+ * resolves to the fallback. Compared in hundredths, never as floats.
+ */
+export function resolveDeliveryFee(
+  method: DeliveryMethodId,
+  productFees: readonly (string | null)[],
+  fallback: string | null,
+): string | null {
+  if (method === 'storePickup') return ZERO;
+  const lineFees = productFees.map((fee) => fee ?? fallback);
+  if (lineFees.length === 0) return fallback;
+  let highest: bigint | null = null;
+  for (const fee of lineFees) {
+    if (fee === null) continue;
+    const hundredths = toHundredths(fee);
+    if (highest === null || hundredths > highest) highest = hundredths;
+  }
+  if (highest === null) return null;
+  return fromHundredths(highest);
+}

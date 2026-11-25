@@ -27,6 +27,7 @@
   import { t } from '~/lib/ui-text';
   import type { AdminProduct, Localized, TabProps } from './shared';
   import { localizedOf, localizedOrNull, sameAsSaved } from './shared';
+  import DeliveryFeeField from './DeliveryFeeField.svelte';
   import TabPanel from './tab-panel.svelte';
 
   let { product, onSaved, dirty }: TabProps = $props();
@@ -63,6 +64,7 @@
   const snapshot = (source: AdminProduct) => ({
     basePrice: source.basePrice ?? '0.00',
     marketingRate: source.marketingRate ?? '',
+    deliveryFee: source.deliveryFee ?? '',
     rentalUnit: (source.rentalUnit ?? 'day') as RentalUnit,
   });
 
@@ -140,6 +142,7 @@
         await api.api.admin.products[':id'].$patch({
           param: { id: product.id },
           json: {
+            deliveryFee: form.deliveryFee.trim() ? form.deliveryFee : null,
             /* Each mode sends only its own figure. The other is rejected by the
                service and by a CHECK — a rental has no rate, and a fixed product
                has nothing to advertise a rate for. */
@@ -267,6 +270,12 @@
           suffix={product.currency}
         />
       {/if}
+
+      <DeliveryFeeField
+        bind:value={form.deliveryFee}
+        error={fields.deliveryFee}
+        currency={product.currency}
+      />
     </div>
 
     <!--

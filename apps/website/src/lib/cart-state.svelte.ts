@@ -322,6 +322,7 @@ export class CartState {
         lines: [],
         itemsTotal: 0,
         itemsTotalLabel: this.money(0),
+        homeDeliveryFeeLabel: null,
         droppedIds: [],
       };
       return;

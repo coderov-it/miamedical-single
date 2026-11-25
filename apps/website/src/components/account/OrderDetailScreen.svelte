@@ -55,10 +55,10 @@
   }
 
   /**
-   * A home delivery at zero is not free: it is paid to the carrier on the
-   * doorstep, outside the online payment, so the row says that instead of
-   * "0,00 €". An amount an operator recorded shows as itself. A collection
-   * genuinely is free.
+   * A priced home delivery shows its amount (charged online with the goods). One
+   * recorded at zero was left unpriced: it is paid to the carrier on the
+   * doorstep, so the row says that instead of "0,00 €". A collection genuinely
+   * is free.
    */
   function deliveryAmount(detail: CustomerOrderDetail): string {
     const settled = Number(detail.totals.shippingTotal) > 0;

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { EmailSchema } from './common.ts';
+import { EmailSchema, MoneySchema } from './common.ts';
 
 /**
  * Operator-editable platform settings. Each key in `platform_settings` has its
@@ -25,6 +25,14 @@ export const NotificationRecipientsSchema = v.pipe(
 );
 
 export type NotificationRecipientsInput = v.InferOutput<typeof NotificationRecipientsSchema>;
+
+/**
+ * Home-delivery fee for products that carry none of their own. `null` = no
+ * fallback, so such a delivery stays unpriced. See docs/code/delivery-fee.md.
+ */
+export const DeliveryFeeSettingsSchema = v.object({ fallback: v.nullable(MoneySchema) });
+
+export type DeliveryFeeSettingsInput = v.InferOutput<typeof DeliveryFeeSettingsSchema>;
 
 /** A manual database backup: the name becomes the start of the file name, so it is a slug. */
 export const ManualBackupSchema = v.object({

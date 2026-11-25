@@ -23,7 +23,7 @@ interface Props {
 }
 
 const { checkout } = Astro.props;
-const { items, itemsTotal, noPackage, currency } = checkout;
+const { items, itemsTotal, homeDeliveryFee, noPackage, currency } = checkout;
 const single = items.length === 1;
 const intl = localeTag(localeForRequest());
 
@@ -48,6 +48,7 @@ const THUMB_FALLBACK = 'bg-tint';
   aria-labelledby="checkout-overview-title"
   data-overview
   data-items-total={itemsTotal}
+  data-home-delivery-fee={homeDeliveryFee ?? undefined}
   data-currency={currency}
 >
   <h2 class={EYEBROW} id="checkout-overview-title">
@@ -196,8 +197,9 @@ const THUMB_FALLBACK = 'bg-tint';
     </span>
   </div>
 
-  {/* Repainted by the script when the delivery choice changes: a home delivery
-      adds that the carrier is paid on the doorstep. */}
+  {/* Repainted by the script when the delivery choice changes. A PRICED home
+      delivery (`data-home-delivery-fee`) is part of the amount paid now; an
+      unpriced one says the carrier is paid on the doorstep. */}
   <p class="text-ink-2 m-0 text-center text-[12.5px] leading-normal" data-overview-footnote>
     {t('payNowFootnote', { amount: formatMoney(itemsTotal, currency, intl) })}
   </p>

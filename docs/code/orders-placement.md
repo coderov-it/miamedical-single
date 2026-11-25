@@ -266,12 +266,13 @@ The package deliberately holds **no copy**. `priceRequest` returns structured ro
 the storefront through its label catalog, the admin through its own. That is why the
 server can price an order without a storefront copy catalogue.
 
-`DELIVERY_METHODS` lives there too, but it no longer holds a fee. There are two
-methods and one of them is free:
+`DELIVERY_METHODS` lives there too, with `resolveDeliveryFee`, which prices a
+delivery at placement (docs/code/delivery-fee.md). Two methods, one free:
 
 ```
-homeDelivery   NO_DELIVERY_FEE, which is '0.00' — unpriced, not free
-storePickup    NO_DELIVERY_FEE, which is '0.00' — genuinely free
+homeDelivery   highest line fee (own, else platform fallback);
+               NO_DELIVERY_FEE '0.00' when nothing resolves — unpriced, not free
+storePickup    '0.00' — genuinely free
 ```
 
 There used to be a third, `hotelDelivery`, at a flat €25 with its own two fields.
@@ -281,11 +282,15 @@ building added a branch to every layer and a way to get it wrong.
 
 ## What delivery costs, and who decides
 
-**Nothing prices delivery.** There is no quote endpoint, no zone tree, and no fee
-in any request or response at checkout. A zone ladder used to price this from the
-customer's CAP; it was dropped in favour of a per-kilometre fee that does not exist
-yet. Until it does, every order is placed at `'0.00'` and an operator writes the
-agreed amount on afterwards.
+**The server prices delivery at placement** with `resolveDeliveryFee`: the highest
+of each line's fee (the product's own, else the platform fallback), never read from
+the request body, part of `orders.total` and so charged online. The same figure goes
+into the contract the customer signs. Rule, data and worked examples:
+docs/code/delivery-fee.md.
+
+**Unpriced is still a case.** When no product has a fee and no fallback is set, the
+order is placed at `'0.00'` and an operator writes the agreed amount on afterwards.
+That flow is what the walk below shows:
 
 **A home delivery — the fee arrives after the order does.**
 

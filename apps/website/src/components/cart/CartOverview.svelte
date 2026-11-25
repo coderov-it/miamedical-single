@@ -27,9 +27,11 @@
     hasRental: boolean;
     /** Said at the button when it was pressed with an invalid line; '' for none. */
     alert: string;
+    /** Formatted home-delivery fee, or null while unpriced (then "al corriere"). */
+    deliveryFee: string | null;
   }
 
-  const { copy, total, dueToday, noPackage, hasRental, alert }: Props = $props();
+  const { copy, total, dueToday, noPackage, hasRental, alert, deliveryFee }: Props = $props();
 
   const ARROW_RIGHT = 'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3';
 </script>
@@ -54,7 +56,7 @@
     </div>
     <div class="flex justify-between gap-3">
       <span class="text-ink-2">{copy.deliveryLabel}</span>
-      <span class="text-ink-2 font-semibold">{copy.deliveryPending}</span>
+      <span class="text-ink-2 font-semibold">{deliveryFee ?? copy.deliveryPending}</span>
     </div>
   </div>
 

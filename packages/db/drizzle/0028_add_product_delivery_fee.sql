@@ -1,0 +1,2 @@
+ALTER TABLE "products" ADD COLUMN "delivery_fee" numeric(12, 2);--> statement-breakpoint
+ALTER TABLE "products" ADD CONSTRAINT "products_delivery_fee_check" CHECK ("products"."delivery_fee" IS NULL OR "products"."delivery_fee" >= 0);

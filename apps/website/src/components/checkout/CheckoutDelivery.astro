@@ -13,20 +13,19 @@
  * than markup a script has to build.
  *
  * The address is ONE free-text block. It was a regione → provincia → comune → CAP
- * cascade, which existed to key a delivery fee on the comune; nothing prices
- * delivery now, so the structure earned nothing and cost the customer four
- * controls.
+ * cascade, which existed to key a delivery fee on the comune; the fee no longer
+ * depends on the address, so the structure earned nothing and cost the customer
+ * four controls.
  *
  * A delivery option's `id` doubles as its label key: `storePickup` resolves the
  * name, `storePickupDetail` the sub-line, `storePickupShort` the order-overview
  * row. No Italian word appears in this file — see src/lib/labels.ts.
  *
- * NO FEE IS RENDERED HERE, and none is fetched either. Delivery is not priced
- * online: the card says the amount is still to agree and the panel promises the
- * call that will settle it. Both are static text — this file used to leave a slot
- * for a script to fill from a quote endpoint, and there is no longer any such
- * request, any such endpoint, or any figure for it to return. Collection is free,
- * which remains the one amount known at build time.
+ * THE FEE IS DECIDED AT RENDER, not by script. `homeDeliveryFee` comes from the
+ * server-built `Checkout` (docs/code/delivery-fee.md): priced, the home card shows
+ * the amount and the panel stays quiet; unpriced, the card says the carrier is
+ * paid on the doorstep and the panel promises the call that settles it. Collection
+ * is free either way. No request is made from the browser.
  *
  * EVERY TEXT CONTROL HERE CARRIES `data-bwignore`. It stops Bitwarden painting its
  * shield-and-lock button inside the field and hanging a suggestion menu off it —
@@ -55,9 +54,11 @@ interface Props {
   /** Whether anything in the request comes back. Without a rental the cards
       must not promise a collection or a return (CART-014). */
   hasRental?: boolean;
+  /** Formatted home-delivery fee, or null while unpriced. */
+  homeFee?: string | null;
 }
 
-const { labelStage = false, hasRental = true } = Astro.props;
+const { labelStage = false, hasRental = true, homeFee = null } = Astro.props;
 
 type CardTextKey = 'homeDelivery' | 'homeDeliveryDetail' | 'storePickupDetail' | 'choosePickupPoint';
 
@@ -66,6 +67,14 @@ type CardTextKey = 'homeDelivery' | 'homeDeliveryDetail' | 'storePickupDetail' |
 function cardText(key: CardTextKey): string {
   if (hasRental) return t(key);
   return t(`${key}Sale`);
+}
+
+/* The right-hand amount on a card: collection is free, a home delivery is its
+   fee, or the carrier line when it is unpriced. */
+function cardAmount(id: DeliveryMethodId): string {
+  if (id === 'storePickup') return t('free');
+  if (homeFee === null) return t('deliveryPaidToCarrier');
+  return homeFee;
 }
 
 /* "Ritiro in sede" names no return, so only home delivery has a sale name. */
@@ -163,12 +172,13 @@ function cardName(id: DeliveryMethodId): string {
         </span>
 
         {/*
-          Collection is free. Home delivery is paid to the carrier on the doorstep,
-          never online, and this says so in the words that fit beside an amount.
-          The sentence that explains it sits in the panel below.
+          Collection is free. A priced home delivery shows its amount, paid online
+          with the goods; an unpriced one is paid to the carrier on the doorstep and
+          says so in the words that fit beside an amount. The sentence that explains
+          it sits in the panel below.
         */}
         <strong class="ml-auto text-[15px] whitespace-nowrap tabular-nums">
-          {option.id === 'storePickup' ? t('free') : t('deliveryPaidToCarrier')}
+          {cardAmount(option.id)}
         </strong>
       </button>
 
@@ -203,12 +213,14 @@ function cardName(id: DeliveryMethodId): string {
           {/*
               What happens about the cost, in the customer's own words.
 
-              Always shown, never toggled: there is no case where a home delivery
-              has a price at checkout, so a script that revealed this only
-              sometimes would be a branch with one outcome. It is a promise of a
-              next step rather than a warning, because that is what it is.
+              Only when the delivery is unpriced — decided at render, never toggled by
+              script. A priced delivery has nothing to promise: the amount is on the
+              card. It is a promise of a next step rather than a warning, because
+              that is what it is.
             */}
-          <p class="text-ink-2 text-[13.5px] leading-[1.45]">{t('deliveryFeeOnRequest')}</p>
+          {homeFee === null && (
+            <p class="text-ink-2 text-[13.5px] leading-[1.45]">{t('deliveryFeeOnRequest')}</p>
+          )}
         </div>
       )}
 

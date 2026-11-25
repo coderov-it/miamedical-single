@@ -214,5 +214,7 @@
   "planDocument": "Document {n}",
   "planAddon": "Extra {n}",
   "planFaq": "FAQ {n}",
-  "planMissingSourceTitle": "pas de titre en {language}"
+  "planMissingSourceTitle": "pas de titre en {language}",
+  "deliveryFee": "Frais de livraison",
+  "deliveryFeeHint": "Vide = frais par défaut des paramètres"
 }

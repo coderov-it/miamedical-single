@@ -21,6 +21,7 @@ import type {
   MoneyDto,
   PageMetaDto,
   PricingDto,
+  PublicDetailPricingDto,
   PublicAddonDto,
   PublicExternalVideoDto,
   PublicMediaItemDto,
@@ -319,12 +320,13 @@ export function toPublicDetail(
   );
   const description = resolveField(requested?.description, italian?.description, locale);
 
-  const pricing: PricingDto = {
+  const pricing: PublicDetailPricingDto = {
     mode: row.pricingMode,
     rentalUnit: row.rentalUnit,
     currency: row.currency,
     price: row.basePrice,
     marketingRate: row.marketingRate,
+    deliveryFee: row.deliveryFee,
     fromPrice: startingPrice(row.basePrice, row.rentalPackages),
   };
 
@@ -541,6 +543,7 @@ export function toAdminDetail(row: ProductAggregate): AdminProductDetailDto {
     rentalUnit: row.rentalUnit,
     basePrice: row.basePrice,
     marketingRate: row.marketingRate,
+    deliveryFee: row.deliveryFee,
     currency: row.currency,
     rentalPackages: row.rentalPackages,
     chips: row.chips,

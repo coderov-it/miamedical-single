@@ -189,6 +189,7 @@
         noPackage={cart.view.noPackage}
         hasRental={cart.view.hasRental}
         alert={cart.gateAlert}
+        deliveryFee={cart.view.homeDeliveryFeeLabel}
       />
     {/if}
   </div>

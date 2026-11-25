@@ -49,6 +49,16 @@ export interface PricingDto {
   fromPrice: string | null;
 }
 
+/** The detail page's pricing: a card's, plus the product's own delivery fee. */
+export interface PublicDetailPricingDto extends PricingDto {
+  /**
+   * What a home delivery of THIS product costs, exactly as stored — no fallback
+   * applied. `null` = the product has none, so the platform fallback covers it
+   * (docs/code/delivery-fee.md).
+   */
+  deliveryFee: string | null;
+}
+
 /**
  * An add-on's price. Its own shape rather than `PricingDto`, because the two
  * differ on both counts: an add-on always has a price, and it never advertises
@@ -199,7 +209,7 @@ export interface PublicProductDetailDto {
   /** Short display claims for the hero, already resolved to `locale`. */
   chips: string[];
   category: PublicCategoryRefDto;
-  pricing: PricingDto;
+  pricing: PublicDetailPricingDto;
   /** Empty on a fixed product, and never empty on a rental one — it IS the price. */
   rentalPackages: PublicRentalPackageDto[];
   media: PublicProductMediaDto;
@@ -376,6 +386,8 @@ export interface AdminProductDetailDto {
   basePrice: string | null;
   /** Rental products only, and display copy even there. */
   marketingRate: string | null;
+  /** Home delivery fee of this product. `null` = platform fallback. */
+  deliveryFee: string | null;
   currency: string;
   /** Raw `{ it, en }` names, like every other admin field — nothing collapsed. */
   rentalPackages: RentalPackage[];

@@ -285,8 +285,9 @@ a picked comune is exact where a typed città is not. Names repeat across provin
 and 18% of Italian CAPs name more than one comune, so a guessed comune was a guessed
 price.
 
-Nothing prices delivery now. The structure was buying an exactness no longer spent
-on anything, at the cost of four controls between the customer and a finished order,
+The fee no longer depends on the address (`docs/code/delivery-fee.md`: highest of the
+products' own fees, else a platform fallback). The structure was buying an exactness
+no longer spent on anything, at the cost of four controls between the customer and a finished order,
 so it went — `0003_drop_delivery_pricing_and_geography`. A per-kilometre fee will
 geocode the free text rather than resolve a comune code.
 
@@ -356,8 +357,10 @@ what matters on this page:
 - **The CTA is "Pay and Confirm".** The POST answers with the order number and
   where to pay; the browser goes to the gateway's page at once. The order is
   written first and holds its stock until paid or expired
-  (`docs/code/online-payments.md`). The overview's footnote says what is paid now,
-  and that a home delivery is paid to the carrier.
+  (`docs/code/online-payments.md`). The overview's footnote says what is paid now.
+  A priced home delivery (`Checkout.homeDeliveryFee`, `data-home-delivery-fee`) is
+  part of it: total and pay-now are goods + fee. Only an unpriced one says it is paid
+  to the carrier. Rules: `docs/code/delivery-fee.md`.
 - **Two gates replace the CTA rather than letting it fail.** A rental with no
   resolvable duration has a daily rate and no total; a line missing a required
   choice is one the API refuses. Either way the panel names what is missing and
@@ -406,10 +409,10 @@ lasts as long as the page.
 
 ## Known gaps
 
-- **The customer leaves without knowing what delivery costs.** That is the current
-  design, not an oversight — nothing prices it — but it means the total on the
-  confirmation is not the total they will pay, and the promise to call is the only
-  thing closing that gap. Per-kilometre pricing is what fixes it.
+- **An unpriced home delivery still leaves the customer without a cost.** When no
+  product carries a fee and there is no platform fallback, the page keeps the old
+  "paid to the carrier" copy and the promise to call (`docs/code/delivery-fee.md`).
+  A priced delivery shows its amount and is charged online with the goods.
 - **The delivery address is unvalidated free text.** Six characters is the only
   rule. A customer can leave out the town, or the CAP, or both, and the order is
   accepted — the phone call is what catches it. Per-kilometre pricing will have to

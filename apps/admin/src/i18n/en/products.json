@@ -214,5 +214,7 @@
   "planDocument": "Document {n}",
   "planAddon": "Add-on {n}",
   "planFaq": "FAQ {n}",
-  "planMissingSourceTitle": "no {language} title"
+  "planMissingSourceTitle": "no {language} title",
+  "deliveryFee": "Delivery fee",
+  "deliveryFeeHint": "Empty = default fee from settings"
 }

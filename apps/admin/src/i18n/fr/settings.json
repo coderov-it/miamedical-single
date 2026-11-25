@@ -36,5 +36,9 @@
   "backupInProgress": "Sauvegarde en cours",
   "nextInHoursMinutes": "{hours} h {minutes} min",
   "nextInMinutes": "{minutes} min",
-  "nextInSeconds": "moins d'une minute"
+  "nextInSeconds": "moins d'une minute",
+  "deliveryTitle": "Livraison",
+  "deliveryDescription": "Les frais de livraison à domicile des produits sans frais propres. Un panier paie les frais les plus élevés de ses produits. Vide : la livraison reste à convenir.",
+  "deliveryFallback": "Frais de livraison par défaut",
+  "deliverySaved": "Frais de livraison enregistrés."
 }

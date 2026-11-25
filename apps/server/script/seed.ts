@@ -312,6 +312,7 @@ if (letti) {
          that 3 × 35,00 is not 89,00, which is the whole point of typing both. */
       basePrice: null,
       marketingRate: '35.00',
+      deliveryFee: '25.00',
       currency: 'EUR',
       rentalUnit: 'day',
       rentalPackages: lettoPackages,

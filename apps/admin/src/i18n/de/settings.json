@@ -36,5 +36,9 @@
   "backupInProgress": "Sicherung läuft",
   "nextInHoursMinutes": "{hours} Std. {minutes} Min.",
   "nextInMinutes": "{minutes} Min.",
-  "nextInSeconds": "weniger als einer Minute"
+  "nextInSeconds": "weniger als einer Minute",
+  "deliveryTitle": "Lieferung",
+  "deliveryDescription": "Die Gebühr für die Hauslieferung von Produkten ohne eigene Gebühr. Ein Warenkorb zahlt die höchste Gebühr seiner Produkte. Leer: Die Lieferung wird weiterhin individuell vereinbart.",
+  "deliveryFallback": "Standard-Liefergebühr",
+  "deliverySaved": "Liefergebühr gespeichert."
 }

@@ -36,5 +36,9 @@
   "backupInProgress": "Backup in progress",
   "nextInHoursMinutes": "{hours} h {minutes} min",
   "nextInMinutes": "{minutes} min",
-  "nextInSeconds": "less than a minute"
+  "nextInSeconds": "less than a minute",
+  "deliveryTitle": "Delivery",
+  "deliveryDescription": "The home-delivery fee for products without one of their own. A cart pays the highest fee among its products. Empty: delivery stays to be agreed.",
+  "deliveryFallback": "Default delivery fee",
+  "deliverySaved": "Delivery fee saved."
 }

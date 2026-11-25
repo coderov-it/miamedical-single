@@ -27,6 +27,7 @@
   import { session } from '~/lib/session.svelte';
   import { t, tn } from '~/lib/ui-text';
   import BusyButton from '~/lib/components/busy-button.svelte';
+  import DeliveryFeeSection from './delivery-fee-section.svelte';
 
   interface Recipients {
     emails: string[];
@@ -161,4 +162,6 @@
       </div>
     {/if}
   </SettingsSection>
+
+  <DeliveryFeeSection />
 </div>

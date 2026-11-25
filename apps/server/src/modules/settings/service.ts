@@ -1,7 +1,12 @@
 import type { Database } from '@mia/db';
 import { eq } from '@mia/db';
 import { platformSettings } from '@mia/db/schema';
-import { NotificationRecipientsSchema, type NotificationRecipientsInput } from '@mia/validators';
+import {
+  DeliveryFeeSettingsSchema,
+  NotificationRecipientsSchema,
+  type DeliveryFeeSettingsInput,
+  type NotificationRecipientsInput,
+} from '@mia/validators';
 import * as v from 'valibot';
 
 /**
@@ -42,6 +47,37 @@ export async function setNotificationRecipients(
       value: input,
       updatedByAdminUserId: adminUserId,
     })
+    .onConflictDoUpdate({
+      target: platformSettings.key,
+      set: { value: input, updatedByAdminUserId: adminUserId, updatedAt: new Date() },
+    });
+
+  return input;
+}
+
+export const DELIVERY_FEE_KEY = 'deliveryFee';
+
+const NO_DELIVERY_FEE_SETTINGS: DeliveryFeeSettingsInput = { fallback: null };
+
+/** The fee for products without their own — see docs/code/delivery-fee.md. */
+export async function getDeliveryFeeSettings(db: Database): Promise<DeliveryFeeSettingsInput> {
+  const row = await db.query.platformSettings.findFirst({
+    where: eq(platformSettings.key, DELIVERY_FEE_KEY),
+  });
+  if (!row) return NO_DELIVERY_FEE_SETTINGS;
+
+  const parsed = v.safeParse(DeliveryFeeSettingsSchema, row.value);
+  return parsed.success ? parsed.output : NO_DELIVERY_FEE_SETTINGS;
+}
+
+export async function setDeliveryFeeSettings(
+  db: Database,
+  input: DeliveryFeeSettingsInput,
+  adminUserId: string,
+): Promise<DeliveryFeeSettingsInput> {
+  await db
+    .insert(platformSettings)
+    .values({ key: DELIVERY_FEE_KEY, value: input, updatedByAdminUserId: adminUserId })
     .onConflictDoUpdate({
       target: platformSettings.key,
       set: { value: input, updatedByAdminUserId: adminUserId, updatedAt: new Date() },
