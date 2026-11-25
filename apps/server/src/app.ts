@@ -21,6 +21,7 @@ import {
 import { blogAdminRoutes, blogPublicRoutes } from './modules/blog/routes.ts';
 import { contractAdminRoutes, contractPublicRoutes } from './modules/contracts/routes.ts';
 import { backupAdminRoutes } from './modules/backup/routes.ts';
+import { settingsPublicRoutes } from './modules/settings/public-routes.ts';
 import { settingsAdminRoutes } from './modules/settings/routes.ts';
 import { categoryAdminRoutes, categoryPublicRoutes } from './modules/categories/routes.ts';
 import { healthRoutes } from './modules/health/routes.ts';
@@ -107,6 +108,7 @@ const routes = app
   .route('/api/products', productPublicRoutes)
   .route('/api/categories', categoryPublicRoutes)
   .route('/api/terms', termsPublicRoutes)
+  .route('/api/settings', settingsPublicRoutes)
   .route('/api/legal', legalPublicRoutes)
   .route('/api/orders', orderPublicRoutes)
   .route('/api/payments', paymentPublicRoutes)

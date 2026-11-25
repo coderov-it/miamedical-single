@@ -3,8 +3,10 @@
  * pay-now line, the confirm step's review, and the per-item accordion.
  *
  * All display, no decisions. Money here is the SERVER'S figure — the items total
- * arrives in `data-items-total`, already priced by `@mia/pricing` over the same
- * choices the order will be written from — and nothing on this page adds to it.
+ * arrives in `data-items-total` and a priced home delivery's fee in
+ * `data-home-delivery-fee`, both resolved by `@mia/pricing` over the same inputs
+ * the order will be written from. The only sum this file makes is goods + that fee,
+ * and only to paint it.
  */
 import { requestCopyKey } from '~/lib/product-mode-copy';
 
@@ -21,12 +23,17 @@ export function createSummary(context: CheckoutContext): Summary {
   /**
    * The overview's delivery row, running total and what is paid now.
    *
-   * The goods are paid online, in full; a home delivery is paid to the carrier
-   * on the doorstep (the owner's rule), so its row says so where an amount would
-   * go and the total stays the goods alone. Collection is free and says so.
+   * Three cases, from `state.delivery` and `context.homeDeliveryFee`:
+   *   - home delivery, PRICED   → the row shows the fee; total and pay-now are
+   *     goods + fee, charged online together.
+   *   - home delivery, UNPRICED → the row says it is paid to the carrier on the
+   *     doorstep; total and pay-now are the goods alone.
+   *   - collection / nothing chosen → free, goods alone.
    */
   function paintTotal(): void {
-    const carrier = state.delivery === 'homeDelivery';
+    const home = state.delivery === 'homeDelivery';
+    const fee = home ? context.homeDeliveryFee : null;
+    const payNow = context.itemsTotal + (fee ?? 0);
 
     const row = overview.querySelector<HTMLElement>('[data-overview-delivery]');
     if (row) {
@@ -35,16 +42,23 @@ export function createSummary(context: CheckoutContext): Summary {
       const amount = row.querySelector('[data-overview-delivery-fee]');
       if (rowLabel)
         rowLabel.textContent = context.deliveryShort(state.delivery) || label('delivery');
-      if (amount) amount.textContent = carrier ? label('deliveryPaidToCarrier') : label('free');
+      if (amount) amount.textContent = deliveryAmountText(home, fee);
     }
 
     const total = overview.querySelector('[data-overview-total]');
-    if (total) total.textContent = money.format(context.itemsTotal);
+    if (total) total.textContent = money.format(payNow);
 
     const footnote = overview.querySelector('[data-overview-footnote]');
-    const template = carrier ? label('payNowFootnoteCarrier') : label('payNowFootnote');
-    if (footnote)
-      footnote.textContent = template.replace('{amount}', money.format(context.itemsTotal));
+    const unpricedHome = home && fee === null;
+    const template = unpricedHome ? label('payNowFootnoteCarrier') : label('payNowFootnote');
+    if (footnote) footnote.textContent = template.replace('{amount}', money.format(payNow));
+  }
+
+  /** The delivery row's right-hand text for the three cases above. */
+  function deliveryAmountText(home: boolean, fee: number | null): string {
+    if (!home) return label('free');
+    if (fee === null) return label('deliveryPaidToCarrier');
+    return money.format(fee);
   }
 
   /** Whichever fiscal identifier the chosen identity carries, if any. */

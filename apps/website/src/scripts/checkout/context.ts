@@ -77,12 +77,20 @@ export interface CheckoutContext {
   customerTypeLabel: (id: string) => string;
   /** The server-computed items figure. The page adds nothing to it. */
   itemsTotal: number;
+  /** A priced home delivery's fee, or NULL while it is unpriced (paid to the carrier). */
+  homeDeliveryFee: number | null;
   money: Intl.NumberFormat;
   /** The order body's line items, priced and resolved on the server. */
   orderItems: unknown[];
   /** Each line's `lineKey()` in the browser cart, to clear once it is ordered. */
   cartKeys: string[];
   apiBase: string;
+}
+
+/** The overview's `data-home-delivery-fee`: a number, or null when absent or empty. */
+function parseFee(raw: string | undefined): number | null {
+  if (!raw) return null;
+  return Number(raw);
 }
 
 function parseIsland<T>(selector: string, fallback: T): T {
@@ -153,6 +161,7 @@ export function createContext(): CheckoutContext | null {
     deliveryShort: (id) => shortNames.get(id) ?? '',
     customerTypeLabel: (id) => typeLabels.get(id) ?? '',
     itemsTotal: Number(overview.dataset.itemsTotal ?? '0'),
+    homeDeliveryFee: parseFee(overview.dataset.homeDeliveryFee),
     /* An open period used to matter here: it makes the big figure a per-unit rate
        and a delivery fee must not be folded into one. Nothing is added to it now,
        so the total is the items figure whichever kind it is, and the qualifier

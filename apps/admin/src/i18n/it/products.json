@@ -214,5 +214,7 @@
   "planDocument": "Documento {n}",
   "planAddon": "Extra {n}",
   "planFaq": "FAQ {n}",
-  "planMissingSourceTitle": "nessun titolo in {language}"
+  "planMissingSourceTitle": "nessun titolo in {language}",
+  "deliveryFee": "Costo consegna",
+  "deliveryFeeHint": "Vuoto = costo predefinito dalle impostazioni"
 }

@@ -1,5 +1,5 @@
 import { P } from '@mia/permissions';
-import { NotificationRecipientsSchema } from '@mia/validators';
+import { DeliveryFeeSettingsSchema, NotificationRecipientsSchema } from '@mia/validators';
 import { Hono } from 'hono';
 
 import { currentUser, requirePermission } from '../../shared/auth/guards.ts';
@@ -32,6 +32,31 @@ export const settingsAdminRoutes = new Hono<AppEnv>()
     validate('json', NotificationRecipientsSchema),
     async (c) => {
       const data = await service.setNotificationRecipients(
+        c.get('db'),
+        c.req.valid('json'),
+        currentUser(c).id,
+      );
+      return c.json({ data });
+    },
+  )
+  /** --------------------------------------------------------------------------
+  GET /api/admin/settings/delivery (setting:read)
+  The fallback home-delivery fee for products that carry none of their own.
+  -------------------------------------------------------------------------- **/
+  .get('/delivery', requirePermission(P.SETTING_READ), async (c) => {
+    const data = await service.getDeliveryFeeSettings(c.get('db'));
+    return c.json({ data });
+  })
+  /** --------------------------------------------------------------------------
+  PUT /api/admin/settings/delivery (setting:update)
+  Replaces the fallback home-delivery fee; `null` clears it.
+  -------------------------------------------------------------------------- **/
+  .put(
+    '/delivery',
+    requirePermission(P.SETTING_UPDATE),
+    validate('json', DeliveryFeeSettingsSchema),
+    async (c) => {
+      const data = await service.setDeliveryFeeSettings(
         c.get('db'),
         c.req.valid('json'),
         currentUser(c).id,

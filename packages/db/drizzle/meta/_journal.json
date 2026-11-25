@@ -197,6 +197,13 @@
       "when": 1795427368200,
       "tag": "0027_add_db_backups",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1795501435375,
+      "tag": "0028_add_product_delivery_fee",
+      "breakpoints": true
     }
   ]
 }

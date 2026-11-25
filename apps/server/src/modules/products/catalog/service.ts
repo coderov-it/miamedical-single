@@ -258,6 +258,7 @@ export async function create(
     pricingMode: input.pricingMode,
     basePrice: input.basePrice ?? null,
     marketingRate: input.marketingRate ?? null,
+    deliveryFee: input.deliveryFee ?? null,
     currency: input.currency,
     rentalUnit: input.rentalUnit ?? null,
     /* Unlike every other pricing detail, packages cannot wait for the edit
@@ -332,6 +333,7 @@ export async function update(
   if (input.brand !== undefined) data.brand = input.brand;
   if (input.basePrice !== undefined) data.basePrice = input.basePrice;
   if (input.marketingRate !== undefined) data.marketingRate = input.marketingRate;
+  if (input.deliveryFee !== undefined) data.deliveryFee = input.deliveryFee;
   if (input.currency !== undefined) data.currency = input.currency;
   if (input.rentalUnit !== undefined) data.rentalUnit = input.rentalUnit;
   if (input.rentalPackages !== undefined) data.rentalPackages = input.rentalPackages;

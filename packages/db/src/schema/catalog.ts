@@ -161,6 +161,12 @@ export const products = pgTable(
      * total anywhere reads this column; `rentalPackages` is the whole price.
      */
     marketingRate: numeric({ precision: 12, scale: 2 }),
+    /**
+     * What a home delivery of this product costs. NULL = use the platform fallback
+     * (`platform_settings` key `deliveryFee`). The order pays the highest line fee;
+     * see docs/code/delivery-fee.md.
+     */
+    deliveryFee: numeric({ precision: 12, scale: 2 }),
     currency: text().notNull().default('EUR'),
     /** NULL exactly when `pricingMode` is `fixed` (CHECK below). */
     rentalUnit: rentalUnit(),
@@ -242,6 +248,8 @@ export const products = pgTable(
       'products_marketing_rate_check',
       sql`${t.marketingRate} IS NULL OR ${t.pricingMode} = 'rental'`,
     ),
+    /** A delivery fee is an amount owed, never a credit. */
+    check('products_delivery_fee_check', sql`${t.deliveryFee} IS NULL OR ${t.deliveryFee} >= 0`),
     /**
      * Packages ARE the rental price, so a rental product has at least one — a
      * rental with none could not be ordered, and a duration bundle on something

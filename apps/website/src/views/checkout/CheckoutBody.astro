@@ -28,9 +28,10 @@ import CheckoutStep from '~/components/checkout/CheckoutStep.astro';
 import { CTA } from '~/components/checkout/styles';
 import Breadcrumbs from '~/components/global/Breadcrumbs.astro';
 import PhoneCta from '~/components/global/PhoneCta.astro';
+import { formatMoney } from '~/lib/api';
 import { PUBLIC_API_URL } from '~/lib/api-base';
 import type { Checkout } from '~/lib/checkout';
-import { localeForRequest, translate } from '~/lib/i18n';
+import { localeForRequest, localeTag, translate } from '~/lib/i18n';
 import { t } from '~/lib/labels';
 import { productPath, routePath } from '~/lib/routes';
 import { CONTACT, CONTACT_HOURS_KEY } from '~/lib/site';
@@ -54,6 +55,10 @@ const single = items.length === 1;
  * collection to arrange, and a customer should not have to split the order to
  * say where.
  */
+let homeFeeLabel: string | null = null;
+if (checkout.homeDeliveryFee !== null) {
+  homeFeeLabel = formatMoney(checkout.homeDeliveryFee, checkout.currency, localeTag(localeForRequest()));
+}
 const hasRental = items.some((item) => item.product.pricing.mode === 'rental');
 
 /* The contract step exists only for a rental, and pushes confirmation to 4. */
@@ -132,7 +137,7 @@ function gateHref(): string {
                 forward button sits after BOTH — a "Continua" rendered above an
                 unanswered question invites the customer to skip it.
               */}
-          <CheckoutDelivery labelStage={hasRental} {hasRental} />
+          <CheckoutDelivery labelStage={hasRental} {hasRental} homeFee={homeFeeLabel} />
           {hasRental && <CheckoutReturn />}
           <button class={CTA} type="button" data-step-continue="2" hidden>
             {hasRental ? t('continueToContract') : t('continueToConfirmation')}

@@ -5,13 +5,14 @@
  */
 
 import type { Database } from '@mia/db';
-import { NO_DELIVERY_FEE } from '@mia/pricing';
+import { NO_DELIVERY_FEE, resolveDeliveryFee } from '@mia/pricing';
 import type { CheckoutDraftInput, ContractSignatureInput, PlaceOrderInput } from '@mia/validators';
 
 import { httpError } from '../../shared/http/errors.ts';
 import { renderDraft } from '../contracts/checkout.ts';
 import { type ContractTerms, contractTotals, rentalItems } from '../contracts/draft.ts';
 import { productsRequireDeposit } from '../contracts/repo.ts';
+import { getDeliveryFeeSettings } from '../settings/service.ts';
 import { deliverySnapshot, isRentedLine, resolveLines } from './placement-input.ts';
 import type { ResolvedLine } from './resolve.ts';
 
@@ -39,6 +40,28 @@ export function assertSignatureMatches(
 }
 
 /**
+ * The delivery amount an order for these lines records: the highest of each line's
+ * fee (own, else the platform fallback), `0.00` for a collection, and
+ * `NO_DELIVERY_FEE` when home delivery is unpriced. Read from the catalogue and
+ * the settings, never from the request. `place` and the contract preview both
+ * call this, so the contract shows the total the order stores.
+ * docs/code/delivery-fee.md.
+ */
+export async function shippingTotalFor(
+  db: Database,
+  method: PlaceOrderInput['delivery']['method'],
+  lines: readonly ResolvedLine[],
+): Promise<string> {
+  const { fallback } = await getDeliveryFeeSettings(db);
+  const fee = resolveDeliveryFee(
+    method,
+    lines.map((line) => line.deliveryFee),
+    fallback,
+  );
+  return fee ?? NO_DELIVERY_FEE;
+}
+
+/**
  * The contract terms for a checkout that has not been placed yet: the customer
  * block as typed, the rented lines as resolved, and — through the catalogue —
  * whether any of them is from a deposit category. `orderNumber` is filled in by
@@ -50,6 +73,7 @@ export async function contractTermsFor(
     customer: PlaceOrderInput['customer'];
     lines: ResolvedLine[];
     currency: string;
+    shippingTotal: string;
     shipTo: NonNullable<PlaceOrderInput['delivery']['address']> | null;
   },
 ): Promise<ContractTerms> {
@@ -68,8 +92,8 @@ export async function contractTermsFor(
     codiceFiscale: customer.codiceFiscale ?? null,
     partitaIva: customer.partitaIva ?? null,
     items,
-    ...contractTotals(items, NO_DELIVERY_FEE),
-    shippingTotal: NO_DELIVERY_FEE,
+    ...contractTotals(items, input.shippingTotal),
+    shippingTotal: input.shippingTotal,
     currency: input.currency,
     hasDepositProduct: await productsRequireDeposit(
       db,
@@ -96,6 +120,13 @@ export async function previewContract(
     );
   }
   const { shipTo } = deliverySnapshot(input.delivery);
-  const terms = await contractTermsFor(db, { customer: input.customer, lines, currency, shipTo });
+  const shippingTotal = await shippingTotalFor(db, input.delivery.method, lines);
+  const terms = await contractTermsFor(db, {
+    customer: input.customer,
+    lines,
+    currency,
+    shippingTotal,
+    shipTo,
+  });
   return { html: renderDraft(terms) };
 }

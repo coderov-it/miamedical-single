@@ -42,6 +42,7 @@ export interface CreateProductData {
   pricingMode: 'fixed' | 'rental';
   basePrice: string | null;
   marketingRate: string | null;
+  deliveryFee: string | null;
   currency: string;
   rentalUnit: 'hour' | 'day' | null;
   /** Non-empty on a rental product; `[]` on a fixed one. Enforced by CHECK. */
@@ -62,6 +63,8 @@ export interface UpdateProductData {
   basePrice?: string;
   /** Rental products only — the service rejects it on a fixed one. */
   marketingRate?: string | null;
+  /** Both pricing modes. `null` = use the platform fallback. */
+  deliveryFee?: string | null;
   currency?: string;
   rentalUnit?: 'hour' | 'day';
   /** Replaces the whole list, and never with an empty one — see the CHECK. */
@@ -347,6 +350,7 @@ export async function create(db: Database, data: CreateProductData): Promise<str
         pricingMode: data.pricingMode,
         basePrice: data.basePrice,
         marketingRate: data.marketingRate,
+        deliveryFee: data.deliveryFee,
         currency: data.currency,
         rentalUnit: data.rentalUnit,
         rentalPackages: data.rentalPackages,

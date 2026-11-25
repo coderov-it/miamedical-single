@@ -38,6 +38,8 @@
      * `hint` sits under the field forever and is read on every visit.
      */
     labelSuffix?: Snippet;
+    /** Opt-in: an emptied field stays empty (`''`) instead of reverting — "no amount". */
+    optional?: boolean;
   }
 
   let {
@@ -52,6 +54,7 @@
     dense = false,
     hideLabel = false,
     labelSuffix,
+    optional = false,
   }: Props = $props();
 
   const generatedId = $props.id();
@@ -73,6 +76,11 @@
    * someone is still typing "1.5" makes the field feel possessed.
    */
   function normalize() {
+    if (optional && text.trim() === '') {
+      value = '';
+      lastNormalized = '';
+      return;
+    }
     const parsed = parseMoney(text, { allowNegative });
 
     // Unparseable input reverts to the last good value rather than becoming NaN

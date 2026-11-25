@@ -112,6 +112,7 @@ const product = {
   currency: 'EUR',
   basePrice: '289.00',
   marketingRate: null,
+  deliveryFee: null,
   rentalPackages: [],
   stock: 4,
   chips: [],

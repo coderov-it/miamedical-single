@@ -16,6 +16,7 @@ import { adminUsers } from './admin-users.ts';
  *
  * Known keys:
  *   notificationRecipients  { emails: string[] }  who gets platform alerts
+ *   deliveryFee             { fallback: string | null }  home-delivery fee for products without their own
  */
 export const platformSettings = pgTable('platform_settings', {
   key: text().primaryKey(),

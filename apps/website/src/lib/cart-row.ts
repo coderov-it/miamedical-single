@@ -52,6 +52,7 @@ export function emptyView(): CartView {
     lines: [],
     itemsTotal: 0,
     itemsTotalLabel: '',
+    homeDeliveryFeeLabel: null,
     noPackage: false,
     hasRental: false,
     currency: 'EUR',

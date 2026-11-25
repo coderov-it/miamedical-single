@@ -4,7 +4,6 @@
  */
 
 import type { Database } from '@mia/db';
-import { NO_DELIVERY_FEE } from '@mia/pricing';
 import type { PlaceOrderInput } from '@mia/validators';
 
 import { FEATURES } from '../../config/features.ts';
@@ -15,7 +14,7 @@ import { issueSigned, sendSignedReceipt } from '../contracts/checkout.ts';
    way — customer-auth knows nothing about orders — which is why the helper lives
    in its own file there rather than in that module's service. */
 import { resolveForOrder } from '../customer-auth/order-account.ts';
-import { assertSignatureMatches, contractTermsFor } from './placement-contract.ts';
+import { assertSignatureMatches, contractTermsFor, shippingTotalFor } from './placement-contract.ts';
 import {
   addressSnapshot,
   deliverySnapshot,
@@ -98,17 +97,16 @@ export async function place(
   const { block, shipTo } = deliverySnapshot(input.delivery);
 
   /*
-    NO DELIVERY FEE IS SET HERE, for either method, and none is read off the
-    request body either — a crafted body must not be able to name its own shipping
-    total any more than it could when a zone ladder priced this.
-
-    Delivery is not quoted online at all now: the storefront tells the customer we
-    will contact them about it, an operator agrees an amount on the phone, and it
-    reaches the order through `update` above. So the order is placed recording the
-    part that is actually settled — the goods — and the delivery amount joins the
-    total the moment somebody agrees one. `docs/code/orders-placement.md`.
+    The delivery fee is decided HERE, from the catalogue and the settings, and
+    never read off the request body — a crafted body must not be able to name its
+    own shipping total. Each line carries its product's own fee; the platform
+    fallback covers the ones without; the highest wins, and collection is free
+    (`resolveDeliveryFee`). When nothing resolves to a fee the delivery is
+    unpriced: the order records `NO_DELIVERY_FEE` and an operator agrees the
+    amount later, as before. The fee is part of `total`, so it is charged online.
+    docs/code/delivery-fee.md, docs/code/orders-placement.md.
   */
-  const shippingTotal = NO_DELIVERY_FEE;
+  const shippingTotal = await shippingTotalFor(db, input.delivery.method, lines);
   const total = orderTotal(subtotal, shippingTotal, NO_DISCOUNT);
 
   /*
@@ -147,7 +145,13 @@ export async function place(
     — the preview they read was built by the same function from the same body.
   */
   const terms = rented
-    ? await contractTermsFor(db, { customer: input.customer, lines, currency, shipTo })
+    ? await contractTermsFor(db, {
+        customer: input.customer,
+        lines,
+        currency,
+        shippingTotal,
+        shipTo,
+      })
     : null;
   const signature = input.contractSignature;
   /* Written by the hook below, inside the transaction; read after it commits. */

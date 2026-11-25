@@ -135,6 +135,8 @@ export const CreateProductSchema = v.pipe(
     basePrice: v.optional(v.nullable(MoneySchema)),
     /** Rental products only, and display copy even there. */
     marketingRate: v.optional(v.nullable(MoneySchema)),
+    /** Both pricing modes. NULL = use the platform fallback (docs/code/delivery-fee.md). */
+    deliveryFee: v.optional(v.nullable(MoneySchema)),
     currency: v.optional(CurrencySchema, 'EUR'),
     rentalUnit: v.optional(v.nullable(RentalUnitSchema)),
     /**
@@ -197,6 +199,8 @@ export const UpdateProductSchema = v.pipe(
       basePrice: MoneySchema,
       /** Rejected on a fixed product by the service. Display copy, never priced. */
       marketingRate: v.nullable(MoneySchema),
+      /** Both pricing modes. NULL = use the platform fallback. */
+      deliveryFee: v.nullable(MoneySchema),
       currency: CurrencySchema,
       /** hour ↔ day is legal on a rental product; the service rejects it on fixed. */
       rentalUnit: RentalUnitSchema,

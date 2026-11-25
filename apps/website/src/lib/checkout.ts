@@ -120,6 +120,13 @@ export interface Checkout {
    */
   itemsTotal: string;
   /**
+   * What a home delivery of these items costs, as a two-decimal money string, or
+   * `null` while it is unpriced (no product fee and no platform fallback). The
+   * order is charged `itemsTotal + homeDeliveryFee` when set. Display only — the
+   * server re-resolves it. Rules: docs/code/delivery-fee.md
+   */
+  homeDeliveryFee: string | null;
+  /**
    * A rental item with no package picked, so it has no price and the order cannot
    * be placed. The confirm step swaps its CTA for a "pick a package" notice while
    * this holds.

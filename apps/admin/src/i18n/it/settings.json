@@ -36,5 +36,9 @@
   "backupInProgress": "Backup in corso",
   "nextInHoursMinutes": "{hours} h {minutes} min",
   "nextInMinutes": "{minutes} min",
-  "nextInSeconds": "meno di un minuto"
+  "nextInSeconds": "meno di un minuto",
+  "deliveryTitle": "Consegna",
+  "deliveryDescription": "Il costo della consegna a domicilio per i prodotti che non ne hanno uno proprio. Sul carrello si applica il più alto tra i prodotti. Vuoto: la consegna resta da concordare.",
+  "deliveryFallback": "Costo di consegna predefinito",
+  "deliverySaved": "Costo di consegna salvato."
 }

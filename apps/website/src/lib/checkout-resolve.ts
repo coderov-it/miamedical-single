@@ -17,6 +17,7 @@ import {
   estimate,
   splitItemParams,
 } from './checkout.ts';
+import { getDeliveryFallback, homeDeliveryFee } from './delivery-fee.ts';
 import { localeForRequest } from './i18n.ts';
 import { FIELD, type ResolvedRequest, resolveRequest } from './request-config.ts';
 import { todayInRome } from './rome-today.ts';
@@ -144,10 +145,15 @@ export async function resolveCheckout(params: URLSearchParams): Promise<Checkout
   const today = todayInRome();
   const stale = items.find((item) => item.request.startDate !== '' && item.request.startDate < today) ?? null;
   const unpriced = items.find((item) => item.noPackage) ?? null;
+  const fallback = await getDeliveryFallback();
 
   return {
     items,
     itemsTotal: sumMoney(items.map((item) => item.total)),
+    homeDeliveryFee: homeDeliveryFee(
+      items.map((item) => item.product),
+      fallback,
+    ),
     noPackage: unpriced !== null,
     blocked: blockedReason(unavailable > 0, incomplete !== null, stale !== null, unpriced !== null),
     blockedItem: incomplete ?? stale ?? unpriced,

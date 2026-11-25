@@ -102,6 +102,8 @@ export interface ResolvedLine {
   unitPrice: string;
   total: string;
   currency: string;
+  /** The product's OWN delivery fee (no fallback applied) — see resolveDeliveryFee. */
+  deliveryFee: string | null;
   configuration: OrderItemConfiguration;
 }
 
@@ -356,6 +358,7 @@ export function resolveLine(
     unitPrice: priced.unitRate,
     total: priced.total,
     currency: product.pricing.currency,
+    deliveryFee: product.pricing.deliveryFee,
     configuration: {
       productId: product.id,
       productSlug: product.slug,
